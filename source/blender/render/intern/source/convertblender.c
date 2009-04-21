@@ -1437,7 +1437,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	Object *ob= obr->ob;
 	Object *tob=0;
 	Material *ma=0;
-	MTFace *mtface;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *tpsys=0;
 	ParticleSettings *part, *tpart=0;

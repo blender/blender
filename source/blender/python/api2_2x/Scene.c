@@ -85,7 +85,7 @@ struct View3D;
 
 
 #include "BKE_utildefines.h" /* vec copy */
-#include "vector.h"
+#include "Mathutils.h"
 
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 

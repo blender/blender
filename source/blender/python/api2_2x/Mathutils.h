@@ -36,13 +36,10 @@
 #include "matrix.h"
 #include "quat.h"
 #include "euler.h"
-#include "point.h"
 
 PyObject *Mathutils_Init( const char * from );
 PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
 PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
-PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat);
-PyObject *column_point_multiplication(MatrixObject * mat, PointObject* pt);
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 
 PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args);
@@ -69,7 +66,6 @@ PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args );
-PyObject *M_Mathutils_Point(PyObject * self, PyObject * args);
 //DEPRECATED	
 PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args);
@@ -78,5 +74,26 @@ PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args);
+
+int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
+int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
+
+
+#define Py_PI  3.14159265358979323846
+#define Py_WRAP 1024
+#define Py_NEW  2048
+
+
+/* Allow us to build with Py3k */
+#if (PY_VERSION_HEX >= 0x03000000)
+#define PyString_FromString PyUnicode_FromString
+#define intobjargproc ssizeobjargproc
+#define intintobjargproc ssizessizeobjargproc
+#define intargfunc ssizeargfunc
+#define intintargfunc ssizessizeargfunc
+
+
+#endif
+
 
 #endif				/* EXPP_Mathutils_H */

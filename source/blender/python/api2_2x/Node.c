@@ -40,7 +40,7 @@
 
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
-#include "vector.h"
+#include "Mathutils.h"
 
 static PyObject *Node_repr( BPy_Node * self );
 static int Node_compare(BPy_Node *a, BPy_Node *b);

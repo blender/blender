@@ -31,7 +31,6 @@
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
-#include "gen_utils.h"
 
 
 //-------------------------DOC STRINGS ---------------------------
@@ -84,7 +83,8 @@ PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 PyObject *Quaternion_Normalize(QuaternionObject * self)
 {
 	NormalQuat(self->quat);
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 //----------------------------Quaternion.inverse()------------------
 //invert the quat
@@ -104,7 +104,8 @@ PyObject *Quaternion_Inverse(QuaternionObject * self)
 		self->quat[x] /= (float)(mag * mag);
 	}
 
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 //----------------------------Quaternion.identity()-----------------
 //generate the identity quaternion
@@ -115,7 +116,8 @@ PyObject *Quaternion_Identity(QuaternionObject * self)
 	self->quat[2] = 0.0;
 	self->quat[3] = 0.0;
 
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 //----------------------------Quaternion.negate()-------------------
 //negate the quat
@@ -125,7 +127,8 @@ PyObject *Quaternion_Negate(QuaternionObject * self)
 	for(x = 0; x < 4; x++) {
 		self->quat[x] = -self->quat[x];
 	}
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 //----------------------------Quaternion.conjugate()----------------
 //negate the vector part
@@ -135,7 +138,8 @@ PyObject *Quaternion_Conjugate(QuaternionObject * self)
 	for(x = 1; x < 4; x++) {
 		self->quat[x] = -self->quat[x];
 	}
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 //----------------------------Quaternion.copy()----------------
 //return a copy of the quat
@@ -216,9 +220,10 @@ static int Quaternion_len(QuaternionObject * self)
 //sequence accessor (get)
 static PyObject *Quaternion_item(QuaternionObject * self, int i)
 {
-	if(i < 0 || i >= 4)
-		return EXPP_ReturnPyObjError(PyExc_IndexError,
-		"quaternion[attribute]: array index out of range\n");
+	if(i < 0 || i >= 4) {
+		PyErr_SetString(PyExc_IndexError, "quaternion[attribute]: array index out of range\n");
+		return NULL;
+	}
 	return PyFloat_FromDouble(self->quat[i]);
 
 }
@@ -230,14 +235,14 @@ static int Quaternion_ass_item(QuaternionObject * self, int i, PyObject * ob)
 
 	f = PyNumber_Float(ob);
 	if(f == NULL) { // parsed item not a number
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"quaternion[attribute] = x: argument not a number\n");
+		PyErr_SetString(PyExc_TypeError, "quaternion[attribute] = x: argument not a number\n");
+		return -1;
 	}
 
 	if(i < 0 || i >= 4){
 		Py_DECREF(f);
-		return EXPP_ReturnIntError(PyExc_IndexError,
-			"quaternion[attribute] = x: array assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "quaternion[attribute] = x: array assignment index out of range\n");
+		return -1;
 	}
 	self->quat[i] = (float)PyFloat_AS_DOUBLE(f);
 	Py_DECREF(f);
@@ -279,26 +284,27 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end,
 
 	size = PySequence_Length(seq);
 	if(size != (end - begin)){
-		return EXPP_ReturnIntError(PyExc_TypeError,
-			"quaternion[begin:end] = []: size mismatch in slice assignment\n");
+		PyErr_SetString(PyExc_TypeError, "quaternion[begin:end] = []: size mismatch in slice assignment\n");
+		return -1;
 	}
 
 	for (i = 0; i < size; i++) {
 		q = PySequence_GetItem(seq, i);
 		if (q == NULL) { // Failed to read sequence
-			return EXPP_ReturnIntError(PyExc_RuntimeError, 
-				"quaternion[begin:end] = []: unable to read sequence\n");
+			PyErr_SetString(PyExc_RuntimeError, "quaternion[begin:end] = []: unable to read sequence\n");
+			return -1;
 		}
 
 		f = PyNumber_Float(q);
 		if(f == NULL) { // parsed item not a number
 			Py_DECREF(q);
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"quaternion[begin:end] = []: sequence argument not a number\n");
+			PyErr_SetString(PyExc_TypeError, "quaternion[begin:end] = []: sequence argument not a number\n");
+			return -1;
 		}
 
 		quat[i] = (float)PyFloat_AS_DOUBLE(f);
-		EXPP_decr2(f,q);
+		Py_DECREF(f);
+		Py_DECREF(q);
 	}
 	//parsed well - now set in vector
 	for(y = 0; y < size; y++){
@@ -319,8 +325,8 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 	quat2 = (QuaternionObject*)q2;
 
 	if(quat1->coerced_object || quat2->coerced_object){
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Quaternion addition: arguments not valid for this operation....\n");
+		PyErr_SetString(PyExc_AttributeError, "Quaternion addition: arguments not valid for this operation....\n");
+		return NULL;
 	}
 	for(x = 0; x < 4; x++) {
 		quat[x] = quat1->quat[x] + quat2->quat[x];
@@ -340,8 +346,8 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 	quat2 = (QuaternionObject*)q2;
 
 	if(quat1->coerced_object || quat2->coerced_object){
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Quaternion addition: arguments not valid for this operation....\n");
+		PyErr_SetString(PyExc_AttributeError, "Quaternion addition: arguments not valid for this operation....\n");
+		return NULL;
 	}
 	for(x = 0; x < 4; x++) {
 		quat[x] = quat1->quat[x] - quat2->quat[x];
@@ -359,7 +365,6 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 	PyObject *f = NULL;
 	VectorObject *vec = NULL;
-	PointObject *pt = NULL;
 
 	quat1 = (QuaternionObject*)q1;
 	quat2 = (QuaternionObject*)q2;
@@ -369,8 +374,8 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 			PyInt_Check(quat1->coerced_object)){	// FLOAT/INT * QUAT
 			f = PyNumber_Float(quat1->coerced_object);
 			if(f == NULL) { // parsed item not a number
-				return EXPP_ReturnPyObjError(PyExc_TypeError, 
-					"Quaternion multiplication: arguments not acceptable for this operation\n");
+				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
+				return NULL;
 			}
 
 			scalar = (float)PyFloat_AS_DOUBLE(f);
@@ -386,8 +391,8 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				PyInt_Check(quat2->coerced_object)){	// QUAT * FLOAT/INT
 				f = PyNumber_Float(quat2->coerced_object);
 				if(f == NULL) { // parsed item not a number
-					return EXPP_ReturnPyObjError(PyExc_TypeError, 
-						"Quaternion multiplication: arguments not acceptable for this operation\n");
+					PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
+					return NULL;
 				}
 
 				scalar = (float)PyFloat_AS_DOUBLE(f);
@@ -399,17 +404,10 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 			}else if(VectorObject_Check(quat2->coerced_object)){  //QUAT * VEC
 				vec = (VectorObject*)quat2->coerced_object;
 				if(vec->size != 3){
-					return EXPP_ReturnPyObjError(PyExc_TypeError, 
-						"Quaternion multiplication: only 3D vector rotations currently supported\n");
+					PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
+					return NULL;
 				}
 				return quat_rotation((PyObject*)quat1, (PyObject*)vec);
-			}else if(PointObject_Check(quat2->coerced_object)){  //QUAT * POINT
-				pt = (PointObject*)quat2->coerced_object;
-				if(pt->size != 3){
-					return EXPP_ReturnPyObjError(PyExc_TypeError, 
-						"Quaternion multiplication: only 3D point rotations currently supported\n");
-				}
-				return quat_rotation((PyObject*)quat1, (PyObject*)pt);
 			}
 		}else{  //QUAT * QUAT (dot product)
 			for(x = 0; x < 4; x++) {
@@ -419,8 +417,8 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 		}
 	}
 
-	return EXPP_ReturnPyObjError(PyExc_TypeError, 
-		"Quaternion multiplication: arguments not acceptable for this operation\n");
+	PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
+	return NULL;
 }
 //------------------------coerce(obj, obj)-----------------------
 //coercion of unknown types to type QuaternionObject for numeric protocols
@@ -432,17 +430,18 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
  then call vector.multiply(vector, scalar_cast_as_vector)*/
 static int Quaternion_coerce(PyObject ** q1, PyObject ** q2)
 {
-	if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2) ||
-			PointObject_Check(*q2)) {
-		PyObject *coerced = EXPP_incr_ret(*q2);
+	if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2)) {
+		PyObject *coerced = (PyObject *)(*q2);
+		Py_INCREF(coerced);
+		
 		*q2 = newQuaternionObject(NULL,Py_NEW);
 		((QuaternionObject*)*q2)->coerced_object = coerced;
 		Py_INCREF (*q1);
 		return 0;
 	}
 
-	return EXPP_ReturnIntError(PyExc_TypeError, 
-		"quaternion.coerce(): unknown operand - can't coerce for numeric protocols");
+	PyErr_SetString(PyExc_TypeError, "quaternion.coerce(): unknown operand - can't coerce for numeric protocols");
+	return -1;
 }
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
@@ -503,10 +502,10 @@ static int Quaternion_setAxis( QuaternionObject * self, PyObject * value, void *
 {
 	float param= (float)PyFloat_AsDouble( value );
 	
-	if (param==-1 && PyErr_Occurred())
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"expected a number for the vector axis" );
-	
+	if (param==-1 && PyErr_Occurred()) {
+		PyErr_SetString( PyExc_TypeError, "expected a number for the vector axis" );
+		return -1;
+	}
 	switch( (long)type ) {
     case 'W':
 		self->quat[0]= param;

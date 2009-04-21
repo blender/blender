@@ -30,7 +30,6 @@
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
-#include "gen_utils.h"
 
 
 /*-------------------------DOC STRINGS ---------------------------*/
@@ -40,7 +39,6 @@ char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
 char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
 char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
 char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
-char Vector_toPoint_doc[] = "() - create a new Point Object from this vector";
 char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
 char Vector_reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
 char Vector_copy_doc[] = "() - return a copy of the vector";
@@ -52,7 +50,6 @@ struct PyMethodDef Vector_methods[] = {
 	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
-	{"toPoint", (PyCFunction) Vector_toPoint, METH_NOARGS, Vector_toPoint_doc},
 	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
 	{"reflect", ( PyCFunction ) Vector_reflect, METH_O, Vector_reflect_doc},
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
@@ -61,23 +58,6 @@ struct PyMethodDef Vector_methods[] = {
 };
 
 /*-----------------------------METHODS----------------------------
-  --------------------------Vector.toPoint()----------------------
-  create a new point object to represent this vector */
-PyObject *Vector_toPoint(VectorObject * self)
-{
-	float coord[3];
-	int i;
-
-	if(self->size < 2 || self->size > 3) {
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector.toPoint(): inappropriate vector size - expects 2d or 3d vector\n");
-	} 
-	for(i = 0; i < self->size; i++){
-		coord[i] = self->vec[i];
-	}
-	
-	return newPointObject(coord, self->size, Py_NEW);
-}
 /*----------------------------Vector.zero() ----------------------
   set the vector data to 0,0,0 */
 PyObject *Vector_Zero(VectorObject * self)
@@ -86,7 +66,8 @@ PyObject *Vector_Zero(VectorObject * self)
 	for(i = 0; i < self->size; i++) {
 		self->vec[i] = 0.0f;
 	}
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 /*----------------------------Vector.normalize() -----------------
   normalize the vector data to a unit vector */
@@ -102,7 +83,8 @@ PyObject *Vector_Normalize(VectorObject * self)
 	for(i = 0; i < self->size; i++) {
 		self->vec[i] /= norm;
 	}
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 
 
@@ -110,50 +92,54 @@ PyObject *Vector_Normalize(VectorObject * self)
   resize the vector to x,y */
 PyObject *Vector_Resize2D(VectorObject * self)
 {
-	if(self->wrapped==Py_WRAP)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"vector.resize2d(): cannot resize wrapped data - only python vectors\n");
-
+	if(self->wrapped==Py_WRAP) {
+		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize wrapped data - only python vectors\n");
+		return NULL;
+	}
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
-	if(self->vec == NULL)
-		return EXPP_ReturnPyObjError(PyExc_MemoryError,
-			"vector.resize2d(): problem allocating pointer space\n\n");
+	if(self->vec == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "vector.resize2d(): problem allocating pointer space\n\n");
+		return NULL;
+	}
 	
 	self->size = 2;
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 /*----------------------------Vector.resize3D() ------------------
   resize the vector to x,y,z */
 PyObject *Vector_Resize3D(VectorObject * self)
 {
-	if (self->wrapped==Py_WRAP)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"vector.resize3d(): cannot resize wrapped data - only python vectors\n");
-
+	if (self->wrapped==Py_WRAP) {
+		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize wrapped data - only python vectors\n");
+		return NULL;
+	}
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
-	if(self->vec == NULL)
-		return EXPP_ReturnPyObjError(PyExc_MemoryError,
-			"vector.resize3d(): problem allocating pointer space\n\n");
+	if(self->vec == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "vector.resize3d(): problem allocating pointer space\n\n");
+		return NULL;
+	}
 	
 	if(self->size == 2)
 		self->vec[2] = 0.0f;
 	
 	self->size = 3;
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 /*----------------------------Vector.resize4D() ------------------
   resize the vector to x,y,z,w */
 PyObject *Vector_Resize4D(VectorObject * self)
 {
-	if(self->wrapped==Py_WRAP)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"vector.resize4d(): cannot resize wrapped data - only python vectors\n");
-
+	if(self->wrapped==Py_WRAP) {
+		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize wrapped data - only python vectors");
+		return NULL;
+	}
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
-	if(self->vec == NULL)
-		return EXPP_ReturnPyObjError(PyExc_MemoryError,
-			"vector.resize4d(): problem allocating pointer space\n\n");
-	
+	if(self->vec == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "vector.resize4d(): problem allocating pointer space\n\n");
+		return NULL;
+	}
 	if(self->size == 2){
 		self->vec[2] = 0.0f;
 		self->vec[3] = 1.0f;
@@ -161,7 +147,8 @@ PyObject *Vector_Resize4D(VectorObject * self)
 		self->vec[3] = 1.0f;
 	}
 	self->size = 4;
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 /*----------------------------Vector.toTrackQuat(track, up) ----------------------
   extract a quaternion from the vector and the track and up axis */
@@ -172,11 +159,12 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	short track = 2, up = 1;
 
 	if( !PyArg_ParseTuple ( args, "|ss", &strack, &sup ) ) {
-		return EXPP_ReturnPyObjError( PyExc_TypeError, 
-			"expected optional two strings\n" );
+		PyErr_SetString( PyExc_TypeError, "expected optional two strings\n" );
+		return NULL;
 	}
 	if (self->size != 3) {
-		return EXPP_ReturnPyObjError( PyExc_TypeError, "only for 3D vectors\n" );
+		PyErr_SetString( PyExc_TypeError, "only for 3D vectors\n" );
+		return NULL;
 	}
 
 	if (strack) {
@@ -196,13 +184,13 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 						track = 5;
 						break;
 					default:
-						return EXPP_ReturnPyObjError( PyExc_ValueError,
-										  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+						PyErr_SetString( PyExc_ValueError, "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+						return NULL;
 				}
 			}
 			else {
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-								  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+				PyErr_SetString( PyExc_ValueError, "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+				return NULL;
 			}
 		}
 		else if (strlen(strack) == 1) {
@@ -221,13 +209,13 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 				track = 2;
 				break;
 			default:
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-								  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+				PyErr_SetString( PyExc_ValueError, "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+				return NULL;
 			}
 		}
 		else {
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-							  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+			PyErr_SetString( PyExc_ValueError, "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+			return NULL;
 		}
 	}
 
@@ -247,19 +235,19 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 				up = 2;
 				break;
 			default:
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-								  "only X, Y or Z for up axis\n" );
+				PyErr_SetString( PyExc_ValueError, "only X, Y or Z for up axis\n" );
+				return NULL;
 			}
 		}
 		else {
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-							  "only X, Y or Z for up axis\n" );
+			PyErr_SetString( PyExc_ValueError, "only X, Y or Z for up axis\n" );
+			return NULL;
 		}
 	}
 
 	if (track == up) {
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-						      "Can't have the same axis for track and up\n" );
+		PyErr_SetString( PyExc_ValueError, "Can't have the same axis for track and up\n" );
+		return NULL;
 	}
 
 	/*
@@ -291,9 +279,10 @@ PyObject *Vector_reflect( VectorObject * self, PyObject * value )
 	int i;
 	float norm = 0.0f;
 	
-	if (!VectorObject_Check(value)) 
-		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a vector argument" );
-	
+	if (!VectorObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "expected a vector argument" );
+		return NULL;
+	}
 	mirrvec = (VectorObject *)value;
 	
 	mirror[0] = mirrvec->vec[0];
@@ -375,9 +364,10 @@ static int Vector_len(VectorObject * self)
   sequence accessor (get)*/
 static PyObject *Vector_item(VectorObject * self, int i)
 {
-	if(i < 0 || i >= self->size)
-		return EXPP_ReturnPyObjError(PyExc_IndexError,
-		"vector[index]: out of range\n");
+	if(i < 0 || i >= self->size) {
+		PyErr_SetString(PyExc_IndexError,"vector[index]: out of range\n");
+		return NULL;
+	}
 
 	return PyFloat_FromDouble(self->vec[i]);
 
@@ -388,13 +378,13 @@ static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 {
 	
 	if(!(PyNumber_Check(ob))) { /* parsed item not a number */
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"vector[index] = x: index argument not a number\n");
+		PyErr_SetString(PyExc_TypeError, "vector[index] = x: index argument not a number\n");
+		return -1;
 	}
 
 	if(i < 0 || i >= self->size){
-		return EXPP_ReturnIntError(PyExc_IndexError,
-			"vector[index] = x: assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range\n");
+		return -1;
 	}
 	self->vec[i] = (float)PyFloat_AsDouble(ob);
 	return 0;
@@ -436,21 +426,21 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 
 	size = PySequence_Length(seq);
 	if(size != (end - begin)){
-		return EXPP_ReturnIntError(PyExc_TypeError,
-			"vector[begin:end] = []: size mismatch in slice assignment\n");
+		PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: size mismatch in slice assignment\n");
+		return -1;
 	}
 
 	for (i = 0; i < size; i++) {
 		v = PySequence_GetItem(seq, i);
 		if (v == NULL) { /* Failed to read sequence */
-			return EXPP_ReturnIntError(PyExc_RuntimeError, 
-				"vector[begin:end] = []: unable to read sequence\n");
+			PyErr_SetString(PyExc_RuntimeError, "vector[begin:end] = []: unable to read sequence\n");
+			return -1;
 		}
 		
 		if(!PyNumber_Check(v)) { /* parsed item not a number */
 			Py_DECREF(v);
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"vector[begin:end] = []: sequence argument not a number\n");
+			PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: sequence argument not a number\n");
+			return -1;
 		}
 
 		vec[i] = (float)PyFloat_AsDouble(v);
@@ -481,33 +471,18 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2 ) {
 		/*VECTOR + VECTOR*/
-		if(vec1->size != vec2->size)
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector addition: vectors must have the same dimensions for this operation\n");
-		
+		if(vec1->size != vec2->size) {
+			PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
+			return NULL;
+		}
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] +	vec2->vec[i];
 		}
 		return newVectorObject(vec, vec1->size, Py_NEW);
 	}
 	
-	if(PointObject_Check(v2)){  /*VECTOR + POINT*/
-		/*Point translation*/
-		PointObject *pt = (PointObject*)v2;
-		
-		if(pt->size == vec1->size){
-			for(i = 0; i < vec1->size; i++){
-				vec[i] = vec1->vec[i] + pt->coord[i];
-			}
-		}else{
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"Vector addition: arguments are the wrong size....\n");
-		}
-		return newPointObject(vec, vec1->size, Py_NEW);
-	}
-	
-	return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector addition: arguments not valid for this operation....\n");
+	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
+	return NULL;
 }
 
 /*  ------------------------obj += obj------------------------------
@@ -527,10 +502,10 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2 ) {
 		/*VECTOR + VECTOR*/
-		if(vec1->size != vec2->size)
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector addition: vectors must have the same dimensions for this operation\n");
-		
+		if(vec1->size != vec2->size) {
+			PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
+			return NULL;
+		}
 		for(i = 0; i < vec1->size; i++) {
 			vec1->vec[i] +=	vec2->vec[i];
 		}
@@ -538,24 +513,8 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 		return v1;
 	}
 	
-	if(PointObject_Check(v2)){  /*VECTOR + POINT*/
-		/*Point translation*/
-		PointObject *pt = (PointObject*)v2;
-		
-		if(pt->size == vec1->size){
-			for(i = 0; i < vec1->size; i++){
-				vec1->vec[i] += pt->coord[i];
-			}
-		}else{
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"Vector addition: arguments are the wrong size....\n");
-		}
-		Py_INCREF( v1 );
-		return v1;
-	}
-	
-	return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector addition: arguments not valid for this operation....\n");
+	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
+	return NULL;
 }
 
 /*------------------------obj - obj------------------------------
@@ -566,17 +525,17 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	float vec[4];
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
-	if (!VectorObject_Check(v1) || !VectorObject_Check(v2))
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector subtraction: arguments not valid for this operation....\n");
-	
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: arguments not valid for this operation....\n");
+		return NULL;
+	}
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 	
-	if(vec1->size != vec2->size)
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector subtraction: vectors must have the same dimensions for this operation\n");
-	
+	if(vec1->size != vec2->size) {
+		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: vectors must have the same dimensions for this operation\n");
+		return NULL;
+	}
 	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] -	vec2->vec[i];
 	}
@@ -591,16 +550,17 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 	int i, size;
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
-	if (!VectorObject_Check(v1) || !VectorObject_Check(v2))
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector subtraction: arguments not valid for this operation....\n");
-	
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: arguments not valid for this operation....\n");
+		return NULL;
+	}
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 	
-	if(vec1->size != vec2->size)
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector subtraction: vectors must have the same dimensions for this operation\n");
+	if(vec1->size != vec2->size) {
+		PyErr_SetString(PyExc_AttributeError, "Vector subtraction: vectors must have the same dimensions for this operation\n");
+		return NULL;
+	}
 
 	size = vec1->size;
 	for(i = 0; i < vec1->size; i++) {
@@ -628,9 +588,10 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		int i;
 		double dot = 0.0f;
 		
-		if(vec1->size != vec2->size)
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector multiplication: vectors must have the same dimensions for this operation\n");
+		if(vec1->size != vec2->size) {
+			PyErr_SetString(PyExc_AttributeError, "Vector multiplication: vectors must have the same dimensions for this operation\n");
+			return NULL;
+		}
 		
 		/*dot product*/
 		for(i = 0; i < vec1->size; i++) {
@@ -664,15 +625,15 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
 		QuaternionObject *quat = (QuaternionObject*)v2;
-		if(vec1->size != 3)
-			return EXPP_ReturnPyObjError(PyExc_TypeError, 
-				"Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
-		
+		if(vec1->size != 3) {
+			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
+			return NULL;
+		}
 		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
 	}
 	
-	return EXPP_ReturnPyObjError(PyExc_TypeError,
-		"Vector multiplication: arguments not acceptable for this operation\n");
+	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
+	return NULL;
 }
 
 /*------------------------obj *= obj------------------------------
@@ -702,8 +663,8 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		
 		if(mat->colSize != size){
 			if(mat->rowSize == 4 && vec->size != 3){
-				return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-					"vector * matrix: matrix column size and the vector size must be the same");
+				PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
+				return NULL;
 			} else {
 				vecCopy[3] = 1.0f;
 			}
@@ -726,8 +687,8 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		Py_INCREF( v1 );
 		return v1;
 	}
-	return EXPP_ReturnPyObjError(PyExc_TypeError,
-		"Vector multiplication: arguments not acceptable for this operation\n");
+	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
+	return NULL;
 }
 
 /*------------------------obj / obj------------------------------
@@ -738,22 +699,22 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	float vec[4], scalar;
 	VectorObject *vec1 = NULL;
 	
-	if(!VectorObject_Check(v1)) /* not a vector */
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"Vector division: Vector must be divided by a float\n");
-	
+	if(!VectorObject_Check(v1)) { /* not a vector */
+		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
+		return NULL;
+	}
 	vec1 = (VectorObject*)v1; /* vector */
 	
-	if(!PyNumber_Check(v2)) /* parsed item not a number */
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"Vector division: Vector must be divided by a float\n");
-
+	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
+		return NULL;
+	}
 	scalar = (float)PyFloat_AsDouble(v2);
 	
-	if(scalar==0.0) /* not a vector */
-		return EXPP_ReturnPyObjError(PyExc_ZeroDivisionError, 
-			"Vector division: divide by zero error.\n");
-	
+	if(scalar==0.0) { /* not a vector */
+		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
+		return NULL;
+	}
 	size = vec1->size;
 	for(i = 0; i < size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
@@ -769,22 +730,24 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	float scalar;
 	VectorObject *vec1 = NULL;
 	
-	/*if(!VectorObject_Check(v1))
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"Vector division: Vector must be divided by a float\n");*/
+	/*if(!VectorObject_Check(v1)) {
+		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
+		return -1;
+	}*/
 	
 	vec1 = (VectorObject*)v1; /* vector */
 	
-	if(!PyNumber_Check(v2)) /* parsed item not a number */
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"Vector division: Vector must be divided by a float\n");
+	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
+		return NULL;
+	}
 
 	scalar = (float)PyFloat_AsDouble(v2);
 	
-	if(scalar==0.0) /* not a vector */
-		return EXPP_ReturnPyObjError(PyExc_ZeroDivisionError, 
-			"Vector division: divide by zero error.\n");
-	
+	if(scalar==0.0) { /* not a vector */
+		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
+		return NULL;
+	}
 	size = vec1->size;
 	for(i = 0; i < size; i++) {
 		vec1->vec[i] /=	scalar;
@@ -854,9 +817,9 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 
 	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)){
 		if (comparison_type == Py_NE){
-			return EXPP_incr_ret(Py_True); 
+			Py_RETURN_TRUE;
 		}else{
-			return EXPP_incr_ret(Py_False);
+			Py_RETURN_FALSE;
 		}
 	}
 	vecA = (VectorObject*)objectA;
@@ -864,9 +827,9 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 
 	if (vecA->size != vecB->size){
 		if (comparison_type == Py_NE){
-			return EXPP_incr_ret(Py_True); 
+			Py_RETURN_TRUE;
 		}else{
-			return EXPP_incr_ret(Py_False);
+			Py_RETURN_FALSE;
 		}
 	}
 
@@ -919,9 +882,9 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 			break;
 	}
 	if (result == 1){
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	}else{
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 	}
 }
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
@@ -1003,23 +966,24 @@ static PyObject *Vector_getAxis( VectorObject * self, void *type )
     case 'Y':
 		return PyFloat_FromDouble(self->vec[1]);
     case 'Z':	/* these are backwards, but that how it works */
-		if(self->size < 3)
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"vector.z: error, cannot get this axis for a 2D vector\n");
-		else
+		if(self->size < 3) {
+			PyErr_SetString(PyExc_AttributeError, "vector.z: error, cannot get this axis for a 2D vector\n");
+			return NULL;
+		}
+		else {
 			return PyFloat_FromDouble(self->vec[2]);
+		}
     case 'W':
-		if(self->size < 4)
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"vector.w: error, cannot get this axis for a 3D vector\n");
+		if(self->size < 4) {
+			PyErr_SetString(PyExc_AttributeError, "vector.w: error, cannot get this axis for a 3D vector\n");
+			return NULL;
+		}
 	
 		return PyFloat_FromDouble(self->vec[3]);
 	default:
 		{
-			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in Vector_getAxis",
-					(int)((long)type & 0xff));
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError, errstr );
+			PyErr_SetString( PyExc_RuntimeError, "undefined type in Vector_getAxis" );
+			return NULL;
 		}
 	}
 }
@@ -1028,10 +992,10 @@ static int Vector_setAxis( VectorObject * self, PyObject * value, void * type )
 {
 	float param= (float)PyFloat_AsDouble( value );
 	
-	if (param==-1 && PyErr_Occurred())
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"expected a number for the vector axis" );
-	
+	if (param==-1 && PyErr_Occurred()) {
+		PyErr_SetString( PyExc_TypeError, "expected a number for the vector axis" );
+		return -1;
+	}
 	switch( (long)type ) {
     case 'X':	/* these are backwards, but that how it works */
 		self->vec[0]= param;
@@ -1040,16 +1004,17 @@ static int Vector_setAxis( VectorObject * self, PyObject * value, void * type )
 		self->vec[1]= param;
 		break;
     case 'Z':	/* these are backwards, but that how it works */
-		if(self->size < 3)
-			return EXPP_ReturnIntError(PyExc_AttributeError,
-				"vector.z: error, cannot get this axis for a 2D vector\n");
+		if(self->size < 3) {
+			PyErr_SetString(PyExc_AttributeError, "vector.z: error, cannot get this axis for a 2D vector\n");
+			return -1;
+		}
 		self->vec[2]= param;
 		break;
     case 'W':
-		if(self->size < 4)
-			return EXPP_ReturnIntError(PyExc_AttributeError,
-				"vector.w: error, cannot get this axis for a 3D vector\n");
-	
+		if(self->size < 4) {
+			PyErr_SetString(PyExc_AttributeError, "vector.w: error, cannot get this axis for a 3D vector\n");
+			return -1;
+		}
 		self->vec[3]= param;
 		break;
 	}
@@ -1074,16 +1039,16 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 	double dot = 0.0f, param;
 	int i;
 	
-	if (!PyNumber_Check(value))
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"expected a number for the vector axis" );
-	
+	if (!PyNumber_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "expected a number for the vector axis" );
+		return -1;
+	}
 	param= PyFloat_AsDouble( value );
 	
-	if (param < 0)
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"cannot set a vectors length to a negative value" );
-	
+	if (param < 0) {
+		PyErr_SetString( PyExc_TypeError, "cannot set a vectors length to a negative value" );
+		return -1;
+	}
 	if (param==0) {
 		for(i = 0; i < self->size; i++){
 			self->vec[i]= 0;
@@ -1297,7 +1262,8 @@ PyObject *Vector_Negate(VectorObject * self)
 		self->vec[i] = -(self->vec[i]);
 	}
 	/*printf("Vector.negate(): Deprecated: use -vector instead\n");*/
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject*)self;
 }
 /*###################################################################
   ###########################DEPRECATED##############################*/

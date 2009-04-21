@@ -29,7 +29,7 @@
  */
 
 #include "Key.h" /*This must come first*/
-#include "vector.h"
+#include "Mathutils.h"
 
 #include "DNA_scene_types.h"
 

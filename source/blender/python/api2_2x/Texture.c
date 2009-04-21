@@ -53,7 +53,7 @@
 #include "gen_utils.h"
 #include "gen_library.h"
 
-#include "vector.h" /* for Texture_evaluate(vec) */
+#include "Mathutils.h" /* for Texture_evaluate(vec) */
 #include "Material.h" /* for EXPP_Colorband_fromPyList and EXPP_PyList_fromColorband */
 #include "RE_shader_ext.h"
 

@@ -37,9 +37,9 @@
 
 #include "constant.h"
 
-#define Py_PI  3.14159265358979323846
-#define Py_WRAP 1024
-#define Py_NEW  2048
+// #define Py_PI  3.14159265358979323846
+// #define Py_WRAP 1024
+// #define Py_NEW  2048
 
 /* 
    Py_RETURN_NONE
@@ -76,9 +76,6 @@ typedef int Py_ssize_t;
 
 /* name of list of Armature weak refs built into __main__ */
 #define ARM_WEAKREF_LIST_NAME "__arm_weakrefs"
-
-int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 PyObject *EXPP_GetModuleConstant(char *module, char *constant);
 

@@ -69,7 +69,6 @@ static char M_Mathutils_TriangleArea_doc[] = "(v1, v2, v3) - returns the area si
 static char M_Mathutils_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
 static char M_Mathutils_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
 static char M_Mathutils_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
-static char M_Mathutils_Point_doc[] = "Creates a 2d or 3d point object";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef M_Mathutils_methods[] = {
 	{"Rand", (PyCFunction) M_Mathutils_Rand, METH_VARARGS, M_Mathutils_Rand_doc},
@@ -103,7 +102,6 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"TriangleNormal", ( PyCFunction ) M_Mathutils_TriangleNormal, METH_VARARGS, M_Mathutils_TriangleNormal_doc},
 	{"QuadNormal", ( PyCFunction ) M_Mathutils_QuadNormal, METH_VARARGS, M_Mathutils_QuadNormal_doc},
 	{"LineIntersect", ( PyCFunction ) M_Mathutils_LineIntersect, METH_VARARGS, M_Mathutils_LineIntersect_doc},
-	{"Point", (PyCFunction) M_Mathutils_Point, METH_VARARGS, M_Mathutils_Point_doc},
 	{NULL, NULL, 0, NULL}
 };
 /*----------------------------MODULE INIT-------------------------*/
@@ -184,36 +182,7 @@ PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
 	}
 	return newVectorObject(vecNew, vec->size, Py_NEW);
 }
-//This is a helper for point/matrix translation 
 
-PyObject *column_point_multiplication(MatrixObject * mat, PointObject* pt)
-{
-	float ptNew[4], ptCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0;
-
-	if(mat->rowSize != pt->size){
-		if(mat->rowSize == 4 && pt->size != 3){
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"matrix * point: matrix row size and point size must be the same\n");
-		}else{
-			ptCopy[3] = 0.0f;
-		}
-	}
-
-	for(x = 0; x < pt->size; x++){
-		ptCopy[x] = pt->coord[x];
-		}
-
-	for(x = 0; x < mat->rowSize; x++) {
-		for(y = 0; y < mat->colSize; y++) {
-			dot += mat->matrix[x][y] * ptCopy[y];
-		}
-		ptNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newPointObject(ptNew, pt->size, Py_NEW);
-}
 //-----------------row_vector_multiplication (internal)-----------
 //ROW VECTOR Multiplication - Vector X Matrix
 //[x][y][z] *  [1][2][3]
@@ -249,36 +218,7 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 	}
 	return newVectorObject(vecNew, vec_size, Py_NEW);
 }
-//This is a helper for the point class
-PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat)
-{
-	float ptNew[4], ptCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0, size;
 
-	if(mat->colSize != pt->size){
-		if(mat->rowSize == 4 && pt->size != 3){
-			return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-				"point * matrix: matrix column size and the point size must be the same\n");
-		}else{
-			ptCopy[3] = 0.0f;
-		}
-	}
-	size = pt->size;
-	for(x = 0; x < pt->size; x++){
-		ptCopy[x] = pt->coord[x];
-	}
-
-	//muliplication
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * ptCopy[y];
-		}
-		ptNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newPointObject(ptNew, size, Py_NEW);
-}
 //-----------------quat_rotation (internal)-----------
 //This function multiplies a vector/point * quat or vice versa
 //to rotate the point/vector by the quaternion
@@ -288,7 +228,6 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 	float rot[3];
 	QuaternionObject *quat = NULL;
 	VectorObject *vec = NULL;
-	PointObject *pt = NULL;
 
 	if(QuaternionObject_Check(arg1)){
 		quat = (QuaternionObject*)arg1;
@@ -307,21 +246,6 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
 			return newVectorObject(rot, 3, Py_NEW);
-		}else if(PointObject_Check(arg2)){
-			pt = (PointObject*)arg2;
-			rot[0] = quat->quat[0]*quat->quat[0]*pt->coord[0] + 2*quat->quat[2]*quat->quat[0]*pt->coord[2] - 
-				2*quat->quat[3]*quat->quat[0]*pt->coord[1] + quat->quat[1]*quat->quat[1]*pt->coord[0] + 
-				2*quat->quat[2]*quat->quat[1]*pt->coord[1] + 2*quat->quat[3]*quat->quat[1]*pt->coord[2] - 
-				quat->quat[3]*quat->quat[3]*pt->coord[0] - quat->quat[2]*quat->quat[2]*pt->coord[0];
-			rot[1] = 2*quat->quat[1]*quat->quat[2]*pt->coord[0] + quat->quat[2]*quat->quat[2]*pt->coord[1] + 
-				2*quat->quat[3]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[3]*pt->coord[0] - 
-				quat->quat[3]*quat->quat[3]*pt->coord[1] + quat->quat[0]*quat->quat[0]*pt->coord[1] - 
-				2*quat->quat[1]*quat->quat[0]*pt->coord[2] - quat->quat[1]*quat->quat[1]*pt->coord[1];
-			rot[2] = 2*quat->quat[1]*quat->quat[3]*pt->coord[0] + 2*quat->quat[2]*quat->quat[3]*pt->coord[1] + 
-				quat->quat[3]*quat->quat[3]*pt->coord[2] - 2*quat->quat[0]*quat->quat[2]*pt->coord[0] - 
-				quat->quat[2]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[1]*pt->coord[1] - 
-				quat->quat[1]*quat->quat[1]*pt->coord[2] + quat->quat[0]*quat->quat[0]*pt->coord[2];
-			return newPointObject(rot, 3, Py_NEW);
 		}
 	}else if(VectorObject_Check(arg1)){
 		vec = (VectorObject*)arg1;
@@ -340,24 +264,6 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
 			return newVectorObject(rot, 3, Py_NEW);
-		}
-	}else if(PointObject_Check(arg1)){
-		pt = (PointObject*)arg1;
-		if(QuaternionObject_Check(arg2)){
-			quat = (QuaternionObject*)arg2;
-			rot[0] = quat->quat[0]*quat->quat[0]*pt->coord[0] + 2*quat->quat[2]*quat->quat[0]*pt->coord[2] - 
-				2*quat->quat[3]*quat->quat[0]*pt->coord[1] + quat->quat[1]*quat->quat[1]*pt->coord[0] + 
-				2*quat->quat[2]*quat->quat[1]*pt->coord[1] + 2*quat->quat[3]*quat->quat[1]*pt->coord[2] - 
-				quat->quat[3]*quat->quat[3]*pt->coord[0] - quat->quat[2]*quat->quat[2]*pt->coord[0];
-			rot[1] = 2*quat->quat[1]*quat->quat[2]*pt->coord[0] + quat->quat[2]*quat->quat[2]*pt->coord[1] + 
-				2*quat->quat[3]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[3]*pt->coord[0] - 
-				quat->quat[3]*quat->quat[3]*pt->coord[1] + quat->quat[0]*quat->quat[0]*pt->coord[1] - 
-				2*quat->quat[1]*quat->quat[0]*pt->coord[2] - quat->quat[1]*quat->quat[1]*pt->coord[1];
-			rot[2] = 2*quat->quat[1]*quat->quat[3]*pt->coord[0] + 2*quat->quat[2]*quat->quat[3]*pt->coord[1] + 
-				quat->quat[3]*quat->quat[3]*pt->coord[2] - 2*quat->quat[0]*quat->quat[2]*pt->coord[0] - 
-				quat->quat[2]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[1]*pt->coord[1] - 
-				quat->quat[1]*quat->quat[1]*pt->coord[2] + quat->quat[0]*quat->quat[0]*pt->coord[2];
-			return newPointObject(rot, 3, Py_NEW);
 		}
 	}
 
@@ -1329,60 +1235,7 @@ PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args)
 	Py_DECREF(listObject);
 	return newEulerObject(eul, Py_NEW);
 }
-//----------------------------------POINT FUNCTIONS---------------------
-//----------------------------------Mathutils.Point() ------------------
-PyObject *M_Mathutils_Point(PyObject * self, PyObject * args)
-{
-	PyObject *listObject = NULL;
-	int size, i;
-	float point[3];
-	PyObject *v, *f;
 
-	size = PySequence_Length(args);
-	if (size == 1) {
-		listObject = PySequence_GetItem(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			Py_XDECREF(listObject);
-			return EXPP_ReturnPyObjError(PyExc_TypeError, 
-				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d point
-		return newPointObject(NULL, 3, Py_NEW); 
-	} else {
-		listObject = EXPP_incr_ret(args);
-	}
-
-	if (size<2 || size>3) { // Invalid vector size
-		Py_XDECREF(listObject);
-		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
-	}
-
-	for (i=0; i<size; i++) {
-		v=PySequence_GetItem(listObject, i);
-		if (v==NULL) { // Failed to read sequence
-			Py_XDECREF(listObject);
-			return EXPP_ReturnPyObjError(PyExc_RuntimeError, 
-				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
-		}
-
-		f=PyNumber_Float(v);
-		if(f==NULL) { // parsed item not a number
-			Py_DECREF(v);
-			Py_XDECREF(listObject);
-			return EXPP_ReturnPyObjError(PyExc_TypeError, 
-				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
-		}
-
-		point[i]=(float)PyFloat_AS_DOUBLE(f);
-		EXPP_decr2(f,v);
-	}
-	Py_DECREF(listObject);
-	return newPointObject(point, size, Py_NEW);
-}
 //---------------------------------INTERSECTION FUNCTIONS--------------------
 //----------------------------------Mathutils.Intersect() -------------------
 PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
@@ -1775,5 +1628,41 @@ PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args)
 
 	return row_vector_multiplication(vec, mat);
 }
+
+/* Utility functions */
+
+/*---------------------- EXPP_FloatsAreEqual -------------------------
+  Floating point comparisons 
+  floatStep = number of representable floats allowable in between
+   float A and float B to be considered equal. */
+int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
+{
+	int a, b, delta;
+    assert(floatSteps > 0 && floatSteps < (4 * 1024 * 1024));
+    a = *(int*)&A;
+    if (a < 0)	
+		a = 0x80000000 - a;
+    b = *(int*)&B;
+    if (b < 0)	
+		b = 0x80000000 - b;
+    delta = abs(a - b);
+    if (delta <= floatSteps)	
+		return 1;
+    return 0;
+}
+/*---------------------- EXPP_VectorsAreEqual -------------------------
+  Builds on EXPP_FloatsAreEqual to test vectors */
+int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
+
+	int x;
+	for (x=0; x< size; x++){
+		if (EXPP_FloatsAreEqual(vecA[x], vecB[x], floatSteps) == 0)
+			return 0;
+	}
+	return 1;
+}
+
+
+
 //#######################################################################
 //#############################DEPRECATED################################
