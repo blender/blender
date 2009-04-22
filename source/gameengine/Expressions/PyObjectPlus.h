@@ -114,6 +114,9 @@ typedef struct {
 								// This defines the py_getattro_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
+								// 
+								// Note, PyDict_GetItem() WONT set an exception!
+								// let the py_base_getattro function do this.
 
 #define py_getattro_up(Parent) \
 	\
@@ -125,14 +128,11 @@ typedef struct {
 		} else if (descr->ob_type->tp_descr_get) { \
 			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy); \
 		} else { \
-			fprintf(stderr, "unknown attribute type"); \
-			return descr; \
+			return NULL; \
 		} \
 	} else { \
-		PyErr_Clear(); \
 		return Parent::py_getattro(attr); \
-	} \
-	return NULL;
+	}
 
 #define py_getattro_dict_up(Parent) \
 	return py_getattr_dict(Parent::py_getattro_dict(), Type.tp_dict);

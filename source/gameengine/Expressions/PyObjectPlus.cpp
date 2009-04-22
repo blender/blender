@@ -146,9 +146,23 @@ PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
 	
 	PyObject *ret= self_plus->py_getattro(attr);
 	
-	if(ret==NULL && (strcmp(PyString_AsString(attr), "__dict__")==0))
-		ret= self_plus->py_getattro_dict();
-	
+	/* Attribute not found, was this a __dict__ lookup?, otherwise set an error if none is set */
+	if(ret==NULL) {
+		char *attr_str= PyString_AsString(attr);
+		
+		if (strcmp(attr_str, "__dict__")==0)
+		{
+			/* the error string will probably not
+			 * be set but just incase clear it */
+			PyErr_Clear(); 
+			ret= self_plus->py_getattro_dict();
+		}
+		else if (!PyErr_Occurred()) {
+			/* We looked for an attribute but it wasnt found
+			 * since py_getattro didnt set the error, set it here */
+			PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", self->ob_type->tp_name, attr_str);
+		}
+	}
 	return ret;
 }
 
@@ -183,8 +197,7 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	if (descr == NULL) {
-		PyErr_Format(PyExc_AttributeError, "attribute \"%s\" not found", PyString_AsString(attr));
-		return NULL;
+		return NULL; /* py_base_getattro sets the error, this way we can avoid setting the error at many levels */
 	} else {
 		/* Copied from py_getattro_up */
 		if (PyCObject_Check(descr)) {
@@ -192,8 +205,7 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		} else if (descr->ob_type->tp_descr_get) {
 			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy);
 		} else {
-			fprintf(stderr, "Unknown attribute type (PyObjectPlus::py_getattro)");
-			return descr;
+			return NULL;
 		}
 		/* end py_getattro_up copy */
 	}
