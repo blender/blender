@@ -1192,21 +1192,6 @@ PyObject* KX_GameObject::PyGetPosition()
 	return PyObjectFrom(NodeGetWorldPosition());
 }
 
-
-Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
-{
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
-	
-	if (self==NULL) /* not sure what to do here */
-		return 0;
-	
-	Py_ssize_t len= self->GetPropertyCount();
-	if(self->m_attr_dict)
-		len += PyDict_Size(self->m_attr_dict);
-	return len;
-}
-
-
 PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
@@ -1329,9 +1314,9 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	return 0; /* success */
 }
 
-
+/* Cant set the len otherwise it can evaluate as false */
 PyMappingMethods KX_GameObject::Mapping = {
-	(lenfunc)KX_GameObject::Map_Len, 			/*inquiry mp_length */
+	(lenfunc)NULL					, 			/*inquiry mp_length */
 	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
 	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
 };
