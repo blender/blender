@@ -68,18 +68,13 @@ BL_ShapeDeformer::~BL_ShapeDeformer()
 {
 };
 
-RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
+RAS_Deformer *BL_ShapeDeformer::GetReplica()
 {
 	BL_ShapeDeformer *result;
 
 	result = new BL_ShapeDeformer(*this);
 	result->ProcessReplica();
 	return result;
-}
-
-void BL_ShapeDeformer::ProcessReplica()
-{
-	BL_SkinDeformer::ProcessReplica();
 }
 
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)

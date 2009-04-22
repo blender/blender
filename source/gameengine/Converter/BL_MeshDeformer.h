@@ -64,7 +64,8 @@ public:
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);
 	virtual bool Update(void){ return false; };
-	virtual	RAS_Deformer*	GetReplica(class KX_GameObject* replica){return NULL;};
+	virtual	RAS_Deformer*	GetReplica(){return NULL;};
+	virtual void ProcessReplica() { };
 	struct Mesh* GetMesh() { return m_bmesh; };
 	//	virtual void InitDeform(double time){};
 

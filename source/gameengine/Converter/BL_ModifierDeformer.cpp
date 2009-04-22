@@ -76,7 +76,7 @@ BL_ModifierDeformer::~BL_ModifierDeformer()
 	}
 };
 
-RAS_Deformer *BL_ModifierDeformer::GetReplica(class KX_GameObject* replica)
+RAS_Deformer *BL_ModifierDeformer::GetReplica()
 {
 	BL_ModifierDeformer *result;
 

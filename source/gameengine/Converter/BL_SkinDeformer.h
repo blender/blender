@@ -67,8 +67,7 @@ public:
 					bool recalc_normal,
 					BL_ArmatureObject* arma = NULL);
 
-	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
+	virtual RAS_Deformer *GetReplica();
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);

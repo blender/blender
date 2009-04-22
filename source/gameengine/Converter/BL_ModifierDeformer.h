@@ -73,7 +73,7 @@ public:
 	};
 
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
+	virtual RAS_Deformer *GetReplica();
 	virtual ~BL_ModifierDeformer();
 	virtual bool UseVertexArray()
 	{

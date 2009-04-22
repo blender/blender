@@ -108,7 +108,7 @@ void BL_SkinDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 		void **h_obj = (*map)[m_armobj];
 
 		if (h_obj)
-			SetArmature( (BL_ArmatureObject*)(*h_obj) );
+			m_armobj = (BL_ArmatureObject*)(*h_obj);
 		else
 			m_armobj=NULL;
 	}
@@ -151,19 +151,14 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	return true;
 }
 
-RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
+RAS_Deformer *BL_SkinDeformer::GetReplica()
 {
 	BL_SkinDeformer *result;
 
 	result = new BL_SkinDeformer(*this);
-	/* Not inherited from PyObjectPlus so this isnt needed */
-	/* Just call a dummy function below, will be optimized out */
+	/* there is m_armobj that must be fixed but we cannot do it now, it will be done in Relink */
 	result->ProcessReplica();
 	return result;
-}
-
-void BL_SkinDeformer::ProcessReplica()
-{
 }
 
 //void where_is_pose (Object *ob);
