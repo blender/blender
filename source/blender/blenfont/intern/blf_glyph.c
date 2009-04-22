@@ -543,6 +543,17 @@ int blf_glyph_bitmap_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	if (!gt->image)
 		return(1);
 
+	if (font->flags & BLF_CLIPPING) {
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + font->pos[1]))
+			return(0);
+	}
+
 	glBitmap(0, 0, 0.0, 0.0, x + font->pos[0], y - font->pos[1], (const GLubyte *)&null_bitmap);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, gt->pitch * 8);
 	glBitmap(gt->width, gt->height, 0.0, gt->pos_y, 0.0, 0.0, (const GLubyte *)gt->image);

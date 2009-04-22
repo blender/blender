@@ -178,14 +178,15 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 			dy1= -base_line + y + 16.0;
 
 			if (font->flags & BLF_CLIPPING) {
+				/* Don't return, just skip this character and check the others. */
 				if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], dy + font->pos[1]))
-					return;
+					goto next_tex_char;
 				if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], dy1 + font->pos[1]))
-					return;
+					goto next_tex_char;
 				if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], dy1 + font->pos[1]))
-					return;
+					goto next_tex_char;
 				if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], dy + font->pos[1]))
-					return;
+					goto next_tex_char;
 			}
 
 			glBegin(GL_QUADS);
@@ -202,7 +203,7 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 			glVertex3f(dx1, dy, z);
 			glEnd();
 		}
-		
+next_tex_char:
 		pos += cd->advance;
 	}
 }
@@ -213,14 +214,28 @@ void blf_internal_bitmap_draw(FontBLF *font, char *str)
 	CharDataBLF *cd;
 	unsigned char c;
 	GLint alignment;
+	float dx;
 
 	data= (FontDataBLF *)font->engine;
 
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	dx= 0;
 	
 	while ((c= (unsigned char) *str++)) {
 		cd= &data->chars[c];
+
+		if (font->flags & BLF_CLIPPING) {
+			/* The same here, always check all the characters. */
+			if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], font->pos[1]))
+				goto next_bitmap_char;
+			if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], cd->height + font->pos[1]))
+				goto next_bitmap_char;
+			if (!BLI_in_rctf(&font->clip_rec, dx + cd->width + font->pos[0], cd->height + font->pos[1]))
+				goto next_bitmap_char;
+			if (!BLI_in_rctf(&font->clip_rec, dx + cd->width + font->pos[0], font->pos[1]))
+				goto next_bitmap_char;
+		}
 
 		if (cd->data_offset==-1) {
 			GLubyte nullBitmap= 0;
@@ -229,6 +244,8 @@ void blf_internal_bitmap_draw(FontBLF *font, char *str)
 			GLubyte *bitmap= &data->bitmap_data[cd->data_offset];
 			glBitmap(cd->width, cd->height, cd->xorig, cd->yorig, cd->advance, 0, bitmap);
 		}
+next_bitmap_char:
+		dx += cd->advance;
 	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
