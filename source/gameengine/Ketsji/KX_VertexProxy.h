@@ -49,7 +49,6 @@ public:
 	double		GetNumber();
 	STR_String	GetName();
 	void		SetName(STR_String name);								// Set the name of the value
-	void		ReplicaSetName(STR_String name);
 	CValue*		GetReplica();
 
 

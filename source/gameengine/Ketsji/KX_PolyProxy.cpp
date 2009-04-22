@@ -183,8 +183,6 @@ double		KX_PolyProxy::GetNumber() { return -1;}
 STR_String	KX_PolyProxy::GetName() { return sPolyName;}
 void		KX_PolyProxy::SetName(STR_String) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}
-void		KX_PolyProxy::ReplicaSetName(STR_String) {};
-
 
 // stuff for python integration
 

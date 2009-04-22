@@ -294,7 +294,6 @@ public:
 
 	virtual STR_String	GetName() = 0;											// Retrieve the name of the value
 	virtual void		SetName(STR_String name) = 0;								// Set the name of the value
-	virtual void		ReplicaSetName(STR_String name) = 0;
 	/** Sets the value to this cvalue.
 	 * @attention this particular function should never be called. Why not abstract? */
 	virtual void		SetValue(CValue* newval);
@@ -410,10 +409,10 @@ public:
 		if (name.Length())
 			m_pstrNewName = new STR_String(name);
 	}
-	virtual void			ReplicaSetName(STR_String name) {
-		m_pstrNewName=NULL;
-		if (name.Length())
-			m_pstrNewName = new STR_String(name);
+	virtual void			ProcessReplica() {
+		CValue::ProcessReplica();
+		if (m_pstrNewName)
+			m_pstrNewName = new STR_String(*m_pstrNewName);
 	}
 	
 	virtual STR_String			GetName() {

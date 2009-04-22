@@ -257,14 +257,6 @@ public:
 		STR_String name
 	);
 
-	/**
-	 * Inherited from CValue -- does nothing.
-	 */
-		void				
-	ReplicaSetName(
-		STR_String name
-	);
-
 	/** 
 	 * Inherited from CValue -- return a new copy of this
 	 * instance allocated on the heap. Ownership of the new 

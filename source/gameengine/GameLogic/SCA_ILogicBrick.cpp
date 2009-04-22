@@ -143,14 +143,6 @@ void SCA_ILogicBrick::SetName(STR_String name)
 }
 
 
-
-void SCA_ILogicBrick::ReplicaSetName(STR_String name)
-{
-	m_name = name;
-}
-		
-
-
 bool SCA_ILogicBrick::IsActive()
 {
 	return m_bActive;

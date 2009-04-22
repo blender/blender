@@ -53,7 +53,6 @@ public:
 	virtual RAS_MeshObject* GetMesh() { return m_meshobj; }
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);								// Set the name of the value
-	virtual void		ReplicaSetName(STR_String name);
 	virtual CValue*		GetReplica();
 
 // stuff for python integration

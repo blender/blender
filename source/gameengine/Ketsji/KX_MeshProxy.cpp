@@ -138,7 +138,6 @@ double		KX_MeshProxy::GetNumber() { return -1;}
 STR_String	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
 void		KX_MeshProxy::SetName(STR_String name) { };
 CValue*		KX_MeshProxy::GetReplica() { return NULL;}
-void		KX_MeshProxy::ReplicaSetName(STR_String name) {};
 
 
 // stuff for python integration

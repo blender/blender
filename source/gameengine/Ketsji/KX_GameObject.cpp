@@ -199,25 +199,10 @@ void KX_GameObject::SetName(STR_String name)
 	m_name = name;
 };								// Set the name of the value
 
-
-
-void KX_GameObject::ReplicaSetName(STR_String name)
-{
-}
-
-
-
-
-
-
 KX_IPhysicsController* KX_GameObject::GetPhysicsController()
 {
 	return m_pPhysicsController1;
 }
-
-
-
-
 
 KX_GameObject* KX_GameObject::GetParent()
 {

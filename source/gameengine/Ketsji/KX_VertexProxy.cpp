@@ -340,8 +340,6 @@ double		KX_VertexProxy::GetNumber() { return -1;}
 STR_String	KX_VertexProxy::GetName() { return sVertexName;}
 void		KX_VertexProxy::SetName(STR_String) { };
 CValue*		KX_VertexProxy::GetReplica() { return NULL;}
-void		KX_VertexProxy::ReplicaSetName(STR_String) {};
-
 
 // stuff for python integration
 	

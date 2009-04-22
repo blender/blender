@@ -524,8 +524,6 @@ void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 
 	m_ValFlags.RefCountDisabled = false;
 
-	ReplicaSetName(GetName());
-
 	/* copy all props */
 	if (m_pNamedPropertyArray)
 	{

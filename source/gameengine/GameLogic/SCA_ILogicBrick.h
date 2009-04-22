@@ -72,7 +72,6 @@ public:
 	virtual double		GetNumber();
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);
-	virtual void		ReplicaSetName(STR_String name);
 		
 	bool				IsActive();
 	void				SetActive(bool active) ;
