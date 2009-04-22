@@ -954,9 +954,11 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 				enter_editmode(0);
 			}
 		} else if( G.obedit ) {
-			if( undo_str_len > 63 )
-				undo_str[63] = '\0';	/* 64 is max */
-			BIF_undo_push( undo_str ); /* This checks user undo settings */
+			if( do_undo ) {
+				if( undo_str_len > 63 )
+					undo_str[63] = '\0';	/* 64 is max */
+				BIF_undo_push( undo_str ); /* This checks user undo settings */
+			}
 			exit_editmode( EM_FREEDATA );
 
 			//update armatures
