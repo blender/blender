@@ -95,12 +95,16 @@ def write(filename):
 	icon = "" #generate_icon()
 
 	meshes = []
+	mesh_object_name_lookup = {} # for name lookups only
+	
 	for obj in objects:
 		mesh = BPyMesh.getMeshFromObject(obj, None, True, False, scn)
 		if mesh:
 			mesh.transform(obj.matrixWorld)
 			meshes.append(mesh)
-
+			mesh_object_name_lookup[mesh] = obj.name
+	del obj
+	
 	material_names = get_used_material_names(meshes)
 	tags = generate_tags(material_names)
 	surfs = generate_surfs(material_names)
@@ -111,7 +115,7 @@ def write(filename):
 	layer_index = 0
 	
 	for mesh in meshes:
-		layr = generate_layr(obj.name, layer_index)
+		layr = generate_layr(mesh_object_name_lookup[mesh], layer_index)
 		pnts = generate_pnts(mesh)
 		bbox = generate_bbox(mesh)
 		pols = generate_pols(mesh)
@@ -149,7 +153,9 @@ def write(filename):
 		
 		layer_index += 1
 		mesh.verts = None # save some ram
-
+	
+	del mesh_object_name_lookup
+	
 	for surf in surfs:
 		chunks.append(surf)
 
