@@ -331,16 +331,16 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	}
 }
 
-void KX_GameObject::ProcessReplica(KX_GameObject* replica)
+void KX_GameObject::ProcessReplica()
 {
-	replica->m_pPhysicsController1 = NULL;
-	replica->m_pGraphicController = NULL;
-	replica->m_pSGNode = NULL;
-	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
-	replica->m_pClient_info->m_gameobject = replica;
-	replica->m_state = 0;
+	m_pPhysicsController1 = NULL;
+	m_pGraphicController = NULL;
+	m_pSGNode = NULL;
+	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
+	m_pClient_info->m_gameobject = this;
+	m_state = 0;
 	if(m_attr_dict)
-		replica->m_attr_dict= PyDict_Copy(m_attr_dict);
+		m_attr_dict= PyDict_Copy(m_attr_dict);
 		
 }
 
@@ -352,7 +352,7 @@ CValue* KX_GameObject::GetReplica()
 
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

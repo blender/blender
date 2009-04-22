@@ -279,9 +279,7 @@ public:
 	 * data owned by this class is deep copied. Called internally
 	 */
 	virtual	void				
-	ProcessReplica(
-		KX_GameObject* replica
-	);
+	ProcessReplica();
 
 	/** 
 	 * Return the linear velocity of the game object.

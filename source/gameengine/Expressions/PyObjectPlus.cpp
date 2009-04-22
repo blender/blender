@@ -810,6 +810,14 @@ PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
     return NULL;	
 }
 
+
+void PyObjectPlus::ProcessReplica()
+{
+	/* Clear the proxy, will be created again if needed with GetProxy()
+	 * otherwise the PyObject will point to the wrong reference */
+	m_proxy= NULL;
+}
+
 /* Utility function called by the macro py_getattro_up()
  * for getting ob.__dict__() values from our PyObject
  * this is used by python for doing dir() on an object, so its good

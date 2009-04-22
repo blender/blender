@@ -74,16 +74,17 @@ CValue* BL_ArmatureObject::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 
-void BL_ArmatureObject::ProcessReplica(BL_ArmatureObject *replica)
+void BL_ArmatureObject::ProcessReplica()
 {
-	KX_GameObject::ProcessReplica(replica);
+	bPose *pose= m_pose;
+	KX_GameObject::ProcessReplica();
 
-	replica->m_pose = NULL;
-	game_copy_pose(&replica->m_pose, m_pose);
+	m_pose = NULL;
+	game_copy_pose(&m_pose, pose);
 }
 
 BL_ArmatureObject::~BL_ArmatureObject()

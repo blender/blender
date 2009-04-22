@@ -72,14 +72,9 @@ CValue*	KX_Camera::GetReplica()
 	
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	
 	return replica;
-}
-	
-void KX_Camera::ProcessReplica(KX_Camera* replica)
-{
-	KX_GameObject::ProcessReplica(replica);
 }
 
 MT_Transform KX_Camera::GetWorldToCamera() const

@@ -85,7 +85,7 @@ CValue*		KX_LightObject::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	
 	replica->m_lightobj.m_worldmatrix = replica->GetOpenGLMatrixPtr();
 	m_rendertools->AddLight(&replica->m_lightobj);

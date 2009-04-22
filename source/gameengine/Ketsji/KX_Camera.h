@@ -146,15 +146,6 @@ public:
 	virtual	CValue*				
 	GetReplica(
 	);
-	
-	/**
-	 * Inherited from CValue -- Makes sure any internal 
-	 * data owned by this class is deep copied. Called internally
-	 */
-	virtual	void				
-	ProcessReplica(
-		KX_Camera* replica
-	);
 
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;

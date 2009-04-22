@@ -62,7 +62,7 @@ public:
 			m_pDeformer->Relink (map);
 		KX_GameObject::Relink(map);
 	};
-	void ProcessReplica(KX_GameObject* replica);
+	void ProcessReplica();
 
 	BL_DeformableGameObject(Object* blendobj, void* sgReplicationInfo, SG_Callbacks callbacks) :
 		KX_GameObject(sgReplicationInfo,callbacks),

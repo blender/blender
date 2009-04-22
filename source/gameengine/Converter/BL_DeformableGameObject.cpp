@@ -41,16 +41,12 @@ BL_DeformableGameObject::~BL_DeformableGameObject()
 		delete m_pDeformer;		//	__NLA : Temporary until we decide where to put this
 }
 
-void BL_DeformableGameObject::ProcessReplica(KX_GameObject* replica)
+void BL_DeformableGameObject::ProcessReplica()
 {
-	BL_MeshDeformer *deformer;
-	KX_GameObject::ProcessReplica(replica);
+	KX_GameObject::ProcessReplica();
 
-	if (m_pDeformer) {
-		deformer = (BL_MeshDeformer*)m_pDeformer->GetReplica(replica);
-		((BL_DeformableGameObject*)replica)->m_pDeformer = deformer;
-	}
-
+	if (m_pDeformer)
+		m_pDeformer= (BL_MeshDeformer*)m_pDeformer->GetReplica(this);
 }
 
 CValue*		BL_DeformableGameObject::GetReplica()
@@ -61,7 +57,7 @@ CValue*		BL_DeformableGameObject::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 

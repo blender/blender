@@ -450,6 +450,12 @@ public:
 	
 	static PyObject *GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp);
 	static PyObject *NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool py_owns);
+	
+	/**
+	 * Makes sure any internal data owned by this class is deep copied.
+	 */
+	virtual void ProcessReplica();
+	
 };
 
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);

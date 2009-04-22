@@ -45,7 +45,7 @@ class BL_ArmatureObject : public KX_GameObject
 public:
 	double GetLastFrame ();
 	short GetActivePriority();
-	virtual void ProcessReplica(BL_ArmatureObject *replica);
+	virtual void ProcessReplica();
 	class BL_ActionActuator * GetActiveAction();
 	
 	BL_ArmatureObject(
