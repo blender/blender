@@ -1726,7 +1726,7 @@ static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cnt
 	wmOperator *op;
 	PointerRNA ptr;
 	uiBlock *block;
-	int height;
+	int height = 0;
 	
 	block= uiBeginBlock(C, ar, "view3d_panel_operator_redo", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Last Operator", "View3d", 340, 10, 318, height)==0) return;
