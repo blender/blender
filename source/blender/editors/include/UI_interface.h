@@ -53,6 +53,7 @@ struct uiFontStyle;
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
+typedef struct uiLayout uiLayout;
 
 /* Defines */
 
@@ -199,51 +200,23 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 
-/* Menus
- *
- * These functions are used by popup menus, toolbox and header menus. They
- * assume uiMenuItem head is already created, which is done by uiMenuButton
- * for header menus, or can be done with uiPupMenuBegin for popups. These
- * functions do not use uiDefBut functions in order to simplify creating
- * them, and to permit other types of menus (radial, ..) in the future. */
+/* Menu Callbacks */
 
-typedef struct uiMenuItem uiMenuItem;
-
-typedef void (*uiMenuCreateFunc)(struct bContext *C, uiMenuItem *head, void *arg1);
+typedef void (*uiMenuCreateFunc)(struct bContext *C, struct uiLayout *layout, void *arg1);
 typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
-
-void uiMenuFunc(uiMenuItem *head, uiMenuHandleFunc handlefunc, void *argv);
-void uiMenuContext(uiMenuItem *head, int opcontext);
-
-void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
-
-void uiMenuItemEnumO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
-void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
-void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
-void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
-void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, float value);
-void uiMenuItemStringO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, char *value);
-void uiMenuItemO(uiMenuItem *head, int icon, char *opname);
-
-void uiMenuItemBooleanR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
-void uiMenuItemEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname, int value);
-void uiMenuItemsEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
-
-void uiMenuLevel(uiMenuItem *head, const char *name, uiMenuCreateFunc newlevel);
-void uiMenuLevelEnumO(uiMenuItem *head, char *opname, char *propname);
-void uiMenuLevelEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
-
-void uiMenuSeparator(uiMenuItem *head);
 
 /* Popup Menus
  *
  * Functions used to create popup menus. For more extended menus the
  * uiPupMenuBegin/End functions can be used to define own items with
- * the uiMenu functions inbetween. If it is a simple confirmation menu
+ * the uiItem functions inbetween. If it is a simple confirmation menu
  * or similar, popups can be created with a single function call. */
 
-uiMenuItem *uiPupMenuBegin(const char *title, int icon);
-void uiPupMenuEnd(struct bContext *C, struct uiMenuItem *head);
+typedef struct uiPopupMenu uiPopupMenu;
+
+uiPopupMenu *uiPupMenuBegin(const char *title, int icon);
+void uiPupMenuEnd(struct bContext *C, struct uiPopupMenu *head);
+struct uiLayout *uiPupMenuLayout(uiPopupMenu *head);
 
 void uiPupMenuOkee(struct bContext *C, char *opname, char *str, ...);
 void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename);
@@ -555,11 +528,15 @@ uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, cha
 #define UI_LAYOUT_HORIZONTAL	0
 #define UI_LAYOUT_VERTICAL		1
 
-typedef struct uiLayout uiLayout;
+#define UI_LAYOUT_PANEL			0
+#define UI_LAYOUT_HEADER		1
+#define UI_LAYOUT_MENU			2
 
-uiLayout *uiLayoutBegin(int dir, int x, int y, int size, int em);
-void uiLayoutContext(uiLayout *layout, int opcontext);
+uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em);
 void uiLayoutEnd(const struct bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y);
+
+void uiLayoutContext(uiLayout *layout, int opcontext);
+void uiLayoutFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 
 /* layout specifiers */
 void uiLayoutRow(uiLayout *layout);
@@ -570,10 +547,9 @@ uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutSub(uiLayout *layout, int n);
 
 /* templates */
-void uiTemplateHeaderMenus(uiLayout *layout);
-void uiTemplateHeaderButtons(uiLayout *layout);
-void uiTemplateHeaderID(uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, uiIDPoinFunc func);
-void uiTemplateSetColor(uiLayout *layout, int color);
+void uiTemplateHeader(uiLayout *layout);
+void uiTemplateHeaderID(uiLayout *layout, struct PointerRNA *ptr, char *propname,
+	char *newop, char *openop, char *unlinkop);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
@@ -586,11 +562,18 @@ void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *p
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
 void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand);
-void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int expand);
+void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand);
+void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
+void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 
-void uiItemL(uiLayout *layout, char *name, int icon);
+void uiItemL(uiLayout *layout, char *name, int icon); /* label */
+void uiItemM(uiLayout *layout, char *name, int icon, char *menuname); /* menu */
+void uiItemV(uiLayout *layout, char *name, int icon, int argval); /* value */
+void uiItemS(uiLayout *layout); /* separator */
 
-void uiItemM(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
+void uiItemLevel(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
+void uiItemLevelEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
+void uiItemLevelEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 
 /* utilities */
 #define UI_PANEL_WIDTH			340

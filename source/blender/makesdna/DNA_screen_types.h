@@ -110,6 +110,11 @@ typedef struct Header {
 	struct uiLayout *layout;	/* runtime for drawing */
 } Header;
 
+typedef struct Menu {
+	struct MenuType *type;		/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Menu;
+
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	

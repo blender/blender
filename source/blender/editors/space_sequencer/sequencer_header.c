@@ -144,22 +144,22 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 }
 
 //static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
-static void seq_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void seq_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
+	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);
 
-	uiMenuItemEnumO(head, "Strips to the Left", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_LEFT);
-	uiMenuItemEnumO(head, "Strips to the Right", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_RIGHT);
-	uiMenuSeparator(head);
-	uiMenuItemEnumO(head, "Surrounding Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_BOTH);
-	uiMenuItemEnumO(head, "Left Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_LEFT);
-	uiMenuItemEnumO(head, "Right Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_RIGHT);
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_select_all_toggle");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_select_invert");
+	uiItemEnumO(layout, "Strips to the Left", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_LEFT);
+	uiItemEnumO(layout, "Strips to the Right", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_RIGHT);
+	uiItemS(layout);
+	uiItemEnumO(layout, "Surrounding Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_BOTH);
+	uiItemEnumO(layout, "Left Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_LEFT);
+	uiItemEnumO(layout, "Right Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_RIGHT);
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_select_linked");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_select_linked");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_select_all_toggle");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_select_invert");
 }
 
 static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -210,114 +210,113 @@ static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 }
 
 //static uiBlock *seq_addmenu_effectmenu(bContext *C, ARegion *ar, void *arg_unused)
-static void seq_addmenu_effectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void seq_addmenu_effectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
+	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);
 	
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ADD);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_SUB);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_MUL);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_CROSS);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_GAMCROSS);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ALPHAOVER);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ALPHAUNDER);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_OVERDROP);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_WIPE);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_GLOW);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_TRANSFORM);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ADD);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_SUB);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_MUL);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_CROSS);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_GAMCROSS);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ALPHAOVER);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_ALPHAUNDER);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_OVERDROP);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_WIPE);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_GLOW);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_TRANSFORM);
 	/* Color is an effect but moved to the other menu since its not that exciting */
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_SPEED);
-	uiMenuSeparator(head);
-	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_PLUGIN);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_SPEED);
+	uiItemS(layout);
+	uiItemEnumO(layout, NULL, 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_PLUGIN);
 }
 
 
 //static uiBlock *seq_addmenu(bContext *C, ARegion *ar, void *arg_unused)
-static void seq_addmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void seq_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuLevel(head, "Effects...", seq_addmenu_effectmenu);
-	uiMenuSeparator(head);
+	uiItemLevel(layout, "Effects...", 0, seq_addmenu_effectmenu);
+	uiItemS(layout);
 
-	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
+	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);
 
 #ifdef WITH_FFMPEG
-	uiMenuItemBooleanO(head, "Audio (RAM)", 0, "SEQUENCER_OT_sound_strip_add", "hd", FALSE);
-	uiMenuItemBooleanO(head, "Audio (HD)", 0, "SEQUENCER_OT_sound_strip_add", "hd", TRUE);
+	uiItemBooleanO(layout, "Audio (RAM)", 0, "SEQUENCER_OT_sound_strip_add", "hd", FALSE);
+	uiItemBooleanO(layout, "Audio (HD)", 0, "SEQUENCER_OT_sound_strip_add", "hd", TRUE);
 #else
-	uiMenuItemO(head, 0, "SEQUENCER_OT_sound_strip_add");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_sound_strip_add");
 #endif
-	uiMenuItemEnumO(head, "Add Color Strip", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_COLOR);
+	uiItemEnumO(layout, "Add Color Strip", 0, "SEQUENCER_OT_effect_strip_add", "type", SEQ_COLOR);
 
-	uiMenuItemO(head, 0, "SEQUENCER_OT_image_strip_add");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_movie_strip_add");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_scene_strip_add");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_image_strip_add");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_movie_strip_add");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_scene_strip_add");
 #ifdef WITH_FFMPEG
-	uiMenuItemBooleanO(head, "Movie and Sound", 0, "SEQUENCER_OT_movie_strip_add", "sound", TRUE);
+	uiItemBooleanO(layout, "Movie and Sound", 0, "SEQUENCER_OT_movie_strip_add", "sound", TRUE);
 #endif
 }
 
 //static uiBlock *seq_editmenu(bContext *C, ARegion *ar, void *arg_unused)
-static void seq_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void seq_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
+	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);
 
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
 
-	// uiMenuItemO(head, 0, "SEQUENCER_OT_strip_snap"); // TODO - add this operator
+	// uiItemO(layout, NULL, 0, "SEQUENCER_OT_strip_snap"); // TODO - add this operator
 
-	uiMenuItemEnumO(head, "Cut Hard", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_HARD);
-	uiMenuItemEnumO(head, "Cut Soft", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_SOFT);
+	uiItemEnumO(layout, "Cut Hard", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_HARD);
+	uiItemEnumO(layout, "Cut Soft", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_SOFT);
 
-	uiMenuItemO(head, 0, "SEQUENCER_OT_images_separate");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_duplicate_add");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_delete");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_images_separate");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_duplicate_add");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_delete");
 
 	if (ed && ed->act_seq) {
 		switch(ed->act_seq->type) {
 		case SEQ_EFFECT:
-			uiMenuSeparator(head);
-			uiMenuItemO(head, 0, "SEQUENCER_OT_effect_change");
-			uiMenuItemO(head, 0, "SEQUENCER_OT_effect_reassign_inputs");
+			uiItemS(layout);
+			uiItemO(layout, NULL, 0, "SEQUENCER_OT_effect_change");
+			uiItemO(layout, NULL, 0, "SEQUENCER_OT_effect_reassign_inputs");
 			break;
 		case SEQ_IMAGE:
-			uiMenuSeparator(head);
-			uiMenuItemO(head, 0, "SEQUENCER_OT_image_change"); // Change Scene...
+			uiItemS(layout);
+			uiItemO(layout, NULL, 0, "SEQUENCER_OT_image_change"); // Change Scene...
 			break;
 		case SEQ_SCENE:
-			uiMenuSeparator(head);
-			uiMenuItemO(head, 0, "SEQUENCER_OT_scene_change"); // Remap Paths...
+			uiItemS(layout);
+			uiItemO(layout, NULL, 0, "SEQUENCER_OT_scene_change"); // Remap Paths...
 			break;
 		case SEQ_MOVIE:
-			uiMenuSeparator(head);
-			uiMenuItemO(head, 0, "SEQUENCER_OT_movie_change"); // Remap Paths...
+			uiItemS(layout);
+			uiItemO(layout, NULL, 0, "SEQUENCER_OT_movie_change"); // Remap Paths...
 			break;
 		}
 	}
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "SEQUENCER_OT_meta_make");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_meta_separate");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_meta_make");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_meta_separate");
 
 	if (ed && (ed->metastack.first || (ed->act_seq && ed->act_seq->type == SEQ_META))) {
-		uiMenuSeparator(head);
-		uiMenuItemO(head, 0, "SEQUENCER_OT_meta_toggle");
+		uiItemS(layout);
+		uiItemO(layout, NULL, 0, "SEQUENCER_OT_meta_toggle");
 	}
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_reload");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_lock");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_unlock");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_mute");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_unmute");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_reload");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_lock");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_unlock");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_mute");
+	uiItemO(layout, NULL, 0, "SEQUENCER_OT_unmute");
 
-	uiMenuItemEnumO(head, "Mute Deselected Strips", 0, "SEQUENCER_OT_mute", "type", SEQ_UNSELECTED);
+	uiItemEnumO(layout, "Mute Deselected Strips", 0, "SEQUENCER_OT_mute", "type", SEQ_UNSELECTED);
 }
 
 void sequencer_header_buttons(const bContext *C, ARegion *ar)

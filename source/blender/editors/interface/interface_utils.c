@@ -297,7 +297,7 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	char *name;
 	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 20);
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20);
 
 	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
@@ -317,7 +317,7 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		uiLayoutColumn(uiLayoutSub(layout, 0));
 		uiItemL(uiLayoutSub(layout, 0), name, 0);
 		uiLayoutColumn(uiLayoutSub(layout, 1));
-		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0);
+		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
@@ -506,18 +506,7 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		uiBlockSetButLock(block, id->lib!=0, "Can't edit external libdata");
 		
 		/* name button */
-		if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCE:");
-		else if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCR:");
-		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
-			strcpy(str1, "NT:");
-		else {
-			str1[0]= id->name[0];
-			str1[1]= id->name[1];
-			str1[2]= ':';
-			str1[3]= 0;
-		}
+		text_idbutton(id, str1);
 		
 		if(GS(id->name)==ID_IP) len= 110;
 		else if((y) && (GS(id->name)==ID_AC)) len= 100; // comes from button panel (poselib)

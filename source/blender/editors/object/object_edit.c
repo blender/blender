@@ -462,14 +462,16 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
 	if(!obedit || obedit->type == OB_CURVE)
-		uiMenuItemsEnumO(head, op->type->idname, "type");
+		uiItemsEnumO(layout, op->type->idname, "type");
 	else
-		uiMenuItemsEnumO(head, "OBJECT_OT_surface_add", "type");
-	uiPupMenuEnd(C, head);
+		uiItemsEnumO(layout, "OBJECT_OT_surface_add", "type");
+	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }
@@ -632,20 +634,21 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
-	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuLevelEnumO(head, "OBJECT_OT_surface_add", "type");
-	uiMenuItemO(head, 0, "OBJECT_OT_text_add");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemO(head, 0, "OBJECT_OT_armature_add");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_mesh_add", "type");
+	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_curve_add", "type");
+	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_surface_add", "type");
+	uiItemO(layout, NULL, 0, "OBJECT_OT_text_add");
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemO(layout, NULL, 0, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -2622,26 +2625,27 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head= uiPupMenuBegin("Set Parent To", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Set Parent To", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
+	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
 	}
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

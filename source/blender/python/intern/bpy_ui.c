@@ -63,20 +63,6 @@ static PyObject *Method_pupMenuEnd( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_menuItemO( PyObject * self, PyObject * args )
-{
-	PyObject *py_head;
-	char *opname;
-	int icon;
-	
-	if( !PyArg_ParseTuple( args, "O!is:menuItemO", &PyCObject_Type, &py_head, &icon, &opname))
-		return NULL;
-	
-	uiMenuItemO(PyCObject_AsVoidPtr(py_head), icon, opname);
-	
-	Py_RETURN_NONE;
-}
-
 static PyObject *Method_defButO( PyObject * self, PyObject * args )
 {
 	uiBut *but;
@@ -405,7 +391,6 @@ static PyObject *Method_getWindowPtr( PyObject * self )
 static struct PyMethodDef ui_methods[] = {
 	{"pupMenuBegin", (PyCFunction)Method_pupMenuBegin, METH_VARARGS, ""},
 	{"pupMenuEnd", (PyCFunction)Method_pupMenuEnd, METH_VARARGS, ""},
-	{"menuItemO", (PyCFunction)Method_menuItemO, METH_VARARGS, ""},
 	{"defButO", (PyCFunction)Method_defButO, METH_VARARGS, ""},
 	{"defAutoButR", (PyCFunction)Method_defAutoButR, METH_VARARGS, ""},
 	{"pupBlock", (PyCFunction)Method_pupBlock, METH_VARARGS, ""},

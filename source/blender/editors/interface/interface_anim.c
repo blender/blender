@@ -114,44 +114,46 @@ void ui_but_anim_remove_driver(bContext *C)
 // TODO: refine the logic for adding/removing drivers...
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int length;
 
 	if(but->rnapoin.data && but->rnaprop) {
-		head= uiPupMenuBegin(RNA_property_ui_name(but->rnaprop), 0);
+		pup= uiPupMenuBegin(RNA_property_ui_name(but->rnaprop), 0);
+		layout= uiPupMenuLayout(pup);
 
 		length= RNA_property_array_length(but->rnaprop);
 
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
-				uiMenuItemBooleanO(head, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
-				uiMenuItemBooleanO(head, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
 				
-				uiMenuItemBooleanO(head, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
-				uiMenuItemBooleanO(head, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 			else {
-				uiMenuItemBooleanO(head, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
 				
-				uiMenuItemBooleanO(head, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 		}
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			if(length) {
-				uiMenuItemBooleanO(head, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
-				uiMenuItemBooleanO(head, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 				
-				uiMenuItemBooleanO(head, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 1);
-				uiMenuItemBooleanO(head, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 			else {
-				uiMenuItemBooleanO(head, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 				
-				uiMenuItemBooleanO(head, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 		}
 
-		uiPupMenuEnd(C, head);
+		uiPupMenuEnd(C, pup);
 	}
 }
 

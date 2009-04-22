@@ -276,6 +276,121 @@ static StructRNA* rna_Header_refine(struct PointerRNA *htr)
 	return (hdr->type)? hdr->type->py_srna: &RNA_Header;
 }
 
+/* Menu */
+
+static int menu_poll(const bContext *C, MenuType *pt)
+{
+	PointerRNA ptr;
+	ParameterList *list;
+	FunctionRNA *func;
+	void *ret;
+	int visible;
+
+	RNA_pointer_create(NULL, pt->py_srna, NULL, &ptr); /* dummy */
+	func= RNA_struct_find_function(&ptr, "poll");
+
+	list= RNA_parameter_list_create(&ptr, func);
+	RNA_parameter_set_lookup(list, "context", &C);
+	pt->py_call(&ptr, func, list);
+
+	RNA_parameter_get_lookup(list, "visible", &ret);
+	visible= *(int*)ret;
+
+	RNA_parameter_list_free(list);
+
+	return visible;
+}
+
+static void menu_draw(const bContext *C, Menu *hdr)
+{
+	PointerRNA mtr;
+	ParameterList *list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->py_srna, hdr, &mtr);
+	func= RNA_struct_find_function(&mtr, "draw");
+
+	list= RNA_parameter_list_create(&mtr, func);
+	RNA_parameter_set_lookup(list, "context", &C);
+	hdr->type->py_call(&mtr, func, list);
+
+	RNA_parameter_list_free(list);
+}
+
+static void rna_Menu_unregister(const bContext *C, StructRNA *type)
+{
+	ARegionType *art;
+	MenuType *mt= RNA_struct_blender_type_get(type);
+
+	if(!mt)
+		return;
+	if(!(art=region_type_find(NULL, mt->space_type, RGN_TYPE_HEADER)))
+		return;
+	
+	BLI_freelinkN(&art->menutypes, mt);
+	RNA_struct_free(&BLENDER_RNA, type);
+
+	/* update while blender is running */
+	if(C)
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+}
+
+static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void *data, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	ARegionType *art;
+	MenuType *mt, dummymt = {0};
+	Menu dummymenu= {0};
+	PointerRNA dummymtr;
+	int have_function[2];
+
+	/* setup dummy menu & menu type to store static properties in */
+	dummymenu.type= &dummymt;
+	RNA_pointer_create(NULL, &RNA_Menu, &dummymenu, &dummymtr);
+
+	/* validate the python class */
+	if(validate(&dummymtr, data, have_function) != 0)
+		return NULL;
+	
+	if(!(art=region_type_find(reports, dummymt.space_type, RGN_TYPE_HEADER)))
+		return NULL;
+
+	/* check if we have registered this menu type before, and remove it */
+	for(mt=art->menutypes.first; mt; mt=mt->next) {
+		if(strcmp(mt->idname, dummymt.idname) == 0) {
+			if(mt->py_srna)
+				rna_Menu_unregister(C, mt->py_srna);
+			break;
+		}
+	}
+	
+	/* create a new menu type */
+	mt= MEM_callocN(sizeof(MenuType), "python buttons menu");
+	memcpy(mt, &dummymt, sizeof(dummymt));
+
+	mt->py_srna= RNA_def_struct(&BLENDER_RNA, mt->idname, "Menu"); 
+	mt->py_data= data;
+	mt->py_call= call;
+	mt->py_free= free;
+	RNA_struct_blender_type_set(mt->py_srna, mt);
+
+	mt->poll= (have_function[0])? menu_poll: NULL;
+	mt->draw= (have_function[1])? menu_draw: NULL;
+
+	BLI_addtail(&art->menutypes, mt);
+
+	/* update while blender is running */
+	if(C)
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	
+	return mt->py_srna;
+}
+
+static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
+{
+	Menu *hdr= (Menu*)mtr->data;
+	return (hdr->type)? hdr->type->py_srna: &RNA_Menu;
+}
+
 #else
 
 static void rna_def_ui_layout(BlenderRNA *brna)
@@ -373,11 +488,55 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER);
 }
 
+static void rna_def_menu(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	FunctionRNA *func;
+	
+	srna= RNA_def_struct(brna, "Menu", NULL);
+	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons.");
+	RNA_def_struct_sdna(srna, "Menu");
+	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
+	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister");
+
+	/* poll */
+	func= RNA_def_function(srna, "poll", NULL);
+	RNA_def_function_ui_description(func, "Test if the menu is visible or not.");
+	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	/* draw */
+	func= RNA_def_function(srna, "draw", NULL);
+	RNA_def_function_ui_description(func, "Draw buttons into the menu UI layout.");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "UILayout");
+
+	/* registration */
+	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->idname");
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "label", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->label");
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
+	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_flag(prop, PROP_REGISTER);
+}
+
 void RNA_def_ui(BlenderRNA *brna)
 {
 	rna_def_ui_layout(brna);
 	rna_def_panel(brna);
 	rna_def_header(brna);
+	rna_def_menu(brna);
 }
 
 #endif

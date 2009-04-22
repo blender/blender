@@ -1284,18 +1284,22 @@ void UV_OT_cube_project(wmOperatorType *ot)
 
 static int mapping_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("UV Mapping", 0);
-	uiMenuItemO(head, 0, "UV_OT_unwrap");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "UV_OT_cube_project");
-	uiMenuItemO(head, 0, "UV_OT_cylinder_project");
-	uiMenuItemO(head, 0, "UV_OT_sphere_project");
-	uiMenuItemO(head, 0, "UV_OT_project_from_view");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "UV_OT_reset");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("UV Mapping", 0);
+	layout= uiPupMenuLayout(pup);
+
+	uiItemO(layout, NULL, 0, "UV_OT_unwrap");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "UV_OT_cube_project");
+	uiItemO(layout, NULL, 0, "UV_OT_cylinder_project");
+	uiItemO(layout, NULL, 0, "UV_OT_sphere_project");
+	uiItemO(layout, NULL, 0, "UV_OT_project_from_view");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "UV_OT_reset");
+
+	uiPupMenuEnd(C, pup);
 
 	/* XXX python */
 #ifndef DISABLE_PYTHON

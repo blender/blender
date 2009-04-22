@@ -620,82 +620,82 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 }
 #endif
 
-static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_view_viewnavmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-//	uiMenuItemO(head, 0, "VIEW3D_OT_view_fly_mode");
+//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_fly_mode");
 	
-//	uiMenuSeparator(head);
+//	uiItemS(layout);
 	
-	uiMenuItemsEnumO(head, "VIEW3D_OT_view_orbit", "type");
+	uiItemsEnumO(layout, "VIEW3D_OT_view_orbit", "type");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuItemsEnumO(head, "VIEW3D_OT_view_pan", "type");
+	uiItemsEnumO(layout, "VIEW3D_OT_view_pan", "type");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_zoom", "delta", 1.0f);
-	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_zoom", "delta", -1.0f);
+	uiItemFloatO(layout, "Zoom in", 0, "VIEW3D_OT_zoom", "delta", 1.0f);
+	uiItemFloatO(layout, "Zoom out", 0, "VIEW3D_OT_zoom", "delta", -1.0f);
 	
 }
-static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_view_alignviewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	
 }
 
-static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
-//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_transform_orientations_panel"); // Transform Orientations...
-//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_render_preview_panel"); // render preview...
-//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_view_properties_panel"); // View Properties....
-//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_background_image_panel"); // Background Image....
-//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_grease_pencil_panel"); // Grease Pencil....
+//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_transform_orientations_panel"); // Transform Orientations...
+//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_render_preview_panel"); // render preview...
+//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_view_properties_panel"); // View Properties....
+//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_background_image_panel"); // Background Image....
+//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_grease_pencil_panel"); // Grease Pencil....
 	
-//	uiMenuSeparator(head);
+//	uiItemS(layout);
 	
-	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
+	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
-	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
+	//uiItemLevel(layout, "Cameras", view3d_view_camerasmenu);
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_view_persportho");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_persportho");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-//	uiMenuItemO(head, 0, "VIEW3D_OT_view_show_all_layers");	
+//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_show_all_layers");	
 	
-//	uiMenuSeparator(head);
+//	uiItemS(layout);
 	
-//	uiMenuItemO(head, 0, "VIEW3D_OT_view_local_view");
-//	uiMenuItemO(head, 0, "VIEW3D_OT_view_global_view");
+//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_local_view");
+//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_global_view");
 	
-//	uiMenuSeparator(head);
+//	uiItemS(layout);
 	
-	uiMenuLevel(head, "View Navigation", view3d_view_viewnavmenu);
-	uiMenuLevel(head, "Align View", view3d_view_alignviewmenu);
+	uiItemLevel(layout, "View Navigation", 0, view3d_view_viewnavmenu);
+	uiItemLevel(layout, "Align View", 0, view3d_view_alignviewmenu);
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
+	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);	
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_clipping");
-	uiMenuItemO(head, 0, "VIEW3D_OT_zoom_border");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_clipping");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_zoom_border");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuItemO(head, 0, "VIEW3D_OT_viewcenter");
-	uiMenuItemO(head, 0, "VIEW3D_OT_viewhome");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_viewcenter");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_viewhome");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	if(sa->full) uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
-	else uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
+	if(sa->full) uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 #if 0
 static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -1208,39 +1208,39 @@ static uiBlock *view3d_select_meshmenu(bContext *C, ARegion *ar, void *arg_unuse
 	return block;
 }
 
-static void view3d_select_curvemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_select_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
-	uiMenuItemO(head, 0, "VIEW3D_OT_select_circle");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_circle");
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "CURVE_OT_select_all_toggle");
-	uiMenuItemO(head, 0, "CURVE_OT_select_invert");
-	uiMenuItemO(head, 0, "CURVE_OT_select_random"); // Random...
-	uiMenuItemO(head, 0, "CURVE_OT_select_every_nth"); // Every Nth..
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_all_toggle");
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_invert");
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_random"); // Random...
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_every_nth"); // Every Nth..
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
 	if(obedit->type == OB_SURF) {
-		uiMenuItemO(head, 0, "CURVE_OT_select_row");
+		uiItemO(layout, NULL, 0, "CURVE_OT_select_row");
 	}
 	else {
-		uiMenuItemO(head, 0, "CURVE_OT_de_select_first");
-		uiMenuItemO(head, 0, "CURVE_OT_de_select_last");
-		uiMenuItemO(head, 0, "CURVE_OT_select_next");
-		uiMenuItemO(head, 0, "CURVE_OT_select_previous");
+		uiItemO(layout, NULL, 0, "CURVE_OT_de_select_first");
+		uiItemO(layout, NULL, 0, "CURVE_OT_de_select_last");
+		uiItemO(layout, NULL, 0, "CURVE_OT_select_next");
+		uiItemO(layout, NULL, 0, "CURVE_OT_select_previous");
 	}
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "CURVE_OT_select_more");
-	uiMenuItemO(head, 0, "CURVE_OT_select_less");
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_more");
+	uiItemO(layout, NULL, 0, "CURVE_OT_select_less");
 
 	/* commented out because it seems to only like the LKEY method - based on mouse pointer position :( */
-	/* uiMenuItemO(head, 0, "CURVE_OT_select_linked"); */
+	/* uiItemO(layout, NULL, 0, "CURVE_OT_select_linked"); */
 
 #if 0
 	G.qual |= LR_CTRLKEY;
@@ -3288,44 +3288,44 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_edit_curve_controlpointsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_curve_controlpointsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
 	if(obedit->type == OB_CURVE) {
-		uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TILT);
-		uiMenuItemO(head, 0, "CURVE_OT_tilt_clear");
-		uiMenuItemO(head, 0, "CURVE_OT_separate");
+		uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_TILT);
+		uiItemO(layout, NULL, 0, "CURVE_OT_tilt_clear");
+		uiItemO(layout, NULL, 0, "CURVE_OT_separate");
 		
-		uiMenuSeparator(head);
+		uiItemS(layout);
 
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 2);
+		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 1);
+		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 3);
+		uiItemEnumO(layout, NULL, 0, "CURVE_OT_handle_type_set", "type", 2);
 
-		uiMenuSeparator(head);
+		uiItemS(layout);
 	}
 
-	// XXX uiMenuItemO(head, 0, "OBJECT_OT_make_vertex_parent"); Make VertexParent|Ctrl P
+	// XXX uiItemO(layout, NULL, 0, "OBJECT_OT_make_vertex_parent"); Make VertexParent|Ctrl P
 	// make_parent()
-	// XXX uiMenuItemO(head, 0, "OBJECT_OT_add_hook"); Add Hook| Ctrl H
+	// XXX uiItemO(layout, NULL, 0, "OBJECT_OT_add_hook"); Add Hook| Ctrl H
 	// add_hook_menu()
 }
 
-static void view3d_edit_curve_segmentsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_curve_segmentsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "CURVE_OT_subdivide");
-	uiMenuItemO(head, 0, "CURVE_OT_switch_direction");
+	uiItemO(layout, NULL, 0, "CURVE_OT_subdivide");
+	uiItemO(layout, NULL, 0, "CURVE_OT_switch_direction");
 }
 
-static void view3d_edit_curve_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_curve_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "CURVE_OT_reveal");
-	uiMenuItemO(head, 0, "CURVE_OT_hide");
-	uiMenuItemBooleanO(head, "Hide Unselected", 0, "CURVE_OT_hide", "unselected", 1);
+	uiItemO(layout, NULL, 0, "CURVE_OT_reveal");
+	uiItemO(layout, NULL, 0, "CURVE_OT_hide");
+	uiItemBooleanO(layout, "Hide Unselected", 0, "CURVE_OT_hide", "unselected", 1);
 }
 
-static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	PointerRNA sceneptr;
 	Scene *scene= CTX_data_scene(C);
@@ -3338,7 +3338,7 @@ static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unuse
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");	
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 #endif
 	
 	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
@@ -3347,26 +3347,26 @@ static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unuse
 	// common_deletekey();
 
 
-	uiMenuItemO(head, 0, "CURVE_OT_extrude");
-	uiMenuItemO(head, 0, "CURVE_OT_duplicate");
-	uiMenuItemO(head, 0, "CURVE_OT_separate");
-	uiMenuItemO(head, 0, "CURVE_OT_make_segment");
-	uiMenuItemO(head, 0, "CURVE_OT_cyclic_toggle");
-	uiMenuItemO(head, 0, "CURVE_OT_delete"); // Delete...
+	uiItemO(layout, NULL, 0, "CURVE_OT_extrude");
+	uiItemO(layout, NULL, 0, "CURVE_OT_duplicate");
+	uiItemO(layout, NULL, 0, "CURVE_OT_separate");
+	uiItemO(layout, NULL, 0, "CURVE_OT_make_segment");
+	uiItemO(layout, NULL, 0, "CURVE_OT_cyclic_toggle");
+	uiItemO(layout, NULL, 0, "CURVE_OT_delete"); // Delete...
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuLevel(head, "Control Points", view3d_edit_curve_controlpointsmenu);
-	uiMenuLevel(head, "Segments", view3d_edit_curve_segmentsmenu);
+	uiItemLevel(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu);
+	uiItemLevel(layout, "Segments", 0, view3d_edit_curve_segmentsmenu);
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemBooleanR(head, &sceneptr, "proportional_editing"); // |O
-	uiMenuLevelEnumR(head, &sceneptr, "proportional_editing_falloff");
+	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0); // |O
+	uiItemLevelEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuLevel(head, "Show/Hide Control Points", view3d_edit_curve_showhidemenu);
+	uiItemLevel(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
 }
 
 static void do_view3d_edit_mball_showhidemenu(bContext *C, void *arg, int event)
@@ -3477,43 +3477,43 @@ static uiBlock *view3d_edit_metaballmenu(bContext *C, ARegion *ar, void *arg_unu
 	return block;
 }
 
-static void view3d_edit_text_charsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_text_charsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	/* the character codes are specified in UTF-8 */
 
-	uiMenuItemStringO(head, "Copyright|Alt C", 0, "FONT_OT_text_insert", "text", "\xC2\xA9");
-	uiMenuItemStringO(head, "Registered Trademark|Alt R", 0, "FONT_OT_text_insert", "text", "\xC2\xAE");
+	uiItemStringO(layout, "Copyright|Alt C", 0, "FONT_OT_text_insert", "text", "\xC2\xA9");
+	uiItemStringO(layout, "Registered Trademark|Alt R", 0, "FONT_OT_text_insert", "text", "\xC2\xAE");
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemStringO(head, "Degree Sign|Alt G", 0, "FONT_OT_text_insert", "text", "\xC2\xB0");
-	uiMenuItemStringO(head, "Multiplication Sign|Alt x", 0, "FONT_OT_text_insert", "text", "\xC3\x97");
-	uiMenuItemStringO(head, "Circle|Alt .", 0, "FONT_OT_text_insert", "text", "\xC2\x8A");
-	uiMenuItemStringO(head, "Superscript 1|Alt 1", 0, "FONT_OT_text_insert", "text", "\xC2\xB9");
-	uiMenuItemStringO(head, "Superscript 2|Alt 2", 0, "FONT_OT_text_insert", "text", "\xC2\xB2");
-	uiMenuItemStringO(head, "Superscript 3|Alt 3", 0, "FONT_OT_text_insert", "text", "\xC2\xB3");
-	uiMenuItemStringO(head, "Double >>|Alt >", 0, "FONT_OT_text_insert", "text", "\xC2\xBB");
-	uiMenuItemStringO(head, "Double <<|Alt <", 0, "FONT_OT_text_insert", "text", "\xC2\xAB");
-	uiMenuItemStringO(head, "Promillage|Alt %", 0, "FONT_OT_text_insert", "text", "\xE2\x80\xB0");
+	uiItemStringO(layout, "Degree Sign|Alt G", 0, "FONT_OT_text_insert", "text", "\xC2\xB0");
+	uiItemStringO(layout, "Multiplication Sign|Alt x", 0, "FONT_OT_text_insert", "text", "\xC3\x97");
+	uiItemStringO(layout, "Circle|Alt .", 0, "FONT_OT_text_insert", "text", "\xC2\x8A");
+	uiItemStringO(layout, "Superscript 1|Alt 1", 0, "FONT_OT_text_insert", "text", "\xC2\xB9");
+	uiItemStringO(layout, "Superscript 2|Alt 2", 0, "FONT_OT_text_insert", "text", "\xC2\xB2");
+	uiItemStringO(layout, "Superscript 3|Alt 3", 0, "FONT_OT_text_insert", "text", "\xC2\xB3");
+	uiItemStringO(layout, "Double >>|Alt >", 0, "FONT_OT_text_insert", "text", "\xC2\xBB");
+	uiItemStringO(layout, "Double <<|Alt <", 0, "FONT_OT_text_insert", "text", "\xC2\xAB");
+	uiItemStringO(layout, "Promillage|Alt %", 0, "FONT_OT_text_insert", "text", "\xE2\x80\xB0");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuItemStringO(head, "Dutch Florin|Alt F", 0, "FONT_OT_text_insert", "text", "\xC2\xA4");
-	uiMenuItemStringO(head, "British Pound|Alt L", 0, "FONT_OT_text_insert", "text", "\xC2\xA3");
-	uiMenuItemStringO(head, "Japanese Yen|Alt Y", 0, "FONT_OT_text_insert", "text", "\xC2\xA5");
+	uiItemStringO(layout, "Dutch Florin|Alt F", 0, "FONT_OT_text_insert", "text", "\xC2\xA4");
+	uiItemStringO(layout, "British Pound|Alt L", 0, "FONT_OT_text_insert", "text", "\xC2\xA3");
+	uiItemStringO(layout, "Japanese Yen|Alt Y", 0, "FONT_OT_text_insert", "text", "\xC2\xA5");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuItemStringO(head, "German S|Alt S", 0, "FONT_OT_text_insert", "text", "\xC3\x9F");
-	uiMenuItemStringO(head, "Spanish Question Mark|Alt ?", 0, "FONT_OT_text_insert", "text", "\xC2\xBF");
-	uiMenuItemStringO(head, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_text_insert", "text", "\xC2\xA1");
+	uiItemStringO(layout, "German S|Alt S", 0, "FONT_OT_text_insert", "text", "\xC3\x9F");
+	uiItemStringO(layout, "Spanish Question Mark|Alt ?", 0, "FONT_OT_text_insert", "text", "\xC2\xBF");
+	uiItemStringO(layout, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_text_insert", "text", "\xC2\xA1");
 }
 
-static void view3d_edit_textmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_edit_textmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "FONT_OT_file_paste");
-	uiMenuSeparator(head);
-	uiMenuLevel(head, "Special Characters", view3d_edit_text_charsmenu);
+	uiItemO(layout, NULL, 0, "FONT_OT_file_paste");
+	uiItemS(layout);
+	uiItemLevel(layout, "Special Characters", 0, view3d_edit_text_charsmenu);
 }
 
 static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
@@ -4527,7 +4527,7 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	Sculpt *s = CTX_data_tool_settings(C)->sculpt;
@@ -4535,30 +4535,30 @@ static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 	RNA_pointer_create(&sc->id, &RNA_Sculpt, s, &rna);
 
-	uiMenuItemBooleanR(head, &rna, "symmetry_x");
-	uiMenuItemBooleanR(head, &rna, "symmetry_y");
-	uiMenuItemBooleanR(head, &rna, "symmetry_z");
-	uiMenuItemBooleanR(head, &rna, "lock_x");
-	uiMenuItemBooleanR(head, &rna, "lock_y");
-	uiMenuItemBooleanR(head, &rna, "lock_z");
+	uiItemR(layout, NULL, 0, &rna, "symmetry_x", 0);
+	uiItemR(layout, NULL, 0, &rna, "symmetry_y", 0);
+	uiItemR(layout, NULL, 0, &rna, "symmetry_z", 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_x", 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_y", 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_z", 0);
 
 	/* Brush settings */
 	RNA_pointer_create(&sc->id, &RNA_Brush, s->brush, &rna);
 
 	/* Curve */
-	uiMenuSeparator(head);
-	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
-	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
-	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+	uiItemS(layout);
+	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
+	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
+	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemBooleanR(head, &rna, "airbrush");
-	uiMenuItemBooleanR(head, &rna, "rake");
-	uiMenuItemBooleanR(head, &rna, "anchored");
-	uiMenuItemBooleanR(head, &rna, "space");
+	uiItemR(layout, NULL, 0, &rna, "airbrush", 0);
+	uiItemR(layout, NULL, 0, &rna, "rake", 0);
+	uiItemR(layout, NULL, 0, &rna, "anchored", 0);
+	uiItemR(layout, NULL, 0, &rna, "space", 0);
 
-	uiMenuItemBooleanR(head, &rna, "flip_direction");	
+	uiItemR(layout, NULL, 0, &rna, "flip_direction", 0);
 }
 
 uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -4695,59 +4695,59 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_select_particlemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_select_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_select_all_toggle");
-	uiMenuItemO(head, 0, "PARTICLE_OT_select_linked");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_all_toggle");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_linked");
 
 	if(scene->selectmode & SCE_SELECT_POINT) {
-		uiMenuItemO(head, 0, "PARTICLE_OT_select_last"); // |W, 4
-		uiMenuItemO(head, 0, "PARTICLE_OT_select_first"); // |W, 3
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last"); // |W, 4
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first"); // |W, 3
 	}
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_select_more");
-	uiMenuItemO(head, 0, "PARTICLE_OT_select_less");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_more");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_less");
 }
 
-static void view3d_particle_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_particle_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "PARTICLE_OT_reveal");
-	uiMenuItemO(head, 0, "PARTICLE_OT_hide");
-	uiMenuItemBooleanO(head, "Hide Unselected", 0, "PARTICLE_OT_hide", "unselected", 1);
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_reveal");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_hide");
+	uiItemBooleanO(layout, "Hide Unselected", 0, "PARTICLE_OT_hide", "unselected", 1);
 }
 
-static void view3d_particlemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 
 	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	// add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
-	// XXX uiMenuSeparator(head);
+	// XXX uiItemS(layout);
 	//
 	// XXX uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	// pset->flag ^= PE_X_MIRROR;
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_mirror"); // |Ctrl M
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_mirror"); // |Ctrl M
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_remove_doubles"); // |W, 5
-	uiMenuItemO(head, 0, "PARTICLE_OT_delete");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles"); // |W, 5
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_delete");
 	if(scene->selectmode & SCE_SELECT_POINT)
-		uiMenuItemO(head, 0, "PARTICLE_OT_subdivide"); // |W, 2
-	uiMenuItemO(head, 0, "PARTICLE_OT_rekey"); // |W, 1
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide"); // |W, 2
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey"); // |W, 1
 
-	uiMenuSeparator(head);
+	uiItemS(layout);
 
-	uiMenuLevel(head, "Show/Hide Particles", view3d_particle_showhidemenu);
+	uiItemLevel(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu);
 }
 
 static char *view3d_modeselect_pup(Scene *scene)
@@ -5553,18 +5553,20 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 /* edit face toolbox */
 static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Edit Faces", 0);
+	pup= uiPupMenuBegin("Edit Faces", 0);
+	layout= uiPupMenuLayout(pup);
 
-	uiMenuItemO(head, 0, "MESH_OT_fill");
-	uiMenuItemO(head, 0, "MESH_OT_beauty_fill");
-	uiMenuItemO(head, 0, "MESH_OT_quads_convert_to_tris");
-	uiMenuItemO(head, 0, "MESH_OT_tris_convert_to_quads");
-	uiMenuItemO(head, 0, "MESH_OT_edge_flip");
-	uiMenuItemO(head, 0, "MESH_OT_faces_shade_smooth");
-	uiMenuItemO(head, 0, "MESH_OT_faces_shade_solid");
-	uiPupMenuEnd(C, head);
+	uiItemO(layout, NULL, 0, "MESH_OT_fill");
+	uiItemO(layout, NULL, 0, "MESH_OT_beauty_fill");
+	uiItemO(layout, NULL, 0, "MESH_OT_quads_convert_to_tris");
+	uiItemO(layout, NULL, 0, "MESH_OT_tris_convert_to_quads");
+	uiItemO(layout, NULL, 0, "MESH_OT_edge_flip");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }

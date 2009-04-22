@@ -301,7 +301,7 @@ static void poselib_get_builtin_keyingsets (void)
 
 /* ----- */
 
-static void poselib_add_menu_invoke__replacemenu (bContext *C, uiMenuItem *head, void *arg)
+static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *arg)
 {
 	Object *ob= CTX_data_active_object(C);
 	bAction *act= ob->poselib;
@@ -309,7 +309,7 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiMenuItem *head,
 	
 	/* add each marker to this menu */
 	for (marker= act->markers.first; marker; marker= marker->next)
-		uiMenuItemIntO(head, marker->name, ICON_ARMATURE_DATA, "POSELIB_OT_pose_add", "frame", marker->frame);
+		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, "POSELIB_OT_pose_add", "frame", marker->frame);
 }
 
 static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
@@ -318,29 +318,31 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	
 	/* sanity check */
 	if (ELEM3(NULL, ob, arm, pose)) 
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	head= uiPupMenuBegin(op->type->name, 0);
-	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	pup= uiPupMenuBegin(op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiMenuItemIntO(head, "Add New", 0, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, "Add New", 0, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiMenuItemIntO(head, "Add New (Current Frame)", 0, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, "Add New (Current Frame)", 0, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiMenuLevel(head, "Replace Existing...", poselib_add_menu_invoke__replacemenu);
+		uiItemLevel(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu);
 	}
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -449,7 +451,8 @@ static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent
 	Object *ob= CTX_data_active_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int i;
 	
 	/* sanity check */
@@ -457,14 +460,15 @@ static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	head= uiPupMenuBegin(op->type->name, 0);
-	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	pup= uiPupMenuBegin(op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add each marker to this menu */
 	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++)
-		uiMenuItemIntO(head, marker->name, ICON_ARMATURE_DATA, op->idname, "index", i);
+		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, op->idname, "index", i);
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;

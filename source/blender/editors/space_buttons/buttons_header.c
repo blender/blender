@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -40,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -133,8 +135,9 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	Object *ob= CTX_data_active_object(C);
 	uiBlock *block;
-	int xco, yco= 3;
+	int xco, yco= 3, dataicon= ICON_OBJECT_DATA;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
@@ -150,6 +153,22 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		
 		xco+=XIC+xmax;
 	}
+
+	if(ob) {
+		switch(ob->type) {
+			case OB_EMPTY: dataicon= ICON_OUTLINER_OB_EMPTY; break;
+			case OB_MESH: dataicon= ICON_OUTLINER_OB_MESH; break;
+			case OB_CURVE: dataicon= ICON_OUTLINER_OB_CURVE; break;
+			case OB_SURF: dataicon= ICON_OUTLINER_OB_SURFACE; break;
+			case OB_FONT: dataicon= ICON_OUTLINER_OB_FONT; break;
+			case OB_MBALL: dataicon= ICON_OUTLINER_OB_META; break;
+			case OB_LAMP: dataicon= ICON_OUTLINER_OB_LAMP; break;
+			case OB_CAMERA: dataicon= ICON_OUTLINER_OB_CAMERA; break;
+			case OB_LATTICE: dataicon= ICON_OUTLINER_OB_LATTICE; break;
+			case OB_ARMATURE: dataicon= ICON_OUTLINER_OB_ARMATURE; break;
+			default: break;
+		}
+	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
@@ -157,10 +176,12 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_GAME, 0, 0, "Object Data");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+	if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
 	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+	if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
 	
 	xco+= XIC;

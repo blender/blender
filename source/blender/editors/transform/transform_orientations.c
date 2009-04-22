@@ -354,19 +354,19 @@ void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 	v3d->twmode = orientation;
 }
 
-void BIF_menuTransformOrientation(bContext *C, uiMenuItem *head, void *arg)
+void BIF_menuTransformOrientation(bContext *C, uiLayout *layout, void *arg)
 {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i= V3D_MANIP_CUSTOM;
 
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
-	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
+	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
 
 	for(ts = transform_spaces->first; ts; ts = ts->next)
-		uiMenuItemIntO(head, ts->name, 0, "TFM_OT_select_orientation", "custom_index", i++);
+		uiItemIntO(layout, ts->name, 0, "TFM_OT_select_orientation", "custom_index", i++);
 }
 
 char * BIF_menustringTransformOrientation(const bContext *C, char *title) {

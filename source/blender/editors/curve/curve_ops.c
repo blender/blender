@@ -67,16 +67,18 @@
 
 static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Specials", 0);
-	uiMenuItemO(head, 0, "CURVE_OT_subdivide");
-	uiMenuItemO(head, 0, "CURVE_OT_switch_direction");
-	uiMenuItemO(head, 0, "CURVE_OT_spline_weight_set");
-	uiMenuItemO(head, 0, "CURVE_OT_radius_set");
-	uiMenuItemO(head, 0, "CURVE_OT_smooth");
-	uiMenuItemO(head, 0, "CURVE_OT_smooth_radius");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("Specials", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemO(layout, NULL, 0, "CURVE_OT_subdivide");
+	uiItemO(layout, NULL, 0, "CURVE_OT_switch_direction");
+	uiItemO(layout, NULL, 0, "CURVE_OT_spline_weight_set");
+	uiItemO(layout, NULL, 0, "CURVE_OT_radius_set");
+	uiItemO(layout, NULL, 0, "CURVE_OT_smooth");
+	uiItemO(layout, NULL, 0, "CURVE_OT_smooth_radius");
+	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }
