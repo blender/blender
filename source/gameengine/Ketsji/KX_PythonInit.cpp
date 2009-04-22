@@ -632,6 +632,17 @@ static PyObject* gPySetMistColor(PyObject*, PyObject* value)
 	Py_RETURN_NONE;
 }
 
+static PyObject* gPyDisableMist(PyObject*)
+{
+	
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
+		return NULL;
+	}	
+	gp_Rasterizer->DisableFog();
+	
+	Py_RETURN_NONE;
+}
 
 
 static PyObject* gPySetMistStart(PyObject*, PyObject* args)
@@ -900,6 +911,7 @@ static struct PyMethodDef rasterizer_methods[] = {
    METH_VARARGS, "setMousePosition(int x,int y)"},
   {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_O,"set Background Color (rgb)"},
 	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_O,"set Ambient Color (rgb)"},
+ {"disableMist",(PyCFunction)gPyDisableMist,METH_NOARGS,"turn off mist"},
  {"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},

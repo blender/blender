@@ -210,6 +210,10 @@ void RAS_OpenGLRasterizer::DisableFog()
 	m_fogenabled = false;
 }
 
+bool RAS_OpenGLRasterizer::IsFogEnabled()
+{
+	return m_fogenabled;
+}
 
 
 void RAS_OpenGLRasterizer::DisplayFog()

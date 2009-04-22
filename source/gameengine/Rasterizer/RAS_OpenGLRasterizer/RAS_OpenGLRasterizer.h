@@ -190,6 +190,7 @@ public:
 
 	void			DisableFog();
 	virtual void	DisplayFog();
+	virtual bool	IsFogEnabled();
 
 	virtual void	SetBackColor(
 						float red,

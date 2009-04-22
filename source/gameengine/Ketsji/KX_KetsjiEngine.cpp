@@ -1000,7 +1000,7 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 			wi->getAmbientColorBlue()
 		);
 
-		if (m_drawingmode == RAS_IRasterizer::KX_TEXTURED)
+		if (m_drawingmode >= RAS_IRasterizer::KX_SOLID)
 		{	
 			if (wi->hasMist())
 			{
@@ -1011,10 +1011,6 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 					wi->getMistColorGreen(),
 					wi->getMistColorBlue()
 				);
-			}
-			else
-			{
-				m_rasterizer->DisableFog();
 			}
 		}
 	}
