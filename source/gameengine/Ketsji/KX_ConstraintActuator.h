@@ -132,8 +132,6 @@ protected:
 	virtual CValue* GetReplica() {
 		KX_ConstraintActuator* replica = new KX_ConstraintActuator(*this);
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 

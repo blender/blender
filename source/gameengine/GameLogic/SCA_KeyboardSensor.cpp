@@ -85,7 +85,7 @@ CValue* SCA_KeyboardSensor::GetReplica()
 {
 	SCA_KeyboardSensor* replica = new SCA_KeyboardSensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 	return replica;
 }

@@ -78,8 +78,6 @@ CValue* SCA_RandomActuator::GetReplica()
 	SCA_RandomActuator* replica = new SCA_RandomActuator(*this);
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 

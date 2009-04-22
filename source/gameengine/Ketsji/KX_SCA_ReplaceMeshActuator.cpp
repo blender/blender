@@ -217,9 +217,6 @@ CValue* KX_SCA_ReplaceMeshActuator::GetReplica()
 
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 };
 

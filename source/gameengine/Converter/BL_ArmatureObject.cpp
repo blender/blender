@@ -70,10 +70,6 @@ BL_ArmatureObject::BL_ArmatureObject(
 CValue* BL_ArmatureObject::GetReplica()
 {
 	BL_ArmatureObject* replica = new BL_ArmatureObject(*this);
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	replica->ProcessReplica();
 	return replica;
 }

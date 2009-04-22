@@ -87,6 +87,7 @@ RAS_Deformer *BL_ModifierDeformer::GetReplica(class KX_GameObject* replica)
 
 void BL_ModifierDeformer::ProcessReplica()
 {
+	/* Note! - This is not inherited from PyObjectPlus */
 	BL_ShapeDeformer::ProcessReplica();
 	m_dm = NULL;
 	m_lastModifierUpdate = -1;

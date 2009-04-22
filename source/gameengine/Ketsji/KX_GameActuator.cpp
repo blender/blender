@@ -73,8 +73,6 @@ CValue* KX_GameActuator::GetReplica()
 {
 	KX_GameActuator* replica = new KX_GameActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	
 	return replica;
 }

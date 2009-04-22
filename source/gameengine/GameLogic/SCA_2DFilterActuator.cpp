@@ -64,8 +64,6 @@ CValue* SCA_2DFilterActuator::GetReplica()
 {
     SCA_2DFilterActuator* replica = new SCA_2DFilterActuator(*this);
     replica->ProcessReplica();
-    CValue::AddDataToReplica(replica);
-
     return replica;
 }
 

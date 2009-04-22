@@ -128,8 +128,6 @@ public:
 	virtual CValue* GetReplica() {
 		KX_IpoActuator* replica = new KX_IpoActuator(*this);//m_float,GetName());
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 

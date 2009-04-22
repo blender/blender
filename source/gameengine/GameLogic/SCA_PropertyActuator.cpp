@@ -186,11 +186,6 @@ GetReplica() {
 	SCA_PropertyActuator* replica = new SCA_PropertyActuator(*this);
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 
 };

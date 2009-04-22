@@ -88,8 +88,7 @@ KX_RaySensor::~KX_RaySensor()
 CValue* KX_RaySensor::GetReplica()
 {
 	KX_RaySensor* replica = new KX_RaySensor(*this);
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;

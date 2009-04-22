@@ -156,6 +156,8 @@ RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
 	BL_SkinDeformer *result;
 
 	result = new BL_SkinDeformer(*this);
+	/* Not inherited from PyObjectPlus so this isnt needed */
+	/* Just call a dummy function below, will be optimized out */
 	result->ProcessReplica();
 	return result;
 }

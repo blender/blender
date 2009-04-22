@@ -111,7 +111,7 @@ CValue* SCA_PropertySensor::GetReplica()
 {
 	SCA_PropertySensor* replica = new SCA_PropertySensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	replica->m_range_expr = NULL;

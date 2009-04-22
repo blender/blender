@@ -70,7 +70,7 @@ CValue* SCA_ExpressionController::GetReplica()
 	replica->m_exprText = m_exprText;
 	replica->m_exprCache = NULL;
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

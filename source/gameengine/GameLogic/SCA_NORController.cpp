@@ -94,7 +94,7 @@ CValue* SCA_NORController::GetReplica()
 {
 	CValue* replica = new SCA_NORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

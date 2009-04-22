@@ -64,8 +64,6 @@ KX_VisibilityActuator::GetReplica(
 {
 	KX_VisibilityActuator* replica = new KX_VisibilityActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 

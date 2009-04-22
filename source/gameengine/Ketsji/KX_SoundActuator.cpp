@@ -90,8 +90,6 @@ CValue* KX_SoundActuator::GetReplica()
 		m_soundScene->AddObject(soundobj);
 	}
 	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 

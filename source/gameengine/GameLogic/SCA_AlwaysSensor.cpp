@@ -72,7 +72,7 @@ CValue* SCA_AlwaysSensor::GetReplica()
 {
 	CValue* replica = new SCA_AlwaysSensor(*this);//m_float,GetName());
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

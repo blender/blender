@@ -98,7 +98,7 @@ CValue* SCA_XNORController::GetReplica()
 {
 	CValue* replica = new SCA_XNORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

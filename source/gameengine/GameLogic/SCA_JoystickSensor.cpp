@@ -87,7 +87,7 @@ CValue* SCA_JoystickSensor::GetReplica()
 {
 	SCA_JoystickSensor* replica = new SCA_JoystickSensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 	return replica;
 }

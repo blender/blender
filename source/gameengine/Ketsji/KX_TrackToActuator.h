@@ -61,8 +61,6 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual CValue* GetReplica() {
 		KX_TrackToActuator* replica = new KX_TrackToActuator(*this);
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 

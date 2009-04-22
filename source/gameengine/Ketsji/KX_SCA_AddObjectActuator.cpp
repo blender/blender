@@ -125,7 +125,6 @@ CValue* KX_SCA_AddObjectActuator::GetReplica()
 
 	// this will copy properties and so on...
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
 
 	return replica;
 }

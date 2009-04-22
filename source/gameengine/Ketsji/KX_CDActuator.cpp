@@ -74,9 +74,6 @@ CValue* KX_CDActuator::GetReplica()
 {
 	KX_CDActuator* replica = new KX_CDActuator(*this);
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 

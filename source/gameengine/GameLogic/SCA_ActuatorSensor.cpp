@@ -60,7 +60,7 @@ CValue* SCA_ActuatorSensor::GetReplica()
 {
 	SCA_ActuatorSensor* replica = new SCA_ActuatorSensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;

@@ -82,8 +82,7 @@ CValue* KX_RadarSensor::GetReplica()
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
 	replica->m_colliders = new CListValue();
 	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	
 	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
 	

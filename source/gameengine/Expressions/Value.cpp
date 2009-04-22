@@ -439,27 +439,6 @@ int CValue::GetPropertyCount()
 }
 
 
-
-
-
-void CValue::CloneProperties(CValue *replica)
-{
-	
-	if (m_pNamedPropertyArray)
-	{
-		replica->m_pNamedPropertyArray=NULL;
-		std::map<STR_String,CValue*>::iterator it;
-		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
-		{
-			CValue *val = (*it).second->GetReplica();
-			replica->SetProperty((*it).first,val);
-			val->Release();
-		}
-	}
-
-	
-}
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
@@ -534,22 +513,33 @@ void CValue::DisableRefCount()
 
 
 
-void CValue::AddDataToReplica(CValue *replica)
+void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
-	replica->m_refcount = 1;
-
+	m_refcount = 1;
+	
 #ifdef _DEBUG
 	//gRefCountValue++;
 #endif
-	replica->m_ValFlags.RefCountDisabled = false;
+	PyObjectPlus::ProcessReplica();
 
-	replica->ReplicaSetName(GetName());
+	m_ValFlags.RefCountDisabled = false;
 
-	//copy all props
-	CloneProperties(replica);
+	ReplicaSetName(GetName());
+
+	/* copy all props */
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*> *pOldArray = m_pNamedPropertyArray;
+		m_pNamedPropertyArray=NULL;
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= pOldArray->begin(); (it != pOldArray->end()); it++)
+		{
+			CValue *val = (*it).second->GetReplica();
+			SetProperty((*it).first,val);
+			val->Release();
+		}
+	}
 }
-
-
 
 CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 {

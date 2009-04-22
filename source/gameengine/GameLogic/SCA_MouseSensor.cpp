@@ -111,7 +111,7 @@ CValue* SCA_MouseSensor::GetReplica()
 {
 	SCA_MouseSensor* replica = new SCA_MouseSensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;

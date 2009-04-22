@@ -53,10 +53,6 @@ CValue*		BL_DeformableGameObject::GetReplica()
 {
 
 	BL_DeformableGameObject* replica = new BL_DeformableGameObject(*this);//m_float,GetName());
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	replica->ProcessReplica();
 	return replica;
 }

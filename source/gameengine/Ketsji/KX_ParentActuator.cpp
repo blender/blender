@@ -73,8 +73,6 @@ CValue* KX_ParentActuator::GetReplica()
 	KX_ParentActuator* replica = new KX_ParentActuator(*this);
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 

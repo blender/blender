@@ -63,7 +63,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	virtual CValue* GetReplica() {
 		CValue* replica = new KX_MouseFocusSensor(*this);
 		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
+		replica->ProcessReplica();
 		return replica;
 	};
 	/**

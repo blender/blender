@@ -62,8 +62,6 @@ KX_StateActuator::GetReplica(
 {
 	KX_StateActuator* replica = new KX_StateActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 

@@ -281,7 +281,6 @@ public:
 	virtual CValue*		GetProperty(int inIndex);								// Get property number <inIndex>
 	virtual int			GetPropertyCount();										// Get the amount of properties assiocated with this value
 
-	virtual void		CloneProperties(CValue* replica);
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 	/** Set the wireframe color of this value depending on the CSG
 	 * operator type <op>
@@ -300,6 +299,7 @@ public:
 	 * @attention this particular function should never be called. Why not abstract? */
 	virtual void		SetValue(CValue* newval);
 	virtual CValue*		GetReplica() =0;
+	virtual void			ProcessReplica();
 	//virtual CValue*		Copy() = 0;
 	
 	
@@ -328,10 +328,10 @@ public:
 
 	virtual void		SetCustomFlag2(bool bCustomFlag)						{ m_ValFlags.CustomFlag2 = bCustomFlag;};
 	virtual bool		IsCustomFlag2()											{ return m_ValFlags.CustomFlag2;};
-																				
+
 protected:																		
 	virtual void		DisableRefCount();										// Disable reference counting for this value
-	virtual void		AddDataToReplica(CValue* replica);						
+	//virtual void		AddDataToReplica(CValue* replica);						
 	virtual				~CValue();
 private:
 	// Member variables															

@@ -253,9 +253,6 @@ CValue* KX_ObjectActuator::GetReplica()
 	KX_ObjectActuator* replica = new KX_ObjectActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 

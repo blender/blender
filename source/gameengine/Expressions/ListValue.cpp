@@ -324,7 +324,7 @@ const STR_String & CListValue::GetText()
 CValue* CListValue::GetReplica() { 
 	CListValue* replica = new CListValue(*this);
 
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	replica->m_bReleaseContents=true; // for copy, complete array is copied for now...
 	// copy all values

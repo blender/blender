@@ -144,8 +144,7 @@ CValue* KX_TouchSensor::GetReplica()
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
 	replica->m_colliders = new CListValue();
 	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 }
 

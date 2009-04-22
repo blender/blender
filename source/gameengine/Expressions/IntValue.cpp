@@ -311,7 +311,7 @@ const STR_String & CIntValue::GetText()
 
 CValue* CIntValue::GetReplica() { 
 	CIntValue* replica = new CIntValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->m_pstrRep = NULL;
 	
 	return replica;

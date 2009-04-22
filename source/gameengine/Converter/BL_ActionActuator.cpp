@@ -66,9 +66,9 @@ BL_ActionActuator::~BL_ActionActuator()
 		game_free_pose(m_blendpose);
 }
 
-void BL_ActionActuator::ProcessReplica(){
-//	bPose *oldpose = m_pose;
-//	bPose *oldbpose = m_blendpose;
+void BL_ActionActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
 	
 	m_pose = NULL;
 	m_blendpose = NULL;
@@ -84,9 +84,6 @@ void BL_ActionActuator::SetBlendTime (float newtime){
 CValue* BL_ActionActuator::GetReplica() {
 	BL_ActionActuator* replica = new BL_ActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 

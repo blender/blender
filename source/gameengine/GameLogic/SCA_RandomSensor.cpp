@@ -76,7 +76,7 @@ CValue* SCA_RandomSensor::GetReplica()
 	CValue* replica = new SCA_RandomSensor(*this);
 	// replication copies m_basegenerator pointer => share same generator
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

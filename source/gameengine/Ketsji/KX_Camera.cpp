@@ -71,7 +71,6 @@ CValue*	KX_Camera::GetReplica()
 	KX_Camera* replica = new KX_Camera(*this);
 	
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	replica->ProcessReplica();
 	
 	return replica;

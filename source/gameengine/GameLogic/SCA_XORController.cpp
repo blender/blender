@@ -98,7 +98,7 @@ CValue* SCA_XORController::GetReplica()
 {
 	CValue* replica = new SCA_XORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

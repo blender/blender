@@ -111,8 +111,7 @@ CValue* KX_NearSensor::GetReplica()
 	KX_NearSensor* replica = new KX_NearSensor(*this);
 	replica->m_colliders = new CListValue();
 	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	
 	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
 	

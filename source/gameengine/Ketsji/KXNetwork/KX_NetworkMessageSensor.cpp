@@ -79,9 +79,7 @@ CValue* KX_NetworkMessageSensor::GetReplica() {
 	CValue* replica = new KX_NetworkMessageSensor(*this);
 
 	if (replica == NULL) return NULL;
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

@@ -201,7 +201,7 @@ const STR_String& CBoolValue::GetText()
 CValue* CBoolValue::GetReplica()
 {
 	CBoolValue* replica = new CBoolValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	
 	return replica;
 }

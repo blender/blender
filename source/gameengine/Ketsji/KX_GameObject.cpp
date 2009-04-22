@@ -333,6 +333,8 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 
 void KX_GameObject::ProcessReplica()
 {
+	SCA_IObject::ProcessReplica();
+	
 	m_pPhysicsController1 = NULL;
 	m_pGraphicController = NULL;
 	m_pSGNode = NULL;
@@ -351,7 +353,6 @@ CValue* KX_GameObject::GetReplica()
 	KX_GameObject* replica = new KX_GameObject(*this);
 
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	replica->ProcessReplica();
 
 	return replica;
