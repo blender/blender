@@ -100,6 +100,7 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
@@ -3270,7 +3271,6 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)
@@ -3306,7 +3306,6 @@ void OUTLINER_OT_drivers_add(wmOperatorType *ot)
 static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)

@@ -560,7 +560,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		}
 	}
 	
-	/* add target values to a py dictionary that we add to the drivers dict as 'd' */
+	/* add target values to a dict that will be used as '__locals__' dict */
 	driver_vars = PyDict_New(); // XXX do we need to decref this?
 	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
 		PyObject *driver_arg = NULL;
@@ -569,11 +569,10 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		/* try to get variable value */
 		tval= driver_get_target_value(driver, dtar);
 		driver_arg= PyFloat_FromDouble((double)tval);
-		if (driver_arg == NULL) continue;
 		
 		/* try to add to dictionary */
 		if (PyDict_SetItemString(driver_vars, dtar->name, driver_arg)) {
-			/* this target failed */
+			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */
 				fprintf(stderr, "\nBPY_pydriver_eval() - Error while evaluating PyDriver:\n");

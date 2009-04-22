@@ -1258,8 +1258,11 @@ static FModifierTypeInfo FMI_MODNAME = {
 
 /* Utilities For F-Curve Modifiers ---------------------- */
 
-/* Recalculate the F-Curve at evaltime, as modified by the given F-Curve */
-// TODO: this isn't really such an elegant solution for time-modifying F-Modifiers, but it gets too difficult otherwise for now...
+/* Recalculate the F-Curve at evaltime, as modified by the given F-Curve 
+ * 
+ * While this may sound wrong (and be potentially very slow), it is invalid for F-Curve modifiers to actually
+ * modify the evaltime in such a way that those after it will end up evaluating in the wrong time space.
+ */
 static float fcm_reevaluate_fcurve (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
 { 
 	ListBase modifiers = {NULL, NULL};
