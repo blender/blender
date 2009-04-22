@@ -84,6 +84,7 @@ public:
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	virtual void SynchronizeTransform();
 	virtual bool Evaluate(CValue* event);
 	virtual void Init();

@@ -76,6 +76,7 @@ public:
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

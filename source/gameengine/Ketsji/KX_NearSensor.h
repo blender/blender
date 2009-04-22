@@ -70,6 +70,7 @@ public:
 	virtual ~KX_NearSensor(); 
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	virtual bool Evaluate(CValue* event);
 
 	virtual void ReParent(SCA_IObject* parent);

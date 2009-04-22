@@ -142,10 +142,15 @@ KX_TouchSensor::~KX_TouchSensor()
 CValue* KX_TouchSensor::GetReplica() 
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
 	replica->ProcessReplica();
 	return replica;
+}
+
+void KX_TouchSensor::ProcessReplica()
+{
+	SCA_ISensor::ProcessReplica();
+	m_colliders = new CListValue();
+	Init();
 }
 
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)

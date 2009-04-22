@@ -80,33 +80,15 @@ KX_RadarSensor::~KX_RadarSensor()
 CValue* KX_RadarSensor::GetReplica()
 {
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
 	replica->ProcessReplica();
-	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
-	
-	if (replica->m_physCtrl)
-	{
-		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
-		if (replica->m_physCtrl)
-		{
-			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
-		}
-	}
-
-	//todo: make sure replication works fine!
-	//>m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	//Wrong: see KX_TouchSensor
-	//bool parentUpdated = false;
-	//((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL,parentUpdated);
-	replica->SynchronizeTransform();
-	
 	return replica;
 }
 
+void KX_RadarSensor::ProcessReplica()
+{
+	KX_NearSensor::ProcessReplica();
+	m_client_info->m_type = KX_ClientObjectInfo::RADAR;
+}
 
 /**
  *	Transforms the collision object. A cone is not correctly centered
