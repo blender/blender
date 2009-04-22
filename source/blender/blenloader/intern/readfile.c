@@ -3176,6 +3176,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			smd->emCache = smd->mCache = 0;
 		}
+		else if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			
+			amd->prevCos= NULL;
+		}
 		else if (md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
 			

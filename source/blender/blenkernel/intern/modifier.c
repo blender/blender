@@ -8846,8 +8846,10 @@ void modifier_freeTemporaryData(ModifierData *md)
 	if(md->type == eModifierType_Armature) {
 		ArmatureModifierData *amd= (ArmatureModifierData*)md;
 
-		if(amd->prevCos)
+		if(amd->prevCos) {
 			MEM_freeN(amd->prevCos);
+			amd->prevCos= NULL;
+		}
 	}
 }
 
