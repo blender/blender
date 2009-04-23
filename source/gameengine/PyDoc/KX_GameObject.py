@@ -82,7 +82,7 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar isValid: Retuerns fails when the object has been removed from the scene and can no longer be used.
 	@type isValid: bool
 	"""
-	def endObject(visible):
+	def endObject():
 		"""
 		Delete this object, can be used inpace of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.

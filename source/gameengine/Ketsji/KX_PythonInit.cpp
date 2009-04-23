@@ -484,6 +484,127 @@ static struct PyMethodDef game_methods[] = {
 };
 
 
+static PyObject* gPyGetScreenPosition(PyObject*, PyObject* value)
+{
+	MT_Vector3 vect;
+	KX_GameObject *obj = NULL;
+
+	if (!PyVecTo(value, vect))
+	{
+		if(ConvertPythonToGameObject(value, &obj, true, ""))
+		{
+			PyErr_Clear();
+			vect = MT_Vector3(obj->NodeGetWorldPosition());
+		}
+		else
+		{
+			PyErr_SetString(PyExc_TypeError, "Error in getScreenPosition. Expected a Vector3 or a KX_GameObject or a string for a name of a KX_GameObject");
+			return NULL;
+		}
+	}
+
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+	GLint	viewport[4];
+	GLdouble win[3];
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+
+	gluProject(vect[0], vect[1], vect[2], modelMatrix, projMatrix, viewport, &win[0], &win[1], &win[2]);
+
+	vect[0] =  win[0] / (viewport[0] + viewport[2]);
+	vect[1] =  win[1] / (viewport[1] + viewport[3]);
+
+	PyObject* ret = PyTuple_New(2);
+	if(ret){
+		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
+		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
+		return ret;
+	}
+
+	return NULL;
+}
+
+static PyObject* gPyGetScreenVect(PyObject*, PyObject* args)
+{
+	double x,y;
+	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
+		return NULL;
+
+	MT_Vector3 vect;
+	MT_Point3 campos, screenpos;
+
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+	GLint	viewport[4];
+	GLdouble win[3];
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+
+	vect[0] = x * viewport[2];
+	vect[1] = y * viewport[3];
+
+	vect[0] += viewport[0];
+	vect[1] += viewport[1];
+
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
+	gluUnProject(vect[0], vect[1], vect[2], modelMatrix, projMatrix, viewport, &win[0], &win[1], &win[2]);
+
+	campos    = gp_Rasterizer->GetCameraPosition();
+	screenpos = MT_Point3(win[0], win[1], win[2]);
+	vect = campos-screenpos;
+
+	vect.normalize();
+	return PyObjectFrom(vect);
+}
+
+static PyObject* gPyGetScreenRay(PyObject* self, PyObject* args)
+{
+	KX_Camera* cam;
+	MT_Vector3 vect;
+	double x,y,dist;
+	char *propName = NULL;
+
+	if (!PyArg_ParseTuple(args,"ddd|s:getScreenRay",&x,&y,&dist,&propName))
+		return NULL;
+
+	PyObject* argValue = PyTuple_New(2);
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
+	}
+
+	if(!PyVecTo(gPyGetScreenVect(self,argValue), vect))
+	{
+		Py_DECREF(argValue);
+		PyErr_SetString(PyExc_TypeError,
+			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate and an optional property argument");
+		return NULL;
+	}
+	Py_DECREF(argValue);
+
+	cam = gp_KetsjiScene->GetActiveCamera();
+	dist *= -1.0;
+
+	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
+		if (propName)
+			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+
+		PyObject* ret= cam->PyrayCastTo(argValue,NULL);
+		Py_DECREF(argValue);
+		return ret;
+	}
+
+	return NULL;
+}
+
 static PyObject* gPyGetWindowHeight(PyObject*, PyObject* args)
 {
 	return PyInt_FromLong((gp_Canvas ? gp_Canvas->GetHeight() : 0));
@@ -897,6 +1018,12 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 }
 
 static struct PyMethodDef rasterizer_methods[] = {
+  {"getScreenPosition",(PyCFunction) gPyGetScreenPosition,
+   METH_O, "getScreenPosition doc"},
+  {"getScreenVect",(PyCFunction) gPyGetScreenVect,
+   METH_VARARGS, "getScreenVect doc"},
+  {"getScreenRay",(PyCFunction) gPyGetScreenRay,
+   METH_VARARGS, "getScreenRay doc"},
   {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
    METH_VARARGS, "getWindowWidth doc"},
    {"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
