@@ -1200,7 +1200,7 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 	PyObject* pyconvert;
 	
 	if (self==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -1234,7 +1234,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		PyErr_Clear();
 	
 	if (self==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -1261,9 +1261,9 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		int set= 0;
 		
 		/* as CValue */
-		if(attr_str)
+		if(attr_str && BGE_PROXY_CHECK_TYPE(val)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
 		{
-			CValue* vallie = self->ConvertPythonToValue(val);
+			CValue* vallie = self->ConvertPythonToValue(val, ""); /* error unused */
 			
 			if(vallie)
 			{
@@ -2643,7 +2643,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		
 		/* sets the error */
 		if (*object==NULL) {
-			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}
 		

@@ -891,7 +891,15 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
-	// first disconnect child from parent
+	/* Invalidate the python reference, since the object may exist in script lists
+	 * its possible that it wont be automatically invalidated, so do it manually here,
+	 * 
+	 * if for some reason the object is added back into the scene python can always get a new Proxy
+	 */
+	gameobj->InvalidateProxy();
+	
+	
+	// disconnect child from parent
 	SG_Node* node = newobj->GetSGNode();
 
 	if (node)

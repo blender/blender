@@ -348,7 +348,7 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		
 		/* sets the error */
 		if (*object==NULL) {
-			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}		
 		

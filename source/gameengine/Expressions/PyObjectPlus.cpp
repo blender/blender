@@ -138,9 +138,9 @@ PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
 		if(!strcmp("isValid", PyString_AsString(attr))) {
-			Py_RETURN_TRUE;
+			Py_RETURN_FALSE;
 		}
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -171,7 +171,7 @@ int PyObjectPlus::py_base_setattro(PyObject *self, PyObject *attr, PyObject *val
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -186,7 +186,7 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 	
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -816,6 +816,23 @@ void PyObjectPlus::ProcessReplica()
 	/* Clear the proxy, will be created again if needed with GetProxy()
 	 * otherwise the PyObject will point to the wrong reference */
 	m_proxy= NULL;
+}
+
+/* Sometimes we might want to manually invalidate a BGE type even if
+ * it hasnt been released by the BGE, say for example when an object
+ * is removed from a scene, accessing it may cause problems.
+ * 
+ * In this case the current proxy is made invalid, disowned,
+ * and will raise an error on access. However if python can get access
+ * to this class again it will make a new proxy and work as expected.
+ */
+void PyObjectPlus::InvalidateProxy()		// check typename of each parent
+{
+	if(m_proxy) { 
+		BGE_PROXY_REF(m_proxy)=NULL;
+		Py_DECREF(m_proxy);
+		m_proxy= NULL;
+	}
 }
 
 /* Utility function called by the macro py_getattro_up()

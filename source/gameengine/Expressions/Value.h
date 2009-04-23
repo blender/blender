@@ -230,7 +230,7 @@ public:
 		return NULL;
 	}
 
-	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
+	virtual CValue*	ConvertPythonToValue(PyObject* pyobj, const char *error_prefix);
 
 
 	virtual int				py_delattro(PyObject *attr);

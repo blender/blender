@@ -451,6 +451,8 @@ public:
 	static PyObject *GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp);
 	static PyObject *NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool py_owns);
 	
+	void	InvalidateProxy();
+	
 	/**
 	 * Makes sure any internal data owned by this class is deep copied.
 	 */

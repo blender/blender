@@ -316,7 +316,7 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 		
 		if(camOb==NULL)
 		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 			return 1;
 		}
 		
@@ -435,7 +435,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* args)
 		new_camera = static_cast<KX_Camera*>BGE_PROXY_REF(cam);
 		if(new_camera==NULL)
 		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 			return NULL;
 		}
 		
