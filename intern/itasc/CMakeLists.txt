@@ -24,10 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(SoundSystem string ghost guardedalloc bmfont moto container memutil decimation iksolver itasc boolop opennl)
+SET(INC ../../extern/Eigen2)
 
-IF(WITH_ELBEEM)
-  SUBDIRS(elbeem)
-ENDIF(WITH_ELBEEM)
+FILE(GLOB SRC *.cpp kdl/*.cpp kdl/utilities/*.cpp)
 
-SUBDIRS(bsp)
+BLENDERLIB(bf_ITASC "${SRC}" "${INC}")
+#, libtype=['blender'], priority = [10] )

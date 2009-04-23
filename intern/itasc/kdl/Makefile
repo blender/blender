@@ -1,4 +1,6 @@
+#
 # $Id$
+#
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -15,19 +17,26 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL LICENSE BLOCK *****
+# iksolver main makefile.
+#
 
-SUBDIRS(SoundSystem string ghost guardedalloc bmfont moto container memutil decimation iksolver itasc boolop opennl)
+LIBNAME = itasc
+DIR = $(OCGDIR)/intern/$(LIBNAME)
 
-IF(WITH_ELBEEM)
-  SUBDIRS(elbeem)
-ENDIF(WITH_ELBEEM)
+include nan_compile.mk
 
-SUBDIRS(bsp)
+CPPFLAGS += -I.
+CPPFLAGS += -I../../../extern/Eigen2
+
+##############################
+DIRS = utilities
+SOURCEDIR = intern/$(LIBNAME)/kdl
+include nan_subdirs.mk

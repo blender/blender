@@ -326,6 +326,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_build_install_all", "..
 		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_itasc", "..\..\intern\itasc\make\msvc_9_0\itasc.vcproj", "{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Blender Debug|Win32 = Blender Debug|Win32
@@ -826,6 +828,14 @@ Global
 		{02110D03-59DB-4571-8787-72B3C03B2F2D}.Blender Release|Win32.ActiveCfg = Blender Release|Win32
 		{02110D03-59DB-4571-8787-72B3C03B2F2D}.BlenderPlayer Debug|Win32.ActiveCfg = Blender Debug|Win32
 		{02110D03-59DB-4571-8787-72B3C03B2F2D}.BlenderPlayer Release|Win32.ActiveCfg = Blender Release|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.Blender Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.Blender Debug|Win32.Build.0 = Blender Debug|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.Blender Release|Win32.ActiveCfg = Blender Release|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.Blender Release|Win32.Build.0 = Blender Release|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.BlenderPlayer Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.BlenderPlayer Debug|Win32.Build.0 = Blender Debug|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.BlenderPlayer Release|Win32.ActiveCfg = Blender Release|Win32
+		{59567A5B-F63A-4A5C-B33A-0A45C300F4DC}.BlenderPlayer Release|Win32.Build.0 = Blender Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

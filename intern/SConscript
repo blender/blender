@@ -11,6 +11,7 @@ SConscript(['SoundSystem/SConscript',
             'memutil/SConscript/',
             'decimation/SConscript',
             'iksolver/SConscript',
+            'itasc/SConscript',
             'boolop/SConscript',
             'opennl/SConscript'])
 

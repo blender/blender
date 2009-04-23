@@ -173,14 +173,14 @@ IF(WIN32)
     ADD_CUSTOM_COMMAND(TARGET blender
       POST_BUILD
       MAIN_DEPENDENCY blender
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-51.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-52.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-49.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-0.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-2.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-59.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-67.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
     )

@@ -85,6 +85,7 @@ endif
     export NAN_DECIMATION ?= $(LCGDIR)/decimation
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
     export NAN_IKSOLVER ?= $(LCGDIR)/iksolver
+    export NAN_ITASC ?= $(LCGDIR)/itasc
     export NAN_BSP ?= $(LCGDIR)/bsp
     export NAN_BOOLOP ?= $(LCGDIR)/boolop
     export NAN_SOUNDSYSTEM ?= $(LCGDIR)/SoundSystem
