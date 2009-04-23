@@ -107,15 +107,9 @@ KX_Dome::KX_Dome (
 				CreateMeshDome250();
 				m_numfaces = 5;
 			} break;
-		case DOME_TRUNCATED:
-			cubetop.resize(1);
-			cubebottom.resize(1);
-			cubeleft.resize(2);
-			cuberight.resize(2);
-
-			m_angle = 180;
-			CreateMeshDome180();
-			m_numfaces = 4;
+		case DOME_ENVMAP:
+			m_angle = 360;
+			m_numfaces = 6;
 			break;
 		case DOME_PANORAM_SPH:
 			cubeleft.resize(2);
@@ -240,7 +234,7 @@ bool KX_Dome::CreateDL(){
 
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
-		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED){
+		if(m_mode == DOME_FISHEYE){
 			glNewList(dlistId, GL_COMPILE);
 				GLDrawTriangles(cubetop, nfacestop);
 			glEndList();
@@ -386,7 +380,7 @@ void KX_Dome::GLDrawWarpQuads(void)
 		}
 		glEnd();
 	} else{
-		printf("Error: Warp Mode unsupported. Try 1 for Polar Mesh or 2 for Fisheye.\n");
+		printf("Error: Warp Mode %d unsupported. Try 1 for Polar Mesh or 2 for Fisheye.\n", warp.mode);
 	}
 }
 
@@ -1415,7 +1409,7 @@ Uses 6 cameras for angles up to 360º
 	MT_Scalar c = cos(deg45);
 	MT_Scalar s = sin(deg45);
 
-	if ((m_mode == DOME_FISHEYE && m_angle <= 180)|| m_mode == DOME_TRUNCATED){
+	if ((m_mode == DOME_FISHEYE && m_angle <= 180)){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						c, -s, 0.0,
@@ -1437,7 +1431,7 @@ Uses 6 cameras for angles up to 360º
 						0.0, 1.0, 0.0,
 						s, 0.0, c);
 
-	} else if ((m_mode == DOME_FISHEYE && m_angle > 180)){
+	} else if ((m_mode == DOME_FISHEYE && m_angle > 180) || m_mode == DOME_ENVMAP){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						 1.0, 0.0, 0.0,
@@ -1464,7 +1458,7 @@ Uses 6 cameras for angles up to 360º
 						0.0, 1.0, 0.0,
 						0.0, 0.0, 1.0);
 
-		m_locRot[5] = MT_Matrix3x3( // 180º - Back - NOT USING
+		m_locRot[5] = MT_Matrix3x3( // 180º - Back - USED for ENVMAP only
 						-1.0, 0.0, 0.0,
 						 0.0, 1.0, 0.0,
 						 0.0, 0.0,-1.0);
@@ -1531,8 +1525,8 @@ void KX_Dome::Draw(void)
 		case DOME_FISHEYE:
 			DrawDomeFisheye();
 			break;
-		case DOME_TRUNCATED:
-			DrawDomeFisheye();
+		case DOME_ENVMAP:
+			DrawEnvMap();
 			break;
 		case DOME_PANORAM_SPH:
 			DrawPanorama();
@@ -1545,6 +1539,138 @@ void KX_Dome::Draw(void)
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_viewport.GetLeft(), m_viewport.GetBottom(), warp.bufferwidth, warp.bufferheight);
 		DrawDomeWarped();
 	}
+}
+
+void KX_Dome::DrawEnvMap(void)
+{
+	int i,j;
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	// Making the viewport always square 
+
+	int can_width = m_viewport.GetRight();
+	int can_height = m_viewport.GetTop();
+
+	float ortho_width, ortho_height;
+
+	if (warp.usemesh)
+		glOrtho((-1.0), 1.0, (-0.66), 0.66, -20.0, 10.0); //stretch the image to reduce resolution lost
+
+	else {
+		if (can_width/3 <= can_height/2){
+			ortho_width = 1.0;
+			ortho_height = (float)can_height/can_width;
+		}else{
+			ortho_height = 2.0f / 3;
+			ortho_width = (float)can_width/can_height * ortho_height;
+		}
+		
+		ortho_width /= m_size;
+		ortho_height /= m_size;
+		
+		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
+	}
+
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.0,0.0,1.0, 0.0,0.0,0.0, 0.0,1.0,0.0);
+
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glShadeModel(GL_SMOOTH);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glEnable(GL_TEXTURE_2D);
+	glColor3f(1.0,1.0,1.0);
+
+	float uv_ratio = (float)(m_buffersize-1) / m_imagesize;
+	double onebythree = 1.0f / 3;
+
+	// domefacesId[0] =>  (top)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[0]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f( onebythree, 0.0f, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f(-onebythree, 0.0f, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f(-onebythree,-2 * onebythree, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(onebythree,-2 * onebythree, 3.0f);
+	glEnd();
+
+	// domefacesId[1] =>  (bottom)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[1]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f(-onebythree, 0.0f, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f(-1.0f, 0.0f, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f(-1.0f,-2 * onebythree, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(-onebythree,-2 * onebythree, 3.0f);
+	glEnd();
+
+	// domefacesId[2] => -90º (left)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[2]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f(-onebythree, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f(-1.0f, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f(-1.0f, 0.0f, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(-onebythree, 0.0f, 3.0f);
+	glEnd();
+
+	// domefacesId[3] => 90º (right)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[3]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f( 1.0f, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f( onebythree, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f( onebythree, 0.0f, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(1.0f, 0.0f, 3.0f);
+	glEnd();
+
+	// domefacesId[4] => 0º (front)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[4]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f( 1.0f, 0.0f, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f( onebythree, 0.0f, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f( onebythree,-2 * onebythree, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(1.0f, -2 * onebythree, 3.0f);
+	glEnd();
+
+	// domefacesId[5] => 180º (back)
+	glBindTexture(GL_TEXTURE_2D, domefacesId[5]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(uv_ratio,uv_ratio);
+		glVertex3f( onebythree, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,uv_ratio);
+		glVertex3f(-onebythree, 2 * onebythree, 3.0f);
+		glTexCoord2f(0.0,0.0);
+		glVertex3f(-onebythree, 0.0f, 3.0f);
+		glTexCoord2f(uv_ratio,0.0);
+		glVertex3f(onebythree, 0.0f, 3.0f);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void KX_Dome::DrawDomeFisheye(void)
@@ -1565,15 +1691,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	if (warp.usemesh)
 		glOrtho((-1.0), 1.0, (-1.0), 1.0, -20.0, 10.0); //stretch the image to reduce resolution lost
 
-	else if(m_mode == DOME_TRUNCATED){
-		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
-		
-		ortho_width /= m_size;
-		ortho_height /= m_size;
-
-		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
-	} else {
+	else {
 		if (can_width < can_height){
 			ortho_width = 1.0;
 			ortho_height = (float)can_height/can_width;

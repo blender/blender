@@ -1772,7 +1772,7 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-5, -10, 295, 300, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-5, -10, 295, 305, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, 0, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -1787,16 +1787,17 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	uiDefButF(block, COL, 0, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, randomcolorindex, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
+	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,240,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,243,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
+	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,240,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,243,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
+	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,240,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
 	uiBlockEndAlign(block);
 	
 	xco = 0;
 	uiDefBut(block, LABEL, 0, "Fullscreen:",		xco, yco-=30, 100, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, TOG, 0, "Fullscreen", xco+70, yco, 68, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
+	uiDefButS(block, TOG, 0, "Fullscreen", xco+74, yco, 68, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
+	xco = 3;
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, 0, "X:",		xco+40, yco-=27, 100, 19, &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
 	uiDefButS(block, NUM, 0, "Y:",		xco+140, yco, 100, 19, &G.scene->r.yplay,    10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
@@ -1816,26 +1817,29 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	 * RAS_STEREO_VINTERLACE	7
 	 * RAS_STEREO_DOME		8
 	 */
+
+	xco = 8;
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, 0, "No Stereo", xco, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 1.0, 0, 0, "Disables stereo");
-	uiDefButS(block, ROW, 0, "Pageflip", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
-	uiDefButS(block, ROW, 0, "Syncdouble", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
-	uiDefButS(block, ROW, 0, "Anaglyph", xco-=180, yco-=21, 88, 19, &(G.scene->r.stereomode), 7.0, 5.0, 0, 0, "Enables anaglyph (Red-Blue) stereo method");
-	uiDefButS(block, ROW, 0, "Side by Side", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 6.0, 0, 0, "Enables side by side left and right images");
-	uiDefButS(block, ROW, 0, "V Interlace", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 7.0, 0, 0, "Enables interlaced vertical strips for autostereo display");
+	uiDefButS(block, ROW, 0, "Pageflip", xco+90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
+	uiDefButS(block, ROW, 0, "Syncdouble", xco+180, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
+	uiDefButS(block, ROW, 0, "Anaglyph", xco, yco-=21, 88, 19, &(G.scene->r.stereomode), 7.0, 5.0, 0, 0, "Enables anaglyph (Red-Blue) stereo method");
+	uiDefButS(block, ROW, 0, "Side by Side", xco+90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 6.0, 0, 0, "Enables side by side left and right images");
+	uiDefButS(block, ROW, 0, "V Interlace", xco+180, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 7.0, 0, 0, "Enables interlaced vertical strips for autostereo display");
 	
 	uiBlockEndAlign(block);
 
+	xco = 8;
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, 0, "Dome", xco-=180, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 8.0, 0, 0, "Enables dome camera");
-	uiDefButS(block, NUM, 0, "Ang:",		xco+=90, yco, 88, 19, &G.scene->r.domeangle, 90.0, 250.0, 0, 0, "Angle (Aperture) of the Dome - it only works in mode 1");
-	uiDefButS(block, NUM, 0, "Mode:",		xco+=90, yco, 88, 19, &G.scene->r.domemode, 1.0, 3.0, 0, 0, "Dome mode - 1 fisheye, 2 truncated, 3 spherical panoramic");
+	uiDefButS(block, ROW, 0, "Dome",	xco, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 8.0, 0, 0, "Enables dome camera");
+	uiDefButS(block, NUM, 0, "Ang:",	xco+90, yco, 88, 19, &G.scene->r.domeangle, 90.0, 250.0, 0, 0, "Angle (Aperture) of the Dome - it only works in mode 1");
+	uiDefButS(block, NUM, 0, "Mode:",	xco+180, yco, 88, 19, &G.scene->r.domemode, 1.0, 3.0, 0, 0, "1 fisheye, 2 environment map, 3 spherical panoramic");
 
-	uiDefButF(block, NUM, 0, "Size:",		xco-=180, yco-=21, 88, 19, &G.scene->r.domesize, 0.5, 3.5, 0, 0, "Size adjustments");
-	uiDefButS(block, NUM, 0, "Tes:",		xco+=90, yco, 88, 19, &G.scene->r.domeres, 1.0, 8.0, 0, 0, "Tesselation level - 1 to 8");
-	uiDefButF(block, NUM, 0, "Res:",	xco+=90, yco, 88, 19, &G.scene->r.domeresbuf, 0.1, 1.0, 0, 0, "Buffer Resolution - decrease it to increase speed");
+	uiDefButF(block, NUM, 0, "Size:",	xco, yco-=21, 88, 19, &G.scene->r.domesize, 0.5, 3.5, 0, 0, "Size adjustments");
+	uiDefButS(block, NUM, 0, "Tes:",	xco+90, yco, 88, 19, &G.scene->r.domeres, 1.0, 8.0, 0, 0, "Tesselation level - 1 to 8");
+	uiDefButF(block, NUM, 0, "Res:",	xco+180, yco, 88, 19, &G.scene->r.domeresbuf, 0.1, 1.0, 0, 0, "Buffer Resolution - decrease it to increase speed");
 
-	uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Warp Data: ", xco-180,yco-=21,268, 19, &G.scene->r.dometext, "Custom Warp Mesh data file");
+	uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Warp Data: ", xco,yco-=21,268, 19, &G.scene->r.dometext, "Custom Warp Mesh data file");
 	uiBlockEndAlign(block);
 
 	uiBlockSetDirection(block, UI_TOP);

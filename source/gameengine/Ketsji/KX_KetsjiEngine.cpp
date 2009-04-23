@@ -353,7 +353,6 @@ void KX_KetsjiEngine::RenderDome()
 		m_dome->BindImages(i);
 	}	
 
-//	m_dome->Dome_PostRender(scene, cam, stereomode);
 	m_canvas->EndFrame();//XXX do we really need that?
 
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
@@ -381,7 +380,8 @@ void KX_KetsjiEngine::RenderDome()
 
 	m_dome->Draw();
 
-	//run 2dfilters
+	// run the 2dfilters and motion blur once for all the scenes
+	PostRenderFrame();
 	EndFrame();
 }
 
