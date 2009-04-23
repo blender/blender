@@ -347,7 +347,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #endif
 
 /* XXX this is temporary, need a proper script registration system for 2.5 */
-void BPY_run_ui_scripts(bContext *C)
+void BPY_run_ui_scripts(bContext *C, int reload)
 {
 #ifdef TIME_REGISTRATION
 	double time = PIL_check_seconds_timer();
@@ -396,13 +396,19 @@ void BPY_run_ui_scripts(bContext *C)
 			
 			mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
 			if (mod) {
-				Py_DECREF(mod);			
+				if (reload) {
+					PyObject *mod_orig= mod;
+					mod= PyImport_ReloadModule(mod);
+					Py_DECREF(mod_orig);
+				}
 			}
-			else {
+			
+			if(mod) {
+				Py_DECREF(mod); /* could be NULL from reloading */
+			} else {
 				PyErr_Print();
 				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
 			}
-			
 		}
 	}
 
