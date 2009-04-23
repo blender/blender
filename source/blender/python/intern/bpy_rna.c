@@ -1989,7 +1989,7 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	BPy_StructRNA *py_srna;
 	StructUnregisterFunc unreg;
 
-	if(!PyArg_ParseTuple(args, "O:register", &py_class))
+	if(!PyArg_ParseTuple(args, "O:unregister", &py_class))
 		return NULL;
 
 	if(!PyType_Check(py_class)) {

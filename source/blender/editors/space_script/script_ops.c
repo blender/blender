@@ -67,6 +67,6 @@ void script_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Script", SPACE_SCRIPT, 0);
 
 	/* TODO - this is just while we have no way to load a text datablock */
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0)->ptr, "filename", "test.py");
 }
 
