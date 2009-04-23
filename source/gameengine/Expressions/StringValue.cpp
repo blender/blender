@@ -133,7 +133,7 @@ bool CStringValue::IsEqual(const STR_String & other)
 CValue* CStringValue::GetReplica()
 { 
 	CStringValue* replica = new CStringValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 };
 

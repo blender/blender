@@ -110,7 +110,7 @@ CValue* SCA_PythonController::GetReplica()
 	*/
 	
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }

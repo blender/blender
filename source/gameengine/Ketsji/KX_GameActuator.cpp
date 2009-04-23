@@ -73,8 +73,6 @@ CValue* KX_GameActuator::GetReplica()
 {
 	KX_GameActuator* replica = new KX_GameActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	
 	return replica;
 }
@@ -250,13 +248,17 @@ PyMethodDef KX_GameActuator::Methods[] =
 
 PyAttributeDef KX_GameActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("file",0,100,false,KX_GameActuator,m_filename),
+	//KX_PYATTRIBUTE_TODO("mode"),
 	{ NULL }	//Sentinel
 };
 
-PyObject*
-KX_GameActuator::py_getattro(PyObject *attr)
+PyObject* KX_GameActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_GameActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_GameActuator::py_setattro(PyObject *attr, PyObject *value)

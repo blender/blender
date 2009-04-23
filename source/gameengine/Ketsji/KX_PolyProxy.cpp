@@ -79,6 +79,7 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 
 PyAttributeDef KX_PolyProxy::Attributes[] = {
 	/* All dummy's so they come up in a dir() */
+	//KX_PYATTRIBUTE_TODO("DummyProps"),
 	KX_PYATTRIBUTE_DUMMY("matname"),
 	KX_PYATTRIBUTE_DUMMY("texture"),
 	KX_PYATTRIBUTE_DUMMY("material"),
@@ -159,6 +160,10 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IObject);
 }
 
+PyObject* KX_PolyProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
+}
+
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
 :	m_polygon(polygon),
 	m_mesh((RAS_MeshObject*)mesh)
@@ -179,8 +184,6 @@ double		KX_PolyProxy::GetNumber() { return -1;}
 STR_String	KX_PolyProxy::GetName() { return sPolyName;}
 void		KX_PolyProxy::SetName(STR_String) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}
-void		KX_PolyProxy::ReplicaSetName(STR_String) {};
-
 
 // stuff for python integration
 

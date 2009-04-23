@@ -734,6 +734,10 @@ PyObject* BL_Shader::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* BL_Shader::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
 
 PyMethodDef BL_Shader::Methods[] = 
 {

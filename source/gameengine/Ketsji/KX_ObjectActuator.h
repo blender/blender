@@ -154,6 +154,7 @@ public:
 	/* --------------------------------------------------------------------- */
 	
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForce);

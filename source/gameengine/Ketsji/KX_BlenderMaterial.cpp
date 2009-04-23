@@ -53,6 +53,7 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	RAS_IPolyMaterial(
 		STR_String( data->texname[0] ),
 		STR_String( data->matname ), // needed for physics!
+		data->materialindex,
 		data->tile,
 		data->tilexrep[0],
 		data->tileyrep[0],
@@ -118,6 +119,27 @@ unsigned int* KX_BlenderMaterial::GetMCol(void) const
 {
 	// fonts on polys
 	return mMaterial->rgb;
+}
+
+void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	if (mMaterial) {
+		*rgba++ = (unsigned char) (mMaterial->matcolor[0]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[1]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[2]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[3]*255.0);
+	} else
+		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
+}
+
+Material *KX_BlenderMaterial::GetBlenderMaterial() const
+{
+	return mMaterial->material;
+}
+
+Scene* KX_BlenderMaterial::GetBlenderScene() const
+{
+	return mScene->GetBlenderScene();
 }
 
 void KX_BlenderMaterial::OnConstruction()
@@ -749,6 +771,9 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 };
 
 PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("shader"),
+	//KX_PYATTRIBUTE_TODO("materialIndex"),
+	//KX_PYATTRIBUTE_TODO("blending"),
 	{ NULL }	//Sentinel
 };
 
@@ -782,6 +807,10 @@ PyParentObject KX_BlenderMaterial::Parents[] = {
 PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
 {
 	py_getattro_up(PyObjectPlus);
+}
+
+PyObject* KX_BlenderMaterial::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
 }
 
 int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
@@ -859,7 +888,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(void)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( mMaterial->material_index );
+	return PyInt_FromLong( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )

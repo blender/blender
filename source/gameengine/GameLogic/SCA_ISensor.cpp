@@ -456,13 +456,19 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("level",SCA_ISensor,m_level),
 	KX_PYATTRIBUTE_RO_FUNCTION("triggered", SCA_ISensor, pyattr_get_triggered),
 	KX_PYATTRIBUTE_RO_FUNCTION("positive", SCA_ISensor, pyattr_get_positive),
+	//KX_PYATTRIBUTE_TODO("links"),
+	//KX_PYATTRIBUTE_TODO("posTicks"),
+	//KX_PYATTRIBUTE_TODO("negTicks"),
 	{ NULL }	//Sentinel
 };
 
-PyObject*
-SCA_ISensor::py_getattro(PyObject *attr)
+PyObject* SCA_ISensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_ILogicBrick);
+}
+
+PyObject* SCA_ISensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ILogicBrick);
 }
 
 int SCA_ISensor::py_setattro(PyObject *attr, PyObject *value)

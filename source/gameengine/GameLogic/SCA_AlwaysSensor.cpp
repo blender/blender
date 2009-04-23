@@ -72,7 +72,7 @@ CValue* SCA_AlwaysSensor::GetReplica()
 {
 	CValue* replica = new SCA_AlwaysSensor(*this);//m_float,GetName());
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -141,6 +141,10 @@ PyAttributeDef SCA_AlwaysSensor::Attributes[] = {
 
 PyObject* SCA_AlwaysSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_AlwaysSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 /* eof */

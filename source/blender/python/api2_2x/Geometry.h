@@ -32,7 +32,7 @@
 #define EXPP_Geometry_H
 
 #include <Python.h>
-#include "vector.h"
+#include "Mathutils.h"
 
 PyObject *Geometry_Init( void );
 

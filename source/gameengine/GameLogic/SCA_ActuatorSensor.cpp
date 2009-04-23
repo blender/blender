@@ -60,7 +60,7 @@ CValue* SCA_ActuatorSensor::GetReplica()
 {
 	SCA_ActuatorSensor* replica = new SCA_ActuatorSensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;
@@ -163,6 +163,10 @@ PyAttributeDef SCA_ActuatorSensor::Attributes[] = {
 
 PyObject* SCA_ActuatorSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_ActuatorSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_ActuatorSensor::py_setattro(PyObject *attr, PyObject *value) {

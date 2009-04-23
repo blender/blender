@@ -63,7 +63,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	virtual CValue* GetReplica() {
 		CValue* replica = new KX_MouseFocusSensor(*this);
 		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
+		replica->ProcessReplica();
 		return replica;
 	};
 	/**
@@ -89,7 +89,8 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject*  py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayTarget);
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRaySource);

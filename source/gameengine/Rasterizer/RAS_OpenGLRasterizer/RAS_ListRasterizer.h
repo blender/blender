@@ -9,6 +9,7 @@
 class RAS_ListRasterizer;
 class RAS_ListSlot : public KX_ListSlot
 {
+	friend class RAS_ListRasterizer;
 	unsigned int m_list;
 	unsigned int m_flag;
 	RAS_ListRasterizer* m_rasty;
@@ -32,15 +33,16 @@ enum RAS_ListSlotFlags	{
 	LIST_NOCREATE	=8,
 	LIST_BEGIN		=16,
 	LIST_END		=32,
-	LIST_REGEN		=64
+	LIST_REGEN		=64,
+	LIST_STANDALONE =128,
 };
 
-typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_Lists;
+typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_ArrayLists;
 
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {
 	bool mUseVertexArrays;
-	RAS_Lists mLists;
+	RAS_ArrayLists mArrayLists;
 
 	RAS_ListSlot* FindOrAdd(class RAS_MeshSlot& ms);
 	void ReleaseAlloc();

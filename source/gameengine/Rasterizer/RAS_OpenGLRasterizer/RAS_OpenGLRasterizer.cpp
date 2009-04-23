@@ -35,11 +35,20 @@
 
 #include "RAS_Rect.h"
 #include "RAS_TexVert.h"
+#include "RAS_MeshObject.h"
 #include "MT_CmMatrix4x4.h"
 #include "RAS_IRenderTools.h" // rendering text
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
+#include "GPU_extensions.h"
+
+#include "DNA_image_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_material_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_DerivedMesh.h"
 
 /**
  *  32x32 bit masks for vinterlace stereo mode
@@ -201,6 +210,10 @@ void RAS_OpenGLRasterizer::DisableFog()
 	m_fogenabled = false;
 }
 
+bool RAS_OpenGLRasterizer::IsFogEnabled()
+{
+	return m_fogenabled;
+}
 
 
 void RAS_OpenGLRasterizer::DisplayFog()
@@ -703,6 +716,51 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	IndexPrimitivesInternal(ms, true);
 }
 
+static bool current_wireframe;
+static RAS_MaterialBucket *current_bucket;
+static RAS_IPolyMaterial *current_polymat;
+static RAS_MeshSlot *current_ms;
+static RAS_MeshObject *current_mesh;
+static int current_blmat_nr;
+static GPUVertexAttribs current_gpu_attribs;
+static int CheckMaterialDM(int matnr, void *attribs)
+{
+	// only draw the current material
+	if (matnr != current_blmat_nr)
+		return 0;
+	GPUVertexAttribs *gattribs = (GPUVertexAttribs *)attribs;
+	if (gattribs)
+		memcpy(gattribs, &current_gpu_attribs, sizeof(GPUVertexAttribs));
+	return 1;
+}
+static int CheckTexfaceDM(void *mcol, int index)
+{
+
+	// index is the original face index, retrieve the polygon
+	RAS_Polygon* polygon = (index >= 0 && index < current_mesh->NumPolygons()) ?
+		current_mesh->GetPolygon(index) : NULL;
+	if (polygon && polygon->GetMaterial() == current_bucket) {
+		// must handle color.
+		if (current_wireframe)
+			return 2;
+		if (current_ms->m_bObjectColor) {
+			MT_Vector4& rgba = current_ms->m_RGBAcolor;
+			glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
+			// don't use mcol
+			return 2;
+		}
+		if (!mcol) {
+			// we have to set the color from the material
+			unsigned char rgba[4];
+			current_polymat->GetMaterialRGBAColor(rgba);
+			glColor4ubv((const GLubyte *)rgba);
+			return 2;
+		}
+		return 1;
+	}
+	return 0;
+}
+
 void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 { 
 	bool obcolor = ms.m_bObjectColor;
@@ -710,6 +768,31 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 	MT_Vector4& rgba = ms.m_RGBAcolor;
 	RAS_MeshSlot::iterator it;
 
+	if (ms.m_pDerivedMesh) {
+		// mesh data is in derived mesh, 
+		current_bucket = ms.m_bucket;
+		current_polymat = current_bucket->GetPolyMaterial();
+		current_ms = &ms;
+		current_mesh = ms.m_mesh;
+		current_wireframe = wireframe;
+		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
+		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
+			// GetMaterialIndex return the original mface material index, 
+			// increment by 1 to match what derived mesh is doing
+			current_blmat_nr = current_polymat->GetMaterialIndex()+1;
+			// For GLSL we need to retrieve the GPU material attribute
+			Material* blmat = current_polymat->GetBlenderMaterial();
+			Scene* blscene = current_polymat->GetBlenderScene();
+			if (!wireframe && blscene && blmat)
+				GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat), &current_gpu_attribs);
+			else
+				memset(&current_gpu_attribs, 0, sizeof(current_gpu_attribs));
+			ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
+		} else {
+			ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
+		}
+		return;
+	}
 	// iterate over display arrays, each containing an index + vertex array
 	for(ms.begin(it); !ms.end(it); ms.next(it)) {
 		RAS_TexVert *vertex;

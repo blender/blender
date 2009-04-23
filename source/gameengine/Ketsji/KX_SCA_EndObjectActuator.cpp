@@ -82,8 +82,6 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 	if (replica == NULL) return NULL;
 
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 
@@ -134,6 +132,10 @@ PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
 PyObject* KX_SCA_EndObjectActuator::py_getattro(PyObject *attr)
 {
   py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_EndObjectActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 /* eof */

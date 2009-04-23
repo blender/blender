@@ -108,6 +108,10 @@ PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
  	py_getattro_up(SCA_IObject);
 }
 
+PyObject* KX_MeshProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
+}
+
 int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
 {
 	py_setattro_up(SCA_IObject);
@@ -134,7 +138,6 @@ double		KX_MeshProxy::GetNumber() { return -1;}
 STR_String	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
 void		KX_MeshProxy::SetName(STR_String name) { };
 CValue*		KX_MeshProxy::GetReplica() { return NULL;}
-void		KX_MeshProxy::ReplicaSetName(STR_String name) {};
 
 
 // stuff for python integration
@@ -262,8 +265,12 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
+#if 0
 	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
-	Py_RETURN_NONE;//(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
+	if(KX_ReInstanceShapeFromMesh(m_meshobj))
+		Py_RETURN_TRUE;
+#endif
+	Py_RETURN_FALSE;
 }
 
 PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -341,7 +348,7 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		
 		/* sets the error */
 		if (*object==NULL) {
-			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}		
 		

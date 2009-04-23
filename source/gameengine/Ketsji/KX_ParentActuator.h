@@ -77,6 +77,7 @@ class KX_ParentActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	/* These are used to get and set m_ob */

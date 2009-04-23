@@ -27,60 +27,69 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BL_SHAPEDEFORMER
-#define BL_SHAPEDEFORMER
+#ifndef BL_MODIFIERDEFORMER
+#define BL_MODIFIERDEFORMER
 
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
-#include "BL_SkinDeformer.h"
+#include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
-struct IpoCurve;
+struct DerivedMesh;
+struct Object;
 
-class BL_ShapeDeformer : public BL_SkinDeformer  
+class BL_ModifierDeformer : public BL_ShapeDeformer  
 {
 public:
-	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-                     Object *bmeshobj,
-                     BL_SkinMeshObject *mesh)
-					:	
-						BL_SkinDeformer(gameobj,bmeshobj, mesh),
-						m_lastShapeUpdate(-1)
+	static bool HasCompatibleDeformer(Object *ob);
+
+
+	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
+						Object *bmeshobj,
+						BL_SkinMeshObject *mesh)
+						:	
+						BL_ShapeDeformer(gameobj,bmeshobj, mesh),
+						m_lastModifierUpdate(-1),
+						m_dm(NULL)
 	{
+		m_recalcNormal = false;
 	};
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
-	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-					struct Object *bmeshobj_old,
-					struct Object *bmeshobj_new,
-					class BL_SkinMeshObject *mesh,
-					bool release_object,
-					bool recalc_normal,
-					BL_ArmatureObject* arma = NULL)
-					:
-						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
-						m_lastShapeUpdate(-1)
+	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
+						struct Object *bmeshobj_old,
+						struct Object *bmeshobj_new,
+						class BL_SkinMeshObject *mesh,
+						bool release_object,
+						BL_ArmatureObject* arma = NULL)
+						:
+						BL_ShapeDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, false, arma),
+						m_lastModifierUpdate(-1),
+						m_dm(NULL)
 	{
 	};
 
+	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
-	virtual ~BL_ShapeDeformer();
+	virtual ~BL_ModifierDeformer();
+	virtual bool UseVertexArray()
+	{
+		return false;
+	}
 
 	bool Update (void);
-	bool LoadShapeDrivers(Object* arma);
-	bool ExecuteShapeDrivers(void);
-
+	bool Apply(RAS_IPolyMaterial *mat);
 	void ForceUpdate()
 	{
-		m_lastShapeUpdate = -1.0;
+		m_lastModifierUpdate = -1.0;
 	};
 
 protected:
-	vector<IpoCurve*>		 m_shapeDrivers;
-	double					 m_lastShapeUpdate;
+	double					 m_lastModifierUpdate;
+	DerivedMesh				*m_dm;
 
 };
 

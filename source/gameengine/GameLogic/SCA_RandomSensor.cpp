@@ -76,7 +76,7 @@ CValue* SCA_RandomSensor::GetReplica()
 	CValue* replica = new SCA_RandomSensor(*this);
 	// replication copies m_basegenerator pointer => share same generator
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -154,9 +154,11 @@ PyParentObject SCA_RandomSensor::Parents[] = {
 };
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
+	//Deprecated functions ----->
 	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
 	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_NOARGS, (PY_METHODCHAR)GetSeed_doc},
 	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_NOARGS, (PY_METHODCHAR)GetLastDraw_doc},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -168,6 +170,10 @@ PyAttributeDef SCA_RandomSensor::Attributes[] = {
 
 PyObject* SCA_RandomSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_RandomSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_RandomSensor::py_setattro(PyObject *attr, PyObject *value)

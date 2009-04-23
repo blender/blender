@@ -49,12 +49,12 @@ public:
 	double		GetNumber();
 	STR_String	GetName();
 	void		SetName(STR_String name);								// Set the name of the value
-	void		ReplicaSetName(STR_String name);
 	CValue*		GetReplica();
 
 
 // stuff for python integration
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int    py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetXYZ);

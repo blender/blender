@@ -590,10 +590,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\point.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\quat.c"
 					>
 				</File>
@@ -880,10 +876,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\Particle.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\point.h"
 					>
 				</File>
 				<File

@@ -253,9 +253,6 @@ CValue* KX_ObjectActuator::GetReplica()
 	KX_ObjectActuator* replica = new KX_ObjectActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -333,12 +330,27 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 };
 
 PyAttributeDef KX_ObjectActuator::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("force"),
+	//KX_PYATTRIBUTE_TODO("torque"),
+	//KX_PYATTRIBUTE_TODO("dLoc"),
+	//KX_PYATTRIBUTE_TODO("dRot"),
+	//KX_PYATTRIBUTE_TODO("linV"),
+	//KX_PYATTRIBUTE_TODO("angV"),
+	//KX_PYATTRIBUTE_TODO("damping"),
+	//KX_PYATTRIBUTE_TODO("forceLimitX"),
+	//KX_PYATTRIBUTE_TODO("forceLimitY"),
+	//KX_PYATTRIBUTE_TODO("forceLimitZ"),
+	//KX_PYATTRIBUTE_TODO("pid"),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
 };
+
+PyObject* KX_ObjectActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
 
 /* 1. set ------------------------------------------------------------------ */
 /* Removed! */
@@ -348,10 +360,10 @@ PyObject* KX_ObjectActuator::PyGetForce()
 {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_force[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_force[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_force[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.Force));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_force[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_force[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_force[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.Force));
 	
 	return retVal;
 }
@@ -375,10 +387,10 @@ PyObject* KX_ObjectActuator::PyGetTorque()
 {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_torque[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_torque[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_torque[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.Torque));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_torque[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_torque[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_torque[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.Torque));
 	
 	return retVal;
 }
@@ -402,10 +414,10 @@ PyObject* KX_ObjectActuator::PyGetDLoc()
 {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_dloc[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_dloc[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.DLoc));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_dloc[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_dloc[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.DLoc));
 	
 	return retVal;
 }
@@ -429,10 +441,10 @@ PyObject* KX_ObjectActuator::PyGetDRot()
 {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_drot[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_drot[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.DRot));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_drot[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_drot[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.DRot));
 	
 	return retVal;
 }
@@ -455,10 +467,10 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* args)
 PyObject* KX_ObjectActuator::PyGetLinearVelocity() {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_linear_velocity[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_linear_velocity[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_linear_velocity[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.LinearVelocity));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_linear_velocity[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_linear_velocity[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_linear_velocity[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.LinearVelocity));
 	
 	return retVal;
 }
@@ -482,10 +494,10 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* args) {
 PyObject* KX_ObjectActuator::PyGetAngularVelocity() {
 	PyObject *retVal = PyList_New(4);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_angular_velocity[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_angular_velocity[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_angular_velocity[2]));
-	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.AngularVelocity));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_angular_velocity[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_angular_velocity[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_angular_velocity[2]));
+	PyList_SET_ITEM(retVal, 3, BoolToPyArg(m_bitLocalFlag.AngularVelocity));
 	
 	return retVal;
 }
@@ -522,9 +534,9 @@ PyObject* KX_ObjectActuator::PyGetForceLimitX()
 {
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[0]));
-	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.Torque));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[0]));
+	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.Torque));
 	
 	return retVal;
 }
@@ -547,9 +559,9 @@ PyObject* KX_ObjectActuator::PyGetForceLimitY()
 {
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[1]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
-	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.DLoc));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[1]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
+	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.DLoc));
 	
 	return retVal;
 }
@@ -572,9 +584,9 @@ PyObject* KX_ObjectActuator::PyGetForceLimitZ()
 {
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[2]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[2]));
-	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.DRot));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_drot[2]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_dloc[2]));
+	PyList_SET_ITEM(retVal, 2, BoolToPyArg(m_bitLocalFlag.DRot));
 	
 	return retVal;
 }
@@ -597,9 +609,9 @@ PyObject* KX_ObjectActuator::PyGetPID()
 {
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_torque[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_torque[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_torque[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_torque[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_torque[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_torque[2]));
 	
 	return retVal;
 }

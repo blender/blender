@@ -85,7 +85,7 @@ struct View3D;
 
 
 #include "BKE_utildefines.h" /* vec copy */
-#include "vector.h"
+#include "Mathutils.h"
 
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
@@ -844,12 +844,15 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	Scene *scene = self->scene;
 	BPy_Object *bpy_obj;
 	Object *object = NULL;
+
+#if 0
 	static char warning = 1;
 
 	if( warning ) {
 		printf("scene.link(ob) deprecated!\n\tuse scene.objects.link(ob) instead\n");
 		--warning;
 	}
+#endif
 
 	SCENE_DEL_CHECK_PY(self);
 	

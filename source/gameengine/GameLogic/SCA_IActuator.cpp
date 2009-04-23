@@ -100,6 +100,7 @@ bool SCA_IActuator::Update()
 
 void SCA_IActuator::ProcessReplica()
 {
+	SCA_ILogicBrick::ProcessReplica();
 	m_events.clear();
 }
 

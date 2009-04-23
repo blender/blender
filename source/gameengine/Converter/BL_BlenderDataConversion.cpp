@@ -90,6 +90,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BL_SkinMeshObject.h"
+#include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
@@ -341,6 +342,7 @@ BL_Material* ConvertMaterial(
 	
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat)? glslmat: false;
+	material->materialindex = mface->mat_nr;
 
 	// --------------------------------
 	if(validmat) {
@@ -747,7 +749,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0)) 
+	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj))
 	{
 		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
@@ -853,8 +855,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				bl_mat = ConvertMaterial(ma, tface, tfaceName, mface, mcol,
 					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
 
-				bl_mat->material_index =  (int)mface->mat_nr;
-
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
 				twoside = ((bl_mat->mode & TF_TWOSIDE)!=0);
@@ -874,6 +874,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				
 				/* then the KX_BlenderMaterial */
 				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer);
+
 			}
 			else {
 				/* do Texture Face materials */
@@ -956,7 +957,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				bool alpha = (transp == TF_ALPHA || transp == TF_ADD);
 				bool zsort = (mode & TF_ALPHASORT)? alpha: 0;
 
-				polymat = new KX_PolygonMaterial(imastr, ma,
+				polymat = new KX_PolygonMaterial(imastr, ma, (int)mface->mat_nr,
 					tile, tilexrep, tileyrep, 
 					mode, transp, alpha, zsort, lightlayer, tface, (unsigned int*)mcol);
 	
@@ -1689,8 +1690,15 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
+		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
 
-		if (bHasShapeKey) {
+		if (bHasModifier) {
+			BL_ModifierDeformer *dcont = new BL_ModifierDeformer((BL_DeformableGameObject *)gameobj,
+																ob,	(BL_SkinMeshObject *)meshobj);
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
+			if (bHasShapeKey && bHasArmature)
+				dcont->LoadShapeDrivers(ob->parent);
+		} else if (bHasShapeKey) {
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);

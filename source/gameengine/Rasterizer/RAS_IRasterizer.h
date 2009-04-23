@@ -280,6 +280,7 @@ public:
 	/**
 	 */
 	virtual void	DisableFog()=0;
+	virtual bool	IsFogEnabled()=0;
 
 	virtual void	SetBackColor(float red,
 								 float green,

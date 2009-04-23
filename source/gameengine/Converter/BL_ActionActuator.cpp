@@ -66,9 +66,9 @@ BL_ActionActuator::~BL_ActionActuator()
 		game_free_pose(m_blendpose);
 }
 
-void BL_ActionActuator::ProcessReplica(){
-//	bPose *oldpose = m_pose;
-//	bPose *oldbpose = m_blendpose;
+void BL_ActionActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
 	
 	m_pose = NULL;
 	m_blendpose = NULL;
@@ -84,9 +84,6 @@ void BL_ActionActuator::SetBlendTime (float newtime){
 CValue* BL_ActionActuator::GetReplica() {
 	BL_ActionActuator* replica = new BL_ActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -1013,11 +1010,16 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("continue", BL_ActionActuator, m_end_reset),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ActionActuator, m_blendframe, CheckBlendTime),
 	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ActionActuator,m_playtype,CheckType),
+	//KX_PYATTRIBUTE_TODO("channel"),
 	{ NULL }	//Sentinel
 };
 
 PyObject* BL_ActionActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* BL_ActionActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int BL_ActionActuator::py_setattro(PyObject *attr, PyObject* value) {

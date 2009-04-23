@@ -60,7 +60,7 @@ CValue* SCA_ORController::GetReplica()
 {
 	CValue* replica = new SCA_ORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -136,6 +136,10 @@ PyAttributeDef SCA_ORController::Attributes[] = {
 
 PyObject* SCA_ORController::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IController);
+}
+
+PyObject* SCA_ORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
 }
 
 /* eof */

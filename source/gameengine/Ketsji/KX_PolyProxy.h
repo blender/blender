@@ -48,12 +48,12 @@ public:
 	double		GetNumber();
 	STR_String	GetName();
 	void		SetName(STR_String name);								// Set the name of the value
-	void		ReplicaSetName(STR_String name);
 	CValue*		GetReplica();
 
 
 // stuff for python integration
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getMaterialIndex)
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getNumVertex)

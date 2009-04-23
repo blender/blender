@@ -138,12 +138,32 @@ PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
 		if(!strcmp("isValid", PyString_AsString(attr))) {
-			Py_RETURN_TRUE;
+			Py_RETURN_FALSE;
 		}
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	return self_plus->py_getattro(attr); 
+	
+	PyObject *ret= self_plus->py_getattro(attr);
+	
+	/* Attribute not found, was this a __dict__ lookup?, otherwise set an error if none is set */
+	if(ret==NULL) {
+		char *attr_str= PyString_AsString(attr);
+		
+		if (strcmp(attr_str, "__dict__")==0)
+		{
+			/* the error string will probably not
+			 * be set but just incase clear it */
+			PyErr_Clear(); 
+			ret= self_plus->py_getattro_dict();
+		}
+		else if (!PyErr_Occurred()) {
+			/* We looked for an attribute but it wasnt found
+			 * since py_getattro didnt set the error, set it here */
+			PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", self->ob_type->tp_name, attr_str);
+		}
+	}
+	return ret;
 }
 
 /* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
@@ -151,7 +171,7 @@ int PyObjectPlus::py_base_setattro(PyObject *self, PyObject *attr, PyObject *val
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -166,7 +186,7 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 	
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -177,11 +197,7 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	if (descr == NULL) {
-		if (strcmp(PyString_AsString(attr), "__dict__")==0) {
-			return py_getattr_dict(NULL, Type.tp_dict); /* no Attributes yet */
-		}
-		PyErr_Format(PyExc_AttributeError, "attribute \"%s\" not found", PyString_AsString(attr));
-		return NULL;
+		return NULL; /* py_base_getattro sets the error, this way we can avoid setting the error at many levels */
 	} else {
 		/* Copied from py_getattro_up */
 		if (PyCObject_Check(descr)) {
@@ -189,11 +205,14 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		} else if (descr->ob_type->tp_descr_get) {
 			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy);
 		} else {
-			fprintf(stderr, "Unknown attribute type (PyObjectPlus::py_getattro)");
-			return descr;
+			return NULL;
 		}
 		/* end py_getattro_up copy */
 	}
+}
+
+PyObject* PyObjectPlus::py_getattro_dict() {
+	return py_getattr_dict(NULL, Type.tp_dict);
 }
 
 int PyObjectPlus::py_delattro(PyObject* attr)
@@ -233,14 +252,14 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				{
 					bool *val = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_SHORT:
 				{
 					short int *val = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_ENUM:
@@ -255,14 +274,14 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				{
 					int *val = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_FLOAT:
 				{
 					float *val = reinterpret_cast<float*>(ptr);
 					ptr += sizeof(float);
-					PyList_SetItem(resultlist,i,PyFloat_FromDouble(*val));
+					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble(*val));
 					break;
 				}
 			default:
@@ -789,6 +808,31 @@ PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
 	}
     PyErr_SetString(PyExc_TypeError, "object.isA(value): expected a type or a string");
     return NULL;	
+}
+
+
+void PyObjectPlus::ProcessReplica()
+{
+	/* Clear the proxy, will be created again if needed with GetProxy()
+	 * otherwise the PyObject will point to the wrong reference */
+	m_proxy= NULL;
+}
+
+/* Sometimes we might want to manually invalidate a BGE type even if
+ * it hasnt been released by the BGE, say for example when an object
+ * is removed from a scene, accessing it may cause problems.
+ * 
+ * In this case the current proxy is made invalid, disowned,
+ * and will raise an error on access. However if python can get access
+ * to this class again it will make a new proxy and work as expected.
+ */
+void PyObjectPlus::InvalidateProxy()		// check typename of each parent
+{
+	if(m_proxy) { 
+		BGE_PROXY_REF(m_proxy)=NULL;
+		Py_DECREF(m_proxy);
+		m_proxy= NULL;
+	}
 }
 
 /* Utility function called by the macro py_getattro_up()

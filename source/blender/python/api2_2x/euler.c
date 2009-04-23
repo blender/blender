@@ -31,7 +31,6 @@
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
-#include "gen_utils.h"
 
 
 //-------------------------DOC STRINGS ---------------------------
@@ -128,7 +127,8 @@ PyObject *Euler_Unique(EulerObject * self)
 	self->eul[1] = (float)(pitch * 180 / (float)Py_PI);
 	self->eul[2] = (float)(bank * 180 / (float)Py_PI);
 
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject *)self;
 }
 //----------------------------Euler.zero()-------------------------
 //sets the euler to 0,0,0
@@ -138,7 +138,8 @@ PyObject *Euler_Zero(EulerObject * self)
 	self->eul[1] = 0.0;
 	self->eul[2] = 0.0;
 
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject *)self;
 }
 //----------------------------Euler.rotate()-----------------------
 //rotates a euler a certain amount and returns the result
@@ -150,12 +151,12 @@ PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 	int x;
 
 	if(!PyArg_ParseTuple(args, "fs", &angle, &axis)){
-		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"euler.rotate():expected angle (float) and axis (x,y,z)");
+		PyErr_SetString(PyExc_TypeError, "euler.rotate():expected angle (float) and axis (x,y,z)");
+		return NULL;
 	}
 	if(!STREQ3(axis,"x","y","z")){
-		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"euler.rotate(): expected axis to be 'x', 'y' or 'z'");
+		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected axis to be 'x', 'y' or 'z'");
+		return NULL;
 	}
 
 	//covert to radians
@@ -169,7 +170,8 @@ PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 		self->eul[x] *= (180 / (float)Py_PI);
 	}
 
-	return EXPP_incr_ret((PyObject*)self);
+	Py_INCREF(self);
+	return (PyObject *)self;
 }
 //----------------------------Euler.rotate()-----------------------
 // return a copy of the euler
@@ -189,71 +191,13 @@ static void Euler_dealloc(EulerObject * self)
 	}
 	PyObject_DEL(self);
 }
-//----------------------------getattr()(internal) ------------------
-//object.attribute access (get)
-static PyObject *Euler_getattr(EulerObject * self, char *name)
-{
-	if(STREQ(name,"x")){
-		return PyFloat_FromDouble(self->eul[0]);
-	}else if(STREQ(name, "y")){
-		return PyFloat_FromDouble(self->eul[1]);
-	}else if(STREQ(name, "z")){
-		return PyFloat_FromDouble(self->eul[2]);
-	}
-	if(STREQ(name, "wrapped")){
-		if(self->wrapped == Py_WRAP)
-			return EXPP_incr_ret((PyObject *)Py_True);
-		else 
-			return EXPP_incr_ret((PyObject *)Py_False);
-	}
-	return Py_FindMethod(Euler_methods, (PyObject *) self, name);
-}
-//----------------------------setattr()(internal) ------------------
-//object.attribute access (set)
-static int Euler_setattr(EulerObject * self, char *name, PyObject * e)
-{
-	PyObject *f = NULL;
 
-	f = PyNumber_Float(e);
-	if(f == NULL) { // parsed item not a number
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"euler.attribute = x: argument not a number\n");
-	}
-
-	if(STREQ(name,"x")){
-		self->eul[0] = (float)PyFloat_AS_DOUBLE(f);
-	}else if(STREQ(name, "y")){
-		self->eul[1] = (float)PyFloat_AS_DOUBLE(f);
-	}else if(STREQ(name, "z")){
-		self->eul[2] = (float)PyFloat_AS_DOUBLE(f);
-	}else{
-		Py_DECREF(f);
-		return EXPP_ReturnIntError(PyExc_AttributeError,
-				"euler.attribute = x: unknown attribute\n");
-	}
-
-	Py_DECREF(f);
-	return 0;
-}
 //----------------------------print object (internal)--------------
 //print the object to screen
 static PyObject *Euler_repr(EulerObject * self)
 {
-	int i;
-	char buffer[48], str[1024];
-
-	BLI_strncpy(str,"[",1024);
-	for(i = 0; i < 3; i++){
-		if(i < (2)){
-			sprintf(buffer, "%.6f, ", self->eul[i]);
-			strcat(str,buffer);
-		}else{
-			sprintf(buffer, "%.6f", self->eul[i]);
-			strcat(str,buffer);
-		}
-	}
-	strcat(str, "](euler)");
-
+	char str[64];
+	sprintf(str, "[%.6f, %.6f, %.6f](euler)", self->eul[0], self->eul[1], self->eul[2]);
 	return PyString_FromString(str);
 }
 //------------------------tp_richcmpr
@@ -265,9 +209,9 @@ static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 
 	if (!EulerObject_Check(objectA) || !EulerObject_Check(objectB)){
 		if (comparison_type == Py_NE){
-			return EXPP_incr_ret(Py_True); 
+			Py_RETURN_TRUE;
 		}else{
-			return EXPP_incr_ret(Py_False);
+			Py_RETURN_FALSE;
 		}
 	}
 	eulA = (EulerObject*)objectA;
@@ -290,9 +234,9 @@ static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 			break;
 	}
 	if (result == 1){
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	}else{
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 	}
 }
 //------------------------tp_doc
@@ -308,32 +252,36 @@ static int Euler_len(EulerObject * self)
 //sequence accessor (get)
 static PyObject *Euler_item(EulerObject * self, int i)
 {
-	if(i < 0 || i >= 3)
-		return EXPP_ReturnPyObjError(PyExc_IndexError,
-		"euler[attribute]: array index out of range\n");
-
+	if(i<0)
+		i= 3-i;
+	
+	if(i < 0 || i >= 3) {
+		PyErr_SetString(PyExc_IndexError, "euler[attribute]: array index out of range");
+		return NULL;
+	}
 	return PyFloat_FromDouble(self->eul[i]);
 
 }
 //----------------------------object[]-------------------------
 //sequence accessor (set)
-static int Euler_ass_item(EulerObject * self, int i, PyObject * ob)
+static int Euler_ass_item(EulerObject * self, int i, PyObject * value)
 {
-	PyObject *f = NULL;
+	float f = PyFloat_AsDouble(value);
 
-	f = PyNumber_Float(ob);
-	if(f == NULL) { // parsed item not a number
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"euler[attribute] = x: argument not a number\n");
+	if(f == -1 && PyErr_Occurred()) { // parsed item not a number
+		PyErr_SetString(PyExc_TypeError, "euler[attribute] = x: argument not a number");
+		return -1;
 	}
 
+	if(i<0)
+		i= 3-i;
+	
 	if(i < 0 || i >= 3){
-		Py_DECREF(f);
-		return EXPP_ReturnIntError(PyExc_IndexError,
-			"euler[attribute] = x: array assignment index out of range\n");
+		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range\n");
+		return -1;
 	}
-	self->eul[i] = (float)PyFloat_AS_DOUBLE(f);
-	Py_DECREF(f);
+	
+	self->eul[i] = f;
 	return 0;
 }
 //----------------------------object[z:y]------------------------
@@ -372,26 +320,27 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 
 	size = PySequence_Length(seq);
 	if(size != (end - begin)){
-		return EXPP_ReturnIntError(PyExc_TypeError,
-			"euler[begin:end] = []: size mismatch in slice assignment\n");
+		PyErr_SetString(PyExc_TypeError, "euler[begin:end] = []: size mismatch in slice assignment");
+		return -1;
 	}
 
 	for (i = 0; i < size; i++) {
 		e = PySequence_GetItem(seq, i);
 		if (e == NULL) { // Failed to read sequence
-			return EXPP_ReturnIntError(PyExc_RuntimeError, 
-				"euler[begin:end] = []: unable to read sequence\n");
+			PyErr_SetString(PyExc_RuntimeError, "euler[begin:end] = []: unable to read sequence");
+			return -1;
 		}
 
 		f = PyNumber_Float(e);
 		if(f == NULL) { // parsed item not a number
 			Py_DECREF(e);
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"euler[begin:end] = []: sequence argument not a number\n");
+			PyErr_SetString(PyExc_TypeError, "euler[begin:end] = []: sequence argument not a number");
+			return -1;
 		}
 
 		eul[i] = (float)PyFloat_AS_DOUBLE(f);
-		EXPP_decr2(f,e);
+		Py_DECREF(f);
+		Py_DECREF(e);
 	}
 	//parsed well - now set in vector
 	for(y = 0; y < 3; y++){
@@ -409,17 +358,100 @@ static PySequenceMethods Euler_SeqMethods = {
 	(intobjargproc) Euler_ass_item,				/* sq_ass_item */
 	(intintobjargproc) Euler_ass_slice,			/* sq_ass_slice */
 };
+
+
+
+/*
+ * vector axis, vector.x/y/z/w
+ */
+	
+static PyObject *Euler_getAxis( EulerObject * self, void *type )
+{
+	switch( (long)type ) {
+    case 'X':	/* these are backwards, but that how it works */
+		return PyFloat_FromDouble(self->eul[0]);
+    case 'Y':
+		return PyFloat_FromDouble(self->eul[1]);
+    case 'Z':
+		return PyFloat_FromDouble(self->eul[2]);
+	}
+	
+	PyErr_SetString(PyExc_SystemError, "corrupt euler, cannot get axis");
+	return NULL;
+}
+
+static int Euler_setAxis( EulerObject * self, PyObject * value, void * type )
+{
+	float param= (float)PyFloat_AsDouble( value );
+	
+	if (param==-1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "expected a number for the vector axis");
+		return -1;
+	}
+	
+	switch( (long)type ) {
+    case 'X':	/* these are backwards, but that how it works */
+		self->eul[0]= param;
+		break;
+    case 'Y':
+		self->eul[1]= param;
+		break;
+    case 'Z':
+		self->eul[2]= param;
+		break;
+	}
+
+	return 0;
+}
+
+static PyObject *Euler_getWrapped( VectorObject * self, void *type )
+{
+	if (self->wrapped == Py_WRAP)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef Euler_getseters[] = {
+	{"x",
+	 (getter)Euler_getAxis, (setter)Euler_setAxis,
+	 "Euler X axis",
+	 (void *)'X'},
+	{"y",
+	 (getter)Euler_getAxis, (setter)Euler_setAxis,
+	 "Euler Y axis",
+	 (void *)'Y'},
+	{"z",
+	 (getter)Euler_getAxis, (setter)Euler_setAxis,
+	 "Euler Z axis",
+	 (void *)'Z'},
+	{"wrapped",
+	 (getter)Euler_getWrapped, (setter)NULL,
+	 "True when this wraps blenders internal data",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject euler_Type = {
-	PyObject_HEAD_INIT(NULL)		//tp_head
-	0,								//tp_internal
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"euler",						//tp_name
 	sizeof(EulerObject),			//tp_basicsize
 	0,								//tp_itemsize
 	(destructor)Euler_dealloc,		//tp_dealloc
 	0,								//tp_print
-	(getattrfunc)Euler_getattr,	//tp_getattr
-	(setattrfunc) Euler_setattr,	//tp_setattr
+	0,								//tp_getattr
+	0,								//tp_setattr
 	0,								//tp_compare
 	(reprfunc) Euler_repr,			//tp_repr
 	0,				//tp_as_number
@@ -439,9 +471,9 @@ PyTypeObject euler_Type = {
 	0,								//tp_weaklistoffset
 	0,								//tp_iter
 	0,								//tp_iternext
-	0,								//tp_methods
+	Euler_methods,					//tp_methods
 	0,								//tp_members
-	0,								//tp_getset
+	Euler_getseters,				//tp_getset
 	0,								//tp_base
 	0,								//tp_dict
 	0,								//tp_descr_get
@@ -494,6 +526,6 @@ PyObject *newEulerObject(float *eul, int type)
 	}else{ //bad type
 		return NULL;
 	}
-	return (PyObject *) self;
+	return (PyObject *)self;
 }
 

@@ -79,6 +79,7 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 };
 
 PyAttributeDef KX_VertexProxy::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("DummyProps"),
 	
 	KX_PYATTRIBUTE_DUMMY("x"),
 	KX_PYATTRIBUTE_DUMMY("y"),
@@ -157,6 +158,10 @@ KX_VertexProxy::py_getattro(PyObject *attr)
   }
   
   py_getattro_up(SCA_IObject);
+}
+
+PyObject* KX_VertexProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
 }
 
 int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
@@ -336,8 +341,6 @@ double		KX_VertexProxy::GetNumber() { return -1;}
 STR_String	KX_VertexProxy::GetName() { return sVertexName;}
 void		KX_VertexProxy::SetName(STR_String) { };
 CValue*		KX_VertexProxy::GetReplica() { return NULL;}
-void		KX_VertexProxy::ReplicaSetName(STR_String) {};
-
 
 // stuff for python integration
 	

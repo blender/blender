@@ -109,52 +109,35 @@ void KX_NearSensor::UnregisterSumo(KX_TouchEventManager* touchman)
 CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
-	
-	if (replica->m_physCtrl)
-	{
-		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
-		if (replica->m_physCtrl)
-		{
-			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
-			replica->m_physCtrl->SetMargin(m_Margin);
-			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
-		}
-		
-	}
-	//Wrong: the parent object could be a child, this code works only if it is a root parent.
-	//Anyway, at this stage, the parent object is already synchronized, nothing to do.
-	//bool parentUpdated = false;
-	//((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL, parentUpdated);
-	replica->SynchronizeTransform();
-	
+	replica->ProcessReplica();
 	return replica;
 }
 
-
+void KX_NearSensor::ProcessReplica()
+{
+	KX_TouchSensor::ProcessReplica();
+	
+	m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
+	
+	if (m_physCtrl)
+	{
+		m_physCtrl = m_physCtrl->GetReplica();
+		if (m_physCtrl)
+		{
+			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
+			m_physCtrl->SetMargin(m_Margin);
+			m_physCtrl->setNewClientInfo(m_client_info);
+		}
+		
+	}
+}
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
 	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
 	m_client_info->m_sensors.push_back(this);
-	
-
-/*	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
-	
-	client_info->m_sensors.push_back(this);
-	SCA_ISensor::ReParent(parent);
-*/
-	//Not needed, was done in GetReplica() already
-	//bool parentUpdated = false;
-	//((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL,parentUpdated);
-	//SynchronizeTransform();
+	//Synchronize here with the actual parent.
+	SynchronizeTransform();
 	SCA_ISensor::ReParent(parent);
 }
 
@@ -332,6 +315,10 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 PyObject* KX_NearSensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(KX_TouchSensor);
+}
+
+PyObject* KX_NearSensor::py_getattro_dict() {
+	py_getattro_dict_up(KX_TouchSensor);
 }
 
 int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)

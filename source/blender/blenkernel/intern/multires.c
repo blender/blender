@@ -111,7 +111,8 @@ void multires_free(Multires *mr)
 			lvl= lvl->next;
 		}
 
-		MEM_freeN(mr->verts);
+		if(mr->verts)
+			MEM_freeN(mr->verts);
 
 		BLI_freelistN(&mr->levels);
 
@@ -965,9 +966,9 @@ void multires_update_levels(Mesh *me, const int render)
 	multires_update_colors(me, em);
 }
 
-static void check_colors(Mesh *me)
+static void check_colors(Mesh *me, const int render)
 {
-	CustomData *src= G.obedit ? &G.editMesh->fdata : &me->fdata;
+	CustomData *src= (!render && G.obedit)? &G.editMesh->fdata : &me->fdata;
 	const char col= CustomData_has_layer(src, CD_MCOL);
 
 	/* Check if vertex colors have been deleted or added */
@@ -1109,7 +1110,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
 	if(me->pv) mesh_pmv_off(ob, me);
 
-	check_colors(me);
+	check_colors(me, 0);
 	multires_update_levels(me, 0);
 
 	++me->mr->level_count;
@@ -1275,7 +1276,7 @@ void multires_set_level(Object *ob, Mesh *me, const int render)
 {
 	if(me->pv) mesh_pmv_off(ob, me);
 
-	check_colors(me);
+	check_colors(me, render);
 	multires_update_levels(me, render);
 
 	me->mr->current= me->mr->newlvl;

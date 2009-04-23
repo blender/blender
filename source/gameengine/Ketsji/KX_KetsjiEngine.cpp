@@ -353,7 +353,6 @@ void KX_KetsjiEngine::RenderDome()
 		m_dome->BindImages(i);
 	}	
 
-//	m_dome->Dome_PostRender(scene, cam, stereomode);
 	m_canvas->EndFrame();//XXX do we really need that?
 
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
@@ -381,7 +380,8 @@ void KX_KetsjiEngine::RenderDome()
 
 	m_dome->Draw();
 
-	//run 2dfilters
+	// run the 2dfilters and motion blur once for all the scenes
+	PostRenderFrame();
 	EndFrame();
 }
 
@@ -1000,7 +1000,7 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 			wi->getAmbientColorBlue()
 		);
 
-		if (m_drawingmode == RAS_IRasterizer::KX_TEXTURED)
+		if (m_drawingmode >= RAS_IRasterizer::KX_SOLID)
 		{	
 			if (wi->hasMist())
 			{
@@ -1011,10 +1011,6 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 					wi->getMistColorGreen(),
 					wi->getMistColorBlue()
 				);
-			}
-			else
-			{
-				m_rasterizer->DisableFog();
 			}
 		}
 	}
@@ -1401,7 +1397,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 										m_canvas->GetWidth(), 
 										m_canvas->GetHeight());
 			double time = m_logger->GetAverage((KX_TimeCategory)j);
-			debugtxt.Format("%2.2f %%", time/tottime * 100.f);
+			debugtxt.Format("%.3fms (%2.2f %%)", time*1000.f, time/tottime * 100.f);
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
 										debugtxt.Ptr(),
 										xcoord + 60 ,ycoord,

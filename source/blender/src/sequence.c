@@ -1761,6 +1761,11 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if (!se->ibuf) {
 				se->ibuf= IMB_loadiffname(
 					name, IB_rect);
+				/* we don't need both (speed reasons)! */
+				if (se->ibuf->rect_float && se->ibuf->rect) {
+					imb_freerectImBuf(se->ibuf);
+				}
+
 				copy_to_ibuf_still(seq, se);
 			}
 			
@@ -1791,6 +1796,12 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 				if(seq->anim) {
 					IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
 					se->ibuf = IMB_anim_absolute(seq->anim, se->nr + seq->anim_startofs);
+					/* we don't need both (speed reasons)! */
+					if (se->ibuf->rect_float 
+					    && se->ibuf->rect) {
+						imb_freerectImBuf(se->ibuf);
+					}
+
 				}
 				copy_to_ibuf_still(seq, se);
 			}

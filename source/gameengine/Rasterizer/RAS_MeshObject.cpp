@@ -215,6 +215,19 @@ RAS_MeshMaterial *RAS_MeshObject::GetMeshMaterial(RAS_IPolyMaterial *mat)
 	return NULL;
 }
 
+int RAS_MeshObject::GetMaterialId(RAS_IPolyMaterial *mat)
+{
+	list<RAS_MeshMaterial>::iterator mit;
+	int imat;
+
+	/* find a mesh material */
+	for(imat=0, mit = m_materials.begin(); mit != m_materials.end(); mit++, imat++)
+		if(mit->m_bucket->GetPolyMaterial() == mat)
+			return imat;
+
+	return -1;
+}
+
 RAS_Polygon* RAS_MeshObject::AddPolygon(RAS_MaterialBucket *bucket, int numverts)
 {
 	RAS_MeshMaterial *mmat;

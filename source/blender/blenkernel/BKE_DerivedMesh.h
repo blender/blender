@@ -444,6 +444,9 @@ DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
 DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
+/* for gameengine */
+DerivedMesh *mesh_create_derived_no_virtual(struct Object *ob, float (*vertCos)[3],
+                                            CustomDataMask dataMask);
 
 DerivedMesh *editmesh_get_derived_base(void);
 DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);

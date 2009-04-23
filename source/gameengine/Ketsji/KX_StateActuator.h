@@ -76,6 +76,7 @@ class KX_StateActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject* value);
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC_VARARGS(KX_StateActuator,SetOperation);

@@ -64,8 +64,6 @@ CValue* SCA_2DFilterActuator::GetReplica()
 {
     SCA_2DFilterActuator* replica = new SCA_2DFilterActuator(*this);
     replica->ProcessReplica();
-    CValue::AddDataToReplica(replica);
-
     return replica;
 }
 
@@ -155,6 +153,10 @@ PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
 PyObject* SCA_2DFilterActuator::py_getattro(PyObject *attr) 
 {
     py_getattro_up(SCA_IActuator);
+}
+
+PyObject* SCA_2DFilterActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int SCA_2DFilterActuator::py_setattro(PyObject *attr, PyObject* value) 

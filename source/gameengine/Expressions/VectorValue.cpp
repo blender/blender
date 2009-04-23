@@ -204,7 +204,7 @@ const STR_String & CVectorValue::GetText()
 
 CValue* CVectorValue::GetReplica() { 
 	CVectorValue* replica = new CVectorValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 };
 

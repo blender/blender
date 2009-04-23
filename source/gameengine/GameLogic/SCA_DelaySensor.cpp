@@ -77,7 +77,7 @@ CValue* SCA_DelaySensor::GetReplica()
 {
 	CValue* replica = new SCA_DelaySensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -180,6 +180,10 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 
 PyObject* SCA_DelaySensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_DelaySensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_DelaySensor::py_setattro(PyObject *attr, PyObject *value) {

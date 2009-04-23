@@ -2876,7 +2876,7 @@ float IPO_GetFloatValue (Ipo *ipo, IPO_Channel channel, float ctime)
 	calc_ipo_spec(ipo, channel, &ctime);
 	
 	/* unapply rotation hack, as gameengine doesn't use it */
-	if ((OB_ROT_X <= channel) && (channel <= OB_DROT_Z))
+	if ((ipo->blocktype == ID_OB) && (OB_ROT_X <= channel) && (channel <= OB_DROT_Z))
 		ctime *= (float)(M_PI_2/9.0); 
 
 	/* return the value of this channel */

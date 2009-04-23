@@ -111,7 +111,7 @@ CValue* SCA_PropertySensor::GetReplica()
 {
 	SCA_PropertySensor* replica = new SCA_PropertySensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	replica->m_range_expr = NULL;
@@ -354,6 +354,10 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 
 PyObject* SCA_PropertySensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_PropertySensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_PropertySensor::py_setattro(PyObject *attr, PyObject *value) {

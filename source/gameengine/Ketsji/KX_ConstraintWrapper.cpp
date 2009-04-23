@@ -87,10 +87,14 @@ PyParentObject KX_ConstraintWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_ConstraintWrapper::py_getattro(PyObject *attr)
+//here you can search for existing data members (like mass,friction etc.)
+PyObject* KX_ConstraintWrapper::py_getattro(PyObject *attr)
 {
-	//here you can search for existing data members (like mass,friction etc.)
 	py_getattro_up(PyObjectPlus);
+}
+
+PyObject* KX_ConstraintWrapper::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
 }
 
 int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
@@ -127,5 +131,6 @@ PyMethodDef KX_ConstraintWrapper::Methods[] = {
 };
 
 PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("constraintId"),
 	{ NULL }	//Sentinel
 };

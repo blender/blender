@@ -73,8 +73,6 @@ CValue* KX_ParentActuator::GetReplica()
 	KX_ParentActuator* replica = new KX_ParentActuator(*this);
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -175,6 +173,7 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 
 PyAttributeDef KX_ParentActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
+	//KX_PYATTRIBUTE_TODO("mode"),
 	{ NULL }	//Sentinel
 };
 
@@ -209,6 +208,10 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 
 PyObject* KX_ParentActuator::py_getattro(PyObject *attr) {	
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_ParentActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_ParentActuator::py_setattro(PyObject *attr, PyObject* value) {

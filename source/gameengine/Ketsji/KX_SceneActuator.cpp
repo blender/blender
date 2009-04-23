@@ -76,9 +76,6 @@ CValue* KX_SceneActuator::GetReplica()
 {
 	KX_SceneActuator* replica = new KX_SceneActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	
 	return replica;
 }
 
@@ -273,12 +270,18 @@ PyMethodDef KX_SceneActuator::Methods[] =
 PyAttributeDef KX_SceneActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("scene",0,32,true,KX_SceneActuator,m_nextSceneName),
 	KX_PYATTRIBUTE_RW_FUNCTION("camera",KX_SceneActuator,pyattr_get_camera,pyattr_set_camera),
+	//KX_PYATTRIBUTE_TODO("useRestart"),
+	//KX_PYATTRIBUTE_TODO("mode"),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_SceneActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SceneActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_SceneActuator::py_setattro(PyObject *attr, PyObject *value)
@@ -315,7 +318,7 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 		
 		if(camOb==NULL)
 		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 			return 1;
 		}
 		
@@ -434,7 +437,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* args)
 		new_camera = static_cast<KX_Camera*>BGE_PROXY_REF(cam);
 		if(new_camera==NULL)
 		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 			return NULL;
 		}
 		

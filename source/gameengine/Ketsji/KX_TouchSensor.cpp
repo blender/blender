@@ -142,11 +142,15 @@ KX_TouchSensor::~KX_TouchSensor()
 CValue* KX_TouchSensor::GetReplica() 
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
+}
+
+void KX_TouchSensor::ProcessReplica()
+{
+	SCA_ISensor::ProcessReplica();
+	m_colliders = new CListValue();
+	Init();
 }
 
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
@@ -294,6 +298,10 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 PyObject* KX_TouchSensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_TouchSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int KX_TouchSensor::py_setattro(PyObject *attr, PyObject *value)

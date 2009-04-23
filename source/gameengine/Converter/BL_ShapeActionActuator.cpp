@@ -61,6 +61,7 @@ BL_ShapeActionActuator::~BL_ShapeActionActuator()
 
 void BL_ShapeActionActuator::ProcessReplica()
 {
+	SCA_IActuator::ProcessReplica();
 	m_localtime=m_startframe;
 	m_lastUpdate=-1;
 }
@@ -74,9 +75,6 @@ CValue* BL_ShapeActionActuator::GetReplica()
 {
 	BL_ShapeActionActuator* replica = new BL_ShapeActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -487,6 +485,10 @@ PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
 
 PyObject* BL_ShapeActionActuator::py_getattro(PyObject* attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* BL_ShapeActionActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int BL_ShapeActionActuator::py_setattro(PyObject *attr, PyObject* value) {

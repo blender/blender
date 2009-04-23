@@ -70,6 +70,7 @@
 #include "api2_2x/Object.h"
 #include "api2_2x/Registry.h"
 #include "api2_2x/Pose.h"
+#include "api2_2x/Mathutils.h"
 #include "api2_2x/bpy.h" /* for the new "bpy" module */
 #include "api2_2x/bpy_internal_import.h"
 

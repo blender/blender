@@ -88,8 +88,7 @@ KX_RaySensor::~KX_RaySensor()
 CValue* KX_RaySensor::GetReplica()
 {
 	KX_RaySensor* replica = new KX_RaySensor(*this);
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;
@@ -404,9 +403,9 @@ PyObject* KX_RaySensor::PyGetHitPosition()
 
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
 
 	return retVal;
 }
@@ -420,9 +419,9 @@ PyObject* KX_RaySensor::PyGetRayDirection()
 
 	PyObject *retVal = PyList_New(3);
 	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
 
 	return retVal;
 }
@@ -436,9 +435,9 @@ PyObject* KX_RaySensor::PyGetHitNormal()
 
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
 
 	return retVal;
 }
@@ -447,6 +446,10 @@ PyObject* KX_RaySensor::PyGetHitNormal()
 
 PyObject* KX_RaySensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_RaySensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int KX_RaySensor::py_setattro(PyObject *attr, PyObject *value) {

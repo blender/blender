@@ -74,9 +74,6 @@ CValue* KX_CDActuator::GetReplica()
 {
 	KX_CDActuator* replica = new KX_CDActuator(*this);
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 
@@ -218,6 +215,10 @@ int KX_CDActuator::pyattr_setGain(void *self, const struct KX_PYATTRIBUTE_DEF *a
 PyObject* KX_CDActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_CDActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_CDActuator::py_setattro(PyObject *attr, PyObject *value)

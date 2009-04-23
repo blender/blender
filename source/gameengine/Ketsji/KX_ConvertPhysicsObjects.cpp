@@ -34,7 +34,7 @@
 
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
-#include "KX_GameObject.h"
+#include "BL_DeformableGameObject.h"
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
 #include "SYS_System.h"
@@ -670,11 +670,11 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 							
 	class KX_SoftBodyDeformer : public RAS_Deformer
 	{
-		class RAS_MeshObject*	m_pMeshObject;
-		class KX_GameObject*	m_gameobj;
+		class RAS_MeshObject*			m_pMeshObject;
+		class BL_DeformableGameObject*	m_gameobj;
 
 	public:
-		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
+		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,BL_DeformableGameObject*	gameobj)
 			:m_pMeshObject(pMeshObject),
 			m_gameobj(gameobj)
 		{
@@ -687,7 +687,15 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 		};
 		virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 		{
-			//printf("relink\n");
+			void **h_obj = (*map)[m_gameobj];
+
+			if (h_obj) {
+				m_gameobj = (BL_DeformableGameObject*)(*h_obj);
+				m_pMeshObject = m_gameobj->GetMesh(0);
+			} else {
+				m_gameobj = NULL;
+				m_pMeshObject = NULL;
+			}
 		}
 		virtual bool Apply(class RAS_IPolyMaterial *polymat)
 		{
@@ -751,12 +759,16 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			//printf("update\n");
 			return true;//??
 		}
-		virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)
+		virtual RAS_Deformer *GetReplica()
 		{
-			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(replica->GetMesh(0),replica);
+			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(*this);
+			deformer->ProcessReplica();
 			return deformer;
 		}
-
+		virtual void ProcessReplica()
+		{
+			// we have two pointers to deal with but we cannot do it now, will be done in Relink
+		}
 		virtual bool SkipVertexTransform()
 		{
 			return true;
@@ -1187,9 +1199,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		if (softBody && gameobj->GetMesh(0))//only the first mesh, if any
 		{
 			//should be a mesh then, so add a soft body deformer
-			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer( gameobj->GetMesh(0),gameobj);
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer( gameobj->GetMesh(0),(BL_DeformableGameObject*)gameobj);
 			gameobj->SetDeformer(softbodyDeformer);
-			
 		}
 	}
 

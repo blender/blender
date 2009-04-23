@@ -39,6 +39,9 @@
 #include "STR_HashedString.h"
 
 class RAS_IRasterizer;
+struct MTFace;
+struct Material;
+struct Scene;
 
 enum MaterialProps
 {
@@ -71,6 +74,7 @@ protected:
 	bool					m_alpha;
 	bool					m_zsort;
 	int						m_lightlayer;
+	int						m_materialindex;
 	
 	unsigned int			m_polymatid;
 	static unsigned int		m_newpolymatid;
@@ -98,6 +102,7 @@ public:
 
 	RAS_IPolyMaterial(const STR_String& texname,
 					  const STR_String& matname,
+					  int materialindex,
 					  int tile,
 					  int tilexrep,
 					  int tileyrep,
@@ -139,10 +144,14 @@ public:
 	dword				GetMaterialNameHash() const;
 	const STR_String&	GetTextureName() const;
 	unsigned int		GetFlag() const;
+	int					GetMaterialIndex() const;
 
+	virtual Material*   GetBlenderMaterial() const;
+	virtual Scene*		GetBlenderScene() const;
+	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
-	
+
 	/*
 	 * PreCalculate texture gen
 	 */

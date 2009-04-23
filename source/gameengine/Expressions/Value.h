@@ -225,11 +225,12 @@ public:
 
 
 	virtual PyObject*			py_getattro(PyObject *attr);
+	virtual PyObject*			py_getattro_dict();
 	virtual PyObject*	ConvertValueToPython() {
 		return NULL;
 	}
 
-	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
+	virtual CValue*	ConvertPythonToValue(PyObject* pyobj, const char *error_prefix);
 
 
 	virtual int				py_delattro(PyObject *attr);
@@ -280,7 +281,6 @@ public:
 	virtual CValue*		GetProperty(int inIndex);								// Get property number <inIndex>
 	virtual int			GetPropertyCount();										// Get the amount of properties assiocated with this value
 
-	virtual void		CloneProperties(CValue* replica);
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 	/** Set the wireframe color of this value depending on the CSG
 	 * operator type <op>
@@ -294,11 +294,11 @@ public:
 
 	virtual STR_String	GetName() = 0;											// Retrieve the name of the value
 	virtual void		SetName(STR_String name) = 0;								// Set the name of the value
-	virtual void		ReplicaSetName(STR_String name) = 0;
 	/** Sets the value to this cvalue.
 	 * @attention this particular function should never be called. Why not abstract? */
 	virtual void		SetValue(CValue* newval);
 	virtual CValue*		GetReplica() =0;
+	virtual void			ProcessReplica();
 	//virtual CValue*		Copy() = 0;
 	
 	
@@ -327,10 +327,10 @@ public:
 
 	virtual void		SetCustomFlag2(bool bCustomFlag)						{ m_ValFlags.CustomFlag2 = bCustomFlag;};
 	virtual bool		IsCustomFlag2()											{ return m_ValFlags.CustomFlag2;};
-																				
+
 protected:																		
 	virtual void		DisableRefCount();										// Disable reference counting for this value
-	virtual void		AddDataToReplica(CValue* replica);						
+	//virtual void		AddDataToReplica(CValue* replica);						
 	virtual				~CValue();
 private:
 	// Member variables															
@@ -409,10 +409,10 @@ public:
 		if (name.Length())
 			m_pstrNewName = new STR_String(name);
 	}
-	virtual void			ReplicaSetName(STR_String name) {
-		m_pstrNewName=NULL;
-		if (name.Length())
-			m_pstrNewName = new STR_String(name);
+	virtual void			ProcessReplica() {
+		CValue::ProcessReplica();
+		if (m_pstrNewName)
+			m_pstrNewName = new STR_String(*m_pstrNewName);
 	}
 	
 	virtual STR_String			GetName() {

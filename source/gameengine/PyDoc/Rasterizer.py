@@ -44,6 +44,49 @@ Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement M
 
 """
 
+def getScreenPosition(arg):
+	"""
+	Gets the position of an object projected on screen space.
+
+	Example:
+	# For an object in the middle of the screen, coord = [0.5,0.5]
+	coord = Rasterizer.getScreenPosition(object)
+
+	@param arg: L{KX_GameObject}, object name or list [x, y, z]
+	@rtype: list [x, y]
+	@return: the object's position in screen coordinates.
+	"""
+def getScreenVect(x, y):
+	"""
+	Gets the vector from the camera position in the screen coordinate direction.
+
+	Example:
+	# Gets the vector of the camera front direction:
+	m_vect = Rasterizer.getScreenVect(0.5,0.5)
+
+	@type x: float
+	@type y: float
+	@rtype: 3d vector
+	@return: the vector from a screen coordinate.
+	"""
+def getScreenRay(x, y, dist, property):
+	"""
+	Look towards a screen coordinate (x,y) and find first object hit within dist that matches prop.
+	The ray is similar to KX_GameObject->rayCastTo.
+
+	Example:
+	# Gets an object with a property "wall" in front of the camera within a distance of 100:
+	target = Rasterizer.getScreenRay(0.5,0.5,100,"wall")
+
+	@type x: float
+	@type y: float
+	@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
+	@type dist: float
+	@param prop: property name that object must have; can be omitted => detect any object
+	@type prop: string
+	@rtype: L{KX_GameObject}
+	@return: the first object hit or None if no object or object does not match prop
+	"""
 def getWindowWidth():
 	"""
 	Gets the width of the window (in pixels)

@@ -6054,8 +6054,6 @@ static void surfaceModifier_deformVerts(
        float (*vertexCos)[3], int numVerts)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
-	DerivedMesh *dm = NULL;
-	float current_time = 0;
 	unsigned int numverts = 0, i = 0;
 	
 	if(surmd->dm)
@@ -6258,6 +6256,48 @@ static int is_last_displist(Object *ob)
 
 	return 0;
 }
+
+static DerivedMesh *get_original_dm(Object *ob, float (*vertexCos)[3], int orco)
+{
+	DerivedMesh *dm= NULL;
+
+	if(ob->type==OB_MESH) {
+		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+
+		if(vertexCos) {
+			CDDM_apply_vert_coords(dm, vertexCos);
+			//CDDM_calc_normals(dm);
+		}
+		
+		if(orco)
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+	}
+	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+		Object *tmpobj;
+		Curve *tmpcu;
+
+		if(is_last_displist(ob)) {
+			/* copies object and modifiers (but not the data) */
+			tmpobj= copy_object(ob);
+			tmpcu = (Curve *)tmpobj->data;
+			tmpcu->id.us--;
+
+			/* copies the data */
+			tmpobj->data = copy_curve((Curve *) ob->data);
+
+			makeDispListCurveTypes(tmpobj, 1);
+			nurbs_to_mesh(tmpobj);
+
+			dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
+			//CDDM_calc_normals(dm);
+
+			free_libblock_us(&G.main->object, tmpobj);
+		}
+	}
+
+	return dm;
+}
+
 /* saves the current emitter state for a particle system and calculates particles */
 static void particleSystemModifier_deformVerts(
 					       ModifierData *md, Object *ob, DerivedMesh *derivedData,
@@ -6285,43 +6325,13 @@ static void particleSystemModifier_deformVerts(
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	if(dm==0){
-		if(ob->type==OB_MESH){
-			dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+	if(dm==0) {
+		dm= get_original_dm(ob, vertexCos, 1);
 
-			CDDM_apply_vert_coords(dm, vertexCos);
-			//CDDM_calc_normals(dm);
-			
-			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+		if(!dm)
+			return;
 
-			needsFree=1;
-		}
-		else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)){
-			Object *tmpobj;
-			Curve *tmpcu;
-
-			if(is_last_displist(ob)){
-				/* copies object and modifiers (but not the data) */
-				tmpobj= copy_object( ob );
-				tmpcu = (Curve *)tmpobj->data;
-				tmpcu->id.us--;
-
-				/* copies the data */
-				tmpobj->data = copy_curve( (Curve *) ob->data );
-
-				makeDispListCurveTypes( tmpobj, 1 );
-				nurbs_to_mesh( tmpobj );
-
-				dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
-				//CDDM_calc_normals(dm);
-
-				free_libblock_us( &G.main->object, tmpobj );
-
-				needsFree=1;
-			}
-			else return;
-		}
-		else return;
+		needsFree= 1;
 	}
 
 	/* clear old dm */
@@ -7658,6 +7668,14 @@ static void meshdeformModifier_do(
 	}
 	else
 		cagedm= mmd->object->derivedFinal;
+
+	/* if we don't have one computed, use derivedmesh from data
+	 * without any modifiers */
+	if(!cagedm) {
+		cagedm= get_original_dm(mmd->object, NULL, 0);
+		if(cagedm)
+			cagedm->needsFree= 1;
+	}
 	
 	if(!cagedm)
 		return;
@@ -8846,8 +8864,10 @@ void modifier_freeTemporaryData(ModifierData *md)
 	if(md->type == eModifierType_Armature) {
 		ArmatureModifierData *amd= (ArmatureModifierData*)md;
 
-		if(amd->prevCos)
+		if(amd->prevCos) {
 			MEM_freeN(amd->prevCos);
+			amd->prevCos= NULL;
+		}
 	}
 }
 

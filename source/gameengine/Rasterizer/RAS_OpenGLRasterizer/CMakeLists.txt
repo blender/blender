@@ -31,8 +31,13 @@ SET(INC
   ../../../../intern/string
   ../../../../intern/moto/include
   ../../../../source/gameengine/Rasterizer
+  ../../../../source/gameengine/Ketsji
   ../../../../extern/glew/include
   ../../../../source/blender/gpu
+  ../../../../source/blender/makesdna
+  ../../../../source/blender/blenkernel
+  ../../../../source/blender/blenlib
+  ../../../../source/blender/blenloader
 )
 
 BLENDERLIB(bf_oglrasterizer "${SRC}" "${INC}")

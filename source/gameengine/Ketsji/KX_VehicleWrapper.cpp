@@ -303,6 +303,10 @@ PyObject*	KX_VehicleWrapper::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* KX_VehicleWrapper::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
 int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
 {
 	/* TODO - strange setattr, needs updating */

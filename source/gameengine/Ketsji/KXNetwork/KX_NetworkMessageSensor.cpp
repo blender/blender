@@ -79,9 +79,7 @@ CValue* KX_NetworkMessageSensor::GetReplica() {
 	CValue* replica = new KX_NetworkMessageSensor(*this);
 
 	if (replica == NULL) return NULL;
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -225,6 +223,10 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 
 PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_NetworkMessageSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {

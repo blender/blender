@@ -80,6 +80,7 @@
 #include "KX_BlenderSceneConverter.h"
 #include "KX_MotionState.h"
 
+#include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
 
@@ -716,12 +717,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// set the replica's relative scale with the rootnode's scale
 		replica->NodeSetRelativeScale(newscale);
 
-		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
-		replica->NodeSetLocalOrientation(newori);
 		MT_Point3 offset(group->dupli_ofs);
 		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
 			newscale*(groupobj->NodeGetWorldOrientation() * (gameobj->NodeGetWorldPosition()-offset));
 		replica->NodeSetLocalPosition(newpos);
+		// set the orientation after position for softbody!
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
 
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
@@ -889,7 +891,15 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
-	// first disconnect child from parent
+	/* Invalidate the python reference, since the object may exist in script lists
+	 * its possible that it wont be automatically invalidated, so do it manually here,
+	 * 
+	 * if for some reason the object is added back into the scene python can always get a new Proxy
+	 */
+	gameobj->InvalidateProxy();
+	
+	
+	// disconnect child from parent
 	SG_Node* node = newobj->GetSGNode();
 
 	if (node)
@@ -1038,6 +1048,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
 			Mesh* blendmesh = mesh->GetMesh();
 
+			bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(blendobj);
 			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
 			bool bHasDvert = blendmesh->dvert != NULL;
 			bool bHasArmature = 
@@ -1053,10 +1064,37 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			
 			if (oldblendobj==NULL) {
 				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature= false;
+				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
 			}
 			
-			if (bHasShapeKey)
+			if (bHasModifier)
+			{
+				BL_ModifierDeformer* modifierDeformer;
+				if (bHasShapeKey || bHasArmature)
+				{
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
+						static_cast<BL_ArmatureObject*>( parentobj )
+					);
+					releaseParent= false;
+					modifierDeformer->LoadShapeDrivers(blendobj->parent);
+				}
+				else
+				{
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						NULL
+					);
+				}
+				newobj->SetDeformer(modifierDeformer);
+			} 
+			else 	if (bHasShapeKey)
 			{
 				BL_ShapeDeformer* shapeDeformer;
 				if (bHasArmature) 
@@ -1065,6 +1103,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						newobj,
 						oldblendobj, blendobj,
 						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
@@ -1078,6 +1117,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						oldblendobj, blendobj,
 						static_cast<BL_SkinMeshObject*>(mesh),
 						false,
+						true,
 						NULL
 					);
 				}
@@ -1089,6 +1129,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 					newobj,
 					oldblendobj, blendobj,
 					static_cast<BL_SkinMeshObject*>(mesh),
+					true,
 					true,
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
@@ -1630,19 +1671,6 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 	return self->GetActiveCamera()->GetProxy();
 }
 
-/* __dict__ only for the purpose of giving useful dir() results */
-PyObject* KX_Scene::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	/* Useually done by py_getattro_up but in this case we want to include m_attr_dict dict */
-	PyObject *dict_str= PyString_FromString("__dict__");
-	PyObject *dict= py_getattr_dict(self->PyObjectPlus::py_getattro(dict_str), Type.tp_dict);
-	Py_DECREF(dict_str);
-	
-	PyDict_Update(dict, self->m_attr_dict);
-	return dict;
-}
-
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",			KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",		KX_Scene, pyattr_get_objects),
@@ -1651,7 +1679,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",	KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
 	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",		KX_Scene, m_dbvt_culling),
-	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",		KX_Scene, pyattr_get_dir_dict),
 	{ NULL }	//Sentinel
 };
 
@@ -1685,6 +1712,18 @@ PyObject* KX_Scene::py_getattro(PyObject *attr)
 	return object;
 }
 
+PyObject* KX_Scene::py_getattro_dict() {
+	//py_getattro_dict_up(PyObjectPlus);
+	
+	PyObject *dict= py_getattr_dict(PyObjectPlus::py_getattro_dict(), Type.tp_dict);
+	if(dict==NULL)
+		return NULL;
+	
+	/* normally just return this but KX_Scene has some more items */
+	
+	PyDict_Update(dict, m_attr_dict);
+	return dict;
+}
 
 int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
 {

@@ -58,7 +58,7 @@ def Close ():
   Close the currently open library file, if any.
   """
 
-def getName ():
+def GetName ():
   """
   Get the filename of the currently open library file.
   @rtype: string
@@ -111,4 +111,9 @@ def Update ():
      down your script and make you look like a lousy programmer.
      Enough warnings :)?
   """
-
+def LinkedLibs():
+  """
+  Return a list of all libs used in the the open .blend file (direct and indirect).
+  @rtype: list of strings
+  @return: a list of blendfile names.
+  """

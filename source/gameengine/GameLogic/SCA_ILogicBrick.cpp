@@ -143,14 +143,6 @@ void SCA_ILogicBrick::SetName(STR_String name)
 }
 
 
-
-void SCA_ILogicBrick::ReplicaSetName(STR_String name)
-{
-	m_name = name;
-}
-		
-
-
 bool SCA_ILogicBrick::IsActive()
 {
 	return m_bActive;
@@ -257,6 +249,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
 	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
+	//KX_PYATTRIBUTE_TODO("name"),
 	{NULL} //Sentinel
 };
 
@@ -278,10 +271,13 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 	return 0;
 }
 
-PyObject*
-SCA_ILogicBrick::py_getattro(PyObject *attr)
+PyObject* SCA_ILogicBrick::py_getattro(PyObject *attr)
 {
   py_getattro_up(CValue);
+}
+
+PyObject* SCA_ILogicBrick::py_getattro_dict() {
+	py_getattro_dict_up(CValue);
 }
 
 int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)

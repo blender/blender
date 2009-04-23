@@ -87,7 +87,7 @@ CValue* SCA_JoystickSensor::GetReplica()
 {
 	SCA_JoystickSensor* replica = new SCA_JoystickSensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 	return replica;
 }
@@ -330,13 +330,17 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("numButtons",	SCA_JoystickSensor, pyattr_get_num_buttons),
 	KX_PYATTRIBUTE_RO_FUNCTION("numHats",		SCA_JoystickSensor, pyattr_get_num_hats),
 	KX_PYATTRIBUTE_RO_FUNCTION("connected",		SCA_JoystickSensor, pyattr_get_connected),
-	
+	//KX_PYATTRIBUTE_TODO("events"),
 	{ NULL }	//Sentinel
 };
 
 PyObject* SCA_JoystickSensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_JoystickSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_JoystickSensor::py_setattro(PyObject *attr, PyObject *value) 

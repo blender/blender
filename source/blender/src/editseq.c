@@ -174,7 +174,7 @@ void clear_last_seq()
 	_last_seq_init = 0;
 }
 
-Sequence *get_forground_frame_seq(int frame)
+Sequence *get_foreground_frame_seq(int frame)
 {
 	Editing *ed;
 	Sequence *seq, *best_seq=NULL;

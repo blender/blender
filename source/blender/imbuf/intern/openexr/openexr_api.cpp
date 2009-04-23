@@ -570,13 +570,17 @@ void IMB_exr_write_channels(void *handle)
 	FrameBuffer frameBuffer;
 	ExrChannel *echan;
 	
-	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
-												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
-	
-	data->ofile->setFrameBuffer (frameBuffer);
-	data->ofile->writePixels (data->height);	
-	
+	if(data->channels.first) {
+		for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
+			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+													echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+		
+		data->ofile->setFrameBuffer (frameBuffer);
+		data->ofile->writePixels (data->height);	
+	}
+	else {
+		printf("Error: attempt to save MultiLayer without layers.\n");
+	}
 }
 
 void IMB_exr_read_channels(void *handle)

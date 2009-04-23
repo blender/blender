@@ -34,7 +34,7 @@
 
 extern PyTypeObject vector_Type;
 
-#define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
+#define VectorObject_Check(v) (((PyObject *)v)->ob_type == &vector_Type)
 
 typedef struct {
 	PyObject_VAR_HEAD 
@@ -50,7 +50,6 @@ PyObject *Vector_Negate( VectorObject * self );
 PyObject *Vector_Resize2D( VectorObject * self );
 PyObject *Vector_Resize3D( VectorObject * self );
 PyObject *Vector_Resize4D( VectorObject * self );
-PyObject *Vector_toPoint( VectorObject * self );
 PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args );
 PyObject *Vector_reflect( VectorObject * self, PyObject * value );
 PyObject *Vector_copy( VectorObject * self );

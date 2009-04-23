@@ -439,27 +439,6 @@ int CValue::GetPropertyCount()
 }
 
 
-
-
-
-void CValue::CloneProperties(CValue *replica)
-{
-	
-	if (m_pNamedPropertyArray)
-	{
-		replica->m_pNamedPropertyArray=NULL;
-		std::map<STR_String,CValue*>::iterator it;
-		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
-		{
-			CValue *val = (*it).second->GetReplica();
-			replica->SetProperty((*it).first,val);
-			val->Release();
-		}
-	}
-
-	
-}
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
@@ -534,22 +513,31 @@ void CValue::DisableRefCount()
 
 
 
-void CValue::AddDataToReplica(CValue *replica)
+void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
-	replica->m_refcount = 1;
-
+	m_refcount = 1;
+	
 #ifdef _DEBUG
 	//gRefCountValue++;
 #endif
-	replica->m_ValFlags.RefCountDisabled = false;
+	PyObjectPlus::ProcessReplica();
 
-	replica->ReplicaSetName(GetName());
+	m_ValFlags.RefCountDisabled = false;
 
-	//copy all props
-	CloneProperties(replica);
+	/* copy all props */
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*> *pOldArray = m_pNamedPropertyArray;
+		m_pNamedPropertyArray=NULL;
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= pOldArray->begin(); (it != pOldArray->end()); it++)
+		{
+			CValue *val = (*it).second->GetReplica();
+			SetProperty((*it).first,val);
+			val->Release();
+		}
+	}
 }
-
-
 
 CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 {
@@ -612,7 +600,11 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
-CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
+PyObject* CValue::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
+CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 {
 
 	CValue* vallie = NULL;
@@ -628,7 +620,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		for (i=0;i<numitems;i++)
 		{
 			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
-			CValue* listitemval = ConvertPythonToValue(listitem);
+			CValue* listitemval = ConvertPythonToValue(listitem, error_prefix);
 			if (listitemval)
 			{
 				listval->Add(listitemval);
@@ -665,13 +657,22 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	{
 		vallie = new CStringValue(PyString_AsString(pyobj),"");
 	} else
-	if (pyobj->ob_type==&CValue::Type || pyobj->ob_type==&CListValue::Type)
+	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		vallie = ((CValue*) pyobj)->AddRef();
+		if (BGE_PROXY_REF(pyobj) && (BGE_PROXY_REF(pyobj))->isA(&CValue::Type))
+		{
+			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
+		} else {
+			
+			if(BGE_PROXY_REF(pyobj))	/* this is not a CValue */
+				PyErr_Format(PyExc_TypeError, "%sgame engine python type cannot be used as a property", error_prefix);
+			else						/* PyObjectPlus_Proxy has been removed, cant use */
+				PyErr_Format(PyExc_SystemError, "%s"BGE_PROXY_ERROR_MSG, error_prefix);
+		}
 	} else
 	{
 		/* return an error value from the caller */
-		PyErr_SetString(PyExc_TypeError, "This python type could not be converted to a to a game engine property");
+		PyErr_Format(PyExc_TypeError, "%scould convert python value to a game engine property", error_prefix);
 	}
 	return vallie;
 
@@ -690,10 +691,11 @@ int	CValue::py_delattro(PyObject *attr)
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
 	char *attr_str= PyString_AsString(attr);
-	CValue* oldprop = GetProperty(attr_str);
-	
-	CValue* vallie = ConvertPythonToValue(pyobj);
-	if (vallie)
+	CValue* oldprop = GetProperty(attr_str);	
+	CValue* vallie;
+
+	/* Dissallow python to assign GameObjects, Scenes etc as values */
+	if ((BGE_PROXY_CHECK_TYPE(pyobj)==0) && (vallie = ConvertPythonToValue(pyobj, "cvalue.attr = value: ")))
 	{
 		if (oldprop)
 			oldprop->SetValue(vallie);

@@ -98,7 +98,7 @@ CValue* SCA_XNORController::GetReplica()
 {
 	CValue* replica = new SCA_XNORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -147,6 +147,10 @@ PyAttributeDef SCA_XNORController::Attributes[] = {
 
 PyObject* SCA_XNORController::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IController);
+}
+
+PyObject* SCA_XNORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
 }
 
 /* eof */

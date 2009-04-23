@@ -94,7 +94,7 @@ CValue* SCA_NORController::GetReplica()
 {
 	CValue* replica = new SCA_NORController(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -143,6 +143,10 @@ PyAttributeDef SCA_NORController::Attributes[] = {
 
 PyObject* SCA_NORController::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IController);
+}
+
+PyObject* SCA_NORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
 }
 
 /* eof */

@@ -72,7 +72,6 @@ public:
 	virtual double		GetNumber();
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);
-	virtual void		ReplicaSetName(STR_String name);
 		
 	bool				IsActive();
 	void				SetActive(bool active) ;
@@ -80,6 +79,7 @@ public:
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	static class SCA_LogicManager*	m_sCurrentLogicManager;

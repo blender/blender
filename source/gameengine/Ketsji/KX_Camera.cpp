@@ -71,15 +71,9 @@ CValue*	KX_Camera::GetReplica()
 	KX_Camera* replica = new KX_Camera(*this);
 	
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	
 	return replica;
-}
-	
-void KX_Camera::ProcessReplica(KX_Camera* replica)
-{
-	KX_GameObject::ProcessReplica(replica);
 }
 
 MT_Transform KX_Camera::GetWorldToCamera() const
@@ -542,6 +536,10 @@ PyParentObject KX_Camera::Parents[] = {
 PyObject* KX_Camera::py_getattro(PyObject *attr)
 {
 	py_getattro_up(KX_GameObject);
+}
+
+PyObject* KX_Camera::py_getattro_dict() {
+	py_getattro_dict_up(KX_GameObject);
 }
 
 int KX_Camera::py_setattro(PyObject *attr, PyObject *value)

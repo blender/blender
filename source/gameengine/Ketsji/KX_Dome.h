@@ -42,7 +42,7 @@ Developed as part of a Research and Development project for SAT - La Société des
 
 //Dome modes: limit hardcoded in buttons_scene.c
 #define DOME_FISHEYE		1
-#define DOME_TRUNCATED		2
+#define DOME_ENVMAP			2
 #define DOME_PANORAM_SPH	3
 #define DOME_NUM_MODES		4
 
@@ -131,6 +131,7 @@ public:
 	void GLDrawWarpQuads(void);
 	void Draw(void);
 	void DrawDomeFisheye(void);
+	void DrawEnvMap(void);
 	void DrawPanorama(void);
 	void DrawDomeWarped(void);
 

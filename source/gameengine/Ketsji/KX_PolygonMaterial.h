@@ -53,7 +53,6 @@ private:
 	MTFace*			m_tface;
 	unsigned int*	m_mcol;
 	Material*		m_material;
-	
 	PyObject*		m_pymaterial;
 
 	mutable int		m_pass;
@@ -61,6 +60,7 @@ public:
 	
 	KX_PolygonMaterial(const STR_String &texname,
 		Material* ma,
+		int materialindex,
 		int tile,
 		int tilexrep,
 		int tileyrep,
@@ -107,8 +107,8 @@ public:
 	{
 		return m_mcol;
 	}
-	
-	
+	virtual void GetMaterialRGBAColor(unsigned char *rgba) const;
+
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, updateTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, activate);
@@ -117,6 +117,7 @@ public:
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	virtual PyObject* py_repr(void) { return PyString_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
 	

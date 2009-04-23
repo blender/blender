@@ -136,11 +136,14 @@ PyParentObject KX_PhysicsObjectWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_PhysicsObjectWrapper::py_getattro(PyObject *attr)
+PyObject* KX_PhysicsObjectWrapper::py_getattro(PyObject *attr)
 {
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* KX_PhysicsObjectWrapper::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
 
 int	KX_PhysicsObjectWrapper::py_setattro(PyObject *attr,PyObject *pyobj)
 {

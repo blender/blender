@@ -146,15 +146,6 @@ public:
 	virtual	CValue*				
 	GetReplica(
 	);
-	
-	/**
-	 * Inherited from CValue -- Makes sure any internal 
-	 * data owned by this class is deep copied. Called internally
-	 */
-	virtual	void				
-	ProcessReplica(
-		KX_Camera* replica
-	);
 
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
@@ -278,6 +269,7 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
 	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	
 	static PyObject*	pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -640,6 +640,10 @@ PyObject* KX_ConstraintActuator::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IActuator);
 }
 
+PyObject* KX_ConstraintActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
 int KX_ConstraintActuator::py_setattro(PyObject *attr, PyObject* value)
 {
 	py_setattro_up(SCA_IActuator);
@@ -750,9 +754,9 @@ PyObject* KX_ConstraintActuator::PyGetDirection(){
 	ShowDeprecationWarning("getDirection()", "the direction property");
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
 	return retVal;
 }
 

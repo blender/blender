@@ -64,8 +64,6 @@ KX_VisibilityActuator::GetReplica(
 {
 	KX_VisibilityActuator* replica = new KX_VisibilityActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -141,6 +139,10 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 PyObject* KX_VisibilityActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_VisibilityActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_VisibilityActuator::py_setattro(PyObject *attr, PyObject *value)

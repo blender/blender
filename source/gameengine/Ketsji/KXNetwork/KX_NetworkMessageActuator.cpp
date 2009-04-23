@@ -93,9 +93,6 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	    new KX_NetworkMessageActuator(*this);
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -155,6 +152,10 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 
 PyObject* KX_NetworkMessageActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_NetworkMessageActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_NetworkMessageActuator::py_setattro(PyObject *attr, PyObject *value) {
