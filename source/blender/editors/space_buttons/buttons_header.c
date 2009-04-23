@@ -177,10 +177,10 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
-	if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
 		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
 	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
-	if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
 	
