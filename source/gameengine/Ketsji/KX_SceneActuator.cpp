@@ -270,6 +270,8 @@ PyMethodDef KX_SceneActuator::Methods[] =
 PyAttributeDef KX_SceneActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("scene",0,32,true,KX_SceneActuator,m_nextSceneName),
 	KX_PYATTRIBUTE_RW_FUNCTION("camera",KX_SceneActuator,pyattr_get_camera,pyattr_set_camera),
+	//KX_PYATTRIBUTE_TODO("useRestart"),
+	//KX_PYATTRIBUTE_TODO("mode"),
 	{ NULL }	//Sentinel
 };
 

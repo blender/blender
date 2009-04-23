@@ -771,6 +771,9 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 };
 
 PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("shader"),
+	//KX_PYATTRIBUTE_TODO("materialIndex"),
+	//KX_PYATTRIBUTE_TODO("blending"),
 	{ NULL }	//Sentinel
 };
 

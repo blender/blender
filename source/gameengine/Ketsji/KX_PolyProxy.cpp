@@ -79,6 +79,7 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 
 PyAttributeDef KX_PolyProxy::Attributes[] = {
 	/* All dummy's so they come up in a dir() */
+	//KX_PYATTRIBUTE_TODO("DummyProps"),
 	KX_PYATTRIBUTE_DUMMY("matname"),
 	KX_PYATTRIBUTE_DUMMY("texture"),
 	KX_PYATTRIBUTE_DUMMY("material"),

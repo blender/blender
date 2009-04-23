@@ -248,6 +248,7 @@ PyMethodDef KX_GameActuator::Methods[] =
 
 PyAttributeDef KX_GameActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("file",0,100,false,KX_GameActuator,m_filename),
+	//KX_PYATTRIBUTE_TODO("mode"),
 	{ NULL }	//Sentinel
 };
 

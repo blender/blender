@@ -131,5 +131,6 @@ PyMethodDef KX_ConstraintWrapper::Methods[] = {
 };
 
 PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("constraintId"),
 	{ NULL }	//Sentinel
 };

@@ -330,6 +330,17 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 };
 
 PyAttributeDef KX_ObjectActuator::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("force"),
+	//KX_PYATTRIBUTE_TODO("torque"),
+	//KX_PYATTRIBUTE_TODO("dLoc"),
+	//KX_PYATTRIBUTE_TODO("dRot"),
+	//KX_PYATTRIBUTE_TODO("linV"),
+	//KX_PYATTRIBUTE_TODO("angV"),
+	//KX_PYATTRIBUTE_TODO("damping"),
+	//KX_PYATTRIBUTE_TODO("forceLimitX"),
+	//KX_PYATTRIBUTE_TODO("forceLimitY"),
+	//KX_PYATTRIBUTE_TODO("forceLimitZ"),
+	//KX_PYATTRIBUTE_TODO("pid"),
 	{ NULL }	//Sentinel
 };
 

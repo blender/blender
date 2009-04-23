@@ -79,6 +79,7 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 };
 
 PyAttributeDef KX_VertexProxy::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("DummyProps"),
 	
 	KX_PYATTRIBUTE_DUMMY("x"),
 	KX_PYATTRIBUTE_DUMMY("y"),
