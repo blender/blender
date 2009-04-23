@@ -141,7 +141,58 @@ int blf_internal_get_texture(FontBLF *font)
 
 void blf_internal_size(FontBLF *font, int size, int dpi)
 {
-	return;
+	/* dpi don't work here and size is limit to:
+	 * helv: 10, 12
+	 * helvb: 8, 10, 12
+	 * scr: 12, 14, 15
+	 */
+	font->dpi= dpi;
+
+	if (font->size != size) {
+		if (!strcmp(font->name, "helv")) {
+			if (size == 12) {
+				font->engine= (void *)&blf_font_helv12;
+				font->size= 12;
+			}
+			else {
+				font->engine= (void *)&blf_font_helv10;
+				font->size= 10;
+			}
+		}
+		else if (!strcmp(font->name, "helvb")) {
+			if (size == 10) {
+				font->engine= (void *)&blf_font_helvb10;
+				font->size= 10;
+			}
+			else if (size == 12) {
+				font->engine= (void *)&blf_font_helvb12;
+				font->size= 12;
+			}
+			else {
+				font->engine= (void *)&blf_font_helvb8;
+				font->size= 8;
+			}
+		}
+		else { /* scr */
+			if (size == 14) {
+				font->engine= (void *)&blf_font_scr14;
+				font->size= 14;
+			}
+			else if (size == 15) {
+				font->engine= (void *)&blf_font_scr15;
+				font->size= 15;
+			}
+			else {
+				font->engine= (void *)&blf_font_scr12;
+				font->size= 12;
+			}
+		}
+
+		if (font->mode == BLF_MODE_TEXTURE) {
+			if (blf_internal_get_texture(font) != 0)
+				printf("Can't create texture font!!\n");
+		}
+	}
 }
 
 void blf_internal_texture_draw(FontBLF *font, char *str)
@@ -149,7 +200,8 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 	FontDataBLF *data;
 	CharDataBLF *cd;
 	unsigned char c;
-	float pos, cell_x, cell_y, x, y, z;
+	float pos, x, y;
+	float uv[2][2];
 	int base_line;
 	GLint cur_tex;
 	float dx, dx1, dy, dy1;
@@ -159,7 +211,6 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 	pos= 0;
 	x= 0.0f;
 	y= 0.0f;
-	z= 0.0f;
 
 	glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &cur_tex);
 	if (cur_tex != data->texid)
@@ -169,8 +220,10 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 		cd= &data->chars[c];
 
 		if (cd->data_offset != -1) {
-			cell_x= (c%16)/16.0;
-			cell_y= (c/16)/16.0;
+			uv[0][0]= ((c%16)/16.0) + 1.0/16.0;
+			uv[0][1]= (c/16)/16.0;
+			uv[1][0]= (c%16)/16.0;
+			uv[1][1]= ((c/16)/16.0) + 1.0/16.0;
 
 			dx= x + pos + 16.0;
 			dx1= x + pos + 0.0;
@@ -189,19 +242,12 @@ void blf_internal_texture_draw(FontBLF *font, char *str)
 					goto next_tex_char;
 			}
 
-			glBegin(GL_QUADS);
-			glTexCoord2f(cell_x + 1.0/16.0, cell_y);
-			glVertex3f(dx, dy, z);
-
-			glTexCoord2f(cell_x + 1.0/16.0, cell_y + 1.0/16.0);
-			glVertex3f(dx, dy1, z);
-
-			glTexCoord2f(cell_x, cell_y + 1.0/16.0);
-			glVertex3f(dx1, dy1, z);
-
-			glTexCoord2f(cell_x, cell_y);
-			glVertex3f(dx1, dy, z);
-			glEnd();
+			if (font->blur == 3)
+				blf_texture3_draw(uv, dx, dy, dx1, dy1);
+			else if (font->blur == 5)
+				blf_texture5_draw(uv, dx, dy, dx1, dy1);
+			else
+				blf_texture_draw(uv, dx, dy, dx1, dy1);
 		}
 next_tex_char:
 		pos += cd->advance;
@@ -328,38 +374,18 @@ FontBLF *blf_internal_new(char *name)
 	font->name= BLI_strdup(name);
 	font->filename= NULL;
 
-	if (!strcmp(name, "helv10")) {
+	if (!strcmp(name, "helv")) {
 		font->engine= (void *)&blf_font_helv10;
 		font->size= 10;
 	}
 #ifndef BLF_INTERNAL_MINIMAL
-	else if (!strcmp(name, "helv12")) {
-		font->engine= (void *)&blf_font_helv12;
-		font->size= 12;
-	}
-	else if (!strcmp(name, "helvb8")) {
+	else if (!strcmp(name, "helvb")) {
 		font->engine= (void *)&blf_font_helvb8;
 		font->size= 8;
 	}
-	else if (!strcmp(name, "helvb10")) {
-		font->engine= (void *)&blf_font_helvb10;
-		font->size= 10;
-	}
-	else if (!strcmp(name, "helvb12")) {
-		font->engine= (void *)&blf_font_helvb12;
-		font->size= 12;
-	}
-	else if (!strcmp(name, "scr12")) {
+	else if (!strcmp(name, "scr")) {
 		font->engine= (void *)&blf_font_scr12;
 		font->size= 12;
-	}
-	else if (!strcmp(name, "scr14")) {
-		font->engine= (void *)&blf_font_scr14;
-		font->size= 14;
-	}
-	else if (!strcmp(name, "scr15")) {
-		font->engine= (void *)&blf_font_scr15;
-		font->size= 15;
 	}
 #endif
 	else

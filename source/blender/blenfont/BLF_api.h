@@ -43,6 +43,12 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
 void BLF_set(int fontid);
 int BLF_get(void);
 
+/*
+ * Return the font type, can be freetype2 or internal, -1 if
+ * some error happen (no current font).
+ */
+int BLF_type_get(void);
+
 void BLF_aspect(float aspect);
 void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
@@ -74,25 +80,17 @@ void BLF_blur(int size);
 void BLF_enable(int option);
 void BLF_disable(int option);
 
-/* Read the .Blanguages file, return 1 on success or 0 if fails. */
-int BLF_lang_init(void);
-
-/* Free the memory allocate for the .Blanguages. */
-void BLF_lang_exit(void);
-
-/* Set the current Language. */
-void BLF_lang_set(int id);
-
-/* Return a string with all the Language available. */
-char *BLF_lang_pup(void);
-
-/* Return the number of invalid lines in the .Blanguages file,
- * zero means no error found.
+/*
+ * Search the path directory to the locale files, this try all
+ * the case for Linux, Win and Mac.
  */
-int BLF_lang_error(void);
+void BLF_lang_init(void);
 
-/* Return the code string for the specified language code. */
-char *BLF_lang_find_code(short langid);
+/* Set the current locale. */
+void BLF_lang_set(const char *);
+
+/* Set the current encoding name. */
+void BLF_lang_encoding_name(const char *str);
 
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);
@@ -113,5 +111,9 @@ void BLF_dir_free(char **dirs, int count);
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0
 #define BLF_MODE_BITMAP 1
+
+/* font->type */
+#define BLF_FONT_FREETYPE2 0
+#define BLF_FONT_INTERNAL 1
 
 #endif /* BLF_API_H */

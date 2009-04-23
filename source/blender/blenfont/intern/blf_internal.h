@@ -32,6 +32,10 @@ unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
 int blf_utf8_next(unsigned char *buf, int *iindex);
 
+void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2);
+void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2);
+void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2);
+
 char *blf_dir_search(const char *file);
 int blf_dir_split(const char *str, char *file, int *size);
 
