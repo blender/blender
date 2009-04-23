@@ -179,7 +179,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				PyErr_Print();
+				PyErr_Print(); PyErr_Clear();
 				BPY_free_compiled_text( text );
 				PyGILState_Release(gilstate);
 				return 0;
@@ -195,10 +195,12 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	}
 	
 	if (!py_result) {
-		PyErr_Print();
+		PyErr_Print(); PyErr_Clear();
 	} else {
 		Py_DECREF( py_result );
 	}
+	
+	Py_DECREF(py_dict);
 	PyGILState_Release(gilstate);
 	
 	//BPY_end_python();
@@ -220,7 +222,7 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	script = sc->script;
 
 	if( err ) {
-		PyErr_Print(  );
+		PyErr_Print(); PyErr_Clear();
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -327,13 +329,14 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 		}
 	}
 	
-	if (!py_result)
-		PyErr_Print();
-	else
+	if (!py_result) {
+		PyErr_Print(); PyErr_Clear();
+	} else
 		Py_DECREF( py_result );
 	
 	Py_XDECREF(module);
 	
+	Py_DECREF(py_dict);
 	
 	PyGILState_Release(gilstate);
 	return 1;
@@ -406,7 +409,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 			if(mod) {
 				Py_DECREF(mod); /* could be NULL from reloading */
 			} else {
-				PyErr_Print();
+				PyErr_Print(); PyErr_Clear();
 				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
 			}
 		}
@@ -527,7 +530,7 @@ static float pydriver_error(ChannelDriver *driver)
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
 	
-	PyErr_Print();
+	PyErr_Print(); PyErr_Clear();
 
 	return 0.0f;
 }
@@ -586,7 +589,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			}
 			
 			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			PyErr_Print();
+			PyErr_Print(); PyErr_Clear();
 		}
 	}
 	

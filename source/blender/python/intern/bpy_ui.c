@@ -344,7 +344,7 @@ static PyObject *Method_registerKey( PyObject * self, PyObject * args )
 static bContext *get_py_context__internal(void)
 {
 	PyObject *globals = PyEval_GetGlobals();
-	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__");
+	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__"); /* borrow ref */
 	return PyCObject_AsVoidPtr(val);
 }
 
