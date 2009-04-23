@@ -1528,6 +1528,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		objprop.m_dynamic_parent = parentgameobject;
 		//cannot be dynamic:
 		objprop.m_dyna = false;
+		objprop.m_softbody = false;
 		shapeprops->m_mass = 0.f;
 	}
 
