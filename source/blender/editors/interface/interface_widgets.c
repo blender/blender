@@ -1487,7 +1487,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += (rect->ymax-rect->ymin) + delta;
+	rect->xmin += (rect->ymax-rect->ymin)*0.7 + delta;
 }
 
 
