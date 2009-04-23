@@ -582,7 +582,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glTranslatef(1.0*jit[j][0], 1.0*jit[j][1], 0.0f);
 			
 			/* outline */
-			glColor4f(wcol->outline[0], wcol->outline[1], wcol->outline[0], 0.125);
+			glColor4f(wcol->outline[0], wcol->outline[1], wcol->outline[2], 0.125);
 			glBegin(GL_QUAD_STRIP);
 			for(a=0; a<wtb->totvert; a++) {
 				glVertex2fv(wtb->outer_v[a]);
