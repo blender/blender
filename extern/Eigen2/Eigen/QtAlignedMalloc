@@ -1,0 +1,29 @@
+
+#ifndef EIGEN_QTMALLOC_MODULE_H
+#define EIGEN_QTMALLOC_MODULE_H
+
+#include "Core"
+
+#if (!EIGEN_MALLOC_ALREADY_ALIGNED)
+
+inline void *qMalloc(size_t size)
+{
+  return Eigen::ei_aligned_malloc(size);
+}
+
+inline void qFree(void *ptr)
+{
+  Eigen::ei_aligned_free(ptr);
+}
+
+inline void *qRealloc(void *ptr, size_t size)
+{
+  void* newPtr = Eigen::ei_aligned_malloc(size);
+  memcpy(newPtr, ptr, size);
+  Eigen::ei_aligned_free(ptr);
+  return newPtr;
+}
+
+#endif
+
+#endif // EIGEN_QTMALLOC_MODULE_H

@@ -1,0 +1,133 @@
+#ifndef EIGEN_STDVECTOR_MODULE_H
+#define EIGEN_STDVECTOR_MODULE_H
+
+#if defined(_GLIBCXX_VECTOR) || defined(_VECTOR_)
+#error you must include Eigen/StdVector before std::vector
+#endif                                                    
+
+#ifndef EIGEN_GNUC_AT_LEAST
+#ifdef __GNUC__
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+#else
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+#endif
+
+#define vector std_vector
+#include <vector>        
+#undef vector
+
+namespace Eigen {
+
+template<typename T> class aligned_allocator;
+
+// meta programming to determine if a class has a given member
+struct ei_does_not_have_aligned_operator_new_marker_sizeof {int a[1];};
+struct ei_has_aligned_operator_new_marker_sizeof {int a[2];};
+
+template<typename ClassType>
+struct ei_has_aligned_operator_new {
+    template<typename T>
+    static ei_has_aligned_operator_new_marker_sizeof
+    test(T const *, typename T::ei_operator_new_marker_type const * = 0);
+    static ei_does_not_have_aligned_operator_new_marker_sizeof
+    test(...);
+
+    // note that the following indirection is needed for gcc-3.3
+    enum {ret =  sizeof(test(static_cast<ClassType*>(0))) 
+              == sizeof(ei_has_aligned_operator_new_marker_sizeof) };
+};
+
+#ifdef _MSC_VER
+  
+  // sometimes, MSVC detects, at compile time, that the argument x
+  // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
+  // even if this function is never called. Whence this little wrapper.
+  #define _EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) Eigen::ei_workaround_msvc_std_vector<T>
+  template<typename T> struct ei_workaround_msvc_std_vector : public T
+  {
+    inline ei_workaround_msvc_std_vector() : T() {}
+    inline ei_workaround_msvc_std_vector(const T& other) : T(other) {}
+    inline operator T& () { return *static_cast<T*>(this); }
+    inline operator const T& () const { return *static_cast<const T*>(this); }
+    template<typename OtherT>
+    inline T& operator=(const OtherT& other)
+    { T::operator=(other); return *this; }
+    inline ei_workaround_msvc_std_vector& operator=(const ei_workaround_msvc_std_vector& other)
+    { T::operator=(other); return *this; }
+  };
+
+#else
+
+  #define _EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) T
+
+#endif
+
+}
+
+namespace std {
+
+#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
+  public:  \
+    typedef T value_type; \
+    typedef typename vector_base::allocator_type allocator_type; \
+    typedef typename vector_base::size_type size_type;  \
+    typedef typename vector_base::iterator iterator;  \
+    explicit vector(const allocator_type& __a = allocator_type()) : vector_base(__a) {}  \
+    vector(const vector& c) : vector_base(c) {}  \
+    vector(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
+    vector(iterator start, iterator end) : vector_base(start, end) {}  \
+    vector& operator=(const vector& __x) {  \
+      vector_base::operator=(__x);  \
+      return *this;  \
+    }
+
+template<typename T,
+         typename AllocT = std::allocator<T>,
+         bool HasAlignedNew = Eigen::ei_has_aligned_operator_new<T>::ret>
+class vector : public std::std_vector<T,AllocT>
+{
+  typedef std_vector<T, AllocT> vector_base;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+};
+
+template<typename T,typename DummyAlloc>
+class vector<T,DummyAlloc,true>
+  : public std::std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                           Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >          
+{
+  typedef std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                     Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+
+  void resize(size_type __new_size)
+  { resize(__new_size, T()); }     
+
+  #if defined(_VECTOR_)
+  // workaround MSVC std::vector implementation
+  void resize(size_type __new_size, const value_type& __x)                 
+  {                                                              
+    if (vector_base::size() < __new_size)                                 
+      vector_base::_Insert_n(vector_base::end(), __new_size - vector_base::size(), __x);
+    else if (__new_size < vector_base::size())
+      vector_base::erase(vector_base::begin() + __new_size, vector_base::end());
+  }
+  #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
+  // workaround GCC std::vector implementation
+  // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
+  // no no need to workaround !
+  void resize(size_type __new_size, const value_type& __x)
+  {                                              
+    if (__new_size < vector_base::size())               
+      vector_base::_M_erase_at_end(this->_M_impl._M_start + __new_size);
+    else                       
+      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x); 
+  }                                                              
+  #else
+  using vector_base::resize;
+  #endif  
+};
+
+}
+
+#endif // EIGEN_STDVECTOR_MODULE_H
