@@ -572,10 +572,22 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 	btSoftBody* sb = GetSoftBody();
 	if (sb)
 	{
-		btVector3 aabbMin,aabbMax;
-		sb->getAabb(aabbMin,aabbMax);
-		btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
-		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		if (sb->m_pose.m_bframe) 
+		{
+			btVector3 worldPos = sb->m_pose.m_com;
+			btQuaternion worldquat;
+			btMatrix3x3	trs = sb->m_pose.m_rot*sb->m_pose.m_scl;
+			trs.getRotation(worldquat);
+			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+			m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
+		}
+		else 
+		{
+			btVector3 aabbMin,aabbMax;
+			sb->getAabb(aabbMin,aabbMax);
+			btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
+			m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		}
 		m_MotionState->calculateWorldTransformations();
 		return true;
 	}
