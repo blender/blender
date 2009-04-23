@@ -68,8 +68,8 @@ void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
 	m_clientobject = NULL;
 	m_lastlightlayer = -1;
-	m_lastlighting = false;
 	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
 	DisableOpenGLLights();
 }
 

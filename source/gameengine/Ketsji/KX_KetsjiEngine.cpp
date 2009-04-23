@@ -145,8 +145,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_stereo(false),
 	m_curreye(0),
 
-	m_usedome(false),
-
 	m_logger(NULL),
 	
 	// Set up timing info display variables
@@ -164,7 +162,9 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_overrideFrameColor(false),
 	m_overrideFrameColorR(0.0),
 	m_overrideFrameColorG(0.0),
-	m_overrideFrameColorB(0.0)
+	m_overrideFrameColorB(0.0),
+
+	m_usedome(false)
 {
 	// Initialize the time logger
 	m_logger = new KX_TimeCategoryLogger (25);
