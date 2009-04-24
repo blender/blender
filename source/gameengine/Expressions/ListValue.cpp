@@ -530,7 +530,7 @@ PyObject* CListValue::Pycount(PyObject* value)
 {
 	int numfound = 0;
 
-	CValue* checkobj = ConvertPythonToValue(value, "cList.count(val): CValueList, ");
+	CValue* checkobj = ConvertPythonToValue(value, ""); /* error ignored */
 	
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
@@ -578,18 +578,24 @@ PyObject* CListValue::Pyfrom_id(PyObject* value)
 CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val) 
 {
 	//assert(false); // todo: implement me!
-	fprintf(stderr, "CValueList::Calc not yet implimented\n");
+	static int error_printed =  0;
+	if (error_printed==0) {
+		fprintf(stderr, "CValueList::Calc not yet implimented\n");
+		error_printed = 1;
+	}
 	return NULL;
 }
-
-
 
 CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op, 
 							  CValue* val) 
 {
 	//assert(false); // todo: implement me!
-	fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
+	static int error_printed =  0;
+	if (error_printed==0) {
+		fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
+		error_printed = 1;
+	}
 	return NULL;
 }
 

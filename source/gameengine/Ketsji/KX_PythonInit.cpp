@@ -852,7 +852,7 @@ static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
+static PyObject* gPyDisableMotionBlur(PyObject*)
 {
 	if (!gp_Rasterizer) {
 		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.disableMotionBlur(), Rasterizer not available");
@@ -1043,7 +1043,7 @@ static struct PyMethodDef rasterizer_methods[] = {
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
   {"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
-  {"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_VARARGS,"disable motion blur"},
+  {"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_NOARGS,"disable motion blur"},
 
   
   {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
