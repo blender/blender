@@ -110,7 +110,7 @@ class KX_GameObject: # (SCA_IObject)
 		"""
 		Sets the game object's occlusion capability.
 		
-		@type visible: boolean
+		@type occlusion: boolean
 		@type recursive: boolean
 		@param recursive: optional argument to set all childrens occlusion flag too.
 		"""

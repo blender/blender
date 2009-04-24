@@ -174,8 +174,8 @@ def EventToCharacter(event, shift):
 	
 	@type event: int
 	@param event: key event from GameKeys or the keyboard sensor.
-	@type event: bool
-	@param event: set to true if shift is held.
+	@type shift: bool
+	@param shift: set to true if shift is held.
 	@rtype: string
 	"""
 

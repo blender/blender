@@ -82,8 +82,8 @@ def getScreenRay(x, y, dist, property):
 	@type y: float
 	@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
 	@type dist: float
-	@param prop: property name that object must have; can be omitted => detect any object
-	@type prop: string
+	@param property: property name that object must have; can be omitted => detect any object
+	@type property: string
 	@rtype: L{KX_GameObject}
 	@return: the first object hit or None if no object or object does not match prop
 	"""

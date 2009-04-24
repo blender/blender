@@ -19,15 +19,15 @@ class KX_ConstraintActuator(SCA_IActuator):
 	@type direction: 3-tuple of float: [x,y,z]
 	
 	@ivar option: Binary combination of the following values:
-	              Applicable to Distance constraint:
-					KX_ACT_CONSTRAINT_NORMAL    (  64) : Activate alignment to surface
-					KX_ACT_CONSTRAINT_DISTANCE  ( 512) : Activate distance control
-					KX_ACT_CONSTRAINT_LOCAL		(1024) : direction of the ray is along the local axis
-				  Applicable to Force field constraint:					
-					KX_ACT_CONSTRAINT_DOROTFH   (2048) : Force field act on rotation as well
-				  Applicable to both:
-					KX_ACT_CONSTRAINT_MATERIAL  ( 128) : Detect material rather than property
-					KX_ACT_CONSTRAINT_PERMANENT ( 256) : No deactivation if ray does not hit target
+				Applicable to Distance constraint:
+					- KX_ACT_CONSTRAINT_NORMAL    (  64) : Activate alignment to surface
+					- KX_ACT_CONSTRAINT_DISTANCE  ( 512) : Activate distance control
+					- KX_ACT_CONSTRAINT_LOCAL		(1024) : direction of the ray is along the local axis
+				Applicable to Force field constraint:					
+					- KX_ACT_CONSTRAINT_DOROTFH   (2048) : Force field act on rotation as well
+				Applicable to both:
+					- KX_ACT_CONSTRAINT_MATERIAL  ( 128) : Detect material rather than property
+					- KX_ACT_CONSTRAINT_PERMANENT ( 256) : No deactivation if ray does not hit target
 	@type option: integer
 	
 	@ivar time: activation time of the actuator. The actuator disables itself after this many frame.
