@@ -444,17 +444,17 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	static EnumPropertyItem object_type_items[] = {
-		{OB_EMPTY, "EMPTY", "Empty", "An Empty/Null Object"},
-		{OB_MESH, "MESH", "Mesh", "A Mesh Object"},
-		{OB_CURVE, "CURVE", "Curve", "A Curve Object"},
-		{OB_SURF, "SURFACE", "Surface", "A Surface Object"},
-		{OB_FONT, "TEXT", "Text", "A Text Object"},
-		{OB_MBALL, "META", "Meta", "A Meta Object"},
-		{OB_LAMP, "LAMP", "Lamp", "A Lamp Object"},
-		{OB_CAMERA, "CAMERA", "Camera", "A Camera Object"},
-		{OB_WAVE, "WAVE", "Wave", "A Wave Object"},
-		{OB_LATTICE, "LATTICE", "Lattice", "A Lattice Object"},
-		{OB_ARMATURE, "ARMATURE", "Armature", "An Armature Object"},
+		{OB_EMPTY, "EMPTY", "Empty", ""},
+		{OB_MESH, "MESH", "Mesh", ""},
+		{OB_CURVE, "CURVE", "Curve", ""},
+		{OB_SURF, "SURFACE", "Surface", ""},
+		{OB_FONT, "TEXT", "Text", ""},
+		{OB_MBALL, "META", "Meta", ""},
+		{OB_LAMP, "LAMP", "Lamp", ""},
+		{OB_CAMERA, "CAMERA", "Camera", ""},
+		{OB_WAVE, "WAVE", "Wave", ""},
+		{OB_LATTICE, "LATTICE", "Lattice", ""},
+		{OB_ARMATURE, "ARMATURE", "Armature", ""},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
