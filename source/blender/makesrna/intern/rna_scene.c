@@ -181,6 +181,12 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_ALPHAKEY, "STRAIGHT", "Straight Alpha", "Transparent RGB and alpha pixels are unmodified"},
 		{0, NULL, NULL, NULL}};
 		
+	static EnumPropertyItem color_mode_items[] ={
+		{R_PLANESBW, "BW", "BW", "Images are saved with BW (grayscale) data"},
+		{R_PLANES24, "RGB", "RGB", "Images are saved with RGB (color) data"},
+		{R_PLANES32, "RGBA", "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+		{0, NULL, NULL, NULL}};
+		
 	static EnumPropertyItem octree_resolution_items[] = {
 		{64, "OCTREE_RES_64", "64", ""},
 		{128, "OCTREE_RES_128", "128", ""},
@@ -209,6 +215,11 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
+	
+	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
+	RNA_def_property_enum_items(prop, color_mode_items);
+	RNA_def_property_ui_text(prop, "Colour Mode", "What Colour Mode images are saved in (BW, RGB, RGBA)");
 	
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");

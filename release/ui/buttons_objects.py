@@ -62,6 +62,9 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 
 		if not ob:
 			return
+			
+		layout.row()
+		layout.itemR(ob, "type", text="Object Type")
 
 		layout.row()
 		layout.itemR(ob, "max_draw_type", text="Type")

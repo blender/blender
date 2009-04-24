@@ -442,6 +442,20 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{PARVERT3, "VERTEX_3", "3 Vertices", ""},
 		{PARBONE, "BONE", "Bone", ""},
 		{0, NULL, NULL, NULL}};
+	
+	static EnumPropertyItem object_type_items[] = {
+		{OB_EMPTY, "EMPTY", "Empty", "An Empty/Null Object"},
+		{OB_MESH, "MESH", "Mesh", "A Mesh Object"},
+		{OB_CURVE, "CURVE", "Curve", "A Curve Object"},
+		{OB_SURF, "SURFACE", "Surface", "A Surface Object"},
+		{OB_FONT, "TEXT", "Text", "A Text Object"},
+		{OB_MBALL, "META", "Meta", "A Meta Object"},
+		{OB_LAMP, "LAMP", "Lamp", "A Lamp Object"},
+		{OB_CAMERA, "CAMERA", "Camera", "A Camera Object"},
+		{OB_WAVE, "WAVE", "Wave", "A Wave Object"},
+		{OB_LATTICE, "LATTICE", "Lattice", "A Lattice Object"},
+		{OB_ARMATURE, "ARMATURE", "Armature", "An Armature Object"},
+		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
 		{OB_ARROWS, "ARROWS", "Arrows", ""},
@@ -519,6 +533,12 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
 
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, object_type_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+	
 	prop= RNA_def_property(srna, "parent_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "partype");
 	RNA_def_property_enum_items(prop, parent_type_items);

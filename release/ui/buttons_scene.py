@@ -53,6 +53,7 @@ class RENDER_PT_image(RenderButtonsPanel):
 		
 		layout.row()
 		layout.itemR(rd, "quality")
+		layout.itemR(rd, "color_mode")
 		
 		layout.row()
 		layout.itemR(rd, "placeholders")
