@@ -2158,6 +2158,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 
 			if((md->mode & required_mode) != required_mode) continue;
 			if(mti->isDisabled && mti->isDisabled(md)) continue;
+			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
 				if(!deformedVerts)
@@ -2228,6 +2229,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
 		if(needMapping && !modifier_supportsMapping(md)) continue;
+		if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 		/* add an orco layer if needed by this modifier */
 		if(dm && mti->requiredDataMask) {
