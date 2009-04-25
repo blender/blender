@@ -759,6 +759,13 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			//printf("update\n");
 			return true;//??
 		}
+		virtual bool UpdateBuckets(void)
+		{
+			// this is to update the mesh slots outside the rasterizer, 
+			// no need to do it for this deformer, it's done in any case in Apply()
+			return false;
+		}
+
 		virtual RAS_Deformer *GetReplica()
 		{
 			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(*this);
