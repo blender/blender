@@ -49,13 +49,13 @@ class KX_GameObject: # (SCA_IObject)
 	@type scaling: list [sx, sy, sz] On write: local scaling, on read: world scaling
 	@ivar localOrientation: The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 	@type localOrientation: 3x3 Matrix [[float]]
-	@ivar worldOrientation: The object's world orientation. Read-only.
+	@ivar worldOrientation: The object's world orientation.
 	@type worldOrientation: 3x3 Matrix [[float]]
 	@ivar localScaling: The object's local scaling factor.
 	@type localScaling: list [sx, sy, sz]
 	@ivar worldScaling: The object's world scaling factor. Read-only
 	@type worldScaling: list [sx, sy, sz]
-	@ivar localPosition: The object's local position. 
+	@ivar localPosition: The object's local position.
 	@type localPosition: list [x, y, z]
 	@ivar worldPosition: The object's world position. 
 	@type worldPosition: list [x, y, z]
@@ -87,10 +87,10 @@ class KX_GameObject: # (SCA_IObject)
 		Delete this object, can be used inpace of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.
 		"""	
-	def replaceMesh(mesh_name):
+	def replaceMesh(mesh):
 		"""
 		Replace the mesh of this object with a new mesh. This works the same was as the actuator.
-		@type mesh_name: string
+		@type mesh: L{KX_MeshProxy<KX_MeshProxy.KX_MeshProxy>} or mesh name
 		"""	
 	def getVisible():
 		"""
@@ -468,7 +468,7 @@ class KX_GameObject: # (SCA_IObject)
 		@type objfrom: L{KX_GameObject} or 3-tuple or None
 		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to to
 		@type dist: float
-		@param prop: property name that object must have; can be omitted => detect any object
+		@param prop: property name that object must have; can be omitted or "" => detect any object
 		@type prop: string
 		@param face: normal option: 1=>return face normal; 0 or omitted => normal is oriented towards origin
 		@type face: int

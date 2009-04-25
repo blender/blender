@@ -1133,7 +1133,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
 	KX_PYATTRIBUTE_RW_FUNCTION("localOrientation",KX_GameObject,pyattr_get_localOrientation,pyattr_set_localOrientation),
-	KX_PYATTRIBUTE_RO_FUNCTION("worldOrientation",KX_GameObject,pyattr_get_worldOrientation),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldOrientation",KX_GameObject,pyattr_get_worldOrientation,pyattr_set_worldOrientation),
 	KX_PYATTRIBUTE_RW_FUNCTION("localPosition",	KX_GameObject, pyattr_get_localPosition,	pyattr_set_localPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("localScaling",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
@@ -1515,6 +1515,26 @@ PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYAT
 	return PyObjectFrom(self->NodeGetWorldOrientation());
 }
 
+int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	
+	/* if value is not a sequence PyOrientationTo makes an error */
+	MT_Matrix3x3 rot;
+	if (!PyOrientationTo(value, rot, "gameOb.worldOrientation = sequence: KX_GameObject, "))
+		return NULL;
+
+	if (self->GetSGNode() && self->GetSGNode()->GetSGParent()) {
+		self->NodeSetLocalOrientation(self->GetSGNode()->GetSGParent()->GetWorldOrientation().inverse()*rot);
+	}
+	else {
+		self->NodeSetLocalOrientation(rot);
+	}
+	
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
 PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
@@ -1530,7 +1550,7 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 	
 	/* if value is not a sequence PyOrientationTo makes an error */
 	MT_Matrix3x3 rot;
-	if (!PyOrientationTo(value, rot, "gameOb.orientation = sequence: KX_GameObject, "))
+	if (!PyOrientationTo(value, rot, "gameOb.localOrientation = sequence: KX_GameObject, "))
 		return NULL;
 
 	self->NodeSetLocalOrientation(rot);
@@ -2170,23 +2190,15 @@ PyObject* KX_GameObject::PyGetOrientation() //keywords
 PyObject* KX_GameObject::PySetOrientation(PyObject* value)
 {
 	ShowDeprecationWarning("setOrientation()", "the orientation property");
-	MT_Matrix3x3 matrix;
-	if (PyObject_IsMT_Matrix(value, 3) && PyMatTo(value, matrix))
-	{
-		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f);
-		Py_RETURN_NONE;
-	}
+	MT_Matrix3x3 rot;
+	
+	/* if value is not a sequence PyOrientationTo makes an error */
+	if (!PyOrientationTo(value, rot, "gameOb.setOrientation(sequence): KX_GameObject, "))
+		return NULL;
 
-	MT_Quaternion quat;
-	if (PyVecTo(value, quat))
-	{
-		matrix.setRotation(quat);
-		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f);
-		Py_RETURN_NONE;
-	}
-	return NULL;
+	NodeSetLocalOrientation(rot);
+	NodeUpdateGS(0.f);
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* args)

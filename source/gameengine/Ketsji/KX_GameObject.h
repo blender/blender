@@ -884,6 +884,7 @@ public:
 	static PyObject*	pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
