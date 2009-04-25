@@ -538,6 +538,7 @@ int main(int argc, char **argv)
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
+		setenv("SDL_VIDEODRIVER", "dummy", 1); /* initializing the video driver can cause crashes on some systems - Campbell */
 #ifdef __linux__
 		/* On linux the default SDL driver dma often would not play
 		 * use alsa if none is set */

@@ -159,7 +159,7 @@ class KX_GameObject: # (SCA_IObject)
 		@param orn: a rotation matrix specifying the new rotation.
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
-	def alignAxisToVect(vect, axis):
+	def alignAxisToVect(vect, axis, factor):
 		"""
 		Aligns any of the game object's axis along the given vector.
 		
@@ -170,6 +170,8 @@ class KX_GameObject: # (SCA_IObject)
 					- 0: X axis
 					- 1: Y axis
 					- 2: Z axis (default) 
+		@type factor: float
+		@param factor: Only rotate a feaction of the distance to the target vector (0.0 - 1.0)
 		"""
 	def getAxisVect(vect):
 		"""
