@@ -113,19 +113,18 @@ void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
 	tangent.getValue(m_tangent);
 }
 
+
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
-#define _VEC_EQUAL3(_v1, _v2) (_v1[0]==_v2[0] && _v1[1]==_v2[1] && _v1[2]==_v2[2])
-#define _VEC_EQUAL2(_v1, _v2) (_v1[0]==_v2[0] && _v1[1]==_v2[1])
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
 	return (m_flag == other->m_flag &&
 		m_rgba == other->m_rgba &&
-		_VEC_EQUAL3(m_normal, other->m_normal) &&
-		_VEC_EQUAL3(m_tangent, other->m_tangent) &&
-		_VEC_EQUAL2(m_uv1, other->m_uv1) &&
-		_VEC_EQUAL2(m_uv2, other->m_uv2) // p --
-		/* we know the verts must be shared so dont need to check this */
-		/*&& FAST_MT_fuzzyEqual3(m_localxyz, other->m_localxyz)*/) ;
+		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
+		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
+		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
+		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) /* &&
+		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))*/) ;
+	/* dont bother comparing m_localxyz since we know there from the same vert */
 }
 
 short RAS_TexVert::getFlag() const
