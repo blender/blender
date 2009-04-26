@@ -1507,8 +1507,7 @@ void KX_Dome::RotateCamera(KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
 	// restore the original orientation
@@ -1914,8 +1913,7 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);

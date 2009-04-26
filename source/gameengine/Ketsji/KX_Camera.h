@@ -184,6 +184,8 @@ public:
 
 	/** Gets the aperture. */
 	float				GetLens() const;
+	/** Gets the ortho scale. */
+	float				GetScale() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */

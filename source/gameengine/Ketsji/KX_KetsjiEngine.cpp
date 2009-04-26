@@ -1093,7 +1093,7 @@ void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect
 
 		area = userviewport;
 	}
-	else if ( m_overrideCam || (scene->GetName() != m_overrideSceneName) ||  m_overrideCamUseOrtho ) {
+	else if ( !m_overrideCam || (scene->GetName() != m_overrideSceneName) ||  m_overrideCamUseOrtho ) {
 		RAS_FramingManager::ComputeViewport(
 			scene->GetFramingType(),
 			m_canvas->GetDisplayArea(),
@@ -1163,13 +1163,11 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 {
 	bool override_camera;
 	RAS_Rect viewport, area;
-	float left, right, bottom, top, nearfrust, farfrust, focallength;
-	const float ortho = 100.0;
+	float nearfrust, farfrust, focallength;
 //	KX_Camera* cam = scene->GetActiveCamera();
 	
 	if (!cam)
 		return;
-
 	GetSceneViewport(scene, cam, area, viewport);
 
 	// store the computed viewport in the scene
@@ -1187,19 +1185,24 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	override_camera = override_camera && (cam->GetName() == "__default__cam__");
 
 	if (override_camera && m_overrideCamUseOrtho) {
-		MT_CmMatrix4x4 projmat = m_overrideCamProjMat;
-		m_rasterizer->SetProjectionMatrix(projmat);
+		m_rasterizer->SetProjectionMatrix(m_overrideCamProjMat);
+		if (!cam->hasValidProjectionMatrix()) {
+			// needed to get frustrum planes for culling
+			MT_Matrix4x4 projmat;
+			projmat.setValue(m_overrideCamProjMat.getPointer());
+			cam->SetProjectionMatrix(projmat);
+		}
 	} else if (cam->hasValidProjectionMatrix() && !cam->GetViewport() )
 	{
 		m_rasterizer->SetProjectionMatrix(cam->GetProjectionMatrix());
 	} else
 	{
 		RAS_FrameFrustum frustum;
-		float lens = cam->GetLens();
 		bool orthographic = !cam->GetCameraData()->m_perspective;
 		nearfrust = cam->GetCameraNear();
 		farfrust = cam->GetCameraFar();
 		focallength = cam->GetFocalLength();
+		MT_Matrix4x4 projmat;
 
 		if(override_camera) {
 			nearfrust = m_overrideCamNear;
@@ -1207,45 +1210,56 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		}
 
 		if (orthographic) {
-			lens *= ortho;
-			nearfrust = (nearfrust + 1.0)*ortho;
-			farfrust *= ortho;
+
+			RAS_FramingManager::ComputeOrtho(
+				scene->GetFramingType(),
+				area,
+				viewport,
+				cam->GetScale(),
+				nearfrust,
+				farfrust,
+				frustum
+			);
+			if (!cam->GetViewport()) {
+				frustum.x1 *= m_cameraZoom;
+				frustum.x2 *= m_cameraZoom;
+				frustum.y1 *= m_cameraZoom;
+				frustum.y2 *= m_cameraZoom;
+			}
+			projmat = m_rasterizer->GetOrthoMatrix(
+				frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
+
+		} else {
+			RAS_FramingManager::ComputeFrustum(
+				scene->GetFramingType(),
+				area,
+				viewport,
+				cam->GetLens(),
+				nearfrust,
+				farfrust,
+				frustum
+			);
+
+			if (!cam->GetViewport()) {
+				frustum.x1 *= m_cameraZoom;
+				frustum.x2 *= m_cameraZoom;
+				frustum.y1 *= m_cameraZoom;
+				frustum.y2 *= m_cameraZoom;
+			}
+			projmat = m_rasterizer->GetFrustumMatrix(
+				frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar, focallength);
 		}
-		
-		RAS_FramingManager::ComputeFrustum(
-			scene->GetFramingType(),
-			area,
-			viewport,
-			lens,
-			nearfrust,
-			farfrust,
-			frustum
-		);
-
-		left = frustum.x1 * m_cameraZoom;
-		right = frustum.x2 * m_cameraZoom;
-		bottom = frustum.y1 * m_cameraZoom;
-		top = frustum.y2 * m_cameraZoom;
-		nearfrust = frustum.camnear;
-		farfrust = frustum.camfar;
-
-		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
-			left, right, bottom, top, nearfrust, farfrust, focallength);
-
 		cam->SetProjectionMatrix(projmat);
 		
 		// Otherwise the projection matrix for each eye will be the same...
-		if (m_rasterizer->Stereo())
+		if (!orthographic && m_rasterizer->Stereo())
 			cam->InvalidateProjectionMatrix();
 	}
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
-	if (!cam->GetCameraData()->m_perspective)
-		camtrans.getOrigin()[2] *= ortho;
 	MT_Matrix4x4 viewmat(camtrans);
 	
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
 	//redundant, already done in Render()
