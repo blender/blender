@@ -1720,15 +1720,15 @@ static uiBlock *info_gamemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES, "");
 	}
 	
-	if(G.fileflags & G_FILE_GAME_TO_IPO) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
-	} else {
-
 	if(G.fileflags & G_FILE_DISPLAY_LISTS) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Generate Display Lists",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_DISPLAY_LISTS, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Generate Display Lists",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_DISPLAY_LISTS, "");
 	}	
+
+	if(G.fileflags & G_FILE_GAME_TO_IPO) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
+	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
 	}
 	
