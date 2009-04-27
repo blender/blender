@@ -124,6 +124,7 @@ struct KX_ObjectProperties
 	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
 	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+	float   m_soft_welding;			/*   threshold to remove duplicate/nearby vertices */
 
 	/////////////////////////
 	

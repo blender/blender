@@ -905,7 +905,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 				// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
 				if (objprop->m_softbody)
-					shapeInfo->setVertexWeldingThreshold1(0.0001f); //todo: expose this to the UI
+				{
+					shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
+				}
 
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia

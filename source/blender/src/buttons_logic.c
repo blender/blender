@@ -3073,19 +3073,19 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 {
 	uiBlock *block;
 	Object *ob = arg_ob;
-	short yco = 20, xco = 0;
+	short yco, xco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
 	
 
 	if (ob->gameflag & OB_SOFT_BODY) {
-		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 80, NULL, 0, 0, 0, 0, "");
 
 		if (ob->bsoft)
 		{
 			
-
+			yco = 40;
 			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
 				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
@@ -3102,6 +3102,14 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
 				0, 0, "Position solver iterations");
 			uiBlockEndAlign(block);
+			yco -= 20;
+			xco = 0;
+			if (ob->bsoft->welding == 0.f)
+				ob->bsoft->welding = -4.f;
+
+			uiDefButF(block, NUMSLI, 0, "Welding(10^) ", 
+				xco, yco, 360, 19, &ob->bsoft->welding, -7.f, -2.f, 10, 2, 
+				"Threshold to remove duplicate/nearby vertices. Displayed in logarithmic scale for readability: linear values from 0.0000001 to 0.01");
 
 			/*
 			//too complex tweaking, disable for now
@@ -3131,7 +3139,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 		if (ob->gameflag & OB_DYNAMIC) {
 
-			yco = 100;
+			yco = 80;
 			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 120, NULL, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
 			if (ob->margin < 0.001f)
@@ -3173,7 +3181,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			
 			uiBlockEndAlign(block);
 			
-			uiDefBut(block, LABEL, 0, "Clamp Velocity (zero disables)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Clamp Velocity (0=disabled)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
 			
 			uiBlockBeginAlign(block);
 			
@@ -3215,7 +3223,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 
 		} else {
-			
+			yco = 20;
 			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 			uiDefButF(block, NUM, 0, "Margin", 
 					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 

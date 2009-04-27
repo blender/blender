@@ -462,11 +462,11 @@ void KX_GameObject::RemoveMeshes()
 
 void KX_GameObject::UpdateTransform()
 {
-	if (m_pPhysicsController1)
-		// only update the transform of static object, dynamic object are handled differently
-		// note that for bullet, this does not even update the transform of static object
+	// HACK: saves function call for dynamic object, they are handled differently
+	if (m_pPhysicsController1 && !m_pPhysicsController1->IsDyna())
+		// Note that for Bullet, this does not even update the transform of static object
 		// but merely sets there collision flag to "kinematic" because the synchronization is 
-		// done differently during physics simulation
+		// done during physics simulation
 		m_pPhysicsController1->SetSumoTransform(true);
 	if (m_pGraphicController)
 		// update the culling tree
