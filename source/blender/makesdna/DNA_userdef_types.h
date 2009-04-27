@@ -94,8 +94,14 @@ typedef struct uiStyle {
 	
 	short minlabelchars;	/* in characters */
 	short minwidgetchars;	/* in characters */
-	int pad;
-	
+
+	short columnspace;
+	short templatespace;
+	short boxspace;
+	short buttonspacex;
+	short buttonspacey;
+
+	short pad;
 } uiStyle;
 
 typedef struct uiWidgetColors {

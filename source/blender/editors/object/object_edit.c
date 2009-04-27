@@ -637,9 +637,9 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_mesh_add", "type");
-	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_curve_add", "type");
-	uiItemLevelEnumO(layout, NULL, 0, "OBJECT_OT_surface_add", "type");
+	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_surface_add", "type");
 	uiItemO(layout, NULL, 0, "OBJECT_OT_text_add");
 	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_MBALL);
 	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);

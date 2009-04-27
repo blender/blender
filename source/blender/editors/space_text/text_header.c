@@ -188,7 +188,7 @@ static void text_formatmenu(const bContext *C, Menu *menu)
 
 	uiItemS(layout);
 
-	uiItemLevelEnumO(layout, NULL, 0, "TEXT_OT_convert_whitespace", "type");
+	uiItemMenuEnumO(layout, NULL, 0, "TEXT_OT_convert_whitespace", "type");
 }
 
 static void text_editmenu_to3dmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -217,9 +217,9 @@ static void text_editmenu(const bContext *C, Menu *menu)
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "View", 0, text_editmenu_viewmenu);
-	uiItemLevel(layout, "Select", 0, text_editmenu_selectmenu);
-	uiItemLevel(layout, "Markers", 0, text_editmenu_markermenu);
+	uiItemMenuF(layout, "View", 0, text_editmenu_viewmenu);
+	uiItemMenuF(layout, "Select", 0, text_editmenu_selectmenu);
+	uiItemMenuF(layout, "Markers", 0, text_editmenu_markermenu);
 
 	uiItemS(layout);
 
@@ -228,7 +228,7 @@ static void text_editmenu(const bContext *C, Menu *menu)
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Text to 3D Object", 0, text_editmenu_to3dmenu);
+	uiItemMenuF(layout, "Text to 3D Object", 0, text_editmenu_to3dmenu);
 }
 
 /********************** header buttons ***********************/

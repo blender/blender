@@ -1834,7 +1834,7 @@ static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemO(layout, NULL, ICON_PROP_ON, "SCREEN_OT_region_flip");
 	uiItemO(layout, NULL, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
 	uiItemO(layout, NULL, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
-	uiItemLevel(layout, "Submenu", 0, newlevel1);
+	uiItemMenuF(layout, "Submenu", 0, newlevel1);
 	
 	uiPupMenuEnd(C, pup);
 	

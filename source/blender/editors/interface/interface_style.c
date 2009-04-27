@@ -115,6 +115,12 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
 	style->widget.shadowalpha= 0.25f;
+
+	style->columnspace= 5;
+	style->templatespace= 5;
+	style->boxspace= 5;
+	style->buttonspacex= 5;
+	style->buttonspacey= 2;
 	
 	return style;
 }

@@ -13,9 +13,6 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		scene = context.scene
 		layout = self.layout
 
-		if not scene:
-			return
-
 		rd = scene.render_data
 
 		layout.column_flow()
@@ -39,9 +36,6 @@ class RENDER_PT_image(RenderButtonsPanel):
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
-
-		if not scene:
-			return
 
 		rd = scene.render_data
 
@@ -70,9 +64,6 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		scene = context.scene
 		layout = self.layout
 
-		if not scene:
-			return
-
 		rd = scene.render_data
 
 		layout.row()
@@ -94,9 +85,6 @@ class RENDER_PT_render(RenderButtonsPanel):
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
-
-		if not scene:
-			return
 
 		rd = scene.render_data
 

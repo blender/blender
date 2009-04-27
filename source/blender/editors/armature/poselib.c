@@ -339,7 +339,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiItemIntO(layout, "Add New (Current Frame)", 0, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiItemLevel(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu);
+		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu);
 	}
 	
 	uiPupMenuEnd(C, pup);

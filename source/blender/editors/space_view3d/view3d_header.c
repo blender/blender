@@ -660,7 +660,7 @@ static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
 	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
-	//uiItemLevel(layout, "Cameras", view3d_view_camerasmenu);
+	//uiItemMenuF(layout, "Cameras", view3d_view_camerasmenu);
 	
 	uiItemS(layout);
 
@@ -677,8 +677,8 @@ static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 //	uiItemS(layout);
 	
-	uiItemLevel(layout, "View Navigation", 0, view3d_view_viewnavmenu);
-	uiItemLevel(layout, "Align View", 0, view3d_view_alignviewmenu);
+	uiItemMenuF(layout, "View Navigation", 0, view3d_view_viewnavmenu);
+	uiItemMenuF(layout, "Align View", 0, view3d_view_alignviewmenu);
 	
 	uiItemS(layout);
 
@@ -3356,17 +3356,17 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu);
-	uiItemLevel(layout, "Segments", 0, view3d_edit_curve_segmentsmenu);
+	uiItemMenuF(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu);
+	uiItemMenuF(layout, "Segments", 0, view3d_edit_curve_segmentsmenu);
 
 	uiItemS(layout);
 
 	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0); // |O
-	uiItemLevelEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
+	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
 }
 
 static void do_view3d_edit_mball_showhidemenu(bContext *C, void *arg, int event)
@@ -3513,7 +3513,7 @@ static void view3d_edit_textmenu(bContext *C, uiLayout *layout, void *arg_unused
 {
 	uiItemO(layout, NULL, 0, "FONT_OT_file_paste");
 	uiItemS(layout);
-	uiItemLevel(layout, "Special Characters", 0, view3d_edit_text_charsmenu);
+	uiItemMenuF(layout, "Special Characters", 0, view3d_edit_text_charsmenu);
 }
 
 static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
@@ -4747,7 +4747,7 @@ static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu);
 }
 
 static char *view3d_modeselect_pup(Scene *scene)

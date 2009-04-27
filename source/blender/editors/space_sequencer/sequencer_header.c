@@ -235,7 +235,7 @@ static void seq_addmenu_effectmenu(bContext *C, uiLayout *layout, void *arg_unus
 //static uiBlock *seq_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void seq_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemLevel(layout, "Effects...", 0, seq_addmenu_effectmenu);
+	uiItemMenuF(layout, "Effects...", 0, seq_addmenu_effectmenu);
 	uiItemS(layout);
 
 	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);

@@ -9,6 +9,7 @@
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
@@ -45,6 +46,8 @@
 
 #define EM_UNIT_X		XIC
 #define EM_UNIT_Y		YIC
+
+#define EM_SEPR_X		6
 #define EM_SEPR_Y		6
 
 /* Item */
@@ -165,14 +168,10 @@ struct uiLayout {
 	int x, y, w, h;
 	int emw, emh;
 
-	int column_space;
-	int template_space;
-	int box_space;
-	int button_space_x;
-	int button_space_y;
-
 	uiMenuHandleFunc handlefunc;
 	void *argv;
+
+	uiStyle *style;
 };
 
 void ui_layout_free(uiLayout *layout);
@@ -185,6 +184,15 @@ static void ui_item_name(uiItem *item, char *name)
 	if(!item->name && name) {
 		BLI_strncpy(item->namestr, name, sizeof(item->namestr));
 		item->name= item->namestr;
+	}
+}
+static void ui_item_name_add_colon(uiItem *item)
+{
+	int len= strlen(item->namestr);
+
+	if(len != 0 && len+1 < sizeof(item->namestr)) {
+		item->namestr[len]= ':';
+		item->namestr[len+1]= '\0';
 	}
 }
 
@@ -215,6 +223,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int spacing, i
 /* create buttons for an item with an RNA array */
 static void ui_item_array(uiLayout *layout, uiBlock *block, uiItemRNA *rnaitem, int len, int x, int y, int w, int h)
 {
+	uiStyle *style= layout->style;
 	PropertyType type;
 	PropertySubType subtype;
 	int a;
@@ -234,7 +243,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, uiItemRNA *rnaitem, 
 		/* special check for layer layout */
 		int butw, buth;
 
-		butw= ui_item_fit(EM_UNIT_X, 0, EM_UNIT_X*10 + layout->button_space_x, w, 0, 0, UI_FIT_EXPAND);
+		butw= ui_item_fit(EM_UNIT_X, 0, EM_UNIT_X*10 + style->buttonspacex, w, 0, 0, UI_FIT_EXPAND);
 		buth= MIN2(EM_UNIT_Y, butw);
 
 		y += 2*(EM_UNIT_Y - buth);
@@ -246,7 +255,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, uiItemRNA *rnaitem, 
 			uiDefAutoButR(block, &rnaitem->ptr, rnaitem->prop, a+10, "", ICON_BLANK1, x + butw*a, y, butw, buth);
 		uiBlockEndAlign(block);
 
-		x += 5*butw + layout->button_space_x;
+		x += 5*butw + style->buttonspacex;
 
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++)
@@ -507,8 +516,14 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h, int flag)
 	}
 	else {
 		/* other */
-		w= ui_text_icon_width(item->name, item->icon, flag & UI_ITEM_VARY_X);
-		h= (item->type == ITEM_SEPARATOR)? EM_SEPR_Y: EM_UNIT_Y;
+		if(item->type == ITEM_SEPARATOR) {
+			w= EM_SEPR_X;
+			h= EM_SEPR_Y;
+		}
+		else {
+			w= ui_text_icon_width(item->name, item->icon, flag & UI_ITEM_VARY_X);
+			h= EM_UNIT_Y;
+		}
 	}
 
 	if(r_w) *r_w= w;
@@ -860,7 +875,7 @@ void uiItemS(uiLayout *layout)
 }
 
 /* level items */
-void uiItemLevel(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func)
+void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func)
 {
 	uiTemplate *template= layout->templates.last;
 	uiItemMenu *menuitem;
@@ -872,7 +887,7 @@ void uiItemLevel(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func)
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon)
+	if(!icon && layout->type == UI_LAYOUT_MENU)
 		icon= ICON_RIGHTARROW_THIN,
 
 	ui_item_name(&menuitem->item, name);
@@ -896,11 +911,11 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiLayoutContext(layout, lvl->opcontext);
+	uiLayoutContext(layout, WM_OP_EXEC_REGION_WIN);
 	uiItemsEnumO(layout, lvl->opname, lvl->propname);
 }
 
-void uiItemLevelEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname)
+void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname)
 {
 	wmOperatorType *ot= WM_operatortype_find(opname);
 	uiTemplate *template= layout->templates.last;
@@ -916,7 +931,7 @@ void uiItemLevelEnumO(uiLayout *layout, char *name, int icon, char *opname, char
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon)
+	if(!icon && layout->type == UI_LAYOUT_MENU)
 		icon= ICON_RIGHTARROW_THIN;
 	if(!name)
 		name= ot->name;
@@ -945,7 +960,7 @@ static void menu_item_enum_rna_menu(bContext *C, uiLayout *layout, void *arg)
 	uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
 }
 
-void uiItemLevelEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname)
+void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname)
 {
 	uiTemplate *template= layout->templates.last;
 	uiItemMenu *menuitem;
@@ -963,7 +978,7 @@ void uiItemLevelEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA 
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon)
+	if(!icon && layout->type == UI_LAYOUT_MENU)
 		icon= ICON_RIGHTARROW_THIN;
 	if(!name)
 		name= (char*)RNA_property_ui_name(prop);
@@ -989,6 +1004,7 @@ void uiItemLevelEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA 
 /* single row layout */
 static void ui_layout_row(uiLayout *layout, uiBlock *block, uiTemplate *template)
 {
+	uiStyle *style= layout->style;
 	uiItem *item;
 	int tot=0, totw= 0, maxh= 0, itemw, itemh, x, w;
 
@@ -1009,10 +1025,10 @@ static void ui_layout_row(uiLayout *layout, uiBlock *block, uiTemplate *template
 
 	for(item=template->items.first; item; item=item->next) {
 		ui_item_size(item, &itemw, &itemh, UI_ITEM_VARY_Y);
-		itemw= ui_item_fit(itemw, x, totw, w, (tot-1)*layout->button_space_x, !item->next, UI_FIT_EXPAND);
+		itemw= ui_item_fit(itemw, x, totw, w, (tot-1)*style->buttonspacex, !item->next, UI_FIT_EXPAND);
 
 		ui_item_buts(layout, block, item, layout->x+x, layout->y-itemh, itemw, itemh);
-		x += itemw+layout->button_space_x;
+		x += itemw+style->buttonspacex;
 	}
 
 	layout->y -= maxh;
@@ -1021,6 +1037,7 @@ static void ui_layout_row(uiLayout *layout, uiBlock *block, uiTemplate *template
 /* multi-column layout */
 static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *template)
 {
+	uiStyle *style= layout->style;
 	uiItem *item;
 	int col, totcol= 0, x, y, miny, itemw, itemh, w;
 
@@ -1039,7 +1056,7 @@ static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *templ
 	for(col=0; col<totcol; col++) {
 		y= 0;
 
-		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*layout->column_space, col == totcol-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*style->columnspace, col == totcol-1, UI_FIT_EXPAND);
 
 		for(item=template->items.first; item; item=item->next) {
 			if(item->slot != col)
@@ -1049,10 +1066,10 @@ static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *templ
 
 			y -= itemh;
 			ui_item_buts(layout, block, item, layout->x+x, layout->y+y, itemw, itemh);
-			y -= layout->button_space_y;
+			y -= style->buttonspacey;
 		}
 
-		x += itemw + layout->column_space;
+		x += itemw + style->columnspace;
 		miny= MIN2(miny, y);
 	}
 
@@ -1062,6 +1079,7 @@ static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *templ
 /* multi-column layout, automatically flowing to the next */
 static void ui_layout_column_flow(uiLayout *layout, uiBlock *block, uiTemplate *template)
 {
+	uiStyle *style= layout->style;
 	uiTemplateFlow *flow= (uiTemplateFlow*)template;
 	uiItem *item;
 	int col, x, y, w, emh, emy, miny, itemw, itemh, maxw=0;
@@ -1101,17 +1119,17 @@ static void ui_layout_column_flow(uiLayout *layout, uiBlock *block, uiTemplate *
 	col= 0;
 	for(item=template->items.first; item; item=item->next) {
 		ui_item_size(item, NULL, &itemh, UI_ITEM_VARY_Y);
-		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*layout->column_space, col == totcol-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*style->columnspace, col == totcol-1, UI_FIT_EXPAND);
 	
 		y -= itemh;
 		emy -= itemh;
 		ui_item_buts(layout, block, item, layout->x+x, layout->y+y, itemw, itemh);
-		y -= layout->button_space_y;
+		y -= style->buttonspacey;
 		miny= MIN2(miny, y);
 
 		/* decide to go to next one */
 		if(col < totcol-1 && emy <= -emh) {
-			x += itemw + layout->column_space;
+			x += itemw + style->columnspace;
 			y= 0;
 			col++;
 		}
@@ -1141,7 +1159,7 @@ static void ui_layout_split(uiLayout *layout, uiBlock *block, uiTemplate *templa
 	/* create buttons starting from left and right */
 	lx= 0;
 	rx= 0;
-	w= layout->w - layout->button_space_x*(tot-1) + layout->button_space_x;
+	w= layout->w - style->buttonspacex*(tot-1) + style->buttonspacex;
 
 	for(item=template->items.first; item; item=item->next) {
 		ui_item_size(item, &itemw, &itemh, UI_ITEM_VARY_Y);
@@ -1149,11 +1167,11 @@ static void ui_layout_split(uiLayout *layout, uiBlock *block, uiTemplate *templa
 		if(item->slot == UI_TSLOT_LR_LEFT) {
 			itemw= ui_item_fit(itemw, lx, totw, w, 0, 0);
 			ui_item_buts(layout, block, item, layout->x+lx, layout->y-itemh, itemw, itemh);
-			lx += itemw + layout->button_space_x;
+			lx += itemw + style->buttonspacex;
 		}
 		else {
 			itemw= ui_item_fit(itemw, totw + rx, totw, w, 0, 0);
-			rx -= itemw + layout->button_space_x;
+			rx -= itemw + style->buttonspacex;
 			ui_item_buts(layout, block, item, layout->x+layout->w+rx, layout->y-itemh, itemw, itemh);
 		}
 	}
@@ -1165,6 +1183,7 @@ static void ui_layout_split(uiLayout *layout, uiBlock *block, uiTemplate *templa
 /* split in columns */
 static void ui_layout_split(const bContext *C, uiLayout *layout, uiBlock *block, uiTemplate *template)
 {
+	uiStyle *style= layout->style;
 	uiTemplateSplt *split= (uiTemplateSplt*)template;
 	uiLayout *sublayout;
 	int a, x, y, miny, w= layout->w, h= layout->h, splitw;
@@ -1176,7 +1195,7 @@ static void ui_layout_split(const bContext *C, uiLayout *layout, uiBlock *block,
 	for(a=0; a<split->number; a++) {
 		sublayout= split->sublayout[a];
 
-		splitw= ui_item_fit(1, x, split->number, w, (split->number-1)*layout->column_space, a == split->number-1, UI_FIT_EXPAND);
+		splitw= ui_item_fit(1, x, split->number, w, (split->number-1)*style->columnspace, a == split->number-1, UI_FIT_EXPAND);
 		sublayout->x= layout->x + x;
 		sublayout->w= splitw;
 		sublayout->y= layout->y;
@@ -1189,7 +1208,7 @@ static void ui_layout_split(const bContext *C, uiLayout *layout, uiBlock *block,
 		ui_layout_end(C, block, sublayout, NULL, &y);
 		miny= MIN2(y, miny);
 
-		x += splitw + layout->column_space;
+		x += splitw + style->columnspace;
 	}
 
 	layout->y= miny;
@@ -1198,6 +1217,7 @@ static void ui_layout_split(const bContext *C, uiLayout *layout, uiBlock *block,
 /* element in a box layout */
 static void ui_layout_box(const bContext *C, uiLayout *layout, uiBlock *block, uiTemplate *template)
 {
+	uiStyle *style= layout->style;
 	uiTemplateBx *box= (uiTemplateBx*)template;
 	int starty, startx, w= layout->w, h= layout->h;
 
@@ -1205,9 +1225,9 @@ static void ui_layout_box(const bContext *C, uiLayout *layout, uiBlock *block, u
 	starty= layout->y;
 
 	/* some extra padding */
-	box->sublayout->x= layout->x + layout->box_space;
-	box->sublayout->w= w - 2*layout->box_space;
-	box->sublayout->y= layout->y - layout->box_space;
+	box->sublayout->x= layout->x + style->boxspace;
+	box->sublayout->w= w - 2*style->boxspace;
+	box->sublayout->y= layout->y - style->boxspace;
 	box->sublayout->h= h;
 
 	box->sublayout->emw= layout->emw;
@@ -1433,7 +1453,7 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 	box= MEM_callocN(sizeof(uiTemplateBx), "uiTemplateBx");
 	box->template.type= TEMPLATE_BOX;
-	box->sublayout= uiLayoutBegin(layout->dir, layout->type, 0, 0, 0, 0);
+	box->sublayout= uiLayoutBegin(layout->dir, layout->type, 0, 0, 0, 0, layout->style);
 	BLI_addtail(&layout->templates, box);
 
 	return box->sublayout;
@@ -1451,7 +1471,7 @@ void uiLayoutSplit(uiLayout *layout, int number, int lr)
 	split->sublayout= MEM_callocN(sizeof(uiLayout*)*number, "uiTemplateSpltSub");
 
 	for(a=0; a<number; a++)
-		split->sublayout[a]= uiLayoutBegin(layout->dir, layout->type, 0, 0, 0, 0);
+		split->sublayout[a]= uiLayoutBegin(layout->dir, layout->type, 0, 0, 0, 0, layout->style);
 
 	BLI_addtail(&layout->templates, split);
 }
@@ -1563,7 +1583,12 @@ static void ui_layout_init_items(const bContext *C, uiLayout *layout)
 			}
 			else if(item->type == ITEM_RNA_PROPERTY) {
 				rnaitem= (uiItemRNA*)item;
+				type= RNA_property_type(rnaitem->prop);
+
 				ui_item_name(item, (char*)RNA_property_ui_name(rnaitem->prop));
+
+				if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_ENUM))
+					ui_item_name_add_colon(item);
 			}
 			else if(item->type == ITEM_OPERATOR) {
 				opitem= (uiItemOp*)item;
@@ -1593,6 +1618,7 @@ static void ui_layout_init_items(const bContext *C, uiLayout *layout)
 
 static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *layout)
 {
+	uiStyle *style= layout->style;
 	uiTemplate *template;
 
 	ui_layout_init_items(C, layout);
@@ -1611,7 +1637,7 @@ static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *lay
 					break;
 			}
 
-			layout->x += layout->template_space;
+			layout->x += style->templatespace;
 		}
 	}
 	else {
@@ -1635,7 +1661,7 @@ static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *lay
 					break;
 			}
 
-			layout->y -= layout->template_space;
+			layout->y -= style->templatespace;
 		}
 	}
 }
@@ -1663,7 +1689,7 @@ void ui_layout_free(uiLayout *layout)
 	MEM_freeN(layout);
 }
 
-uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em)
+uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em, uiStyle *style)
 {
 	uiLayout *layout;
 
@@ -1673,12 +1699,7 @@ uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em)
 	layout->type= type;
 	layout->x= x;
 	layout->y= y;
-
-	layout->column_space= 5;
-	layout->template_space= 5;
-	layout->box_space= 5;
-	layout->button_space_x= 5;
-	layout->button_space_y= 2;
+	layout->style= style;
 
 	if(dir == UI_LAYOUT_HORIZONTAL) {
 		layout->h= size;
@@ -1713,6 +1734,7 @@ void uiLayoutEnd(const bContext *C, uiBlock *block, uiLayout *layout, int *x, in
 
 void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *context)
 {
+	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	PanelType *pt;
 	Panel *panel;
@@ -1751,7 +1773,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 				}
 
 				panel->type= pt;
-				panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, PNL_SAFETY, 0, w-2*PNL_SAFETY, em);
+				panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, PNL_SAFETY, 0, w-2*PNL_SAFETY, em, style);
 
 				pt->draw(C, panel);
 
@@ -1781,6 +1803,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 
 void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 {
+	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;
@@ -1808,7 +1831,7 @@ void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
 		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
-		layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, 24, 1);
+		layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, 24, 1, style);
 
 		if(ht->draw) {
 			header.type= ht;

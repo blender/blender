@@ -98,6 +98,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_armature_add);
 	WM_operatortype_append(OBJECT_OT_object_add);
 	WM_operatortype_append(OBJECT_OT_primitive_add);
+
+	WM_operatortype_append(OBJECT_OT_modifier_add);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

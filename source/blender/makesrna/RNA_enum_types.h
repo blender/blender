@@ -32,6 +32,7 @@
 extern EnumPropertyItem prop_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
+extern EnumPropertyItem modifier_type_items[];
 
 #endif /* RNA_ENUM_TYPES */
 

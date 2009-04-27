@@ -293,13 +293,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 {
+	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
 	uiLayout *layout;
 	char *name;
 	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20);
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
 
 	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
@@ -331,13 +332,14 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 /* temp call, single collumn, test for toolbar only */
 int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
 {
+	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
 	uiLayout *layout;
 	char *name;
 	int x= 0, y= 0;
 	
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20);
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
 	
 	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);

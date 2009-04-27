@@ -1763,12 +1763,13 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 
 uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
+	uiStyle *style= U.uistyles.first;
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
 	uiMenuInfo info;
 	
 	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0);
+	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
 	uiLayoutColumn(pup->layout);
 
@@ -1793,10 +1794,11 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 /* only return handler, and set optional title */
 uiPopupMenu *uiPupMenuBegin(const char *title, int icon)
 {
+	uiStyle *style= U.uistyles.first;
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "menu start");
 	
 	pup->icon= icon;
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0);
+	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 	uiLayoutColumn(pup->layout);
 	

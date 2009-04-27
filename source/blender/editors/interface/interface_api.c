@@ -92,7 +92,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func= RNA_def_function(srna, "item_level_enumR", "uiItemLevelEnumR");
+	func= RNA_def_function(srna, "item_menu_enumR", "uiItemMenuEnumR");
 	api_ui_item_common(func);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -124,7 +124,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func= RNA_def_function(srna, "item_level_enumO", "uiItemLevelEnumO");
+	func= RNA_def_function(srna, "item_menu_enumO", "uiItemMenuEnumO");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

@@ -48,6 +48,7 @@ struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
 struct rcti;
+struct uiStyle;
 struct uiFontStyle;
 
 typedef struct uiBut uiBut;
@@ -532,7 +533,7 @@ uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, cha
 #define UI_LAYOUT_HEADER		1
 #define UI_LAYOUT_MENU			2
 
-uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em);
+uiLayout *uiLayoutBegin(int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiLayoutEnd(const struct bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y);
 
 void uiLayoutContext(uiLayout *layout, int opcontext);
@@ -571,9 +572,9 @@ void uiItemM(uiLayout *layout, char *name, int icon, char *menuname); /* menu */
 void uiItemV(uiLayout *layout, char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
 
-void uiItemLevel(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
-void uiItemLevelEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
-void uiItemLevelEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
+void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
+void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
+void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 
 /* utilities */
 #define UI_PANEL_WIDTH			340

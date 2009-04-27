@@ -40,6 +40,39 @@
 
 #include "WM_types.h"
 
+EnumPropertyItem modifier_type_items[] ={
+	{eModifierType_Subsurf, "SUBSURF", "Subsurf", ""},
+	{eModifierType_Lattice, "LATTICE", "Lattice", ""},
+	{eModifierType_Curve, "CURVE", "Curve", ""},
+	{eModifierType_Build, "BUILD", "Build", ""},
+	{eModifierType_Mirror, "MIRROR", "Mirror", ""},
+	{eModifierType_Decimate, "DECIMATE", "Decimate", ""},
+	{eModifierType_Wave, "WAVE", "Wave", ""},
+	{eModifierType_Armature, "ARMATURE", "Armature", ""},
+	{eModifierType_Hook, "HOOK", "Hook", ""},
+	{eModifierType_Softbody, "SOFTBODY", "Softbody", ""},
+	{eModifierType_Boolean, "BOOLEAN", "Boolean", ""},
+	{eModifierType_Array, "ARRAY", "Array", ""},
+	{eModifierType_EdgeSplit, "EDGE_SPLIT", "Edge Split", ""},
+	{eModifierType_Displace, "DISPLACE", "Displace", ""},
+	{eModifierType_UVProject, "UV_PROJECT", "UV Project", ""},
+	{eModifierType_Smooth, "SMOOTH", "Smooth", ""},
+	{eModifierType_Cast, "CAST", "Cast", ""},
+	{eModifierType_MeshDeform, "MESH_DEFORM", "Mesh Deform", ""},
+	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", "Particle System", ""},
+	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", "Particle Instance", ""},
+	{eModifierType_Explode, "EXPLODE", "Explode", ""},
+	{eModifierType_Cloth, "CLOTH", "Cloth", ""},
+	{eModifierType_Collision, "COLLISION", "Collision", ""},
+	{eModifierType_Bevel, "BEVEL", "Bevel", ""},
+	{eModifierType_Shrinkwrap, "SHRINKWRAP", "Shrinkwrap", ""},
+	{eModifierType_Fluidsim, "FLUID_SIMULATION", "Fluid Simulation", ""},
+	{eModifierType_Mask, "MASK", "Mask", ""},
+	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
+	{eModifierType_Multires, "MULTIRES", "Multires", ""},
+	{0, NULL, NULL, NULL}};
+
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
@@ -634,10 +667,10 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Armature Modifier", "Armature deformation modifier.");
 	RNA_def_struct_sdna(srna, "ArmatureModifierData");
 
-	prop= RNA_def_property(srna, "armature", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Armature", "Armature object to deform with.");
+	RNA_def_property_ui_text(prop, "Object", "Armature object to deform with.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
@@ -668,7 +701,12 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "b_bone_rest", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_B_BONE_REST);
-	RNA_def_property_ui_text(prop, "Quaternion",  "Make B-Bones deform already in rest position");
+	RNA_def_property_ui_text(prop, "B-Bone Rest",  "Make B-Bones deform already in rest position");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "multi_modifier", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "multi", 0);
+	RNA_def_property_ui_text(prop, "Multi Modifier",  "Use same input as previous modifier, and mix results using overall vgroup");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 
@@ -1524,38 +1562,6 @@ void RNA_def_modifier(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem type_items[] ={
-		{eModifierType_Subsurf, "SUBSURF", "Subsurf", ""},
-		{eModifierType_Lattice, "LATTICE", "Lattice", ""},
-		{eModifierType_Curve, "CURVE", "Curve", ""},
-		{eModifierType_Build, "BUILD", "Build", ""},
-		{eModifierType_Mirror, "MIRROR", "Mirror", ""},
-		{eModifierType_Decimate, "DECIMATE", "Decimate", ""},
-		{eModifierType_Wave, "WAVE", "Wave", ""},
-		{eModifierType_Armature, "ARMATURE", "Armature", ""},
-		{eModifierType_Hook, "HOOK", "Hook", ""},
-		{eModifierType_Softbody, "SOFTBODY", "Softbody", ""},
-		{eModifierType_Boolean, "BOOLEAN", "Boolean", ""},
-		{eModifierType_Array, "ARRAY", "Array", ""},
-		{eModifierType_EdgeSplit, "EDGE_SPLIT", "Edge Split", ""},
-		{eModifierType_Displace, "DISPLACE", "Displace", ""},
-		{eModifierType_UVProject, "UV_PROJECT", "UV Project", ""},
-		{eModifierType_Smooth, "SMOOTH", "Smooth", ""},
-		{eModifierType_Cast, "CAST", "Cast", ""},
-		{eModifierType_MeshDeform, "MESH_DEFORM", "Mesh Deform", ""},
-		{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", "Particle System", ""},
-		{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", "Particle Instance", ""},
-		{eModifierType_Explode, "EXPLODE", "Explode", ""},
-		{eModifierType_Cloth, "CLOTH", "Cloth", ""},
-		{eModifierType_Collision, "COLLISION", "Collision", ""},
-		{eModifierType_Bevel, "BEVEL", "Bevel", ""},
-		{eModifierType_Shrinkwrap, "SHRINKWRAP", "Shrinkwrap", ""},
-		{eModifierType_Fluidsim, "FLUID_SIMULATION", "Fluid Simulation", ""},
-		{eModifierType_Mask, "MASK", "Mask", ""},
-		{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
-		{eModifierType_SimpleDeform, "MULTIRES", "Multires", ""},
-		{0, NULL, NULL, NULL}};
-	
 	/* data */
 	srna= RNA_def_struct(brna, "Modifier", NULL);
 	RNA_def_struct_ui_text(srna , "Modifier", "Modifier affecting the geometry data of an object.");
@@ -1571,7 +1577,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_enum_items(prop, modifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */

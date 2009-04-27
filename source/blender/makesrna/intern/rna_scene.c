@@ -475,7 +475,11 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");
+	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
+
+	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
 
 	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");

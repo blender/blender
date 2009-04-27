@@ -155,7 +155,7 @@ static void image_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "View Navigation", 0, image_view_viewnavmenu);
+	uiItemMenuF(layout, "View Navigation", 0, image_view_viewnavmenu);
 	if(show_uvedit) uiItemO(layout, NULL, 0, "IMAGE_OT_view_selected");
 	uiItemO(layout, NULL, 0, "IMAGE_OT_view_all");
 
@@ -238,7 +238,7 @@ static void image_imagemenu(bContext *C, uiLayout *layout, void *arg_unused)
 			
 			/* move to realtime properties panel */
 			RNA_id_pointer_create(&ima->id, &imaptr);
-			uiItemLevelEnumR(layout, NULL, 0, &imaptr, "mapping");
+			uiItemMenuEnumR(layout, NULL, 0, &imaptr, "mapping");
 		}
 	}
 
@@ -357,24 +357,24 @@ static void image_uvsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Transform", 0, image_uvs_transformmenu);
-	uiItemLevel(layout, "Mirror", 0, image_uvs_mirrormenu);
-	uiItemLevel(layout, "Weld/Align", 0, image_uvs_weldalignmenu);
+	uiItemMenuF(layout, "Transform", 0, image_uvs_transformmenu);
+	uiItemMenuF(layout, "Mirror", 0, image_uvs_mirrormenu);
+	uiItemMenuF(layout, "Weld/Align", 0, image_uvs_weldalignmenu);
 
 	uiItemS(layout);
 
 	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0);
-	uiItemLevelEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
+	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
 
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Show/Hide Faces", 0, image_uvs_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide Faces", 0, image_uvs_showhidemenu);
 
 #if 0
 #ifndef DISABLE_PYTHON
 	uiItemS(layout);
 
-	uiItemLevel(layout, "Scripts", image_uvs_scriptsmenu);
+	uiItemMenuF(layout, "Scripts", image_uvs_scriptsmenu);
 #endif
 #endif
 }
@@ -948,10 +948,10 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin("Toolbox", 0);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemLevel(layout, "View", 0, image_viewmenu);
-	if(show_uvedit) uiItemLevel(layout, "Select", 0, image_selectmenu);
-	uiItemLevel(layout, "Image", 0, image_imagemenu);
-	if(show_uvedit) uiItemLevel(layout, "UVs", 0, image_uvsmenu);
+	uiItemMenuF(layout, "View", 0, image_viewmenu);
+	if(show_uvedit) uiItemMenuF(layout, "Select", 0, image_selectmenu);
+	uiItemMenuF(layout, "Image", 0, image_imagemenu);
+	if(show_uvedit) uiItemMenuF(layout, "UVs", 0, image_uvsmenu);
 
 	uiPupMenuEnd(C, pup);
 

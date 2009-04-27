@@ -444,7 +444,7 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->funcN != oldbut->funcN) return 0;
 	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
 	if(oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
-	if(!but->funcN && (but->poin != oldbut->poin || but->pointype != oldbut->pointype)) return 0;
+	if(!but->funcN && ((but->poin != oldbut->poin && (uiBut*)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return 0;
 
 	return 1;
 }
