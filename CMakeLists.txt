@@ -285,7 +285,7 @@ IF(WIN32)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avcodec-51 avformat-52 avdevice-52 avutil-49 swscale-0)
+  SET(FFMPEG_LIB avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
   IF(CMAKE_CL_64)
