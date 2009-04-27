@@ -1282,23 +1282,27 @@ void txt_insert_buf(Text *text, char *in_buffer)
 /* Undo functions */
 /******************/
 
-#define MAX_UNDO_TEST(x) \
-	while (text->undo_pos+x >= text->undo_len) { \
-		if(text->undo_len*2 > TXT_MAX_UNDO) { \
-			error("Undo limit reached, buffer cleared\n"); \
-			MEM_freeN(text->undo_buf); \
-			text->undo_len= TXT_INIT_UNDO; \
-			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf"); \
-			text->undo_pos=-1; \
-			return; \
-		} else { \
-			void *tmp= text->undo_buf; \
-			text->undo_buf= MEM_callocN(text->undo_len*2, "undo buf"); \
-			memcpy(text->undo_buf, tmp, text->undo_len); \
-			text->undo_len*=2; \
-			MEM_freeN(tmp); \
-		} \
+static int max_undo_test(Text *text, int x)
+{
+	while (text->undo_pos+x >= text->undo_len) {
+		if(text->undo_len*2 > TXT_MAX_UNDO) {
+			/* XXX error("Undo limit reached, buffer cleared\n"); */
+			MEM_freeN(text->undo_buf);
+			text->undo_len= TXT_INIT_UNDO;
+			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+			text->undo_pos=-1;
+			return 0;
+		} else {
+			void *tmp= text->undo_buf;
+			text->undo_buf= MEM_callocN(text->undo_len*2, "undo buf");
+			memcpy(text->undo_buf, tmp, text->undo_len);
+			text->undo_len*=2;
+			MEM_freeN(tmp);
+		}
 	}
+
+	return 1;
+}
 
 static void dump_buffer(Text *text) 
 {
@@ -1445,7 +1449,8 @@ void txt_print_undo(Text *text)
 
 static void txt_undo_add_op(Text *text, int op)
 {
-	//XXX MAX_UNDO_TEST(2);
+	if(!max_undo_test(text, 2))
+		return;
 	
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1458,7 +1463,8 @@ static void txt_undo_add_block(Text *text, int op, char *buf)
 	
 	length= strlen(buf);
 	
-	//XXX MAX_UNDO_TEST(length+11);
+	if(!max_undo_test(text, length+11))
+		return;
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1492,7 +1498,8 @@ static void txt_undo_add_block(Text *text, int op, char *buf)
 
 void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc)
 {
-	//XXX MAX_UNDO_TEST(15);
+	if(!max_undo_test(text, 15))
+		return;
 
 	if (froml==tol && fromc==toc) return;
 
@@ -1535,7 +1542,8 @@ void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fr
 
 static void txt_undo_add_charop(Text *text, int op, char c)
 {
-	//XXX MAX_UNDO_TEST(4);
+	if(!max_undo_test(text, 4))
+		return;
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
