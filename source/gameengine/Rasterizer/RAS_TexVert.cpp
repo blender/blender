@@ -117,7 +117,9 @@ void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
-	return (m_flag == other->m_flag &&
+	return (
+		/* m_flag == other->m_flag && */
+		/* at the moment the face only stores the smooth/flat setting so dont bother comparing it */
 		m_rgba == other->m_rgba &&
 		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
 		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
