@@ -186,7 +186,7 @@ typedef struct ImagePaintPartialRedraw {
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
 
 /* used for testing doubles, if a point is on a line etc */
-#define PROJ_GEOM_TOLERANCE 0.0002f
+#define PROJ_GEOM_TOLERANCE 0.00075f
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
@@ -2315,9 +2315,20 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	/* Use tf_uv_pxoffset instead of tf->uv so we can offset the UV half a pixel
 	 * this is done so we can avoid offseting all the pixels by 0.5 which causes
 	 * problems when wrapping negative coords */
-	xhalfpx = 0.5f / ibuf_xf;
-	yhalfpx = 0.5f / ibuf_yf;
+	xhalfpx = (0.5f+   (PROJ_GEOM_TOLERANCE/3.0f)   ) / ibuf_xf;
+	yhalfpx = (0.5f+   (PROJ_GEOM_TOLERANCE/4.0f)   ) / ibuf_yf;
 	
+	/* Note about (PROJ_GEOM_TOLERANCE/x) above...
+	  Needed to add this offset since UV coords are often quads aligned to pixels.
+	  In this case pixels can be exactly between 2 triangles causing nasty
+	  artifacts.
+	  
+	  This workaround can be removed and painting will still work on most cases
+	  but since the first thing most people try is painting onto a quad- better make it work.
+	 */
+
+
+
 	tf_uv_pxoffset[0][0] = tf->uv[0][0] - xhalfpx;
 	tf_uv_pxoffset[0][1] = tf->uv[0][1] - yhalfpx;
 
