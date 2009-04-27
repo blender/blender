@@ -438,8 +438,6 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
-	if (GetRigidBody())
-		GetRigidBody()->activate(true);
 
 	if (!m_bDyna)
 	{
