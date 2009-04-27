@@ -161,8 +161,8 @@ public:
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
 	void*					m_userData;	
-	btAlignedObjectArray<btVector3>	m_vertexArray;	// Contains both vertex array for polytope shape and
-											// triangle array for concave mesh shape.
+	btAlignedObjectArray<btScalar>	m_vertexArray;	// Contains both vertex array for polytope shape and
+											// triangle array for concave mesh shape. Each vertex is 3 consecutive values
 											// In this case a triangle is made of 3 consecutive points
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
@@ -173,11 +173,7 @@ public:
 
 	void	setVertexWeldingThreshold1(float threshold)
 	{
-		m_weldingThreshold1  = threshold;
-	}
-	float	getVertexWeldingThreshold1() const
-	{
-		return m_weldingThreshold1;
+		m_weldingThreshold1  = threshold*threshold;
 	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;

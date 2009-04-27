@@ -3104,12 +3104,9 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiBlockEndAlign(block);
 			yco -= 20;
 			xco = 0;
-			if (ob->bsoft->welding == 0.f)
-				ob->bsoft->welding = -4.f;
-
-			uiDefButF(block, NUMSLI, 0, "Welding(10^) ", 
-				xco, yco, 360, 19, &ob->bsoft->welding, -7.f, -2.f, 10, 2, 
-				"Threshold to remove duplicate/nearby vertices. Displayed in logarithmic scale for readability: linear values from 0.0000001 to 0.01");
+			uiDefButF(block, NUMSLI, 0, "Welding ", 
+				xco, yco, 360, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
+				"Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
 
 			/*
 			//too complex tweaking, disable for now

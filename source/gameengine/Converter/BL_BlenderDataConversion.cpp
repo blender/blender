@@ -1418,10 +1418,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= blenderobject->bsoft->kAHR;			/* Anchors hardness [0,1] */
 			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
-			if (blenderobject->bsoft->welding == 0.f)
-				objprop.m_soft_welding = 0.0001f;		/* welding */
-			else
-				objprop.m_soft_welding = pow(10.f,blenderobject->bsoft->welding);		/* welding */
+			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 		
 		} else
 		{
@@ -1461,7 +1458,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= 0.7f;
 			objprop.m_soft_collisionflags= OB_BSB_COL_SDF_RS + OB_BSB_COL_VF_SS;
 			objprop.m_soft_numclusteriterations= 16;
-			objprop.m_soft_welding = 0.0001f;
+			objprop.m_soft_welding = 0.f;
 		}
 	}
 
