@@ -65,12 +65,15 @@
 
 /* general area and region code */
 
-static void region_draw_emboss(ARegion *ar)
+static void region_draw_emboss(ARegion *ar, rcti *scirct)
 {
-	short winx, winy;
+	rcti rect;
 	
-	winx= ar->winrct.xmax-ar->winrct.xmin;
-	winy= ar->winrct.ymax-ar->winrct.ymin;
+	/* translate scissor rect to region space */
+	rect.xmin= scirct->xmin - ar->winrct.xmin;
+	rect.ymin= scirct->ymin - ar->winrct.ymin;
+	rect.xmax= scirct->xmax - ar->winrct.xmin;
+	rect.ymax= scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
 	glEnable( GL_BLEND );
@@ -78,19 +81,19 @@ static void region_draw_emboss(ARegion *ar)
 	
 	/* right  */
 	glColor4ub(0,0,0, 50);
-	sdrawline(winx, 0, winx, winy);
+	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
 	
 	/* bottom  */
 	glColor4ub(0,0,0, 80);
-	sdrawline(0, 0, winx, 0);
+	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
 	
 	/* top  */
 	glColor4ub(255,255,255, 60);
-	sdrawline(0, winy, winx, winy);
+	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
 
 	/* left  */
 	glColor4ub(255,255,255, 50);
-	sdrawline(0, 0, 0, winy);
+	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
 	glDisable( GL_BLEND );
 }
@@ -190,48 +193,74 @@ void ED_area_overdraw(bContext *C)
 	
 }
 
+/* get scissor rect, checking overlapping regions */
+static void region_scissor_winrct(ARegion *ar, rcti *winrct)
+{
+	*winrct= ar->winrct;
+	
+	if(ELEM(ar->alignment, RGN_OVERLAP_LEFT, RGN_OVERLAP_RIGHT))
+		return;
+
+	while(ar->prev) {
+		ar= ar->prev;
+		
+		if(ar->flag & RGN_FLAG_HIDDEN);
+		else if(ar->alignment==RGN_OVERLAP_LEFT) {
+			winrct->xmin= ar->winrct.xmax + 1;
+		}
+		else if(ar->alignment==RGN_OVERLAP_RIGHT) {
+			winrct->xmax= ar->winrct.xmin - 1;
+		}
+		else break;
+	}
+}
+
 /* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ARegionType *at= ar->type;
-
+	rcti winrct;
+	
+	/* checks other overlapping regions */
+	region_scissor_winrct(ar, &winrct);
+	
 	/* if no partial draw rect set, full rect */
 	if(ar->drawrct.xmin == ar->drawrct.xmax)
-		ar->drawrct= ar->winrct;
-	
-	/* extra clip for safety */
-	ar->drawrct.xmin= MAX2(ar->winrct.xmin, ar->drawrct.xmin);
-	ar->drawrct.ymin= MAX2(ar->winrct.ymin, ar->drawrct.ymin);
-	ar->drawrct.xmax= MIN2(ar->winrct.xmax, ar->drawrct.xmax);
-	ar->drawrct.ymax= MIN2(ar->winrct.ymax, ar->drawrct.ymax);
+		ar->drawrct= winrct;
+	else {
+		/* extra clip for safety */
+		ar->drawrct.xmin= MAX2(winrct.xmin, ar->drawrct.xmin);
+		ar->drawrct.ymin= MAX2(winrct.ymin, ar->drawrct.ymin);
+		ar->drawrct.xmax= MIN2(winrct.xmax, ar->drawrct.xmax);
+		ar->drawrct.ymax= MIN2(winrct.ymax, ar->drawrct.ymax);
+	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
 	
+	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
+	
 	/* optional header info instead? */
 	if(ar->headerstr) {
 		float col[3];
-		UI_SetTheme(sa);
 		UI_GetThemeColor3fv(TH_HEADER, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		UI_ThemeColor(TH_MENU_TEXT);
+		UI_ThemeColor(TH_TEXT);
 		glRasterPos2i(20, 6);
 		BMF_DrawString(G.font, ar->headerstr);
 	}
 	else if(at->draw) {
-		UI_SetTheme(sa);
 		at->draw(C, ar);
-		UI_SetTheme(NULL);
 	}
 	
-	if(sa)
-		region_draw_emboss(ar);
-
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
+	
+	if(sa)
+		region_draw_emboss(ar, &winrct);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(ar);

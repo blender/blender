@@ -794,45 +794,31 @@ typedef enum {
 
 } BIFColorID;
 
-/* XXX WARNING: this is saved in file, so do not change order! */
 enum {
-	TH_AUTO,	/* for buttons, to signal automatic color assignment */
-	
-// uibutton colors
-	TH_BUT_OUTLINE,
-	TH_BUT_NEUTRAL,
-	TH_BUT_ACTION,
-	TH_BUT_SETTING,
-	TH_BUT_SETTING1,
-	TH_BUT_SETTING2,
-	TH_BUT_NUM,
-	TH_BUT_TEXTFIELD,
-	TH_BUT_POPUP,
-	TH_BUT_TEXT,
-	TH_BUT_TEXT_HI,
-	TH_MENU_BACK,
-	TH_MENU_ITEM,
-	TH_MENU_HILITE,
-	TH_MENU_TEXT,
-	TH_MENU_TEXT_HI,
-	
-	TH_BUT_DRAWTYPE,
-	
 	TH_REDALERT,
-	TH_CUSTOM,
-	
-	TH_BUT_TEXTFIELD_HI,
-	TH_ICONFILE,
-	
+
 	TH_THEMEUI,
 // common colors among spaces
 	
 	TH_BACK,
 	TH_TEXT,
 	TH_TEXT_HI,
+	TH_TITLE,
+	
 	TH_HEADER,
 	TH_HEADERDESEL,
+	TH_HEADER_TEXT,
+	TH_HEADER_TEXT_HI,
+	
+	/* float panels */
 	TH_PANEL,
+	TH_PANEL_TEXT,
+	TH_PANEL_TEXT_HI,
+	
+	TH_BUTBACK,
+	TH_BUTBACK_TEXT,
+	TH_BUTBACK_TEXT_HI,
+	
 	TH_SHADE1,
 	TH_SHADE2,
 	TH_HILITE,
@@ -947,13 +933,8 @@ void	UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 // get pointer from RNA pointer
 int		UI_GetIconRNA(struct PointerRNA *ptr);
 
-struct ScrArea;
-
 // internal (blender) usage only, for init and set active
-void 	UI_SetTheme(struct ScrArea *sa);
-void 	ui_theme_init_userdef		(void);
-void	ui_resources_init		(void);
-void	ui_resources_free		(void);
+void 	UI_SetTheme(int spacetype, int regionid);
 
 /* only for buttons in theme editor! */
 char 	*UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

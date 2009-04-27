@@ -98,41 +98,62 @@ typedef struct uiStyle {
 	
 } uiStyle;
 
-
-/* global, button colors */
-typedef struct ThemeUI {
+typedef struct uiWidgetColors {
 	char outline[4];
-	char neutral[4];
-	char action[4];
-	char setting[4];
-	char setting1[4];
-	char setting2[4];
-	char num[4];
-	char textfield[4];
-	char textfield_hi[4];
-	char popup[4];
+	char inner[4];
+	char inner_sel[4];
+	char item[4];
 	char text[4];
-	char text_hi[4];
-	char menu_back[4];
-	char menu_item[4];
-	char menu_hilite[4];
-	char menu_text[4];
-	char menu_text_hi[4];
+	char text_sel[4];
+	short shaded;
+	short shadetop, shadedown;
+	short pad;
+} uiWidgetColors;
+
+typedef struct ThemeUI {
 	
-	char but_drawtype;
-	char pad[3];
+	/* Interface Elements (buttons, menus, icons) */
+	uiWidgetColors wcol_regular, wcol_tool, wcol_radio, wcol_text, wcol_option;
+	uiWidgetColors wcol_num, wcol_numslider;
+	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
+	
 	char iconfile[80];	// FILE_MAXFILE length
+	
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
  * for example later on, when we introduce wire colors for ob types or so...
  */
 typedef struct ThemeSpace {
+	/* main window colors */
 	char back[4];
+	char title[4];
 	char text[4];	
 	char text_hi[4];
+	
+	/* header colors */
 	char header[4];
+	char header_title[4];
+	char header_text[4];	
+	char header_text_hi[4];
+
+	/* button/tool regions */
+	char button[4];
+	char button_title[4];
+	char button_text[4];	
+	char button_text_hi[4];
+	
+	/* listview regions */
+	char list[4];
+	char list_title[4];
+	char list_text[4];	
+	char list_text_hi[4];
+	
+	/* float panel */
 	char panel[4];
+	char panel_title[4];	
+	char panel_text[4];	
+	char panel_text_hi[4];
 	
 	char shade1[4];
 	char shade2[4];
@@ -166,8 +187,12 @@ typedef struct ThemeSpace {
 
 	char handle_vertex[4];
 	char handle_vertex_select[4];
+	
 	char handle_vertex_size;
 	char hpad[3];
+	
+	char pad[4];
+	
 } ThemeSpace;
 
 
@@ -190,7 +215,6 @@ typedef struct bTheme {
 	struct bTheme *next, *prev;
 	char name[32];
 	
-	/* Interface Elements (buttons, menus, icons) */
 	ThemeUI tui;
 	
 	/* Individual Spacetypes */
@@ -213,7 +237,7 @@ typedef struct bTheme {
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
-
+	
 } bTheme;
 
 typedef struct SolidLight {

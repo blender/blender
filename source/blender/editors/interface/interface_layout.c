@@ -1722,7 +1722,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 	// XXX this only hides cruft
 
 	/* clear */
-	UI_GetThemeColor3fv(TH_HEADER, col);
+	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	

@@ -650,7 +650,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
 	else if(block->panel)
-		ui_draw_panel(ar, &style, block, &rect);
+		ui_draw_aligned_panel(ar, &style, block, &rect);
 
 	if(block->drawextra) block->drawextra(C, block);
 
@@ -1970,12 +1970,6 @@ void uiBlockEndAlign(uiBlock *block)
 {
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
-	int theme= UI_GetThemeValue(TH_BUT_DRAWTYPE);
-	
-	if ( !(ELEM4(theme, TH_MINIMAL, TH_SHADED, TH_ROUNDED, TH_ROUNDSHADED)) ) {
-		block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
-		return;
-	}
 	
 	/* auto align:
 		- go back to first button of align start (ALIGN_DOWN)
@@ -3052,10 +3046,15 @@ void UI_init(void)
 	ui_resources_init();
 }
 
-void UI_init_userdef()
+/* after reading userdef file */
+void UI_init_userdef(void)
 {
-	uiStyleInit();
+	/* fix saved themes */
+	init_userdef_do_versions();
+	/* set default colors in default theme */
 	ui_theme_init_userdef();
+	
+	uiStyleInit();
 }
 
 void UI_exit(void)

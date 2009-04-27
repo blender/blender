@@ -575,7 +575,6 @@ void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 /* x 'icon' for panel header */
 static void ui_draw_x_icon(float x, float y)
 {
-	UI_ThemeColor(TH_TEXT_HI);
 
 	ui_draw_anti_x(x, y, x+9.375, y+9.375);
 
@@ -634,7 +633,7 @@ static void ui_draw_panel_dragwidget(rctf *rect)
 }
 
 
-static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
+static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
 	Panel *panel= block->panel;
 	Panel *pa;
@@ -657,7 +656,7 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, uiBlock *blo
 		
 		/* active tab */
 		/* draw text label */
-		UI_ThemeColor(TH_TEXT);
+		UI_ThemeColor(TH_TITLE);
 		
 		hrect= *rect;
 		hrect.xmin= rect->xmin+pnl_icons;
@@ -674,7 +673,7 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, uiBlock *blo
 		if((pa->runtime_flag & PNL_ACTIVE) && (pa==panel || pa->paneltab==panel)) {
 			float col[3];
 			
-			UI_GetThemeColor3fv(TH_TEXT, col);
+			UI_GetThemeColor3fv(TH_TITLE, col);
 
 			/* active tab */
 			if(pa==panel)
@@ -705,7 +704,8 @@ static void rectf_scale(rctf *rect, float scale)
 	rect->ymax= centy + sizey;
 }
 
-void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
+/* panel integrated in buttonswindow, tool/property lists etc */
+void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
 	Panel *panel= block->panel, *prev;
 	rcti headrect;
@@ -741,7 +741,7 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 	
 	/* title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ui_draw_panel_header_style(ar, style, block, &headrect);
+		ui_draw_aligned_panel_header(ar, style, block, &headrect);
 		
 		/* itemrect smaller */	
 		itemrect.xmax= headrect.xmax - 10.0f/block->aspect;
@@ -776,7 +776,7 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
 			else uiSetRoundBox(3);
 			
-			UI_ThemeColorShade(TH_HEADER, -120);
+			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, headrect.ymax+1, 8);
 		}
 		if(panel->flag & PNL_OVERLAP) {
@@ -796,6 +796,7 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 	ofsx= 6;
 	if(panel->control & UI_PNL_CLOSE) {
 		
+		UI_ThemeColor(TH_TEXT);
 		ui_draw_x_icon(rect->xmin+2+ofsx, rect->ymax+2);
 		ofsx= 22;
 	}

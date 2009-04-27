@@ -61,10 +61,7 @@ void uiSetRoundBox(int type)
 	/* Not sure the roundbox function is the best place to change this
 	 * if this is undone, its not that big a deal, only makes curves edges
 	 * square for the  */
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) == TH_MINIMAL)
-		roundboxtype= 0;
-	else
-		roundboxtype= type;
+	roundboxtype= type;
 
 	/* flags to set which corners will become rounded:
 
@@ -77,10 +74,7 @@ void uiSetRoundBox(int type)
 
 int uiGetRoundBox(void)
 {
-	if (ELEM3(UI_GetThemeValue(TH_BUT_DRAWTYPE), TH_MINIMAL, TH_SHADED, TH_OLDSKOOL))
-		return 0;
-	else
-		return roundboxtype;
+	return roundboxtype;
 }
 
 void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad)
@@ -176,10 +170,8 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0) coldown[1]= 0.0;
 	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0) coldown[2]= 0.0;
 
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
-		glShadeModel(GL_SMOOTH);
-		glBegin(mode);
-	}
+	glShadeModel(GL_SMOOTH);
+	glBegin(mode);
 
 	/* start with corner right-bottom */
 	if(roundboxtype & 4) {
@@ -285,10 +277,8 @@ void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, f
 	colRight[1]= color[1]+shadeRight; if(colRight[1]<0.0) colRight[1]= 0.0;
 	colRight[2]= color[2]+shadeRight; if(colRight[2]<0.0) colRight[2]= 0.0;
 
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
-		glShadeModel(GL_SMOOTH);
-		glBegin(mode);
-	}
+	glShadeModel(GL_SMOOTH);
+	glBegin(mode);
 
 	/* start with corner right-bottom */
 	if(roundboxtype & 4) {
@@ -379,10 +369,8 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 	}
 	
 	/* set antialias line */
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
-		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_BLEND );
-	}
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -435,10 +423,8 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
 	
 	/* set antialias line */
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
-		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_BLEND );
-	}
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
 	
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
 	
@@ -663,7 +649,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif // INTERNATIONAL
 #endif
 
-void ui_draw_but_COLORBAND(uiBut *but, rcti *rect)
+void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	ColorBand *coba;
 	CBData *cbd;
@@ -790,7 +776,7 @@ void ui_draw_but_COLORBAND(uiBut *but, rcti *rect)
 	glEnd();
 }
 
-void ui_draw_but_NORMAL(uiBut *but, rcti *rect)
+void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	static GLuint displist=0;
 	int a, old[8];
@@ -802,7 +788,7 @@ void ui_draw_but_NORMAL(uiBut *but, rcti *rect)
 	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
 		
 	/* backdrop */
-	UI_ThemeColor(TH_BUT_NEUTRAL);
+	glColor3ubv(wcol->inner);
 	uiSetRoundBox(15);
 	gl_round_box(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 	
@@ -892,7 +878,14 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 	
 }
 
-void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
+static void glColor3ubvShade(char *col, int shade)
+{
+	glColor3ub(col[0]-shade>0?col[0]-shade:0, 
+			   col[1]-shade>0?col[1]-shade:0,
+			   col[2]-shade>0?col[2]-shade:0);
+}
+
+void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	CurveMapping *cumap;
 	CurveMap *cuma;
@@ -916,27 +909,27 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
 	
 	/* backdrop */
 	if(cumap->flag & CUMA_DO_CLIP) {
-		UI_ThemeColorShade(TH_BUT_NEUTRAL, -20);
+		glColor3ubvShade(wcol->inner, -20);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-		UI_ThemeColor(TH_BUT_NEUTRAL);
+		glColor3ubv(wcol->inner);
 		glRectf(rect->xmin + zoomx*(cumap->clipr.xmin-offsx),
 				rect->ymin + zoomy*(cumap->clipr.ymin-offsy),
 				rect->xmin + zoomx*(cumap->clipr.xmax-offsx),
 				rect->ymin + zoomy*(cumap->clipr.ymax-offsy));
 	}
 	else {
-		UI_ThemeColor(TH_BUT_NEUTRAL);
+		glColor3ubv(wcol->inner);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	}
 	
 	/* grid, every .25 step */
-	UI_ThemeColorShade(TH_BUT_NEUTRAL, -16);
+	glColor3ubvShade(wcol->inner, -16);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
 	/* grid, every 1.0 step */
-	UI_ThemeColorShade(TH_BUT_NEUTRAL, -24);
+	glColor3ubvShade(wcol->inner, -24);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
 	/* axes */
-	UI_ThemeColorShade(TH_BUT_NEUTRAL, -50);
+	glColor3ubvShade(wcol->inner, -50);
 	glBegin(GL_LINES);
 	glVertex2f(rect->xmin, rect->ymin + zoomy*(-offsy));
 	glVertex2f(rect->xmax, rect->ymin + zoomy*(-offsy));
@@ -981,7 +974,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
 	}*/
 	
 	/* the curve */
-	UI_ThemeColorBlend(TH_TEXT, TH_BUT_NEUTRAL, 0.35);
+	glColor3ubv(wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
@@ -1035,7 +1028,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
 	/* outline */
-	UI_ThemeColor(TH_BUT_OUTLINE);
+	glColor3ubv(wcol->outline);
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 

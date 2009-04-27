@@ -55,6 +55,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "interface_intern.h"
+
 #define DEF_BUT_WIDTH 		150
 #define DEF_ICON_BUT_WIDTH	20
 #define DEF_BUT_HEIGHT		20
@@ -325,6 +327,45 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 
 	return -y;
 }
+
+/* temp call, single collumn, test for toolbar only */
+int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
+{
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *prop;
+	uiLayout *layout;
+	char *name;
+	int x= 0, y= 0;
+	
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20);
+	
+	uiLayoutColumn(layout);
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
+	
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+	
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		
+		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+			continue;
+		
+		uiLayoutSplit(layout, 1, 0);
+		uiLayoutColumn(uiLayoutSub(layout, 0));
+		
+		name= (char*)RNA_property_ui_name(prop);
+		uiItemL(uiLayoutSub(layout, 0), name, 0);
+
+		uiItemFullR(uiLayoutSub(layout, 0), "", 0, ptr, prop, -1, 0, 0);
+	}
+	
+	RNA_property_collection_end(&iter);
+	uiLayoutEnd(C, block, layout, &x, &y);
+	
+	return -y;
+}
+
 
 /***************************** ID Utilities *******************************/
 

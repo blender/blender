@@ -40,6 +40,7 @@ struct uiHandleButtonData;
 struct wmEvent;
 struct wmWindow;
 struct uiStyle;
+struct uiWidgetColors;
 
 /* ****************** general defines ************** */
 
@@ -47,6 +48,7 @@ struct uiStyle;
 /* for time being separated from functional types */
 typedef enum {
 	/* standard set */
+	UI_WTYPE_LABEL,
 	UI_WTYPE_TOGGLE,
 	UI_WTYPE_OPTION,
 	UI_WTYPE_RADIO,
@@ -353,7 +355,7 @@ void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
-extern void ui_draw_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
+extern void ui_draw_aligned_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
@@ -362,9 +364,9 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
-void ui_draw_but_COLORBAND(uiBut *but, rcti *rect);
-void ui_draw_but_NORMAL(uiBut *but, rcti *rect);
-void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect);
+void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 
 
 /* interface_handlers.c */
@@ -374,10 +376,19 @@ extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 extern void ui_draw_but(ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
+		/* theme color init */
+struct ThemeUI;
+void ui_widget_color_init(struct ThemeUI *tui);
 
 /* interface_style.c */
 void uiStyleInit(void);
 void uiStyleExit(void);
+
+/* resources.c */
+void init_userdef_do_versions(void);
+void ui_theme_init_userdef(void);
+void ui_resources_init(void);
+void ui_resources_free(void);
 
 
 /* interface_anim.c */
