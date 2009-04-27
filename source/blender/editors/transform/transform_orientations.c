@@ -405,7 +405,6 @@ int BIF_countTransformOrientation(const bContext *C) {
 void applyTransformOrientation(bContext *C, TransInfo *t) {
 	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
 	int i;
 	
@@ -414,7 +413,6 @@ void applyTransformOrientation(bContext *C, TransInfo *t) {
 			if (selected_index == i) {
 				strcpy(t->spacename, ts->name);
 				Mat3CpyMat3(t->spacemtx, ts->mat);
-				Mat4CpyMat3(rv3d->twmat, ts->mat);
 				break;
 			}
 		}
@@ -448,14 +446,11 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 void initTransformOrientation(bContext *C, TransInfo *t)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Object *ob = CTX_data_active_object(C);
 	Object *obedit = CTX_data_active_object(C);
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 
-	if(t->spacetype != SPACE_VIEW3D) return;
-	
 	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
@@ -500,28 +495,35 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			
 			if (type == ORIENTATION_NONE)
 			{
-				Mat4One(rv3d->twmat);
+				Mat3One(t->spacemtx);
 			}
 			else
 			{
-				Mat4CpyMat3(rv3d->twmat, mat);
+				Mat3CpyMat3(t->spacemtx, mat);
 			}
 			break;
 		}
 		/* no break we define 'normal' as 'local' in Object mode */
 	case V3D_MANIP_LOCAL:
 		strcpy(t->spacename, "local");
-		Mat4CpyMat4(rv3d->twmat, ob->obmat);
-		Mat4Ortho(rv3d->twmat);
+		Mat3CpyMat4(t->spacemtx, ob->obmat);
+		Mat3Ortho(t->spacemtx);
 		break;
 		
 	case V3D_MANIP_VIEW:
+		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
+			RegionView3D *rv3d = t->ar->regiondata;
 			float mat[3][3];
+
 			strcpy(t->spacename, "view");
 			Mat3CpyMat4(mat, rv3d->viewinv);
 			Mat3Ortho(mat);
-			Mat4CpyMat3(rv3d->twmat, mat);
+			Mat3CpyMat3(t->spacemtx, mat);
+		}
+		else
+		{
+			Mat3One(t->spacemtx);
 		}
 		break;
 	default: /* V3D_MANIP_CUSTOM */

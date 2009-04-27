@@ -4522,7 +4522,6 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->dist= v3d->dist;
 			VECCOPY(rv3d->ofs, v3d->ofs);
 			QUATCOPY(rv3d->viewquat, v3d->viewquat);
-			Mat4One(rv3d->twmat);
 		}
 	}
 }

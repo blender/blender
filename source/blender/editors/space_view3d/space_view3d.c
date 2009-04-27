@@ -183,7 +183,6 @@ static SpaceLink *view3d_new(const bContext *C)
 	rv3d->persp= 1;
 	rv3d->view= 7;
 	rv3d->dist= 10.0;
-	Mat4One(rv3d->twmat);
 	
 	return (SpaceLink *)v3d;
 }

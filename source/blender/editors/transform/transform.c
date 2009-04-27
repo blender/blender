@@ -985,9 +985,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_boolean_set(op->ptr, "mirror", t->flag & T_MIRROR);
 	}
 	
-	if (RNA_struct_find_property(op->ptr, "constraint_mode"))
+	if (RNA_struct_find_property(op->ptr, "constraint_axis"))
 	{
-		RNA_int_set(op->ptr, "constraint_mode", t->con.mode);
 		RNA_int_set(op->ptr, "constraint_orientation", t->current_orientation);
 
 		if (t->con.mode & CON_APPLY)
@@ -1038,18 +1037,11 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		return 0;
 	}
 
-	initTransformOrientation(C, t);
-
 	if(t->spacetype == SPACE_VIEW3D)
 	{
 		//calc_manipulator_stats(curarea);
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
-			RegionView3D *rv3d = t->ar->regiondata;
-			Mat3CpyMat4(t->spacemtx, rv3d->twmat);
-		}
-		Mat3Ortho(t->spacemtx);
-		
+		initTransformOrientation(C, t);
+	
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
