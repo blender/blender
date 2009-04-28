@@ -153,7 +153,7 @@ int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 	if( strcmp(entry2->relname, ".")==0 ) return (1);
 	if( strcmp(entry1->relname, "..")==0 ) return (-1);
 	
-	return (BLI_strcasecmp(entry1->relname,entry2->relname));
+	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
 
 
