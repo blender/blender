@@ -309,8 +309,8 @@ PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args)
 {
 	PyObject *listObject = NULL;
 	int size, i;
-	float vec[4];
-	PyObject *v, *f;
+	float vec[4], f;
+	PyObject *v;
 
 	size = PySequence_Length(args);
 	if (size == 1) {
@@ -344,16 +344,15 @@ PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args)
 			return NULL;
 		}
 
-		f=PyNumber_Float(v);
-		if(f==NULL) { // parsed item not a number
+		f= PyFloat_AsDouble(v);
+		if(f==-1 && PyErr_Occurred()) { // parsed item not a number
 			Py_DECREF(v);
 			Py_XDECREF(listObject);
 			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 			return NULL;
 		}
 
-		vec[i]=(float)PyFloat_AS_DOUBLE(f);
-		Py_DECREF(f);
+		vec[i]= f;
 		Py_DECREF(v);
 	}
 	Py_DECREF(listObject);
@@ -999,16 +998,24 @@ PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args)
 				return NULL;
 			}
 	   		if(size == 3){ //get angle in axis/angle
-				n = PyNumber_Float(PySequence_GetItem(args, 1));
+				n = PySequence_GetItem(args, 1);
 				if(n == NULL) { // parsed item not a number or getItem fail
 					Py_DECREF(listObject);
 					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
-				angle = PyFloat_AS_DOUBLE(n);
+				
+				angle = PyFloat_AsDouble(n);
 				Py_DECREF(n);
+				
+				if (angle==-1 && PyErr_Occurred()) {
+					Py_DECREF(listObject);
+					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					return NULL;
+				}
 			}
 		}else{
+			Py_DECREF(listObject); /* assume the list is teh second arg */
 			listObject = PySequence_GetItem(args, 1);
 			if (size>1 && PySequence_Check(listObject)) {
 				size = PySequence_Length(listObject);
@@ -1018,14 +1025,20 @@ PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args)
 					PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
-				n = PyNumber_Float(PySequence_GetItem(args, 0));
+				n = PySequence_GetItem(args, 0);
 				if(n == NULL) { // parsed item not a number or getItem fail
 					Py_DECREF(listObject);
 					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
-				angle = PyFloat_AS_DOUBLE(n);
+				angle = PyFloat_AsDouble(n);
 				Py_DECREF(n);
+				
+				if (angle==-1 && PyErr_Occurred()) {
+					Py_DECREF(listObject);
+					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					return NULL;
+				}
 			} else { // argument was not a sequence
 				Py_XDECREF(listObject);
 				PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");

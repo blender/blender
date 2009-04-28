@@ -575,9 +575,9 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 			     PyObject * seq)
 {
 	int i, x, y, size, sub_size = 0;
-	float mat[16];
+	float mat[16], f;
 	PyObject *subseq;
-	PyObject *m, *f;
+	PyObject *m;
 
 	CLAMP(begin, 0, self->rowSize);
 	CLAMP(end, 0, self->rowSize);
@@ -613,18 +613,17 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 						PyErr_SetString(PyExc_RuntimeError, "matrix[begin:end] = []: unable to read sequence\n");
 						return -1;
 					}
-
-					f = PyNumber_Float(m);
-					if(f == NULL) { /*parsed item not a number*/
+					
+					f = PyFloat_AsDouble(m); /* faster to assume a float and raise an error after */
+					if(f == -1 && PyErr_Occurred()) { /*parsed item not a number*/
 						Py_DECREF(m);
 						Py_DECREF(subseq);
 						PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: sequence argument not a number\n");
 						return -1;
 					}
 
-					mat[(i * self->colSize) + y] = (float)PyFloat_AS_DOUBLE(f);
+					mat[(i * self->colSize) + y] = f;
 					Py_DECREF(m);
-					Py_DECREF(subseq);
 				}
 			}else{
 				Py_DECREF(subseq);
