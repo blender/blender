@@ -444,7 +444,9 @@ void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 
 	if (!m_bDyna)
 	{
-		GetCollisionObject()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		btCollisionObject* object = GetRigidBody();
+		object->setActivationState(ACTIVE_TAG);
+		object->setCollisionFlags(object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	} else
 	{
 		if (!nondynaonly)
