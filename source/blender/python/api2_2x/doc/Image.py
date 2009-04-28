@@ -373,6 +373,7 @@ class Image:
 	def save():
 		"""
 		Saves the current image to L{filename}
+		@note: New images created in Blender will always save as Targa regardless of filename.
 		@note: Saving to a directory that doent exist will raise an error.
 		@note: Saving a packed image will make a unique (numbered) name if the file alredy exists. Remove the file first to be sure it will not be renamed.
 		@returns: None
