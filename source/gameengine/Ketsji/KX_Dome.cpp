@@ -52,18 +52,18 @@ KX_Dome::KX_Dome (
 	struct Text* warptext
 
 ):
-	m_canvas(canvas),
-	m_rasterizer(rasterizer),
-	m_rendertools(rendertools),
-	m_engine(engine),
+	dlistSupported(false),
+	canvaswidth(-1), canvasheight(-1),
 	m_drawingmode(engine->GetDrawType()),
 	m_size(size),
 	m_resolution(res),
 	m_mode(mode),
 	m_angle(angle),
 	m_resbuffer(resbuf),
-	canvaswidth(-1), canvasheight(-1),
-	dlistSupported(false)
+	m_canvas(canvas),
+	m_rasterizer(rasterizer),
+	m_rendertools(rendertools),
+	m_engine(engine)
 {
 	warp.usemesh = false;
 
@@ -206,7 +206,7 @@ void KX_Dome::CalculateImageSize(void)
 	canvasheight = m_canvas->GetHeight();
 
 	m_buffersize = (canvaswidth > canvasheight?canvasheight:canvaswidth);
-	m_buffersize *= m_resbuffer; //reduce buffer size for better performance
+	m_buffersize = (int)(m_buffersize*m_resbuffer); //reduce buffer size for better performance
 
 	int i = 0;
 	while ((1 << i) <= m_buffersize)
@@ -230,8 +230,6 @@ void KX_Dome::CalculateImageSize(void)
 }
 
 bool KX_Dome::CreateDL(){
-	int i,j;
-
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
 		if(m_mode == DOME_FISHEYE){
@@ -409,7 +407,7 @@ y varies from -1 to 1
 u and v vary from 0 to 1
 i ranges from 0 to 1, if negative don't draw that mesh node
 */
-	int i,j,k;
+	int i;
 	int nodeX=0, nodeY=0;
 
 	vector<STR_String> columns, lines;
@@ -431,7 +429,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 	warp.n_width = atoi(columns[0]);
 	warp.n_height = atoi(columns[1]);
 
-	if (lines.size() < 2 + (warp.n_width * warp.n_height)){
+	if ((int)lines.size() < 2 + (warp.n_width * warp.n_height)){
 		printf("Error: Warp Mesh File with insufficient data!\n");
 		return false;
 	}else{
@@ -1509,8 +1507,7 @@ void KX_Dome::RotateCamera(KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
 	// restore the original orientation
@@ -1543,8 +1540,6 @@ void KX_Dome::Draw(void)
 
 void KX_Dome::DrawEnvMap(void)
 {
-	int i,j;
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1675,7 +1670,7 @@ void KX_Dome::DrawEnvMap(void)
 
 void KX_Dome::DrawDomeFisheye(void)
 {
-	int i,j;
+	int i;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
@@ -1759,7 +1754,7 @@ void KX_Dome::DrawDomeFisheye(void)
 
 void KX_Dome::DrawPanorama(void)
 {
-	int i,j;
+	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1846,8 +1841,6 @@ void KX_Dome::DrawPanorama(void)
 
 void KX_Dome::DrawDomeWarped(void)
 {
-	int i,j;
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1879,10 +1872,6 @@ void KX_Dome::DrawDomeWarped(void)
 
 	glEnable(GL_TEXTURE_2D);
 	glColor3f(1.0,1.0,1.0);
-
-
-	float uv_width = (float)(warp.bufferwidth-1) / warp.imagewidth;
-	float uv_height = (float)(warp.bufferheight-1) / warp.imageheight;
 
 	if (dlistSupported){
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
@@ -1924,8 +1913,7 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
@@ -1935,3 +1923,4 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 	cam->NodeSetLocalOrientation(camori);
 	cam->NodeUpdateGS(0.f);
 }
+

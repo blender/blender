@@ -160,8 +160,7 @@ void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, KX_Camera *cam, MT_T
 
 	/* setup rasterizer transformations */
 	ras->SetProjectionMatrix(projectionmat);
-	ras->SetViewMatrix(modelviewmat, cam->NodeGetWorldPosition(),
-		cam->GetCameraLocation(), cam->GetCameraOrientation());
+	ras->SetViewMatrix(modelviewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 }
 
 void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)

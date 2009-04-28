@@ -1672,6 +1672,41 @@ static void free_metastrip_imbufs(ListBase *seqbasep, int cfra, int chanshown)
 	
 }
 
+static void check_limiter_refcount(const char * func, TStripElem *se)
+{
+	if (se && se->ibuf) {
+		int refcount = IMB_cache_limiter_get_refcount(se->ibuf);
+		if (refcount != 1) {
+			/* can happen on complex pipelines */
+			if (refcount > 1 && (G.f & G_DEBUG) == 0) {
+				return;
+			}
+
+			fprintf(stderr, 
+				"sequencer: (ibuf) %s: "
+				"suspicious memcache "
+				"limiter refcount: %d\n", func,	refcount);
+		}
+	}
+}
+
+static void check_limiter_refcount_comp(const char * func, TStripElem *se)
+{
+	if (se && se->ibuf_comp) {
+		int refcount = IMB_cache_limiter_get_refcount(se->ibuf_comp);
+		if (refcount != 1) {
+			/* can happen on complex pipelines */
+			if (refcount > 1 && (G.f & G_DEBUG) == 0) {
+				return;
+			}
+			fprintf(stderr, 
+				"sequencer: (ibuf comp) %s: "
+				"suspicious memcache "
+				"limiter refcount: %d\n", func,	refcount);
+		}
+	}
+}
+
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown);
 
@@ -1686,18 +1721,23 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 
 	if(seq->type == SEQ_META) {
 		TStripElem * meta_se = 0;
+		int use_preprocess = FALSE;
 		use_limiter = FALSE;
 
 		if (!build_proxy_run && se->ibuf == 0) {
 			se->ibuf = seq_proxy_fetch(seq, cfra);
 			if (se->ibuf) {
 				use_limiter = TRUE;
+				use_preprocess = TRUE;
 			}
 		}
 
 		if(!se->ibuf && seq->seqbase.first) {
 			meta_se = do_build_seq_array_recursively(
 				&seq->seqbase, seq->start + se->nr, 0);
+
+			check_limiter_refcount("do_build_seq_ibuf: for META",
+					       meta_se);
 		}
 
 		se->ok = STRIPELEM_OK;
@@ -1719,14 +1759,17 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 				se->ibuf = i;
 
 				use_limiter = TRUE;
+				use_preprocess = TRUE;
 			}
+		} else if (se->ibuf) {
+			use_limiter = TRUE;
 		}
 		if (meta_se) {
 			free_metastrip_imbufs(
 				&seq->seqbase, seq->start + se->nr, 0);
 		}
 
-		if (use_limiter) {
+		if (use_preprocess) {
 			input_preprocess(seq, se, cfra);
 		}
 	} else if(seq->type & SEQ_EFFECT) {
@@ -1762,7 +1805,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 				se->ibuf= IMB_loadiffname(
 					name, IB_rect);
 				/* we don't need both (speed reasons)! */
-				if (se->ibuf->rect_float && se->ibuf->rect) {
+				if (se->ibuf &&
+				    se->ibuf->rect_float && se->ibuf->rect) {
 					imb_freerectImBuf(se->ibuf);
 				}
 
@@ -1797,7 +1841,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 					IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
 					se->ibuf = IMB_anim_absolute(seq->anim, se->nr + seq->anim_startofs);
 					/* we don't need both (speed reasons)! */
-					if (se->ibuf->rect_float 
+					if (se->ibuf 
+					    && se->ibuf->rect_float 
 					    && se->ibuf->rect) {
 						imb_freerectImBuf(se->ibuf);
 					}
@@ -1972,6 +2017,7 @@ static void do_effect_seq_recursively(Sequence * seq, TStripElem *se, int cfra)
 	if (se->se3 && se->se3->ibuf) {
 		IMB_cache_limiter_unref(se->se3->ibuf);
 	}
+	check_limiter_refcount("do_effect_seq_recursively", se);
 }
 
 static TStripElem* do_build_seq_recursively_impl(Sequence * seq, int cfra)
@@ -1987,6 +2033,7 @@ static TStripElem* do_build_seq_recursively_impl(Sequence * seq, int cfra)
 			do_build_seq_ibuf(seq, se, cfra, FALSE);
 		}
 	}
+	check_limiter_refcount("do_build_seq_recursively_impl", se);
 	return se;
 }
 
@@ -2098,6 +2145,8 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra)
 	if (se2 && se2->ibuf)
 		IMB_cache_limiter_unref(se2->ibuf);
 
+	check_limiter_refcount("do_handle_speed_effect", se);
+
 	return se;
 }
 
@@ -2115,20 +2164,17 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra)
 
 static TStripElem* do_build_seq_recursively(Sequence * seq, int cfra)
 {
+	TStripElem* se;
 	if (seq->type == SEQ_SPEED) {
-		return do_handle_speed_effect(seq, cfra);
+		se = do_handle_speed_effect(seq, cfra);
 	} else {
-		return do_build_seq_recursively_impl(seq, cfra);
+		se = do_build_seq_recursively_impl(seq, cfra);
 	}
+
+	check_limiter_refcount("do_build_seq_recursively", se);
+
+	return se;
 }
-
-/* Bug: 18209
- * when dragging the mouse over a metastrip, on mouse-up for some unknown
- * reason in some cases the metastrips TStripElem->ibuf->rect is NULL,
- * This should be fixed but I had a look and couldnt work out why its
- * happening so for now workaround with a NULL check - campbell */
-
-#define SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
 
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown)
@@ -2191,6 +2237,9 @@ static TStripElem* do_build_seq_array_recursively(
 				se->ibuf_comp = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
 					32, IB_rect, 0);
+				IMB_cache_limiter_insert(se->ibuf_comp);
+				IMB_cache_limiter_ref(se->ibuf_comp);
+				IMB_cache_limiter_touch(se->ibuf_comp);
 			}
 			break;
 		}
@@ -2221,6 +2270,9 @@ static TStripElem* do_build_seq_array_recursively(
 				se->ibuf_comp = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
 					32, IB_rect, 0);
+				IMB_cache_limiter_insert(se->ibuf_comp);
+				IMB_cache_limiter_ref(se->ibuf_comp);
+				IMB_cache_limiter_touch(se->ibuf_comp);
 			}
 			break;
 		case 1:
@@ -2239,6 +2291,9 @@ static TStripElem* do_build_seq_array_recursively(
 				se->ibuf = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
 					32, IB_rect, 0);
+				IMB_cache_limiter_insert(se->ibuf);
+				IMB_cache_limiter_ref(se->ibuf);
+				IMB_cache_limiter_touch(se->ibuf);
 			}
 			if (i == 0) {
 				se->ibuf_comp = se->ibuf;
@@ -2297,13 +2352,6 @@ static TStripElem* do_build_seq_array_recursively(
 				IMB_rect_from_float(se2->ibuf);
 			}
 			
-#ifdef SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
-			if (se2->ibuf->rect==NULL && se2->ibuf->rect_float==NULL) {
-				printf("ERROR: sequencer se2->ibuf missing buffer\n");
-			} else if (se1->ibuf && se1->ibuf->rect==NULL && se1->ibuf->rect_float==NULL) {
-				printf("ERROR: sequencer se1->ibuf missing buffer\n");
-			} else {
-#endif
 			/* bad hack, to fix crazy input ordering of 
 			   those two effects */
 
@@ -2324,10 +2372,6 @@ static TStripElem* do_build_seq_array_recursively(
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}
-			
-#ifdef SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
-			}
-#endif
 			
 			IMB_cache_limiter_insert(se2->ibuf_comp);
 			IMB_cache_limiter_ref(se2->ibuf_comp);
@@ -2383,6 +2427,8 @@ static ImBuf *give_ibuf_seq_impl(int rectx, int recty, int cfra, int chanshown)
 		return 0;
 	}
 
+	check_limiter_refcount_comp("give_ibuf_seq_impl", se);
+
 	return se->ibuf_comp;
 }
 
@@ -2399,6 +2445,8 @@ ImBuf *give_ibuf_seq_direct(int rectx, int recty, int cfra,
 	if(!se) { 
 		return 0;
 	}
+
+	check_limiter_refcount("give_ibuf_seq_direct", se);
 
 	if (se->ibuf) {
 		IMB_cache_limiter_unref(se->ibuf);

@@ -24,6 +24,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 	@type triggered: boolean
 	@ivar positive: True if this sensor brick is in a positive state. (Read only)
 	@type positive: boolean
+	@group Deprecated: isPositive, isTriggered, getUsePosPulseMode, setUsePosPulseMode, getFrequency, setFrequency, getUseNegPulseMode,	setUseNegPulseMode, getInvert, setInvert, getLevel, setLevel
 	"""
 	
 	def reset():

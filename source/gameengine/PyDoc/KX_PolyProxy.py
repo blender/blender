@@ -1,7 +1,8 @@
 # $Id$
 # Documentation for the polygon proxy class
+from SCA_IObject import *
 
-class KX_PolyProxy:
+class KX_PolyProxy(SCA_IObject):
 	"""
 	A polygon holds the index of the vertex forming the poylgon.
 

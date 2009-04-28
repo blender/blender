@@ -7915,7 +7915,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dm != NULL && (dataMask & CD_MVERT))
+		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -7940,7 +7940,7 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dm != NULL && (dataMask & CD_MVERT))
+		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);

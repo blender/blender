@@ -921,17 +921,40 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	return result;
 }
 
+MT_Matrix4x4 RAS_OpenGLRasterizer::GetOrthoMatrix(
+	float left,
+	float right,
+	float bottom,
+	float top,
+	float frustnear,
+	float frustfar
+){
+	MT_Matrix4x4 result;
+	double mat[16];
+
+	// stereo is meaning less for orthographic, disable it
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(left, right, bottom, top, frustnear, frustfar);
+		
+	glGetDoublev(GL_PROJECTION_MATRIX, mat);
+	result.setValue(mat);
+
+	return result;
+}
+
 
 // next arguments probably contain redundant info, for later...
-void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vector3& campos,
-		const MT_Point3 &, const MT_Quaternion &camOrientQuat)
+void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, 
+										 const MT_Matrix3x3 & camOrientMat3x3,
+										 const MT_Point3 & pos,
+										 bool perspective)
 {
 	m_viewmatrix = mat;
 
 	// correction for stereo
-	if(Stereo())
+	if(Stereo() && perspective)
 	{
-		MT_Matrix3x3 camOrientMat3x3(camOrientQuat);
 		MT_Vector3 unitViewDir(0.0, -1.0, 0.0);  // minus y direction, Blender convention
 		MT_Vector3 unitViewupVec(0.0, 0.0, 1.0);
 		MT_Vector3 viewDir, viewupVec;
@@ -977,7 +1000,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixd(glviewmat);
-	m_campos = campos;
+	m_campos = pos;
 }
 
 

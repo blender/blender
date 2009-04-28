@@ -759,6 +759,13 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			//printf("update\n");
 			return true;//??
 		}
+		virtual bool UpdateBuckets(void)
+		{
+			// this is to update the mesh slots outside the rasterizer, 
+			// no need to do it for this deformer, it's done in any case in Apply()
+			return false;
+		}
+
 		virtual RAS_Deformer *GetReplica()
 		{
 			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(*this);
@@ -898,7 +905,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 				// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
 				if (objprop->m_softbody)
-					shapeInfo->setVertexWeldingThreshold1(0.01f); //todo: expose this to the UI
+				{
+					shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
+				}
 
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia

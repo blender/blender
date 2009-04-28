@@ -82,8 +82,8 @@ def getScreenRay(x, y, dist, property):
 	@type y: float
 	@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
 	@type dist: float
-	@param prop: property name that object must have; can be omitted => detect any object
-	@type prop: string
+	@param property: property name that object must have; can be omitted => detect any object
+	@type property: string
 	@rtype: L{KX_GameObject}
 	@return: the first object hit or None if no object or object does not match prop
 	"""
@@ -148,6 +148,13 @@ def setMistColor(rgb):
 	
 	@type rgb: list [r, g, b]
 	"""
+	
+def setAmbientColor(rgb):
+	"""
+	Sets the color of ambient light.
+	
+	@type rgb: list [r, g, b]
+	"""
 
 def setMistStart(start):
 	"""
@@ -162,6 +169,13 @@ def setMistEnd(end):
 	the colour set by setMistColor().
 	
 	@type end: float
+	"""
+	
+def disableMist():
+	"""
+	Disables mist.
+	
+	@note: Set any of the mist properties to enable mist.
 	"""
 	
 def setEyeSeparation(eyesep):
@@ -237,3 +251,15 @@ def drawLine(fromVec,toVec,color):
 	@type color: list [r, g, b]
 	"""
 
+def enableMotionBlur(factor):
+	"""
+	Enable the motion blue effect.
+	
+	@param factor: the ammount of motion blur to display.
+	@type factor: float [0.0 - 1.0]
+	"""
+
+def disableMotionBlur():
+	"""
+	Disable the motion blue effect.
+	"""

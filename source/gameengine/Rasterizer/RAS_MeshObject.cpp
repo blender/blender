@@ -304,7 +304,7 @@ void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 	slot = mmat->m_baseslot;
 	darray = slot->CurrentDisplayArray();
 
-	if(!flat) {
+	{ /* Shared Vertex! */
 		/* find vertices shared between faces, with the restriction
 		 * that they exist in the same display array, and have the
 		 * same uv coordinate etc */
@@ -332,7 +332,7 @@ void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 		slot->AddPolygonVertex(offset);
 	poly->SetVertexOffset(i, offset);
 
-	if(!flat) {
+	{ /* Shared Vertex! */
 		SharedVertex shared;
 		shared.m_darray = darray;
 		shared.m_offset = offset;

@@ -351,23 +351,28 @@ def generate_vmad_vc(mesh):
 # === Generate Per-Face UV Coords (VMAD Chunk) ===
 # ================================================
 def generate_vmad_uv(mesh):
-	data = cStringIO.StringIO()
-	data.write("TXUV")                                       # type
-	data.write(struct.pack(">H", 2))                         # dimension
-	data.write(generate_nstring("Blender's UV Coordinates")) # name
+	layers = mesh.getUVLayerNames()
+	org_uv = mesh.activeUVLayer
+	for l in layers:
+		mesh.activeUVLayer = l
+		data = cStringIO.StringIO()
+		data.write("TXUV")                                       # type
+		data.write(struct.pack(">H", 2))                         # dimension
+		data.write(generate_nstring(l)) # name
+		for i, f in enumerate(mesh.faces):
+			if not i%100:
+				Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
+			
+			uv = f.uv
+			f_v = f.v
+			for j in xrange(len(f)-1, -1, -1):             # Reverse order
+				U,V = uv[j]
+				v = f_v[j].index
+				data.write(struct.pack(">H", v)) # vertex index
+				data.write(struct.pack(">H", i)) # face index
+				data.write(struct.pack(">ff", U, V))
 	
-	for i, f in enumerate(mesh.faces):
-		if not i%100:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
-		
-		uv = f.uv
-		f_v = f.v
-		for j in xrange(len(f)-1, -1, -1): 			# Reverse order
-			U,V = uv[j]
-			v = f_v[j].index
-			data.write(struct.pack(">H", v)) # vertex index
-			data.write(struct.pack(">H", i)) # face index
-			data.write(struct.pack(">ff", U, V))
+	mesh.activeUVLayer = org_uv
 	return data.getvalue()
 
 # ======================================

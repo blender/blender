@@ -1632,7 +1632,7 @@ void sample_occ(Render *re, ShadeInput *shi)
 			sample_occ_surface(shi);
 		}
 		/* try to get result from the cache if possible */
-		else if(!sample_occ_cache(tree, shi->co, shi->vno, shi->xs, shi->ys, shi->thread, shi->ao)) {
+		else if(shi->depth!=0 || !sample_occ_cache(tree, shi->co, shi->vno, shi->xs, shi->ys, shi->thread, shi->ao)) {
 			/* no luck, let's sample the occlusion */
 			exclude.obi= shi->obi - re->objectinstance;
 			exclude.facenr= shi->vlr->index;

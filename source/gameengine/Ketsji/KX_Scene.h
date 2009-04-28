@@ -32,8 +32,6 @@
 
 #include "KX_PhysicsEngineEnums.h"
 
-#include "MT_CmMatrix4x4.h"
-
 #include <vector>
 #include <set>
 #include <list>
@@ -43,7 +41,7 @@
 #include "SG_IObject.h"
 #include "SCA_IScene.h"
 #include "MT_Transform.h"
-#include "SND_Scene.h"
+
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
@@ -190,15 +188,6 @@ protected:
 	 * The active camera for the scene
 	 */
 	KX_Camera* m_active_camera;
-
-	/** 
-	 * The projection and view matrices of this scene 
-	 * The projection matrix is computed externally by KX_Engine	
-	 * The view mat is stored as a side effect of GetViewMatrix()
-	 * and is totally unnessary.
-	 */
-	MT_CmMatrix4x4				m_projectionmat;
-	MT_CmMatrix4x4				m_viewmat;
 
 	/** Desired canvas width set at design time. */
 	unsigned int m_canvasDesignWidth;
@@ -422,25 +411,6 @@ public:
 		class KX_Camera*
 	);
 
-	/** Return the viewmatrix as used by the last frame. */
-		MT_CmMatrix4x4&			
-	GetViewMatrix(
-	);
-
-	/** 
-	 * Return the projectionmatrix as used by the last frame. This is
-	 * set by hand :) 
-	 */
-		MT_CmMatrix4x4&			
-	GetProjectionMatrix(
-	);
-
-	/** Sets the projection matrix. */
-		void					
-	SetProjectionMatrix(
-		MT_CmMatrix4x4& pmat
-	);
-
 	/**
 	 * Activates new desired canvas width set at design time.
 	 * @param width	The new desired width.
@@ -592,6 +562,9 @@ public:
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_objects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects_inactive(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_lights(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */

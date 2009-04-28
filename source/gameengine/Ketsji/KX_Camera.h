@@ -184,6 +184,8 @@ public:
 
 	/** Gets the aperture. */
 	float				GetLens() const;
+	/** Gets the ortho scale. */
+	float				GetScale() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
@@ -281,6 +283,9 @@ public:
 	static int			pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
+	static PyObject*	pyattr_get_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

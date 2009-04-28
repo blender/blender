@@ -1,18 +1,18 @@
 # $Id$
 # Documentation for game objects
 
-# from SCA_IObject import *
+from SCA_IObject import *
 # from SCA_ISensor import *
 # from SCA_IController import *
 # from SCA_IActuator import *
 
 
-class KX_GameObject: # (SCA_IObject)
+class KX_GameObject(SCA_IObject):
 	"""
 	All game objects are derived from this class.
 	
 	Properties assigned to game objects are accessible as attributes of this class.
-		- note: Calling ANY method or attribute on an object that has been removed from a scene will raise a RuntimeError, if an object may have been removed since last accessing it use the L{isValid} attribute to check.
+		- note: Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the L{invalid} attribute to check.
 
 	@ivar name: The object's name. (Read only)
 		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
@@ -49,13 +49,13 @@ class KX_GameObject: # (SCA_IObject)
 	@type scaling: list [sx, sy, sz] On write: local scaling, on read: world scaling
 	@ivar localOrientation: The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 	@type localOrientation: 3x3 Matrix [[float]]
-	@ivar worldOrientation: The object's world orientation. Read-only.
+	@ivar worldOrientation: The object's world orientation.
 	@type worldOrientation: 3x3 Matrix [[float]]
 	@ivar localScaling: The object's local scaling factor.
 	@type localScaling: list [sx, sy, sz]
 	@ivar worldScaling: The object's world scaling factor. Read-only
 	@type worldScaling: list [sx, sy, sz]
-	@ivar localPosition: The object's local position. 
+	@ivar localPosition: The object's local position.
 	@type localPosition: list [x, y, z]
 	@ivar worldPosition: The object's world position. 
 	@type worldPosition: list [x, y, z]
@@ -79,18 +79,17 @@ class KX_GameObject: # (SCA_IObject)
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type actuators: list
-	@ivar isValid: Retuerns fails when the object has been removed from the scene and can no longer be used.
-	@type isValid: bool
+	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh
 	"""
 	def endObject():
 		"""
 		Delete this object, can be used inpace of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.
 		"""	
-	def replaceMesh(mesh_name):
+	def replaceMesh(mesh):
 		"""
 		Replace the mesh of this object with a new mesh. This works the same was as the actuator.
-		@type mesh_name: string
+		@type mesh: L{KX_MeshProxy<KX_MeshProxy.KX_MeshProxy>} or mesh name
 		"""	
 	def getVisible():
 		"""
@@ -110,7 +109,7 @@ class KX_GameObject: # (SCA_IObject)
 		"""
 		Sets the game object's occlusion capability.
 		
-		@type visible: boolean
+		@type occlusion: boolean
 		@type recursive: boolean
 		@param recursive: optional argument to set all childrens occlusion flag too.
 		"""
@@ -159,7 +158,7 @@ class KX_GameObject: # (SCA_IObject)
 		@param orn: a rotation matrix specifying the new rotation.
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
-	def alignAxisToVect(vect, axis):
+	def alignAxisToVect(vect, axis, factor):
 		"""
 		Aligns any of the game object's axis along the given vector.
 		
@@ -170,6 +169,8 @@ class KX_GameObject: # (SCA_IObject)
 					- 0: X axis
 					- 1: Y axis
 					- 2: Z axis (default) 
+		@type factor: float
+		@param factor: Only rotate a feaction of the distance to the target vector (0.0 - 1.0)
 		"""
 	def getAxisVect(vect):
 		"""
@@ -468,7 +469,7 @@ class KX_GameObject: # (SCA_IObject)
 		@type objfrom: L{KX_GameObject} or 3-tuple or None
 		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to to
 		@type dist: float
-		@param prop: property name that object must have; can be omitted => detect any object
+		@param prop: property name that object must have; can be omitted or "" => detect any object
 		@type prop: string
 		@param face: normal option: 1=>return face normal; 0 or omitted => normal is oriented towards origin
 		@type face: int

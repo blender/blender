@@ -37,6 +37,7 @@
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
 #include "BL_SkinMeshObject.h"
+#include "PHY_IGraphicController.h"
 
 //#include "BL_ArmatureController.h"
 #include "DNA_armature_types.h"
@@ -97,10 +98,16 @@ bool BL_ModifierDeformer::HasCompatibleDeformer(Object *ob)
 {
 	if (!ob->modifiers.first)
 		return false;
+	// soft body cannot use mesh modifiers
+	if ((ob->gameflag & OB_SOFT_BODY) != 0)
+		return false;
 	ModifierData* md;
 	for (md = (ModifierData*)ob->modifiers.first; md; md = (ModifierData*)md->next) {
-		if (md->mode & eModifierMode_Realtime)
-			return true;
+		if (modifier_dependsOnTime(md))
+			continue;
+		if (!(md->mode & eModifierMode_Realtime))
+			continue;
+		return true;
 	}
 	return false;
 }
@@ -126,6 +133,14 @@ bool BL_ModifierDeformer::Update(void)
 			m_dm->release(m_dm);
 		}
 		m_dm = dm;
+		/* update the graphic controller */
+		PHY_IGraphicController *ctrl = m_gameobj->GetGraphicController();
+		if (ctrl) {
+			float min_r[3], max_r[3];
+			INIT_MINMAX(min_r, max_r);
+			m_dm->getMinMax(m_dm, min_r, max_r);
+			ctrl->setLocalAabb(min_r, max_r);
+		}
 		m_lastModifierUpdate=m_gameobj->GetLastFrame();
 		bShapeUpdate = true;
 	}

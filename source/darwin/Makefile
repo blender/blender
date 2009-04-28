@@ -50,7 +50,7 @@ ifeq ($(APPLICATION), blender)
 	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 endif
-	@echo "---> removing CVS directories and Mac hidden files from distribution"
+	@echo "---> removing SVN directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
-	@find $(DIR)/bin/$(APPLICATION).app -name .svn -exec rm -rf {} \;
+	@find $(DIR)/bin/$(APPLICATION).app -name .svn -prune -exec rm -rf {} \;

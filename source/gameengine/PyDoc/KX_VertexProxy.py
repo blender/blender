@@ -1,7 +1,9 @@
 # $Id$
 # Documentation for the vertex proxy class
 
-class KX_VertexProxy:
+from SCA_IObject import *
+
+class KX_VertexProxy(SCA_IObject):
 	"""
 	A vertex holds position, UV, colour and normal information.
 	

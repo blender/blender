@@ -119,7 +119,7 @@ typedef struct BulletSoftBody {
 	float	kAHR;			/* Anchors hardness [0,1] */
 	int		collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 	int		numclusteriterations;	/* number of iterations to refine collision clusters*/
-
+	float	welding;		/* welding limit to remove duplicate/nearby vertices, 0.0..0.01 */
 } BulletSoftBody;
 
 /* BulletSoftBody.flag */

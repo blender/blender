@@ -1,8 +1,9 @@
 # $Id$
 # Documentation for the logic brick base class SCA_ILogicBrick
 from KX_GameObject import *
+from CValue import *
 
-class SCA_ILogicBrick:
+class SCA_ILogicBrick(CValue):
 	"""
 	Base class for all logic bricks.
 	
@@ -10,6 +11,7 @@ class SCA_ILogicBrick:
 	@type executePriority: int
 	@ivar owner: The game object this logic brick is attached to (read only).
 	@type owner: L{KX_GameObject<KX_GameObject.KX_GameObject>} or None in exceptional cases.
+	@group Deprecated: getOwner, setExecutePriority, getExecutePriority
 	"""
 	
 	def getOwner():

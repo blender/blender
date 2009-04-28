@@ -2389,7 +2389,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				ysize = 48;
 				glRects(xco, yco-ysize, xco+width, yco); 
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this file");
+		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 //				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, 63, 0, 0, "Use this loadinganimation");
 			}
 /*			else if (gma->type == ACT_GAME_START)
@@ -3073,19 +3073,19 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 {
 	uiBlock *block;
 	Object *ob = arg_ob;
-	short yco = 20, xco = 0;
+	short yco, xco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
 	
 
 	if (ob->gameflag & OB_SOFT_BODY) {
-		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 80, NULL, 0, 0, 0, 0, "");
 
 		if (ob->bsoft)
 		{
 			
-
+			yco = 40;
 			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
 				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
@@ -3102,6 +3102,11 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
 				0, 0, "Position solver iterations");
 			uiBlockEndAlign(block);
+			yco -= 20;
+			xco = 0;
+			uiDefButF(block, NUMSLI, 0, "Welding ", 
+				xco, yco, 360, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
+				"Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
 
 			/*
 			//too complex tweaking, disable for now
@@ -3131,7 +3136,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 		if (ob->gameflag & OB_DYNAMIC) {
 
-			yco = 100;
+			yco = 80;
 			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 120, NULL, 0, 0, 0, 0, "");
 			uiBlockBeginAlign(block);
 			if (ob->margin < 0.001f)
@@ -3173,7 +3178,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			
 			uiBlockEndAlign(block);
 			
-			uiDefBut(block, LABEL, 0, "Clamp Velocity (zero disables)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Clamp Velocity (0=disabled)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
 			
 			uiBlockBeginAlign(block);
 			
@@ -3215,7 +3220,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 
 		} else {
-			
+			yco = 20;
 			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 			uiDefButF(block, NUM, 0, "Margin", 
 					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 

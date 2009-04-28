@@ -186,7 +186,7 @@ typedef struct ImagePaintPartialRedraw {
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
 
 /* used for testing doubles, if a point is on a line etc */
-#define PROJ_GEOM_TOLERANCE 0.0002f
+#define PROJ_GEOM_TOLERANCE 0.00075f
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
@@ -707,7 +707,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		Vec2Weightf(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
 	
-	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow, the only way around it is to have an ibuf index per face */
+	ibuf = tf->tpage->ibufs.first; /* we must have got the imbuf before getting here */
 	if (!ibuf) return 0;
 	
 	if (interp) {
@@ -1362,7 +1362,7 @@ float project_paint_uvpixel_mask(
 		ImBuf *ibuf_other;
 		const MTFace *tf_other = ps->dm_mtface_mask + face_index;
 		
-		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL))) {
+		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
 			/* BKE_image_get_ibuf - TODO - this may be slow */
 			unsigned char rgba_ub[4];
 			float rgba_f[4];
@@ -1518,7 +1518,7 @@ static ProjPixel *project_paint_uvpixel_init(
 			ImBuf *ibuf_other;
 			const MTFace *tf_other = ps->dm_mtface_clone + face_index;
 			
-			if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL))) {
+			if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
 				/* BKE_image_get_ibuf - TODO - this may be slow */
 				
 				if (ibuf->rect_float) {
@@ -1969,7 +1969,6 @@ static void project_bucket_clip_face(
 	const int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
 	
 	float bucket_bounds_ss[4][2];
-	float w[3];
 
 	/* get the UV space bounding box */
 	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v1coSS[0], v1coSS[1]);
@@ -2040,6 +2039,7 @@ static void project_bucket_clip_face(
 		/* Maximum possible 6 intersections when using a rectangle and triangle */
 		float isectVCosSS[8][3]; /* The 3rd float is used to store angle for qsort(), NOT as a Z location */
 		float v1_clipSS[2], v2_clipSS[2];
+		float w[3];
 		
 		/* calc center*/
 		float cent[2] = {0.0f, 0.0f};
@@ -2082,6 +2082,7 @@ static void project_bucket_clip_face(
 		
 		if ((*tot) < 3) { /* no intersections to speak of */
 			*tot = 0;
+			return;
 		}
 	
 		/* now we have all points we need, collect their angles and sort them clockwise */
@@ -2115,7 +2116,6 @@ static void project_bucket_clip_face(
 		
 		if (flip)	qsort(isectVCosSS, *tot, sizeof(float)*3, float_z_sort_flip);
 		else		qsort(isectVCosSS, *tot, sizeof(float)*3, float_z_sort);
-		
 		
 		/* remove doubles */
 		/* first/last check */
@@ -2315,9 +2315,20 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	/* Use tf_uv_pxoffset instead of tf->uv so we can offset the UV half a pixel
 	 * this is done so we can avoid offseting all the pixels by 0.5 which causes
 	 * problems when wrapping negative coords */
-	xhalfpx = 0.5f / ibuf_xf;
-	yhalfpx = 0.5f / ibuf_yf;
+	xhalfpx = (0.5f+   (PROJ_GEOM_TOLERANCE/3.0f)   ) / ibuf_xf;
+	yhalfpx = (0.5f+   (PROJ_GEOM_TOLERANCE/4.0f)   ) / ibuf_yf;
 	
+	/* Note about (PROJ_GEOM_TOLERANCE/x) above...
+	  Needed to add this offset since UV coords are often quads aligned to pixels.
+	  In this case pixels can be exactly between 2 triangles causing nasty
+	  artifacts.
+	  
+	  This workaround can be removed and painting will still work on most cases
+	  but since the first thing most people try is painting onto a quad- better make it work.
+	 */
+
+
+
 	tf_uv_pxoffset[0][0] = tf->uv[0][0] - xhalfpx;
 	tf_uv_pxoffset[0][1] = tf->uv[0][1] - yhalfpx;
 
@@ -3030,7 +3041,7 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	ps->buckets_x = (int)(ps->screen_width / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
 	ps->buckets_y = (int)(ps->screen_height / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
 	
-	printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y);
+	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
 	
 	/* really high values could cause problems since it has to allocate a few
 	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
@@ -3203,7 +3214,7 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 				
 				image_index = BLI_linklist_index(image_LinkList, tf->tpage);
 				
-				if (image_index==-1 && BKE_image_get_ibuf((Image *)tf->tpage, NULL)) { /* MemArena dosnt have an append func */
+				if (image_index==-1 && BKE_image_get_ibuf(tf->tpage, NULL)) { /* MemArena dosnt have an append func */
 					BLI_linklist_append(&image_LinkList, tf->tpage);
 					image_index = ps->image_tot;
 					ps->image_tot++;
@@ -3225,10 +3236,10 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	
 	for (node= image_LinkList, i=0; node; node= node->next, i++, projIma++) {
 		projIma->ima = node->link;
-		// calloced - projIma->touch = 0;
+		projIma->touch = 0;
 		projIma->ibuf = BKE_image_get_ibuf(projIma->ima, NULL);
 		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-		// calloced - memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 	}
 	
 	/* we have built the array, discard the linked list */
@@ -3378,7 +3389,7 @@ static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 
 static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPartialRedraw *pr_other, int tot)
 {
-	int touch;
+	int touch= 0;
 	while (tot--) {
 		pr->x1 = MIN2(pr->x1, pr_other->x1);
 		pr->y1 = MIN2(pr->y1, pr_other->y1);
@@ -3506,6 +3517,7 @@ static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const u
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
 	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
 	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
 }
 
 static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
@@ -3514,6 +3526,7 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 	cp[0]= mfac*cp1[0] + fac*cp2[0];
 	cp[1]= mfac*cp1[1] + fac*cp2[1];
 	cp[2]= mfac*cp1[2] + fac*cp2[2];
+	cp[3]= mfac*cp1[3] + fac*cp2[3];
 }
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
@@ -3550,8 +3563,8 @@ static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, floa
 	
 	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
 		return; 
-	
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend);
+	/* ((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
+	blend_color_mix(((ProjPixelClone *)projPixel)->clonepx.ch, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha*mask*255));
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 } 
 
@@ -3564,7 +3577,8 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 		return;
 	
 	IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend);
+	/* (ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend); */
+	blend_color_mix(((ProjPixelClone *)projPixel)->clonepx.ch, rgba_smear, (rgba_ub), (int)(alpha*mask*255)); 
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
@@ -4325,7 +4339,7 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 		) {
 			ImBuf *ibuf;
 			
-			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);
+			newimage = (s->me->mtface+newfaceindex)->tpage;
 			ibuf= BKE_image_get_ibuf(newimage, G.sima?&G.sima->iuser:NULL);
 
 			if(ibuf && ibuf->rect)

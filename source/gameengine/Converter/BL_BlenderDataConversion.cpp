@@ -1298,8 +1298,14 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 				gameobj->SetGraphicController(ctrl);
 				ctrl->setNewClientInfo(gameobj->getClientInfo());
 				ctrl->setLocalAabb(localAabbMin, localAabbMax);
-				if (isActive)
+				if (isActive) {
+					// add first, this will create the proxy handle
 					env->addCcdGraphicController(ctrl);
+					// update the mesh if there is a deformer, this will also update the bounding box for modifiers
+					RAS_Deformer* deformer = gameobj->GetDeformer();
+					if (deformer)
+						deformer->UpdateBuckets();
+				}
 			}
 			break;
 #endif
@@ -1412,6 +1418,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= blenderobject->bsoft->kAHR;			/* Anchors hardness [0,1] */
 			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
+			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 		
 		} else
 		{
@@ -1451,6 +1458,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kAHR= 0.7f;
 			objprop.m_soft_collisionflags= OB_BSB_COL_SDF_RS + OB_BSB_COL_VF_SS;
 			objprop.m_soft_numclusteriterations= 16;
+			objprop.m_soft_welding = 0.f;
 		}
 	}
 
@@ -1528,6 +1536,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		objprop.m_dynamic_parent = parentgameobject;
 		//cannot be dynamic:
 		objprop.m_dyna = false;
+		objprop.m_softbody = false;
 		shapeprops->m_mass = 0.f;
 	}
 
@@ -1613,7 +1622,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
 	Camera* ca = static_cast<Camera*>(ob->data);
-	RAS_CameraData camdata(ca->lens, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
+	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
 	KX_Camera *gamecamera;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);

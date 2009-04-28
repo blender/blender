@@ -36,20 +36,20 @@ class KX_SoundActuator(SCA_IActuator):
 	@type orientation: 3x3 matrix [[float]]
 	
 	@ivar type: Sets the operation mode of the actuator. You can use one of the following constant:
-	            KX_SOUNDACT_PLAYSTOP               (1)
-			    KX_SOUNDACT_PLAYEND                (2)
-			    KX_SOUNDACT_LOOPSTOP               (3)
-			    KX_SOUNDACT_LOOPEND                (4)
-			    KX_SOUNDACT_LOOPBIDIRECTIONAL      (5)
-			    KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP (6)
+				- KX_SOUNDACT_PLAYSTOP               (1)
+				- KX_SOUNDACT_PLAYEND                (2)
+				- KX_SOUNDACT_LOOPSTOP               (3)
+				- KX_SOUNDACT_LOOPEND                (4)
+				- KX_SOUNDACT_LOOPBIDIRECTIONAL      (5)
+				- KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP (6)
 	@type type:	integer
 	
-	@group Play Methods: startSound, pauseSound, stopSound.
+	@group Play Methods: startSound, pauseSound, stopSound
 	"""
 	def setFilename(filename):
 		"""
 		DEPRECATED: Use the filename property instead.
-        Sets the filename of the sound this actuator plays.
+		Sets the filename of the sound this actuator plays.
 		
 		@type filename: string
 		"""

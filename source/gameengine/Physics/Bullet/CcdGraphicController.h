@@ -38,6 +38,8 @@ public:
 
 	void setLocalAabb(const btVector3& aabbMin,const btVector3& aabbMax);
 	void setLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax);
+	virtual void setLocalAabb(const PHY__Vector3& aabbMin,const PHY__Vector3& aabbMax);
+	virtual void setLocalAabb(const float aabbMin[3],const float aabbMax[3]);
 
 	PHY_IMotionState* GetMotionState() { return m_motionState; }
 	void getAabb(btVector3& aabbMin, btVector3& aabbMax);

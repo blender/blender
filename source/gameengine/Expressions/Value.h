@@ -303,10 +303,6 @@ public:
 	
 	
 	STR_String				op2str(VALUE_OPERATOR op);
-	/** enable/disable display of deprecation warnings */
-	static void			SetDeprecationWarnings(bool ignoreDeprecationWarnings);
- 	/** Shows a deprecation warning */
-	static void			ShowDeprecationWarning(const char* method,const char* prop);
 		
 	// setting / getting flags
 	inline void			SetSelected(bool bSelected)								{ m_ValFlags.Selected = bSelected; }
@@ -338,7 +334,6 @@ private:
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
 	int					m_refcount;												// Reference Counter	
 	static	double m_sZeroVec[3];	
-	static bool			m_ignore_deprecation_warnings;
 
 };
 

@@ -1,4 +1,7 @@
-class BL_Shader: # (PyObjectPlus)
+
+from PyObjectPlus import *
+
+class BL_Shader(PyObjectPlus):
 	"""
 	BL_Shader GLSL shaders.
 	

@@ -38,7 +38,7 @@
 
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertActuators.h"
-
+#include "SND_Scene.h"
 // Actuators
 //SCA logiclibrary native logicbricks
 #include "SCA_PropertyActuator.h"

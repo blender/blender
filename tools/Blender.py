@@ -126,8 +126,6 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
 	if lenv['WITH_BF_FFMPEG']:
 		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
-	if lenv['WITH_BF_STATICCXX']:
-		statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
 	if lenv['WITH_BF_OPENEXR']:
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
@@ -141,6 +139,8 @@ def setup_staticlibs(lenv):
 			statlibs += Split(lenv['BF_OPENAL_LIB_STATIC'])
 	if lenv['WITH_BF_STATICOPENGL']:
 		statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
+	if lenv['WITH_BF_STATICCXX']:
+		statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
 
 	if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
 		statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
