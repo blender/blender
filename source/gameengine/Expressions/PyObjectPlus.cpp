@@ -113,13 +113,13 @@ PyMethodDef PyObjectPlus::Methods[] = {
 };
 
 PyAttributeDef PyObjectPlus::Attributes[] = {
-	KX_PYATTRIBUTE_RO_FUNCTION("isValid",		PyObjectPlus, pyattr_get_is_valid),
+	KX_PYATTRIBUTE_RO_FUNCTION("invalid",		PyObjectPlus, pyattr_get_invalid),
 	{NULL} //Sentinel
 };
 
-PyObject* PyObjectPlus::pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {	
-	Py_RETURN_TRUE;
+	Py_RETURN_FALSE;
 }
 
 /*------------------------------
@@ -137,8 +137,8 @@ PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus==NULL) {
-		if(!strcmp("isValid", PyString_AsString(attr))) {
-			Py_RETURN_FALSE;
+		if(!strcmp("invalid", PyString_AsString(attr))) {
+			Py_RETURN_TRUE;
 		}
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
@@ -895,6 +895,57 @@ PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool 
 	}
 	return self->m_proxy;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/* deprecation warning management */
+bool PyObjectPlus::m_ignore_deprecation_warnings(false);
+void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
+{
+	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
+}
+
+void PyObjectPlus::ShowDeprecationWarning(const char* old_way,const char* new_way)
+{
+	if (!m_ignore_deprecation_warnings) {
+		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+		
+		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
+		
+		PyObject *getframe, *frame;
+		PyObject *f_lineno, *f_code, *co_filename;
+		
+		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
+		if (getframe) {
+			frame = PyObject_CallObject(getframe, NULL);
+			if (frame) {
+				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+				f_code= PyObject_GetAttrString(frame, "f_code");
+				if (f_lineno && f_code) {
+					co_filename= PyObject_GetAttrString(f_code, "co_filename");
+					if (co_filename) {
+						
+						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
+						
+						Py_DECREF(f_lineno);
+						Py_DECREF(f_code);
+						Py_DECREF(co_filename);
+						Py_DECREF(frame);
+						return;
+					}
+				}
+				
+				Py_XDECREF(f_lineno);
+				Py_XDECREF(f_code);
+				Py_DECREF(frame);
+			}
+			
+		}
+		PyErr_Clear();
+		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+	}
+}
+
 
 #endif //NO_EXP_PYTHON_EMBEDDING
 

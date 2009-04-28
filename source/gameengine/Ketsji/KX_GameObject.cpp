@@ -1067,7 +1067,6 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 /* ------- python stuff ---------------------------------------------------*/
 
 PyMethodDef KX_GameObject::Methods[] = {
-	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
 	{"applyForce", (PyCFunction)	KX_GameObject::sPyApplyForce, METH_VARARGS},
 	{"applyTorque", (PyCFunction)	KX_GameObject::sPyApplyTorque, METH_VARARGS},
 	{"applyRotation", (PyCFunction)	KX_GameObject::sPyApplyRotation, METH_VARARGS},
@@ -1106,6 +1105,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	// deprecated
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
+	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
 	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
 	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
 	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
@@ -1177,8 +1177,8 @@ PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
 
 PyObject* KX_GameObject::PyEndObject()
 {
-
 	KX_Scene *scene = KX_GetActiveScene();
+	
 	scene->DelayedRemoveObject(this);
 	
 	Py_RETURN_NONE;
@@ -1320,7 +1320,6 @@ PyMappingMethods KX_GameObject::Mapping = {
 	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
 	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
 };
-
 
 PyTypeObject KX_GameObject::Type = {
 	PyObject_HEAD_INIT(NULL)
@@ -2069,17 +2068,20 @@ PyObject* KX_GameObject::PyGetParent()
 
 PyObject* KX_GameObject::PySetParent(PyObject* value)
 {
+	KX_Scene *scene = KX_GetActiveScene();
 	KX_GameObject *obj;
+	
 	if (!ConvertPythonToGameObject(value, &obj, false, "gameOb.setParent(value): KX_GameObject"))
 		return NULL;
 	
-	this->SetParent(KX_GetActiveScene(), obj);
+	this->SetParent(scene, obj);
 	Py_RETURN_NONE;
 }
 
 PyObject* KX_GameObject::PyRemoveParent()
 {
 	KX_Scene *scene = KX_GetActiveScene();
+	
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
 }
@@ -2249,6 +2251,7 @@ PyObject* KX_GameObject::PySetPosition(PyObject* value)
 
 PyObject* KX_GameObject::PySetWorldPosition(PyObject* value)
 {
+	ShowDeprecationWarning("setWorldPosition()", "the worldPosition property");
 	MT_Point3 pos;
 	if (PyVecTo(value, pos))
 	{
@@ -2585,6 +2588,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 "body = Message body (string)"
 "to = Name of object to send the message to")
 {
+	KX_Scene *scene = KX_GetActiveScene();
 	char* subject;
 	char* body = (char *)"";
 	char* to = (char *)"";
@@ -2592,9 +2596,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 
 	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to))
 		return NULL;
-
-	KX_GetActiveScene()->GetNetworkScene()->SendMessage(to, from, subject, body);
-
+	
+	scene->GetNetworkScene()->SendMessage(to, from, subject, body);
 	Py_RETURN_NONE;
 }
 

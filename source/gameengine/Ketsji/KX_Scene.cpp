@@ -255,13 +255,6 @@ KX_Scene::~KX_Scene()
 	Py_DECREF(m_attr_dict);
 }
 
-void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
-{
-	m_projectionmat = pmat;
-}
-
-
-
 RAS_BucketManager* KX_Scene::GetBucketManager()
 {
 	return m_bucketmanager;
@@ -1153,24 +1146,6 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 	gameobj->AddMeshUser();
 }
 
-
-
-MT_CmMatrix4x4& KX_Scene::GetViewMatrix()
-{
-	MT_Scalar cammat[16];
-	m_active_camera->GetWorldToCamera().getValue(cammat);
-	m_viewmat = cammat;
-	return m_viewmat;
-}
-
-
-
-MT_CmMatrix4x4& KX_Scene::GetProjectionMatrix()
-{
-	return m_projectionmat;
-}
-
-
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
@@ -1645,9 +1620,9 @@ PyParentObject KX_Scene::Parents[] = {
 };
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE(KX_Scene, getLightList),
-	KX_PYMETHODTABLE(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE(KX_Scene, getName),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	KX_PYMETHODTABLE(KX_Scene, addObject),
 	
 	{NULL,NULL} //Sentinel
@@ -1665,6 +1640,39 @@ PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return self->GetObjectList()->GetProxy();
 }
 
+PyObject* KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	return self->GetInactiveList()->GetProxy();
+}
+
+PyObject* KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	return self->GetLightList()->GetProxy();
+}
+
+PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	/* With refcounts in this case...
+	 * the new CListValue is owned by python, so its possible python holds onto it longer then the BGE
+	 * however this is the same with "scene.objects + []", when you make a copy by adding lists.
+	 */
+	
+	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	CListValue* clist = new CListValue();
+	
+	/* return self->GetCameras()->GetProxy(); */
+	
+	list<KX_Camera*>::iterator it = self->GetCameras()->begin();
+	while (it != self->GetCameras()->end()) {
+		clist->Add((*it)->AddRef());
+		it++;
+	}
+	
+	return clist->NewProxy(true);
+}
+
 PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
@@ -1672,13 +1680,16 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 }
 
 PyAttributeDef KX_Scene::Attributes[] = {
-	KX_PYATTRIBUTE_RO_FUNCTION("name",			KX_Scene, pyattr_get_name),
-	KX_PYATTRIBUTE_RO_FUNCTION("objects",		KX_Scene, pyattr_get_objects),
-	KX_PYATTRIBUTE_RO_FUNCTION("active_camera",	KX_Scene, pyattr_get_active_camera),
-	KX_PYATTRIBUTE_BOOL_RO("suspended",			KX_Scene, m_suspend),
-	KX_PYATTRIBUTE_BOOL_RO("activity_culling",	KX_Scene, m_activity_culling),
+	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
+	KX_PYATTRIBUTE_RO_FUNCTION("objects",			KX_Scene, pyattr_get_objects),
+	KX_PYATTRIBUTE_RO_FUNCTION("objects_inactive",	KX_Scene, pyattr_get_objects_inactive),	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
+	KX_PYATTRIBUTE_RO_FUNCTION("cameras",			KX_Scene, pyattr_get_cameras),
+	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
+	KX_PYATTRIBUTE_RO_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera),
+	KX_PYATTRIBUTE_BOOL_RO("suspended",				KX_Scene, m_suspend),
+	KX_PYATTRIBUTE_BOOL_RO("activity_culling",		KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
-	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",		KX_Scene, m_dbvt_culling),
+	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",			KX_Scene, m_dbvt_culling),
 	{ NULL }	//Sentinel
 };
 
@@ -1754,6 +1765,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "Returns a list of all lights in the scene.\n"
 )
 {
+	ShowDeprecationWarning("getLightList()", "the lights property");
 	return m_lightlist->GetProxy();
 }
 
@@ -1762,7 +1774,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
 "Returns a list of all game objects in the scene.\n"
 )
 {
-	// ShowDeprecationWarning("getObjectList()", "the objects property"); // XXX Grr, why doesnt this work?
+	ShowDeprecationWarning("getObjectList()", "the objects property");
 	return m_objectlist->GetProxy();
 }
 
@@ -1771,6 +1783,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 "Returns the name of the scene.\n"
 )
 {
+	ShowDeprecationWarning("getName()", "the name property");
 	return PyString_FromString(GetName());
 }
 

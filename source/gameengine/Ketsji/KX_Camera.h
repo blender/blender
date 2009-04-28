@@ -284,6 +284,9 @@ public:
 	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
+	static PyObject*	pyattr_get_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
 	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	

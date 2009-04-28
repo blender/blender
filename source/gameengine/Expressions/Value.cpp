@@ -32,7 +32,6 @@
 //////////////////////////////////////////////////////////////////////
 
 double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
-bool CValue::m_ignore_deprecation_warnings(false);
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
@@ -781,52 +780,3 @@ void CValue::SetValue(CValue* newval)
 	// no one should get here
 	assertd(newval->GetNumber() == 10121969);	
 }
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-/* deprecation warning management */
-void CValue::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
-{
-	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
-}
-
-void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
-{
-	if (!m_ignore_deprecation_warnings) {
-		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
-		
-		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
-		
-		PyObject *getframe, *frame;
-		PyObject *f_lineno, *f_code, *co_filename;
-		
-		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
-		if (getframe) {
-			frame = PyObject_CallObject(getframe, NULL);
-			if (frame) {
-				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-				f_code= PyObject_GetAttrString(frame, "f_code");
-				if (f_lineno && f_code) {
-					co_filename= PyObject_GetAttrString(f_code, "co_filename");
-					if (co_filename) {
-						
-						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
-						
-						Py_DECREF(f_lineno);
-						Py_DECREF(f_code);
-						Py_DECREF(co_filename);
-						Py_DECREF(frame);
-						return;
-					}
-				}
-				
-				Py_XDECREF(f_lineno);
-				Py_XDECREF(f_code);
-				Py_DECREF(frame);
-			}
-			
-		}
-		PyErr_Clear();
-		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
-	}
-}
-
