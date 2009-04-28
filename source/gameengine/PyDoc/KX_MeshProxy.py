@@ -1,7 +1,9 @@
 # $Id$
 # Documentation for KX_MeshProxy
 
-class KX_MeshProxy:
+from SCA_IObject import *
+
+class KX_MeshProxy(SCA_IObject):
 	"""
 	A mesh object.
 	

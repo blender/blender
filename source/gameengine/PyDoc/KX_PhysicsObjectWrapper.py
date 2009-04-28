@@ -1,4 +1,6 @@
-class KX_PhysicsObjectWrapper: # (PyObjectPlus)
+from PyObjectPlus import *
+
+class KX_PhysicsObjectWrapper(PyObjectPlus):
 	"""
 	KX_PhysicsObjectWrapper
 	

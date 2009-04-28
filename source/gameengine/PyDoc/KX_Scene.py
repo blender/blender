@@ -1,7 +1,9 @@
 # $Id$
 # Documentation for KX_Scene.py
 
-class KX_Scene:
+from PyObjectPlus import *
+
+class KX_Scene(PyObjectPlus):
 	"""
 	Scene.
 	
@@ -41,6 +43,12 @@ class KX_Scene:
 	@type name: string
 	@ivar objects: A list of objects in the scene.
 	@type objects: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
+	@ivar objects_inactive: A list of objects on background layers (used for the addObject actuator).
+	@type objects_inactive: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
+	@ivar lights: A list of lights in the scene.
+	@type lights: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_LightObject.KX_LightObject>}
+	@ivar cameras: A list of cameras in the scene.
+	@type cameras: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_Camera.KX_Camera>}
 	@ivar active_camera: The current active camera
 	@type active_camera: L{KX_Camera}
 	@ivar suspended: True if the scene is suspended.
@@ -49,22 +57,26 @@ class KX_Scene:
 	@type activity_culling: boolean
 	@ivar activity_culling_radius: The distance outside which to do activity culling.  Measured in manhattan distance.
 	@type activity_culling_radius: float
+	@group Deprecated: getLightList, getObjectList, getName
 	"""
 	
 	def getLightList():
 		"""
+		DEPRECATED: use the 'lights' property.
 		Returns the list of lights in the scene.
 		
 		@rtype: list [L{KX_LightObject}]
 		"""
 	def getObjectList():
 		"""
+		DEPRECATED: use the 'objects' property.
 		Returns the list of objects in the scene.
 		
 		@rtype: list [L{KX_GameObject}]
 		"""
 	def getName():
 		"""
+		DEPRECATED: use the 'name' property.
 		Returns the name of the scene.
 		
 		@rtype: string

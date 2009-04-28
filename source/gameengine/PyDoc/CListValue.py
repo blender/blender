@@ -1,4 +1,6 @@
-class CListValue: # (PyObjectPlus)
+from CPropValue import *
+
+class CListValue(CPropValue):
 	"""
 	CListValue
 	

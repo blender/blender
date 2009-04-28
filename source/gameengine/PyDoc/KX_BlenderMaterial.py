@@ -1,4 +1,7 @@
-class KX_BlenderMaterial: # (PyObjectPlus)
+
+from PyObjectPlus import *
+
+class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 	"""
 	KX_BlenderMaterial
 	

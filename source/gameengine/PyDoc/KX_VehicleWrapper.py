@@ -1,4 +1,6 @@
-class KX_VehicleWrapper: # (PyObjectPlus)
+from PyObjectPlus import *
+
+class KX_VehicleWrapper(PyObjectPlus):
 	"""
 	KX_VehicleWrapper
 	
