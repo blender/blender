@@ -1890,7 +1890,10 @@ void do_constraintbuts(unsigned short event)
 		/* influence; do not execute actions for 1 dag_flush */
 		if (ob->pose)
 			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-
+		/* walkthrough */
+	case B_CONSTRAINT_CHANGEIKSOLVER:
+		allqueue(REDRAWBUTSOBJECT, 0);
+		/* walkthrough */
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);
@@ -2874,9 +2877,23 @@ void object_panel_constraint(char *context)
 	if(G.obedit==OBACT) return;	// ??
 	
 	conlist = get_active_constraints(OBACT);
-	
+
+	xco = 10;
+	yco = 190;
+	{
+		bArmature *arm = get_armature(ob);
+		if (arm) {
+			uiDefBut(block, LABEL, 0, "Armature IK solver:",	0, yco, 130, 20, NULL, 0.0, 0.0, 0, 0, "Choose the IK solver for IK constraints");
+			uiDefButI(block, MENU, B_CONSTRAINT_CHANGEIKSOLVER, 
+				  "IK Solver%t|Legacy%x0|iTaSc%x1", 
+				  150, yco, 120, 19, &arm->iksolver, 0, 0, 0, 0, "Choose the IK solver for IK constraints");
+			yco -= 30;
+		}
+	}
+
 	if (conlist) {
-		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint", 0, 190, 130, 20, "Add a new constraint");
+
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint", 0, yco, 130, 20, "Add a new constraint");
 		
 		/* print active object or bone */
 		str[0]= 0;
@@ -2887,11 +2904,9 @@ void object_panel_constraint(char *context)
 		else {
 			sprintf(str, "To Object: %s", ob->id.name+2);
 		}
-		uiDefBut(block, LABEL, 1, str,	150, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
-		
+		uiDefBut(block, LABEL, 1, str,	150, yco, 150, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
+		yco -= 30;
 		/* Go through the list of constraints and draw them */
-		xco = 10;
-		yco = 160;
 		
 		for (curcon = conlist->first; curcon; curcon=curcon->next) {
 			/* hrms, the temporal constraint should not draw! */

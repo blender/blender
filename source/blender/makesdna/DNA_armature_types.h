@@ -81,6 +81,8 @@ typedef struct bArmature {
 	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
 	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */
 	int			pathbc, pathac;			/* number of frames before/after current frame of path-calculation for all bones  */
+	int			iksolver;				/* ik solver to use */
+	int			pad;
 } bArmature;
 
 /* armature->flag */
@@ -159,4 +161,9 @@ typedef enum eBone_Flag {
 	BONE_TRANSFORM_CHILD		= (1<<20),	/* Indicates that a parent is also being transformed */
 } eBone_Flag;
 
+/* bArmature->iksolver */
+typedef enum {
+	IKSOLVER_LEGACY = 0,
+	IKSOLVER_ITASC,
+} eArmature_IKSolverType;
 #endif
