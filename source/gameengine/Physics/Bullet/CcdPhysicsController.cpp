@@ -964,7 +964,14 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 			torque	= xform.getBasis()*torque;
 		}
 		if (body)
+		{
+			//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
+			//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
+			const btVector3& angFac = body->getAngularFactor();
+			body->setAngularFactor(1.f);
 			body->applyTorque(torque);
+			body->setAngularFactor(angFac);
+		}
 	}
 }
 
