@@ -36,8 +36,13 @@ double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
 PyTypeObject CValue::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"CValue",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -751,10 +756,28 @@ PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 }
 */
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef CValue_module_def = {
+	{}, /* m_base */
+	"CValue",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	CValueMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 extern "C" {
 	void initCValue(void)
 	{
+#if (PY_VERSION_HEX >= 0x03000000)
+		PyModule_Create(&CValue_module_def);
+#else
 		Py_InitModule("CValue",CValueMethods);
+#endif
 	}
 }
 

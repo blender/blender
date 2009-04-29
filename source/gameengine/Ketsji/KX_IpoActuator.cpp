@@ -413,8 +413,13 @@ int KX_IpoActuator::string2mode(char* modename) {
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_IpoActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_IpoActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,

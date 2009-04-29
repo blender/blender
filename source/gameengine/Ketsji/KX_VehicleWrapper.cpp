@@ -273,8 +273,13 @@ PyObject* KX_VehicleWrapper::PyGetConstraintType(PyObject* args)
 
 //python specific stuff
 PyTypeObject KX_VehicleWrapper::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_VehicleWrapper",
 		sizeof(PyObjectPlus_Proxy),
 		0,

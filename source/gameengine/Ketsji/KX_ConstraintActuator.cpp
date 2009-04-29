@@ -566,8 +566,13 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ConstraintActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_ConstraintActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,

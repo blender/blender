@@ -232,8 +232,13 @@ PyObject* KX_RadarSensor::PyGetConeHeight() {
 /* Python Integration Hooks                                                  */
 /* ------------------------------------------------------------------------- */
 PyTypeObject KX_RadarSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_RadarSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,

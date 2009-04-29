@@ -565,6 +565,19 @@ static struct PyMethodDef physicsconstraints_methods[] = {
 };
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef PhysicsConstraints_module_def = {
+	{}, /* m_base */
+	"PhysicsConstraints",  /* m_name */
+	PhysicsConstraints_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	physicsconstraints_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject*	initPythonConstraintBinding()
 {
@@ -573,10 +586,13 @@ PyObject*	initPythonConstraintBinding()
   PyObject* m;
   PyObject* d;
 
-
+#if (PY_VERSION_HEX >= 0x03000000)
+  m = PyModule_Create(&PhysicsConstraints_module_def);
+#else
   m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
 		     PhysicsConstraints_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);

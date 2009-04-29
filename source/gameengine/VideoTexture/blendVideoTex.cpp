@@ -159,8 +159,25 @@ static void registerAllTypes(void)
 	pyFilterTypes.add(&FilterBGR24Type, "FilterBGR24");
 }
 
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef VideoTexture_module_def = {
+	{}, /* m_base */
+	"VideoTexture",  /* m_name */
+	"Module that allows to play video files on textures in GameBlender.",  /* m_doc */
+	0,  /* m_size */
+	moduleMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 PyObject* initVideoTexture(void) 
 {
+	PyObject * m;
+	
 	// initialize GL extensions
 	//bgl::InitExtensions(0);
 
@@ -175,9 +192,14 @@ PyObject* initVideoTexture(void)
 	if (PyType_Ready(&TextureType) < 0) 
 		return NULL;
 
-	PyObject * m = Py_InitModule4("VideoTexture", moduleMethods,
+#if (PY_VERSION_HEX >= 0x03000000)
+	m = PyModule_Create(&VideoTexture_module_def);
+#else
+	m = Py_InitModule4("VideoTexture", moduleMethods,
 		"Module that allows to play video files on textures in GameBlender.",
 		(PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	
 	if (m == NULL) 
 		return NULL;
 

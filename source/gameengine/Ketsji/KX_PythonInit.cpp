@@ -1073,7 +1073,19 @@ static char Rasterizer_module_documentation[] =
 "This is the Python API for the game engine of Rasterizer"
 ;
 
-
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef GameLogic_module_def = {
+	{}, /* m_base */
+	"GameLogic",  /* m_name */
+	GameLogic_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	game_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack to get gravity hook
 {
@@ -1087,9 +1099,14 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gUseVisibilityTemp=false;
 
 	// Create the module and add the functions
+	
+#if (PY_VERSION_HEX >= 0x03000000)
+	m = PyModule_Create(&GameLogic_module_def);
+#else
 	m = Py_InitModule4("GameLogic", game_methods,
 					   GameLogic_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
@@ -1498,15 +1515,18 @@ void setSandbox(TPythonSecurityLevel level)
  */
 PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
+#if (PY_VERSION_HEX < 0x03000000)
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
+#endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 	Py_Initialize();
 	
+#if (PY_VERSION_HEX < 0x03000000)	
 	if(argv) /* browser plugins dont currently set this */
 		PySys_SetArgv(argc, argv);
-	
+#endif
 	//importBlenderModules()
 	
 	setSandbox(level);
@@ -1530,8 +1550,10 @@ void exitGamePlayerPythonScripting()
  */
 PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
+#if (PY_VERSION_HEX < 0x03000000)
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
+#endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 
@@ -1587,6 +1609,19 @@ void exitGamePythonScripting()
 }
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef Rasterizer_module_def = {
+	{}, /* m_base */
+	"Rasterizer",  /* m_name */
+	Rasterizer_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	rasterizer_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 {
@@ -1599,9 +1634,13 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   PyObject* item;
 
   // Create the module and add the functions
+#if (PY_VERSION_HEX >= 0x03000000)
+  m = PyModule_Create(&Rasterizer_module_def);
+#else
   m = Py_InitModule4("Rasterizer", rasterizer_methods,
 		     Rasterizer_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);
@@ -1651,7 +1690,12 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 	dict = PyModule_GetDict(mod);
 	
 	while (PyDict_Next(dict, &pos, &key, &val)) {
+#if (PY_VERSION_HEX >= 0x03000000)
+		if (PyObject_RichCompareBool(value, val, Py_EQ)) {
+#else
 		if (PyObject_Compare(value, val)==0) {
+#endif
+			
 			ret = key;
 			break;
 		}
@@ -1693,6 +1737,19 @@ static struct PyMethodDef gamekeys_methods[] = {
 };
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef GameKeys_module_def = {
+	{}, /* m_base */
+	"GameKeys",  /* m_name */
+	GameKeys_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	gamekeys_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initGameKeys()
 {
@@ -1701,9 +1758,13 @@ PyObject* initGameKeys()
 	PyObject* item;
 
 	// Create the module and add the functions
+#if (PY_VERSION_HEX >= 0x03000000)
+	m = PyModule_Create(&GameKeys_module_def);
+#else
 	m = Py_InitModule4("GameKeys", gamekeys_methods,
 					   GameKeys_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);

@@ -107,8 +107,13 @@ CValue* SCA_ANDController::GetReplica()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ANDController::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_ANDController",
 	sizeof(PyObjectPlus_Proxy),
 	0,

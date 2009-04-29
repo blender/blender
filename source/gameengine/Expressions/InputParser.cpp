@@ -658,10 +658,29 @@ static PyMethodDef	CParserMethods[] =
 	{ NULL,NULL}	// Sentinel
 };
 
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef Expression_module_def = {
+	{}, /* m_base */
+	"Expression",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	CParserMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 extern "C" {
 	void initExpressionModule(void)
 	{
+#if (PY_VERSION_HEX >= 0x03000000)
+		PyModule_Create(&Expression_module_def);
+#else
 		Py_InitModule("Expression",CParserMethods);
+#endif
 	}
 }
 

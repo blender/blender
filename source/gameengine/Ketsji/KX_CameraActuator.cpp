@@ -369,8 +369,13 @@ bool KX_CameraActuator::string2axischoice(const char *axisString)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_CameraActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_CameraActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
