@@ -3575,6 +3575,24 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
 					case eModifierType_Displace:
 						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
+					case eModifierType_Shrinkwrap:
+						UI_icon_draw(x, y, ICON_MOD_SHRINKWRAP); break;
+					case eModifierType_Cast:
+						UI_icon_draw(x, y, ICON_MOD_CAST); break;
+					case eModifierType_MeshDeform:
+						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;
+					case eModifierType_Bevel:
+						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
+					case eModifierType_Smooth:
+						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
+					case eModifierType_SimpleDeform:
+						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;
+					case eModifierType_Mask:
+						UI_icon_draw(x, y, ICON_MOD_MASK); break;
+					case eModifierType_Cloth:
+						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
+					case eModifierType_Explode:
+						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}

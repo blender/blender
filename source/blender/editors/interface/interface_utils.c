@@ -215,6 +215,24 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_MOD_UVPROJECT;
 	else if(rnatype == &RNA_DisplaceModifier)
 		return ICON_MOD_DISPLACE;
+	else if(rnatype == &RNA_ShrinkwrapModifier)
+		return ICON_MOD_SHRINKWRAP;
+	else if(rnatype == &RNA_CastModifier)
+		return ICON_MOD_CAST;
+	else if(rnatype == &RNA_MeshDeformModifier)
+		return ICON_MOD_MESHDEFORM;
+	else if(rnatype == &RNA_BevelModifier)
+		return ICON_MOD_BEVEL;
+	else if(rnatype == &RNA_SmoothModifier)
+		return ICON_MOD_SMOOTH;
+	else if(rnatype == &RNA_SimpleDeformModifier)
+		return ICON_MOD_SIMPLEDEFORM;
+	else if(rnatype == &RNA_MaskModifier)
+		return ICON_MOD_MASK;
+	else if(rnatype == &RNA_ClothModifier)
+		return ICON_MOD_CLOTH;
+	else if(rnatype == &RNA_ExplodeModifier)
+		return ICON_MOD_EXPLODE;
 	else
 		return ICON_DOT;
 }
