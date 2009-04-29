@@ -28,10 +28,11 @@
  */
 
 #include <wchar.h>
-#include <stdint.h>
 
 #ifndef BIF_EDITFONT_H
 #define BIF_EDITFONT_H
+
+#include "BLO_sys_types.h"
 
 struct Text;
 
