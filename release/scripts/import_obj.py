@@ -587,7 +587,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	# so we need to know weather 
 	multi_line_face= False
 	
-	print '\tpassing obj file "%s"...' % filepath,
+	print '\tparsing obj file "%s"...' % filepath,
 	time_sub= sys.time()
 	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
