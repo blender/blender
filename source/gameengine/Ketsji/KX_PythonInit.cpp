@@ -1098,16 +1098,28 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 
 	gUseVisibilityTemp=false;
 
-	// Create the module and add the functions
-	
-#if (PY_VERSION_HEX >= 0x03000000)
-	m = PyModule_Create(&GameLogic_module_def);
-#else
-	m = Py_InitModule4("GameLogic", game_methods,
-					   GameLogic_module_documentation,
-					   (PyObject*)NULL,PYTHON_API_VERSION);
-#endif
 
+	
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "GameLogic" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+		
+		// Create the module and add the functions	
+#if (PY_VERSION_HEX >= 0x03000000)
+		m = PyModule_Create(&GameLogic_module_def);
+#else
+		m = Py_InitModule4("GameLogic", game_methods,
+						   GameLogic_module_documentation,
+						   (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	}
+	
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
 	
@@ -1562,8 +1574,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	
 	bpy_import_main_set(maggie);
 	
-	/* run this to clear game modules and user modules which
-	 * may contain references to in game data */
+	/* clear user defined modules that may contain data from the last run */
 	clearGameModules();
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
@@ -1583,6 +1594,8 @@ static void clearModule(PyObject *modules, const char *name)
 
 static void clearGameModules()
 {
+	/* references to invalid BGE data is better supported in 2.49+ so dont clear dicts */
+#if 0
 	/* Note, user modules could still reference these modules
 	 * but since the dict's are cleared their members wont be accessible */
 	
@@ -1597,9 +1610,10 @@ static void clearGameModules()
 	clearModule(modules, "Mathutils");	
 	clearModule(modules, "BGL");	
 	PyErr_Clear(); // incase some of these were alredy removed.
+#endif
 	
-	/* clear user defined modules */
-	bpy_text_clear_modules();
+	/* clear user defined modules, arg '1' for clear external py modules too */
+	bpy_text_clear_modules(1);
 }
 
 void exitGamePythonScripting()
@@ -1633,14 +1647,25 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   PyObject* d;
   PyObject* item;
 
-  // Create the module and add the functions
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "Rasterizer" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
+		// Create the module and add the functions
 #if (PY_VERSION_HEX >= 0x03000000)
-  m = PyModule_Create(&Rasterizer_module_def);
+		m = PyModule_Create(&Rasterizer_module_def);
 #else
-  m = Py_InitModule4("Rasterizer", rasterizer_methods,
+		m = Py_InitModule4("Rasterizer", rasterizer_methods,
 		     Rasterizer_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
 #endif
+	}
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);
@@ -1756,15 +1781,25 @@ PyObject* initGameKeys()
 	PyObject* m;
 	PyObject* d;
 	PyObject* item;
-
-	// Create the module and add the functions
+	
+	/* Use existing module where possible */
+	m = PyImport_ImportModule( "GameKeys" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
+		// Create the module and add the functions
 #if (PY_VERSION_HEX >= 0x03000000)
-	m = PyModule_Create(&GameKeys_module_def);
+		m = PyModule_Create(&GameKeys_module_def);
 #else
-	m = Py_InitModule4("GameKeys", gamekeys_methods,
+		m = Py_InitModule4("GameKeys", gamekeys_methods,
 					   GameKeys_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
 #endif
+	}
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);

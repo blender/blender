@@ -272,7 +272,12 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", blender_reload, METH_VARAR
  * Its also needed for the BGE Python api so imported scripts are not used between levels
  * 
  * This clears every modules that has a __file__ attribute (is not a builtin)
- * and is a filename only (no path). since pythons bultins include a full path even for win32.
+ *
+ * Note that clearing external python modules is important for the BGE otherwise
+ * it wont reload scripts between loading different blend files or while making the game.
+ * - use 'clear_all' arg in this case.
+ *
+ * Since pythons bultins include a full path even for win32.
  * even if we remove a python module a reimport will bring it back again.
  */
 
@@ -284,7 +289,7 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", blender_reload, METH_VARAR
 #endif
 
 
-void bpy_text_clear_modules(void)
+void bpy_text_clear_modules(int clear_all)
 {
 	PyObject *modules= PySys_GetObject("modules");
 	
@@ -309,7 +314,7 @@ void bpy_text_clear_modules(void)
 	while (PyDict_Next(modules, &pos, &key, &value)) {
 		fname= PyModule_GetFilename(value);
 		if(fname) {
-			if ((strstr(fname, SEPSTR))==0) { /* no path ? */
+			if (clear_all || ((strstr(fname, SEPSTR))==0)) { /* no path ? */
 				file_extension = strstr(fname, ".py");
 				if(file_extension && *(file_extension + 3) == '\0') { /* .py extension ? */
 					/* now we can be fairly sure its a python import from the blendfile */

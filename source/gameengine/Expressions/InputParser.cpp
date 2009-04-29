@@ -676,11 +676,23 @@ static struct PyModuleDef Expression_module_def = {
 extern "C" {
 	void initExpressionModule(void)
 	{
+		PyObject *m;
+		/* Use existing module where possible
+		 * be careful not to init any runtime vars after this */
+		m = PyImport_ImportModule( "Expression" );
+		if(m) {
+			Py_DECREF(m);
+			return m;
+		}
+		else {
+			PyErr_Clear();
+		
 #if (PY_VERSION_HEX >= 0x03000000)
-		PyModule_Create(&Expression_module_def);
+			PyModule_Create(&Expression_module_def);
 #else
-		Py_InitModule("Expression",CParserMethods);
+			Py_InitModule("Expression",CParserMethods);
 #endif
+		}
 	}
 }
 

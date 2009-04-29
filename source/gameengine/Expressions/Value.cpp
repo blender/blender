@@ -773,11 +773,23 @@ static struct PyModuleDef CValue_module_def = {
 extern "C" {
 	void initCValue(void)
 	{
+		PyObject *m;
+		/* Use existing module where possible
+		 * be careful not to init any runtime vars after this */
+		m = PyImport_ImportModule( "CValue" );
+		if(m) {
+			Py_DECREF(m);
+			return m;
+		}
+		else {
+			PyErr_Clear();
+		
 #if (PY_VERSION_HEX >= 0x03000000)
-		PyModule_Create(&CValue_module_def);
+			PyModule_Create(&CValue_module_def);
 #else
-		Py_InitModule("CValue",CValueMethods);
+			Py_InitModule("CValue",CValueMethods);
 #endif
+		}
 	}
 }
 

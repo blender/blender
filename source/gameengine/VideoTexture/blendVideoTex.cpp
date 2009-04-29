@@ -192,13 +192,24 @@ PyObject* initVideoTexture(void)
 	if (PyType_Ready(&TextureType) < 0) 
 		return NULL;
 
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "VideoTexture" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
 #if (PY_VERSION_HEX >= 0x03000000)
-	m = PyModule_Create(&VideoTexture_module_def);
+		m = PyModule_Create(&VideoTexture_module_def);
 #else
-	m = Py_InitModule4("VideoTexture", moduleMethods,
-		"Module that allows to play video files on textures in GameBlender.",
-		(PyObject*)NULL,PYTHON_API_VERSION);
+		m = Py_InitModule4("VideoTexture", moduleMethods,
+			"Module that allows to play video files on textures in GameBlender.",
+			(PyObject*)NULL,PYTHON_API_VERSION);
 #endif
+	}
 	
 	if (m == NULL) 
 		return NULL;
@@ -209,9 +220,10 @@ PyObject* initVideoTexture(void)
 
 	Py_INCREF(&TextureType);
 	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
-
+	
 	// init last error description
 	Exception::m_lastError[0] = '\0';
+	
 	return m;
 }
 

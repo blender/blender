@@ -586,13 +586,24 @@ PyObject*	initPythonConstraintBinding()
   PyObject* m;
   PyObject* d;
 
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "PhysicsConstraints" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
 #if (PY_VERSION_HEX >= 0x03000000)
-  m = PyModule_Create(&PhysicsConstraints_module_def);
+		m = PyModule_Create(&PhysicsConstraints_module_def);
 #else
-  m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
+		m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
 		     PhysicsConstraints_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
 #endif
+	}
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);
