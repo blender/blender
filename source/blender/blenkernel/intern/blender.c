@@ -423,18 +423,31 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	MEM_freeN(bfd);
 }
 
-static void handle_subversion_warning(Main *main)
+static int handle_subversion_warning(Main *main)
 {
 	if(main->minversionfile > BLENDER_VERSION ||
 	   (main->minversionfile == BLENDER_VERSION && 
 		 main->minsubversionfile > BLENDER_SUBVERSION)) {
 		
+		extern int okee(char *str, ...);	// XXX BAD LEVEL, DO NOT PORT TO 2.5!
 		char str[128];
-		
-		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
-		error(str);
+
+		if(main->minversionfile >= 250) {
+			sprintf(str, "You have opened a %d file, key information will get lost, like animation data. Continue?", main->minversionfile);
+			
+			if(G.background) {
+				printf("ERROR: cannot render %d file\n", main->versionfile);
+				return 0;
+			}
+			else
+				return okee(str);
+		}
+		else {
+			sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
+			error(str);
+		}
 	}
-		
+	return 1;
 }
 
 /* returns:
@@ -458,9 +471,14 @@ int BKE_read_file(char *dir, void *type_r)
 		if (type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, dir);
+		if(0==handle_subversion_warning(bfd->main)) {
+			free_main(bfd->main);
+			MEM_freeN(bfd);
+			bfd= NULL;
+		}
+		else
+			setup_app_data(bfd, dir); // frees BFD
 		
-		handle_subversion_warning(G.main);
 	} 
 	else {
 		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
