@@ -402,6 +402,7 @@ static void ui_theme_init_new(bTheme *btheme)
 }
 
 #define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+#define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
 
 /* initialize default theme, can't be edited
    Note: when you add new colors, created & saved themes need initialized
@@ -431,17 +432,17 @@ void ui_theme_init_userdef(void)
 	ui_theme_init_new(btheme);
 	
 	/* space view3d */
-	SETCOL(btheme->tv3d.back,       90, 90, 90, 255);
+	SETCOLF(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	SETCOL(btheme->tv3d.text,       0, 0, 0, 255);
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
-	SETCOL(btheme->tv3d.header,		185, 185, 185, 255);
+	SETCOLF(btheme->tv3d.header,	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
-	SETCOL(btheme->tv3d.grid,       74, 74, 74	, 255);
+	SETCOLF(btheme->tv3d.grid,     0.222, 0.222, 0.222, 1.0);
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
@@ -471,19 +472,16 @@ void ui_theme_init_userdef(void)
 	/* to have something initialized */
 	btheme->tbuts= btheme->tv3d;
 
-	SETCOL(btheme->tbuts.back, 	0x82, 0x82, 0x82, 255);
-	SETCOL(btheme->tbuts.header, 185, 185, 185, 255);
+	SETCOLF(btheme->tbuts.back, 	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tbuts.panel, 0x82, 0x82, 0x82, 255);
 
-	/* space ipo */
-	/* to have something initialized */
+	/* graph editor */
 	btheme->tipo= btheme->tv3d;
-
+	SETCOLF(btheme->tipo.back, 	0.42, 0.42, 0.42, 1.0);
+	SETCOLF(btheme->tipo.list, 	0.4, 0.4, 0.4, 1.0);
 	SETCOL(btheme->tipo.grid, 	94, 94, 94, 255);
-	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
-	SETCOL(btheme->tipo.header, 185, 185, 185, 255);
 	SETCOL(btheme->tipo.panel,  255, 255, 255, 150);
-	SETCOL(btheme->tipo.shade1,		172, 172, 172, 100);
+	SETCOL(btheme->tipo.shade1,		150, 150, 150, 100);	/* scrollbars */
 	SETCOL(btheme->tipo.shade2,		0x70, 0x70, 0x70, 100);
 	SETCOL(btheme->tipo.vertex,		0, 0, 0, 255);
 	SETCOL(btheme->tipo.vertex_select, 255, 133, 0, 255);
@@ -499,13 +497,15 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tipo.group, 79, 101, 73, 255);
 	SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
 
+	/* dopesheet */
+	btheme->tact= btheme->tipo;
+
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
 	SETCOL(btheme->tfile.back, 	90, 90, 90, 255);
 	SETCOL(btheme->tfile.text, 	250, 250, 250, 255);
 	SETCOL(btheme->tfile.text_hi, 15, 15, 15, 255);
-	SETCOL(btheme->tfile.header, 185, 185, 185, 255);
 	SETCOL(btheme->tfile.panel, 180, 180, 180, 255);	// bookmark/ui regions
 	SETCOL(btheme->tfile.active, 130, 130, 130, 255); // selected files
 	SETCOL(btheme->tfile.hilite, 255, 140, 25, 255); // selected files
@@ -516,31 +516,13 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tfile.scene,	250, 250, 250, 255);
 
 	
-	/* space action */
-	btheme->tact= btheme->tv3d;
-	SETCOL(btheme->tact.back, 	116, 116, 116, 255);
-	SETCOL(btheme->tact.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tact.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tact.header, 185, 185, 185, 255);
-	SETCOL(btheme->tact.grid,  94, 94, 94, 255);
-	SETCOL(btheme->tact.face,  166, 166, 166, 255);	// RVK
-	SETCOL(btheme->tact.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tact.shade2,  74, 74, 74, 100);	// bar
-	SETCOL(btheme->tact.hilite,  255, 160, 0, 100);	// bar
-	SETCOL(btheme->tact.strip_select, 	255, 160, 0, 255);
-	SETCOL(btheme->tact.strip, 78, 78, 78, 255);
-	SETCOL(btheme->tact.group, 79, 101, 73, 255);
-	SETCOL(btheme->tact.group_active, 135, 177, 125, 255)
-	SETCOL(btheme->tact.ds_channel, 82, 96, 110, 255);
-	SETCOL(btheme->tact.ds_subchannel, 124, 137, 150, 255);
-
+	
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
 	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
 	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
 	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tnla.header, 185, 185, 185, 255);
 	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
 	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
 	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
@@ -577,7 +559,6 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
 	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
 	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.header,	185, 185, 185, 255);
 	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
 	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
 	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
@@ -601,17 +582,17 @@ void ui_theme_init_userdef(void)
 	
 	/* space oops */
 	btheme->toops= btheme->tv3d;
-	SETCOL(btheme->toops.back, 	153, 153, 153, 255);
-
+	SETCOLF(btheme->toops.back, 	0.45, 0.45, 0.45, 1.0);
+	
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
 	SETCOL(btheme->tinfo.back, 	153, 153, 153, 255);
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
-	SETCOL(btheme->tsnd.back, 	153, 153, 153, 255);
+	SETCOLF(btheme->tsnd.back, 	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tsnd.grid, 	0.36, 0.36, 0.36, 1.0);
 	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
-	SETCOL(btheme->tsnd.grid, 140, 140, 140, 255);
 	
 	/* space time */
 	btheme->ttime= btheme->tsnd;	// same as sound space

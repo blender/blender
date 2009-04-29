@@ -942,8 +942,8 @@ static struct uiWidgetColors wcol_text= {
 
 static struct uiWidgetColors wcol_option= {
 	{0, 0, 0, 255},
-	{63, 63, 63, 255},
-	{63, 63, 63, 255},
+	{70, 70, 70, 255},
+	{70, 70, 70, 255},
 	{255, 255, 255, 255},
 	
 	{0, 0, 0, 255},
@@ -956,8 +956,8 @@ static struct uiWidgetColors wcol_option= {
 /* button that shows popup */
 static struct uiWidgetColors wcol_menu= {
 	{0, 0, 0, 255},
-	{63, 63, 63, 255},
-	{63, 63, 63, 255},
+	{70, 70, 70, 255},
+	{70, 70, 70, 255},
 	{255, 255, 255, 255},
 	
 	{255, 255, 255, 255},
@@ -971,10 +971,10 @@ static struct uiWidgetColors wcol_menu= {
 static struct uiWidgetColors wcol_pulldown= {
 	{0, 0, 0, 255},
 	{63, 63, 63, 255},
-	{46, 124, 217, 255},
+	{86, 128, 194, 255},
 	{255, 255, 255, 255},
 	
-	{255, 255, 255, 255},
+	{0, 0, 0, 255},
 	{0, 0, 0, 255},
 	
 	0,
@@ -984,8 +984,8 @@ static struct uiWidgetColors wcol_pulldown= {
 /* button inside menu */
 static struct uiWidgetColors wcol_menu_item= {
 	{0, 0, 0, 255},
-	{0, 0, 0, 76},
-	{59, 135, 230, 255},
+	{0, 0, 0, 0},
+	{86, 128, 194, 255},
 	{255, 255, 255, 255},
 	
 	{255, 255, 255, 255},
@@ -998,7 +998,7 @@ static struct uiWidgetColors wcol_menu_item= {
 /* backdrop menu + title text color */
 static struct uiWidgetColors wcol_menu_back= {
 	{0, 0, 0, 255},
-	{0, 0, 0, 153},
+	{25, 25, 25, 230},
 	{46, 124, 217, 204},
 	{255, 255, 255, 255},
 	
@@ -1012,7 +1012,7 @@ static struct uiWidgetColors wcol_menu_back= {
 
 static struct uiWidgetColors wcol_radio= {
 	{0, 0, 0, 255},
-	{63, 63, 63, 255},
+	{70, 70, 70, 255},
 	{86, 128, 194, 255},
 	{255, 255, 255, 255},
 	

@@ -241,6 +241,16 @@ static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_TRANSFORM:
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_GEOM_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 }
 
