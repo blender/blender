@@ -1131,7 +1131,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		ct= chartransdata;
 		if (cu->sepchar==0) {
 		for (i= 0; i<slen; i++) {
-			cha = (unsigned long) mem[i];
+			cha = (uintptr_t) mem[i];
 			info = &(cu->strinfo[i]);
 			if (info->mat_nr > (ob->totcol)) {
 				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */

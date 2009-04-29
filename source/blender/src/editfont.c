@@ -241,7 +241,7 @@ void update_string(Curve *cu)
 	wcs2utf8s(cu->str, textbuf);
 }
 
-static int insert_into_textbuf(Curve *cu, unsigned long c)
+static int insert_into_textbuf(Curve *cu, uintptr_t c)
 {
 	if (cu->len<MAXTEXT-1) {
 		int x;
@@ -620,12 +620,12 @@ int mat_to_sel(void) {
 	return 0;
 }
 
-void do_textedit(unsigned short event, short val, unsigned long _ascii)
+void do_textedit(unsigned short event, short val, uintptr_t _ascii)
 {
 	Curve *cu;
 	static int accentcode= 0;
 	int x, doit=0, cursmove=0;
-	unsigned long ascii = _ascii;
+	uintptr_t ascii = _ascii;
 	short kern;
 
 	cu= G.obedit->data;

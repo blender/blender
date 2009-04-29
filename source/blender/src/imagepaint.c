@@ -334,7 +334,7 @@ typedef struct UndoTile {
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
 	char name[MAXUNDONAME];
-	unsigned long undosize;
+	uintptr_t undosize;
 
 	ImBuf *ibuf;
 	ListBase tiles;
@@ -478,12 +478,12 @@ static void undo_imagepaint_push_begin(char *name)
 static void undo_imagepaint_push_end()
 {
 	UndoElem *uel;
-	unsigned long totmem, maxmem;
+	uintptr_t totmem, maxmem;
 
 	if(U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
 		totmem= 0;
-		maxmem= ((unsigned long)U.undomemory)*1024*1024;
+		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
 
 		uel= undobase.last;
 		while(uel) {
