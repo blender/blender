@@ -268,7 +268,6 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 			// 'normal' object
 			glMultMatrixd(oglmatrix);
 		}
-		glMultMatrixd(oglmatrix);
 	}
 }
 
