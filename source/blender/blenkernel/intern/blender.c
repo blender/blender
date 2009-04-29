@@ -429,7 +429,6 @@ static int handle_subversion_warning(Main *main)
 	   (main->minversionfile == BLENDER_VERSION && 
 		 main->minsubversionfile > BLENDER_SUBVERSION)) {
 		
-		extern int okee(char *str, ...);	// XXX BAD LEVEL, DO NOT PORT TO 2.5!
 		char str[128];
 
 		if(main->minversionfile >= 250) {
@@ -437,10 +436,9 @@ static int handle_subversion_warning(Main *main)
 			
 			if(G.background) {
 				printf("ERROR: cannot render %d file\n", main->versionfile);
-				return 0;
 			}
-			else
-				return okee(str);
+			error(str);
+			return 0;
 		}
 		else {
 			sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
@@ -475,6 +473,7 @@ int BKE_read_file(char *dir, void *type_r)
 			free_main(bfd->main);
 			MEM_freeN(bfd);
 			bfd= NULL;
+			retval= 0;
 		}
 		else
 			setup_app_data(bfd, dir); // frees BFD
