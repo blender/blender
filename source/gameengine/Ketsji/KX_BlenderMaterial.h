@@ -24,11 +24,13 @@ class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 public:
 	// --------------------------------
 	KX_BlenderMaterial(
+		PyTypeObject*	T=&Type
+	);
+	void Initialize(
 		class KX_Scene*	scene,
 		BL_Material*	mat,
 		bool			skin,
-		int				lightlayer,
-		PyTypeObject*	T=&Type
+		int				lightlayer
 	);
 
 	virtual ~KX_BlenderMaterial();

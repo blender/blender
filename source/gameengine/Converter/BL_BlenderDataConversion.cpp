@@ -318,7 +318,8 @@ typedef struct MTF_localLayer
 }MTF_localLayer;
 
 // ------------------------------------
-BL_Material* ConvertMaterial(
+bool ConvertMaterial(
+	BL_Material *material,
 	Material *mat, 
 	MTFace* tface,  
 	const char *tfaceName,
@@ -329,9 +330,7 @@ BL_Material* ConvertMaterial(
 	MTF_localLayer *layers,
 	bool glslmat)
 {
-	//this needs some type of manager
-	BL_Material *material = new BL_Material();
-
+	material->Initialize();
 	int numchan =	-1, texalpha = 0;
 	bool validmat	= (mat!=0);
 	bool validface	= (tface!=0);
@@ -720,7 +719,7 @@ BL_Material* ConvertMaterial(
 
 	material->tface		= tface;
 	material->material	= mat;
-	return material;
+	return true;
 }
 
 
@@ -781,6 +780,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 	meshobj->SetName(mesh->id.name);
 	meshobj->m_sharedvertex_map.resize(totvert);
+	RAS_IPolyMaterial* polymat = NULL;
+	STR_String imastr;
+	// These pointers will hold persistent material structure during the conversion
+	// to avoid countless allocation/deallocation of memory.
+	BL_Material* bl_mat = NULL;
+	KX_BlenderMaterial* kx_blmat = NULL;
+	KX_PolygonMaterial* kx_polymat = NULL;
 
 	for (int f=0;f<totface;f++,mface++)
 	{
@@ -843,8 +849,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		{
 			bool visible = true;
 			bool twoside = false;
-			RAS_IPolyMaterial* polymat = NULL;
-			BL_Material *bl_mat = NULL;
 
 			if(converter->GetMaterials()) {
 				/* do Blender Multitexture and Blender GLSL materials */
@@ -852,7 +856,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				MT_Point2 uv[4];
 
 				/* first is the BL_Material */
-				bl_mat = ConvertMaterial(ma, tface, tfaceName, mface, mcol,
+				if (!bl_mat)
+					bl_mat = new BL_Material();
+				ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
 					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
@@ -873,13 +879,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				uv22 = uv[2]; uv23 = uv[3];
 				
 				/* then the KX_BlenderMaterial */
-				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer);
+				if (kx_blmat == NULL)
+					kx_blmat = new KX_BlenderMaterial();
 
+				kx_blmat->Initialize(scene, bl_mat, skinMesh, lightlayer);
+				polymat = static_cast<RAS_IPolyMaterial*>(kx_blmat);
 			}
 			else {
 				/* do Texture Face materials */
 				Image* bima = (tface)? (Image*)tface->tpage: NULL;
-				STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
+				imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
 		
 				char transp=0;
 				short mode=0, tile=0;
@@ -957,9 +966,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				bool alpha = (transp == TF_ALPHA || transp == TF_ADD);
 				bool zsort = (mode & TF_ALPHASORT)? alpha: 0;
 
-				polymat = new KX_PolygonMaterial(imastr, ma, (int)mface->mat_nr,
+				if (kx_polymat == NULL)
+					kx_polymat = new KX_PolygonMaterial();
+				kx_polymat->Initialize(imastr, ma, (int)mface->mat_nr,
 					tile, tilexrep, tileyrep, 
 					mode, transp, alpha, zsort, lightlayer, tface, (unsigned int*)mcol);
+				polymat = static_cast<RAS_IPolyMaterial*>(kx_polymat);
 	
 				if (ma) {
 					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
@@ -984,15 +996,17 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				converter->RegisterPolyMaterial(polymat);
 				if(converter->GetMaterials()) {
 					converter->RegisterBlenderMaterial(bl_mat);
+					// the poly material has been stored in the bucket, next time we must create a new one
+					bl_mat = NULL;
+					kx_blmat = NULL;
+				} else {
+					// the poly material has been stored in the bucket, next time we must create a new one
+					kx_polymat = NULL;
 				}
 			} else {
-				// delete the material objects since they are no longer needed
 				// from now on, use the polygon material from the material bucket
-				delete polymat;
-				if(converter->GetMaterials()) {
-					delete bl_mat;
-				}
 				polymat = bucket->GetPolyMaterial();
+				// keep the material pointers, they will be reused for next face
 			}
 						 
 			int nverts = (mface->v4)? 4: 3;
@@ -1036,7 +1050,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		delete []layers;
 	
 	dm->release(dm);
-
+	// cleanup material
+	if (bl_mat)
+		delete bl_mat;
+	if (kx_blmat)
+		delete kx_blmat;
+	if (kx_polymat)
+		delete kx_polymat;
 	return meshobj;
 }
 

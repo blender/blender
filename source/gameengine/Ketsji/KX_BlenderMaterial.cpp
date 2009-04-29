@@ -43,16 +43,30 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 //static PyObject *gTextureDict = 0;
 
 KX_BlenderMaterial::KX_BlenderMaterial(
-    KX_Scene *scene,
-	BL_Material *data,
-	bool skin,
-	int lightlayer,
 	PyTypeObject *T
 	)
 :	PyObjectPlus(T),
-	RAS_IPolyMaterial(
-		STR_String( data->texname[0] ),
-		STR_String( data->matname ), // needed for physics!
+	RAS_IPolyMaterial(),
+	mMaterial(NULL),
+	mShader(0),
+	mBlenderShader(0),
+	mScene(NULL),
+	mUserDefBlend(0),
+	mModified(0),
+	mConstructed(false),
+	mPass(0)
+{
+}
+
+void KX_BlenderMaterial::Initialize(
+    KX_Scene *scene,
+	BL_Material *data,
+	bool skin,
+	int lightlayer)
+{
+	RAS_IPolyMaterial::Initialize(
+		data->texname[0],
+		data->matname,
 		data->materialindex,
 		data->tile,
 		data->tilexrep[0],
@@ -62,17 +76,15 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 		((data->ras_mode &ALPHA)!=0),
 		((data->ras_mode &ZSORT)!=0),
 		lightlayer
-	),
-	mMaterial(data),
-	mShader(0),
-	mBlenderShader(0),
-	mScene(scene),
-	mUserDefBlend(0),
-	mModified(0),
-	mConstructed(false),
-	mPass(0)
-
-{
+	);
+	mMaterial = data;
+	mShader = 0;
+	mBlenderShader = 0;
+	mScene = scene;
+	mUserDefBlend = 0;
+	mModified = 0;
+	mConstructed = false;
+	mPass = 0;
 	// --------------------------------
 	// RAS_IPolyMaterial variables... 
 	m_flag |= RAS_BLENDERMAT;
@@ -96,7 +108,6 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 			 );
 	}
 	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
-
 }
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
@@ -106,7 +117,6 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		// clean only if material was actually used
 		OnExit();
 }
-
 
 MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {

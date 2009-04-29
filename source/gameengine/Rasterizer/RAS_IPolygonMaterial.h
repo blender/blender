@@ -100,6 +100,7 @@ public:
 		SHADOW				  =8192
 	};
 
+	RAS_IPolyMaterial::RAS_IPolyMaterial();
 	RAS_IPolyMaterial(const STR_String& texname,
 					  const STR_String& matname,
 					  int materialindex,
@@ -111,6 +112,17 @@ public:
 					  bool alpha,
 					  bool zsort,
 					  int lightlayer);
+	void Initialize(const STR_String& texname,
+					const STR_String& matname,
+					int materialindex,
+					int tile,
+					int tilexrep,
+					int tileyrep,
+					int mode,
+					int transp,
+					bool alpha,
+					bool zsort,
+					int lightlayer);
 	virtual ~RAS_IPolyMaterial() {};
  
 	/**
@@ -151,7 +163,6 @@ public:
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
-
 	/*
 	 * PreCalculate texture gen
 	 */

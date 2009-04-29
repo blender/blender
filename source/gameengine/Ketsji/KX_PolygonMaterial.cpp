@@ -51,23 +51,36 @@
 
 #include "KX_PyMath.h"
 
-KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
-											   Material *material,
-											   int materialindex,
-											   int tile,
-											   int tilexrep,
-											   int tileyrep,
-											   int mode,
-											   int transp,
-											   bool alpha,
-											   bool zsort,
-											   int lightlayer,
-											   struct MTFace* tface,
-											   unsigned int* mcol,
-											   PyTypeObject *T)
+KX_PolygonMaterial::KX_PolygonMaterial(PyTypeObject *T) 
 		: PyObjectPlus(T),
-		  RAS_IPolyMaterial(texname,
-							STR_String(material?material->id.name:""),
+		  RAS_IPolyMaterial(),
+
+	m_tface(NULL),
+	m_mcol(NULL),
+	m_material(NULL),
+	m_pymaterial(NULL),
+	m_pass(0)
+{
+}
+
+void KX_PolygonMaterial::Initialize(
+		const STR_String &texname,
+		Material* ma,
+		int materialindex,
+		int tile,
+		int tilexrep,
+		int tileyrep,
+		int mode,
+		int transp,
+		bool alpha,
+		bool zsort,
+		int lightlayer,
+		struct MTFace* tface,
+		unsigned int* mcol)
+{
+	RAS_IPolyMaterial::Initialize(
+							texname,
+							ma?ma->id.name:"",
 							materialindex,
 							tile,
 							tilexrep,
@@ -76,13 +89,12 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 							transp,
 							alpha,
 							zsort,
-							lightlayer),
-		m_tface(tface),
-		m_mcol(mcol),
-		m_material(material),
-		m_pymaterial(0),
-		m_pass(0)
-{
+							lightlayer);
+	m_tface = tface;
+	m_mcol = mcol;
+	m_material = ma;
+	m_pymaterial = 0;
+	m_pass = 0;
 }
 
 KX_PolygonMaterial::~KX_PolygonMaterial()
