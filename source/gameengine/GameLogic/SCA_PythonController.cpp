@@ -323,7 +323,7 @@ bool SCA_PythonController::Import()
 		return false;
 	}
 	
-	PyObject *mod = PyImport_ImportModule(module_func[0]);
+	PyObject *mod = PyImport_ImportModule((char *)module_func[0].Ptr());
 	if(mod && m_debug) {
 		Py_DECREF(mod); /* getting a new one so dont hold a ref to the old one */
 		mod= PyImport_ReloadModule(mod);
