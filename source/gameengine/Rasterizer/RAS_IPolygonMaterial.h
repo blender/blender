@@ -100,7 +100,7 @@ public:
 		SHADOW				  =8192
 	};
 
-	RAS_IPolyMaterial::RAS_IPolyMaterial();
+	RAS_IPolyMaterial();
 	RAS_IPolyMaterial(const STR_String& texname,
 					  const STR_String& matname,
 					  int materialindex,
