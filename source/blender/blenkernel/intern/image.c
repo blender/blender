@@ -640,6 +640,11 @@ static uintptr_t image_mem_size(Image *ima)
 	uintptr_t size = 0;
 
 	size= 0;
+	
+	/* viewers have memory depending on other rules, has no valid rect pointer */
+	if(ima->source==IMA_SRC_VIEWER)
+		return 0;
+	
 	for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
 		if(ibuf->rect) size += MEM_allocN_len(ibuf->rect);
 		else if(ibuf->rect_float) size += MEM_allocN_len(ibuf->rect_float);
