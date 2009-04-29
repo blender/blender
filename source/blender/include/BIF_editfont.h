@@ -46,7 +46,7 @@ typedef struct unicodect
 	int   end;
 } unicodect;
 
-void do_textedit(unsigned short event, short val, unsigned long _ascii);
+void do_textedit(unsigned short event, short val, uintptr_t _ascii);
 void make_editText(void);
 void load_editText(void);
 void remake_editText(void);
