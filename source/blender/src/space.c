@@ -5023,7 +5023,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case LEFTMOUSE:
-			if(sseq->mainb==0 && view2dmove(event)==0) {
+			if(sseq->mainb==0 || view2dmove(event)==0) {
 				
 				first= 1;		
 				set_special_seq_update(1);
