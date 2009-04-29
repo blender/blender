@@ -1169,6 +1169,9 @@ static void copy_object_pose(Object *obn, Object *ob)
 			 * is changed to object->proxy_from when evaluating the driver. */
 			if(con->ipo && !con->ipo->id.lib) {
 				IpoCurve *icu;
+				
+				con->ipo= copy_ipo(con->ipo);
+				
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
 					if(icu->driver && icu->driver->ob==ob)
 						icu->driver->ob= obn;
