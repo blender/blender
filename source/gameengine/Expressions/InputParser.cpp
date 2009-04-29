@@ -682,7 +682,7 @@ extern "C" {
 		m = PyImport_ImportModule( "Expression" );
 		if(m) {
 			Py_DECREF(m);
-			return m;
+			//return m;
 		}
 		else {
 			PyErr_Clear();
