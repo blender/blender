@@ -48,12 +48,17 @@ SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 
 SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
+										   int mode,
 										   PyTypeObject* T)
 	: SCA_IController(gameobj, T),
 	m_bytecode(NULL),
+	m_function(NULL),
 	m_bModified(true),
+	m_debug(false),
+	m_mode(mode),
 	m_pythondictionary(NULL)
 {
+	
 }
 
 /*
@@ -74,15 +79,12 @@ int			SCA_PythonController::Release()
 
 SCA_PythonController::~SCA_PythonController()
 {
-	if (m_bytecode)
-	{
-		//
-		//printf("released python byte script\n");
-		Py_DECREF(m_bytecode);
-	}
+	//printf("released python byte script\n");
 	
-	if (m_pythondictionary)
-	{
+	Py_XDECREF(m_bytecode);
+	Py_XDECREF(m_function);
+	
+	if (m_pythondictionary) {
 		// break any circular references in the dictionary
 		PyDict_Clear(m_pythondictionary);
 		Py_DECREF(m_pythondictionary);
@@ -95,7 +97,7 @@ CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
 	// Copy the compiled bytecode if possible.
-	Py_XINCREF(replica->m_bytecode);
+	Py_XINCREF(replica->m_function); // this is ok since its not set to NULL
 	replica->m_bModified = replica->m_bytecode == NULL;
 	
 	// The replica->m_pythondictionary is stolen - replace with a copy.
@@ -267,41 +269,90 @@ PyAttributeDef SCA_PythonController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-bool SCA_PythonController::Compile()
+void SCA_PythonController::ErrorPrint(const char *error_msg)
 {
+	// didn't compile, so instead of compile, complain
+	// something is wrong, tell the user what went wrong
+	printf("%s - controller \"%s\":\n", error_msg, GetName().Ptr());
+	//PyRun_SimpleString(m_scriptText.Ptr());
+	PyErr_Print();
+	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( (char *)"last_traceback", NULL);
+	PyErr_Clear(); /* just to be sure */
+}
+
+bool SCA_PythonController::Compile()
+{	
 	//printf("py script modified '%s'\n", m_scriptName.Ptr());
+	m_bModified= false;
 	
 	// if a script already exists, decref it before replace the pointer to a new script
-	if (m_bytecode)
-	{
+	if (m_bytecode) {
 		Py_DECREF(m_bytecode);
 		m_bytecode=NULL;
 	}
+	
 	// recompile the scripttext into bytecode
 	m_bytecode = Py_CompileString(m_scriptText.Ptr(), m_scriptName.Ptr(), Py_file_input);
-	m_bModified=false;
 	
-	if (m_bytecode)
-	{
-		
+	if (m_bytecode) {
 		return true;
-	}
-	else {
-		// didn't compile, so instead of compile, complain
-		// something is wrong, tell the user what went wrong
-		printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
-		//PyRun_SimpleString(m_scriptText.Ptr());
-		PyErr_Print();
-		
-		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
-		 * their user count. Not to mention holding references to wrapped data.
-		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-		 * has alredy dealocated the pointer */
-		PySys_SetObject( (char *)"last_traceback", NULL);
-		PyErr_Clear(); /* just to be sure */
-		
+	} else {
+		ErrorPrint("Python error compiling script");
 		return false;
 	}
+}
+
+bool SCA_PythonController::Import()
+{
+	//printf("py module modified '%s'\n", m_scriptName.Ptr());
+	m_bModified= false;
+	
+	/* incase we re-import */
+	Py_XDECREF(m_function);
+	m_function= NULL;
+	
+	vector<STR_String> module_func = m_scriptText.Explode('.');
+	
+	if(module_func.size() != 2 || module_func[0].Length()==0 || module_func[1].Length()==0) {
+		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	PyObject *mod = PyImport_ImportModule(module_func[0]);
+	if(mod && m_debug) {
+		Py_DECREF(mod); /* getting a new one so dont hold a ref to the old one */
+		mod= PyImport_ReloadModule(mod);
+	}
+	
+	if(mod==NULL) {
+		ErrorPrint("Python module not found");
+		return false;
+	}
+	Py_DECREF(mod); /* will be added to sys.modules so no need to keep a ref */
+	
+	
+	PyObject *dict=  PyModule_GetDict(mod);
+	m_function= PyDict_GetItemString(dict, module_func[1]); /* borrow */
+	
+	if(m_function==NULL) {
+		printf("Python module error \"%s\":\n \"%s\" module fount but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	if(!PyCallable_Check(m_function)) {
+		printf("Python module function error \"%s\":\n \"%s\" not callable", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	Py_INCREF(m_function);
+	Py_INCREF(mod);
+	
+	return true;
 }
 
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
@@ -309,16 +360,18 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentController = this;
 	m_sCurrentLogicManager = logicmgr;
 	
-	if (m_bModified)
-	{
-		if (Compile()==false) // sets m_bModified to false
-			return;
-	}
-	if (!m_bytecode) {
-		return;
-	}
-		
+	PyObject *excdict=		NULL;
+	PyObject* resultobj=	NULL;
 	
+	switch(m_mode) {
+	case SCA_PYEXEC_SCRIPT:
+	{
+		if (m_bModified)
+			if (Compile()==false) // sets m_bModified to false
+				return;
+		if (!m_bytecode)
+			return;
+		
 		/*
 		 * This part here with excdict is a temporary patch
 		 * to avoid python/gameengine crashes when python
@@ -337,10 +390,28 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * should always ensure excdict is cleared).
 		 */
 
-	PyObject *excdict= PyDict_Copy(m_pythondictionary);
-	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, excdict);
-
+		excdict= PyDict_Copy(m_pythondictionary);
+		resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode, excdict, excdict);
+		/* PyRun_SimpleString(m_scriptText.Ptr()); */
+		break;
+	}
+	case SCA_PYEXEC_MODULE:
+	{
+		if (m_bModified || m_debug)
+			if (Import()==false) // sets m_bModified to false
+				return;
+		if (!m_function)
+			return;
+		
+		resultobj = PyObject_CallObject(m_function, NULL);
+		break;
+	}
+	
+	} /* end switch */
+	
+	
+	
+	/* Free the return value and print the error */
 	if (resultobj)
 	{
 		Py_DECREF(resultobj);
@@ -357,14 +428,16 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * has alredy dealocated the pointer */
 		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
-		
-		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
-
-	// clear after PyErrPrint - seems it can be using
-	// something in this dictionary and crash?
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);
+	
+	if(excdict) /* Only for SCA_PYEXEC_SCRIPT types */
+	{
+		/* clear after PyErrPrint - seems it can be using
+		 * something in this dictionary and crash? */
+		PyDict_Clear(excdict);
+		Py_DECREF(excdict);
+	}	
+	
 	m_triggeredSensors.erase(m_triggeredSensors.begin(), m_triggeredSensors.end());
 	m_sCurrentController = NULL;
 }

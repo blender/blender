@@ -42,23 +42,35 @@ class SCA_IObject;
 class SCA_PythonController : public SCA_IController
 {
 	Py_Header;
-	struct _object *		m_bytecode;
+	struct _object *		m_bytecode; /* SCA_PYEXEC_SCRIPT only */
+	PyObject*				m_function; /* SCA_PYEXEC_MODULE only */
 	bool					m_bModified;
-
+	bool					m_debug;	/* use with SCA_PYEXEC_MODULE for reloading every logic run */
+	int						m_mode;
+	
  protected:
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
-	PyObject*				m_pythondictionary;
+	PyObject*				m_pythondictionary;	/* for SCA_PYEXEC_SCRIPT only */
+	PyObject*				m_pythonfunction;	/* for SCA_PYEXEC_MODULE only */
+ 
 	std::vector<class SCA_ISensor*>		m_triggeredSensors;
+ 
+ public:
+	enum SCA_PyExecMode
+	{
+		SCA_PYEXEC_SCRIPT = 0,
+		SCA_PYEXEC_MODULE,
+		SCA_PYEXEC_MAX
+	};
 
- public: 
 	static SCA_PythonController* m_sCurrentController; // protected !!!
 
 	//for debugging
 	//virtual	CValue*		AddRef();
 	//virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 
-	SCA_PythonController(SCA_IObject* gameobj,PyTypeObject* T = &Type);
+	SCA_PythonController(SCA_IObject* gameobj, int mode, PyTypeObject* T = &Type);
 	virtual ~SCA_PythonController();
 
 	virtual CValue* GetReplica();
@@ -67,10 +79,14 @@ class SCA_PythonController : public SCA_IController
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
 	void	SetDictionary(PyObject*	pythondictionary);
+	void	SetDebug(bool debug) { m_debug = debug; }
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)
 		{ m_triggeredSensors.push_back(sensor); }
 	int		IsTriggered(class SCA_ISensor* sensor);
 	bool	Compile();
+	bool	Import();
+	void	ErrorPrint(const char *error_msg);
+	
 
 	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);

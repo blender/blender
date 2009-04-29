@@ -154,29 +154,38 @@ void BL_ConvertControllers(
 			}
 			case CONT_PYTHON:
 			{
-					
-				// we should create a Python controller here
-							
-				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj);
-				gamecontroller = pyctrl;
-					
 				bPythonCont* pycont = (bPythonCont*) bcontr->data;
+				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
+				gamecontroller = pyctrl;
+				
 				pyctrl->SetDictionary(pythondictionary);
-					
-				if (pycont->text)
-				{
-					char *buf;
-					// this is some blender specific code
-					buf= txt_to_buf(pycont->text);
-					if (buf)
+				
+				if(pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
+					if (pycont->text)
 					{
-						pyctrl->SetScriptText(STR_String(buf));
-						pyctrl->SetScriptName(pycont->text->id.name+2);
-						MEM_freeN(buf);
+						char *buf;
+						// this is some blender specific code
+						buf= txt_to_buf(pycont->text);
+						if (buf)
+						{
+							pyctrl->SetScriptText(STR_String(buf));
+							pyctrl->SetScriptName(pycont->text->id.name+2);
+							MEM_freeN(buf);
+						}
+						
 					}
-					
 				}
-					
+				else {
+					/* let the controller print any warnings here when importing */
+					pyctrl->SetScriptText(STR_String(pycont->module)); 
+					pyctrl->SetScriptName(pycont->module); /* will be something like module.func so using it as the name is OK */
+				}
+
+				if(pycont->flag & CONT_PY_DEBUG) {
+					printf("\nDebuging \"%s\", module for object %s\n\texpect worse performance.\n", pycont->module, blenderobject->id.name+2);
+					pyctrl->SetDebug(true);
+				}
+				
 				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
 				break;
 			}
@@ -202,9 +211,13 @@ void BL_ConvertControllers(
 			converter->RegisterGameController(gamecontroller, bcontr);
 			
 			if (bcontr->type==CONT_PYTHON) {
+				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
 				 * gives more pradictable performance for larger scripts */
-				(static_cast<SCA_PythonController*>(gamecontroller))->Compile();
+				if(pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
+					pyctrl->Compile();
+				else
+					pyctrl->Import();
 			}
 			
 			//done with gamecontroller
