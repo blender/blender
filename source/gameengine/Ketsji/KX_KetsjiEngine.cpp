@@ -906,9 +906,6 @@ void KX_KetsjiEngine::Render()
 		}
 	} // if(m_rasterizer->Stereo())
 
-	// run the 2dfilters and motion blur once for all the scenes
-	PostRenderFrame();
-
 	EndFrame();
 }
 
@@ -1284,6 +1281,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
 	
 	m_rasterizer->FlushDebugLines();
+
+	//it's running once for every scene (i.e. overlay scenes have  it running twice). That's not the ideal.
+	PostRenderFrame();
 }
 
 void KX_KetsjiEngine::PostRenderFrame()
