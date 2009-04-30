@@ -280,6 +280,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				if(blenderdata) {
 					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+					setGamePythonPath(G.sce);
 				}
 			}
 			// else forget it, we can't find it
@@ -309,12 +310,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		{
 			int startFrame = blscene->r.cfra;
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+			
+			// Quad buffered needs a special window.
+			if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		}
-
-
-		// Quad buffered needs a special window.
-		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
