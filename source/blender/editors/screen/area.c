@@ -164,6 +164,27 @@ void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 	}
 }
 
+static void area_draw_azone(short x1, short y1, short x2, short y2)
+{
+	float xmin = x1;
+	float xmax = x2-2;
+	float ymin = y1-1;
+	float ymax = y2-3;
+	
+	float dx= 0.3f*(xmax-xmin);
+	float dy= 0.3f*(ymax-ymin);
+	
+	glColor4ub(255, 255, 255, 80);
+	fdrawline(xmin, ymax, xmax, ymin);
+	fdrawline(xmin, ymax-dy, xmax-dx, ymin);
+	fdrawline(xmin, ymax-2*dy, xmax-2*dx, ymin);
+	
+	glColor4ub(0, 0, 0, 150);
+	fdrawline(xmin, ymax+1, xmax+1, ymin);
+	fdrawline(xmin, ymax-dy+1, xmax-dx+1, ymin);
+	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
+}
+
 /* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
@@ -182,8 +203,7 @@ void ED_area_overdraw(bContext *C)
 		for(az= sa->actionzones.first; az; az= az->next) {
 			if(az->do_draw) {
 				if(az->type==AZONE_TRI) {
-					glColor4ub(0, 0, 0, 70);
-					sdrawtrifill(az->x1, az->y1, az->x2, az->y2);
+					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
 				}
 				az->do_draw= 0;
 			}
