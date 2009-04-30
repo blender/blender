@@ -110,7 +110,7 @@ typedef struct uiLayout uiLayout;
 /* but->flag */
 #define UI_TEXT_LEFT	64
 #define UI_ICON_LEFT	128
-#define UI_ICON_RIGHT	256
+#define UI_ICON_SUBMENU	256
 	/* control for button type block */
 #define UI_MAKE_TOP		512
 #define UI_MAKE_DOWN	1024

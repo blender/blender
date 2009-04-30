@@ -887,9 +887,6 @@ void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func)
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon && layout->type == UI_LAYOUT_MENU)
-		icon= ICON_RIGHTARROW_THIN,
-
 	ui_item_name(&menuitem->item, name);
 	menuitem->item.icon= icon;
 	menuitem->item.type= ITEM_MENU;
@@ -931,8 +928,6 @@ void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char 
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon && layout->type == UI_LAYOUT_MENU)
-		icon= ICON_RIGHTARROW_THIN;
 	if(!name)
 		name= ot->name;
 
@@ -978,8 +973,6 @@ void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *
 
 	menuitem= MEM_callocN(sizeof(uiItemMenu), "uiItemMenu");
 
-	if(!icon && layout->type == UI_LAYOUT_MENU)
-		icon= ICON_RIGHTARROW_THIN;
 	if(!name)
 		name= (char*)RNA_property_ui_name(prop);
 

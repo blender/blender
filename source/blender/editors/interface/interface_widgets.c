@@ -633,7 +633,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 	float xs=0, ys=0, aspect, height;
 	
 	/* this icon doesn't need draw... */
-	if(icon==ICON_BLANK1) return;
+	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
 	
 	/* we need aspect from block, for menus... these buttons are scaled in uiPositionBlock() */
 	aspect= but->block->aspect;
@@ -650,45 +650,49 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 	else
 		height= ICON_HEIGHT;
 	
-	if(but->flag & UI_ICON_LEFT) {
-		if (but->type==BUT_TOGDUAL) {
-			if (but->drawstr[0]) {
-				xs= rect->xmin-1.0;
-			} else {
-				xs= (rect->xmin+rect->xmax- height)/2.0;
-			}
-		}
-		else if (but->block->flag & UI_BLOCK_LOOP) {
-			xs= rect->xmin+1.0;
-		}
-		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
-			xs= rect->xmin+3.0;
-		}
-		else {
-			xs= rect->xmin+4.0;
-		}
-		ys= (rect->ymin+rect->ymax- height)/2.0;
-	}
-	if(but->flag & UI_ICON_RIGHT) {
-		xs= rect->xmax-17.0;
-		ys= (rect->ymin+rect->ymax- height)/2.0;
-	}
-	if (!((but->flag & UI_ICON_RIGHT) || (but->flag & UI_ICON_LEFT))) {
-		xs= (rect->xmin+rect->xmax- height)/2.0;
-		ys= (rect->ymin+rect->ymax- height)/2.0;
-	}
-	
-	glEnable(GL_BLEND);
-	
 	/* calculate blend color */
 	if ELEM3(but->type, TOG, ROW, TOGN) {
 		if(but->flag & UI_SELECT);
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	if (but->flag & UI_BUT_DISABLED) blend = -100;
 	
-	UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
+	glEnable(GL_BLEND);
+	
+	if(icon && icon!=ICON_BLANK1) {
+		if(but->flag & UI_ICON_LEFT) {
+			if (but->type==BUT_TOGDUAL) {
+				if (but->drawstr[0]) {
+					xs= rect->xmin-1.0;
+				} else {
+					xs= (rect->xmin+rect->xmax- height)/2.0;
+				}
+			}
+			else if (but->block->flag & UI_BLOCK_LOOP) {
+				xs= rect->xmin+1.0;
+			}
+			else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
+				xs= rect->xmin+3.0;
+			}
+			else {
+				xs= rect->xmin+4.0;
+			}
+			ys= (rect->ymin+rect->ymax- height)/2.0;
+		}
+		else {
+			xs= (rect->xmin+rect->xmax- height)/2.0;
+			ys= (rect->ymin+rect->ymax- height)/2.0;
+		}
+	
+		UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
+	}
+	
+	if(but->flag & UI_ICON_SUBMENU) {
+		xs= rect->xmax-17.0;
+		ys= (rect->ymin+rect->ymax- height)/2.0;
+		
+		UI_icon_draw_aspect_blended(xs, ys, ICON_RIGHTARROW_THIN, aspect, blend);
+	}
 	
 	glDisable(GL_BLEND);
 }
@@ -843,7 +847,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 			and offset the text label to accomodate it */
 			
-			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+			if (but->flag & UI_HAS_ICON) {
 				widget_draw_icon(but, but->icon, 0, rect);
 				
 				rect->xmin += UI_icon_get_width(but->icon);

@@ -2741,7 +2741,7 @@ uiBut *uiDefMenuSep(uiBlock *block)
 uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name)
 {
 	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
-	return uiDefIconTextBlockBut(block, func, NULL, ICON_RIGHTARROW_THIN, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, "");
+	return uiDefIconTextBlockBut(block, func, NULL, ICON_BLANK1, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, "");
 }
 
 uiBut *uiDefMenuTogR(uiBlock *block, PointerRNA *ptr, char *propname, char *propvalue, char *name)
@@ -2991,7 +2991,7 @@ uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, in
 	but->flag|= UI_HAS_ICON;
 
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 
 	but->menu_create_func= func;
 	ui_check_but(but);
@@ -3004,11 +3004,13 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	
-	but->icon= (BIFIconID) icon;
+	/* XXX temp, old menu calls pass on icon arrow, which is now UI_ICON_SUBMENU flag */
+	if(icon!=ICON_RIGHTARROW_THIN) {
+		but->icon= (BIFIconID) icon;
+		but->flag|= UI_ICON_LEFT;
+	}
 	but->flag|= UI_HAS_ICON;
-
-	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 
 	but->block_create_func= func;
 	ui_check_but(but);
@@ -3025,7 +3027,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	but->flag|= UI_HAS_ICON;
 	
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 	
 	but->block_create_func= func;
 	ui_check_but(but);
