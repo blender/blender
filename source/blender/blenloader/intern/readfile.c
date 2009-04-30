@@ -3862,6 +3862,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
+	sce->obedit= NULL;
+	
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
 
