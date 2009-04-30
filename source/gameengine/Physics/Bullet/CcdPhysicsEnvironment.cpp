@@ -533,6 +533,12 @@ void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctr
 	{
 		btCollisionObject* obj = ctrl->GetCollisionObject();
 		obj->setUserPointer(ctrl);
+		// update the position of the object from the user
+		if (ctrl->GetMotionState()) 
+		{
+			btTransform xform = CcdPhysicsController::GetTransformFromMotionState(ctrl->GetMotionState());
+			ctrl->SetCenterOfMassTransform(xform);
+		}
 		m_dynamicsWorld->addCollisionObject(obj, 
 			ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
 	}
