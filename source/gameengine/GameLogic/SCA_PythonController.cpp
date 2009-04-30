@@ -96,7 +96,11 @@ SCA_PythonController::~SCA_PythonController()
 CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
-	// Copy the compiled bytecode if possible.
+	
+	/* why is this needed at all??? - m_bytecode is NULL'd below so this doesnt make sense
+	 * but removing it crashes blender (with YoFrankie). so leave in for now - Campbell */
+	Py_XINCREF(replica->m_bytecode);
+	
 	Py_XINCREF(replica->m_function); // this is ok since its not set to NULL
 	replica->m_bModified = replica->m_bytecode == NULL;
 	
