@@ -38,9 +38,6 @@
 #include "BKE_displist.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
-
-/* needed for EXPP_ReturnPyObjError and EXPP_check_sequence_consistency */
-#include "gen_utils.h"
  
 #include "BKE_utildefines.h"
 #include "BLI_boxpack2d.h"
@@ -76,13 +73,32 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
 	{NULL, NULL, 0, NULL}
 };
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef M_Geometry_module_def = {
+	{}, /* m_base */
+	"Geometry",  /* m_name */
+	M_Geometry_doc,  /* m_doc */
+	0,  /* m_size */
+	M_Geometry_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 /*----------------------------MODULE INIT-------------------------*/
-PyObject *Geometry_Init(void)
+PyObject *Geometry_Init(const char *from)
 {
 	PyObject *submodule;
-
-	submodule = Py_InitModule3("Blender.Geometry",
-				    M_Geometry_methods, M_Geometry_doc);
+	
+#if (PY_VERSION_HEX >= 0x03000000)
+	submodule = PyModule_Create(&M_Geometry_module_def);
+#else
+	submodule = Py_InitModule3(from, M_Geometry_methods, M_Geometry_doc);
+#endif
+	
 	return (submodule);
 }
 
@@ -92,7 +108,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 {
 	PyObject *tri_list; /*return this list of tri's */
 	PyObject *polyLine, *polyVec;
-	int i, len_polylines, len_polypoints;
+	int i, len_polylines, len_polypoints, ls_error = 0;
 	
 	/* display listbase */
 	ListBase dispbase={NULL, NULL};
@@ -105,8 +121,8 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 	
 	
 	if(!PySequence_Check(polyLineSeq)) {
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a sequence of poly lines" );
+		PyErr_SetString( PyExc_TypeError, "expected a sequence of poly lines" );
+		return NULL;
 	}
 	
 	len_polylines = PySequence_Size( polyLineSeq );
@@ -116,19 +132,20 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-				  "One or more of the polylines is not a sequence of Mathutils.Vector's" );
+			PyErr_SetString( PyExc_TypeError, "One or more of the polylines is not a sequence of Mathutils.Vector's" );
+			return NULL;
 		}
 		
 		len_polypoints= PySequence_Size( polyLine );
 		if (len_polypoints>0) { /* dont bother adding edges as polylines */
+#if 0
 			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1) {
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
-				return EXPP_ReturnPyObjError( PyExc_TypeError,
-					  "A point in one of the polylines is not a Mathutils.Vector type" );
+				PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a Mathutils.Vector type" );
+				return NULL;
 			}
-			
+#endif
 			dl= MEM_callocN(sizeof(DispList), "poly disp");
 			BLI_addtail(&dispbase, dl);
 			dl->type= DL_INDEX3;
@@ -141,13 +158,17 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 			
 			for( index = 0; index<len_polypoints; ++index, fp+=3) {
 				polyVec= PySequence_GetItem( polyLine, index );
-				
-				fp[0] = ((VectorObject *)polyVec)->vec[0];
-				fp[1] = ((VectorObject *)polyVec)->vec[1];
-				if( ((VectorObject *)polyVec)->size > 2 )
-					fp[2] = ((VectorObject *)polyVec)->vec[2];
-				else
-					fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
+				if(VectorObject_Check(polyVec)) {
+					fp[0] = ((VectorObject *)polyVec)->vec[0];
+					fp[1] = ((VectorObject *)polyVec)->vec[1];
+					if( ((VectorObject *)polyVec)->size > 2 )
+						fp[2] = ((VectorObject *)polyVec)->vec[2];
+					else
+						fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
+				}
+				else {
+					ls_error= 1;
+				}
 				
 				totpoints++;
 				Py_DECREF(polyVec);
@@ -156,7 +177,12 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		Py_DECREF(polyLine);
 	}
 	
-	if (totpoints) {
+	if(ls_error) {
+		freedisplist(&dispbase); /* possible some dl was allocated */
+		PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a Mathutils.Vector type" );
+		return NULL;
+	}
+	else if (totpoints) {
 		/* now make the list to return */
 		filldisplist(&dispbase, &dispbase);
 		
@@ -167,8 +193,8 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		tri_list= PyList_New(dl->parts);
 		if( !tri_list ) {
 			freedisplist(&dispbase);
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"Geometry.PolyFill failed to make a new list" );
+			PyErr_SetString( PyExc_RuntimeError, "Geometry.PolyFill failed to make a new list" );
+			return NULL;
 		}
 		
 		index= 0;
@@ -181,6 +207,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		freedisplist(&dispbase);
 	} else {
 		/* no points, do this so scripts dont barf */
+		freedisplist(&dispbase); /* possible some dl was allocated */
 		tri_list= PyList_New(0);
 	}
 	
@@ -197,9 +224,10 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 	  &vector_Type, &line_a2,
 	  &vector_Type, &line_b1,
 	  &vector_Type, &line_b2)
-	)
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
+	) {
+		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		return NULL;
+	}
 	
 	a1x= line_a1->vec[0];
 	a1y= line_a1->vec[1];
@@ -293,10 +321,10 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	&vector_Type, &pt,
 	&vector_Type, &line_1,
 	&vector_Type, &line_2)
-	  )
-		return ( EXPP_ReturnPyObjError
-				( PyExc_TypeError, "expected 3 vector types\n" ) );
-	
+	  ) {
+		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n" );
+		return NULL;
+	}
 	/* accept 2d verts */
 	if (pt->size==3) { VECCOPY(pt_in, pt->vec);}
 	else { pt_in[2]=0.0;	VECCOPY2D(pt_in, pt->vec) }
@@ -325,9 +353,10 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 	  &vector_Type, &tri_p1,
 	  &vector_Type, &tri_p2,
 	  &vector_Type, &tri_p3)
-	)
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
+	) {
+		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		return NULL;
+	}
 	
 	return PyInt_FromLong(IsectPT2Df(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
 }
@@ -342,9 +371,10 @@ static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
 	  &vector_Type, &quad_p2,
 	  &vector_Type, &quad_p3,
 	  &vector_Type, &quad_p4)
-	)
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected 5 vector types\n" ) );
+	) {
+		PyErr_SetString( PyExc_TypeError, "expected 5 vector types\n" );
+		return NULL;
+	}
 	
 	return PyInt_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
@@ -357,9 +387,10 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	
 	
 	/* Error checking must alredy be done */
-	if( !PyList_Check( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"can only back a list of [x,y,x,w]" );
+	if( !PyList_Check( value ) ) {
+		PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
+		return -1;
+	}
 	
 	len = PyList_Size( value );
 	
@@ -370,8 +401,8 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 		list_item = PyList_GET_ITEM( value, i );
 		if( !PyList_Check( list_item ) || PyList_Size( list_item ) < 4 ) {
 			MEM_freeN(*boxarray);
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"can only back a list of [x,y,x,w]" );
+			PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
+			return -1;
 		}
 		
 		box = (*boxarray)+i;
@@ -381,8 +412,8 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 		
 		if (!PyNumber_Check(item_1) || !PyNumber_Check(item_2)) {
 			MEM_freeN(*boxarray);
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"can only back a list of 2d boxes [x,y,x,w]" );
+			PyErr_SetString( PyExc_TypeError, "can only back a list of 2d boxes [x,y,x,w]" );
+			return -1;
 		}
 		
 		box->w =  (float)PyFloat_AsDouble( item_1 );
@@ -418,9 +449,10 @@ static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
 	int len;
 	int error;
 	
-	if(!PyList_Check(boxlist))
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a sequence of boxes [[x,y,w,h], ... ]" );
+	if(!PyList_Check(boxlist)) {
+		PyErr_SetString( PyExc_TypeError, "expected a sequence of boxes [[x,y,w,h], ... ]" );
+		return NULL;
+	}
 	
 	len = PyList_Size( boxlist );
 	

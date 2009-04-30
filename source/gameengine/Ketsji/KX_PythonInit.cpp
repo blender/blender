@@ -86,6 +86,7 @@
 
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "BGL.h"
 }
@@ -1407,7 +1408,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL") || !strcmp(name, "Geometry")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 	
@@ -1725,6 +1726,7 @@ static void clearGameModules()
 	clearModule(modules, "GameKeys");	
 	clearModule(modules, "VideoTexture");	
 	clearModule(modules, "Mathutils");	
+	clearModule(modules, "Geometry");	
 	clearModule(modules, "BGL");	
 	PyErr_Clear(); // incase some of these were alredy removed.
 #endif
@@ -2049,6 +2051,11 @@ PyObject* initGameKeys()
 PyObject* initMathutils()
 {
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+}
+
+PyObject* initGeometry()
+{
+	return Geometry_Init("Geometry"); // Use as a top level module in BGE
 }
 
 PyObject* initBGL()

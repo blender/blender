@@ -368,6 +368,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
 			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();
@@ -671,6 +672,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
 			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();

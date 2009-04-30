@@ -1092,7 +1092,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Mesh", Mesh_Init()); 
 	PyDict_SetItemString(dict, "Metaball", Metaball_Init());
 	PyDict_SetItemString(dict, "Mathutils", Mathutils_Init("Blender.Mathutils"));
-	PyDict_SetItemString(dict, "Geometry", Geometry_Init());
+	PyDict_SetItemString(dict, "Geometry", Geometry_Init("Blender.Geometry"));
 	PyDict_SetItemString(dict, "Modifier", Modifier_Init());
 	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
 	PyDict_SetItemString(dict, "Node", Node_Init());
