@@ -147,7 +147,7 @@ KX_Dome::~KX_Dome (void)
 
 void KX_Dome::SetViewPort(GLuint viewport[4])
 {
-	if(canvaswidth != m_canvas->GetWidth() || canvasheight != m_canvas->GetHeight())
+	if(canvaswidth != m_viewport.GetWidth() || canvasheight != m_viewport.GetHeight())
 	{
 		m_viewport.SetLeft(viewport[0]); 
 		m_viewport.SetBottom(viewport[1]);
@@ -201,12 +201,25 @@ void KX_Dome::CalculateImageSize(void)
 - reduce the buffer for better performace
 - create a power of 2 texture bigger than the buffer
 */
+/*
+Blender handles Canvas size differently when in fullscreen mode.
+We are manually checking for that. Although it's a hack, it works.
+
+Bug reported here: #18655 - Inconsistency of pixels in canvas dimensions when in maximized mode (affecting BGE Dome)
+http://projects.blender.org/tracker/?func=detail&aid=18655&group_id=9&atid=125
+*/
 
 	canvaswidth = m_canvas->GetWidth();
 	canvasheight = m_canvas->GetHeight();
 
+	bool fullscreen(false); //XXX HACK
+	fullscreen = (canvaswidth != m_viewport.GetWidth());
+
 	m_buffersize = (canvaswidth > canvasheight?canvasheight:canvaswidth);
 	m_buffersize = (int)(m_buffersize*m_resbuffer); //reduce buffer size for better performance
+	
+	if (fullscreen) //XXX HACK
+		m_buffersize --;
 
 	int i = 0;
 	while ((1 << i) <= m_buffersize)
@@ -227,6 +240,9 @@ void KX_Dome::CalculateImageSize(void)
 			i++;
 		warp.imageheight = (1 << i);
 	}
+	//XXX HACK
+	canvaswidth  = m_viewport.GetWidth();
+	canvasheight = m_viewport.GetHeight();
 }
 
 bool KX_Dome::CreateDL(){
@@ -1365,7 +1381,7 @@ void KX_Dome::CalculateFrustum(KX_Camera * cam)
 	/*
 	// manually creating a 90º Field of View Frustum 
 
-	 the original formula:
+	the original formula:
 	top = tan(fov*3.14159/360.0) * near [for fov in degrees]
 	fov*0.5 = arctan ((top-bottom)*0.5 / near) [for fov in radians]
 	bottom = -top
@@ -1913,7 +1929,7 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), 1.0);
 	cam->SetModelviewMatrix(viewmat);
 
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
