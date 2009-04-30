@@ -80,6 +80,10 @@
 
 #include "KX_PythonInitTypes.h" 
 
+/* we only need this to get a list of libraries from the main struct */
+#include "DNA_ID.h"
+#include "BKE_main.h"
+
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
@@ -110,6 +114,7 @@ static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
+static PyObject *gp_OrigPythonSysPath= NULL;
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
@@ -1522,11 +1527,111 @@ void setSandbox(TPythonSecurityLevel level)
 	}
 }
 
+/* Explanation of 
+ * 
+ * - backupPySysPath()		: stores sys.path in gp_OrigPythonSysPath
+ * - initPySysPath(main)	: initializes the blendfile and library paths
+ * - restorePySysPath()		: restores sys.path from gp_OrigPythonSysPath
+ * 
+ * These exist so the //scripts folder can always be used to import modules from.
+ * the reason we need a few functions for this is that python is not only used by the game engine
+ * so we cant just add to sys.path all the time, it would leave pythons state in a mess.
+ * It would also be incorrect since loading blend files for new levels etc would alwasy add to sys.path
+ * 
+ * To play nice with blenders python, the sys.path is backed up and the current blendfile along
+ * with all its lib paths are added to the sys path.
+ * When loading a new blendfile, the original sys.path is restored and the new paths are added over the top.
+ */
+
+/**
+ * So we can have external modules mixed with our blend files.
+ */
+static void backupPySysPath(void)
+{
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	/* just incase its set */
+	Py_XDECREF(gp_OrigPythonSysPath);
+	gp_OrigPythonSysPath= NULL;
+	
+	gp_OrigPythonSysPath = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
+}
+
+/* for initPySysPath only,
+ * takes a blend path and adds a scripts dir from it
+ *
+ * "/home/me/foo.blend" -> "/home/me/scripts"
+ */
+static void initPySysPath__append(PyObject *sys_path, char *filename)
+{
+	PyObject *item;
+	char expanded[FILE_MAXDIR + FILE_MAXFILE] = "//";
+	
+	BLI_convertstringcode(expanded, filename);
+	BLI_join_dirfile(expanded, expanded, "scripts"); /* double checked and using the dir twice is safe */
+	
+	item= PyString_FromString(expanded);
+	
+	if(PySequence_Index(sys_path, item) == -1) {
+		PyList_Insert(sys_path, 0, item);
+	}
+	
+	Py_DECREF(item);
+}
+static void initPySysPath(Main *maggie)
+{
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	if (gp_OrigPythonSysPath==NULL) {
+		/* backup */
+		backupPySysPath();
+	}
+	else {
+		/* get the original sys path when the BGE started */
+		PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
+	}
+	
+	Library *lib= (Library *)maggie->library.first;
+	
+	while(lib) {
+		initPySysPath__append(sys_path, lib->name);
+		lib= (Library *)lib->id.next;
+	}
+	
+	initPySysPath__append(sys_path, gp_GamePythonPath);
+	
+//	fprintf(stderr, "\nNew Path: %d ", PyList_Size(sys_path));
+//	PyObject_Print(sys_path, stderr, 0);
+}
+
+static void restorePySysPath(void)
+{
+	if (gp_OrigPythonSysPath==NULL)
+		return;
+	
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
+	Py_DECREF(gp_OrigPythonSysPath);
+	gp_OrigPythonSysPath= NULL;
+	
+//	fprintf(stderr, "\nRestore Path: %d ", PyList_Size(sys_path));
+//	PyObject_Print(sys_path, stderr, 0);
+}
+
 /**
  * Python is not initialised.
  */
 PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
+	/* Yet another gotcha in the py api
+	 * Cant run PySys_SetArgv more then once because this adds the
+	 * binary dir to the sys.path each time.
+	 * Id have thaught python being totally restarted would make this ok but
+	 * somehow it remembers the sys.path - Campbell
+	 */
+	static bool first_time = true;
+	
 #if (PY_VERSION_HEX < 0x03000000)
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
@@ -1536,7 +1641,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	Py_Initialize();
 	
 #if (PY_VERSION_HEX < 0x03000000)	
-	if(argv) /* browser plugins dont currently set this */
+	if(argv && first_time) /* browser plugins dont currently set this */
 		PySys_SetArgv(argc, argv);
 #endif
 	//importBlenderModules()
@@ -1546,6 +1651,10 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	
 	bpy_import_main_set(maggie);
 	
+	initPySysPath(maggie);
+	
+	first_time = false;
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
@@ -1553,9 +1662,15 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 void exitGamePlayerPythonScripting()
 {
 	//clearGameModules(); // were closing python anyway
+	
+	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
+	restorePySysPath(); /* get back the original sys.path and clear the backup */
+	
 	Py_Finalize();
 	bpy_import_main_set(NULL);
 }
+
+
 
 /**
  * Python is already initialized.
@@ -1573,6 +1688,8 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
+	
+	initPySysPath(maggie);
 	
 	/* clear user defined modules that may contain data from the last run */
 	clearGameModules();
@@ -1619,6 +1736,7 @@ static void clearGameModules()
 void exitGamePythonScripting()
 {
 	clearGameModules();
+	restorePySysPath(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);
 }
 
