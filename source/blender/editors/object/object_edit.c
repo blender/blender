@@ -637,16 +637,16 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, NULL, 0, "OBJECT_OT_surface_add", "type");
-	uiItemO(layout, NULL, 0, "OBJECT_OT_text_add");
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_MBALL);
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiItemO(layout, NULL, 0, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemMenuEnumO(layout, NULL, /*ICON_OUTLINER_OB_MESH*/0, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
+	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, pup);
 	
