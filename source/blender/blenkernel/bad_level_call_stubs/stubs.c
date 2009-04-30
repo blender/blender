@@ -160,6 +160,7 @@ void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTa
 void free_oops(struct Oops *oops){}
 void exit_posemode(int freedata){}
 void error(char *str, ...){}
+int okee(char *str, ...){}
 
 /* anim.c */
 ListBase editNurb;

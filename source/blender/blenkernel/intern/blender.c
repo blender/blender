@@ -431,14 +431,14 @@ static int handle_subversion_warning(Main *main)
 		
 		char str[128];
 
+		/* XXX DO NOT PORT OVER TO 2.5 BRANCH! */
 		if(main->minversionfile >= 250) {
 			sprintf(str, "You have opened a %d file, key information will get lost, like animation data. Continue?", main->minversionfile);
 			
 			if(G.background) {
 				printf("ERROR: cannot render %d file\n", main->versionfile);
 			}
-			error(str);
-			return 0;
+			return okee(str);
 		}
 		else {
 			sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
