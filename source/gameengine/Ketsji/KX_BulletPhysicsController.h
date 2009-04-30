@@ -14,6 +14,7 @@ private:
 	short int m_savedCollisionFilterMask;
 	MT_Scalar m_savedMass;
 	bool m_savedDyna;
+	bool m_suspended;
 	btCollisionShape* m_bulletChildShape;
 
 public:

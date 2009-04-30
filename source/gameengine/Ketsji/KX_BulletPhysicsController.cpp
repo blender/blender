@@ -21,9 +21,13 @@ KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInf
 : KX_IPhysicsController(dyna,compound,(PHY_IPhysicsController*)this),
 CcdPhysicsController(ci),
 m_savedCollisionFlags(0),
+m_savedCollisionFilterGroup(0),
+m_savedCollisionFilterMask(0),
+m_savedMass(0.0),
+m_savedDyna(false),
+m_suspended(false),
 m_bulletChildShape(NULL)
 {
-
 }
 	
 KX_BulletPhysicsController::~KX_BulletPhysicsController ()
@@ -337,8 +341,7 @@ void    KX_BulletPhysicsController::RemoveCompoundChild(KX_IPhysicsController* c
 void KX_BulletPhysicsController::SetMass(MT_Scalar newmass)
 {
 	btRigidBody *body = GetRigidBody();
-	if (body && body->getActivationState() != DISABLE_SIMULATION && 
-		newmass>MT_EPSILON && GetMass()>MT_EPSILON)
+	if (body && !m_suspended && newmass>MT_EPSILON && GetMass()>MT_EPSILON)
 	{
 		btVector3 grav = body->getGravity();
 		btVector3 accel = grav / GetMass();
@@ -356,7 +359,7 @@ void KX_BulletPhysicsController::SetMass(MT_Scalar newmass)
 void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
 	btRigidBody *body = GetRigidBody();
-	if (body && body->getActivationState() != DISABLE_SIMULATION)
+	if (body && !m_suspended)
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
@@ -364,8 +367,7 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 		m_savedDyna = m_bDyna;
 		m_savedCollisionFilterGroup = handle->m_collisionFilterGroup;
 		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
-		m_savedActivationState = body->getActivationState();
-		body->forceActivationState(DISABLE_SIMULATION);
+		m_suspended = true;
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			0.0,
 			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
@@ -378,15 +380,16 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
 	btRigidBody *body = GetRigidBody();
-	if (body && body->getActivationState() == DISABLE_SIMULATION)
+	if (body && m_suspended)
 	{
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			m_savedMass,
 			m_savedCollisionFlags,
 			m_savedCollisionFilterGroup,
 			m_savedCollisionFilterMask);
-		body->forceActivationState(m_savedActivationState);
+		body->activate();
 		m_bDyna = m_savedDyna;
+		m_suspended = false;
 	}
 }
 
