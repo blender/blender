@@ -940,4 +940,6 @@ void 	UI_SetTheme(int spacetype, int regionid);
 char 	*UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 char 	*UI_ThemeColorsPup(int spacetype);
 
+void UI_make_axis_color(char *src_col, char *dst_col, char axis);
+
 #endif /*  UI_ICONS_H */

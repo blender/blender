@@ -841,6 +841,28 @@ void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 	col[2] = b;
 }
 
+void UI_make_axis_color(char *src_col, char *dst_col, char axis)
+{
+	switch(axis)
+	{
+		case 'x':
+		case 'X':
+			dst_col[0]= src_col[0]>219?255:src_col[0]+36;
+			dst_col[1]= src_col[1]<26?0:src_col[1]-26;
+			dst_col[2]= src_col[2]<26?0:src_col[2]-26;
+			break;
+		case 'y':
+		case 'Y':
+			dst_col[0]= src_col[0]<46?0:src_col[0]-36;
+			dst_col[1]= src_col[1]>189?255:src_col[1]+66;
+			dst_col[2]= src_col[2]<46?0:src_col[2]-36;
+			break;
+		default: 
+			dst_col[0]= src_col[0]<26?0:src_col[0]-26; 
+			dst_col[1]= src_col[1]<26?0:src_col[1]-26; 
+			dst_col[2]= src_col[2]>209?255:src_col[2]+46;
+	}
+}
 
 /* ************************************************************* */
 

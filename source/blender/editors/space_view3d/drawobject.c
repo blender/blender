@@ -5135,7 +5135,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			char col[4], col2[4];
 			
 			UI_GetThemeColor3ubv(TH_GRID, col);
-			make_axis_color(col, col2, 'z');
+			UI_make_axis_color(col, col2, 'z');
 			glColor3ubv((GLubyte *)col2);
 			
 			cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);

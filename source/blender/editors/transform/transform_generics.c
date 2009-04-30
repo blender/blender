@@ -620,7 +620,6 @@ void recalcData(TransInfo *t)
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 {
-	extern void make_axis_color(char *col, char *col2, char axis);	// view3d_draw.c
 	float v1[3], v2[3], v3[3];
 	char col[3], col2[3];
 	
@@ -645,7 +644,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 		else {
 			UI_GetThemeColor3ubv(TH_GRID, col);
 		}
-		make_axis_color(col, col2, axis);
+		UI_make_axis_color(col, col2, axis);
 		glColor3ubv((GLubyte *)col2);
 	
 		setlinestyle(0);
@@ -683,6 +682,8 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	t->data = NULL;
 	t->ext = NULL;
+
+	t->helpline = HLP_NONE;
 
 	t->flag = 0;
 	

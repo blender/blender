@@ -99,7 +99,6 @@ void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
-void make_axis_color(char *col, char *col2, char axis);
 void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
