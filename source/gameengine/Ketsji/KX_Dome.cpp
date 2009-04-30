@@ -434,6 +434,8 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 		return false;
 	}
 	columns = lines[1].Explode(' ');
+	if(columns.size() == 1)
+		columns = lines[1].Explode('\t');
 
 	if(columns.size() !=2){
 		printf("Error: Warp Mesh File incorrect. The second line should contain: width height.\n");
@@ -453,6 +455,8 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 
 		for(i=2; i-2 < (warp.n_width*warp.n_height); i++){
 			columns = lines[i].Explode(' ');
+			if(columns.size() == 1)
+				columns = lines[i].Explode('\t');
 
 			if (columns.size() == 5){
 				nodeX = (i-2)%warp.n_width;
