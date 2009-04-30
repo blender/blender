@@ -36,6 +36,8 @@ def validate_arguments(args, bc):
 			'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
 			'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
 			'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
+			'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
+			'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
 			'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
 			'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
 			'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
@@ -95,7 +97,7 @@ def validate_arguments(args, bc):
 		if (k in opts_list) or (k in arg_list):
 			okdict[k] = v
 		elif k in opts_list_split:
-			okdict[k] = v.split() # "" have alredy been stripped
+			okdict[k] = v.split() # "" have already been stripped
 		else:
 			print '\t'+bc.WARNING+'Invalid argument: '+bc.ENDC+k+'='+v
 
