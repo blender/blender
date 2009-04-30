@@ -78,6 +78,7 @@
 #include "RNA_define.h"
 
 #include "ED_datafiles.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 
@@ -569,16 +570,16 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		strcpy(di, target);
 	}
 
-	if (BLI_exists(di)) {
+//	if (BLI_exists(di)) {
 // XXX		if(!saveover(di))
 // XXX			return; 
-	}
+//	}
 	
 	if (G.fileflags & G_AUTOPACK) {
 		packAll();
 	}
 	
-// XXX	waitcursor(1);	// exit_editmode sets cursor too
+	ED_object_exit_editmode(C, 0);
 
 	do_history(di, reports);
 	

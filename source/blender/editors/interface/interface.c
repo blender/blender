@@ -3059,7 +3059,6 @@ void UI_init_userdef(void)
 
 void UI_exit(void)
 {
-	uiStyleExit();
 	ui_resources_free();
 }
 

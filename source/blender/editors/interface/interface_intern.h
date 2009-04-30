@@ -382,7 +382,6 @@ void ui_widget_color_init(struct ThemeUI *tui);
 
 /* interface_style.c */
 void uiStyleInit(void);
-void uiStyleExit(void);
 
 /* resources.c */
 void init_userdef_do_versions(void);

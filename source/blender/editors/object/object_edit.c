@@ -3204,7 +3204,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Object *ob;
 	int freedata = flag & EM_FREEDATA;
 	
 	if(obedit==NULL) return;
@@ -3252,22 +3251,20 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		if(freedata) BLI_freelistN(&editelems);
 	}
 	
-	ob= obedit;
+	/* freedata only 0 now on file saves */
+	if(freedata) {
+		/* for example; displist make is different in editmode */
+		scene->obedit= NULL; // XXX for context
+		
+		/* also flush ob recalc, doesn't take much overhead, but used for particles */
+		DAG_object_flush_update(scene, obedit, OB_RECALC_OB|OB_RECALC_DATA);
 	
-	/* for example; displist make is different in editmode */
-	if(freedata) obedit= NULL;
-	scene->obedit= obedit; // XXX for context
-	
-	/* also flush ob recalc, doesn't take much overhead, but used for particles */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-	
-	if(obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
 		ED_undo_push(C, "Editmode");
 	
-	if(flag & EM_WAITCURSOR) waitcursor(0);
+		if(flag & EM_WAITCURSOR) waitcursor(0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
-
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
+	}
 }
 
 

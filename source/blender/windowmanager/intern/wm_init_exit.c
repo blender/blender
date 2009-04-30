@@ -264,7 +264,7 @@ void WM_exit(bContext *C)
 	ED_file_exit(); /* for fsmenu */
 
 	UI_exit();
-	BLI_freelistN(&U.themes);
+	BKE_userdef_free();
 
 	RNA_exit();
 	

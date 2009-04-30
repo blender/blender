@@ -264,14 +264,6 @@ void uiStyleInit(void)
 	}
 }
 
-
-void uiStyleExit(void)
-{
-	BLI_freelistN(&U.uifonts);
-	BLI_freelistN(&U.uistyles);
-	
-}
-
 void uiStyleFontSet(uiFontStyle *fs)
 {
 	uiFont *font= uifont_to_blfont(fs->uifont_id);
