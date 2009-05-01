@@ -728,7 +728,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	
 	if(prev) {
 		float minx= rect->xmin+10.0f/block->aspect;
-		float maxx= rect->xmax-10.0f/block->aspect;
+		float maxx= rect->xmax-5.0f/block->aspect;
 		float y= headrect.ymax;
 		
 		glEnable(GL_BLEND);

@@ -99,7 +99,7 @@ typedef enum {
 
 /* internal panel drawing defines */
 #define PNL_GRID	4
-#define PNL_DIST	8
+#define PNL_DIST	4
 #define PNL_SAFETY 	8
 #define PNL_HEADER  20
 
