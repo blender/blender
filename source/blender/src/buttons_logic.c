@@ -1584,7 +1584,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 		if(pc->mode==0)
 			uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "", xco+90,yco-24,width-90, 19, &pc->text, "Blender textblock to run as a script");
 		else {
-			uiDefBut(block, TEX, 1, "", xco+90,yco-24,(width-90)-25, 19, pc->module, 0, 63, 0, 0, "Module name and function to run eg \"someModule.main\", internal texts and //scripts/*.py on the filesystem can be used");
+			uiDefBut(block, TEX, 1, "", xco+90,yco-24,(width-90)-25, 19, pc->module, 0, 63, 0, 0, "Module name and function to run eg \"someModule.main\", internal texts external python files can be used");
 			uiDefButBitI(block, TOG, CONT_PY_DEBUG, B_REDR, "D", (xco+width)-25, yco-24, 19, 19, &pc->flag, 0, 0, 0, 0, "Continuously reload the module from disk for editing external modules without restrting");
 		}
 		uiBlockEndAlign(block);

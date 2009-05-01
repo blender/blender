@@ -1534,7 +1534,7 @@ void setSandbox(TPythonSecurityLevel level)
  * - initPySysPath(main)	: initializes the blendfile and library paths
  * - restorePySysPath()		: restores sys.path from gp_OrigPythonSysPath
  * 
- * These exist so the //scripts folder can always be used to import modules from.
+ * These exist so the current blend dir "//" can always be used to import modules from.
  * the reason we need a few functions for this is that python is not only used by the game engine
  * so we cant just add to sys.path all the time, it would leave pythons state in a mess.
  * It would also be incorrect since loading blend files for new levels etc would alwasy add to sys.path
@@ -1569,7 +1569,6 @@ static void initPySysPath__append(PyObject *sys_path, char *filename)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE] = "//";
 	
 	BLI_convertstringcode(expanded, filename);
-	BLI_join_dirfile(expanded, expanded, "scripts"); /* double checked and using the dir twice is safe */
 	
 	item= PyString_FromString(expanded);
 	
