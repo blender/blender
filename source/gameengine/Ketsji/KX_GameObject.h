@@ -385,6 +385,10 @@ public:
 	{ 
 		m_pGraphicController = graphiccontroller;
 	}
+	/*
+	 * @add/remove the graphic controller to the physic system
+	 */
+	void ActivateGraphicController(bool active, bool recurse);
 
 	/**
 	 * @section Coordinate system manipulation functions

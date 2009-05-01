@@ -717,10 +717,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// set the orientation after position for softbody!
 		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
 		replica->NodeSetLocalOrientation(newori);
-
+		// update scenegraph for entire tree of children
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
 		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
+		// we can now add the graphic controller to the physic engine
+		replica->ActivateGraphicController(true,true);
+
 		// done with replica
 		replica->Release();
 	}
@@ -831,6 +834,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+	// the size is correct, we can add the graphic controller to the physic engine
+	replica->ActivateGraphicController(true,true);
 
 	// now replicate logic
 	vector<KX_GameObject*>::iterator git;

@@ -118,8 +118,17 @@ PHY_IGraphicController* CcdGraphicController::GetReplica(class PHY_IMotionState*
 	replica->m_motionState = motionState;
 	replica->m_newClientInfo = NULL;
 	replica->m_handle = NULL;
-	m_phyEnv->addCcdGraphicController(replica);
+	// don't add the graphic controller now: work around a bug in Bullet with rescaling, 
+	// (the scale of the controller is not yet defined).
+	//m_phyEnv->addCcdGraphicController(replica);
 	return replica;
 }
 
+void CcdGraphicController::Activate(bool active)
+{
+	if (active)
+		m_phyEnv->addCcdGraphicController(this);
+	else
+		m_phyEnv->removeCcdGraphicController(this);
 
+}

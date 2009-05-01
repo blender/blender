@@ -579,7 +579,7 @@ void CcdPhysicsEnvironment::refreshCcdPhysicsController(CcdPhysicsController* ct
 
 void CcdPhysicsEnvironment::addCcdGraphicController(CcdGraphicController* ctrl)
 {
-	if (m_cullingTree)
+	if (m_cullingTree && !ctrl->getBroadphaseHandle())
 	{
 		btVector3	minAabb;
 		btVector3	maxAabb;

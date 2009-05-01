@@ -331,6 +331,35 @@ void KX_GameObject::ProcessReplica()
 		
 }
 
+static void setGraphicController_recursive(SG_Node* node, bool v)
+{
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+		if (clientgameobj != NULL) // This is a GameObject
+			clientgameobj->ActivateGraphicController(v, false);
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		setGraphicController_recursive(childnode, v);
+	}
+}
+
+
+void KX_GameObject::ActivateGraphicController(bool active, bool recurse)
+{
+	if (m_pGraphicController)
+	{
+		m_pGraphicController->Activate(active);
+	}
+	if (recurse)
+	{
+		setGraphicController_recursive(GetSGNode(), active);
+	}
+}
 
 
 CValue* KX_GameObject::GetReplica()
