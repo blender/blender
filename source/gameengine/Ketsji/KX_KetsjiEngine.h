@@ -287,11 +287,11 @@ public:
 	/**
 	 * Gets the maximum number of logic frame before render frame
 	 */
-	static int KX_KetsjiEngine::GetMaxLogicFrame();
+	static int GetMaxLogicFrame();
 	/**
 	 * Sets the maximum number of logic frame before render frame
 	 */
-	static void KX_KetsjiEngine::SetMaxLogicFrame(int frame);
+	static void SetMaxLogicFrame(int frame);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)

@@ -47,7 +47,8 @@
 #include "KX_HashedPtr.h"
 
 using namespace std;
-typedef list<class SCA_IController*> controllerlist;
+typedef std::list<class SCA_IController*> controllerlist;
+typedef std::map<class SCA_ISensor*,controllerlist > sensormap_t;
 
 /** 
  * This manager handles sensor, controllers and actuators.
@@ -101,7 +102,7 @@ class SCA_LogicManager
 	set<class SmartActuatorPtr>			m_activeActuators;
 	set<class SmartControllerPtr>		m_triggeredControllerSet;
 
-	map<SCA_ISensor*,controllerlist >	m_sensorcontrollermapje;
+	sensormap_t							m_sensorcontrollermapje;
 
 	// need to find better way for this
 	// also known as FactoryManager...
@@ -116,6 +117,9 @@ class SCA_LogicManager
 public:
 	SCA_LogicManager();
 	virtual ~SCA_LogicManager();
+	// can ONLY be used during scene destruction, avoid massive slow down when scene has many many objects
+	void RemoveSensorMap();		
+
 	//void	SetKeyboardManager(SCA_KeyboardManager* keyboardmgr) { m_keyboardmgr=keyboardmgr;}
 	void	RegisterEventManager(SCA_EventManager* eventmgr);
 	void	RegisterToSensor(SCA_IController* controller,

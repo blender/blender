@@ -79,6 +79,13 @@ SCA_LogicManager::~SCA_LogicManager()
 	m_activeActuators.clear();
 }
 
+// this function is a performance helper when the scene is destoyed
+// without it, the map updated for each object... a massive slow down when there are
+// large number of objects. By clearing the map upfront we avoid the waster of time.
+void SCA_LogicManager::RemoveSensorMap()
+{
+	m_sensorcontrollermapje.clear();
+}
 
 /*
 // this kind of fixes bug 398 but breakes games, so better leave it out for now.
@@ -171,12 +178,16 @@ void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshnam
 
 void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 {
-	controllerlist contlist = m_sensorcontrollermapje[sensor];
-	for (controllerlist::const_iterator c= contlist.begin();!(c==contlist.end());c++)
+	sensormap_t::const_iterator mit = m_sensorcontrollermapje.find(sensor);
+	if (mit != m_sensorcontrollermapje.end())
 	{
-		(*c)->UnlinkSensor(sensor);
+		const controllerlist& contlist = mit->second;
+		for (controllerlist::const_iterator c= contlist.begin();!(c==contlist.end());c++)
+		{
+			(*c)->UnlinkSensor(sensor);
+		}
+		m_sensorcontrollermapje.erase(sensor);
 	}
-    m_sensorcontrollermapje.erase(sensor);
 	sensor->UnregisterToManager();
 }
 
@@ -184,7 +195,7 @@ void SCA_LogicManager::RemoveController(SCA_IController* controller)
 {
 	controller->UnlinkAllSensors();
 	controller->UnlinkAllActuators();
-	std::map<SCA_ISensor*,controllerlist>::iterator sit;
+	sensormap_t::iterator sit;
 	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
 	{
 		(*sit).second.remove(controller);
@@ -197,10 +208,10 @@ void SCA_LogicManager::RemoveDestroyedActuator(SCA_IActuator* actuator)
 	m_removedActuators.push_back(SmartActuatorPtr(actuator,0));
 	// take care that no controller can use this actuator again !
 
-	std::map<SCA_ISensor*,controllerlist>::const_iterator sit;
+	sensormap_t::const_iterator sit;
 	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
 	{
-		controllerlist contlist = (*sit).second;
+		const controllerlist& contlist = sit->second;
 		for (list<SCA_IController*>::const_iterator c= contlist.begin();!(c==contlist.end());c++)
 		{
 			(*c)->UnlinkActuator(actuator);
@@ -237,8 +248,8 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 	!(is==m_activatedsensors.end());is++)
 	{
 		SCA_ISensor* sensor = *is;
-                controllerlist contlist = m_sensorcontrollermapje[sensor];
-        	for (list<SCA_IController*>::const_iterator c= contlist.begin();
+        const controllerlist& contlist = m_sensorcontrollermapje[sensor];
+        for (list<SCA_IController*>::const_iterator c= contlist.begin();
 			!(c==contlist.end());c++)
 		{
 				SCA_IController* contr = *c;//controllerarray->at(c);

@@ -208,6 +208,8 @@ KX_Scene::~KX_Scene()
 	// It's still there but we remove all properties here otherwise some
 	// reference might be hanging and causing late release of objects
 	RemoveAllDebugProperties();
+	// early removal of sensor map to avoid massive slow down when there are many objects
+	m_logicmgr->RemoveSensorMap();
 
 	while (GetRootParentList()->GetCount() > 0) 
 	{

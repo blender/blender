@@ -628,6 +628,8 @@ KX_GameObject::SetVisible(
 {
 	if (GetSGNode()) {
 		m_bVisible = v;
+		if (m_pGraphicController)
+			m_pGraphicController->Activate(m_bVisible);
 		if (recursive)
 			setVisible_recursive(GetSGNode(), v);
 	}
