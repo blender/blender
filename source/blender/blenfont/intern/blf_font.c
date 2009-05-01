@@ -368,6 +368,7 @@ FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
 	font->name= BLI_strdup(name);
 	font->filename= NULL;
 	font->engine= (void *)face;
+	font->blur= 0;
 	blf_font_fill(font);
 	return(font);
 }

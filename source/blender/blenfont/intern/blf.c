@@ -185,7 +185,7 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 	if (!font) {
 #ifdef WITH_FREETYPE2
 		if (!mem || !mem_size) {
-			printf("Can't load font, %s from memory!!\n", name);
+			printf("Can't load font: %s from memory!!\n", name);
 			return(-1);
 		}
 
@@ -193,7 +193,7 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 #endif /* WITH_FREETYPE2 */
 
 		if (!font) {
-			printf("Can't load font, %s from memory!!\n", name);
+			printf("Can't load font: %s from memory!!\n", name);
 			return(-1);
 		}
 	}
@@ -213,6 +213,16 @@ void BLF_set(int fontid)
 int BLF_get(void)
 {
 	return(global_font_cur);
+}
+
+int BLF_type_get(void)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		return(font->type);
+	return(-1);
 }
 
 void BLF_enable(int option)

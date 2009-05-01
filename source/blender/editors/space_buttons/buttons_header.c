@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -40,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -122,6 +124,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, NULL);
 			break;
 		case B_CONTEXT_SWITCH:
+		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
 	}
@@ -132,8 +135,9 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	Object *ob= CTX_data_active_object(C);
 	uiBlock *block;
-	int xco, yco= 3;
+	int xco, yco= 3, dataicon= ICON_OBJECT_DATA;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
@@ -149,56 +153,38 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		
 		xco+=XIC+xmax;
 	}
+
+	if(ob) {
+		switch(ob->type) {
+			case OB_EMPTY: dataicon= ICON_OUTLINER_OB_EMPTY; break;
+			case OB_MESH: dataicon= ICON_OUTLINER_OB_MESH; break;
+			case OB_CURVE: dataicon= ICON_OUTLINER_OB_CURVE; break;
+			case OB_SURF: dataicon= ICON_OUTLINER_OB_SURFACE; break;
+			case OB_FONT: dataicon= ICON_OUTLINER_OB_FONT; break;
+			case OB_MBALL: dataicon= ICON_OUTLINER_OB_META; break;
+			case OB_LAMP: dataicon= ICON_OUTLINER_OB_LAMP; break;
+			case OB_CAMERA: dataicon= ICON_OUTLINER_OB_CAMERA; break;
+			case OB_LATTICE: dataicon= ICON_OUTLINER_OB_LATTICE; break;
+			case OB_ARMATURE: dataicon= ICON_OUTLINER_OB_ARMATURE; break;
+			default: break;
+		}
+	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCRIPT,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL_DATA,xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
 	
 	xco+= XIC;
-	
-	/* select the context to be drawn, per contex/tab the actual context is tested */
-	uiBlockSetEmboss(block, UI_EMBOSS);	// normal
-	switch(sbuts->mainb) {
-		case CONTEXT_SCENE:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SCENE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SEQUENCE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SEQUENCER, 0, 0, "Sequencer buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_ANIM,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SOUND,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
-			
-			break;
-		case CONTEXT_OBJECT:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PARTICLE, 0, 0, "Particle buttons");
-			
-			break;
-		case CONTEXT_SHADING:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_LAMP,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_LAMP, 0, 0, "Lamp buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_MAT, 0, 0, "Material buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_TEX, 0, 0, "Texture buttons(F6)");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,			ICON_RADIO,xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_RAD, 0, 0, "Radiosity buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_WORLD,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_WORLD, 0, 0, "World buttons");
-			
-			break;
-		case CONTEXT_EDITING:
-			
-			break;
-		case CONTEXT_SCRIPT:
-			
-			break;
-		case CONTEXT_LOGIC:
-			
-			break;
-	}
 	
 	uiBlockEndAlign(block);
 	

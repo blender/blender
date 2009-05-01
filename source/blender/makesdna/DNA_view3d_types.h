@@ -78,7 +78,6 @@ typedef struct RegionView3D {
 	float viewinv[4][4];
 	float persmat[4][4];
 	float persinv[4][4];
-	float twmat[4][4];	/* transform widget */
 
 	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */

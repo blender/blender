@@ -100,6 +100,7 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
@@ -3270,7 +3271,6 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)
@@ -3306,7 +3306,6 @@ void OUTLINER_OT_drivers_add(wmOperatorType *ot)
 static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)
@@ -3576,6 +3575,24 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
 					case eModifierType_Displace:
 						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
+					case eModifierType_Shrinkwrap:
+						UI_icon_draw(x, y, ICON_MOD_SHRINKWRAP); break;
+					case eModifierType_Cast:
+						UI_icon_draw(x, y, ICON_MOD_CAST); break;
+					case eModifierType_MeshDeform:
+						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;
+					case eModifierType_Bevel:
+						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
+					case eModifierType_Smooth:
+						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
+					case eModifierType_SimpleDeform:
+						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;
+					case eModifierType_Mask:
+						UI_icon_draw(x, y, ICON_MOD_MASK); break;
+					case eModifierType_Cloth:
+						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
+					case eModifierType_Explode:
+						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
@@ -4229,17 +4246,14 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
@@ -4278,12 +4292,10 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 			else if(tselem->type==TSE_POSE_CHANNEL)  {
 				bPoseChannel *pchan= (bPoseChannel *)te->directdata;
@@ -4293,7 +4305,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 			else if(tselem->type==TSE_EBONE)  {
 				EditBone *ebone= (EditBone *)te->directdata;
@@ -4302,7 +4313,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 		}
 		

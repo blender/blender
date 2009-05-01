@@ -6587,11 +6587,13 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Subdivision Type", 0);
-	uiMenuItemsEnumO(head, "MESH_OT_subdivs", "type");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("Subdivision Type", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

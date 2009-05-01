@@ -999,7 +999,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	
 	/* get theme colors */
-	UI_GetThemeColor3ubv(TH_SHADE2, col2);
+	UI_GetThemeColor3ubv(TH_BACK, col2);
 	UI_GetThemeColor3ubv(TH_HILITE, col1);
 	UI_GetThemeColor3ubv(TH_GROUP, col2a);
 	UI_GetThemeColor3ubv(TH_GROUP_ACTIVE, col1a);

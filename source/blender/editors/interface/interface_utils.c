@@ -55,6 +55,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "interface_intern.h"
+
 #define DEF_BUT_WIDTH 		150
 #define DEF_ICON_BUT_WIDTH	20
 #define DEF_BUT_HEIGHT		20
@@ -213,6 +215,24 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_MOD_UVPROJECT;
 	else if(rnatype == &RNA_DisplaceModifier)
 		return ICON_MOD_DISPLACE;
+	else if(rnatype == &RNA_ShrinkwrapModifier)
+		return ICON_MOD_SHRINKWRAP;
+	else if(rnatype == &RNA_CastModifier)
+		return ICON_MOD_CAST;
+	else if(rnatype == &RNA_MeshDeformModifier)
+		return ICON_MOD_MESHDEFORM;
+	else if(rnatype == &RNA_BevelModifier)
+		return ICON_MOD_BEVEL;
+	else if(rnatype == &RNA_SmoothModifier)
+		return ICON_MOD_SMOOTH;
+	else if(rnatype == &RNA_SimpleDeformModifier)
+		return ICON_MOD_SIMPLEDEFORM;
+	else if(rnatype == &RNA_MaskModifier)
+		return ICON_MOD_MASK;
+	else if(rnatype == &RNA_ClothModifier)
+		return ICON_MOD_CLOTH;
+	else if(rnatype == &RNA_ExplodeModifier)
+		return ICON_MOD_EXPLODE;
 	else
 		return ICON_DOT;
 }
@@ -291,13 +311,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 {
+	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
 	uiLayout *layout;
 	char *name;
 	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 20);
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
 
 	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
@@ -317,7 +338,7 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		uiLayoutColumn(uiLayoutSub(layout, 0));
 		uiItemL(uiLayoutSub(layout, 0), name, 0);
 		uiLayoutColumn(uiLayoutSub(layout, 1));
-		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0);
+		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
@@ -325,6 +346,46 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 
 	return -y;
 }
+
+/* temp call, single collumn, test for toolbar only */
+int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
+{
+	uiStyle *style= U.uistyles.first;
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *prop;
+	uiLayout *layout;
+	char *name;
+	int x= 0, y= 0;
+	
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
+	
+	uiLayoutColumn(layout);
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
+	
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+	
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		
+		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+			continue;
+		
+		uiLayoutSplit(layout, 1, 0);
+		uiLayoutColumn(uiLayoutSub(layout, 0));
+		
+		name= (char*)RNA_property_ui_name(prop);
+		uiItemL(uiLayoutSub(layout, 0), name, 0);
+
+		uiItemFullR(uiLayoutSub(layout, 0), "", 0, ptr, prop, -1, 0, 0);
+	}
+	
+	RNA_property_collection_end(&iter);
+	uiLayoutEnd(C, block, layout, &x, &y);
+	
+	return -y;
+}
+
 
 /***************************** ID Utilities *******************************/
 
@@ -506,18 +567,7 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		uiBlockSetButLock(block, id->lib!=0, "Can't edit external libdata");
 		
 		/* name button */
-		if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCE:");
-		else if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCR:");
-		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
-			strcpy(str1, "NT:");
-		else {
-			str1[0]= id->name[0];
-			str1[1]= id->name[1];
-			str1[2]= ':';
-			str1[3]= 0;
-		}
+		text_idbutton(id, str1);
 		
 		if(GS(id->name)==ID_IP) len= 110;
 		else if((y) && (GS(id->name)==ID_AC)) len= 100; // comes from button panel (poselib)

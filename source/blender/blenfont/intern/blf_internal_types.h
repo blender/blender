@@ -223,12 +223,4 @@ typedef struct DirBLF {
 	char *path;
 } DirBLF;
 
-/* font->clip_mode */
-#define BLF_CLIP_DISABLE 0
-#define BLF_CLIP_OUT 1
-
-/* font->type */
-#define BLF_FONT_FREETYPE2 0
-#define BLF_FONT_INTERNAL 1
-
 #endif /* BLF_INTERNAL_TYPES_H */

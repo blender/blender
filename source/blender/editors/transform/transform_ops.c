@@ -119,11 +119,13 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 
 static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	
-	head= uiPupMenuBegin("Orientation", 0);
-	BIF_menuTransformOrientation(C, head, NULL);
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("Orientation", 0);
+	layout= uiPupMenuLayout(pup);
+	BIF_menuTransformOrientation(C, layout, NULL);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

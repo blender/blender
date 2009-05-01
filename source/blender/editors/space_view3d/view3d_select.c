@@ -765,7 +765,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_enum(ot->srna, "type", lasso_select_types, 0, "Type", "");
@@ -1546,7 +1546,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
@@ -1599,7 +1599,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
@@ -1834,7 +1834,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);

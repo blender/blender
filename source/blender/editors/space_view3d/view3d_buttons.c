@@ -984,7 +984,6 @@ static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short 
 	
 	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
 
-		UI_ThemeColor(TH_BUT_ACTION);
 		if (v3d->twmode == index) {
 			but = uiDefIconButS(block,ROW, B_REDR, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
 		}
@@ -1726,7 +1725,7 @@ static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cnt
 	wmOperator *op;
 	PointerRNA ptr;
 	uiBlock *block;
-	int height;
+	int height = 0;
 	
 	block= uiBeginBlock(C, ar, "view3d_panel_operator_redo", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Last Operator", "View3d", 340, 10, 318, height)==0) return;
