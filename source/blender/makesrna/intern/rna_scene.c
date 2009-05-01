@@ -210,6 +210,43 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "THREADS_AUTO", "Auto-detect", ""},
 		{R_FIXED_THREADS, "THREADS_FIXED", "Fixed Number", ""},
 		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem image_type_items[] = {
+		{R_FRAMESERVER, "FRAMESERVER", "Frame Server", ""},
+#ifdef WITH_FFMPEG
+		{R_FFMPEG, "FFMPEG", "FFMpeg", ""},
+#endif
+		{R_AVIRAW, "AVIRAW", "AVI Raw", ""},
+		{R_AVIJPEG, "AVIJPEG", "AVI JPEG", ""},
+#ifdef _WIN32
+		{R_AVICODEC, "AVICODEC", "AVI Codec", ""},
+#endif
+#ifdef WITH_QUICKTIME
+		{R_QUICKTIME, "QUICKTIME", "QuickTime", ""},
+#endif
+		{R_TARGA, "TARGA", "Targa", ""},
+		{R_RAWTGA, "RAWTARGA", "Targa Raw", ""},
+		{R_PNG, "PNG", "PNG", ""},
+		//{R_DDS, "DDS", "DDS", ""}, // XXX not yet implemented
+#ifdef WITH_OPENJPEG
+		{R_JP2, "JPEG2000", "JPEG 2000", ""},
+#endif		
+		{R_BMP, "BMP", "BMP", ""},
+		{R_JPEG90, "JPEG", "JPEG", ""},
+		{R_HAMX, "HAMX", "HamX", ""},
+		{R_IRIS, "IRIS", "Iris", ""},
+		{R_RADHDR, "RADHDR", "Radiance HDR", ""},
+		{R_CINEON, "CINEON", "Cineon", ""},
+		{R_DPX, "DPX", "DPX", ""},
+#ifdef __sgi
+		{R_MOVIE, "MOVIE", "Movie", ""},
+#endif
+#ifdef WITH_OPENEXR
+		{R_OPENEXR, "OPENEXR", "OpenEXR", ""},
+		{R_MULTILAYER, "MULTILAYER", "MultiLayer", ""},
+#endif
+		{R_TIFF, "TIFF", "TIFF", ""},	// XXX only with G.have_libtiff
+		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
@@ -437,6 +474,12 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "file_extensions", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXTENSION);
 	RNA_def_property_ui_text(prop, "File Extensions", "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "image_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "imtype");
+	RNA_def_property_enum_items(prop, image_type_items);
+	RNA_def_property_ui_text(prop, "Image Type", "File format to save the rendered images as.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);

@@ -50,6 +50,9 @@ class RENDER_PT_image(RenderButtonsPanel):
 		layout.itemR(rd, "color_mode")
 		
 		layout.row()
+		layout.itemR(rd, "image_type")
+		
+		layout.row()
 		layout.itemR(rd, "placeholders")
 		layout.itemR(rd, "no_overwrite")
 		layout.itemR(rd, "file_extensions")
