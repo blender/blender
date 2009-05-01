@@ -915,12 +915,12 @@ static PyObject *Method_Exit( PyObject * self )
 	exit_pydraw( sc, 0 );
 
 	script = sc->script;
-
-	/* remove our lock to the current namespace */
-	script->flags &= ~SCRIPT_GUI;
-	script->scriptname[0] = '\0';
-	script->scriptarg[0] = '\0';
-
+	if(script) { /* in very rare cases this can be NULL, (when saving and loading see bug #18654)*/
+		/* remove our lock to the current namespace */
+		script->flags &= ~SCRIPT_GUI;
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
+	}
 	Py_RETURN_NONE;
 }
 
