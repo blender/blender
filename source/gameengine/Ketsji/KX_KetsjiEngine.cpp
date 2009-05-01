@@ -97,6 +97,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+int	   KX_KetsjiEngine::m_maxLogicFrame = 5;
 double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
@@ -399,6 +400,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	m_firstframe = true;
 	m_bInitialized = true;
 	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+	m_maxLogicFrame = 5;
 	
 	if (m_game2ipo)
 	{
@@ -511,7 +513,8 @@ void KX_KetsjiEngine::EndFrame()
 
 bool KX_KetsjiEngine::NextFrame()
 {
-
+	double timestep = 1.0/m_ticrate;
+	double framestep = timestep;
 //	static hidden::Clock sClock;
 
 m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
@@ -520,7 +523,7 @@ m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
 //sClock.reset();
 
 if (m_bFixedTime)
-	m_clockTime += 1./m_ticrate;
+	m_clockTime += timestep;
 else
 {
 
@@ -554,18 +557,24 @@ else
 	{
 	
 	//	printf("framedOut: %d\n",frames);
-		m_frameTime+=(frames-frameOut)*(1.0/m_ticrate);
+		m_frameTime+=(frames-frameOut)*timestep;
 		frames = frameOut;
 	}
 	
 
 	bool doRender = frames>0;
 
+	if (frames > m_maxLogicFrame)
+	{
+		framestep = (frames*timestep)/m_maxLogicFrame;
+		frames = m_maxLogicFrame;
+	}
+		
 	while (frames)
 	{
 	
 
-		m_frameTime += 1.0/m_ticrate;
+		m_frameTime += framestep;
 		
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
@@ -644,7 +653,7 @@ else
 		
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_frameTime,1.0/m_ticrate);//m_deltatimerealDeltaTime);
+				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_frameTime,timestep,framestep);//m_deltatimerealDeltaTime);
 
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2_UPDATE);
@@ -717,7 +726,7 @@ else
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_clockTime,0.f);
+				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_clockTime,timestep,timestep);
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.		
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -1727,6 +1736,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+int KX_KetsjiEngine::GetMaxLogicFrame()
+{
+	return m_maxLogicFrame;
+}
+
+void KX_KetsjiEngine::SetMaxLogicFrame(int frame)
+{
+	m_maxLogicFrame = frame;
 }
 
 double KX_KetsjiEngine::GetAnimFrameRate()

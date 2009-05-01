@@ -75,7 +75,7 @@ float		ODEPhysicsEnvironment::getFixedTimeStep()
 
 
 
-bool		ODEPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep1)
+bool		ODEPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep1,float interval)
 {
 
 	float deltaTime = timeStep1;

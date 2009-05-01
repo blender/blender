@@ -48,7 +48,7 @@ public:
 	virtual void		beginFrame();
 	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	bool		proceedDeltaTime(double  curTime,float timeStep);
+	virtual	bool		proceedDeltaTime(double  curTime,float timeStep,float interval);
 	virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep);
 	virtual	float		getFixedTimeStep();
 

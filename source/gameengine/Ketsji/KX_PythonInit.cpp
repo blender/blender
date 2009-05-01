@@ -288,6 +288,21 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
 }
 
+static PyObject* gPySetMaxLogicFrame(PyObject*, PyObject* args)
+{
+	int frame;
+	if (!PyArg_ParseTuple(args, "i:setMaxLogicFrame", &frame))
+		return NULL;
+	
+	KX_KetsjiEngine::SetMaxLogicFrame(frame);
+	Py_RETURN_NONE;
+}
+
+static PyObject* gPyGetMaxLogicFrame(PyObject*)
+{
+	return PyInt_FromLong(KX_KetsjiEngine::GetMaxLogicFrame());
+}
+
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
@@ -479,6 +494,8 @@ static struct PyMethodDef game_methods[] = {
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (PY_METHODCHAR)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (PY_METHODCHAR)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (PY_METHODCHAR)"stop using the audio dsp (for performance reasons)"},
+	{"getMaxLogicFrame", (PyCFunction) gPyGetMaxLogicFrame, METH_NOARGS, (PY_METHODCHAR)"Gets the max number of logic frame per render frame"},
+	{"setMaxLogicFrame", (PyCFunction) gPySetMaxLogicFrame, METH_VARARGS, (PY_METHODCHAR)"Sets the max number of logic frame per render frame"},
 	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the logic tic rate"},
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the physics tic rate"},

@@ -103,6 +103,7 @@ private:
 	double				m_previousClockTime;//previous clock time
 	double				m_remainingTime;
 
+	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
 	static double			m_ticrate;
 	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
@@ -283,6 +284,14 @@ public:
 	 * Sets the number of logic updates per second.
 	 */
 	static void SetTicRate(double ticrate);
+	/**
+	 * Gets the maximum number of logic frame before render frame
+	 */
+	static int KX_KetsjiEngine::GetMaxLogicFrame();
+	/**
+	 * Sets the maximum number of logic frame before render frame
+	 */
+	static void KX_KetsjiEngine::SetMaxLogicFrame(int frame);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)

@@ -360,6 +360,21 @@ def stopDSP():
 	Only the fmod sound driver supports this.
 	DSP can be computationally expensive.
 	"""
+def getMaxLogicFrame():
+	"""
+	Gets the maximum number of logic frame per render frame.
+	
+	@return: The maximum number of logic frame per render frame
+	@rtype: interger
+	"""
+def setMaxLogicFrame(maxlogic):
+	"""
+	Sets the maximum number of logic frame that are executed per render frame.
+	This does not affect the physic system that still runs at full frame rate.	
+	 
+	@param maxlogic: The new maximum number of logic frame per render frame. Valid values: 1..5
+	@type maxlogic: integer
+	"""
 def getLogicTicRate():
 	"""
 	Gets the logic update frequency.
@@ -372,7 +387,7 @@ def setLogicTicRate(ticrate):
 	Sets the logic update frequency.
 	
 	The logic update frequency is the number of times logic bricks are executed every second.
-	The default is 30 Hz.
+	The default is 60 Hz.
 	
 	@param ticrate: The new logic update frequency (in Hz).
 	@type ticrate: float

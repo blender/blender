@@ -81,7 +81,7 @@ float		SumoPhysicsEnvironment::getFixedTimeStep()
 }
 
 
-bool		SumoPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep)
+bool		SumoPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep,float interval)
 {
 	
 	bool result = false;
