@@ -261,6 +261,7 @@ SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 # can I just not check them? nm claims they aren't...
 SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 SPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+SPLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 # These three need to be explicitly mentioned on the cl, because 
 # if they are offered as a lib, they are optimized away. (nzc)
