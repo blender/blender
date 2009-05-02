@@ -1183,6 +1183,10 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	strncpy(str, sfile->dir, FILE_MAXDIR-1);
 	strncat(str, sfile->file, FILE_MAXFILE-1);
 
+	if(sfile->flag & FILE_STRINGCODE) {
+		BLI_makestringcode(G.sce, str);
+	}
+	
 	sound= sound_new_sound(str);
 	if (!sound || sound->sample->type == SAMPLE_INVALID) {
 		error("Unsupported audio format");
