@@ -1012,7 +1012,7 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ActionActuator, m_localtime, CheckFrame),
 	KX_PYATTRIBUTE_STRING_RW("property", 0, 31, false, BL_ActionActuator, m_propname),
 	KX_PYATTRIBUTE_STRING_RW("frameProperty", 0, 31, false, BL_ActionActuator, m_framepropname),
-	KX_PYATTRIBUTE_BOOL_RW("continue", BL_ActionActuator, m_end_reset),
+	KX_PYATTRIBUTE_BOOL_RW("useContinue", BL_ActionActuator, m_end_reset),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ActionActuator, m_blendframe, CheckBlendTime),
 	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel

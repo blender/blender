@@ -29,7 +29,7 @@ class BL_ActionActuator(SCA_IActuator):
 	@type blendTime: float
 	@ivar type: The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
 	@type type: integer
-	@ivar continue: The actions continue option, True or False.
+	@ivar useContinue: The actions continue option, True or False.
 					When True, the action will always play from where last left off,
 					otherwise negative events to this actuator will reset it to its start frame.
 	@type: boolean

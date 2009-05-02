@@ -218,7 +218,7 @@ static  PySequenceMethods listvalue_as_sequence = {
 	NULL,
 #else
 	listvalue_buffer_slice, /*sq_slice*/
- 	(ssizeobjargproc)NULL, /*sq_ass_item*/
+ 	NULL, /*sq_ass_item*/
  	NULL, /*sq_ass_slice*/
 #endif
 };
