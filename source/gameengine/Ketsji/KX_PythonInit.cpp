@@ -49,6 +49,9 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_RadarSensor.h"
 #include "KX_RaySensor.h"
+#include "KX_SceneActuator.h"
+#include "KX_GameActuator.h"
+#include "KX_ParentActuator.h"
 #include "KX_SCA_DynamicActuator.h"
 
 #include "SCA_IInputDevice.h"
@@ -1358,6 +1361,28 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DISTANCE, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DISTANCE);
 	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_LOCAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCAL);
 	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DOROTFH, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DOROTFH);
+
+	/* Game Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_GAME_LOAD, KX_GameActuator::KX_GAME_LOAD);
+	KX_MACRO_addTypesToDict(d, KX_GAME_START, KX_GameActuator::KX_GAME_START);
+	KX_MACRO_addTypesToDict(d, KX_GAME_RESTART, KX_GameActuator::KX_GAME_RESTART);
+	KX_MACRO_addTypesToDict(d, KX_GAME_QUIT, KX_GameActuator::KX_GAME_QUIT);
+	KX_MACRO_addTypesToDict(d, KX_GAME_SAVECFG, KX_GameActuator::KX_GAME_SAVECFG);
+	KX_MACRO_addTypesToDict(d, KX_GAME_LOADCFG, KX_GameActuator::KX_GAME_LOADCFG);
+
+	/* Scene Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_SCENE_RESTART, KX_SceneActuator::KX_SCENE_RESTART);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SET_SCENE, KX_SceneActuator::KX_SCENE_SET_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SET_CAMERA, KX_SceneActuator::KX_SCENE_SET_CAMERA);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_ADD_FRONT_SCENE, KX_SceneActuator::KX_SCENE_ADD_FRONT_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_ADD_BACK_SCENE, KX_SceneActuator::KX_SCENE_ADD_BACK_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_REMOVE_SCENE, KX_SceneActuator::KX_SCENE_REMOVE_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SUSPEND, KX_SceneActuator::KX_SCENE_SUSPEND);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_RESUME, KX_SceneActuator::KX_SCENE_RESUME);
+
+	/* Parent Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_PARENT_SET, KX_ParentActuator::KX_PARENT_SET);
+	KX_MACRO_addTypesToDict(d, KX_PARENT_REMOVE, KX_ParentActuator::KX_PARENT_REMOVE);
 
 	// Check for errors
 	if (PyErr_Occurred())

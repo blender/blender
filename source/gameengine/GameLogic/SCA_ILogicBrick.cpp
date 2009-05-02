@@ -254,7 +254,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
 	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
-	//KX_PYATTRIBUTE_TODO("name"),
+	KX_PYATTRIBUTE_STRING_RO("name", SCA_ILogicBrick, m_name),
 	{NULL} //Sentinel
 };
 

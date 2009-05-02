@@ -253,7 +253,7 @@ PyMethodDef KX_GameActuator::Methods[] =
 
 PyAttributeDef KX_GameActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("file",0,100,false,KX_GameActuator,m_filename),
-	//KX_PYATTRIBUTE_TODO("mode"),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_GAME_NODEF+1, KX_GAME_MAX-1, true, KX_GameActuator, m_mode),
 	{ NULL }	//Sentinel
 };
 

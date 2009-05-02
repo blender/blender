@@ -57,6 +57,7 @@ class KX_ParentActuator : public SCA_IActuator
 		KX_PARENT_NODEF = 0,
 		KX_PARENT_SET,
 		KX_PARENT_REMOVE,
+		KX_PARENT_MAX
 
 	};
  

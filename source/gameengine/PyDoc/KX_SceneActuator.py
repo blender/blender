@@ -18,6 +18,8 @@ class KX_SceneActuator(SCA_IActuator):
 	@ivar camera: the camera to change to.
 	              When setting the attribute, you can use either a L{KX_Camera} or the name of the camera.
 	@type camera: L{KX_Camera} on read, string or L{KX_Camera} on write
+	@type mode: The mode of the actuator
+	@type mode: int from 0 to 5 L{GameLogic.Scene Actuator}
 	"""
 	def setUseRestart(flag):
 		"""

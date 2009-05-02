@@ -187,6 +187,24 @@ Documentation for the GameLogic Module.
 @var KX_DYN_DISABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_SET_MASS:			See L{KX_SCA_DynamicActuator}
 
+@group Game Actuator: KX_GAME_LOAD, KX_GAME_START, KX_GAME_RESTART, KX_GAME_QUIT, KX_GAME_SAVECFG, KX_GAME_LOADCFG
+@var KX_Game_LOAD:		See L{KX_GameActuator}
+@var KX_Game_START:		See L{KX_GameActuator}
+@var KX_Game_RESTART:	See L{KX_GameActuator}
+@var KX_Game_QUIT:		See L{KX_GameActuator}
+@var KX_Game_SAVECFG:	See L{KX_GameActuator}
+@var KX_Game_LOADCFG:	See L{KX_GameActuator}
+
+@group Scene Actuator: KX_SCENE_RESTART, KX_SCENE_SET_SCENE, KX_SCENE_SET_CAMERA, KX_SCENE_ADD_FRONT_SCENE, KX_SCENE_ADD_BACK_SCENE, KX_SCENE_REMOVE_SCENE, KX_SCENE_SUSPEND, KX_SCENE_RESUME
+KX_SCENE_RESTART:			See L{KX_SceneActuator}
+KX_SCENE_SET_SCENE:			See L{KX_SceneActuator}
+KX_SCENE_SET_CAMERA:		See L{KX_SceneActuator}
+KX_SCENE_ADD_FRONT_SCENE:	See L{KX_SceneActuator}
+KX_SCENE_ADD_BACK_SCENE:	See L{KX_SceneActuator}
+KX_SCENE_REMOVE_SCENE:		See L{KX_SceneActuator}
+KX_SCENE_SUSPEND:			See L{KX_SceneActuator}
+KX_SCENE_RESUME:			See L{KX_SceneActuator}
+
 @group Input Status: KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
 @var KX_INPUT_NONE:				See L{SCA_MouseSensor}
 @var KX_INPUT_JUST_ACTIVATED:	See L{SCA_MouseSensor}

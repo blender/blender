@@ -10,6 +10,8 @@ class KX_GameActuator(SCA_IActuator):
 	
 	@ivar file: the new .blend file to load
 	@type file: string.
+	@ivar mode: The mode of this actuator
+	@type mode: int from 0 to 5 L{GameLogic.Game Actuator}
 	"""
 	def getFile():
 		"""

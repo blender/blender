@@ -11,6 +11,8 @@ class SCA_ILogicBrick(CValue):
 	@type executePriority: int
 	@ivar owner: The game object this logic brick is attached to (read only).
 	@type owner: L{KX_GameObject<KX_GameObject.KX_GameObject>} or None in exceptional cases.
+	@ivar name: The name of this logic brick (read only).
+	@type name: string
 	@group Deprecated: getOwner, setExecutePriority, getExecutePriority
 	"""
 	

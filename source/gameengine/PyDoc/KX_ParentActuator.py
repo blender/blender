@@ -7,6 +7,8 @@ class KX_ParentActuator(SCA_IActuator):
 	The parent actuator can set or remove an objects parent object.	
 	@ivar object: the object this actuator sets the parent too.
 	@type object: KX_GameObject or None
+	@ivar mode: The mode of this actuator
+	@type mode: int from 0 to 1 L{GameLogic.Parent Actuator}
 	"""
 	def setObject(object):
 		"""

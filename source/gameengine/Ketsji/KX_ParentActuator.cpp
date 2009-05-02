@@ -178,7 +178,7 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 
 PyAttributeDef KX_ParentActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
-	//KX_PYATTRIBUTE_TODO("mode"),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_PARENT_NODEF+1, KX_PARENT_MAX-1, true, KX_ParentActuator, m_mode),
 	{ NULL }	//Sentinel
 };
 
