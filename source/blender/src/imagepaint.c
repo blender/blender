@@ -672,8 +672,8 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 static void uvco_to_wrapped_pxco(float uv[2], int ibuf_x, int ibuf_y, float *x, float *y)
 {
 	/* use */
-	*x = (float)fmod(uv[0], 1.0f);
-	*y = (float)fmod(uv[1], 1.0f);
+	*x = (float)fmodf(uv[0], 1.0f);
+	*y = (float)fmodf(uv[1], 1.0f);
 	
 	if (*x < 0.0f) *x += 1.0f;
 	if (*y < 0.0f) *y += 1.0f;
@@ -895,7 +895,7 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 		return ISECT_TRUE_P2;
 	}
 	
-	y_diff= fabs(p1[1]-p2[1]); /* yuck, horizontal line, we cant do much here */
+	y_diff= fabsf(p1[1]-p2[1]); /* yuck, horizontal line, we cant do much here */
 	
 	if (y_diff < 0.000001f) {
 		*x_isect = (p1[0]+p2[0]) * 0.5f;
@@ -928,7 +928,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 		return ISECT_TRUE_P2;
 	}
 	
-	x_diff= fabs(p1[0]-p2[0]); /* yuck, horizontal line, we cant do much here */
+	x_diff= fabsf(p1[0]-p2[0]); /* yuck, horizontal line, we cant do much here */
 	
 	if (x_diff < 0.000001) { /* yuck, vertical line, we cant do much here */
 		*y_isect = (p1[0]+p2[0]) * 0.5f;
@@ -955,11 +955,11 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 static int cmp_uv(const float vec2a[2], const float vec2b[2])
 {
 	/* if the UV's are not between 0.0 and 1.0 */
-	float xa = (float)fmod(vec2a[0], 1.0f);
-	float ya = (float)fmod(vec2a[1], 1.0f);
+	float xa = (float)fmodf(vec2a[0], 1.0f);
+	float ya = (float)fmodf(vec2a[1], 1.0f);
 	
-	float xb = (float)fmod(vec2b[0], 1.0f);
-	float yb = (float)fmod(vec2b[1], 1.0f);	
+	float xb = (float)fmodf(vec2b[0], 1.0f);
+	float yb = (float)fmodf(vec2b[1], 1.0f);	
 	
 	if (xa < 0.0f) xa += 1.0f;
 	if (ya < 0.0f) ya += 1.0f;
@@ -967,7 +967,7 @@ static int cmp_uv(const float vec2a[2], const float vec2b[2])
 	if (xb < 0.0f) xb += 1.0f;
 	if (yb < 0.0f) yb += 1.0f;
 	
-	return ((fabs(xa-xb) < PROJ_GEOM_TOLERANCE) && (fabs(ya-yb) < PROJ_GEOM_TOLERANCE)) ? 1:0;
+	return ((fabsf(xa-xb) < PROJ_GEOM_TOLERANCE) && (fabsf(ya-yb) < PROJ_GEOM_TOLERANCE)) ? 1:0;
 }
 
 
@@ -1106,7 +1106,7 @@ static float angleToLength(float angle)
 		return 1.0f;
 	}
 	else {
-		return fabs(1.0f / cos(angle * (M_PI/180.0f)));
+		return fabsf(1.0f / cosf(angle * (M_PI/180.0f)));
 	}
 }
 
@@ -1587,7 +1587,7 @@ static int line_clip_rect2f(
 {
 	/* first account for horizontal, then vertical lines */
 	/* horiz */
-	if (fabs(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) {
+	if (fabsf(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) {
 		/* is the line out of range on its Y axis? */
 		if (l1[1] < rect->ymin || l1[1] > rect->ymax) {
 			return 0;
@@ -1598,7 +1598,7 @@ static int line_clip_rect2f(
 		}
 		
 		
-		if (fabs(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+		if (fabsf(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_in_rctf(rect, l1[0], l1[1])) {
 				VECCOPY2D(l1_clip, l1);
 				VECCOPY2D(l2_clip, l2);
@@ -1615,7 +1615,7 @@ static int line_clip_rect2f(
 		CLAMP(l2_clip[0], rect->xmin, rect->xmax);
 		return 1;
 	}
-	else if (fabs(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) {
+	else if (fabsf(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) {
 		/* is the line out of range on its X axis? */
 		if (l1[0] < rect->xmin || l1[0] > rect->xmax) {
 			return 0;
@@ -1626,7 +1626,7 @@ static int line_clip_rect2f(
 			return 0;
 		}
 		
-		if (fabs(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+		if (fabsf(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_in_rctf(rect, l1[0], l1[1])) {
 				VECCOPY2D(l1_clip, l1);
 				VECCOPY2D(l2_clip, l2);
@@ -2111,7 +2111,7 @@ static void project_bucket_clip_face(
 		for(i=0; i<(*tot); i++) {
 			v2_clipSS[0] = isectVCosSS[i][0] - cent[0];
 			v2_clipSS[1] = isectVCosSS[i][1] - cent[1];
-			isectVCosSS[i][2] = atan2(v1_clipSS[0]*v2_clipSS[1] - v1_clipSS[1]*v2_clipSS[0], v1_clipSS[0]*v2_clipSS[0]+v1_clipSS[1]*v2_clipSS[1]); 
+			isectVCosSS[i][2] = atan2f(v1_clipSS[0]*v2_clipSS[1] - v1_clipSS[1]*v2_clipSS[0], v1_clipSS[0]*v2_clipSS[0]+v1_clipSS[1]*v2_clipSS[1]); 
 		}
 		
 		if (flip)	qsort(isectVCosSS, *tot, sizeof(float)*3, float_z_sort_flip);
@@ -2119,7 +2119,7 @@ static void project_bucket_clip_face(
 		
 		/* remove doubles */
 		/* first/last check */
-		if (fabs(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < PROJ_GEOM_TOLERANCE &&  fabs(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < PROJ_GEOM_TOLERANCE) {
+		if (fabsf(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < PROJ_GEOM_TOLERANCE &&  fabsf(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < PROJ_GEOM_TOLERANCE) {
 			(*tot)--;
 		}
 		
@@ -2134,8 +2134,8 @@ static void project_bucket_clip_face(
 		while (doubles==TRUE) {
 			doubles = FALSE;
 			for(i=1; i<(*tot); i++) {
-				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&
-					fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE)
+				if (fabsf(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&
+					fabsf(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE)
 				{
 					int j;
 					for(j=i+1; j<(*tot); j++) {
@@ -2263,6 +2263,19 @@ int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 	
 	return 1;
 }
+static int IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
+{
+	int i;
+	int side = (SIDE_OF_LINE(uv[tot-1], uv[0], pt) > 0.0f);
+	
+	for (i=1; i<tot; i++) {
+		if ((SIDE_OF_LINE(uv[i-1], uv[i], pt) > 0.0f) != side)
+			return 0;
+		
+	}
+	
+	return 1;
+}
 
 /* One of the most important function for projectiopn painting, since it selects the pixels to be added into each bucket.
  * initialize pixels from this face where it intersects with the bucket_index, optionally initialize pixels for removing seams */
@@ -2306,6 +2319,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	float uv_clip[8][2];
 	int uv_clip_tot;
 	const short is_ortho = ps->is_ortho;
+	const short do_backfacecull = ps->do_backfacecull;
 	
 	vCo[0] = ps->dm_mvert[mf->v1].co;
 	vCo[1] = ps->dm_mvert[mf->v2].co;
@@ -2364,8 +2378,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		v1coSS = ps->screenCoords[ (*(&mf->v1 + i1)) ];
 		v2coSS = ps->screenCoords[ (*(&mf->v1 + i2)) ];
 		v3coSS = ps->screenCoords[ (*(&mf->v1 + i3)) ];
-
-
+		
 		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
 		project_bucket_clip_face(
 				is_ortho, bucket_bounds,
@@ -2373,8 +2386,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 				uv1co, uv2co, uv3co,
 				uv_clip, &uv_clip_tot
 		);
-		
-		
+
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
 		/*
 		if (uv_clip_tot>6) {
@@ -2396,7 +2408,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 					//uv[0] = (((float)x) + 0.5f) / ibuf->x;
 					uv[0] = (float)x / ibuf_xf; /* use pixel offset UV coords instead */
 					
-					if (IsectPoly2Df(uv, uv_clip, uv_clip_tot)) {
+					/* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesnt work,
+					 * could check the poly direction but better to do this */
+					if(	(do_backfacecull		&& IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
+						(do_backfacecull==0		&& IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot))) {
 						
 						has_x_isect = has_isect = 1;
 						
@@ -3689,12 +3704,12 @@ static void *do_projectpaint_thread(void *ph_v)
 			
 			projPixel = (ProjPixel *)node->link;
 			
-			/*dist = Vec2Lenf(projPixel->projCoSS, pos);*/ /* correct but uses a sqrt */
+			/*dist = Vec2Lenf(projPixel->projCoSS, pos);*/ /* correct but uses a sqrtf */
 			dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
 			
-			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
+			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrtf */
 			if (dist_nosqrt < brush_size_sqared) {
-				falloff = brush_sample_falloff_noalpha(ps->brush, sqrt(dist_nosqrt));
+				falloff = brush_sample_falloff_noalpha(ps->brush, sqrtf(dist_nosqrt));
 				if (falloff > 0.0f) {
 					if (ps->is_texbrush) {
 						brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
