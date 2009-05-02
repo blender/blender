@@ -460,7 +460,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 				
 				/* closing bracket and '+' sign */
 				if ( (i != (data->poly_order - 1)) || ((i==0) && data->poly_order==2) )
-					uiDefBut(block, LABEL, 1, ") ×", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ") â—Š", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				else
 					uiDefBut(block, LABEL, 1, ")", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
@@ -567,6 +567,36 @@ static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, i
 		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 157,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
 		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 157, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
 	uiBlockEndAlign(block);
+}
+
+/* --------------- */
+
+/* draw settings for noise modifier */
+static void draw_modifier__noise(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Noise *data= (FMod_Noise *)fcm->data;
+	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
+	char cyc_mode[]="Modification %t|Replace %x0|Add %x1|Subtract %x2|Multiply %x3";
+	
+	/* set the height */
+	(*height) = 80;
+	
+	/* basic settings (backdrop + some padding) */
+	DRAW_BACKDROP((*height));
+	
+	uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode,
+			  3, cy, 150, 20, &data->modification, 0, 0, 0, 0, "Method of modifying the existing F-Curve use before first keyframe");
+	
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Size:", 
+			  3, cy1, 150, 20, &data->size, 0.000001, 10000.0, 0.01, 3, "");
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Strength:", 
+			  3, cy2, 150, 20, &data->strength, 0.0, 10000.0, 0.01, 3, "");
+	
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Phase:", 
+			  155, cy1, 150, 20, &data->phase, 0.0, 100000.0, 0.1, 3, "");
+	uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Depth:", 
+			  155, cy2, 150, 20, &data->depth, 0, 128, 1, 3, "");
+
 }
 
 /* --------------- */
@@ -878,6 +908,10 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 				
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
 				draw_modifier__limits(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+			
+			case FMODIFIER_TYPE_NOISE: /* Noise */
+				draw_modifier__noise(block, fcu, fcm, yco, &height, width, active, rb_col);
 				break;
 			
 			default: /* unknown type */

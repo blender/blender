@@ -118,8 +118,8 @@ StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 			return &RNA_FModifierEnvelope;
 		case FMODIFIER_TYPE_CYCLES:
 			return &RNA_FModifierCycles;
-		//case FMODIFIER_TYPE_NOISE:
-		//	return &RNA_FModifierNoise;
+		case FMODIFIER_TYPE_NOISE:
+			return &RNA_FModifierNoise;
 		//case FMODIFIER_TYPE_FILTER:
 		//	return &RNA_FModifierFilter;
 		case FMODIFIER_TYPE_PYTHON:
@@ -410,6 +410,47 @@ static void rna_def_fmodifier_limits(BlenderRNA *brna)
 
 /* --------- */
 
+static void rna_def_fmodifier_noise(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_modification_items[] = {
+		{FCM_NOISE_MODIF_REPLACE, "REPLACE", "Replace", ""},
+		{FCM_NOISE_MODIF_ADD, "ADD", "Add", ""},
+		{FCM_NOISE_MODIF_SUBTRACT, "SUBTRACT", "Subtract", ""},
+		{FCM_NOISE_MODIF_MULTIPLY, "MULTIPLY", "Multiply", ""},
+		{0, NULL, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "FModifierNoise", "FModifier");
+	RNA_def_struct_ui_text(srna, "Noise F-Curve Modifier", "Gives randomness to the modified F-Curve.");
+	RNA_def_struct_sdna_from(srna, "FMod_Noise", "data");
+	
+	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_modification_items);
+	RNA_def_property_ui_text(prop, "Modification", "Method of modifying the existing F-Curve.");
+	
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Size", "Scaling (in time) of the noise");
+	
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_ui_text(prop, "Strength", "Amplitude of the noise - the amount that it modifies the underlying curve");
+	
+	prop= RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "phase");
+	RNA_def_property_ui_text(prop, "Phase", "A random seed for the noise effect");
+	
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "depth");
+	RNA_def_property_ui_text(prop, "Depth", "Amount of fine level detail present in the noise");
+
+}
+
+
+/* --------- */
+
 void rna_def_fmodifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -603,6 +644,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fmodifier_cycles(brna);
 	rna_def_fmodifier_python(brna);
 	rna_def_fmodifier_limits(brna);
+	rna_def_fmodifier_noise(brna);
 }
 
 

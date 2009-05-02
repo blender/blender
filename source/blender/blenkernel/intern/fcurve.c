@@ -19,6 +19,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_curve.h" 
@@ -1823,7 +1824,42 @@ static FModifierTypeInfo FMI_CYCLES = {
 
 /* Noise F-Curve Modifier  --------------------------- */
 
-#if 0 // XXX not yet implemented 
+static void fcm_noise_new_data (void *mdata)
+{
+	FMod_Noise *data= (FMod_Noise *)mdata;
+	
+	/* defaults */
+	data->size= 1.0f;
+	data->strength= 1.0f;
+	data->phase= 1.0f;
+	data->depth = 0;
+	data->modification = FCM_NOISE_MODIF_REPLACE;
+}
+ 
+static void fcm_noise_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Noise *data= (FMod_Noise *)fcm->data;
+	float noise;
+	
+	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.f, data->depth);
+	
+	switch (data->modification) {
+		case FCM_NOISE_MODIF_ADD:
+			*cvalue= *cvalue + noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_SUBTRACT:
+			*cvalue= *cvalue - noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_MULTIPLY:
+			*cvalue= *cvalue * noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_REPLACE:
+		default:
+			*cvalue= *cvalue + (noise - 0.5f) * data->strength;
+			break;
+	}
+}
+
 static FModifierTypeInfo FMI_NOISE = {
 	FMODIFIER_TYPE_NOISE, /* type */
 	sizeof(FMod_Noise), /* size */
@@ -1837,7 +1873,6 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL /*fcm_noise_verify*/, /* verify */
 	fcm_noise_evaluate /* evaluate */
 };
-#endif // XXX not yet implemented
 
 /* Filter F-Curve Modifier --------------------------- */
 
@@ -1961,7 +1996,7 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
 	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
 	fmodifiersTypeInfo[3]=  &FMI_CYCLES;			/* Cycles F-Curve Modifier */
-	fmodifiersTypeInfo[4]=  NULL/*&FMI_NOISE*/;				/* Apply-Noise F-Curve Modifier */ // XXX unimplemented
+	fmodifiersTypeInfo[4]=  &FMI_NOISE;				/* Apply-Noise F-Curve Modifier */
 	fmodifiersTypeInfo[5]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[6]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
 	fmodifiersTypeInfo[7]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */

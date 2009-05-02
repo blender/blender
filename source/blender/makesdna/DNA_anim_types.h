@@ -166,6 +166,26 @@ enum {
 	FCM_LIMIT_YMAX		= (1<<3),
 } eFMod_Limit_Flags;
 
+/* noise modifier data */
+typedef struct FMod_Noise {
+	float size;
+	float strength;
+	float phase;
+	float pad;
+
+	short depth;
+	short modification;
+
+} FMod_Noise;
+	
+/* modification modes */
+enum {
+	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
+	FCM_NOISE_MODIF_ADD,			/* Add noise to the curve */
+	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
+	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
+} eFMod_Noise_Modifications;
+
 /* Drivers -------------------------------------- */
 
 /* Driver Target 
