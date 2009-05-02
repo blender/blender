@@ -570,10 +570,13 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			BLI_strncpy(bookmark, fname, FILE_MAX);
 		
 			sl = strlen(bookmark)-1;
-			while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
-				bookmark[sl] = '\0';
-				sl--;
+			if (sl > 1) {
+				while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+					bookmark[sl] = '\0';
+					sl--;
+				}
 			}
+			
 			if (fsmenu_is_selected(fsmenu, category, i) ) {
 				UI_ThemeColor(TH_HILITE);
 				//uiSetRoundBox(15);	
