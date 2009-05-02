@@ -775,6 +775,37 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, Vie
 	glDisable(GL_BLEND);
 }
 
+/* check if any FModifiers to draw controls for  - fcm is 'active' modifier */
+static short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
+{
+	/* don't draw if there aren't any modifiers at all */
+	if (fcu->modifiers.first == NULL) 
+		return 0;
+	
+	/* if there's an active modifier - don't draw if it is cycles modifier, since
+	 * that basically still shows the original points
+	 */
+	if ((fcm) && (fcm->type == FMODIFIER_TYPE_CYCLES))
+		return 0;
+	
+	/* if only one modifier - don't draw if it is muted or disabled */
+	if (fcu->modifiers.first == fcu->modifiers.last) {
+		fcm= fcu->modifiers.first;
+		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
+			return 0;
+	}
+	
+	/* if only active modifier - don't draw if it is muted or disabled */
+	if (fcm) {
+		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
+			return 0;
+	}
+	
+	/* if we're still here, this means that there are modifiers with controls to be drawn */
+	// FIXME: what happens if all the modifiers were muted/disabled
+	return 1;
+}
+
 /* This is called twice from space_graph.c -> graph_main_area_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
@@ -853,14 +884,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		}
 		
 		/* 2) draw handles and vertices as appropriate based on active */
-		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first && !fcm) ) {
-			/* draw controls for the 'active' modifier
-			 *	- there may not be an 'active' modifier on this curve to draw
-			 *	- this curve may not be active, so modifier controls shouldn't get drawn either
-			 *
-			 * NOTE: cycles modifier is currently an exception where the original points can still be edited, so
-			 *  	 	this branch is skipped... (TODO: set up the generic system for this so that we don't need special hacks like this)
-			 */
+		if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
+			/* only draw controls if this is the active modifier */
 			if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
 				switch (fcm->type) {
 					case FMODIFIER_TYPE_ENVELOPE: /* envelope */

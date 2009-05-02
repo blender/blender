@@ -61,6 +61,8 @@ enum {
 	FMODIFIER_FLAG_EXPANDED		= (1<<1),
 		/* modifier is active one (in UI) for editing purposes */
 	FMODIFIER_FLAG_ACTIVE		= (1<<2),
+		/* user wants modifier to be skipped */
+	FMODIFIER_FLAG_MUTED		= (1<<3),
 } eFModifier_Flags; 
 
 /* --- */

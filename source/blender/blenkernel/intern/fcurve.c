@@ -2239,7 +2239,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		/* only evaluate if there's a callback for this */
 		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier) {
-			if ((fcm->flag & FMODIFIER_FLAG_DISABLED) == 0)
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
 		}
 	}
