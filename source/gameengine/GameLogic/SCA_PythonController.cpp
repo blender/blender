@@ -53,6 +53,7 @@ SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
 	: SCA_IController(gameobj, T),
 	m_bytecode(NULL),
 	m_function(NULL),
+	m_function_argc(0),
 	m_bModified(true),
 	m_debug(false),
 	m_mode(mode),
@@ -325,14 +326,14 @@ bool SCA_PythonController::Import()
 	Py_XDECREF(m_function);
 	m_function= NULL;
 	
-	vector<STR_String> module_func = m_scriptText.Explode('.');
+	vector<STR_String> py_function_path = m_scriptText.Explode('.');
 	
-	if(module_func.size() != 2 || module_func[0].Length()==0 || module_func[1].Length()==0) {
-		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"", GetName().Ptr(), m_scriptText.Ptr());
+	if(py_function_path.size() < 2) {
+		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
-	PyObject *mod = PyImport_ImportModule((char *)module_func[0].Ptr());
+	PyObject *mod = PyImport_ImportModule((char *)py_function_path[0].Ptr());
 	if(mod && m_debug) {
 		Py_DECREF(mod); /* getting a new one so dont hold a ref to the old one */
 		mod= PyImport_ReloadModule(mod);
@@ -342,24 +343,50 @@ bool SCA_PythonController::Import()
 		ErrorPrint("Python module not found");
 		return false;
 	}
-	Py_DECREF(mod); /* will be added to sys.modules so no need to keep a ref */
+	/* 'mod' will be DECREF'd as 'base' 
+	 * 'm_function' will be left holding a reference that the controller owns */
 	
+	PyObject *base= mod;
 	
-	PyObject *dict=  PyModule_GetDict(mod);
-	m_function= PyDict_GetItemString(dict, module_func[1]); /* borrow */
+	for(unsigned int i=1; i < py_function_path.size(); i++) {
+		m_function = PyObject_GetAttrString(base, py_function_path[i].Ptr());
+		Py_DECREF(base);
+		base = m_function; /* for the next loop if there is on */
+		
+		if(m_function==NULL) {
+			PyErr_Clear(); /* print our own error below */
+			break;
+		}
+	}
 	
 	if(m_function==NULL) {
-		printf("Python module error \"%s\":\n \"%s\" module fount but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
+		printf("Python module error \"%s\":\n \"%s\" module found but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
 	if(!PyCallable_Check(m_function)) {
-		printf("Python module function error \"%s\":\n \"%s\" not callable", GetName().Ptr(), m_scriptText.Ptr());
+		Py_DECREF(m_function);
+		printf("Python module function error \"%s\":\n \"%s\" not callable\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
-	Py_INCREF(m_function);
-	Py_INCREF(mod);
+	m_function_argc = 0; /* rare cases this could be a function that isnt defined in python, assume zero args */
+	if (PyFunction_Check(m_function)) {
+		PyObject *py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(m_function), "co_argcount");
+		if(py_arg_count) {
+			m_function_argc = PyLong_AsLong(py_arg_count);
+			Py_DECREF(py_arg_count);
+		}
+		else {
+			PyErr_Clear(); /* unlikely to fail but just incase */
+		}
+	}
+	
+	if(m_function_argc > 1) {
+		Py_DECREF(m_function);
+		printf("Python module function has \"%s\":\n \"%s\" takes %d args, should be zero or 1 controller arg\n", GetName().Ptr(), m_scriptText.Ptr(), m_function_argc);
+		return false;
+	}
 	
 	return true;
 }
@@ -412,7 +439,15 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		if (!m_function)
 			return;
 		
-		resultobj = PyObject_CallObject(m_function, NULL);
+		PyObject *args= NULL;
+		
+		if(m_function_argc==1) {
+			args = PyTuple_New(1);
+			PyTuple_SET_ITEM(args, 0, GetProxy());
+		}
+		
+		resultobj = PyObject_CallObject(m_function, args);
+		Py_XDECREF(args);
 		break;
 	}
 	
@@ -428,7 +463,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	else
 	{
 		// something is wrong, tell the user what went wrong
-		printf("Python script error from controller \"%s\": \n", GetName().Ptr());
+		printf("Python script error from controller \"%s\":\n", GetName().Ptr());
 		PyErr_Print();
 		
 		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing

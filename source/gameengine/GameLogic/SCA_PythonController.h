@@ -44,9 +44,11 @@ class SCA_PythonController : public SCA_IController
 	Py_Header;
 	struct _object *		m_bytecode; /* SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_function; /* SCA_PYEXEC_MODULE only */
+	int						m_function_argc;
 	bool					m_bModified;
 	bool					m_debug;	/* use with SCA_PYEXEC_MODULE for reloading every logic run */
 	int						m_mode;
+
 	
  protected:
 	STR_String				m_scriptText;
