@@ -193,10 +193,20 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 
 void SCA_LogicManager::RemoveController(SCA_IController* controller)
 {
+	sensormap_t::iterator sit;
+	sit = m_sensorcontrollermapje.begin();
+	if (sit==m_sensorcontrollermapje.end())
+	{
+		//TRICK: either there is no sensor at all, or the scene is being deleted 
+		//(see KX_Scene::~KX_Scene()). In the first case, this is harmless. 
+		//In the second case, we cannot rely on the sensor being still available, 
+		//make the controller inactive to avoid link count. 
+		//Need a better solution, maybe something similar to m_removedActuators.
+		controller->SetActive(false);
+	}
 	controller->UnlinkAllSensors();
 	controller->UnlinkAllActuators();
-	sensormap_t::iterator sit;
-	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
+	for (;!(sit==m_sensorcontrollermapje.end());++sit)
 	{
 		(*sit).second.remove(controller);
 	}
