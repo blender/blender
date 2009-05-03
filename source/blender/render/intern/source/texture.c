@@ -2031,6 +2031,10 @@ void do_material_tex(ShadeInput *shi)
 					shi->amb= texture_value_blend(mtex->def_var, shi->amb, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->amb<0.0) shi->amb= 0.0;
 					else if(shi->amb>1.0) shi->amb= 1.0;
+					
+					shi->ambr= shi->amb*R.wrld.ambr;
+					shi->ambg= shi->amb*R.wrld.ambg;
+					shi->ambb= shi->amb*R.wrld.ambb;
 				}
 			}
 		}
