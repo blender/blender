@@ -735,15 +735,17 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 static void widget_draw_text(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 //	int transopts;
-	char *cpoin;
+	char *cpoin = NULL;
 	
 //	ui_rasterpos_safe(x, y, but->aspect);
 //	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 //	else transopts= ui_translate_buttons();
 	
-	/* cut string in 2 parts */
-	cpoin= strchr(but->drawstr, '|');
-	if(cpoin) *cpoin= 0;		
+	/* cut string in 2 parts - only for menu entries */
+	if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
+		cpoin= strchr(but->drawstr, '|');
+		if(cpoin) *cpoin= 0;		
+	}
 	
 	if(but->editstr || (but->flag & UI_TEXT_LEFT))
 		fstyle->align= UI_STYLE_TEXT_LEFT;
