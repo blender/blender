@@ -29,6 +29,7 @@
 #ifndef __SG_IOBJECT
 #define __SG_IOBJECT
 
+#include "SG_QList.h"
 #include <vector>
 
 // used for debugging: stage of the game engine main loop at which a Scenegraph modification is done
@@ -84,6 +85,18 @@ typedef void  (*SG_UpdateTransformCallback)(
 	void*	clientinfo
 );
 
+typedef bool  (*SG_ScheduleUpdateCallback)(
+	SG_IObject* sgobject,
+	void*	clientobj,
+	void*	clientinfo
+);
+
+typedef bool  (*SG_RescheduleUpdateCallback)(
+	SG_IObject* sgobject,
+	void*	clientobj,
+	void*	clientinfo
+);
+
 
 /**
  * SG_Callbacks hold 2 call backs to the outside world.
@@ -106,30 +119,38 @@ struct	SG_Callbacks
 	):
 		m_replicafunc(NULL),
 		m_destructionfunc(NULL),
-		m_updatefunc(NULL)
+		m_updatefunc(NULL),
+		m_schedulefunc(NULL),
+		m_reschedulefunc(NULL)
 	{
 	};
 		
 	SG_Callbacks(
 		SG_ReplicationNewCallback repfunc,
 		SG_DestructionNewCallback destructfunc,
-		SG_UpdateTransformCallback updatefunc
+		SG_UpdateTransformCallback updatefunc,
+		SG_ScheduleUpdateCallback schedulefunc,
+		SG_RescheduleUpdateCallback reschedulefunc
 	): 
 		m_replicafunc(repfunc),
 		m_destructionfunc(destructfunc),
-		m_updatefunc(updatefunc)
+		m_updatefunc(updatefunc),
+		m_schedulefunc(schedulefunc),
+		m_reschedulefunc(reschedulefunc)
 	{
 	};
 
 	SG_ReplicationNewCallback	m_replicafunc;
 	SG_DestructionNewCallback	m_destructionfunc;
 	SG_UpdateTransformCallback	m_updatefunc;
+	SG_ScheduleUpdateCallback	m_schedulefunc;
+	SG_RescheduleUpdateCallback m_reschedulefunc;
 };
 
 /**
 base object that can be part of the scenegraph.
 */
-class SG_IObject
+class SG_IObject : public SG_QList
 {
 private :
 
@@ -177,9 +198,10 @@ public:
 	 * using STL? 
 	 */
 
-		SGControllerList&	
-	GetSGControllerList(
-	);
+	SGControllerList& GetSGControllerList()
+	{ 
+		return m_SGcontrollers; 
+	}
 
 	
 	/**
@@ -192,16 +214,16 @@ public:
 	 * This may be NULL.
 	 */
 
-		void*				
-	GetSGClientObject(
-	);
+	inline const void* GetSGClientObject() const	
+	{
+		return m_SGclientObject;
+	}
 
-	const 
-		void*			
-	GetSGClientObject(
-	) const	;
+	inline void* GetSGClientObject()
+	{ 
+		return m_SGclientObject;
+	}
 
-	
 	/**
 	 * Set the client object for this node. This is just a 
 	 * pointer to an object allocated that should exist for 
@@ -209,10 +231,10 @@ public:
 	 * this function is called again.
 	 */
 	
-		void	
-	SetSGClientObject(
-		void* clientObject
-	);
+	void SetSGClientObject(void* clientObject)
+	{
+		m_SGclientObject = clientObject;
+	}
 
 	/** 
 	 * Set the current simulation time for this node.
@@ -220,10 +242,7 @@ public:
 	 * the nodes list of controllers and calls their SetSimulatedTime methods
 	 */
  
-		void		
-	SetControllerTime(
-		double time
-	);
+	void SetControllerTime(double time);
 	
 	virtual 
 		void		
@@ -235,20 +254,76 @@ protected :
 		bool
 	ActivateReplicationCallback(
 		SG_IObject *replica
-	);
+	)
+	{
+		if (m_callbacks.m_replicafunc)
+		{
+			// Call client provided replication func
+			if (m_callbacks.m_replicafunc(replica,m_SGclientObject,m_SGclientInfo) == NULL)
+				return false;
+		}
+		return true;
+	}
+
 
 		void
 	ActivateDestructionCallback(
-	);
+	)
+	{
+		if (m_callbacks.m_destructionfunc)
+		{
+			// Call client provided destruction function on this!
+			m_callbacks.m_destructionfunc(this,m_SGclientObject,m_SGclientInfo);
+		}
+		else
+		{
+			// no callback but must still destroy the node to avoid memory leak
+			delete this;
+		}
+	}
 	
 		void
 	ActivateUpdateTransformCallback(
-	);
+	)
+	{
+		if (m_callbacks.m_updatefunc)
+		{
+			// Call client provided update func.
+			m_callbacks.m_updatefunc(this, m_SGclientObject, m_SGclientInfo);
+		}
+	}
+
+		bool
+	ActivateScheduleUpdateCallback(
+	)
+	{
+		// HACK, this check assumes that the scheduled nodes are put on a DList (see SG_Node.h)
+		// The early check on Empty() allows up to avoid calling the callback function
+		// when the node is already scheduled for update.
+		if (Empty() && m_callbacks.m_schedulefunc)
+		{
+			// Call client provided update func.
+			return m_callbacks.m_schedulefunc(this, m_SGclientObject, m_SGclientInfo);
+		}
+		return false;
+	}
+
+		void
+	ActivateRecheduleUpdateCallback(
+	)
+	{
+		if (m_callbacks.m_reschedulefunc)
+		{
+			// Call client provided update func.
+			m_callbacks.m_reschedulefunc(this, m_SGclientObject, m_SGclientInfo);
+		}
+	}
+
 
 	SG_IObject(
 		void* clientobj,
 		void* clientinfo,
-		SG_Callbacks callbacks
+		SG_Callbacks& callbacks
 	);
 
 	SG_IObject(

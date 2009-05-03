@@ -35,6 +35,7 @@
 #include <MT_Matrix3x3.h> // or Quaternion later ?
 #include "SG_IObject.h"
 #include "SG_BBox.h"
+#include "SG_ParentRelation.h"
 
 
 class SG_Node;
@@ -65,6 +66,16 @@ protected:
 
 public:
 
+	inline void ClearModified() 
+	{ 
+		m_modified = false; 
+	}
+	inline void SetModified()
+	{
+		m_modified = true;
+		ActivateScheduleUpdateCallback();
+	}
+
 	/** 
 	 * Define the realtionship this node has with it's parent
 	 * node. You should pass an unshared instance of an SG_ParentRelation
@@ -84,9 +95,12 @@ public:
 		SG_ParentRelation *relation
 	);
 	
-		SG_ParentRelation *
-	GetParentRelation(
-	);
+	SG_ParentRelation * GetParentRelation()
+	{
+		return m_parent_relation;
+	}
+
+
 
 
 	/**
@@ -105,15 +119,17 @@ public:
 		bool local
 	);
 
-		void				
-	SetLocalPosition(
-		const MT_Point3& trans
-	);
+	void SetLocalPosition(const MT_Point3& trans)
+	{
+		m_localPosition = trans;
+		SetModified();
+	}
 
-		void				
-	SetWorldPosition(
-		const MT_Point3& trans
-	);
+	void SetWorldPosition(const MT_Point3& trans)
+	{
+		m_worldPosition = trans;
+	}
+
 	
 		void				
 	RelativeRotate(
@@ -121,72 +137,95 @@ public:
 		bool local
 	);
 
-		void				
-	SetLocalOrientation(
-		const MT_Matrix3x3& rot
-	);
+	void SetLocalOrientation(const MT_Matrix3x3& rot)
+	{
+		m_localRotation = rot;
+		SetModified();
+	}
 
-		void				
-	SetWorldOrientation(
-		const MT_Matrix3x3& rot
-	);
+	void SetWorldOrientation(const MT_Matrix3x3& rot) 
+	{
+		m_worldRotation = rot;
+	}
 
-		void				
-	RelativeScale(
-		const MT_Vector3& scale
-	);
+	void RelativeScale(const MT_Vector3& scale)
+	{
+		m_localScaling = m_localScaling * scale;
+		SetModified();
+	}
 
-		void				
-	SetLocalScale(
-		const MT_Vector3& scale
-	);
+	void SetLocalScale(const MT_Vector3& scale)
+	{
+		m_localScaling = scale;
+		SetModified();
+	}
 
-		void				
-	SetWorldScale(
-		const MT_Vector3& scale
-	);
+	void SetWorldScale(const MT_Vector3& scale)
+	{ 
+		m_worldScaling = scale;
+	}
 
-	const 
-		MT_Point3&
-	GetLocalPosition(
-	) const	;
+	const MT_Point3& GetLocalPosition() const	
+	{
+		return m_localPosition;
+	}
 
-	const 
-		MT_Matrix3x3&
-	GetLocalOrientation(
-	) const	;
+	const MT_Matrix3x3& GetLocalOrientation() const	
+	{
+		return m_localRotation;
+	}
 
-	const 
-		MT_Vector3&	
-	GetLocalScale(
-	) const;
+	const MT_Vector3& GetLocalScale() const
+	{
+		return m_localScaling;
+	}
 
-	const 
-		MT_Point3&
-	GetWorldPosition(
-	) const	;
+	const MT_Point3& GetWorldPosition() const	
+	{
+		return m_worldPosition;
+	}
 
-	const 
-		MT_Matrix3x3&	
-	GetWorldOrientation(
-	) const	;
+	const MT_Matrix3x3&	GetWorldOrientation() const	
+	{
+		return m_worldRotation;
+	}
 
-	const 
-		MT_Vector3&	
-	GetWorldScaling(
-	) const	;
+	const MT_Vector3& GetWorldScaling() const	
+	{
+		return m_worldScaling;
+	}
 
-	void SetWorldFromLocalTransform();
+	void SetWorldFromLocalTransform()
+	{
+		m_worldPosition= m_localPosition;
+		m_worldScaling= m_localScaling;
+		m_worldRotation= m_localRotation;
+	}
+
+
 
 	MT_Transform GetWorldTransform() const;
 
-	bool	ComputeWorldTransforms(const SG_Spatial *parent, bool& parentUpdated);
+	bool	ComputeWorldTransforms(const SG_Spatial *parent, bool& parentUpdated)
+	{
+		return m_parent_relation->UpdateChildCoordinates(this,parent,parentUpdated);
+	}
+
 
 	/**
 	 * Bounding box functions.
 	 */
-	SG_BBox& BBox();
-	void SetBBox(SG_BBox & bbox);
+	SG_BBox& BBox()
+	{
+		return m_bbox;
+	}
+
+	void SetBBox(SG_BBox& bbox)
+	{
+		m_bbox = bbox;
+	}
+
+
 	bool inside(const MT_Point3 &point) const;
 	void getBBox(MT_Point3 *box) const;
 	void getAABBox(MT_Point3 *box) const;
@@ -210,7 +249,7 @@ protected:
 	SG_Spatial(
 		void* clientobj,
 		void* clientinfo,
-		SG_Callbacks callbacks
+		SG_Callbacks& callbacks
 	);
 
 	SG_Spatial(
@@ -231,7 +270,6 @@ protected:
 		double time,
 		bool& parentUpdated
 	);
-	void SetModified(bool modified) { m_modified = modified; }
 
 };
 

@@ -118,6 +118,11 @@ protected:
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	
+	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
+										// the Dlist is not object that must be updated
+										// the Qlist is for objects that needs to be rescheduled
+										// for updates after udpate is over (slow parent, bone parent)
 
 	/**
 	 *  The tree of objects in the scene.
@@ -307,6 +312,8 @@ public:
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
+	static bool KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene);
+	static bool KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene);
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
 	bool IsObjectInGroup(CValue* gameobj)

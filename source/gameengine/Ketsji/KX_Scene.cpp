@@ -111,7 +111,22 @@ void* KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
 	return NULL;
 };
 
-SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(KX_SceneReplicationFunc,KX_SceneDestructionFunc,KX_GameObject::UpdateTransformFunc);
+bool KX_Scene::KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene)
+{
+	return ((SG_Node*)node)->Schedule(((KX_Scene*)scene)->m_sghead);
+}
+
+bool KX_Scene::KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene)
+{
+	return ((SG_Node*)node)->Reschedule(((KX_Scene*)scene)->m_sghead);
+}
+
+SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(
+	KX_SceneReplicationFunc,
+	KX_SceneDestructionFunc,
+	KX_GameObject::UpdateTransformFunc,
+	KX_Scene::KX_ScenegraphUpdateFunc,
+	KX_Scene::KX_ScenegraphRescheduleFunc);
 
 // temporarily var until there is a button in the userinterface
 // (defined in KX_PythonInit.cpp)
@@ -1473,15 +1488,28 @@ void KX_Scene::LogicEndFrame()
   */
 void KX_Scene::UpdateParents(double curtime)
 {
-//	int numrootobjects = GetRootParentList()->GetCount();
+	// we use the SG dynamic list
+	SG_Node* node;
 
-	for (int i=0; i<GetRootParentList()->GetCount(); i++)
+	while ((node = SG_Node::GetNextScheduled(m_sghead)) != NULL)
 	{
-		KX_GameObject* parentobj = (KX_GameObject*)GetRootParentList()->GetValue(i);
-		parentobj->NodeUpdateGS(curtime);
+		node->UpdateWorldData(curtime);
+	}
+
+	//for (int i=0; i<GetRootParentList()->GetCount(); i++)
+	//{
+	//	KX_GameObject* parentobj = (KX_GameObject*)GetRootParentList()->GetValue(i);
+	//	parentobj->NodeUpdateGS(curtime);
+	//}
+
+	// the list must be empty here
+	assert(m_sghead.Empty());
+	// some nodes may be ready for reschedule, move them to schedule list for next time
+	while ((node = SG_Node::GetNextRescheduled(m_sghead)) != NULL)
+	{
+		node->Schedule(m_sghead);
 	}
 }
-
 
 
 RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool &bucketCreated)
