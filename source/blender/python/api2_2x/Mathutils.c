@@ -107,11 +107,6 @@ struct PyMethodDef M_Mathutils_methods[] = {
 /*----------------------------MODULE INIT-------------------------*/
 /* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
 
-void Mathutils_Free(void * closure)
-{
-	Vector_Free();
-}
-
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Mathutils_module_def = {
 	{}, /* m_base */
@@ -122,7 +117,7 @@ static struct PyModuleDef M_Mathutils_module_def = {
 	0,  /* m_reload */
 	0,  /* m_traverse */
 	0,  /* m_clear */
-	Mathutils_Free,  /* m_free */
+	0,  /* m_free */
 };
 #endif
 
@@ -133,11 +128,6 @@ PyObject *Mathutils_Init(const char *from)
 	//seed the generator for the rand function
 	BLI_srand((unsigned int) (PIL_check_seconds_timer() * 0x7FFFFFFF));
 	
-	/* needed for getseters */
-	if(!(vector_Type.tp_flags & Py_TPFLAGS_READY))
-		if (Vector_Init() != 0) /* setup dynamic getset array */
-			return NULL;
-		
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &matrix_Type ) < 0 )

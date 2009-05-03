@@ -285,8 +285,6 @@ void BPY_end_python( void )
 		next_script = script->id.next;
 		free_libblock( &G.main->script, script );
 	}
-
-	Mathutils_Free(NULL);
 	
 	Py_Finalize(  );
 
