@@ -717,45 +717,25 @@ static bActionStrip *get_active_strip(Object *ob)
 	return NULL;
 }
 
-/* non clipped mapping of strip */
-static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
-{
-	float length, actlength, repeat, scale;
-	
-	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
-	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
-	
-	if (strip->scale == 0.0f) strip->scale= 1.0f;
-	scale = (float)fabs(strip->scale); /* scale must be positive (for now) */
-	
-	actlength = strip->actend-strip->actstart;
-	if (actlength == 0.0f) actlength = 1.0f;
-	length = repeat * scale * actlength;
-	
-	/* invert = convert action-strip time to global time */
-	if (invert)
-		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-	else
-		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
-}
-
 /* if the conditions match, it converts current time to strip time */
+// TODO: change this adt
 float get_action_frame(Object *ob, float cframe)
 {
 	bActionStrip *strip= get_active_strip(ob);
 	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 0);
+	//if(strip)
+	//	return get_actionstrip_frame(strip, cframe, 0);
 	return cframe;
 }
 
 /* inverted, strip time to current time */
+// TODO: change this to adt
 float get_action_frame_inv(Object *ob, float cframe)
 {
 	bActionStrip *strip= get_active_strip(ob);
 	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 1);
+	//if(strip)
+	//	return get_actionstrip_frame(strip, cframe, 1);
 	return cframe;
 }
 

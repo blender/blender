@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -544,19 +545,17 @@ typedef struct NlaEvalStrip {
 	struct NlaEvalStrip *next, *prev;
 	
 	NlaTrack *track;			/* track that this strip belongs to */
-	NlaStrip *strip;		/* strip that's being used */
-	NlaStrip *sblend;		/* strip that's being blended towards (if applicable) */
+	NlaStrip *strip;			/* strip that's being used */
 	
 	short track_index;			/* the index of the track within the list */
 	short strip_mode;			/* which end of the strip are we looking at */
 } NlaEvalStrip;
 
-/* bNlaEvalStrip->strip_mode */
+/* NlaEvalStrip->strip_mode */
 enum {
 	NES_TIME_BEFORE = -1,
 	NES_TIME_WITHIN,
 	NES_TIME_AFTER,
-	NES_TIME_AFTER_BLEND
 } eNlaEvalStrip_StripMode;
 
 
@@ -565,8 +564,9 @@ enum {
 typedef struct NlaEvalChannel {
 	struct NlaEvalChannel *next, *prev;
 	
-	char *path;				/* ready-to-use path (i.e. remapped already) */
-	int array_index;		/* if applicable... */
+	PointerRNA *ptr;		/* pointer to struct containing property to use */
+	PropertyRNA *prop;		/* RNA-property type to use (should be in the struct given) */
+	int index;				/* array index (where applicable) */
 	
 	float value;			/* value of this channel */
 } NlaEvalChannel;
@@ -574,24 +574,98 @@ typedef struct NlaEvalChannel {
 
 /* ---------------------- */
 
-/* evaluate the F-Curves controlling settings for the NLA-strips (currently, not relinkable) */
-static void nlastrip_evaluate_fcurves (NlaStrip *strip, float ctime)
+/* non clipped mapping for strip-time <-> global time 
+ *	invert = convert action-strip time to global time 
+ */
+static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
 {
-	//PointerRNA actstrip_ptr;
-	//FCurve *fcu;
+	float length, actlength, repeat, scale;
 	
-	/* create RNA-pointer needed to set values */
-	//RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &actstrip_ptr);
+	/* get number of repeats */
+	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
+	repeat = strip->repeat;
 	
-	/* execute these settings as per normal */
-	//animsys_evaluate_fcurves(&actstrip_ptr, &strip->fcurves, NULL, ctime);
+	/* scaling */
+	if (strip->scale == 0.0f) strip->scale= 1.0f;
+	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
+	
+	/* length of referenced action */
+	actlength = strip->actend-strip->actstart;
+	if (actlength == 0.0f) actlength = 1.0f;
+	
+	/* length of strip */
+	length = repeat * scale * actlength;
+	
+	/* reversed = play strip backwards */
+	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
+		// FIXME: verify these 
+		/* invert = convert action-strip time to global time */
+		if (invert)
+			return length*(strip->actend - cframe)/(repeat*actlength) + strip->start;
+		else
+			return strip->actend - repeat*actlength*(cframe - strip->start)/length;
+	}
+	else {
+		/* invert = convert action-strip time to global time */
+		if (invert)
+			return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
+		else
+			return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
+	}
+}
+
+/* calculate influence of strip based for given frame based on blendin/out values */
+static float nlastrip_get_influence (NlaStrip *strip, float cframe)
+{
+	/* sanity checks - normalise the blendin/out values? */
+	strip->blendin= (float)fabs(strip->blendin);
+	strip->blendout= (float)fabs(strip->blendout);
+	
+	/* result depends on where frame is in respect to blendin/out values */
+	// TODO: are the fabs() tests needed here?
+	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
+		/* there is some blend-in */
+		return (float)fabs(cframe - strip->start) / (strip->blendin);
+	}
+	else if (IS_EQ(strip->blendout, 0)==0 && (cframe >= (strip->end - strip->blendout))) {
+		/* there is some blend-out */
+		return (float)fabs(strip->end - cframe) / (strip->blendout);
+	}
+	else {
+		/* in the middle of the strip, we should be full strength */
+		return 1.0f;
+	}
+}
+
+/* evaluate the evaluation time and influence for the strip, storing the results in the strip */
+void nlastrip_evaluate_controls (NlaStrip *strip, float cframe)
+{
+	/* firstly, analytically generate values for influence and time (if applicable) */
+	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
+		strip->strip_time= nlastrip_get_frame(strip, cframe, 1); /* last arg '1' means current time to 'strip'/action time */
+	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
+		strip->influence= nlastrip_get_influence(strip, cframe);
+	
+	/* now strip's evaluate F-Curves for these settings (if applicable) */
+	if (strip->fcurves.first) {
+#if 0
+		PointerRNA strip_ptr;
+		FCurve *fcu;
+		
+		/* create RNA-pointer needed to set values */
+		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+		
+		/* execute these settings as per normal */
+		animsys_evaluate_fcurves(&actstrip_ptr, &strip->fcurves, NULL, ctime);
+#endif
+	}
 }
 
 
-/* gets the strip active at the current time for a track */
+/* gets the strip active at the current time for a track for evaluation purposes */
 static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index, float ctime)
 {
-	NlaStrip *strip, *astrip=NULL, *bstrip=NULL;
+	NlaStrip *strip, *estrip=NULL;
 	NlaEvalStrip *nes;
 	short side= 0;
 	
@@ -601,71 +675,91 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	
 	/* loop over strips, checking if they fall within the range */
 	for (strip= nlt->strips.first; strip; strip= strip->next) {
-		/* only consider if:
-		 *	- current time occurs within strip's extents
-		 *	- current time occurs before strip (if it is the first)
-		 *	- current time occurs after strip (if hold is on)
-		 *	- current time occurs between strips (1st of those isn't holding) - blend!
-		 */
+		/* check if current time occurs within this strip  */
 		if (IN_RANGE(ctime, strip->start, strip->end)) {
-			astrip= strip;
+			/* this strip is active, so try to use it */
+			estrip= strip;
 			side= NES_TIME_WITHIN;
 			break;
 		}
-		else if (ctime < strip->start) {
+		
+		/* if time occurred before current strip... */
+		if (ctime < strip->start) {
 			if (strip == nlt->strips.first) {
-				astrip= strip;
+				/* before first strip - only try to use it if it extends backwards in time too */
+				if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
+					estrip= strip;
+					
+				/* side is 'before' regardless of whether there's a useful strip */
 				side= NES_TIME_BEFORE;
-				break;
 			}
 			else {
-				astrip= strip->prev;
+				/* before next strip - previous strip has ended, but next hasn't begun, 
+				 * so blending mode depends on whether strip is being held or not...
+				 * 	- only occurs when no transition strip added, otherwise the transition would have
+				 * 	  been picked up above...
+				 */
+				strip= strip->prev;
 				
-				if (astrip->flag & NLASTRIP_HOLDLASTFRAME) {
-					side= NES_TIME_AFTER;
-					break;
-				}
-				else {
-					bstrip= strip;
-					side= NES_TIME_AFTER_BLEND;
-					break;
-				}
+				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+					estrip= strip;
+				side= NES_TIME_AFTER;
 			}
+			break;
+		}
+		
+		/* if time occurred after current strip... */
+		if (ctime > strip->end) {
+			/* only if this is the last strip should we do anything, and only if that is being held */
+			if (strip == nlt->strips.last) {
+				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+					estrip= strip;
+					
+				side= NES_TIME_AFTER;
+				break;
+			}
+			
+			/* otherwise, skip... as the 'before' case will catch it more elegantly! */
 		}
 	}
 	
-	/* check if strip has been found (and whether it has data worth considering) */
-	if (ELEM(NULL, astrip, astrip->act)) 
+	/* check if a valid strip was found
+	 *	- must not be muted (i.e. will have contribution
+	 */
+	if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED)) 
 		return;
-	if (astrip->flag & NLASTRIP_MUTE) 
+	
+	/* evaluate strip's evaluation controls  
+	 * 	- skip if no influence (i.e. same effect as muting the strip)
+	 *	- negative influence is not supported yet... how would that be defined?
+	 */
+	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
+	nlastrip_evaluate_controls(estrip, ctime);
+	if (estrip->influence <= 0.0f)
 		return;
-	
-	/* check if blending between strips */
-	if (side == NES_TIME_AFTER_BLEND) {
-		/* blending between strips... so calculate influence+act_time of both */
-		nlastrip_evaluate_fcurves(astrip, ctime);
-		nlastrip_evaluate_fcurves(bstrip, ctime);
 		
-		if ((astrip->influence <= 0.0f) && (bstrip->influence <= 0.0f))
-			return;
-	}
-	else {
-		/* calculate/set the influence+act_time of this strip - don't consider if 0 influence */
-		nlastrip_evaluate_fcurves(astrip, ctime);
-		
-		if (astrip->influence <= 0.0f) 
-			return;
+	/* check if strip has valid data to evaluate */
+	switch (estrip->type) {
+		case NLASTRIP_TYPE_CLIP: 
+			/* clip must have some action to evaluate */
+			if (estrip->act == NULL)
+				return;
+			break;
+		case NLASTRIP_TYPE_TRANSITION:
+			/* there must be strips to transition from and to (i.e. prev and next required) */
+			// TODO: what happens about cross-track transitions? 
+			if (ELEM(NULL, estrip->prev, estrip->next))
+				return;
+			break;
 	}
 	
-	
-	/* allocate new eval-strip for this strip + add to stack */
+	/* add to list of strips we need to evaluate */
 	nes= MEM_callocN(sizeof(NlaEvalStrip), "NlaEvalStrip");
 	
 	nes->track= nlt;
-	nes->strip= astrip;
-	nes->sblend= bstrip;
-	nes->track_index= index;
+	nes->strip= estrip;
 	nes->strip_mode= side;
+	nes->track_index= index;
 	
 	BLI_addtail(list, nes);
 }

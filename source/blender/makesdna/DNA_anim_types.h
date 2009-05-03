@@ -360,26 +360,13 @@ typedef struct AnimMapper {
 
 /* ************************************************ */
 /* NLA - Non-Linear Animation */
-// TODO: the concepts here still need to be refined to solve any unresolved items
-
-/* NLA Modifiers ---------------------------------- */
-
-/* These differ from F-Curve modifiers, as although F-Curve modifiers also operate on a 
- * per-channel basis too (in general), they are part of the animation data itself, which
- * means that their effects are inherited by all of their users. In order to counteract this,
- * the modifiers here should be used to provide variation to pre-created motions only. 
- */
 
 /* NLA Strips ------------------------------------- */
 
 /* NLA Strip (strip)
  *
  * A NLA Strip is a container for the reuse of Action data, defining parameters
- * to control the remapping of the Action data to some destination. Actions being
- * referenced by NLA-Strips SHOULD-NOT be editable, unless they were created in such
- * a way that results in very little mapping distortion (i.e. for layered animation only,
- * opposed to prebuilt 'blocks' which are quickly dumped into the NLA for crappymatic machima-type
- * stuff)
+ * to control the remapping of the Action data to some destination. 
  */
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
@@ -387,58 +374,75 @@ typedef struct NlaStrip {
 	bAction *act;				/* Action that is referenced by this strip */
 	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
 	
-	ListBase modifiers;			/* NLA Modifiers */	
-	
-	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */
+	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
+	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
 	float influence;			/* Influence of strip */
-	float act_time;				/* Current 'time' within action being used */
+	float strip_time;			/* Current 'time' within action being used (automatically evaluated, but can be overridden) */
 	
 	float start, end;			/* extents of the strip */
 	float actstart, actend;		/* range of the action to use */
 	
-	float	repeat;				/* The number of times to repeat the action range (only when no F-Curves) */
-	float	scale;				/* The amount the action range is scaled by (only when no F-Curves) */
+	float repeat;				/* The number of times to repeat the action range (only when no F-Curves) */
+	float scale;				/* The amount the action range is scaled by (only when no F-Curves) */
 	
 	float blendin, blendout;	/* strip blending length (only used when there are no F-Curves) */	
-	int blendmode;				/* strip blending mode */	
+	short blendmode;			/* strip blending mode (layer-based mixing) */
+	short extendmode;			/* strip extrapolation mode (time-based mixing) */
 	
-	int flag;					/* settings */
-	
-		// umm... old unused cruft? 
-	int stride_axis;			/* axis for stridebone stuff - 0=x, 1=y, 2=z */
-	int pad;
-	
-	float	actoffs;			/* Offset within action, for cycles and striding (only set for ACT_USESTRIDE) */
-	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
-	
-	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
-	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
+	short flag;					/* settings */
+	short type;					/* type of NLA strip */
 } NlaStrip;
 
 /* NLA Strip Blending Mode */
 enum {
-	NLASTRIPMODE_BLEND = 0,
-	NLASTRIPMODE_ADD,
-	NLASTRIPMODE_SUBTRACT,
-} eActStrip_Mode;
+	NLASTRIP_MODE_BLEND = 0,
+	NLASTRIP_MODE_ADD,
+	NLASTRIP_MODE_SUBTRACT,
+	NLASTRIP_MODE_MULTIPLY,
+} eNlaStrip_Blend_Mode;
+
+/* NLA Strip Extrpolation Mode */
+enum {
+		/* extend before first frame if no previous strips in track, and always hold+extend last frame */
+	NLASTRIP_EXTEND_HOLD	= 0,		
+		/* only hold+extend last frame */
+	NLASTRIP_EXTEND_HOLD_FORWARD,	
+		/* don't contribute at all */
+	NLASTRIP_EXTEND_NOTHING,
+} eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
-// TODO: check on which of these are still useful...
 enum {
-	NLASTRIP_SELECT			= (1<<0),
-	NLASTRIP_USESTRIDE		= (1<<1),
-	NLASTRIP_BLENDTONEXT	= (1<<2),	/* Not implemented. Is not used anywhere */
-	NLASTRIP_HOLDLASTFRAME	= (1<<3),
-	NLASTRIP_ACTIVE			= (1<<4),
-	NLASTRIP_LOCK_ACTION	= (1<<5),
-	NLASTRIP_MUTE			= (1<<6),
-	NLASTRIP_REVERSE		= (1<<7),	/* This has yet to be implemented. To indicate that a strip should be played backwards */
-	NLASTRIP_CYCLIC_USEX	= (1<<8),
-	NLASTRIP_CYCLIC_USEY	= (1<<9),
-	NLASTRIP_CYCLIC_USEZ	= (1<<10),
-	NLASTRIP_AUTO_BLENDS	= (1<<11),
-	NLASTRIP_TWEAK			= (1<<12),	/* This strip is a tweaking strip (only set if owner track is a tweak track) */
-} eActionStrip_Flag;
+	/* UI selection flags */
+		/* NLA strip is the active one in the track (also indicates if strip is being tweaked) */
+	NLASTRIP_FLAG_ACTIVE		= (1<<0),	
+		/* NLA strip is selected for editing */
+	NLASTRIP_FLAG_SELECT		= (1<<1),
+//	NLASTRIP_FLAG_SELECT_L		= (1<<2),	// left handle selected
+//	NLASTRIP_FLAG_SELECT_R		= (1<<3),	// right handle selected
+	
+	/* controls driven by local F-Curves */
+		/* strip influence is controlled by local F-Curve */
+	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
+	NLASTRIP_FLAG_USR_TIME		= (1<<6),
+	
+	/* playback flags (may be overriden by F-Curves) */
+		/* NLA strip blendin/out values are set automatically based on overlaps */
+	NLASTRIP_FLAG_AUTO_BLENDS	= (1<<10),
+		/* NLA strip is played back in reverse order */
+	NLASTRIP_FLAG_REVERSE		= (1<<11),
+		/* NLA strip is muted (i.e. doesn't contribute in any way) */
+		// TODO: this overlaps a lot with the functionality in track
+	NLASTRIP_FLAG_MUTED			= (1<<12),
+} eNlaStrip_Flag;
+
+/* NLA Strip Type */
+enum {	
+		/* 'clip' - references an Action */
+	NLASTRIP_TYPE_CLIP	= 0,
+		/* 'transition' - blends between the adjacent strips */
+	NLASTRIP_TYPE_TRANSITION,
+} eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */
 
@@ -457,14 +461,12 @@ typedef struct NlaTrack {
 	int flag;				/* settings for this track */
 	int index;				/* index of the track in the stack (NOTE: not really useful, but we need a pad var anyways!) */
 	
-	char info[64];			/* short user-description of this track */
+	char name[64];			/* short user-description of this track */
 } NlaTrack;
 
 /* settings for track */
 enum {
-		/* track is the one that settings can be modified on (doesn't indicate 
-		 * that it's for 'tweaking' though) 
-		 */
+		/* track is the one that settings can be modified on, also indicates if track is being 'tweaked' */
 	NLATRACK_ACTIVE		= (1<<0),
 		/* track is selected in UI for relevant editing operations */
 	NLATRACK_SELECTED	= (1<<1),
@@ -474,10 +476,6 @@ enum {
 	NLATRACK_SOLO		= (1<<3),
 		/* track's settings (and strips) cannot be edited (to guard against unwanted changes) */
 	NLATRACK_PROTECTED	= (1<<4),
-		/* strip is the 'last' one that should be evaluated, as the active action 
-		 * is being used to tweak the animation of the strips up to here 
-		 */
-	NLATRACK_TWEAK		= (1<<5),
 } eNlaTrack_Flag;
 
 
@@ -650,11 +648,13 @@ enum {
 	ADT_NLA_SOLO_TRACK		= (1<<0),
 		/* don't use NLA */
 	ADT_NLA_EVAL_OFF		= (1<<1),
-		/* don't execute drivers */
-	ADT_DRIVERS_DISABLED	= (1<<2),
+		/* NLA is being 'tweaked' (i.e. in EditMode) */
+	ADT_NLA_EDIT_ON			= (1<<2),
 	
 		/* drivers expanded in UI */
 	ADT_DRIVERS_COLLAPSED	= (1<<10),
+		/* don't execute drivers */
+	ADT_DRIVERS_DISABLED	= (1<<11),
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */
