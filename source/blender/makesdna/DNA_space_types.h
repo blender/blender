@@ -356,7 +356,8 @@ typedef struct SpaceNode {
 	float xof, yof;	/* offset for drawing the backdrop */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype, pad;			/* treetype: as same nodetree->type */
+	int treetype;			/* treetype: as same nodetree->type */
+	short texfrom, pad;		/* texfrom object, world or brush */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -365,6 +366,11 @@ typedef struct SpaceNode {
 #define SNODE_DO_PREVIEW	1
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+
+/* snode->texfrom */
+#define SNODE_TEX_OBJECT	0
+#define SNODE_TEX_WORLD		1
+#define SNODE_TEX_BRUSH		2
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;

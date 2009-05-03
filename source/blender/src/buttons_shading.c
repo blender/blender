@@ -1705,8 +1705,7 @@ static void texture_panel_texture(MTex *actmtex, Material *ma, World *wrld, Lamp
 			uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
 		}
 		
-		if(ma)
-			uiDefButC(block, TOG, B_TEX_USENODES, "Nodes", 160, 100, 140, 25, &tex->use_nodes, 0.0f, 0.0f, 0, 0, "");
+		uiDefButC(block, TOG, B_TEX_USENODES, "Nodes", 160, 100, 140, 25, &tex->use_nodes, 0.0f, 0.0f, 0, 0, "");
 
 	}
 	else {
