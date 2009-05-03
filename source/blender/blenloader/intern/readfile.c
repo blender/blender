@@ -1723,6 +1723,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 			/* relink general data */
 			fcm->data = newdataadr(fd, fcm->data);
+			fcm->edata= NULL;
 			
 			/* do relinking of data for specific types */
 			switch (fcm->type) {

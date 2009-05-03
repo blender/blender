@@ -28,6 +28,7 @@ typedef struct FModifier {
 	struct FModifier *next, *prev;
 	
 	void *data;			/* pointer to modifier data */
+	void *edata;		/* pointer to temporary data used during evaluation */
 	
 	char name[64];		/* user-defined description for the modifier */
 	short type;			/* type of f-curve modifier */

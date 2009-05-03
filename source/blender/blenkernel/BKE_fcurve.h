@@ -68,6 +68,8 @@ typedef struct FModifierTypeInfo {
 	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
+		/* evaluate time that the modifier requires the F-Curve to be evaluated at */
+	float (*evaluate_modifier_time)(struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime);
 		/* evaluate the modifier for the given time and 'accumulated' value */
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
