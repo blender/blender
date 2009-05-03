@@ -20,7 +20,7 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Willian P. Germano & Joseph Gilbert, Ken Hughes
+ * Contributor(s): Willian P. Germano, Joseph Gilbert, Ken Hughes, Alex Fraser, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -31,6 +31,24 @@
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
 
+#define MAX_DIMENSIONS 4
+/* Swizzle axes get packed into a single value that is used as a closure. Each
+   axis uses SWIZZLE_BITS_PER_AXIS bits. The first bit (SWIZZLE_VALID_AXIS) is
+   used as a sentinel: if it is unset, the axis is not valid. */
+#define SWIZZLE_BITS_PER_AXIS 3
+#define SWIZZLE_VALID_AXIS 0x4
+#define SWIZZLE_AXIS       0x3
+
+
+/* An array of getseters, some of which have members on the stack and some on
+   the heap.
+
+   Vector_dyn_getseters: The getseter structures. Terminated with a NULL sentinel.
+   Vector_dyn_names:     All the names of the getseters that were allocated on the heap.
+              Each name is terminated with a null character, but there is
+              currently no way to find the length of this array. */
+PyGetSetDef*	Vector_dyn_getseters = NULL; 
+char*			Vector_dyn_names = NULL;
 
 /*-------------------------DOC STRINGS ---------------------------*/
 char Vector_Zero_doc[] = "() - set all values in the vector to 0";
@@ -42,6 +60,7 @@ char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
 char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
 char Vector_reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
 char Vector_copy_doc[] = "() - return a copy of the vector";
+char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
@@ -1121,7 +1140,287 @@ static PyGetSetDef Vector_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
+/* Get a new Vector according to the provided swizzle. This function has little
+   error checking, as we are in control of the inputs: the closure is set by us
+   in Vector_createSwizzleGetSeter. */
+static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
+{
+	size_t axisA;
+	size_t axisB;
+	float vec[MAX_DIMENSIONS];
+	unsigned int swizzleClosure;
+	
+	/* Unpack the axes from the closure into an array. */
+	axisA = 0;
+	swizzleClosure = (unsigned int) closure;
+	while (swizzleClosure & SWIZZLE_VALID_AXIS)
+	{
+		axisB = swizzleClosure & SWIZZLE_AXIS;
+		vec[axisA] = self->vec[axisB];
+		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+		axisA++;
+	}
+	
+	return newVectorObject(vec, axisA, Py_NEW);
+}
 
+/* Set the items of this vector using a swizzle.
+   - If value is a vector or list this operates like an array copy, except that
+     the destination is effectively re-ordered as defined by the swizzle. At
+     most min(len(source), len(dest)) values will be copied.
+   - If the value is scalar, it is copied to all axes listed in the swizzle.
+   - If an axis appears more than once in the swizzle, the final occurrance is
+     the one that determines its value.
+
+   Returns 0 on success and -1 on failure. On failure, the vector will be
+   unchanged. */
+static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closure)
+{
+	VectorObject *vecVal;
+	PyObject *item;
+	size_t listLen;
+	float scalarVal;
+
+	size_t axisB;
+	size_t axisA;
+	unsigned int swizzleClosure;
+	
+	float vecTemp[MAX_DIMENSIONS];
+	
+	/* Check that the closure can be used with this vector: even 2D vectors have
+	   swizzles defined for axes z and w, but they would be invalid. */
+	swizzleClosure = (unsigned int) closure;
+	while (swizzleClosure & SWIZZLE_VALID_AXIS)
+	{
+		axisA = swizzleClosure & SWIZZLE_AXIS;
+		if (axisA >= self->size)
+		{
+			PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.\n");
+			return -1;
+		}
+		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+	}
+	
+	if (VectorObject_Check(value))
+	{
+		/* Copy vector contents onto swizzled axes. */
+		vecVal = (VectorObject*) value;
+		axisB = 0;
+		swizzleClosure = (unsigned int) closure;
+		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < vecVal->size)
+		{
+			axisA = swizzleClosure & SWIZZLE_AXIS;
+			vecTemp[axisA] = vecVal->vec[axisB];
+			
+			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+			axisB++;
+		}
+		memcpy(self->vec, vecTemp, axisB * sizeof(float));
+		return 0;
+	}
+	else if (PyList_Check(value))
+	{
+		/* Copy list contents onto swizzled axes. */
+		listLen = PyList_Size(value);
+		swizzleClosure = (unsigned int) closure;
+		axisB = 0;
+		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < listLen)
+		{
+			item = PyList_GetItem(value, axisB);
+			if (!PyNumber_Check(item))
+			{
+				PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.\n");
+				return -1;
+			}
+			scalarVal = (float)PyFloat_AsDouble(item);
+			
+			axisA = swizzleClosure & SWIZZLE_AXIS;
+			vecTemp[axisA] = scalarVal;
+			
+			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+			axisB++;
+		}
+		memcpy(self->vec, vecTemp, axisB * sizeof(float));
+		return 0;
+	}
+	else if (PyNumber_Check(value))
+	{
+		/* Assign the same value to each axis. */
+		scalarVal = (float)PyFloat_AsDouble(value);
+		swizzleClosure = (unsigned int) closure;
+		while (swizzleClosure & SWIZZLE_VALID_AXIS)
+		{
+			axisA = swizzleClosure & SWIZZLE_AXIS;
+			self->vec[axisA] = scalarVal;
+			
+			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+		}
+		return 0;
+	}
+	else
+	{
+		PyErr_SetString( PyExc_TypeError, "Expected a Vector, list or scalar value." );
+		return -1;
+	}
+}
+
+/* Create a getseter that operates on the axes defined in swizzle.
+   Parameters:
+   gsd:        An empty PyGetSetDef object. This will be modified.
+   swizzle:    An array of axis indices.
+   dimensions: The number of axes to swizzle. Must be >= 2 and <=
+               MAX_DIMENSIONS.
+   name:       A pointer to string that the name will be stored in. This is
+               purely to reduce the number of allocations. Before this function
+               returns, name will be advanced to the point immediately after
+               the name of the new getseter. Therefore, do not attempt to read
+               its contents. */
+static void Vector_createSwizzleGetSeter
+(
+	PyGetSetDef *gsd,
+	unsigned short *swizzle,
+	size_t dimensions,
+	char **name
+)
+{
+	const char axes[] = {'x', 'y', 'z', 'w'};
+	unsigned int closure;
+	int i;
+	
+	/* Convert the index array into named axes. Store the name in the string
+	   that was passed in, and make the getseter structure point to the same
+	   address. */
+	gsd->name = *name;
+	for (i = 0; i < dimensions; i++)
+		gsd->name[i] = axes[swizzle[i]];
+	gsd->name[i] = '\0';
+	/* Advance the name pointer to the next available address. */
+	(*name) = (*name) + dimensions + 1;
+	
+	gsd->get = (getter)Vector_getSwizzle;
+	gsd->set = (setter)Vector_setSwizzle;
+	
+	gsd->doc = Vector_swizzle_doc;
+	
+	/* Pack the axes into a single value to use as the closure. Pack these in
+	   in reverse so they come out in the right order when unpacked. */
+	closure = 0;
+	for (i = MAX_DIMENSIONS - 1; i >= 0; i--)
+	{
+		closure = closure << SWIZZLE_BITS_PER_AXIS;
+		if (i < dimensions)
+			closure = closure | swizzle[i] | SWIZZLE_VALID_AXIS;
+	}
+	gsd->closure = (void*) closure;
+}
+
+/* Create and append all implicit swizzle getseters to an existing array of
+   getseters.
+   Parameters:
+   Vector_getseters:
+				 A null-terminated array of getseters that have been manually
+                 defined.
+   resGds:       The resultant array of getseters. This will be a combination of
+                 static and manually-defined getseters. Use Vector_DelGetseters
+                 to free this array.
+
+   Returns: 0 on success, -1 on failure. On failure, resGsd will be left
+   untouched. */
+static int Vector_AppendSwizzleGetseters(void)
+{
+	int len;
+	int len_orig;
+	int len_names;
+	unsigned int i;
+	unsigned short swizzle[MAX_DIMENSIONS];
+	char *name;
+	
+	/* Count the explicit getseters. */
+	for (len_orig = 0; Vector_getseters[len_orig].name != NULL; len_orig++);
+	
+	/* Then there are 4^4 + 4^3 + 4^2 = 336 swizzles. */
+	len = len_orig + 336 + 1; /* Plus one sentinel. */
+	
+	/* That means 4^4 names of length 4 + 1, 4^3 names of length 3 + 1, and 4^2
+	   names of length 2 + 1 (including a null character at the end of each)
+	   = (4^4) * 5 + (4^3) * 4 + (4^2) * 3
+	   = 1584 */
+	len_names = 1584;
+	
+	if(Vector_dyn_getseters) { /* Should never happen */
+		PyMem_Del(Vector_dyn_getseters);
+		Vector_dyn_getseters= NULL;
+	}
+	Vector_dyn_getseters = PyMem_New(PyGetSetDef, len * sizeof(PyGetSetDef));
+	if (Vector_dyn_getseters == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "Could not allocate memory for swizzle getseters.");
+		return -1;
+	}
+	memset(Vector_dyn_getseters, 0, len * sizeof(PyGetSetDef));
+
+	if(Vector_dyn_names) { /* Should never happen */
+		PyMem_Del(Vector_dyn_names);
+		Vector_dyn_getseters= NULL;
+	}
+	Vector_dyn_names = PyMem_New(char, len_names * sizeof(char));
+	if (Vector_dyn_names == NULL) {
+		PyErr_SetString(PyExc_MemoryError, "Could not allocate memory for swizzle getseter names.");
+		PyMem_Del(Vector_dyn_getseters);
+		return -1;
+	}
+	memset(Vector_dyn_names, 0, len_names * sizeof(char));
+	
+	/* Do a shallow copy of the getseters. A deep clone can't be done because
+	   we don't know how much memory each closure needs. */
+	memcpy(Vector_dyn_getseters, Vector_getseters, len_orig * sizeof(PyGetSetDef));
+	
+	/* Create the swizzle functions. The pointer for name will be advanced by
+	   Vector_createSwizzleGetSeter. */
+	name = Vector_dyn_names;
+	i = len_orig;
+	for (swizzle[0] = 0; swizzle[0] < MAX_DIMENSIONS; swizzle[0]++)
+	{
+		for (swizzle[1] = 0; swizzle[1] < MAX_DIMENSIONS; swizzle[1]++)
+		{
+			Vector_createSwizzleGetSeter(&Vector_dyn_getseters[i++], swizzle, 2, &name);
+			for (swizzle[2] = 0; swizzle[2] < MAX_DIMENSIONS; swizzle[2]++)
+			{
+				Vector_createSwizzleGetSeter(&Vector_dyn_getseters[i++], swizzle, 3, &name);
+				for (swizzle[3] = 0; swizzle[3] < MAX_DIMENSIONS; swizzle[3]++)
+				{
+					Vector_createSwizzleGetSeter(&Vector_dyn_getseters[i++], swizzle, 4, &name);
+				}
+			}
+		}
+	}
+	
+	/* No need to add a sentinel - memory was initialised to zero above. */
+	vector_Type.tp_getset = Vector_dyn_getseters;
+	
+	return 0;
+}
+
+/* Delete an array of getseters that was created by
+   Vector_AppendSwizzleGetseters. It is safe to call this even if the structure
+   members are NULL. */
+static void Vector_DelGetseters(void)
+{	
+	/* Free strings that were allocated on the heap. */
+	if (Vector_dyn_names != NULL) {
+		PyMem_Del(Vector_dyn_names);
+		Vector_dyn_names = NULL;
+	}
+	
+	/* Free the structure arrays themselves. */
+	if (Vector_dyn_getseters != NULL) {
+		PyMem_Del(Vector_dyn_getseters);
+		Vector_dyn_getseters = NULL;
+	}
+	
+	/* for the blenderplayer that will initialize multiple times :| */
+	vector_Type.tp_getset = Vector_getseters;
+	vector_Type.tp_flags = 0; /* maybe python does this when finalizing? - wont hurt anyway */
+}
 
 /* Note
  Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
@@ -1189,7 +1488,7 @@ PyTypeObject vector_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	Vector_methods,           /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	Vector_getseters,         /* struct PyGetSetDef *tp_getset; */
+	Vector_getseters,           /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -1268,3 +1567,11 @@ PyObject *Vector_Negate(VectorObject * self)
 /*###################################################################
   ###########################DEPRECATED##############################*/
 
+int Vector_Init(void)
+{
+	return Vector_AppendSwizzleGetseters();
+}
+
+void Vector_Free() {
+	Vector_DelGetseters();
+}

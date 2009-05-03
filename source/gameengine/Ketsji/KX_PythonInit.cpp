@@ -1708,6 +1708,9 @@ void exitGamePlayerPythonScripting()
 	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
 	restorePySysPath(); /* get back the original sys.path and clear the backup */
 	
+	/* Modules that need freeing */
+	Mathutils_Free(NULL); 
+	
 	Py_Finalize();
 	bpy_import_main_set(NULL);
 }

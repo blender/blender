@@ -286,6 +286,8 @@ void BPY_end_python( void )
 		free_libblock( &G.main->script, script );
 	}
 
+	Mathutils_Free(NULL);
+	
 	Py_Finalize(  );
 
 	BPyMenu_RemoveAllEntries(  );	/* freeing bpymenu mem */

@@ -400,6 +400,7 @@ class Vector:
   The Vector object
   =================
     This object gives access to Vectors in Blender.
+  @group Axises: x, y, z, w
   @ivar x: The x value.
   @ivar y: The y value.
   @ivar z: The z value (if any).
@@ -420,6 +421,16 @@ class Vector:
       - -vec
   @note: You can access a vector object like a sequence
       - x = vector[0]
+      - vec_a[:] vec_b
+      - vec2d[:] vec3d[:2]
+  @note: Vectors support 'swizzle' operations
+      - vec.xyz = vec.zyx
+      - vec.xy = vec.zw
+      - vec.xxy = vec.wzz
+      - vec.yzyz = vec.yxyx
+
+      See U{http://en.wikipedia.org/wiki/Swizzling_(computer_graphics)}
+  
   @attention: Vector data can be wrapped or non-wrapped. When a object is wrapped it
   means that the object will give you direct access to the data inside of blender. Modification
   of this object will directly change the data inside of blender. To copy a wrapped object
@@ -535,6 +546,7 @@ class Euler:
   The Euler object
   ================
     This object gives access to Eulers in Blender.
+  @group Axises: x, y, z, w
   @ivar x: The heading value in degrees.
   @ivar y: The pitch value in degrees.
   @ivar z: The roll value in degrees.
@@ -596,7 +608,7 @@ class Euler:
     """
     Return a matrix representation of the euler.
     @rtype: Matrix object
-    @return: A roation matrix representation of the euler.
+    @return: A 3x3 roation matrix representation of the euler.
     """
 
   def toQuat():
@@ -611,6 +623,7 @@ class Quaternion:
   The Quaternion object
   =====================
     This object gives access to Quaternions in Blender.
+  @group Axises: x, y, z, w
   @ivar w: The w value.
   @ivar x: The x value.
   @ivar y: The y value.
@@ -716,7 +729,7 @@ class Quaternion:
     """
     Return a matrix representation of the quaternion.
     @rtype: Matrix object
-    @return: A rotation matrix representation of the quaternion.
+    @return: A 3x3 rotation matrix representation of the quaternion.
     """
 
 class Matrix:

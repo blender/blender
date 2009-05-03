@@ -38,6 +38,8 @@
 #include "euler.h"
 
 PyObject *Mathutils_Init( const char * from );
+void	  Mathutils_Free(void *);
+
 PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
 PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);

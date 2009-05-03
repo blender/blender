@@ -43,6 +43,10 @@ typedef struct {
 	short wrapped;			/* is wrapped data? */
 } VectorObject;
 
+void	Vector_Free(void);
+int		Vector_Init(void);
+
+
 /*prototypes*/
 PyObject *Vector_Zero( VectorObject * self );
 PyObject *Vector_Normalize( VectorObject * self );
