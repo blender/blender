@@ -519,6 +519,10 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		{
 			if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
 			{
+				// if the checing function didnt set an error then set a generic one here so we dont set an error with no exception
+				if (PyErr_Occurred()==0)
+					PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", reasion unknown", attrdef->m_name);
+				
 				// post check returned an error, restore values
 			UNDO_AND_ERROR:
 				if (undoBuffer)

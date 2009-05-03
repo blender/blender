@@ -295,9 +295,8 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 
 int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
-	bool result = true;
 	/*  There is no type checking at this moment, unfortunately...           */
-	return result;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

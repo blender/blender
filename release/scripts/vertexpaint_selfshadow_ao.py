@@ -180,6 +180,10 @@ def main():
 	
 	t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
+	
+	if ob.modifiers:
+		me.update()
+	
 	print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()

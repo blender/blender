@@ -363,7 +363,7 @@ const char KX_SceneActuator::SetUseRestart_doc[] =
 "\tSet flag to 1 to restart the scene.\n" ;
 PyObject* KX_SceneActuator::PySetUseRestart(PyObject* args)
 {
-	ShowDeprecationWarning("setUseRestart()", "(no replacement)");
+	ShowDeprecationWarning("setUseRestart()", "the useRestart property");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i:setUseRestart", &boolArg))
@@ -384,7 +384,7 @@ const char KX_SceneActuator::GetUseRestart_doc[] =
 "\tReturn whether the scene will be restarted.\n" ;
 PyObject* KX_SceneActuator::PyGetUseRestart()
 {
-	ShowDeprecationWarning("getUseRestart()", "(no replacement)");
+	ShowDeprecationWarning("getUseRestart()", "the useRestart property");
 	return PyInt_FromLong(!(m_restart == 0));
 }
 

@@ -1004,7 +1004,7 @@ static PyObject* gPyGetMaterialType(PyObject*)
 {
 	int flag;
 
-	if(G.fileflags & (G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL))
+	if(G.fileflags & G_FILE_GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
 	else if(G.fileflags & G_FILE_GAME_MAT)
 		flag = KX_BLENDER_MULTITEX_MATERIAL;

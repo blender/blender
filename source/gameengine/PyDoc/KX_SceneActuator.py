@@ -18,12 +18,14 @@ class KX_SceneActuator(SCA_IActuator):
 	@ivar camera: the camera to change to.
 	              When setting the attribute, you can use either a L{KX_Camera} or the name of the camera.
 	@type camera: L{KX_Camera} on read, string or L{KX_Camera} on write
+	@ivar useRestart: Set flag to True to restart the sene
+	@type useRestart: bool
 	@type mode: The mode of the actuator
 	@type mode: int from 0 to 5 L{GameLogic.Scene Actuator}
 	"""
 	def setUseRestart(flag):
 		"""
-		DEPRECATED
+		DEPRECATED: use the useRestart property instead
 		Set flag to True to restart the scene.
 		
 		@type flag: boolean
@@ -46,7 +48,7 @@ class KX_SceneActuator(SCA_IActuator):
 		"""
 	def getUseRestart():
 		"""
-		DEPRECATED
+		DEPRECATED: use the useRestart property instead
 		Returns True if the scene will be restarted.
 		
 		@rtype: boolean
