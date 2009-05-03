@@ -262,13 +262,14 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 	shade_input_set_shade_texco(shi);
 	
-	if(is->mode==RE_RAY_SHADOW_TRA) 
+	if(is->mode==RE_RAY_SHADOW_TRA) {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
 		else
 			shade_color(shi, shr);
+	}
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -1292,15 +1293,8 @@ static void ray_trace_shadow_tra(Isect *is, int thread, int depth, int traflag)
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
 		shi.thread= thread;
-		
-		/*shi.osatex= 0;
-		shi.thread= shi.sample= 0;
-		shi.lay= 0;
-		shi.passflag= 0;
-		shi.combinedflag= 0;
-		shi.do_preview= 0;
-		shi.light_override= NULL;
-		shi.mat_override= NULL;*/
+		shi.passflag= SCE_PASS_COMBINED;
+		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
