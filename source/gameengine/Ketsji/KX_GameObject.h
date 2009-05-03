@@ -192,11 +192,6 @@ public:
 	~KX_GameObject(
 	);
 
-		CValue*				
-	AddRef() { 
-		/* temporarily to find memleaks */ return CValue::AddRef(); 
-	}
-
 	/** 
 	 * @section Stuff which is here due to poor design.
 	 * Inherited from CValue and needs an implementation. 

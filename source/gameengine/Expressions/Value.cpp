@@ -453,50 +453,12 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
-//
-// Add a reference to this value
-//
-CValue *CValue::AddRef()
-{
-	// Increase global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue++);
-#ifdef _DEBUG
-	//gRefCountValue++;
-#endif
-	m_refcount++; 
-	return this;
-}
 
 
 
 //
 // Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 //
-int	CValue::Release()
-{
-	// Decrease global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue--);
-#ifdef _DEBUG
-	//gRefCountValue--;
-#endif
-	// Decrease local reference count, if it reaches 0 the object should be freed
-	if (--m_refcount > 0)
-	{
-		// Reference count normal, return new reference count
-		return m_refcount;
-	}
-	else
-	{
-		// Reference count reached 0, delete ourselves and return 0
-//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
-		
-		delete this;
-		return 0;
-	}
-
-}
 
 
 

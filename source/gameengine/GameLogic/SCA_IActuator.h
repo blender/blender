@@ -75,7 +75,11 @@ public:
 	/** 
 	 * Add an event to an actuator.
 	 */ 
-	void AddEvent(CValue* event);
+	void AddEvent(CValue* event)
+	{
+		m_events.push_back(event);
+	}
+
 	virtual void ProcessReplica();
 
 	/** 

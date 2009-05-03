@@ -59,7 +59,8 @@ public:
 	void SetExecutePriority(int execute_Priority);
 	void SetUeberExecutePriority(int execute_Priority);
 
-	SCA_IObject*	GetParent();
+	SCA_IObject*	GetParent() { return m_gameobj; }
+
 	virtual void	ReParent(SCA_IObject* parent);
 	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 	virtual void Delete() { Release(); }
@@ -73,8 +74,16 @@ public:
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);
 		
-	bool				IsActive();
-	void				SetActive(bool active) ;
+	bool				IsActive()
+	{
+		return m_bActive;
+	}
+
+	void				SetActive(bool active)
+	{
+		m_bActive=active;
+	}
+
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	

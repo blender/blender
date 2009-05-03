@@ -83,9 +83,18 @@ public:
 	SCA_IObject(PyTypeObject* T=&Type);
 	virtual ~SCA_IObject();
 
-	SCA_ControllerList& GetControllers();
-	SCA_SensorList& GetSensors();
-	SCA_ActuatorList& GetActuators();
+	SCA_ControllerList& GetControllers()
+	{
+		return m_controllers;
+	}
+	SCA_SensorList& GetSensors()
+	{
+		return m_sensors;
+	}
+	SCA_ActuatorList& GetActuators()
+	{
+		return m_actuators;
+	}
 
 	void AddSensor(SCA_ISensor* act);
 	void AddController(SCA_IController* act);
@@ -97,20 +106,26 @@ public:
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);
 	SCA_IController* FindController(const STR_String& controllername);
 
-	void SetCurrentTime(float currentTime);
+	void SetCurrentTime(float currentTime) {}
 
 	void ReParentLogic();
 	
 	/**
 	 * Set whether or not to ignore activity culling requests
 	 */
-	void SetIgnoreActivityCulling(bool b);
+	void SetIgnoreActivityCulling(bool b)
+	{
+		m_ignore_activity_culling = b;
+	}
 
 	/**
 	 * Set whether or not this object wants to ignore activity culling
 	 * requests
 	 */
-	bool GetIgnoreActivityCulling();
+	bool GetIgnoreActivityCulling()
+	{
+		return m_ignore_activity_culling;
+	}
 
 	/**
 	 * Suspend all progress.

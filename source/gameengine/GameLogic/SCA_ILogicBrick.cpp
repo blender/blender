@@ -71,13 +71,6 @@ void SCA_ILogicBrick::SetUeberExecutePriority(int execute_Priority)
 
 
 
-SCA_IObject* SCA_ILogicBrick::GetParent()
-{
-	return m_gameobj;
-}
-
-
-
 void SCA_ILogicBrick::ReParent(SCA_IObject* parent)
 {
 	m_gameobj = parent;
@@ -142,36 +135,12 @@ void SCA_ILogicBrick::SetName(STR_String name)
 	m_name = name;
 }
 
-
-bool SCA_ILogicBrick::IsActive()
-{
-	return m_bActive;
-}
-
-
-
 bool SCA_ILogicBrick::LessComparedTo(SCA_ILogicBrick* other)
 {
 	return (this->m_Execute_Ueber_Priority < other->m_Execute_Ueber_Priority) 
 		|| ((this->m_Execute_Ueber_Priority == other->m_Execute_Ueber_Priority) && 
 		(this->m_Execute_Priority < other->m_Execute_Priority));
 }
-
-
-
-void SCA_ILogicBrick::SetActive(bool active)
-{
-	m_bActive=active;
-	if (active)
-	{
-		//m_gameobj->SetDebugColor(GetDrawColor());
-	} else
-	{
-		//m_gameobj->ResetDebugColor();
-	}
-}
-
-
 
 void SCA_ILogicBrick::RegisterEvent(CValue* eventval)
 {

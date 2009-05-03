@@ -44,13 +44,6 @@ SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj,
 
 
 
-void SCA_IActuator::AddEvent(CValue* event)
-{
-	m_events.push_back(event);
-}
-
-
-
 void SCA_IActuator::RemoveAllEvents()
 {	// remove event queue!
 	for (vector<CValue*>::iterator i=m_events.begin(); !(i==m_events.end());i++)

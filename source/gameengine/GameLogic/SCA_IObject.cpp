@@ -79,29 +79,6 @@ SCA_IObject::~SCA_IObject()
 	//}
 }
 
-
-
-SCA_ControllerList& SCA_IObject::GetControllers()
-{
-	return m_controllers;
-}
-
-
-
-SCA_SensorList& SCA_IObject::GetSensors()
-{
-	return m_sensors;
-}
-
-
-
-SCA_ActuatorList& SCA_IObject::GetActuators()
-{
-	return m_actuators;
-}
-
-
-
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
 	act->AddRef();
@@ -142,20 +119,6 @@ void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 		}
 	}
 }
-
-void SCA_IObject::SetIgnoreActivityCulling(bool b)
-{
-	m_ignore_activity_culling = b;
-}
-
-
-
-bool SCA_IObject::GetIgnoreActivityCulling()
-{
-	return m_ignore_activity_culling;
-}
-
-
 
 void SCA_IObject::ReParentLogic()
 {
@@ -255,14 +218,6 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 }
 
 
-
-void SCA_IObject::SetCurrentTime(float currentTime) {
-	//T_InterpolatorList::iterator i;
-	//for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
-	//	(*i)->Execute(currentTime);
-	//}
-}
-	
 
 #if 0
 const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)

@@ -259,10 +259,49 @@ public:
 	};
 
 	/// Reference Counting
-	int					GetRefCount()											{ return m_refcount; }
-	virtual	CValue*		AddRef();												// Add a reference to this value
-	virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
-	
+	int					GetRefCount()											
+	{ 
+		return m_refcount; 
+	}
+
+	// Add a reference to this value
+	CValue*				AddRef()												
+	{
+		// Increase global reference count, used to see at the end of the program
+		// if all CValue-derived classes have been dereferenced to 0
+		//debug(gRefCountValue++);
+	#ifdef _DEBUG
+		//gRefCountValue++;
+	#endif
+		m_refcount++; 
+		return this;
+	}
+
+	// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
+	int			Release()								
+	{
+		// Decrease global reference count, used to see at the end of the program
+		// if all CValue-derived classes have been dereferenced to 0
+		//debug(gRefCountValue--);
+	#ifdef _DEBUG
+		//gRefCountValue--;
+	#endif
+		// Decrease local reference count, if it reaches 0 the object should be freed
+		if (--m_refcount > 0)
+		{
+			// Reference count normal, return new reference count
+			return m_refcount;
+		}
+		else
+		{
+			// Reference count reached 0, delete ourselves and return 0
+	//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
+			
+			delete this;
+			return 0;
+		}
+	}
+
 
 	/// Property Management
 	virtual void		SetProperty(const STR_String& name,CValue* ioProperty);						// Set property <ioProperty>, overwrites and releases a previous property with the same name if needed
