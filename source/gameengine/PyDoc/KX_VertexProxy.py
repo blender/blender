@@ -86,11 +86,13 @@ class KX_VertexProxy(SCA_IObject):
 		@rtype: list [u, v]
 		@return: this vertexes UV (texture) coordinates.
 		"""
-	def setUV2(uv):
+	def setUV2(uv, unit):
 		"""
 		Sets the 2nd UV (texture) coordinates of this vertex.
 		
 		@type uv: list [u, v]
+		@param unit: optional argument, FLAT==1, SECOND_UV==2, defaults to SECOND_UV
+		@param unit:  int
 		"""
 	def getRGBA():
 		"""
