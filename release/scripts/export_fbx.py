@@ -511,7 +511,7 @@ def write(filename, batch_objects = None, \
 	if time:
 		curtime = time.localtime()[0:6]
 	else:
-		curtime = [0,0,0,0,0,0]
+		curtime = (0,0,0,0,0,0)
 	# 
 	file.write(\
 '''FBXHeaderExtension:  {
@@ -1538,13 +1538,13 @@ def write(filename, batch_objects = None, \
 					if len(my_mesh.blenTextures) == 1:
 						file.write('0')
 					else:
-						#texture_mapping_local = {None:0}
 						texture_mapping_local = {None:-1}
 						
 						i = 0 # 1 for dummy
 						for tex in my_mesh.blenTextures:
-							texture_mapping_local[tex] = i
-							i+=1
+							if tex: # None is set above
+								texture_mapping_local[tex] = i
+								i+=1
 						
 						i=-1
 						for f in me.faces:
@@ -1855,11 +1855,6 @@ def write(filename, batch_objects = None, \
 					if EXP_ARMATURE:
 						armob = BPyObject.getObjectArmature(ob)
 						blenParentBoneName = None
-						
-						# Note - Fixed in BPyObject but for now just copy the function because testers wont have up to date modukes,
-						# TODO - remove this for 2.45 release since getObjectArmature has been fixed
-						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
-							armob = ob.parent
 						
 						# parent bone - special case
 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
