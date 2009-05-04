@@ -545,7 +545,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2";
+	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2|Repeat Mirrored%x3";
 	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
 	
 	/* set the height */

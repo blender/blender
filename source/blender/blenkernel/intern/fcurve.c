@@ -1736,6 +1736,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 	/* find relative place within a cycle */
 	{
 		float cycdx=0, cycdy=0, ofs=0;
+		float cycle= 0;
 		
 		/* ofs is start frame of cycle */
 		ofs= prevkey[0];
@@ -1748,13 +1749,16 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 		if (cycdx == 0)
 			return evaltime;
 			
+		/* calculate the 'number' of the cycle */
+		cycle= ((float)side * (evaltime - ofs) / cycdx);
+		
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
 			/* catch this case so that we don't exit when we have cycles=0
 			 * as this indicates infinite cycles...
 			 */
 		}
-		else if ( ((float)side * (evaltime - ofs) / cycdx) > (cycles+1) ) {
+		else if (cycle > (cycles+1)) {
 			/* we are too far away from range to evaluate
 			 * TODO: but we should still hold last value... 
 			 */
@@ -1768,7 +1772,14 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 		}
 		
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
-		evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle) % 2)) {
+			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse */
+			evaltime= (float)(lastkey[0] - fmod(evaltime-ofs, cycdx));
+		}
+		else {
+			/* the cycle is played normally... */
+			evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		}
 		if (evaltime < ofs) evaltime += cycdx;
 	}
 	

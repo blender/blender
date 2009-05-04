@@ -144,6 +144,7 @@ enum {
 	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
 	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
+	FCM_EXTRAPOLATE_MIRROR,				/* alternate between forward and reverse playback of keyframe range */
 } eFMod_Cycling_Modes;
 
 

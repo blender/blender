@@ -325,9 +325,10 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{0, "NONE", "No Cycles", ""},
-		{1, "REPEAT", "Repeat Motion", ""},
-		{1, "REPEAT_OFFSET", "Repeat with Offset", ""},
+		{FCM_EXTRAPOLATE_NONE, "NONE", "No Cycles", "Don't do anything."},
+		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", "Repeat Motion", "Repeat keyframe range as-is."},
+		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", "Repeat with Offset", "Repeat keyframe range, but with offset based on gradient between values"},
+		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", "Repeat Mirrored", "Alternate between forward and reverse playback of keyframe range"},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierCycles", "FModifier");
