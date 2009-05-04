@@ -481,6 +481,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	int dims;
 	int i;
 	float *coord_array, *fp;
+	PyObject *list;
 	
 	float k1[4] = {0.0, 0.0, 0.0, 0.0};
 	float h1[4] = {0.0, 0.0, 0.0, 0.0};
@@ -510,7 +511,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, dims);
 	}
 	
-	PyObject* list= PyList_New(resolu);
+	list= PyList_New(resolu);
 	fp= coord_array;
 	for(i=0; i<resolu; i++, fp= fp+dims) {
 		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW));
