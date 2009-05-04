@@ -4090,6 +4090,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 	bGPDframe *gpf;
 	bGPDstroke *gps;
 	
+	/* we must firstly have some grease-pencil data to link! */
+	if (gpd == NULL)
+		return;
+	
 	/* relink layers */
 	link_list(fd, &gpd->layers);
 	

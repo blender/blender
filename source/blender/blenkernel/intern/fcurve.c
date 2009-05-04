@@ -175,15 +175,16 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
-int on_keyframe_fcurve(FCurve *fcu, float cfra)
+short on_keyframe_fcurve(FCurve *fcu, float cfra)
 {
 	BezTriple *bezt;
-	int i;
+	unsigned i;
 
 	bezt= fcu->bezt;
-	for (i=0; i<fcu->totvert; i++, bezt++)
-		if(IS_EQ(bezt->vec[1][0], cfra))
+	for (i=0; i<fcu->totvert; i++, bezt++) {
+		if (IS_EQ(bezt->vec[1][0], cfra))
 			return 1;
+	}
 	
 	return 0;
 }
