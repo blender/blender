@@ -515,11 +515,28 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                              window, data);
 				}
 			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+				XWindowAttributes attr;
+				Window fwin;
+				int revert_to;
+
 				/* as ICCCM say, we need reply this event
 				 * with a SetInputFocus, the data[1] have
 				 * the valid timestamp (send by the wm).
+				 *
+				 * Some WM send this event before the
+				 * window is really mapped (for example
+				 * change from virtual desktop), so we need
+				 * to be sure that our windows is mapped
+				 * or this call fail and close blender.
 				 */
-				XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
+				if (XGetWindowAttributes(m_display, xcme.window, &attr) == True) {
+					if (XGetInputFocus(m_display, &fwin, &revert_to) == True) {
+						if (attr.map_state == IsViewable) {
+							if (fwin != xcme.window)
+								XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
+						}
+					}
+				}
 			} else {
 				/* Unknown client message, ignore */
 			}
