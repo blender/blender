@@ -90,7 +90,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE_DATA;
 	else if(rnatype == &RNA_MetaBall)
-		return ICON_MBALL_DATA;
+		return ICON_META_DATA;
 	else if(rnatype == &RNA_MetaElement)
 		return ICON_OUTLINER_DATA_META;
 	else if(rnatype == &RNA_Lattice)
@@ -142,7 +142,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Brush)
 		return ICON_BRUSH_DATA;
 	else if(rnatype == &RNA_VectorFont)
-		return ICON_FONT;
+		return ICON_FONT_DATA;
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DATA_DIRECT;
 	else if(rnatype == &RNA_Action)
@@ -204,7 +204,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_BooleanModifier)
 		return ICON_MOD_BOOLEAN;
 	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLEINSTANCE;
+		return ICON_MOD_PARTICLES;
 	else if(rnatype == &RNA_ParticleSystemModifier)
 		return ICON_MOD_PARTICLES;
 	else if(rnatype == &RNA_EdgeSplitModifier)
@@ -233,6 +233,8 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_MOD_CLOTH;
 	else if(rnatype == &RNA_ExplodeModifier)
 		return ICON_MOD_EXPLODE;
+	else if(rnatype == &RNA_CollisionModifier)
+		return ICON_MOD_PHYSICS;
 	else
 		return ICON_DOT;
 }

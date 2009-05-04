@@ -405,7 +405,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Mesh";
+	ot->name= "Mesh";
 	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
@@ -479,7 +479,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Curve";
+	ot->name= "Curve";
 	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
@@ -537,7 +537,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface";
+	ot->name= "Surface";
 	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
@@ -574,7 +574,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Text";
+	ot->name= "Text";
 	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
@@ -619,7 +619,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Add Armature";
+	ot->name= "Armature";
 	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
@@ -637,7 +637,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, /*ICON_OUTLINER_OB_MESH*/0, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
 	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
 	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
 	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");

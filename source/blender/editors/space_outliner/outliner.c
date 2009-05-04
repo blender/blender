@@ -3564,7 +3564,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLEINSTANCE); break;
+						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_ParticleInstance:
 						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_EdgeSplit:
@@ -3593,6 +3593,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
 					case eModifierType_Explode:
 						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
+					case eModifierType_Collision:
+						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
