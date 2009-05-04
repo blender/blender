@@ -255,6 +255,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	int frequency = 0;
 	bool invert = false;
 	bool level = false;
+	bool tap = false;
 	
 	while(sens)
 	{
@@ -268,6 +269,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		frequency = sens->freq;
 		invert    = !(sens->invert == 0);
 		level     = !(sens->level == 0);
+		tap       = !(sens->tap == 0);
 
 		switch (sens->type)
 		{
@@ -755,6 +757,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 									 frequency);
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
+			gamesensor->SetTap(tap);
 			gamesensor->SetName(STR_String(sens->name));			
 			
 			gameobj->AddSensor(gamesensor);

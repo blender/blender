@@ -66,7 +66,7 @@ void SCA_XNORController::Trigger(SCA_LogicManager* logicmgr)
 	!(is==m_linkedsensors.end());is++)
 	{
 		SCA_ISensor* sensor = *is;
-		if (sensor->IsPositiveTrigger())
+		if (sensor->GetState())
 		{
 			if (sensorresult == false)
 			{

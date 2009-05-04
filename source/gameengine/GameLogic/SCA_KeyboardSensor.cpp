@@ -195,6 +195,9 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					}
 				}
 			}
+			if (m_tap)
+				// special case for tap mode: only generate event for new activation
+				result = false;
 		}
 
 

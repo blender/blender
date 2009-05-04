@@ -76,7 +76,7 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 	while ( (!sensorresult) && (!(is==m_linkedsensors.end())) )
 	{
 		sensor = *is;
-		if (sensor->IsPositiveTrigger()) sensorresult = true;
+		if (sensor->GetState()) sensorresult = true;
 		is++;
 	}
 	

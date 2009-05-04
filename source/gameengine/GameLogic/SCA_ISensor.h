@@ -43,7 +43,6 @@ class SCA_ISensor : public SCA_ILogicBrick
 {
 	Py_Header;
 	class SCA_EventManager* m_eventmgr;
-	bool	m_triggered;
 
 	/** Pulse positive  pulses? */
 	bool m_pos_pulsemode;
@@ -66,6 +65,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** detect level instead of edge*/
 	bool m_level;
 
+	/** tap mode */
+	bool m_tap;
+
 	/** sensor has been reset */
 	bool m_reset;
 
@@ -74,6 +76,12 @@ class SCA_ISensor : public SCA_ILogicBrick
 
 	/** number of connections to controller */
 	int m_links;
+
+	/** current sensor state */
+	bool m_state;
+
+	/** previous state (for tap option) */
+	bool m_prev_state;
 
 	/** list of controllers that have just activated this sensor because of a state change */
 	std::vector<class SCA_IController*> m_newControllers;
@@ -109,6 +117,7 @@ public:
 	void SetInvert(bool inv);
 	/** set the level detection on or off */
 	void SetLevel(bool lvl);
+	void SetTap(bool tap);
 
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
@@ -121,6 +130,12 @@ public:
 	/** Is this sensor switched off? */
 	bool IsSuspended();
 	
+	/** get the state of the sensor: positive or negative */
+	bool GetState()
+	{
+		return m_state;
+	}
+
 	/** Resume sensing. */
 	void Resume();
 
@@ -158,6 +173,8 @@ public:
 	
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__SCA_ISENSOR

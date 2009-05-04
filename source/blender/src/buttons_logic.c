@@ -1026,6 +1026,19 @@ static void set_col_sensor(int type, int medium)
 	BIF_ThemeColorShade(col, medium?30:0);
 }
 
+
+static void verify_logicbutton_func(void *data1, void *data2)
+{
+	bSensor *sens= (bSensor*)data1;
+	
+	if(sens->level && sens->tap) {
+		if(data2 == &(sens->level))	sens->tap= 0;
+		else							sens->level= 0;
+		allqueue(REDRAWBUTSLOGIC, 0);
+	}
+}
+
+
 /**
  * Draws a toggle for pulse mode, a frequency field and a toggle to invert
  * the value of this sensor. Operates on the shared data block of sensors.
@@ -1036,30 +1049,39 @@ static void draw_default_sensor_header(bSensor *sens,
 								short y,
 								short w) 
 {
+	uiBut *but;
+	
 	/* Pulsing and frequency */
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
-			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate TRUE level triggering (pulse mode)");
 
 	uiDefIconButBitS(block, TOG, SENS_NEG_PULSE_MODE, 1, ICON_DOTSDOWN,
-			 (short)(x + 10 + 0.15 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0.1 * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate FALSE level triggering (pulse mode)");
 	uiDefButS(block, NUM, 1, "f:",
-			 (short)(x + 10 + 0.3 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
+			 (short)(x + 10 + 0.2 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
 			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
 	
 	/* value or shift? */
+	but= uiDefButS(block, TOG, 1, "Level",
+			 (short)(x + 10 + 0.5 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
+			 &sens->level, 0.0, 0.0, 0, 0,
+			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
+	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->level));
+	but= uiDefButS(block, TOG, 1, "Tap",
+			 (short)(x + 10 + 0.702 * (w-20)), (short)(y - 21), (short)(0.12 * (w-20)), 19,
+			 &sens->tap, 0.0, 0.0, 0, 0,
+			 "Trigger controllers only for an instant, even while the sensor remains true");
+	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->tap));
+	
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
-	uiDefButS(block, TOG, 1, "Level",
-			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
-			 &sens->level, 0.0, 0.0, 0, 0,
-			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
