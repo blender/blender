@@ -81,6 +81,36 @@ static inline void Py_Fatal(const char *M) {
 	exit(-1);
 };
 
+
+/* Use with ShowDeprecationWarning macro */
+typedef struct {
+	bool warn_done;
+	void *link;
+} WarnLink;
+
+#define ShowDeprecationWarning(old_way, new_way) \
+{ \
+	static WarnLink wlink = {false, NULL}; \
+	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0) \
+	{ \
+		ShowDeprecationWarning_func(old_way, new_way); \
+		WarnLink *wlink_last= GetDeprecationWarningLinkLast(); \
+		ShowDeprecationWarning_func(old_way, new_way); \
+		wlink.warn_done = true; \
+		wlink.link = NULL; \
+	 \
+		if(wlink_last) { \
+			wlink_last->link= (void *)&(wlink); \
+			SetDeprecationWarningLinkLast(&(wlink)); \
+		} else { \
+			SetDeprecationWarningFirst(&(wlink)); \
+			SetDeprecationWarningLinkLast(&(wlink)); \
+		} \
+	} \
+} \
+
+
+
 typedef struct {
 	PyObject_HEAD		/* required python macro   */
 	class PyObjectPlus *ref;
@@ -461,12 +491,20 @@ public:
 	
 	static bool			m_ignore_deprecation_warnings;
 	
+	static	WarnLink*		GetDeprecationWarningLinkFirst(void);
+	static	WarnLink*		GetDeprecationWarningLinkLast(void);
+	static	void			SetDeprecationWarningFirst(WarnLink* wlink);
+	static	void			SetDeprecationWarningLinkLast(WarnLink* wlink);
+	static void			NullDeprecationWarning();
+	
 	/** enable/disable display of deprecation warnings */
 	static void			SetDeprecationWarnings(bool ignoreDeprecationWarnings);
  	/** Shows a deprecation warning */
-	static void			ShowDeprecationWarning(const char* method,const char* prop);
+	static void			ShowDeprecationWarning_func(const char* method,const char* prop);
+	static void			ClearDeprecationWarning();
 	
 };
+
 
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
 

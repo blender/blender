@@ -908,15 +908,16 @@ PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 /* deprecation warning management */
+
 bool PyObjectPlus::m_ignore_deprecation_warnings(false);
 void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 {
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyObjectPlus::ShowDeprecationWarning(const char* old_way,const char* new_way)
+void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
 {
-	if (!m_ignore_deprecation_warnings) {
+	{
 		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
 		
 		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
@@ -954,6 +955,30 @@ void PyObjectPlus::ShowDeprecationWarning(const char* old_way,const char* new_wa
 		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
 	}
 }
+
+void PyObjectPlus::ClearDeprecationWarning()
+{
+	WarnLink *wlink_next;
+	WarnLink *wlink = GetDeprecationWarningLinkFirst();
+	
+	while(wlink)
+	{
+		wlink->warn_done= false; /* no need to NULL the link, its cleared before adding to the list next time round */
+		wlink_next= reinterpret_cast<WarnLink *>(wlink->link);
+		wlink->link= NULL;
+		wlink= wlink_next;
+	}
+	NullDeprecationWarning();
+}
+
+WarnLink*		m_base_wlink_first= NULL;
+WarnLink*		m_base_wlink_last= NULL;
+
+WarnLink*		PyObjectPlus::GetDeprecationWarningLinkFirst(void) {return m_base_wlink_first;}
+WarnLink*		PyObjectPlus::GetDeprecationWarningLinkLast(void) {return m_base_wlink_last;}
+void			PyObjectPlus::SetDeprecationWarningFirst(WarnLink* wlink) {m_base_wlink_first= wlink;}
+void			PyObjectPlus::SetDeprecationWarningLinkLast(WarnLink* wlink) {m_base_wlink_last= wlink;}
+void			PyObjectPlus::NullDeprecationWarning() {m_base_wlink_first= m_base_wlink_last= NULL;}
 
 
 #endif //NO_EXP_PYTHON_EMBEDDING

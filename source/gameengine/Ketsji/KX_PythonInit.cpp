@@ -1123,8 +1123,8 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gp_KetsjiScene = scene;
 
 	gUseVisibilityTemp=false;
-
-
+	
+	PyObjectPlus::ClearDeprecationWarning(); /* Not that nice to call here but makes sure warnings are reset between loading scenes */
 	
 	/* Use existing module where possible
 	 * be careful not to init any runtime vars after this */
@@ -1697,6 +1697,8 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	
 	first_time = false;
 	
+	PyObjectPlus::ClearDeprecationWarning();
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
@@ -1710,6 +1712,7 @@ void exitGamePlayerPythonScripting()
 	
 	Py_Finalize();
 	bpy_import_main_set(NULL);
+	PyObjectPlus::ClearDeprecationWarning();
 }
 
 
@@ -1736,6 +1739,8 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	/* clear user defined modules that may contain data from the last run */
 	clearGameModules();
 
+	PyObjectPlus::NullDeprecationWarning();
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
@@ -1781,6 +1786,7 @@ void exitGamePythonScripting()
 	clearGameModules();
 	restorePySysPath(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);
+	PyObjectPlus::ClearDeprecationWarning();
 }
 
 
