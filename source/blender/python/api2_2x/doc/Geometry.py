@@ -102,4 +102,10 @@ def BoxPack2D(boxlist):
 	@rtype: tuple
 	@return: a tuple pair - (width, height) of all the packed boxes.
 	"""
-	
+def BezierInterp(vec_knot_1, vec_handle_1, vec_handle_2, vec_knot_2, resolution):
+	"""
+	Takes 4 vectors representing a bezier curve and returns a list of vector points.
+	@note: any vector size is supported, the largest dimension from the input will be used for all returned vectors/
+	@rtype: list
+	@return: a list of vectors the size of resolution including the start and end points (vec_knot_1 and vec_knot_2)
+	"""

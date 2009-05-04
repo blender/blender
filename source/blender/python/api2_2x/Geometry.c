@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
  
 #include "BKE_utildefines.h"
+#include "BKE_curve.h"
 #include "BLI_boxpack2d.h"
 #include "BLI_arithb.h"
 
@@ -53,6 +54,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args );
 
 
 /*-------------------------DOC STRINGS ---------------------------*/
@@ -63,6 +65,7 @@ static char M_Geometry_ClosestPointOnLine_doc[] = "(pt, line_p1, line_p2) - take
 static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) - takes 4 vectors, one is the point and the next 3 define the triangle, only the x and y are used from the vectors";
 static char M_Geometry_PointInQuad2D_doc[] = "(pt, quad_p1, quad_p2, quad_p3, quad_p4) - takes 5 vectors, one is the point and the next 4 define the quad, only the x and y are used from the vectors";
 static char M_Geometry_BoxPack2D_doc[] = "";
+static char M_Geometry_BezierInterp_doc[] = "";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef M_Geometry_methods[] = {
 	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_O, M_Geometry_PolyFill_doc},
@@ -71,6 +74,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
 	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
+	{"BezierInterp", ( PyCFunction ) M_Geometry_BezierInterp, METH_VARARGS, M_Geometry_BezierInterp_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -468,4 +472,49 @@ static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
 	boxPack_ToPyObject(boxlist, &boxarray);
 	
 	return Py_BuildValue( "ff", tot_width, tot_height);
+}
+
+static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
+{
+	VectorObject *vec_k1, *vec_h1, *vec_k2, *vec_h2;
+	int resolu;
+	int dims;
+	int i;
+	float *coord_array, *fp;
+	
+	float k1[4] = {0.0, 0.0, 0.0, 0.0};
+	float h1[4] = {0.0, 0.0, 0.0, 0.0};
+	float k2[4] = {0.0, 0.0, 0.0, 0.0};
+	float h2[4] = {0.0, 0.0, 0.0, 0.0};
+	
+	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, newvec[2];
+	if( !PyArg_ParseTuple ( args, "O!O!O!O!i",
+	  &vector_Type, &vec_k1,
+	  &vector_Type, &vec_h1,
+	  &vector_Type, &vec_h2,
+	  &vector_Type, &vec_k2, &resolu) || (resolu<=1)
+	) {
+		PyErr_SetString( PyExc_TypeError, "expected 4 vector types and an int greater then 1\n" );
+		return NULL;
+	}
+	
+	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
+	
+	for(i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
+	for(i=0; i < vec_h1->size; i++) h1[i]= vec_h1->vec[i];
+	for(i=0; i < vec_k2->size; i++) k2[i]= vec_k2->vec[i];
+	for(i=0; i < vec_h2->size; i++) h2[i]= vec_h2->vec[i];
+	
+	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "BezierInterp");
+	for(i=0; i<dims; i++) {
+		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, dims);
+	}
+	
+	PyObject* list= PyList_New(resolu);
+	fp= coord_array;
+	for(i=0; i<resolu; i++, fp= fp+dims) {
+		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW));
+	}
+	MEM_freeN(coord_array);
+	return list;
 }
