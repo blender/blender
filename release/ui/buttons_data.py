@@ -12,7 +12,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	
 	def poll(self, context):
 		ob = context.active_object
-		return (ob and ob.type == "MESH")
+		return (ob and ob.type in ("MESH", "CURVE", "SURFACE", "TEXT", "LATTICE"))
 
 	def draw(self, context):
 		ob = context.active_object
