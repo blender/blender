@@ -199,14 +199,18 @@ public:
 	prepareNdofInfo(
 		volatile GHOST_TEventNDOFData *current_values
 	);
-		
+
+	/* Helped function for get data from the clipboard. */
+	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
+			 unsigned char **txt, unsigned long *len,
+			 unsigned int *context) const;
+
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
 	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
 	 * @return		Returns the Clipboard indicated by Flag
 	 */
-		GHOST_TUns8*
-	getClipboard(int flag) const;
+	GHOST_TUns8 *getClipboard(int flag) const;
 	
 	/**
 	 * Puts buffer to system clipboard
@@ -219,6 +223,17 @@ public:
 	Atom m_wm_take_focus;
 	Atom m_wm_protocols;
 	Atom m_delete_window_atom;
+
+	/* Atoms for Selection, copy & paste. */
+	Atom m_targets;
+	Atom m_string;
+	Atom m_compound_text;
+	Atom m_text;
+	Atom m_clipboard;
+	Atom m_primary;
+	Atom m_xclip_out;
+	Atom m_incr;
+	Atom m_utf8_string;
 
 private :
 
