@@ -2055,7 +2055,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 			{
 				// blender has an additional 'parentinverse' offset in each object
-				SG_Node* parentinversenode = new SG_Node(NULL,kxscene,SG_Callbacks(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc));
+				SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
+				SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
 			
 				// define a normal parent relationship for this node.
 				KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
@@ -2249,7 +2250,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 							{
 								// blender has an additional 'parentinverse' offset in each object
-								SG_Node* parentinversenode = new SG_Node(NULL,kxscene,SG_Callbacks(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc));
+								SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
+								SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
 							
 								// define a normal parent relationship for this node.
 								KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
