@@ -927,7 +927,11 @@ void deselect_nlachannel_keys (int test)
 	
 	/* Determine if this is selection or deselection */
 	if (test){
-		for (base=G.scene->base.first; base && sel; base=base->next){		
+		for (base=G.scene->base.first; base && sel; base=base->next){	
+			/* only consider if visible */
+			if (nla_filter(base) == 0)
+				continue;
+			
 			/* Test object ipos */
 			if (is_ipo_key_selected(base->object->ipo)){
 				sel = 0;
@@ -986,7 +990,11 @@ void deselect_nlachannel_keys (int test)
 	
 	
 	/* Set the flags */
-	for (base=G.scene->base.first; base; base=base->next){		
+	for (base=G.scene->base.first; base; base=base->next){	
+		/* only consider if visible */
+		if (nla_filter(base) == 0)
+			continue;
+		
 		/* Set the object ipos */
 		set_ipo_key_selection(base->object->ipo, sel);
 		
@@ -1068,6 +1076,10 @@ void delete_nlachannel_keys(void)
 	bActionStrip *strip, *nextstrip;
 		
 	for (base = G.scene->base.first; base; base=base->next){
+		/* only consider if visible */
+		if (nla_filter(base) == 0)
+			continue;
+		
 		/* Delete object ipos */
 		delete_ipo_keys(base->object->ipo);
 		
@@ -1122,7 +1134,11 @@ void duplicate_nlachannel_keys(void)
 	bActionStrip *strip, *laststrip;
 	
 	/* Find selected items */
-	for (base = G.scene->base.first; base; base=base->next){	
+	for (base = G.scene->base.first; base; base=base->next){
+		/* only consider if visible */
+		if (nla_filter(base) == 0)
+			continue;
+			
 		/* Duplicate object keys */
 		duplicate_ipo_keys(base->object->ipo);
 		
