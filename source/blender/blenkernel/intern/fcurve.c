@@ -1774,8 +1774,14 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 		
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
 		if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle) % 2)) {
-			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse */
-			evaltime= (float)(lastkey[0] - fmod(evaltime-ofs, cycdx));
+			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse 
+			 *	- for 'before' extrapolation, we need to flip in a different way, otherwise values past
+			 *	  then end of the curve get referenced (result of fmod will be negative, and with different phase)
+			 */
+			if (side < 0)
+				evaltime= (float)(prevkey[0] - fmod(evaltime-ofs, cycdx));
+			else
+				evaltime= (float)(lastkey[0] - fmod(evaltime-ofs, cycdx));
 		}
 		else {
 			/* the cycle is played normally... */
