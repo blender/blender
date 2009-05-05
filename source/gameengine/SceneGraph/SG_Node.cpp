@@ -46,6 +46,7 @@ SG_Node::SG_Node(
 	: SG_Spatial(clientobj,clientinfo,callbacks),
 	m_SGparent(NULL)
 {
+	m_modified = true;
 }
 
 SG_Node::SG_Node(
@@ -55,7 +56,7 @@ SG_Node::SG_Node(
 	m_children(other.m_children),
 	m_SGparent(other.m_SGparent)
 {
-	// nothing to do
+	m_modified = true;
 }
 
 SG_Node::~SG_Node()

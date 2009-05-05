@@ -58,7 +58,6 @@ SG_Spatial(
 	m_radius(1.0),
 	m_modified(false)
 {
-	SetModified();
 }
 
 SG_Spatial::
