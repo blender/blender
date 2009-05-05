@@ -2729,15 +2729,16 @@ def fbx_ui_exit(e,v):
 	GLOBALS['EVENT'] = e
 
 def do_help(e,v):
-	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
-	print 'Trying to open web browser with documentation at this address...'
-	print '\t' + url
-	
-	try:
-		import webbrowser
-		webbrowser.open(url)
-	except:
-		print '...could not open a browser window.'
+    url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
+    print 'Trying to open web browser with documentation at this address...'
+    print '\t' + url
+    
+    try:
+        import webbrowser
+        webbrowser.open(url)
+    except:
+        Blender.Draw.PupMenu("Error%t|Opening a webbrowser requires a full python installation")
+        print '...could not open a browser window.'
 
 	
 
