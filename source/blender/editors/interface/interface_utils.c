@@ -235,6 +235,10 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_MOD_EXPLODE;
 	else if(rnatype == &RNA_CollisionModifier)
 		return ICON_MOD_PHYSICS;
+	else if(rnatype == &RNA_FluidSimulationModifier)
+		return ICON_MOD_FLUIDSIM;
+	else if(rnatype == &RNA_MultiresModifier)
+		return ICON_MOD_MULTIRES;
 	else
 		return ICON_DOT;
 }

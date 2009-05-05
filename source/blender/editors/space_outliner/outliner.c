@@ -3595,6 +3595,10 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
 					case eModifierType_Collision:
 						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
+					case eModifierType_Fluidsim:
+						UI_icon_draw(x, y, ICON_MOD_FLUIDSIM); break;
+					case eModifierType_Multires:
+						UI_icon_draw(x, y, ICON_MOD_MULTIRES); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
