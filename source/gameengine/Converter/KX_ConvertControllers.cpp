@@ -216,8 +216,13 @@ void BL_ConvertControllers(
 				 * gives more pradictable performance for larger scripts */
 				if(pyctrl->m_mode==SCA_PythonController::SCA_PYEXEC_SCRIPT)
 					pyctrl->Compile();
-				else
-					pyctrl->Import();
+				else {
+					/* We cant do this because importing runs the script which could end up accessing
+					 * internal BGE functions, this is unstable while we're converting the scene.
+					 * This is a pitty because its useful to see errors at startup but cant help it */
+					
+					// pyctrl->Import();
+				}
 			}
 			
 			//done with gamecontroller

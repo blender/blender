@@ -164,6 +164,11 @@ static const char* sPyGetCurrentController__doc__;
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
+	if(m_sCurrentController==NULL)
+	{
+		PyErr_SetString(PyExc_SystemError, "GameLogic.getCurrentController(), this function is being run outside the python controllers context, or blenders internal state is corrupt.");
+		return NULL;
+	}
 	return m_sCurrentController->GetProxy();
 }
 
