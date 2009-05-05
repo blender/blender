@@ -82,8 +82,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BMF_Api.h"
-
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 #include "ED_util.h"

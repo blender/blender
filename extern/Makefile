@@ -32,10 +32,6 @@ SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
 DIRS = qhull/src solid glew/src
 
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
-
 ifeq ($(WITH_FFMPEG), true)
 ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
     DIRS += ffmpeg

@@ -37,8 +37,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -907,8 +905,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		
 		/* only draw it if view is wide enough (assume padding of 20 is enough for now) */
 		if (winx > (xmax + 20)) { 
-			glRasterPos2i(winx-xmax, winy-20);
-			BMF_DrawString(G.fonts, printable);
+			BLF_draw_default(winx-xmax, winy-20, 0.0f, printable);
 		}
 	}
 	

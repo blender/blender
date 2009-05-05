@@ -31,7 +31,7 @@ SET(INC
   ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../../../intern/bmfont ../../../extern/bullet2/src
+  ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna
   ../../../intern/bsp/extern
   ${SDL_INC}
@@ -65,10 +65,6 @@ IF(WITH_PYTHON)
 ELSE(WITH_PYTHON)
   ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
-
-IF(WITH_INTERNATIONAL)
-   ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
 
 IF(NOT WITH_ELBEEM)
   ADD_DEFINITIONS(-DDISABLE_ELBEEM)

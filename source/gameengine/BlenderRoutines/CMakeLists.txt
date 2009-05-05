@@ -7,7 +7,6 @@ SET(INC
   ../../../intern/string
   ../../../intern/guardedalloc
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
-  ../../../intern/bmfont
   ../../../source/gameengine/Converter
   ../../../source/blender/imbuf
   ../../../intern/ghost/include

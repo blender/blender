@@ -33,7 +33,6 @@
 struct ARegion;
 struct ARegionType;
 struct bContext;
-struct BMF_Font;
 struct ReportList;
 struct ScrArea;
 struct SpaceText;

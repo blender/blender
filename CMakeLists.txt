@@ -436,10 +436,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 #-----------------------------------------------------------------------------
 # Common.
 
-SET(FTGL ${CMAKE_SOURCE_DIR}/extern/bFTGL)
-SET(FTGL_INC ${FTGL}/include)
-SET(FTGL_LIB extern_ftgl)
-
 set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
 set(OPENJPEG_INC ${OPENJPEG})
 set(OPENJPEG_LIb extern_libopenjpeg)

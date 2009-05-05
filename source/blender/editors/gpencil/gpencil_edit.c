@@ -33,8 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 

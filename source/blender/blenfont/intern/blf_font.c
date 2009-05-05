@@ -30,14 +30,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef WITH_FREETYPE2
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-
-#endif /* WITH_FREETYPE2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -57,8 +53,6 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-
-#ifdef WITH_FREETYPE2
 
 /* freetype2 handle. */
 FT_Library global_ft_lib;
@@ -294,7 +288,6 @@ void blf_font_free(FontBLF *font)
 
 void blf_font_fill(FontBLF *font)
 {
-	font->type= BLF_FONT_FREETYPE2;
 	font->mode= BLF_MODE_TEXTURE;
 	font->ref= 1;
 	font->aspect= 1.0f;
@@ -372,16 +365,3 @@ FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
 	blf_font_fill(font);
 	return(font);
 }
-
-#else /* !WITH_FREETYPE2 */
-
-int blf_font_init(void)
-{
-	return(0);
-}
-
-void blf_font_exit(void)
-{
-}
-
-#endif /* WITH_FREETYPE2 */

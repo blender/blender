@@ -3988,6 +3988,9 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	float col[4];
 	
 #if 0 // XXX was #ifdef INTERNATIONAL
+	/* Maybe the INTERNATIONAL was really for check about freetype2 ?
+	 * anyway I think that we can remove this now - Diego
+	 */
 	FTF_SetFontSize('l');
 	BIF_SetScale(1.0);
 #endif

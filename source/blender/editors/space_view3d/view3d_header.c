@@ -92,8 +92,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "BMF_Api.h"
-
 #include "view3d_intern.h"
 
 

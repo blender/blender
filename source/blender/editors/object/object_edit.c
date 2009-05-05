@@ -120,8 +120,6 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
-#include "BMF_Api.h"
-
 #include "BIF_transform.h"
 
 #include "UI_interface.h"

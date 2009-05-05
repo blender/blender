@@ -31,14 +31,10 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef WITH_FREETYPE2
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-
-#endif /* WITH_FREETYPE2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -75,14 +71,20 @@ int global_font_num= 0;
 /* Current font. */
 int global_font_cur= 0;
 
+/* Default size and dpi, for BLF_draw_default. */
+int global_font_default= -1;
+int global_font_points= 11;
+int global_font_dpi= 72;
 
-int BLF_init(void)
+int BLF_init(int points, int dpi)
 {
 	int i;
 
 	for (i= 0; i < BLF_MAX_FONT; i++)
 		global_font[i]= NULL;
 
+	global_font_points= points;
+	global_font_dpi= dpi;
 	return(blf_font_init());
 }
 
@@ -142,7 +144,6 @@ int BLF_load(char *name)
 		return(-1);
 	}
 
-#ifdef WITH_FREETYPE2
 	font= blf_font_new(name, filename);
 	MEM_freeN(filename);
 
@@ -155,9 +156,6 @@ int BLF_load(char *name)
 	i= global_font_num;
 	global_font_num++;
 	return(i);
-#endif /* WITH_FREETYPE2 */
-
-	return(-1);
 }
 
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
@@ -181,21 +179,15 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 		return(-1);
 	}
 
-	font= blf_internal_new(name);
+	if (!mem || !mem_size) {
+		printf("Can't load font: %s from memory!!\n", name);
+		return(-1);
+	}
+
+	font= blf_font_new_from_mem(name, mem, mem_size);
 	if (!font) {
-#ifdef WITH_FREETYPE2
-		if (!mem || !mem_size) {
-			printf("Can't load font: %s from memory!!\n", name);
-			return(-1);
-		}
-
-		font= blf_font_new_from_mem(name, mem, mem_size);
-#endif /* WITH_FREETYPE2 */
-
-		if (!font) {
-			printf("Can't load font: %s from memory!!\n", name);
-			return(-1);
-		}
+		printf("Can't load font: %s from memory!!\n", name);
+		return(-1);
 	}
 
 	global_font[global_font_num]= font;
@@ -213,16 +205,6 @@ void BLF_set(int fontid)
 int BLF_get(void)
 {
 	return(global_font_cur);
-}
-
-int BLF_type_get(void)
-{
-	FontBLF *font;
-
-	font= global_font[global_font_cur];
-	if (font)
-		return(font->type);
-	return(-1);
 }
 
 void BLF_enable(int option)
@@ -299,6 +281,41 @@ void BLF_blur(int size)
 		font->blur= size;
 }
 
+void BLF_draw_default(float x, float y, float z, char *str)
+{
+	FontBLF *font;
+	int old_font, old_point, old_dpi;
+
+	if (!str)
+		return;
+
+	if (global_font_default == -1)
+		global_font_default= blf_search("default");
+
+	if (global_font_default == -1) {
+		printf("Warning: Can't found default font!!\n");
+		return;
+	}
+
+	font= global_font[global_font_cur];
+	if (font) {
+		old_font= global_font_cur;
+		old_point= font->size;
+		old_dpi= font->dpi;
+	}
+
+	global_font_cur= global_font_default;
+	BLF_size(global_font_points, global_font_dpi);
+	BLF_position(x, y, z);
+	BLF_draw(str);
+
+	/* restore the old font. */
+	if (font) {
+		global_font_cur= old_font;
+		BLF_size(old_point, old_dpi);
+	}
+}
+
 void BLF_draw(char *str)
 {
 	FontBLF *font;
@@ -363,6 +380,39 @@ float BLF_width(char *str)
 	return(0.0f);
 }
 
+float BLF_width_default(char *str)
+{
+	FontBLF *font;
+	float width;
+	int old_font, old_point, old_dpi;
+
+	if (global_font_default == -1)
+		global_font_default= blf_search("default");
+
+	if (global_font_default == -1) {
+		printf("Error: Can't found default font!!\n");
+		return(0.0f);
+	}
+
+	font= global_font[global_font_cur];
+	if (font) {
+		old_font= global_font_cur;
+		old_point= font->size;
+		old_dpi= font->dpi;
+	}
+
+	global_font_cur= global_font_default;
+	BLF_size(global_font_points, global_font_dpi);
+	width= BLF_width(str);
+
+	/* restore the old font. */
+	if (font) {
+		global_font_cur= old_font;
+		BLF_size(old_point, old_dpi);
+	}
+	return(width);
+}
+
 float BLF_height(char *str)
 {
 	FontBLF *font;
@@ -371,6 +421,39 @@ float BLF_height(char *str)
 	if (font && font->height_get)
 		return((*font->height_get)(font, str));
 	return(0.0f);
+}
+
+float BLF_height_default(char *str)
+{
+	FontBLF *font;
+	float height;
+	int old_font, old_point, old_dpi;
+
+	if (global_font_default == -1)
+		global_font_default= blf_search("default");
+
+	if (global_font_default == -1) {
+		printf("Error: Can't found default font!!\n");
+		return(0.0f);
+	}
+
+	font= global_font[global_font_cur];
+	if (font) {
+		old_font= global_font_cur;
+		old_point= font->size;
+		old_dpi= font->dpi;
+	}
+
+	global_font_cur= global_font_default;
+	BLF_size(global_font_points, global_font_dpi);
+	height= BLF_height(str);
+
+	/* restore the old font. */
+	if (font) {
+		global_font_cur= old_font;
+		BLF_size(old_point, old_dpi);
+	}
+	return(height);
 }
 
 void BLF_rotation(float angle)

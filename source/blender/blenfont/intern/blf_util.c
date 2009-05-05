@@ -76,34 +76,30 @@ int blf_utf8_next(unsigned char *buf, int *iindex)
 	 *
 	 * Returns 0 to indicate an error (e.g. invalid UTF8)
 	 */
-	int index= *iindex, r;
-	unsigned char d= buf[index++], d2, d3, d4;
+	int index= *iindex, len, r;
+	unsigned char d, d2, d3, d4;
 
+	d= buf[index++];
 	if (!d)
 		return(0);
 
-	if (d < 0x80) {
-		*iindex= index;
-		return(d);
-	}
+	while (buf[index] && ((buf[index] & 0xc0) == 0x80))
+		index++;
 
-	if ((d & 0xe0) == 0xc0) {
+	len= index - *iindex;
+	if (len == 1)
+		r= d;
+	else if (len == 2) {
 		/* 2 byte */
-		d2= buf[index++];
-		if ((d2 & 0xc0) != 0x80)
-			return(0);
+		d2= buf[*iindex + 1];
 		r= d & 0x1f; /* copy lower 5 */
 		r <<= 6;
 		r |= (d2 & 0x3f); /* copy lower 6 */
 	}
-	else if ((d & 0xf0) == 0xe0) {
+	else if (len == 3) {
 		/* 3 byte */
-		d2= buf[index++];
-		d3= buf[index++];
-
-		if ((d2 & 0xc0) != 0x80 || (d3 & 0xc0) != 0x80)
-			return(0);
-
+		d2= buf[*iindex + 1];
+		d3= buf[*iindex + 2];
 		r= d & 0x0f; /* copy lower 4 */
 		r <<= 6;
 		r |= (d2 & 0x3f);
@@ -112,14 +108,9 @@ int blf_utf8_next(unsigned char *buf, int *iindex)
 	}
 	else {
 		/* 4 byte */
-		d2= buf[index++];
-		d3= buf[index++];
-		d4= buf[index++];
-
-		if ((d2 & 0xc0) != 0x80 || (d3 & 0xc0) != 0x80 ||
-		    (d4 & 0xc0) != 0x80)
-			return(0);
-
+		d2= buf[*iindex + 1];
+		d3= buf[*iindex + 2];
+		d4= buf[*iindex + 3];
 		r= d & 0x0f; /* copy lower 4 */
 		r <<= 6;
 		r |= (d2 & 0x3f);
@@ -130,65 +121,4 @@ int blf_utf8_next(unsigned char *buf, int *iindex)
 	}
 	*iindex= index;
 	return(r);
-}
-
-void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
-{
-	
-	glBegin(GL_QUADS);
-	glTexCoord2f(uv[0][0], uv[0][1]);
-	glVertex2f(dx, y1);
-	
-	glTexCoord2f(uv[0][0], uv[1][1]);
-	glVertex2f(dx, y2);
-	
-	glTexCoord2f(uv[1][0], uv[1][1]);
-	glVertex2f(dx1, y2);
-	
-	glTexCoord2f(uv[1][0], uv[0][1]);
-	glVertex2f(dx1, y1);
-	glEnd();
-	
-}
-
-void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
-{
-	float soft[25]= {
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		2/60.0f, 5/60.0f, 8/60.0f, 5/60.0f, 2/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f};
-	
-	float color[4], *fp= soft;
-	int dx, dy;
-	
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	
-	for(dx=-2; dx<3; dx++) {
-		for(dy=-2; dy<3; dy++, fp++) {
-			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
-		}
-	}
-	
-	glColor4fv(color);
-}
-
-void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
-{
-	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
-	float color[4], *fp= soft;
-	int dx, dy;
-	
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	
-	for(dx=-1; dx<2; dx++) {
-		for(dy=-1; dy<2; dy++, fp++) {
-			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
-		}
-	}
-	
-	glColor4fv(color);
 }
