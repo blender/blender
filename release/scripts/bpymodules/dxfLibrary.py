@@ -307,6 +307,7 @@ class PolyLine(_Entity):
 		self.points=points
 		self.org_point=org_point
 		self.flag=flag
+		self.width= 0.0 # dummy value
 		if self.flag & POLYFACE_MESH:
 			self.polyface=True
 			self.points=points[0]
@@ -315,6 +316,8 @@ class PolyLine(_Entity):
 			self.f_count=len(self.faces)
 		elif not self.flag & POLYLINE_3D:
 			self.polyline2d = True
+			self.polyface = False
+			self.faces = [] # dummy value
 			if width:
 				if type(width)!='list':
 					width=[width,width]
