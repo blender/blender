@@ -872,6 +872,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 	glDisable(GL_LINE_SMOOTH); // smooth lines
 	
 	/* show info for debugging the status of gpencil */
+#if 0
 	if ( ((dflag & GP_DRAWDATA_NOSTATUS)==0) && (gpd->flag & GP_DATA_DISPINFO) ) {
 		char printable[256];
 		short xmax;
@@ -908,6 +909,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 			BLF_draw_default(winx-xmax, winy-20, 0.0f, printable);
 		}
 	}
+#endif
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
