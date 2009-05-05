@@ -18,7 +18,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		layout.split(number=2)
 		
 		sub = layout.sub(0)
-		sub.column_flow()
+		sub.column()
 		sub.itemR(rd, "render_shadows", text="Shadows")
 		sub.itemR(rd, "render_sss", text="SSS")
 		sub.itemR(rd, "render_envmaps", text="EnvMap")
@@ -26,7 +26,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		
 		sub = layout.sub(1)
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemR(rd, "render_raytracing", text="Ray Tracing")
 		if (rd.render_raytracing):
 			subsub.itemR(rd, "octree_resolution", text="Octree")
@@ -122,19 +122,19 @@ class RENDER_PT_render(RenderButtonsPanel):
 		
 		sub = layout.sub(0)
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemL(text="Threads Mode:")
 		subsub.itemR(rd, "threads_mode", expand=True)
 		if rd.threads_mode == 'THREADS_FIXED':
 			subsub.itemR(rd, "threads")
 		
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemL(text="Distributed Rendering:")
 		subsub.itemR(rd, "placeholders")
 		subsub.itemR(rd, "no_overwrite")
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemR(rd, "fields", text="Fields")
 		if (rd.fields):
 			subsub.itemR(rd, "fields_still", text="Still")
@@ -142,14 +142,14 @@ class RENDER_PT_render(RenderButtonsPanel):
 		
 		sub = layout.sub(1)
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemL(text="Extra:")
 		subsub.itemR(rd, "panorama")
 		subsub.itemR(rd, "backbuf")
 		subsub.itemR(rd, "free_image_textures")
 		
 		subsub = sub.box()
-		subsub.column_flow()
+		subsub.column()
 		subsub.itemL(text="Border:")
 		subsub.itemR(rd, "border", text="Border Render")
 		if (rd.border):

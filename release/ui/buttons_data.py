@@ -114,7 +114,7 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		layout.split(number=2)
 		
 		sub = layout.sub(0)
-		sub.column_flow()
+		sub.column()
 		sub.itemR(cam, "show_limits", text="Limits")
 		sub.itemR(cam, "show_mist", text="Mist")
 		sub.itemR(cam, "show_title_safe", text="Title Safe")
@@ -122,10 +122,10 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		
 		sub = layout.sub(1)
 		subsub = sub.box()
-		subsub.row()
+		subsub.column()
 		subsub.itemR(cam, "show_passepartout", text="Passepartout")
-		subsub.row()
-		subsub.itemR(cam, "passepartout_alpha", text="Alpha")
+		if (cam.show_passepartout):
+			subsub.itemR(cam, "passepartout_alpha", text="Alpha")
 		sub.row()
 		sub.itemR(cam, "draw_size", text="Size")
 		
