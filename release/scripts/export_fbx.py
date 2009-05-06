@@ -93,8 +93,8 @@ def copy_images(dest_dir, textures):
 		dest_dir += Blender.sys.sep
 	
 	image_paths = set()
-	for img in textures:
-		image_paths.add(Blender.sys.expandpath(img.filename))
+	for tex in textures:
+		image_paths.add(Blender.sys.expandpath(tex.filename))
 	
 	# Now copy images
 	copyCount = 0
@@ -157,14 +157,29 @@ def increment_string(t):
 # todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
 def sane_name(data, dct):
 	#if not data: return None
-	name = data.name
+	
+	if type(data)==tuple: # materials are paired up with images
+		data, other = data
+		use_other = True
+	else:
+		other = None
+		use_other = False
+	
+	if data:	name = data.name
+	else:		name = None
+	orig_name = name
+	
+	if other:
+		orig_name_other = other.name
+		name = '%s #%s' % (name, orig_name_other)
+	else:
+		orig_name_other = None
 	
 	# dont cache, only ever call once for each data type now,
 	# so as to avoid namespace collision between types - like with objects <-> bones
 	#try:		return dct[name]
 	#except:		pass
 	
-	orig_name = name
 	if not name:
 		name = 'unnamed' # blank string, ASKING FOR TROUBLE!
 	else:
@@ -173,7 +188,11 @@ def sane_name(data, dct):
 	
 	while name in dct.itervalues():	name = increment_string(name)
 	
-	dct[orig_name] = name
+	if use_other: # even if other is None - orig_name_other will be a string or None
+		dct[orig_name, orig_name_other] = name
+	else:
+		dct[orig_name] = name
+		
 	return name
 
 def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
@@ -1333,11 +1352,13 @@ def write(filename, batch_objects = None, \
 		me = my_mesh.blenData
 		
 		# if there are non NULL materials on this mesh
-		if [mat for mat in my_mesh.blenMaterials if mat]: 	do_materials = True
-		else:												do_materials = False
+		if my_mesh.blenMaterials:	do_materials = True
+		else:						do_materials = False
 		
 		if my_mesh.blenTextures:	do_textures = True
-		else:						do_textures = False			
+		else:						do_textures = False	
+		
+		do_uvs = me.faceUV
 		
 		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
@@ -1516,7 +1537,7 @@ def write(filename, batch_objects = None, \
 		
 		# Write UV and texture layers.
 		uvlayers = []
-		if me.faceUV:
+		if do_uvs:
 			uvlayers = me.getUVLayerNames()
 			uvlayer_orig = me.activeUVLayer
 			for uvindex, uvlayer in enumerate(uvlayers):
@@ -1635,32 +1656,32 @@ def write(filename, batch_objects = None, \
 				file.write('0')
 			else:
 				# Build a material mapping for this 
-				#material_mapping_local = [0] * 16 # local-index : global index.
-				material_mapping_local = [-1] * 16 # local-index : global index.
-				i= 0 # 1
-				for j, mat in enumerate(my_mesh.blenMaterials):
-					if mat:
-						material_mapping_local[j] = i
-						i+=1
-					# else leave as -1
+				material_mapping_local = {} # local-mat & tex : global index.
+				
+				for j, mat_tex_pair in enumerate(my_mesh.blenMaterials):
+					material_mapping_local[mat_tex_pair] = j
 				
 				len_material_mapping_local = len(material_mapping_local)
 				
+				mats = my_mesh.blenMaterialList
+				
 				i=-1
 				for f in me.faces:
-					f_mat = f.mat
-					if f_mat >= len_material_mapping_local:
-						f_mat = 0
+					try:	mat = mats[f.mat]
+					except:mat = None
+					
+					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+					else: tex = None
 					
 					if i==-1:
 						i=0
-						file.write( '%s' % (material_mapping_local[f_mat]))
+						file.write( '%s' % (material_mapping_local[mat, tex])) # None for mat or tex is ok
 					else:
 						if i==55:
 							file.write('\n\t\t\t\t')
 							i=0
 						
-						file.write(',%s' % (material_mapping_local[f_mat]))
+						file.write(',%s' % (material_mapping_local[mat, tex]))
 					i+=1
 			
 			file.write('\n\t\t}')
@@ -1695,7 +1716,7 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if me.faceUV:
+		if do_uvs: # same as me.faceUV
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementUV"
@@ -1777,8 +1798,8 @@ def write(filename, batch_objects = None, \
 	ob_all_typegroups = [ob_meshes, ob_lights, ob_cameras, ob_arms, ob_null]
 	
 	groups = [] # blender groups, only add ones that have objects in the selections
-	materials = {}
-	textures = {}
+	materials = {} # (mat, image) keys, should be a set()
+	textures = {} # should be a set()
 	
 	tmp_ob_type = ob_type = None # incase no objects are exported, so as not to raise an error
 	
@@ -1878,20 +1899,29 @@ def write(filename, batch_objects = None, \
 					if EXP_MESH_HQ_NORMALS:
 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 					
-					for mat in mats:
-						# 2.44 use mat.lib too for uniqueness
-						if mat: materials[mat] = mat
-					
 					texture_mapping_local = {}
+					material_mapping_local = {}
 					if me.faceUV:
 						uvlayer_orig = me.activeUVLayer
 						for uvlayer in me.getUVLayerNames():
 							me.activeUVLayer = uvlayer
 							for f in me.faces:
-								img = f.image
-								textures[img] = texture_mapping_local[img] = img
+								tex = f.image
+								textures[tex] = texture_mapping_local[tex] = None
+								
+								try: mat = mats[f.mat]
+								except: mat = None
+								
+								materials[mat, tex] = material_mapping_local[mat, tex] = None # should use sets, wait for blender 2.5
+									
 							
 							me.activeUVLayer = uvlayer_orig
+					else:
+						for mat in mats:
+							# 2.44 use mat.lib too for uniqueness
+							materials[mat, None] = material_mapping_local[mat, None] = None
+						else:
+							materials[None, None] = None
 					
 					if EXP_ARMATURE:
 						armob = BPyObject.getObjectArmature(ob)
@@ -1912,8 +1942,9 @@ def write(filename, batch_objects = None, \
 					my_mesh = my_object_generic(ob, mtx)
 					my_mesh.blenData =		me
 					my_mesh.origData = 		origData
-					my_mesh.blenMaterials =	mats
-					my_mesh.blenTextures =	texture_mapping_local.values()
+					my_mesh.blenMaterials =	material_mapping_local.keys()
+					my_mesh.blenMaterialList = mats
+					my_mesh.blenTextures =	texture_mapping_local.keys()
 					
 					# if only 1 null texture then empty the list
 					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
@@ -2032,8 +2063,8 @@ def write(filename, batch_objects = None, \
 	# Finished finding groups we use
 	
 	
-	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
-	textures =	[(sane_texname(img), img) for img in textures.itervalues()  if img]
+	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.iterkeys()]
+	textures =	[(sane_texname(tex), tex) for tex in textures.iterkeys()  if tex]
 	materials.sort() # sort by name
 	textures.sort()
 	
@@ -2162,8 +2193,8 @@ Objects:  {''')
 	
 	write_camera_default()
 	
-	for matname, mat in materials:
-		write_material(matname, mat)
+	for matname, (mat, tex) in materials:
+		write_material(matname, mat) # We only need to have a material per image pair, but no need to write any image info into the material (dumb fbx standard)
 	
 	# each texture uses a video, odd
 	for texname, tex in textures:
@@ -2283,7 +2314,7 @@ Relations:  {''')
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 	}''')
 	
-	for matname, mat in materials:
+	for matname, (mat, tex) in materials:
 		file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
 	if textures:
@@ -2335,9 +2366,14 @@ Connections:  {''')
 	if materials:
 		for my_mesh in ob_meshes:
 			# Connect all materials to all objects, not good form but ok for now.
-			for mat in my_mesh.blenMaterials:
-				if mat:
-					file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+			for mat, tex in my_mesh.blenMaterials:
+				if mat:	mat_name = mat.name
+				else:	mat_name = None
+				
+				if tex:	tex_name = tex.name
+				else:	tex_name = None
+				
+				file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat_name, tex_name], my_mesh.fbxName))
 	
 	if textures:
 		for my_mesh in ob_meshes:
