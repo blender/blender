@@ -30,6 +30,7 @@
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -207,3 +208,176 @@ void SCA_IController::ApplyState(unsigned int state)
 	}
 }
 
+/* Python api */
+
+PyTypeObject SCA_IController::Type = {
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
+		"SCA_IController",
+		sizeof(PyObjectPlus_Proxy),
+		0,
+		py_base_dealloc,
+		0,
+		0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
+};
+
+PyParentObject SCA_IController::Parents[] = {
+	&SCA_IController::Type,
+	&CValue::Type,
+	NULL
+};
+
+PyMethodDef SCA_IController::Methods[] = {
+	{"getActuator", (PyCFunction) SCA_IController::sPyGetActuator, METH_O},
+	{"getSensor", (PyCFunction) SCA_IController::sPyGetSensor, METH_O},
+	
+	//Deprecated functions ------>
+	{"getSensors", (PyCFunction) SCA_IController::sPyGetSensors, METH_NOARGS},
+	{"getActuators", (PyCFunction) SCA_IController::sPyGetActuators, METH_NOARGS},
+	{"getState", (PyCFunction) SCA_IController::sPyGetState, METH_NOARGS},
+	//<----- Deprecated
+	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef SCA_IController::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_IController, pyattr_get_state),
+	KX_PYATTRIBUTE_RO_FUNCTION("sensors", SCA_IController, pyattr_get_sensors),
+	KX_PYATTRIBUTE_RO_FUNCTION("actuators", SCA_IController, pyattr_get_actuators),
+	{ NULL }	//Sentinel
+};
+
+PyObject* SCA_IController::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_ILogicBrick);
+}
+
+PyObject* SCA_IController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ILogicBrick);
+}
+
+int SCA_IController::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_ILogicBrick);
+}
+
+
+
+PyObject* SCA_IController::PyGetActuators()
+{
+	ShowDeprecationWarning("getActuators()", "the actuators property");
+	
+	PyObject* resultlist = PyList_New(m_linkedactuators.size());
+	for (unsigned int index=0;index<m_linkedactuators.size();index++)
+	{
+		PyList_SET_ITEM(resultlist,index, m_linkedactuators[index]->GetProxy());
+	}
+
+	return resultlist;
+}
+
+PyObject* SCA_IController::PyGetSensor(PyObject* value)
+{
+
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
+		return NULL;
+	}
+	
+	for (unsigned int index=0;index<m_linkedsensors.size();index++)
+	{
+		SCA_ISensor* sensor = m_linkedsensors[index];
+		STR_String realname = sensor->GetName();
+		if (realname == scriptArg)
+		{
+			return sensor->GetProxy();
+		}
+	}
+	
+	PyErr_Format(PyExc_AttributeError, "controller.getSensor(string): Python Controller, unable to find requested sensor \"%s\"", scriptArg);
+	return NULL;
+}
+
+PyObject* SCA_IController::PyGetActuator(PyObject* value)
+{
+
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
+		return NULL;
+	}
+	
+	for (unsigned int index=0;index<m_linkedactuators.size();index++)
+	{
+		SCA_IActuator* actua = m_linkedactuators[index];
+		if (actua->GetName() == scriptArg)
+		{
+			return actua->GetProxy();
+		}
+	}
+	
+	PyErr_Format(PyExc_AttributeError, "controller.getActuator(string): Python Controller, unable to find requested actuator \"%s\"", scriptArg);
+	return NULL;
+}
+
+PyObject* SCA_IController::PyGetSensors()
+{
+	ShowDeprecationWarning("getSensors()", "the sensors property");
+	
+	PyObject* resultlist = PyList_New(m_linkedsensors.size());
+	for (unsigned int index=0;index<m_linkedsensors.size();index++)
+	{
+		PyList_SET_ITEM(resultlist,index, m_linkedsensors[index]->GetProxy());
+	}
+	
+	return resultlist;
+}
+
+PyObject* SCA_IController::PyGetState()
+{
+	ShowDeprecationWarning("getState()", "the state property");
+	return PyInt_FromLong(m_statemask);
+}
+
+PyObject* SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_IController* self= static_cast<SCA_IController*>(self_v);
+	return PyInt_FromLong(self->m_statemask);
+}
+
+PyObject* SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_IController* self= static_cast<SCA_IController*>(self_v);
+	vector<SCA_ISensor*> linkedsensors = self->GetLinkedSensors();
+	PyObject* resultlist = PyList_New(linkedsensors.size());
+	
+	for (unsigned int index=0;index<linkedsensors.size();index++)
+		PyList_SET_ITEM(resultlist,index, linkedsensors[index]->GetProxy());
+	
+	return resultlist;
+}
+
+PyObject* SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_IController* self= static_cast<SCA_IController*>(self_v);
+	vector<SCA_IActuator*> linkedactuators = self->GetLinkedActuators();
+	PyObject* resultlist = PyList_New(linkedactuators.size());
+	
+	for (unsigned int index=0;index<linkedactuators.size();index++)
+		PyList_SET_ITEM(resultlist,index, linkedactuators[index]->GetProxy());
+
+	return resultlist;
+}

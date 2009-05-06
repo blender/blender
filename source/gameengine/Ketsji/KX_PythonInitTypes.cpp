@@ -84,6 +84,7 @@
 #include "SCA_PropertySensor.h"
 #include "SCA_PythonController.h"
 #include "SCA_RandomActuator.h"
+#include "SCA_IController.h"
 
 
 void initPyObjectPlusType(PyTypeObject **parents)
@@ -225,9 +226,7 @@ void initPyTypes(void)
 	PyType_Ready_Attr(dict, SCA_RandomSensor);
 	PyType_Ready_Attr(dict, SCA_XNORController);
 	PyType_Ready_Attr(dict, SCA_XORController);
-	
-	
-	
+	PyType_Ready_Attr(dict, SCA_IController);
 }
 
 #endif

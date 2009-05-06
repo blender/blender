@@ -59,7 +59,7 @@ Documentation for the GameLogic Module.
 		actuator = co.getActuator("actuatorname")
 		
 		# Activate an actuator
-		GameLogic.addActiveActuator(actuator, True)
+		controller.activate(actuator)
 		
 	See the actuator's reference for available methods:
 		- L{2DFilterActuator<SCA_2DFilterActuator.SCA_2DFilterActuator>}
@@ -307,6 +307,8 @@ KX_SCENE_RESUME:			See L{KX_SceneActuator}
 @var VIEWMATRIX_INVERSE:
 @var VIEWMATRIX_INVERSETRANSPOSE:
 @var VIEWMATRIX_TRANSPOSE:
+
+@group Deprecated: addActiveActuator
 """
 
 # TODO
@@ -335,7 +337,7 @@ def getSceneList():
 	"""
 def addActiveActuator(actuator, activate):
 	"""
-	Activates the given actuator.
+	Activates the given actuator. (B{deprecated})
 	
 	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean

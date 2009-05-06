@@ -440,7 +440,7 @@ class Vector:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -564,7 +564,7 @@ class Euler:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -652,7 +652,7 @@ class Quaternion:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -760,7 +760,7 @@ class Matrix:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10

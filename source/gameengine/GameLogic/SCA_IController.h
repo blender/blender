@@ -30,9 +30,11 @@
 #define __KX_ICONTROLLER
 
 #include "SCA_ILogicBrick.h"
+#include "PyObjectPlus.h"
 
 class SCA_IController : public SCA_ILogicBrick
 {
+	Py_Header;
 protected:
 	std::vector<class SCA_ISensor*>		m_linkedsensors;
 	std::vector<class SCA_IActuator*>	m_linkedactuators;
@@ -51,7 +53,20 @@ public:
 	void	UnlinkSensor(class SCA_ISensor* sensor);
 	void    SetState(unsigned int state) { m_statemask = state; }
 	void    ApplyState(unsigned int state);
-
+	
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
+	
+	KX_PYMETHOD_NOARGS(SCA_IController,GetSensors);
+	KX_PYMETHOD_NOARGS(SCA_IController,GetActuators);
+	KX_PYMETHOD_O(SCA_IController,GetSensor);
+	KX_PYMETHOD_O(SCA_IController,GetActuator);
+	KX_PYMETHOD_NOARGS(SCA_IController,GetState);
+	
+	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 };
 

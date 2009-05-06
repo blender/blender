@@ -157,10 +157,6 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 	return 0;
 }
 
-#if 0
-static const char* sPyGetCurrentController__doc__;
-#endif
-
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
@@ -189,7 +185,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 		}
 	}
 	else if (BGE_PROXY_CHECK_TYPE(value)) {
-		PyObjectPlus *value_plus= BGE_PROXY_REF(value); /* Expecting an actuator type */ // XXX TODO - CHECK TYPE
+		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
 		for(it = lacts.begin(); it!= lacts.end(); it++) {
 			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
 				return *it;
@@ -205,13 +201,11 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	return false;
 }
 
-#if 0
-static const char* sPyAddActiveActuator__doc__;
-#endif
-
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* args)
 {
+	ShowDeprecationWarning("GameLogic.addActiveActuator(act, bool)", "controller.activate(act) or controller.deactivate(act)");
+	
 	PyObject* ob1;
 	int activate;
 	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
@@ -227,10 +221,8 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* a
 	Py_RETURN_NONE;
 }
 
-
 const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
 const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
-const char SCA_PythonController::GetActuators_doc[] = "getActuator";
 
 PyTypeObject SCA_PythonController::Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
@@ -266,20 +258,14 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
 	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
 	
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
 	//Deprecated functions ------>
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
 	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
-	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef SCA_PythonController::Attributes[] = {
-	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_PythonController, pyattr_get_state),
 	KX_PYATTRIBUTE_RW_FUNCTION("script", SCA_PythonController, pyattr_get_script, pyattr_set_script),
 	{ NULL }	//Sentinel
 };
@@ -498,6 +484,10 @@ PyObject* SCA_PythonController::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IController);
 }
 
+PyObject* SCA_PythonController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
+}
+
 int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 {
 	py_setattro_up(SCA_IController);
@@ -527,84 +517,6 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::PyGetActuators()
-{
-	PyObject* resultlist = PyList_New(m_linkedactuators.size());
-	for (unsigned int index=0;index<m_linkedactuators.size();index++)
-	{
-		PyList_SET_ITEM(resultlist,index, m_linkedactuators[index]->GetProxy());
-	}
-
-	return resultlist;
-}
-
-const char SCA_PythonController::GetSensor_doc[] = 
-"getSensor (char sensorname) return linked sensor that is named [sensorname]\n";
-PyObject*
-SCA_PythonController::PyGetSensor(PyObject* value)
-{
-
-	char *scriptArg = PyString_AsString(value);
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
-		return NULL;
-	}
-	
-	for (unsigned int index=0;index<m_linkedsensors.size();index++)
-	{
-		SCA_ISensor* sensor = m_linkedsensors[index];
-		STR_String realname = sensor->GetName();
-		if (realname == scriptArg)
-		{
-			return sensor->GetProxy();
-		}
-	}
-	
-	PyErr_Format(PyExc_AttributeError, "controller.getSensor(string): Python Controller, unable to find requested sensor \"%s\"", scriptArg);
-	return NULL;
-}
-
-
-
-const char SCA_PythonController::GetActuator_doc[] = 
-"getActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
-PyObject*
-SCA_PythonController::PyGetActuator(PyObject* value)
-{
-
-	char *scriptArg = PyString_AsString(value);
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
-		return NULL;
-	}
-	
-	for (unsigned int index=0;index<m_linkedactuators.size();index++)
-	{
-		SCA_IActuator* actua = m_linkedactuators[index];
-		if (actua->GetName() == scriptArg)
-		{
-			return actua->GetProxy();
-		}
-	}
-	
-	PyErr_Format(PyExc_AttributeError, "controller.getActuator(string): Python Controller, unable to find requested actuator \"%s\"", scriptArg);
-	return NULL;
-}
-
-
-const char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
-PyObject*
-SCA_PythonController::PyGetSensors()
-{
-	PyObject* resultlist = PyList_New(m_linkedsensors.size());
-	for (unsigned int index=0;index<m_linkedsensors.size();index++)
-	{
-		PyList_SET_ITEM(resultlist,index, m_linkedsensors[index]->GetProxy());
-	}
-	
-	return resultlist;
-}
-
 /* 1. getScript */
 PyObject* SCA_PythonController::PyGetScript()
 {
@@ -630,19 +542,6 @@ PyObject* SCA_PythonController::PySetScript(PyObject* value)
 	this->SetScriptText(scriptArg);
 	
 	Py_RETURN_NONE;
-}
-
-/* 1. getScript */
-PyObject* SCA_PythonController::PyGetState()
-{
-	ShowDeprecationWarning("getState()", "the state property");
-	return PyInt_FromLong(m_statemask);
-}
-
-PyObject* SCA_PythonController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
-	return PyInt_FromLong(self->m_statemask);
 }
 
 PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

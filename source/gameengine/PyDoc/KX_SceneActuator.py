@@ -20,7 +20,7 @@ class KX_SceneActuator(SCA_IActuator):
 	@type camera: L{KX_Camera} on read, string or L{KX_Camera} on write
 	@ivar useRestart: Set flag to True to restart the sene
 	@type useRestart: bool
-	@type mode: The mode of the actuator
+	@ivar mode: The mode of the actuator
 	@type mode: int from 0 to 5 L{GameLogic.Scene Actuator}
 	"""
 	def setUseRestart(flag):
