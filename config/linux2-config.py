@@ -10,7 +10,7 @@ def py_version_string():
 	'''
 	import platform
 	ver = platform.python_version_tuple()
-	return '%d.%d' % (ver[0], ver[1])
+	return '%d.%d' % (int(ver[0]), int(ver[1])) # py2.5 uses strings, 2.6 ints
 
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = py_version_string()
