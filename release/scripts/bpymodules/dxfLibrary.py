@@ -307,7 +307,10 @@ class PolyLine(_Entity):
 		self.points=points
 		self.org_point=org_point
 		self.flag=flag
-		self.width= 0.0 # dummy value
+		self.polyface = False
+		self.polyline2d = False
+		self.faces = [] # dummy value
+		self.width= None # dummy value
 		if self.flag & POLYFACE_MESH:
 			self.polyface=True
 			self.points=points[0]
@@ -316,8 +319,6 @@ class PolyLine(_Entity):
 			self.f_count=len(self.faces)
 		elif not self.flag & POLYLINE_3D:
 			self.polyline2d = True
-			self.polyface = False
-			self.faces = [] # dummy value
 			if width:
 				if type(width)!='list':
 					width=[width,width]
@@ -332,7 +333,7 @@ class PolyLine(_Entity):
 			result+=' 71\n%s\n' %self.p_count
 			result+=' 72\n%s\n' %self.f_count
 		elif self.polyline2d:
-			if self.width: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
+			if self.width!=None: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
 		for point in self.points:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
