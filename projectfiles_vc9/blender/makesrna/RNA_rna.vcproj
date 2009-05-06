@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_fcurve_gen.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_fluidsim_gen.c"
 				>
 			</File>
