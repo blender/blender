@@ -4,8 +4,16 @@ LIBDIR = "${LCGDIR}"
 WITH_BF_VERSE = False
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
+def py_version_string():
+	'''
+	returns py version - "2.5", "2.6" etc
+	'''
+	import platform
+	ver = platform.python_version_tuple()
+	return '%d.%d' % (ver[0], ver[1])
+
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = get_py_version_string()
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
