@@ -24,20 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna python radiosity readblenfile render src yafray ikplugin)
+FILE(GLOB SRC intern/*.c)
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
+SET(INC 
+  ../../../intern/guardedalloc ../../../intern/iksolver/extern
+  ../blenlib ../makesdna ../blenkernel ../include ../ikplugin
+)
 
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
+BLENDERLIB(bf_ikplugin "${SRC}" "${INC}")

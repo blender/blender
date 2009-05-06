@@ -270,6 +270,7 @@ IF(UNIX)
     extern_glew
     extern_libopenjpeg
     bf_videotex
+    bf_ikplugin
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

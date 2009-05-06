@@ -280,6 +280,8 @@ typedef enum POSE_FLAG {
 	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
 		/* recalculate bone paths */
 	POSE_RECALCPATHS = (1<<4),
+	    /* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
+	POSE_WAS_REBUILT = (1<<5),
 } POSE_FLAG;
 
 /* PoseChannel (transform) flags */
@@ -296,7 +298,8 @@ enum	{
 	POSE_CHAIN		=	0x0200,
 	POSE_DONE		=   0x0400,
 	POSE_KEY		=	0x1000,
-	POSE_STRIDE		=	0x2000
+	POSE_STRIDE		=	0x2000,
+	POSE_IKTREE		=   0x4000,
 };
 
 /* PoseChannel constflag (constraint detection) */

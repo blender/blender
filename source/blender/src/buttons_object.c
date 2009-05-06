@@ -1892,8 +1892,6 @@ void do_constraintbuts(unsigned short event)
 			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 		/* walkthrough */
 	case B_CONSTRAINT_CHANGEIKSOLVER:
-		allqueue(REDRAWBUTSOBJECT, 0);
-		/* walkthrough */
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);

@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -15,29 +14,18 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): none yet.
 #
 # ***** END GPL LICENSE BLOCK *****
+#
+# Bounces make to subdirectories.
 
-SUBDIRS(avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna python radiosity readblenfile render src yafray ikplugin)
+SOURCEDIR = source/blender/ikplugin
+DIRS = intern
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
-
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
+include nan_subdirs.mk
