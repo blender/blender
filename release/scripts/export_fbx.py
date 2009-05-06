@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Autodesk FBX (.fbx)...'
-Blender: 244
+Blender: 249
 Group: 'Export'
 Tooltip: 'Selection to an ASCII Autodesk FBX '
 """
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
-__version__ = "1.1"
+__version__ = "1.2"
 
 __bpydoc__ = """\
 This script is an exporter to the FBX file format.
@@ -1385,22 +1385,18 @@ def write(filename, batch_objects = None, \
 				else:				file.write(',%i,%i,%i,%i' % fi )
 			i+=1
 		
-		ed_val = [None, None]
-		LOOSE = Blender.Mesh.EdgeFlags.LOOSE
+		file.write('\n\t\tEdges: ')
+		i=-1
 		for ed in me.edges:
-			if ed.flag & LOOSE:
-				ed_val[0] = ed.v1.index
-				ed_val[1] = -(ed.v2.index+1)
 				if i==-1:
-					file.write('%i,%i' % tuple(ed_val) )
+					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
 					i=0
 				else:
 					if i==13:
 						file.write('\n\t\t')
 						i=0
-					file.write(',%i,%i' % tuple(ed_val) )
+					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
 				i+=1
-		del LOOSE
 		
 		file.write('\n\t\tGeometryVersion: 124')
 		
@@ -1422,6 +1418,51 @@ def write(filename, batch_objects = None, \
 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
 			i+=1
 		file.write('\n\t\t}')
+		
+		# Write Face Smoothing
+		file.write('''
+		LayerElementSmoothing: 0 {
+			Version: 102
+			Name: ""
+			MappingInformationType: "ByPolygon"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
+		
+		i=-1
+		for f in me.faces:
+			if i==-1:
+				file.write('%i' % f.smooth);	i=0
+			else:
+				if i==54:
+					file.write('\n			 ');	i=0
+				file.write(',%i' % f.smooth)
+			i+=1
+		
+		file.write('\n\t\t}')
+		
+		# Write Edge Smoothing
+		file.write('''
+		LayerElementSmoothing: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "ByEdge"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
+		
+		SHARP = Blender.Mesh.EdgeFlags.SHARP
+		i=-1
+		for ed in me.edges:
+			if i==-1:
+				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
+			else:
+				if i==54:
+					file.write('\n			 ');	i=0
+				file.write(',%i' % ((ed.flag&SHARP)!=0))
+			i+=1
+		
+		file.write('\n\t\t}')
+		del SHARP
+		
 		
 		# Write VertexColor Layers
 		# note, no programs seem to use this info :/
