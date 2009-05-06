@@ -230,18 +230,17 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 */ 
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
 						1.0 - (2 * (m_y - y_lb) / height),
+						/*cam->GetCameraData()->m_perspective ? 0.0:cdata->m_clipstart,*/ /* real clipstart is scaled in ortho for some reason, zero is ok */
 						0.0, /* nearclip, see above comments */
 						1.0 );
 	
 	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
 						1.0 - (2 * (m_y-y_lb) / height),
-						1.0, /* farclip, see above comments */
+						cam->GetCameraData()->m_perspective ? 1.0:cam->GetCameraData()->m_clipend, /* farclip, see above comments */
 						1.0 );
 
 	/* camera to world  */
 	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
-	if (!cam->GetCameraData()->m_perspective)
-		wcs_camcs_tranform.getOrigin()[2] *= 100.0;
 	MT_Transform cams_wcs_transform;
 	cams_wcs_transform.invert(wcs_camcs_tranform);
 	
