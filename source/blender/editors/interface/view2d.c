@@ -47,6 +47,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "ED_screen.h"
 
 #include "UI_interface.h"
