@@ -1002,7 +1002,7 @@ def write(filename, batch_objects = None, \
 		#eDIRECTIONAL
 		#eSPOT
 		light_type = light.type
-		if light_type > 3: light_type = 0
+		if light_type > 2: light_type = 1 # hemi and area lights become directional
 		
 		mode = light.mode
 		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:

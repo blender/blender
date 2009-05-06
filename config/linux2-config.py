@@ -13,7 +13,7 @@ def py_version_string():
 	return '%d.%d' % (ver[0], ver[1])
 
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = get_py_version_string()
+BF_PYTHON_VERSION = py_version_string()
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
