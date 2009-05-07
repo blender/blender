@@ -436,6 +436,7 @@ double*	KX_GameObject::GetOpenGLMatrix()
 		m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
 		trans.scale(scaling[0], scaling[1], scaling[2]);
 		trans.getValue(fl);
+		GetSGNode()->ClearDirty();
 	}
 	return fl;
 }
@@ -443,8 +444,27 @@ double*	KX_GameObject::GetOpenGLMatrix()
 void KX_GameObject::AddMeshUser()
 {
 	for (size_t i=0;i<m_meshes.size();i++)
-		m_meshes[i]->AddMeshUser(this);
-	
+	{
+		m_meshes[i]->AddMeshUser(this, &m_meshSlots);
+	}
+	// set the part of the mesh slot that never change
+	double* fl = GetOpenGLMatrixPtr()->getPointer();
+	RAS_Deformer *deformer = GetDeformer();
+
+	//RAS_MeshSlot *ms;
+	//for(ms =static_cast<RAS_MeshSlot*>(m_meshSlots.QPeek());
+	//	ms!=static_cast<RAS_MeshSlot*>(m_meshSlots.Self());
+	//	ms =static_cast<RAS_MeshSlot*>(ms->QPeek()))
+	//{
+	//	ms->m_OpenGLMatrix = fl;
+	//	ms->SetDeformer(deformer);
+	//}
+	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+	for(mit.begin(); !mit.end(); ++mit)
+	{
+		(*mit)->m_OpenGLMatrix = fl;
+		(*mit)->SetDeformer(deformer);
+	}
 	UpdateBuckets(false);
 }
 
@@ -468,10 +488,29 @@ static void UpdateBuckets_recursive(SG_Node* node)
 void KX_GameObject::UpdateBuckets( bool recursive )
 {
 	if (GetSGNode()) {
-		double* fl = GetOpenGLMatrixPtr()->getPointer();
+		RAS_MeshSlot *ms;
 
-		for (size_t i=0;i<m_meshes.size();i++)
-			m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
+		if (GetSGNode()->IsDirty())
+			GetOpenGLMatrix();
+		//for(ms =static_cast<RAS_MeshSlot*>(m_meshSlots.QPeek());
+		//    ms!=static_cast<RAS_MeshSlot*>(m_meshSlots.Self());
+		//    ms =static_cast<RAS_MeshSlot*>(ms->QPeek()))
+		SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+		for(mit.begin(); !mit.end(); ++mit)
+		{
+			ms = *mit;
+			ms->m_bObjectColor = m_bUseObjectColor;
+			ms->m_RGBAcolor = m_objectColor;
+			ms->m_bVisible = m_bVisible;
+			ms->m_bCulled = m_bCulled || !m_bVisible;
+			if (!ms->m_bCulled) 
+				ms->m_bucket->ActivateMesh(ms);
+			
+			/* split if necessary */
+#ifdef USE_SPLIT
+			ms->Split();
+#endif
+		}
 	
 		if (recursive) {
 			UpdateBuckets_recursive(GetSGNode());

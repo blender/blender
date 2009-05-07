@@ -160,6 +160,7 @@ public:
 
 	virtual Material*   GetBlenderMaterial() const;
 	virtual Scene*		GetBlenderScene() const;
+	virtual void		ReleaseMaterial();
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;

@@ -113,16 +113,38 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 	const MT_Vector3 pnorm(cameratrans.getBasis()[2]);
 
 	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
+	{
+#if 1
+		SG_DList::iterator<RAS_MeshSlot> mit((*bit)->GetActiveMeshSlots());
+		for(mit.begin(); !mit.end(); ++mit)
+			size++;
+#else
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
 			if (!mit->IsCulled())
 				size++;
+#endif
+	}
 
 	slots.resize(size);
 
 	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
+	{
+#if 1
+		RAS_MaterialBucket* bucket = *bit;
+		RAS_MeshSlot* ms;
+		// remove the mesh slot form the list, it culls them automatically for next frame
+		for(ms = bucket->GetNextActiveMeshSlot();
+			ms!= NULL;
+			ms = bucket->GetNextActiveMeshSlot())
+		{
+			slots[i++].set(ms, bucket, pnorm);
+		}
+#else
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
 			if (!mit->IsCulled())
 				slots[i++].set(&*mit, *bit, pnorm);
+#endif
+	}
 		
 	if(alpha)
 		sort(slots.begin(), slots.end(), backtofront());
@@ -161,11 +183,28 @@ void RAS_BucketManager::RenderSolidBuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
 	BucketList::iterator bit;
-	list<RAS_MeshSlot>::iterator mit;
 
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
 
 	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
+#if 1
+		RAS_MaterialBucket* bucket = *bit;
+		RAS_MeshSlot* ms;
+		// remove the mesh slot form the list, it culls them automatically for next frame
+		for(ms = bucket->GetNextActiveMeshSlot();
+			ms!= NULL;
+			ms = bucket->GetNextActiveMeshSlot())
+		{
+			rendertools->SetClientObject(rasty, ms->m_clientObj);
+			while (bucket->ActivateMaterial(cameratrans, rasty, rendertools))
+				bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *ms);
+
+			// make this mesh slot culled automatically for next frame
+			// it will be culled out by frustrum culling
+			ms->SetCulled(true);
+		}
+#else
+		list<RAS_MeshSlot>::iterator mit;
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
 			if (mit->IsCulled())
 				continue;
@@ -179,6 +218,7 @@ void RAS_BucketManager::RenderSolidBuckets(
 			// it will be culled out by frustrum culling
 			mit->SetCulled(true);
 		}
+#endif
 	}
 	
 	/* this code draws meshes order front-to-back instead to reduce overdraw.
@@ -272,6 +312,24 @@ void RAS_BucketManager::ReleaseDisplayLists(RAS_IPolyMaterial *mat)
 					mit->m_DisplayList = NULL;
 				}
 			}
+		}
+	}
+}
+
+void RAS_BucketManager::ReleaseMaterials(RAS_IPolyMaterial * mat)
+{
+	BucketList::iterator bit;
+	list<RAS_MeshSlot>::iterator mit;
+
+	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
+		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
+			(*bit)->GetPolyMaterial()->ReleaseMaterial();
+		}
+	}
+	
+	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
+		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
+			(*bit)->GetPolyMaterial()->ReleaseMaterial();
 		}
 	}
 }

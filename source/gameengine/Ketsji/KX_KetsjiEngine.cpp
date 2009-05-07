@@ -296,11 +296,13 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
-	for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
-	{
-		// do this only once per scene
-		(*sceneit)->UpdateMeshTransformations();
-	}
+
+	// This is now done incrementally in KX_Scene::CalculateVisibleMeshes()
+	//for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+	//{
+	//	// do this only once per scene
+	//	(*sceneit)->UpdateMeshTransformations();
+	//}
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){
@@ -826,8 +828,8 @@ void KX_KetsjiEngine::Render()
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
 
-		// do this only once per scene
-		scene->UpdateMeshTransformations();
+		// this is now done incrementatlly in KX_Scene::CalculateVisibleMeshes
+		//scene->UpdateMeshTransformations();
 
 		// shadow buffers
 		RenderShadowBuffers(scene);
@@ -1119,16 +1121,13 @@ void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect
 
 void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 {
-	CListValue *objectlist = scene->GetObjectList();
+	CListValue *lightlist = scene->GetLightList();
 	int i, drawmode;
 
 	m_rendertools->SetAuxilaryClientInfo(scene);
 
-	for(i=0; i<objectlist->GetCount(); i++) {
-		KX_GameObject *gameobj = (KX_GameObject*)objectlist->GetValue(i);
-
-		if(!gameobj->IsLight())
-			continue;
+	for(i=0; i<lightlist->GetCount(); i++) {
+		KX_GameObject *gameobj = (KX_GameObject*)lightlist->GetValue(i);
 
 		KX_LightObject *light = (KX_LightObject*)gameobj;
 
@@ -1267,9 +1266,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
-
-	//redundant, already done in Render()
-	//scene->UpdateMeshTransformations();
 
 	// The following actually reschedules all vertices to be
 	// redrawn. There is a cache between the actual rescheduling

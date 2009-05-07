@@ -42,7 +42,7 @@
 
 /* mesh slot */
 
-RAS_MeshSlot::RAS_MeshSlot()
+RAS_MeshSlot::RAS_MeshSlot() : SG_QList()
 {
 	m_clientObj = NULL;
 	m_pDeformer = NULL;
@@ -82,7 +82,7 @@ RAS_MeshSlot::~RAS_MeshSlot()
 	}
 }
 
-RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot)
+RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot) : SG_QList()
 {
 	RAS_DisplayArrayList::iterator it;
 
@@ -461,21 +461,21 @@ bool RAS_MeshSlot::Split(bool force)
 	return false;
 }
 
+
+#ifdef USE_SPLIT	
 bool RAS_MeshSlot::IsCulled()
 {
-	list<RAS_MeshSlot*>::iterator it;
-
 	if(m_joinSlot)
 		return true;
 	if(!m_bCulled)
 		return false;
-#ifdef USE_SPLIT	
+	list<RAS_MeshSlot*>::iterator it;
 	for(it=m_joinedSlots.begin(); it!=m_joinedSlots.end(); it++)
 		if(!(*it)->m_bCulled)
 			return false;
-#endif	
 	return true;
 }
+#endif	
 
 /* material bucket sorting */
 

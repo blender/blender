@@ -83,6 +83,10 @@ public:
     { 
         m_flink = m_blink = this; 
     }
+	SG_DList(const SG_DList& other)
+	{
+        m_flink = m_blink = this; 
+	}
     virtual ~SG_DList() 
     {
 		Delink();

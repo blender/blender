@@ -488,6 +488,8 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
+	if (newobj->IsLight())
+		m_lightlist->Add(newobj->AddRef());
 	newobj->AddMeshUser();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.

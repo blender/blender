@@ -56,7 +56,8 @@ SG_Spatial(
 	
 	m_bbox(MT_Point3(-1.0, -1.0, -1.0), MT_Point3(1.0, 1.0, 1.0)),
 	m_radius(1.0),
-	m_modified(false)
+	m_modified(false),
+	m_ogldirty(false)
 {
 }
 
@@ -76,7 +77,9 @@ SG_Spatial(
 	m_parent_relation(NULL),
 	
 	m_bbox(other.m_bbox),
-	m_radius(other.m_radius)
+	m_radius(other.m_radius),
+	m_modified(false),
+	m_ogldirty(false)
 {
 	// duplicate the parent relation for this object
 	m_parent_relation = other.m_parent_relation->NewCopy();

@@ -102,8 +102,11 @@ void KX_LightObject::Update()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp())) {
+	if((lamp = GetGPULamp()) != NULL && GetSGNode()) {
 		float obmat[4][4];
+		// lights don't get their openGL matrix updated, do it now
+		if (GetSGNode()->IsDirty())
+			GetOpenGLMatrix();
 		double *dobmat = GetOpenGLMatrixPtr()->getPointer();
 
 		for(int i=0; i<4; i++)

@@ -936,16 +936,17 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 
 	/* display lists and GLSL materials need to be remade */
 	if(G.fileflags != fileflags) {
+		GPU_materials_free();
 		if(gp_KetsjiEngine) {
 			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
 			KX_SceneList::iterator it;
 
 			for(it=scenes->begin(); it!=scenes->end(); it++)
-				if((*it)->GetBucketManager())
+				if((*it)->GetBucketManager()) {
 					(*it)->GetBucketManager()->ReleaseDisplayLists();
+					(*it)->GetBucketManager()->ReleaseMaterials();
+				}
 		}
-
-		GPU_materials_free();
 	}
 
 	Py_RETURN_NONE;

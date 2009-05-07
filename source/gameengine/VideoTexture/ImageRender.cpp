@@ -255,9 +255,6 @@ void ImageRender::Render()
     // restore the stereo mode now that the matrix is computed
     m_rasterizer->SetStereoMode(stereomode);
 
-    // do not update the mesh transform, we don't want to do it more than once per frame
-    //m_scene->UpdateMeshTransformations();
-
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
 	m_scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);

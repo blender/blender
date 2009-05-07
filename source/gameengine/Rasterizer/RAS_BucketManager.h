@@ -58,6 +58,7 @@ public:
 	void OptimizeBuckets(MT_Scalar distance);
 	
 	void ReleaseDisplayLists(RAS_IPolyMaterial * material = NULL);
+	void ReleaseMaterials(RAS_IPolyMaterial * material = NULL);
 
 private:
 	void OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha);

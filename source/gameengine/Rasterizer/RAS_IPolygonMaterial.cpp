@@ -227,6 +227,9 @@ Scene* RAS_IPolyMaterial::GetBlenderScene() const
 	return NULL;
 }
 
+void RAS_IPolyMaterial::ReleaseMaterial()
+{
+}
 
 unsigned int	RAS_IPolyMaterial::GetFlag() const
 {

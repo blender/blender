@@ -172,13 +172,18 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 			rasty->SetLines(true);
 		else
 			rasty->SetLines(false);
+		rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
+		rasty->SetShinyness(m_shininess);
+		rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
+		if (m_material)
+			rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
 	}
 
-	rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
-	rasty->SetShinyness(m_shininess);
-	rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
-	if (m_material)
-		rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
+	//rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
+	//rasty->SetShinyness(m_shininess);
+	//rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
+	//if (m_material)
+	//	rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
 }
 
 void KX_PolygonMaterial::GetMaterialRGBAColor(unsigned char *rgba) const

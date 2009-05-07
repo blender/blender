@@ -130,7 +130,7 @@ public:
 	RAS_Polygon*		GetPolygon(int num) const;
 	
 	/* buckets */
-	virtual void		AddMeshUser(void *clientobj);
+	virtual void		AddMeshUser(void *clientobj, SG_QList *head);
 	virtual void		UpdateBuckets(
 							void* clientobj,
 							double* oglmatrix,

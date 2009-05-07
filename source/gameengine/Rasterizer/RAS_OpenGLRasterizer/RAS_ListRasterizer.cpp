@@ -214,7 +214,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	// workaround: note how we do not use vertex arrays for making display
 	// lists, since glVertexAttribPointerARB doesn't seem to work correct
 	// in display lists on ATI? either a bug in the driver or in Blender ..
-	if (mUseVertexArrays && !localSlot && !ms.m_pDerivedMesh)
+	if (mUseVertexArrays && /*!localSlot &&*/ !ms.m_pDerivedMesh)
 		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(ms);
 	else
 		RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);

@@ -152,6 +152,12 @@ Scene* KX_BlenderMaterial::GetBlenderScene() const
 	return mScene->GetBlenderScene();
 }
 
+void KX_BlenderMaterial::ReleaseMaterial()
+{
+	if (mBlenderShader)
+		mBlenderShader->ReloadMaterial();
+}
+
 void KX_BlenderMaterial::OnConstruction()
 {
 	if (mConstructed)
@@ -409,10 +415,12 @@ KX_BlenderMaterial::ActivatShaders(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 void
@@ -501,10 +509,12 @@ KX_BlenderMaterial::ActivateMat(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 bool 

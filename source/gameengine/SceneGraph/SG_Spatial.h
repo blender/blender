@@ -63,19 +63,24 @@ protected:
 	SG_BBox			m_bbox;
 	MT_Scalar		m_radius;
 	bool			m_modified;
+	bool			m_ogldirty;		// true if the openGL matrix for this object must be recomputed
 
 public:
 
 	inline void ClearModified() 
 	{ 
 		m_modified = false; 
+		m_ogldirty = true;
 	}
 	inline void SetModified()
 	{
 		m_modified = true;
 		ActivateScheduleUpdateCallback();
 	}
-
+	inline void ClearDirty()
+	{
+		m_ogldirty = false;
+	}
 	/** 
 	 * Define the realtionship this node has with it's parent
 	 * node. You should pass an unshared instance of an SG_ParentRelation
@@ -233,6 +238,7 @@ public:
 	MT_Scalar Radius() const { return m_radius; }
 	void SetRadius(MT_Scalar radius) { m_radius = radius; }
 	bool IsModified() { return m_modified; }
+	bool IsDirty() { return m_ogldirty; }
 	
 protected:
 	friend class SG_Controller;

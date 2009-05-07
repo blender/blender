@@ -121,6 +121,7 @@ private:
 	void GetMaterialRGBAColor(unsigned char *rgba) const;
 	Material* GetBlenderMaterial() const;
 	Scene* GetBlenderScene() const;
+	void ReleaseMaterial();
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);
