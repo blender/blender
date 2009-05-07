@@ -88,10 +88,12 @@
 #include "BKE_main.h"
 
 extern "C" {
+	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+#if PY_VERSION_HEX < 0x03000000
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
-	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "BGL.h"
+#endif
 }
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -1770,7 +1772,7 @@ static void clearGameModules()
 	clearModule(modules, "GameLogic");	
 	clearModule(modules, "Rasterizer");	
 	clearModule(modules, "GameKeys");	
-	clearModule(modules, "VideoTexture");	
+	clearModule(modules, "VideoTexture");
 	clearModule(modules, "Mathutils");	
 	clearModule(modules, "Geometry");	
 	clearModule(modules, "BGL");	
@@ -2095,6 +2097,7 @@ PyObject* initGameKeys()
 	return d;
 }
 
+#if PY_VERSION_HEX < 0x03000000
 PyObject* initMathutils()
 {
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
@@ -2109,6 +2112,11 @@ PyObject* initBGL()
 {
 	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
+#else // TODO Py3k conversion
+PyObject* initMathutils() {Py_INCREF(Py_None);return Py_None;}
+PyObject* initGeometry() {Py_INCREF(Py_None);return Py_None;}
+PyObject* initBGL() {Py_INCREF(Py_None);return Py_None;}
+#endif
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {

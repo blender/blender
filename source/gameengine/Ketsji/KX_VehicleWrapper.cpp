@@ -312,32 +312,9 @@ PyObject* KX_VehicleWrapper::py_getattro_dict() {
 	py_getattro_dict_up(PyObjectPlus);
 }
 
-int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
+int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* value)
 {
-	/* TODO - strange setattr, needs updating */
-	PyTypeObject* type = pyobj->ob_type;
-	int result = 1;
-
-	if (type == &PyList_Type)
-	{
-		result = 0;
-	}
-	if (type == &PyFloat_Type)
-	{
-		result = 0;
-
-	}
-	if (type == &PyInt_Type)
-	{
-		result = 0;
-	}
-	if (type == &PyString_Type)
-	{
-		result = 0;
-	}
-	if (result)
-		result = PyObjectPlus::py_setattro(attr,pyobj);
-	return result;
+	py_setattro_up(PyObjectPlus);
 };
 
 

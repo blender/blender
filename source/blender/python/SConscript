@@ -30,4 +30,6 @@ if env['WITH_BF_FFMPEG']:
 if env['BF_BUILDINFO']:
 	defs.append('NAN_BUILDINFO')
 
-env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )
+# A bit dodgy but disable building with python3
+if not env['BF_PYTHON_VERSION'].startswith('3'):
+	env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )

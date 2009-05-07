@@ -168,7 +168,7 @@ void Texture_dealloc (Texture * self)
 	// release scaled image buffer
 	delete [] self->m_scaledImg;
 	// release object
-	self->ob_type->tp_free((PyObject*)self);
+	((PyObject *)self)->ob_type->tp_free((PyObject*)self);
 }
 
 

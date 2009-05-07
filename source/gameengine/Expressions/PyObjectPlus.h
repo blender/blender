@@ -43,6 +43,23 @@
  * Python defines
 ------------------------------*/
 
+
+
+#if PY_VERSION_HEX > 0x03000000
+#define PyString_FromString PyUnicode_FromString
+#define PyString_FromFormat PyUnicode_FromFormat
+#define PyString_Check PyUnicode_Check
+#define PyString_Size PyUnicode_GetSize
+
+#define PyInt_FromLong PyLong_FromSsize_t
+#define PyInt_AsLong PyLong_AsSsize_t
+#define PyString_AsString _PyUnicode_AsString
+#define PyInt_Check PyLong_Check
+#define PyInt_AS_LONG PyLong_AsLong // TODO - check this one
+#endif
+
+
+
 /*
    Py_RETURN_NONE
    Python 2.4 macro.
