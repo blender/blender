@@ -1924,6 +1924,7 @@ static void lib_link_armature(FileData *fd, Main *main)
 		if(arm->id.flag & LIB_NEEDLINK) {
 			arm->id.flag -= LIB_NEEDLINK;
 		}
+		arm->ikdata = NULL;
 		arm= arm->id.next;
 	}
 }

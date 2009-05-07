@@ -36,11 +36,14 @@ extern "C" {
 
 struct Object;
 struct bPoseChannel;
+struct bArmature;
+
 
 struct IKPlugin {
 	void (*initialize_tree_func)(struct Object *ob, float ctime);
 	void (*execute_tree_func)(struct Object *ob, struct bPoseChannel *pchan, float ctime);
 	void (*release_tree_func)(struct Object *ob, float ctime);
+	void (*remove_armature_func)(struct bArmature *arm);
 };
 
 typedef struct IKPlugin IKPlugin;

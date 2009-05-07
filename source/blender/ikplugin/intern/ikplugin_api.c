@@ -42,6 +42,7 @@
 
 #include "ikplugin_api.h"
 #include "iksolver_plugin.h"
+#include "itasc_plugin.h"
 
 
 static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
@@ -49,7 +50,15 @@ static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
 	{
 		iksolver_initialize_tree,
 		iksolver_execute_tree,
+		NULL,
 		NULL
+	},
+	/* iTaSC IK solver */
+	{
+		itasc_initialize_tree,
+		itasc_execute_tree,
+		itasc_release_tree,
+		itasc_remove_armature
 	}
 };
 
@@ -97,4 +106,16 @@ void BIK_release_tree(Object *ob, float ctime)
 	plugin = &ikplugin_tab[arm->iksolver];
 	if (plugin->release_tree_func)
 		plugin->release_tree_func(ob, ctime);
+}
+
+void BIK_remove_armature(struct bArmature *arm)
+{
+	IKPlugin *plugin;
+
+	if (arm->iksolver < 0 || arm->iksolver >= BIK_SOLVER_COUNT)
+		return;
+
+	plugin = &ikplugin_tab[arm->iksolver];
+	if (plugin->remove_armature_func)
+		plugin->remove_armature_func(arm);
 }

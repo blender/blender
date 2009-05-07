@@ -158,6 +158,7 @@
 #endif
 
 #include "butspace.h" // own module
+#include "interface.h"
 
 static float prspeed=0.0;
 float prlen=0.0;
@@ -1896,7 +1897,7 @@ void do_constraintbuts(unsigned short event)
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);
 		break;
-	
+
 	case B_CONSTRAINT_ADD_NULL:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_NULL);
@@ -2853,6 +2854,25 @@ static void object_panel_draw(Object *ob)
 	uiDefButBitC(block, TOG, OB_DRAWXRAY, REDRAWVIEW3D, "X-ray",	210, 40, 90, 20, &ob->dtx, 0, 0, 0, 0, "Makes the active object draw in front of others");
 }
 
+static void check_solver_type(void *arg1_but, void *arg2_arm)
+{
+	bArmature* arm = arg2_arm;
+	uiBut *but = arg1_but;
+	
+	/* a controller is always in a single state */
+	if (arm->iksolver != but->retval) {
+		// the solver has changed, inform the solver, but first restore the previous solver
+		int newsolver = arm->iksolver;
+		arm->iksolver = but->retval;
+		BIK_remove_armature(arm);
+		arm->iksolver = newsolver;
+		but->retval = B_CONSTRAINT_CHANGEIKSOLVER;
+	}
+	else
+		but->retval = B_REDR;
+
+}
+
 void object_panel_constraint(char *context)
 {
 	uiBlock *block;
@@ -2861,6 +2881,7 @@ void object_panel_constraint(char *context)
 	bConstraint *curcon;
 	short xco, yco;
 	char str[64];
+	uiBut *but;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Constraints", context, 960, 0, 318, 204)==0) return;
@@ -2882,10 +2903,11 @@ void object_panel_constraint(char *context)
 		bArmature *arm = get_armature(ob);
 		if (arm) {
 			uiDefBut(block, LABEL, 0, "Armature IK solver:",	0, yco, 130, 20, NULL, 0.0, 0.0, 0, 0, "Choose the IK solver for IK constraints");
-			uiDefButI(block, MENU, B_CONSTRAINT_CHANGEIKSOLVER, 
+			but = uiDefButI(block, MENU, arm->iksolver, 
 				  "IK Solver%t|Legacy%x0|iTaSc%x1", 
 				  150, yco, 120, 19, &arm->iksolver, 0, 0, 0, 0, "Choose the IK solver for IK constraints");
 			yco -= 30;
+			uiButSetFunc(but, check_solver_type, but, arm);
 		}
 	}
 

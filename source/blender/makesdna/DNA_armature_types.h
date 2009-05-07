@@ -83,6 +83,7 @@ typedef struct bArmature {
 	int			pathbc, pathac;			/* number of frames before/after current frame of path-calculation for all bones  */
 	int			iksolver;				/* ik solver to use */
 	int			pad;
+	void       *ikdata;					/* depends on the IK solver */
 } bArmature;
 
 /* armature->flag */

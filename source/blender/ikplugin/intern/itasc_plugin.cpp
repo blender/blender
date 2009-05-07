@@ -27,30 +27,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BIK_API_H
-#define BIK_API_H
+#include "itasc_plugin.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct Object;
-struct bPoseChannel;
-struct bArmature;
-
-void BIK_initialize_tree(struct Object *ob, float ctime);
-void BIK_execute_tree(struct Object *ob, struct bPoseChannel *pchan, float ctime);
-void BIK_release_tree(struct Object *ob, float ctime);
-void BIK_remove_armature(struct bArmature *arm);
-
-// number of solver available
-// 0 = iksolver
-// 1 = iTaSC
-#define BIK_SOLVER_COUNT		2
-
-#ifdef __cplusplus
+void itasc_initialize_tree(struct Object *ob, float ctime)
+{
 }
-#endif
 
-#endif // BIK_API_H
+void itasc_execute_tree(struct Object *ob,  struct bPoseChannel *pchan, float ctime)
+{
+}
+
+void itasc_release_tree(struct Object *ob,  float ctime)
+{
+}
+
+void itasc_remove_armature(struct bArmature *arm)
+{
+}
 

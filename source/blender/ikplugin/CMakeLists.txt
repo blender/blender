@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
+FILE(GLOB SRC intern/*.c intern/*.cpp)
 
 SET(INC 
   ../../../intern/guardedalloc ../../../intern/iksolver/extern

@@ -133,6 +133,7 @@ void free_armature(bArmature *arm)
 	if (arm) {
 		/*		unlink_armature(arm);*/
 		free_bones(arm);
+		BIK_remove_armature(arm);
 	}
 }
 
@@ -206,6 +207,8 @@ bArmature *copy_armature(bArmature *arm)
 		copy_bonechildren (newBone, oldBone);
 		newBone=newBone->next;
 	};
+	// this is temporary data, no need to copy
+	newArm->ikdata = NULL;
 	
 	return newArm;
 }

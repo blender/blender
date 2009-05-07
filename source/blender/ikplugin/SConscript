@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('intern/*.c')
+sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
 incs = '#/intern/guardedalloc #/intern/iksolver/extern ../makesdna ../blenlib'
 incs += ' ../blenkernel ../include ../ikplugin'
