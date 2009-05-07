@@ -74,6 +74,7 @@ public:
 
 	//openGL checks:
 	bool	dlistSupported;
+	bool	fboSupported;
 
 	//openGL names:
 	GLuint domefacesId[7];		// ID of the images -- room for 7 images, using only 4 for 180º x 360º dome, 6 for panoramic and +1 for warp mesh
@@ -93,8 +94,9 @@ public:
 		bool usemesh;
 		int mode;
 		int n_width, n_height; //nodes width and height
-		int imagewidth, imageheight;
+		int imagesize;
 		int bufferwidth, bufferheight;
+		GLuint fboId;
 		vector <vector <WarpMeshNode> > nodes;
 	} warp;
 
@@ -140,6 +142,8 @@ public:
 	void ClearGLImages(void);//called on resize
 	bool CreateDL(void); //create Display Lists
 	void ClearDL(void);  //remove Display Lists 
+	bool CreateFBO(void);//create FBO (for warp mesh)
+	void ClearFBO(void); //remove FBO
 
 	void CalculateCameraOrientation();
 	void CalculateImageSize(); //set m_imagesize

@@ -66,6 +66,7 @@ KX_Dome::KX_Dome (
 	m_engine(engine)
 {
 	warp.usemesh = false;
+	fboSupported = false;
 
 	if (mode >= DOME_NUM_MODES)
 		m_mode = DOME_FISHEYE;
@@ -131,15 +132,19 @@ KX_Dome::KX_Dome (
 
 	CreateGLImages();
 
+	if(warp.usemesh)
+		fboSupported = CreateFBO();
+
 	dlistSupported = CreateDL();
 }
 
 // destructor
 KX_Dome::~KX_Dome (void)
 {
-	GLuint m_numimages = m_numfaces;
-
 	ClearGLImages();
+
+	if(fboSupported)
+		glDeleteFramebuffersEXT(1, &warp.fboId);
 
 	if(dlistSupported)
 		glDeleteLists(dlistId, (GLsizei) m_numimages);
@@ -174,9 +179,9 @@ void KX_Dome::CreateGLImages(void)
 	}
 	if(warp.usemesh){
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, warp.imagewidth, warp.imageheight, 0, GL_RGB8,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, warp.imagesize, warp.imagesize, 0, GL_RGB8,
 				GL_UNSIGNED_BYTE, 0);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, warp.imagewidth, warp.imageheight, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, warp.imagesize, warp.imagesize, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -227,19 +232,21 @@ http://projects.blender.org/tracker/?func=detail&aid=18655&group_id=9&atid=125
 	m_imagesize = (1 << i);
 
 	if (warp.usemesh){
-		warp.bufferwidth = canvaswidth;
+		// trying to use twice the size of the cube faces
+		GLint glMaxTexDim;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glMaxTexDim);
+
+		if (2 * m_imagesize > glMaxTexDim)
+			warp.imagesize = m_imagesize;
+
+		else
+			warp.imagesize = 2 * m_imagesize;
+
+		//if FBO is not working/supported, we use the canvas dimension as buffer
+		warp.bufferwidth  = canvaswidth;
 		warp.bufferheight = canvasheight;
-
-		i = 0;
-		while ((1 << i) <= warp.bufferwidth)
-			i++;
-		warp.imagewidth = (1 << i);
-
-		i = 0;
-		while ((1 << i) <= warp.bufferheight)
-			i++;
-		warp.imageheight = (1 << i);
 	}
+
 	//XXX HACK
 	canvaswidth  = m_viewport.GetWidth();
 	canvasheight = m_viewport.GetHeight();
@@ -320,6 +327,40 @@ bool KX_Dome::CreateDL(){
 	return true;
 }
 
+bool KX_Dome::CreateFBO(void)
+{
+	glGenFramebuffersEXT(1, &warp.fboId);
+	if(warp.fboId==0)
+	{
+		printf("Dome Error: Invalid frame buffer object. Using low resolution warp image.");
+		return false;
+	}
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, warp.fboId);
+
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+		GL_TEXTURE_2D, domefacesId[m_numfaces], 0);
+
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+	if(status == GL_FRAMEBUFFER_UNSUPPORTED_EXT)
+	{
+		printf("Dome Error: FrameBuffer unsupported. Using low resolution warp image.");
+		return false;
+	}
+	else if(status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	{
+		glDeleteFramebuffersEXT(1, &warp.fboId);
+		return false;
+	}
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	//nothing failed: we can use the whole FBO as buffersize
+	warp.bufferwidth = warp.bufferheight = warp.imagesize;
+	return true;
+}
+
 void KX_Dome::GLDrawTriangles(vector <DomeFace>& face, int nfaces)
 {
 	int i,j;
@@ -336,8 +377,9 @@ void KX_Dome::GLDrawTriangles(vector <DomeFace>& face, int nfaces)
 void KX_Dome::GLDrawWarpQuads(void)
 {
 	int i, j, i2;
-	float uv_width = (float)(warp.bufferwidth-1) / warp.imagewidth;
-	float uv_height = (float)(warp.bufferheight-1) / warp.imageheight;
+
+	float uv_width = (float)(warp.bufferwidth) / warp.imagesize;
+	float uv_height = (float)(warp.bufferheight) / warp.imagesize;
 
 	if(warp.mode ==2 ){
 		glBegin(GL_QUADS);
@@ -394,7 +436,7 @@ void KX_Dome::GLDrawWarpQuads(void)
 		}
 		glEnd();
 	} else{
-		printf("Error: Warp Mode %d unsupported. Try 1 for Polar Mesh or 2 for Fisheye.\n", warp.mode);
+		printf("Dome Error: Warp Mode %d unsupported. Try 1 for Polar Mesh or 2 for Fisheye.\n", warp.mode);
 	}
 }
 
@@ -430,7 +472,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 
 	lines = text.Explode('\n');
 	if(lines.size() < 6){
-		printf("Error: Warp Mesh File with insufficient data!\n");
+		printf("Dome Error: Warp Mesh File with insufficient data!\n");
 		return false;
 	}
 	columns = lines[1].Explode(' ');
@@ -438,7 +480,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 		columns = lines[1].Explode('\t');
 
 	if(columns.size() !=2){
-		printf("Error: Warp Mesh File incorrect. The second line should contain: width height.\n");
+		printf("Dome Error: Warp Mesh File incorrect. The second line should contain: width height.\n");
 		return false;
 	}
 
@@ -448,7 +490,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 	warp.n_height = atoi(columns[1]);
 
 	if ((int)lines.size() < 2 + (warp.n_width * warp.n_height)){
-		printf("Error: Warp Mesh File with insufficient data!\n");
+		printf("Dome Error: Warp Mesh File with insufficient data!\n");
 		return false;
 	}else{
 		warp.nodes = vector<vector<WarpMeshNode> > (warp.n_height, vector<WarpMeshNode>(warp.n_width));
@@ -470,7 +512,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 			}
 			else{
 				warp.nodes.clear();
-				printf("Error: Warp Mesh File with wrong number of fields. You should use 5: x y u v i.\n");
+				printf("Dome Error: Warp Mesh File with wrong number of fields. You should use 5: x y u v i.\n");
 				return false;
 			}
 		}
@@ -1538,6 +1580,13 @@ void KX_Dome::RotateCamera(KX_Camera* cam, int i)
 void KX_Dome::Draw(void)
 {
 
+	if (fboSupported){
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, warp.fboId);
+
+		glViewport(0,0,warp.imagesize, warp.imagesize);
+		glScissor(0,0,warp.imagesize, warp.imagesize);
+	}
+
 	switch(m_mode){
 		case DOME_FISHEYE:
 			DrawDomeFisheye();
@@ -1552,8 +1601,16 @@ void KX_Dome::Draw(void)
 
 	if(warp.usemesh)
 	{
-		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_viewport.GetLeft(), m_viewport.GetBottom(), warp.bufferwidth, warp.bufferheight);
+		if(fboSupported)
+		{
+			m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		}
+		else
+		{
+			glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
+			glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_viewport.GetLeft(), m_viewport.GetBottom(), warp.bufferwidth, warp.bufferheight);
+		}
 		DrawDomeWarped();
 	}
 }
