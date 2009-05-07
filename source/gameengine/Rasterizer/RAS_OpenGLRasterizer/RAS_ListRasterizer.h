@@ -42,6 +42,7 @@ typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_ArrayLists;
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {
 	bool mUseVertexArrays;
+	bool mATI;
 	RAS_ArrayLists mArrayLists;
 
 	RAS_ListSlot* FindOrAdd(class RAS_MeshSlot& ms);
