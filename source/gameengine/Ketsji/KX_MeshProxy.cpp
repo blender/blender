@@ -221,24 +221,21 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
 
 PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 {
-    int vertexindex= 1;
-	int matindex= 1;
+    int vertexindex;
+	int matindex;
 	PyObject* vertexob = NULL;
 
-	if (PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
-	{
-		RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
-		if (vertex)
-		{
-			vertexob = (new KX_VertexProxy(this, vertex))->NewProxy(true);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
+		return NULL;
+	
+	RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
+	
+	if(vertex==NULL) {
+		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indicies");
 		return NULL;
 	}
-
-	return vertexob;
-		
+	
+	return (new KX_VertexProxy(this, vertex))->NewProxy(true);
 }
 
 PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)

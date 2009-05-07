@@ -79,6 +79,8 @@ class KX_GameObject(SCA_IObject):
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type actuators: list
+	@ivar attrDict: get the objects internal python attribute dictionary for direct (faster) access.
+	@type attrDict: dict
 	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh
 	"""
 	def endObject():

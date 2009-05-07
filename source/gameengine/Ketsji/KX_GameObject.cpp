@@ -1208,6 +1208,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("localScaling",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RO_FUNCTION("worldScaling",	KX_GameObject, pyattr_get_worldScaling),
+	KX_PYATTRIBUTE_RO_FUNCTION("attrDict",	KX_GameObject, pyattr_get_attrDict),
 	
 	/* Experemental, dont rely on these yet */
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
@@ -1764,6 +1765,17 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 		PyList_SET_ITEM(resultlist, index, actuators[index]->GetProxy());
 	
 	return resultlist;
+}
+
+PyObject* KX_GameObject::pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	
+	if(self->m_attr_dict==NULL)
+		self->m_attr_dict= PyDict_New();
+	
+	Py_INCREF(self->m_attr_dict);
+	return self->m_attr_dict;
 }
 
 /* We need these because the macros have a return in them */
