@@ -3798,10 +3798,9 @@ static void *do_projectpaint_thread(void *ph_v)
 			*projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint;
 		}
 		
-		for (node= smearPixels_f; node; node= node->next) { /* this wont run for a float image */
+		for (node= smearPixels_f; node; node= node->next) {
 			projPixel = node->link;
 			IMAPAINT_CHAR_RGBA_TO_FLOAT(projPixel->pixel.f_pt,  ((ProjPixelClone *)projPixel)->clonepx.ch);
-			node = node->next;
 		}
 		
 		BLI_memarena_free(smearArena);
