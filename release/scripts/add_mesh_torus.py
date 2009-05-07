@@ -62,7 +62,7 @@ def main():
 	
 	BPyAddMesh.add_mesh_simple('Torus', verts, [], faces)
 
-if math:
+if cos and sin and pi:
     main()
 else:
     Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
