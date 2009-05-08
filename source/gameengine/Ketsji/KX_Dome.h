@@ -38,13 +38,14 @@ Developed as part of a Research and Development project for SAT - La Société des
 
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h"
-//#include "BLI_blenlib.h"
 
 //Dome modes: limit hardcoded in buttons_scene.c
 #define DOME_FISHEYE		1
 #define DOME_ENVMAP			2
 #define DOME_PANORAM_SPH	3
-#define DOME_NUM_MODES		4
+#define DOME_TRUNCATED_UP	4
+#define DOME_TRUNCATED_DOWN	5
+#define DOME_NUM_MODES		6
 
 
 /// class for render 3d scene
@@ -118,7 +119,7 @@ public:
 	void CalculateFrustum(KX_Camera* cam);
 	void RotateCamera(KX_Camera* cam, int i);
 
-	//Mesh  Creating Functions
+	//Mesh creation Functions
 	void CreateMeshDome180(void);
 	void CreateMeshDome250(void);
 	void CreateMeshPanorama(void);

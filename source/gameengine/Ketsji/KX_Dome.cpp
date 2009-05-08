@@ -124,6 +124,16 @@ KX_Dome::KX_Dome (
 			CreateMeshPanorama();
 			m_numfaces = 6;
 			break;
+		default: //DOME_TRUNCATED_DOWN and DOME_TRUNCATED_UP
+			cubetop.resize(1);
+			cubebottom.resize(1);
+			cubeleft.resize(2);
+			cuberight.resize(2);
+
+			m_angle = 180;
+			CreateMeshDome180();
+			m_numfaces = 4;
+			break;
 	}
 
 	m_numimages =(warp.usemesh?m_numfaces+1:m_numfaces);
@@ -255,7 +265,7 @@ http://projects.blender.org/tracker/?func=detail&aid=18655&group_id=9&atid=125
 bool KX_Dome::CreateDL(){
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
-		if(m_mode == DOME_FISHEYE){
+		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_UP || m_mode == DOME_TRUNCATED_DOWN){
 			glNewList(dlistId, GL_COMPILE);
 				GLDrawTriangles(cubetop, nfacestop);
 			glEndList();
@@ -329,6 +339,12 @@ bool KX_Dome::CreateDL(){
 
 bool KX_Dome::CreateFBO(void)
 {
+	if (!GLEW_EXT_framebuffer_object)
+	{
+		printf("Dome Error: FrameBuffer unsupported. Using low resolution warp image.");
+		return false;
+	}
+
 	glGenFramebuffersEXT(1, &warp.fboId);
 	if(warp.fboId==0)
 	{
@@ -345,7 +361,7 @@ bool KX_Dome::CreateFBO(void)
 
 	if(status == GL_FRAMEBUFFER_UNSUPPORTED_EXT)
 	{
-		printf("Dome Error: FrameBuffer unsupported. Using low resolution warp image.");
+		printf("Dome Error: FrameBuffer settings unsupported. Using low resolution warp image.");
 		return false;
 	}
 	else if(status != GL_FRAMEBUFFER_COMPLETE_EXT)
@@ -1469,7 +1485,9 @@ Uses 6 cameras for angles up to 360º
 	MT_Scalar c = cos(deg45);
 	MT_Scalar s = sin(deg45);
 
-	if ((m_mode == DOME_FISHEYE && m_angle <= 180)){
+	if ((m_mode == DOME_FISHEYE && m_angle <= 180)
+		|| m_mode == DOME_TRUNCATED_UP 
+		|| m_mode == DOME_TRUNCATED_DOWN){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						c, -s, 0.0,
@@ -1596,6 +1614,12 @@ void KX_Dome::Draw(void)
 			break;
 		case DOME_PANORAM_SPH:
 			DrawPanorama();
+			break;
+		case DOME_TRUNCATED_UP:
+			DrawDomeFisheye();
+			break;
+		case DOME_TRUNCATED_DOWN:
+			DrawDomeFisheye();
 			break;
 	}
 
@@ -1760,22 +1784,37 @@ void KX_Dome::DrawDomeFisheye(void)
 
 	float ortho_width, ortho_height;
 
-	if (warp.usemesh)
-		glOrtho((-1.0), 1.0, (-1.0), 1.0, -20.0, 10.0); //stretch the image to reduce resolution lost
+	if(m_mode == DOME_FISHEYE) {
+		if (warp.usemesh)
+			glOrtho((-1.0), 1.0, (-1.0), 1.0, -20.0, 10.0); //stretch the image to reduce resolution lost
 
-	else {
-		if (can_width < can_height){
-			ortho_width = 1.0;
-			ortho_height = (float)can_height/can_width;
-		}else{
-			ortho_width = (float)can_width/can_height;
-			ortho_height = 1.0;
+		else {
+			if (can_width < can_height){
+				ortho_width = 1.0;
+				ortho_height = (float)can_height/can_width;
+			}else{
+				ortho_width = (float)can_width/can_height;
+				ortho_height = 1.0;
+			}
+			
+			ortho_width /= m_size;
+			ortho_height /= m_size;
+			
+			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
 		}
-		
-		ortho_width /= m_size;
-		ortho_height /= m_size;
-		
-		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
+	}
+	else if(m_mode == DOME_TRUNCATED_UP)
+	{
+		ortho_width = 1.0;
+		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
+
+		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
+	}
+	else { //m_mode == DOME_TRUNCATED_DOWN
+		ortho_width = 1.0;
+		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
+
+		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0, 10.0);
 	}
 
 	glMatrixMode(GL_TEXTURE);
