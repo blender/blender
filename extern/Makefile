@@ -41,10 +41,6 @@ ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
 endif
 endif
 
-ifeq ($(WITH_VERSE), true)
-   DIRS += verse
-endif
-
 ifneq ($(NAN_NO_KETSJI), true)
     DIRS += bullet2
 endif

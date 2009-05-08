@@ -27,6 +27,7 @@
  */
 
 #include "KX_BlenderGL.h"
+#include "BLF_api.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
