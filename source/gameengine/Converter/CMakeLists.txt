@@ -32,7 +32,6 @@ SET(INC
   ../../../intern/string
   ../../../intern/guardedalloc
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../intern/bmfont
   ../../../intern/SoundSystem
   ../../../intern/SoundSystem/include
   ../../../intern/SoundSystem/openal

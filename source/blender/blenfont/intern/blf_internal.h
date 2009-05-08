@@ -38,10 +38,6 @@ int blf_dir_split(const char *str, char *file, int *size);
 int blf_font_init(void);
 void blf_font_exit(void);
 
-FontBLF *blf_internal_new(char *name);
-
-#ifdef WITH_FREETYPE2
-
 FontBLF *blf_font_new(char *name, char *filename);
 FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size);
 
@@ -55,5 +51,4 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c);
 void blf_glyph_free(GlyphBLF *g);
 int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y);
 
-#endif /* WITH_FREETYPE2 */
 #endif /* BLF_INTERNAL_H */

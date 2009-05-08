@@ -115,6 +115,12 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
 	style->widget.shadowalpha= 0.25f;
+
+	style->columnspace= 5;
+	style->templatespace= 5;
+	style->boxspace= 5;
+	style->buttonspacex= 5;
+	style->buttonspacey= 2;
 	
 	return style;
 }
@@ -229,12 +235,16 @@ void uiStyleInit(void)
 			if(font->blf_id == -1)
 				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		}
-			
+
 		if (font->blf_id == -1)
 			printf("uiStyleInit error, no fonts available\n");
 		else {
 			BLF_set(font->blf_id);
-			BLF_size(11, U.dpi); /* ? just for speed to initialize? */
+			/* ? just for speed to initialize?
+			 * Yes, this build the glyph cache and create
+			 * the texture.
+			 */
+			BLF_size(11, U.dpi);
 			BLF_size(12, U.dpi);
 			BLF_size(14, U.dpi);
 		}
@@ -243,14 +253,6 @@ void uiStyleInit(void)
 	if(style==NULL) {
 		ui_style_new(&U.uistyles, "Default Style");
 	}
-}
-
-
-void uiStyleExit(void)
-{
-	BLI_freelistN(&U.uifonts);
-	BLI_freelistN(&U.uistyles);
-	
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

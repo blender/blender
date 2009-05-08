@@ -427,7 +427,7 @@ static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 	return 0;	
 }
 
-// calchandles_ipocurve
+
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
 	/* eEditKeyframes_Snap */

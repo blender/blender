@@ -38,8 +38,6 @@
 #include <stdlib.h>
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_dynstr.h"
@@ -3562,15 +3560,17 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	Nurb *nu;
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if(nu->pntsu>1 || nu->pntsv>1) {
 			if(nu->type==CU_NURBS) {
-				head= uiPupMenuBegin("Direction", 0);
-				uiMenuItemsEnumO(head, op->type->idname, "direction");
-				uiPupMenuEnd(C, head);
+				pup= uiPupMenuBegin("Direction", 0);
+				layout= uiPupMenuLayout(pup);
+				uiItemsEnumO(layout, op->type->idname, "direction");
+				uiPupMenuEnd(C, pup);
 				return OPERATOR_CANCELLED;
 			}
 		}
@@ -4507,18 +4507,21 @@ static int delete_exec(bContext *C, wmOperator *op)
 static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
 	if(obedit->type==OB_SURF) {
-		head= uiPupMenuBegin("Delete", 0);
-		uiMenuItemEnumO(head, "", 0, op->type->idname, "type", 0);
-		uiMenuItemEnumO(head, "", 0, op->type->idname, "type", 2);
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin("Delete", 0);
+		layout= uiPupMenuLayout(pup);
+		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 0);
+		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 2);
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		head= uiPupMenuBegin("Delete", 0);
-		uiMenuItemsEnumO(head, op->type->idname, "type");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin("Delete", 0);
+		layout= uiPupMenuLayout(pup);
+		uiItemsEnumO(layout, op->type->idname, "type");
+		uiPupMenuEnd(C, pup);
 	}
 
 	return OPERATOR_CANCELLED;

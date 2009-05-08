@@ -34,6 +34,17 @@
 
 #include "MEM_guardedalloc.h"
 
+EnumPropertyItem fmodifier_type_items[] = {
+	{FMODIFIER_TYPE_NULL, "NULL", "Invalid", ""},
+	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
+	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
+	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
+	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
+	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
+	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
+	{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
+	{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 float FModGenFunc_amplitude_get(PointerRNA *ptr)
@@ -118,8 +129,8 @@ StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 			return &RNA_FModifierEnvelope;
 		case FMODIFIER_TYPE_CYCLES:
 			return &RNA_FModifierCycles;
-		//case FMODIFIER_TYPE_NOISE:
-		//	return &RNA_FModifierNoise;
+		case FMODIFIER_TYPE_NOISE:
+			return &RNA_FModifierNoise;
 		//case FMODIFIER_TYPE_FILTER:
 		//	return &RNA_FModifierFilter;
 		case FMODIFIER_TYPE_PYTHON:
@@ -325,9 +336,10 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{0, "NONE", "No Cycles", ""},
-		{1, "REPEAT", "Repeat Motion", ""},
-		{1, "REPEAT_OFFSET", "Repeat with Offset", ""},
+		{FCM_EXTRAPOLATE_NONE, "NONE", "No Cycles", "Don't do anything."},
+		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", "Repeat Motion", "Repeat keyframe range as-is."},
+		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", "Repeat with Offset", "Repeat keyframe range, but with offset based on gradient between values"},
+		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", "Repeat Mirrored", "Alternate between forward and reverse playback of keyframe range"},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierCycles", "FModifier");
@@ -410,23 +422,52 @@ static void rna_def_fmodifier_limits(BlenderRNA *brna)
 
 /* --------- */
 
+static void rna_def_fmodifier_noise(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_modification_items[] = {
+		{FCM_NOISE_MODIF_REPLACE, "REPLACE", "Replace", ""},
+		{FCM_NOISE_MODIF_ADD, "ADD", "Add", ""},
+		{FCM_NOISE_MODIF_SUBTRACT, "SUBTRACT", "Subtract", ""},
+		{FCM_NOISE_MODIF_MULTIPLY, "MULTIPLY", "Multiply", ""},
+		{0, NULL, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "FModifierNoise", "FModifier");
+	RNA_def_struct_ui_text(srna, "Noise F-Curve Modifier", "Gives randomness to the modified F-Curve.");
+	RNA_def_struct_sdna_from(srna, "FMod_Noise", "data");
+	
+	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_modification_items);
+	RNA_def_property_ui_text(prop, "Modification", "Method of modifying the existing F-Curve.");
+	
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Size", "Scaling (in time) of the noise");
+	
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_ui_text(prop, "Strength", "Amplitude of the noise - the amount that it modifies the underlying curve");
+	
+	prop= RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "phase");
+	RNA_def_property_ui_text(prop, "Phase", "A random seed for the noise effect");
+	
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "depth");
+	RNA_def_property_ui_text(prop, "Depth", "Amount of fine level detail present in the noise");
+
+}
+
+
+/* --------- */
+
 void rna_def_fmodifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_type_items[] = {
-		{FMODIFIER_TYPE_NULL, "NULL", "Invalid", ""},
-		{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
-		{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
-		{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
-		{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
-		{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
-		{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
-		{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
-		{0, NULL, NULL, NULL}};
-		
-		
 	/* base struct definition */
 	srna= RNA_def_struct(brna, "FModifier", NULL);
 	RNA_def_struct_refine_func(srna, "rna_FModifierType_refine");
@@ -442,7 +483,7 @@ void rna_def_fmodifier(BlenderRNA *brna)
 	/* type */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, fmodifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "F-Curve Modifier Type");
 	
 	/* settings */
@@ -450,10 +491,15 @@ void rna_def_fmodifier(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI.");
 	
+	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_MUTED);
+	RNA_def_property_ui_text(prop, "Muted", "F-Curve Modifier will not be evaluated.");
+	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_DISABLED	);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_DISABLED);
 	RNA_def_property_ui_text(prop, "Disabled", "F-Curve Modifier has invalid settings and will not be evaluated.");
 	
 		// TODO: setting this to true must ensure that all others in stack are turned off too...
@@ -603,6 +649,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fmodifier_cycles(brna);
 	rna_def_fmodifier_python(brna);
 	rna_def_fmodifier_limits(brna);
+	rna_def_fmodifier_noise(brna);
 }
 
 

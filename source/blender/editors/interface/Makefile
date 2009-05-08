@@ -38,7 +38,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
-CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 CPPFLAGS += -I../../windowmanager
@@ -48,7 +47,6 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
-CPPFLAGS += -I../../ftfont
 CPPFLAGS += -I../../blenfont
 
 # own include 

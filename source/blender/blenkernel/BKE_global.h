@@ -45,7 +45,6 @@ extern "C" {
 struct Main;
 struct Object;
 struct bSoundListener;
-struct BMF_Font;
 struct BME_Glob;
 
 typedef struct Global {
@@ -53,9 +52,6 @@ typedef struct Global {
 	/* active pointers */
 	struct Main *main;
 	
-	/* fonts, allocated global data */
-	struct BMF_Font *font, *fonts, *fontss;
-    
 	/* strings: lastsaved */
 	char ima[256], sce[256], lib[256];
 

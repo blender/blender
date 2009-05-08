@@ -2240,8 +2240,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
-	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B.blend");
-
+	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
 	write_user_block= BLI_streq(dir, userfilename);
 
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);

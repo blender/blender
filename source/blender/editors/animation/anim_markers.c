@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -96,12 +97,13 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	ypixels= v2d->mask.ymax-v2d->mask.ymin;
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
-	glScalef(1.0/xscale, 1.0, 1.0);
+	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* vertical line - dotted */
+	// NOTE: currently only used for sequencer 
 	if (flag & DRAW_MARKERS_LINES) {
 		setlinestyle(3);
 		
@@ -111,8 +113,8 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 			glColor4ub(0, 0, 0, 96);
 		
 		glBegin(GL_LINES);
-			glVertex2f((xpos*xscale)+0.5, 12);
-			glVertex2f((xpos*xscale)+0.5, 34*yscale); /* a bit lazy but we know it cant be greater then 34 strips high*/
+			glVertex2f((xpos*xscale)+0.5f, 12.0f);
+			glVertex2f((xpos*xscale)+0.5f, 34.0f*yscale); /* a bit lazy but we know it cant be greater then 34 strips high */
 		glEnd();
 		
 		setlinestyle(0);
@@ -129,7 +131,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos*xscale-5.0, 16.0, icon_id);
+	UI_icon_draw(xpos*xscale-5.0f, 16.0f, icon_id);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -138,25 +140,26 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	if (marker->name && marker->name[0]) {
 		float x, y;
 		
-		if(marker->flag & SELECT) {
+		if (marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
-			x= xpos*xscale+4.0;
-			y= (ypixels<=39.0)?(ypixels-10.0):29.0;
+			x= xpos*xscale + 4.0f;
+			y= (ypixels <= 39.0f)? (ypixels-10.0f) : 29.0f;
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
 			if((marker->frame <= cfra) && (marker->frame+5 > cfra)) {
-				x= xpos*xscale+4.0;
-				y= (ypixels<=39.0)?(ypixels-10.0):29.0;
+				x= xpos*xscale + 4.0f;
+				y= (ypixels <= 39.0f)? (ypixels - 10.0f) : 29.0f;
 			}
 			else {
-				x= xpos*xscale+4.0;
-				y= 17.0;
+				x= xpos*xscale + 4.0f;
+				y= 17.0f;
 			}
 		}
 		UI_DrawString(x, y, marker->name);
 	}
-	glScalef(xscale, 1.0, 1.0);
+	
+	glScalef(xscale, 1.0f, 1.0f);
 }
 
 /* Draw Scene-Markers in time window */
@@ -166,17 +169,19 @@ void draw_markers_time(const bContext *C, int flag)
 	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker;
 	
-	if(markers == NULL)
+	if (markers == NULL)
 		return;
 	
 	/* unselected markers are drawn at the first time */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if (!(marker->flag & SELECT)) draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
+		if ((marker->flag & SELECT) == 0) 
+			draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
 	}
 	
 	/* selected markers are drawn later */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if (marker->flag & SELECT) draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
+		if (marker->flag & SELECT) 
+			draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
 	}
 }
 
@@ -191,13 +196,14 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	int frame= CTX_data_scene(C)->r.cfra;
 	
-	if(markers == NULL)
+	if (markers == NULL)
 		return OPERATOR_CANCELLED;
 	
 	/* two markers can't be at the same place */
-	for(marker= markers->first; marker; marker= marker->next)
-		if(marker->frame == frame) 
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->frame == frame) 
 			return OPERATOR_CANCELLED;
+	}
 	
 	/* deselect all */
 	for(marker= markers->first; marker; marker= marker->next)
@@ -298,9 +304,13 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 {
 	MarkerMove *mm= op->customdata;
 	
+	/* free data */
 	MEM_freeN(mm->oldframe);
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
+	
+	/* clear custom header prints */
+	ED_area_headerprint(CTX_wm_area(C), NULL);
 }
 
 static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
@@ -365,7 +375,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case ESCKEY:
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
-
+		
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
@@ -377,7 +387,6 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			
 			break;
 		case MOUSEMOVE:
-	
 			dx= v2d->mask.xmax-v2d->mask.xmin;
 			dx= (v2d->cur.xmax-v2d->cur.xmin)/dx;
 			
@@ -415,12 +424,11 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 							sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
 					}
 					else if (mm->slink->spacetype == SPACE_ACTION) {
-#if 0						
-XXX						if (saction->flag & SACTION_DRAWTIME)
+						SpaceAction *saction= (SpaceAction *)mm->slink;
+						if (saction->flag & SACTION_DRAWTIME)
 							sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
 						else
 							sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
-#endif					
 					}
 					else {
 						sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
@@ -435,21 +443,20 @@ XXX						if (saction->flag & SACTION_DRAWTIME)
 						else 
 							sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
 					}
-#if 0					
-XXX					else if (mm->slink->spacetype == SPACE_ACTION) {
+					else if (mm->slink->spacetype == SPACE_ACTION) {
+						SpaceAction *saction= (SpaceAction *)mm->slink;
 						if (saction->flag & SACTION_DRAWTIME)
 							sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
 						else
 							sprintf(str, "Marker offset %.2f ", (double)(offs));
 					}
-#endif					
 					else {
 						sprintf(str, "Marker offset %.2f ", (double)(offs));
 					}
 				}
 				
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
-				// headerprint(str); XXX
+				ED_area_headerprint(CTX_wm_area(C), str);
 			}
 	}
 
@@ -511,19 +518,23 @@ static void ed_marker_duplicate_apply(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker, *newmarker;
 	
-	if(markers == NULL) return;
+	if (markers == NULL) 
+		return;
 
 	/* go through the list of markers, duplicate selected markers and add duplicated copies
-	* to the begining of the list (unselect original markers) */
-	for(marker= markers->first; marker; marker= marker->next) {
-		if(marker->flag & SELECT){
+	 * to the begining of the list (unselect original markers) 
+	 */
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) {
 			/* unselect selected marker */
 			marker->flag &= ~SELECT;
+			
 			/* create and set up new marker */
 			newmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 			newmarker->flag= SELECT;
 			newmarker->frame= marker->frame;
 			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
+			
 			/* new marker is added to the begining of list */
 			BLI_addhead(markers, newmarker);
 		}
@@ -572,12 +583,13 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	TimeMarker *marker;
 	int select=0;
 	
-	for(marker= markers->first; marker; marker= marker->next) {
+	for (marker= markers->first; marker; marker= marker->next) {
 		/* if Shift is not set, then deselect Markers */
-		if(!shift) marker->flag &= ~SELECT;
+		if (!shift) marker->flag &= ~SELECT;
+		
 		/* this way a not-shift select will allways give 1 selected marker */
-		if((marker->frame == frame) && (!select)) {
-			if(marker->flag & SELECT) 
+		if ((marker->frame == frame) && (!select)) {
+			if (marker->flag & SELECT) 
 				marker->flag &= ~SELECT;
 			else
 				marker->flag |= SELECT;
@@ -586,20 +598,20 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-int find_nearest_marker_time(ListBase *markers, float dx)
+int find_nearest_marker_time (ListBase *markers, float dx)
 {
 	TimeMarker *marker, *nearest= NULL;
 	float dist, min_dist= 1000000;
 	
-	for(marker= markers->first; marker; marker= marker->next) {
+	for (marker= markers->first; marker; marker= marker->next) {
 		dist = ABS((float)marker->frame - dx);
-		if(dist < min_dist){
+		if (dist < min_dist) {
 			min_dist= dist;
 			nearest= marker;
 		}
 	}
 	
-	if(nearest) return nearest->frame;
+	if (nearest) return nearest->frame;
 	else return (int)floor(dx); /* hrmf? */
 }
 

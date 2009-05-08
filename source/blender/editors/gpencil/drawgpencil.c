@@ -37,8 +37,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -874,6 +872,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 	glDisable(GL_LINE_SMOOTH); // smooth lines
 	
 	/* show info for debugging the status of gpencil */
+#if 0
 	if ( ((dflag & GP_DRAWDATA_NOSTATUS)==0) && (gpd->flag & GP_DATA_DISPINFO) ) {
 		char printable[256];
 		short xmax;
@@ -907,10 +906,10 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		
 		/* only draw it if view is wide enough (assume padding of 20 is enough for now) */
 		if (winx > (xmax + 20)) { 
-			glRasterPos2i(winx-xmax, winy-20);
-			BMF_DrawString(G.fonts, printable);
+			BLF_draw_default(winx-xmax, winy-20, 0.0f, printable);
 		}
 	}
+#endif
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);

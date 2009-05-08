@@ -37,7 +37,7 @@ struct ListBase;
 struct wmEvent;
 struct bContext;
 struct Object;
-struct uiMenuItem;
+struct uiLayout;
 
 void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -114,7 +114,7 @@ int BIF_menuselectTransformOrientation(void);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
-void BIF_menuTransformOrientation(struct bContext *C, struct uiMenuItem *head, void *arg);
+void BIF_menuTransformOrientation(struct bContext *C, struct uiLayout *layout, void *arg);
 char * BIF_menustringTransformOrientation(const struct bContext *C, char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 

@@ -38,7 +38,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
-CPPFLAGS += -I$(NAN_BMFONT)/include
 
 # not very neat....
 CPPFLAGS += -I../../windowmanager
@@ -51,6 +50,7 @@ CPPFLAGS += -I../../python
 CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../blenfont
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 

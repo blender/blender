@@ -347,10 +347,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\intern\bpy_panel_wrap.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.c"
 					>
 				</File>

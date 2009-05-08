@@ -69,9 +69,9 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BMF_Api.h"
 
 #include "WM_api.h"
+#include "BLF_api.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -232,27 +232,6 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 }
 
-// not intern, called in editobject for constraint axis too
-void make_axis_color(char *col, char *col2, char axis)
-{
-	if(axis=='x') {
-		col2[0]= col[0]>219?255:col[0]+36;
-		col2[1]= col[1]<26?0:col[1]-26;
-		col2[2]= col[2]<26?0:col[2]-26;
-	}
-	else if(axis=='y') {
-		col2[0]= col[0]<46?0:col[0]-36;
-		col2[1]= col[1]>189?255:col[1]+66;
-		col2[2]= col[2]<46?0:col[2]-36; 
-	}
-	else {
-		col2[0]= col[0]<26?0:col[0]-26; 
-		col2[1]= col[1]<26?0:col[1]-26; 
-		col2[2]= col[2]>209?255:col[2]+46;
-	}
-	
-}
-
 static void drawgrid(ARegion *ar, View3D *v3d)
 {
 	/* extern short bgpicmode; */
@@ -365,15 +344,15 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	
 	/* center cross */
 	if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
-		make_axis_color(col, col2, 'y');
-	else make_axis_color(col, col2, 'x');
+		UI_make_axis_color(col, col2, 'y');
+	else UI_make_axis_color(col, col2, 'x');
 	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
 	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
-		make_axis_color(col, col2, 'y');
-	else make_axis_color(col, col2, 'z');
+		UI_make_axis_color(col, col2, 'y');
+	else UI_make_axis_color(col, col2, 'z');
 	glColor3ubv((GLubyte *)col2);
 
 	fdrawline(x, 0.0, x, (float)ar->winy); 
@@ -412,7 +391,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		if(a==0) {
 			/* check for the 'show Y axis' preference */
 			if (v3d->gridflag & V3D_SHOW_Y) { 
-				make_axis_color(col, col2, 'y');
+				UI_make_axis_color(col, col2, 'y');
 				glColor3ubv((GLubyte *)col2);
 				
 				draw_line = 1;
@@ -451,7 +430,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		if(a==0) {
 			/* check for the 'show X axis' preference */
 			if (v3d->gridflag & V3D_SHOW_X) { 
-				make_axis_color(col, col2, 'x');
+				UI_make_axis_color(col, col2, 'x');
 				glColor3ubv((GLubyte *)col2);
 				
 				draw_line = 1;
@@ -488,7 +467,7 @@ static void drawfloor(Scene *scene, View3D *v3d)
 	/* draw the Z axis line */	
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & V3D_SHOW_Z) {
-		make_axis_color(col, col2, 'z');
+		UI_make_axis_color(col, col2, 'z');
 		glColor3ubv((GLubyte *)col2);
 		
 		glBegin(GL_LINE_STRIP);
@@ -567,7 +546,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	vec[1] = vec[2] = 0;
 	QuatMulVecf(rv3d->viewquat, vec);
 	
-	make_axis_color((char *)gridcol, (char *)col, 'x');
+	UI_make_axis_color((char *)gridcol, (char *)col, 'x');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.3;
@@ -579,8 +558,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "x");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
 	}
 	
 	/* Y */
@@ -588,7 +566,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	vec[0] = vec[2] = 0;
 	QuatMulVecf(rv3d->viewquat, vec);
 	
-	make_axis_color((char *)gridcol, (char *)col, 'y');
+	UI_make_axis_color((char *)gridcol, (char *)col, 'y');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.3;
@@ -600,8 +578,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "y");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
 	}
 	
 	/* Z */
@@ -609,7 +586,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	vec[1] = vec[0] = 0;
 	QuatMulVecf(rv3d->viewquat, vec);
 	
-	make_axis_color((char *)gridcol, (char *)col, 'z');
+	UI_make_axis_color((char *)gridcol, (char *)col, 'z');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.5;
@@ -621,8 +598,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "z");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z");
 	}
 	
 	/* restore line-width */
@@ -714,8 +690,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		glRasterPos2i(10,  ar->winy-20);
-		BMF_DrawString(G.fonts, printable);
+		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
 	}
 
 	if (v3d->localview) {
@@ -820,7 +795,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-	if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
+		if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -838,9 +813,8 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = 14 + (U.rvisize * 2);
-	
-	glRasterPos2i(offset,  10);
-	BMF_DrawString(G.fonts, info);
+
+	BLF_draw_default(offset,  10, 0.0f, info);
 }
 
 static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2])
@@ -1020,9 +994,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		glRasterPos2f(x1, y1-15);
-		
-		BMF_DrawString(G.font, v3d->camera->id.name+2);
+		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
 		UI_ThemeColor(TH_WIRE);
 	}
 	

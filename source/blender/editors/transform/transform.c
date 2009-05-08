@@ -111,53 +111,13 @@
 
 #include "PIL_time.h"			/* sleep				*/
 
+#include "UI_resources.h"
+
 //#include "blendef.h"
 //
 //#include "mydevice.h"
 
 #include "transform.h"
-
-/* ************************** Dashed help line **************************** */
-
-
-/* bad frontbuffer call... because it is used in transform after force_draw() */
-static void helpline(TransInfo *t, float *vec)
-{
-#if 0 // TRANSFORM_FIX_ME
-	float vecrot[3], cent[2];
-	short mval[2];
-	
-	VECCOPY(vecrot, vec);
-	if(t->flag & T_EDIT) {
-		Object *ob= t->obedit;
-		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
-	}
-	else if(t->flag & T_POSE) {
-		Object *ob=t->poseobj;
-		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
-	}
-	
-	getmouseco_areawin(mval);
-	projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
-
-	persp(PERSP_WIN);
-	
-	glDrawBuffer(GL_FRONT);
-	
-	BIF_ThemeColor(TH_WIRE);
-	
-	setlinestyle(3);
-	glBegin(GL_LINE_STRIP); 
-	glVertex2sv(mval); 
-	glVertex2fv(cent); 
-	glEnd();
-	setlinestyle(0);
-	
-	persp(PERSP_VIEW);
-	bglFlush(); // flush display for frontbuffer
-	glDrawBuffer(GL_BACK);
-#endif
-}
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
@@ -936,6 +896,231 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	return success;
 }
 
+typedef enum {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT
+} ArrowDirection;
+static void drawArrow(ArrowDirection d, short offset, short length, short size)
+{
+	switch(d)
+	{
+		case LEFT:
+			offset = -offset;
+			length = -length;
+			size = -size;
+		case RIGHT:
+			glBegin(GL_LINES); 
+			glVertex2s( offset, 0); 
+			glVertex2s( offset + length, 0); 
+			glVertex2s( offset + length, 0); 
+			glVertex2s( offset + length - size, -size); 
+			glVertex2s( offset + length, 0); 
+			glVertex2s( offset + length - size,  size);
+			glEnd(); 
+			break;
+		case DOWN:
+			offset = -offset;
+			length = -length;
+			size = -size;
+		case UP:
+			glBegin(GL_LINES); 
+			glVertex2s( 0, offset); 
+			glVertex2s( 0, offset + length); 
+			glVertex2s( 0, offset + length); 
+			glVertex2s(-size, offset + length - size); 
+			glVertex2s( 0, offset + length); 
+			glVertex2s( size, offset + length - size);
+			glEnd(); 
+			break;
+	}
+}
+
+static void drawArrowHead(ArrowDirection d, short size)
+{
+	switch(d)
+	{
+		case LEFT:
+			size = -size;
+		case RIGHT:
+			glBegin(GL_LINES); 
+			glVertex2s( 0, 0); 
+			glVertex2s( -size, -size); 
+			glVertex2s( 0, 0); 
+			glVertex2s( -size,  size);
+			glEnd(); 
+			break;
+		case DOWN:
+			size = -size;
+		case UP:
+			glBegin(GL_LINES); 
+			glVertex2s( 0, 0); 
+			glVertex2s(-size, -size); 
+			glVertex2s( 0, 0); 
+			glVertex2s( size, -size);
+			glEnd(); 
+			break;
+	}
+}
+
+static void drawArc(float size, float angle_start, float angle_end, int segments)
+{
+	float delta = (angle_end - angle_start) / segments;
+	float angle;
+	
+	glBegin(GL_LINE_STRIP);
+	
+	for( angle = angle_start; angle < angle_end; angle += delta)
+	{
+		glVertex2f( cosf(angle) * size, sinf(angle) * size);
+	}
+	glVertex2f( cosf(angle_end) * size, sinf(angle_end) * size);
+	
+	glEnd();
+}
+
+void drawHelpline(const struct bContext *C, TransInfo *t)
+{
+	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
+	{
+		float vecrot[3], cent[2];
+		
+		VECCOPY(vecrot, t->center);
+		if(t->flag & T_EDIT) {
+			Object *ob= t->obedit;
+			if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+		}
+		else if(t->flag & T_POSE) {
+			Object *ob=t->poseobj;
+			if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+		}
+		
+		projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
+	
+		glDisable(GL_DEPTH_TEST);
+
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+
+		ED_region_pixelspace(t->ar);
+		
+		switch(t->helpline)
+		{
+			case HLP_SPRING:
+				UI_ThemeColor(TH_WIRE);
+				
+				setlinestyle(3);
+				glBegin(GL_LINE_STRIP); 
+				glVertex2sv(t->mval); 
+				glVertex2fv(cent); 
+				glEnd();
+
+				glTranslatef(t->mval[0], t->mval[1], 0);
+				glRotatef(-180 / M_PI * atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1]), 0, 0, 1);
+
+				setlinestyle(0);
+				glLineWidth(3.0);
+				drawArrow(UP, 5, 10, 5);
+				drawArrow(DOWN, 5, 10, 5);
+				glLineWidth(1.0);
+				break;
+			case HLP_HARROW:
+				UI_ThemeColor(TH_WIRE);
+
+				glTranslatef(t->mval[0], t->mval[1], 0);
+
+				glLineWidth(3.0);
+				drawArrow(RIGHT, 5, 10, 5);
+				drawArrow(LEFT, 5, 10, 5);
+				glLineWidth(1.0);
+				break;
+			case HLP_VARROW:
+				UI_ThemeColor(TH_WIRE);
+
+				glTranslatef(t->mval[0], t->mval[1], 0);
+
+				glLineWidth(3.0);
+				glBegin(GL_LINES); 
+				drawArrow(UP, 5, 10, 5);
+				drawArrow(DOWN, 5, 10, 5);
+				glLineWidth(1.0);
+				break;
+			case HLP_ANGLE:
+				{
+					float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
+					float angle = atan2f(dy, dx);
+					float dist = sqrtf(dx*dx + dy*dy);
+					float delta_angle = MIN2(15 / dist, M_PI/4);
+					float spacing_angle = MIN2(5 / dist, M_PI/12);
+					UI_ThemeColor(TH_WIRE);
+	
+					setlinestyle(3);
+					glBegin(GL_LINE_STRIP); 
+					glVertex2sv(t->mval); 
+					glVertex2fv(cent); 
+					glEnd();
+					
+					glTranslatef(cent[0], cent[1], 0);
+	
+					setlinestyle(0);
+					glLineWidth(3.0);
+					drawArc(dist, angle - delta_angle, angle - spacing_angle, 10);
+					drawArc(dist, angle + spacing_angle, angle + delta_angle, 10);
+					
+					glPushMatrix();
+
+					glTranslatef(cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
+					glRotatef(180 / M_PI * (angle - delta_angle), 0, 0, 1);
+					
+					drawArrowHead(DOWN, 5);
+					
+					glPopMatrix();
+
+					glTranslatef(cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
+					glRotatef(180 / M_PI * (angle + delta_angle), 0, 0, 1);
+
+					drawArrowHead(UP, 5);
+
+					glLineWidth(1.0);
+					break;
+				}
+				case HLP_TRACKBALL:
+				{
+					char col[3], col2[3];
+					UI_GetThemeColor3ubv(TH_GRID, col);
+	
+					glTranslatef(t->mval[0], t->mval[1], 0);
+	
+					glLineWidth(3.0);
+	
+					UI_make_axis_color(col, col2, 'x');
+					glColor3ubv((GLubyte *)col2);
+	
+					drawArrow(RIGHT, 5, 10, 5);
+					drawArrow(LEFT, 5, 10, 5);
+	
+					UI_make_axis_color(col, col2, 'y');
+					glColor3ubv((GLubyte *)col2);
+	
+					drawArrow(UP, 5, 10, 5);
+					drawArrow(DOWN, 5, 10, 5);
+					glLineWidth(1.0);
+					break;
+				}
+		}
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+		
+		glEnable(GL_DEPTH_TEST);
+	}
+}
+
 void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
@@ -943,6 +1128,7 @@ void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
 	drawConstraint(C, t);
 	drawPropCircle(C, t);
 	drawSnapping(C, t);
+	drawHelpline(C, t);
 }
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
@@ -985,9 +1171,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_boolean_set(op->ptr, "mirror", t->flag & T_MIRROR);
 	}
 	
-	if (RNA_struct_find_property(op->ptr, "constraint_mode"))
+	if (RNA_struct_find_property(op->ptr, "constraint_axis"))
 	{
-		RNA_int_set(op->ptr, "constraint_mode", t->con.mode);
 		RNA_int_set(op->ptr, "constraint_orientation", t->current_orientation);
 
 		if (t->con.mode & CON_APPLY)
@@ -1038,18 +1223,11 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		return 0;
 	}
 
-	initTransformOrientation(C, t);
-
 	if(t->spacetype == SPACE_VIEW3D)
 	{
 		//calc_manipulator_stats(curarea);
-		if (t->ar->regiontype == RGN_TYPE_WINDOW)
-		{
-			RegionView3D *rv3d = t->ar->regiondata;
-			Mat3CpyMat4(t->spacemtx, rv3d->twmat);
-		}
-		Mat3Ortho(t->spacemtx);
-		
+		initTransformOrientation(C, t);
+	
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
@@ -1821,7 +1999,7 @@ void initWarp(TransInfo *t)
 	t->snap[2] = 1.0f;
 	
 	t->flag |= T_NO_CONSTRAINT;
-
+	
 	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
 		float center[3];
@@ -1957,8 +2135,6 @@ int Warp(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	helpline(t, gcursor);
-	
 	return 1;
 }
 
@@ -2078,8 +2254,6 @@ int Shear(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	helpline (t, t->center);
 
 	return 1;
 }
@@ -2357,8 +2531,6 @@ int Resize(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-
 	return 1;
 }
 
@@ -2382,7 +2554,7 @@ void initToSphere(TransInfo *t)
 	
 	t->num.flag |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
 	t->flag |= T_NO_CONSTRAINT;
-
+	
 	// Calculate average radius
 	for(i = 0 ; i < t->total; i++, td++) {
 		t->val += VecLenf(t->center, td->iloc);
@@ -2784,8 +2956,6 @@ int Rotation(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-
 	return 1;
 }
 
@@ -2890,8 +3060,6 @@ int Trackball(TransInfo *t, short mval[2])
 	recalcData(t);
 	
 	ED_area_headerprint(t->sa, str);
-	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
 }
@@ -3238,8 +3406,6 @@ int Tilt(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	helpline (t, t->center);
-
 	return 1;
 }
 
@@ -3303,8 +3469,6 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 	recalcData(t);
 	
 	ED_area_headerprint(t->sa, str);
-	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
 }
@@ -3577,8 +3741,6 @@ int BevelWeight(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	helpline (t, t->center);
-
 	return 1;
 }
 
@@ -3652,8 +3814,6 @@ int Crease(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	helpline (t, t->center);
 
 	return 1;
 }
@@ -3770,8 +3930,6 @@ int BoneSize(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-	
 	return 1;
 }
 
@@ -3838,8 +3996,6 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-	
 	return 1;
 }
 
@@ -3903,8 +4059,6 @@ int BoneRoll(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
 	return 1;
 }
@@ -3981,8 +4135,6 @@ int BakeTime(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	helpline (t, t->center);
 
 	return 1;
 }
@@ -4514,6 +4666,7 @@ void initTimeScale(TransInfo *t)
 	t->transform = TimeScale;
 	
 	initMouseInputMode(t, &t->mouse, INPUT_NONE);
+	t->helpline = HLP_SPRING; /* set manually because we don't use a predefined input */
 
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;

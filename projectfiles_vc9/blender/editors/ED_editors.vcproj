@@ -483,6 +483,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_toolbar.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
 				>
 			</File>
@@ -712,14 +716,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_intern.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_object.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_scene.c"
 				>
 			</File>
 			<File
@@ -1035,6 +1031,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_modifier.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_ops.c"
 				>
 			</File>
@@ -1275,7 +1275,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil.c"
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_edit.c"
 				>
 			</File>
 			<File

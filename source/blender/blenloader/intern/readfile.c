@@ -178,7 +178,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend)
+- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -1723,6 +1723,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 			/* relink general data */
 			fcm->data = newdataadr(fd, fcm->data);
+			fcm->edata= NULL;
 			
 			/* do relinking of data for specific types */
 			switch (fcm->type) {
@@ -3862,6 +3863,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
+	sce->obedit= NULL;
+	
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
 
@@ -4086,6 +4089,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	
+	/* we must firstly have some grease-pencil data to link! */
+	if (gpd == NULL)
+		return;
 	
 	/* relink layers */
 	link_list(fd, &gpd->layers);
@@ -4522,7 +4529,6 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->dist= v3d->dist;
 			VECCOPY(rv3d->ofs, v3d->ofs);
 			QUATCOPY(rv3d->viewquat, v3d->viewquat);
-			Mat4One(rv3d->twmat);
 		}
 	}
 }

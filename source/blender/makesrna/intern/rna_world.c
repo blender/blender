@@ -237,6 +237,12 @@ static void rna_def_world_mist(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem falloff_items[] = {
+		{0, "QUADRATIC", "Quadratic", "Mist uses quadratic progression."},
+		{1, "LINEAR", "Linear", "Mist uses linear progression."},
+		{2, "INVERSE_QUADRATIC", "Inverse Quadratic", "Mist uses inverse quadratic progression."},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldMistSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -268,18 +274,17 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "misthi");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Height", "Factor for a less dense mist with increasing height.");
+	
+	prop= RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mistype");
+	RNA_def_property_enum_items(prop, falloff_items);
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff method for mist.");
 }
 
 static void rna_def_world_stars(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem falloff_items[] = {
-		{0, "QUADRATIC", "Quadratic", "Mist uses quadratic progression."},
-		{1, "LINEAR", "Linear", "Mist uses linear progression."},
-		{2, "INVERSE_QUADRATIC", "Inverse Quadratic", "Mist uses inverse quadratic progression."},
-		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldStarsSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -309,12 +314,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomizes star color.");
-
-	prop= RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mistype");
-	RNA_def_property_enum_items(prop, falloff_items);
-	RNA_def_property_ui_text(prop, "Falloff", "Falloff method for mist.");
-
+	
 	/* unused
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "starr");

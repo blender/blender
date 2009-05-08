@@ -33,8 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -3460,11 +3458,13 @@ void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
 
 static int armature_subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Subdivision Type", 0);
-	uiMenuItemsEnumO(head, "ARMATURE_OT_subdivs", "type");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("Subdivision Type", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemsEnumO(layout, "ARMATURE_OT_subdivs", "type");
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -3744,7 +3744,8 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiMenuItem *head= uiPupMenuBegin("Make Parent ", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Make Parent ", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
@@ -3754,13 +3755,13 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	CTX_DATA_END;
 
-	uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_CONNECT);
+	uiItemEnumO(layout, NULL, 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_CONNECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if (allchildbones)
-		uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_OFFSET);	
+		uiItemEnumO(layout, NULL, 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_OFFSET);	
 		
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

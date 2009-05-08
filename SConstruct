@@ -281,7 +281,6 @@ if 'blenderlite' in B.targets:
 	target_env_defs['WITH_BF_QUICKTIME'] = False
 	target_env_defs['WITH_BF_YAFRAY'] = False
 	target_env_defs['WITH_BF_REDCODE'] = False
-	target_env_defs['WITH_BF_FTGL'] = False
 	target_env_defs['WITH_BF_DDS'] = False
 	target_env_defs['WITH_BF_ZLIB'] = False
 	target_env_defs['WITH_BF_SDL'] = False

@@ -30,8 +30,6 @@
  * Code that uses exotic character maps is present but commented out.
  */
 
-#ifdef WITH_FREETYPE2
-
 #ifdef WIN32
 #pragma warning (disable:4244)
 #endif
@@ -513,10 +511,6 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Ahh everything ok
 	return TRUE;
 }
-
-#endif // WITH_FREETYPE2
-
-
 
 #if 0
 

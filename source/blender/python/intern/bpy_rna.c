@@ -1144,7 +1144,7 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 			i++;
 		}
 		else if (kw != NULL)
-			item= PyDict_GetItemString(kw, pid);
+			item= PyDict_GetItemString(kw, pid);  /* borrow ref */
 
 		if (item==NULL) {
 			if(flag & PROP_REQUIRED) {
@@ -1957,12 +1957,10 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");
+	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
 
-	if(item) {
+	if(item)
 		C= (bContext*)PyCObject_AsVoidPtr(item);
-		Py_DECREF(item);
-	}
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_PRINT);
@@ -1989,7 +1987,7 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	BPy_StructRNA *py_srna;
 	StructUnregisterFunc unreg;
 
-	if(!PyArg_ParseTuple(args, "O:register", &py_class))
+	if(!PyArg_ParseTuple(args, "O:unregister", &py_class))
 		return NULL;
 
 	if(!PyType_Check(py_class)) {
@@ -1998,18 +1996,14 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	}
 
 	/* check we got an __rna__ attribute */
-	item= PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "__rna__");
+	item= PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "__rna__");  /* borrow ref */
 
 	if(!item || !BPy_StructRNA_Check(item)) {
-		if(item) {
-			Py_DECREF(item);
-		}
 		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no __rna__ property).");
 		return NULL;
 	}
 
 	/* check the __rna__ attribute has the right type */
-	Py_DECREF(item);
 	py_srna= (BPy_StructRNA*)item;
 
 	if(py_srna->ptr.type != &RNA_Struct) {
@@ -2026,12 +2020,10 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");
+	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
 
-	if(item) {
+	if(item)
 		C= (bContext*)PyCObject_AsVoidPtr(item);
-		Py_DECREF(item);
-	}
 
 	/* call unregister */
 	unreg(C, py_srna->ptr.data);

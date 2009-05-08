@@ -158,7 +158,6 @@ endif
 COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
-COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
 
@@ -184,22 +183,17 @@ ifeq ($(WITH_BINRELOC), true)
     COMLIB += $(OCGDIR)/extern/binreloc/$(DEBUG_DIR)libbinreloc.a
 endif
 
-ifeq ($(WITH_FREETYPE2), true)
-    ifeq ($(OS), windows)
-      ifeq ($(FREE_WINDOWS), true)
-        COMLIB += $(NAN_FTGL)/lib/libftgl.a
+ifeq ($(OS), windows)
+    ifeq ($(FREE_WINDOWS), true)
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-      else
-        COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
-        COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
-      endif
     else
-      COMLIB += $(NAN_FTGL)/lib/$(DEBUG_DIR)libftgl.a
-      ifeq ($(OS), irix)
+        COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
+    endif
+else
+    ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-        else
-            COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-      endif
+    else
+        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
     endif
 endif
 

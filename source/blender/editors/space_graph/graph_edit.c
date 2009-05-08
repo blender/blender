@@ -60,6 +60,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -1070,14 +1071,6 @@ void GRAPHEDIT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
 
 /* ******************** Set Interpolation-Type Operator *********************** */
 
-/* defines for set ipo-type for selected keyframes tool */
-EnumPropertyItem prop_graphkeys_ipo_types[] = {
-	{BEZT_IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
-	{BEZT_IPO_LIN, "LINEAR", "Linear Interpolation", ""},
-	{BEZT_IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
-	{0, NULL, NULL, NULL}
-};
-
 /* this function is responsible for setting interpolation mode for keyframes */
 static void setipo_graph_keys(bAnimContext *ac, short mode) 
 {
@@ -1141,20 +1134,10 @@ void GRAPHEDIT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_ipo_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
-
-/* defines for set handle-type for selected keyframes tool */
-EnumPropertyItem prop_graphkeys_handletype_types[] = {
-	{HD_AUTO, "AUTO", "Auto Handles", ""},
-	{HD_VECT, "VECTOR", "Vector Handles", ""},
-	{HD_FREE, "FREE", "Free Handles", ""},
-	{HD_ALIGN, "ALIGN", "Aligned Handles", ""},
-//	{-1, "TOGGLE", "Toggle between Free and Aligned Handles", ""},
-	{0, NULL, NULL, NULL}
-};
 
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_graph_keys(bAnimContext *ac, short mode) 
@@ -1238,7 +1221,7 @@ void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_handletype_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1638,19 +1621,6 @@ void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
 
 /* ******************** Add F-Curve Modifier Operator *********************** */
 
-/* F-Modifier types - duplicate of existing codes...  */
-	// XXX how can we have this list from the RNA definitions instead?
-EnumPropertyItem prop_fmodifier_types[] = {
-	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
-	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
-	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
-	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
-	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
-	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
-	{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
-	{0, NULL, NULL, NULL}
-};
-
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -1709,7 +1679,7 @@ void GRAPHEDIT_OT_fmodifier_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_fmodifier_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */

@@ -37,7 +37,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BMF_Api.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -551,9 +550,9 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	short sx, sy, xpos, ypos;
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X - ICON_DEFAULT_WIDTH - 4;
 	int fontsize = gFontsize;
+	int cat_icon;
 	int i;
 
-	
 	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
 	sy = *starty;
 
@@ -561,6 +560,15 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	file_draw_string(sx, sy, category_name, bmwidth, fontsize, FILE_SHORTEN_END);
 	
 	sy -= linestep;
+
+	switch(category) {
+		case FS_CATEGORY_SYSTEM:
+			cat_icon = ICON_DISK_DRIVE; break;
+		case FS_CATEGORY_BOOKMARKS:
+			cat_icon = ICON_BOOKMARKS; break;
+		case FS_CATEGORY_RECENT:
+			cat_icon = ICON_FILE_FOLDER; break;
+	}
 
 	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
 		char *fname = fsmenu_get_entry(fsmenu, category, i);
@@ -570,10 +578,13 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			BLI_strncpy(bookmark, fname, FILE_MAX);
 		
 			sl = strlen(bookmark)-1;
-			while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
-				bookmark[sl] = '\0';
-				sl--;
+			if (sl > 1) {
+				while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+					bookmark[sl] = '\0';
+					sl--;
+				}
 			}
+			
 			if (fsmenu_is_selected(fsmenu, category, i) ) {
 				UI_ThemeColor(TH_HILITE);
 				//uiSetRoundBox(15);	
@@ -587,7 +598,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			xpos = sx;
 			ypos = sy - (TILE_BORDER_Y * 0.5);
 			
-			file_draw_icon(xpos, ypos, ICON_FILE_FOLDER, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
+			file_draw_icon(xpos, ypos, cat_icon, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
 			xpos += ICON_DEFAULT_WIDTH + 4;
 			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize, FILE_SHORTEN_FRONT);
 			sy -= linestep;

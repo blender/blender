@@ -30,7 +30,7 @@ SET(INC .
   ../editors/include
   ../../../intern/guardedalloc ../../../intern/memutil
   ../blenlib ../makesdna ../makesrna ../blenkernel
-  ../include ../../../intern/bmfont ../imbuf ../render/extern/include
+  ../include ../imbuf ../render/extern/include
   ../../../intern/bsp/extern ../radiosity/extern/include
   ../../../intern/decimation/extern ../blenloader
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
@@ -43,9 +43,7 @@ SET(INC .
 )
 
 IF(WITH_INTERNATIONAL)
-  SET(INC ${INC} ../ftfont)
   ADD_DEFINITIONS(-DINTERNATIONAL)
-  ADD_DEFINITIONS(-DFTGL_STATIC_LIBRARY)
 ENDIF(WITH_INTERNATIONAL)
 
 IF(WITH_OPENEXR)

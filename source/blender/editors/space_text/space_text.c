@@ -127,13 +127,17 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 			if(!wmn->reference || wmn->reference == st->text) {
 				ED_area_tag_redraw(sa);
 
-				if(wmn->data == ND_CURSOR) {
+				if(wmn->data == ND_CURSOR || wmn->action == NA_EDITED) {
 					ARegion *ar;
 
 					for(ar=sa->regionbase.first; ar; ar= ar->next)
 						if(ar->regiontype==RGN_TYPE_WINDOW)
 							text_update_cursor_moved(st, ar);
 				}
+
+				if(wmn->action == NA_EDITED)
+					if(st->text)
+						text_update_edited(st->text);
 			}
 			else if(wmn->data == ND_DISPLAY)
 				ED_area_tag_redraw(sa);
@@ -147,6 +151,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_new);
 	WM_operatortype_append(TEXT_OT_open);
 	WM_operatortype_append(TEXT_OT_reload);
+	WM_operatortype_append(TEXT_OT_unlink);
 	WM_operatortype_append(TEXT_OT_save);
 	WM_operatortype_append(TEXT_OT_save_as);
 	WM_operatortype_append(TEXT_OT_make_internal);
@@ -401,9 +406,6 @@ void ED_spacetype_text(void)
 	
 	art->init= text_properties_area_init;
 	art->draw= text_properties_area_draw;
-	
-	text_properties_register(art);
-
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */

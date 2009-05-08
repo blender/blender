@@ -31,7 +31,7 @@ defs = ''
 incs = '. #source/blender/python/api2_2x' # Only for Mathutils! and bpy_internal_import.h, be very careful
 
 incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
-incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #intern/bmfont'
+incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
 incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
 incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'

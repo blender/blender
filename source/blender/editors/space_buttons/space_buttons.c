@@ -168,37 +168,23 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	int vertical= (sbuts->align == BUT_VERTICAL);
-	int tab= sbuts->tab[sbuts->mainb];
 
-	if(sbuts->mainb == CONTEXT_OBJECT) {
-		if(tab == TAB_OBJECT_OBJECT)
-			uiRegionPanelLayout(C, ar, vertical, "object");
-	}
-	else if (sbuts->mainb == CONTEXT_SCENE){
-		if(tab == TAB_SCENE_RENDER)
-			uiRegionPanelLayout(C, ar, vertical, "render");
-	}	
-	else {
-		View2D *v2d= &ar->v2d;
-		float col[3], fac;
-
-		/* clear and setup matrix */
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		UI_view2d_view_ortho(C, v2d);
-
-		/* swapbuffers indicator */
-		fac= BLI_frand();
-		glColor3f(fac, fac, fac);
-		glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
-		
-		/* reset view matrix */
-		UI_view2d_view_restore(C);
-		
-		/* scrollers? */
-	}
+	if(sbuts->mainb == BCONTEXT_SCENE)
+		uiRegionPanelLayout(C, ar, vertical, "scene");
+	else if(sbuts->mainb == BCONTEXT_WORLD)
+		uiRegionPanelLayout(C, ar, vertical, "world");
+	else if(sbuts->mainb == BCONTEXT_OBJECT)
+		uiRegionPanelLayout(C, ar, vertical, "object");
+	else if(sbuts->mainb == BCONTEXT_DATA)
+		uiRegionPanelLayout(C, ar, vertical, "data");
+	else if(sbuts->mainb == BCONTEXT_MATERIAL)
+		uiRegionPanelLayout(C, ar, vertical, "material");
+	else if(sbuts->mainb == BCONTEXT_TEXTURE)
+		uiRegionPanelLayout(C, ar, vertical, "texture");
+	else if(sbuts->mainb == BCONTEXT_PARTICLE)
+		uiRegionPanelLayout(C, ar, vertical, "particle");
+	else if(sbuts->mainb == BCONTEXT_PHYSICS)
+		uiRegionPanelLayout(C, ar, vertical, "physics");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -251,6 +237,17 @@ static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_TRANSFORM:
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_GEOM_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -280,10 +277,6 @@ void ED_spacetype_buttons(void)
 	art->draw= buttons_main_area_draw;
 	art->listener= buttons_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-
-	buttons_object_register(art);
-	buttons_scene_register(art);
-
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

@@ -140,9 +140,6 @@ typedef struct FontBLF {
 	/* filename or NULL. */
 	char *filename;
 
-	/* font type, can be freetype2 or internal. */
-	int type;
-
 	/* draw mode, texture or bitmap. */
 	int mode;
 
@@ -197,24 +194,6 @@ typedef struct FontBLF {
 	void (*free)(struct FontBLF *);
 } FontBLF;
 
-typedef struct CharDataBLF {
-	signed char width, height;
-	signed char xorig, yorig;
-	signed char advance;
-	
-	short data_offset;
-} CharDataBLF;
-
-typedef struct FontDataBLF {
-	int xmin, ymin;
-	int xmax, ymax;
-
-	CharDataBLF chars[256];
-	unsigned char *bitmap_data;
-
-	GLuint texid;
-} FontDataBLF;
-
 typedef struct DirBLF {
 	struct DirBLF *next;
 	struct DirBLF *prev;
@@ -222,13 +201,5 @@ typedef struct DirBLF {
 	/* full path where search fonts. */
 	char *path;
 } DirBLF;
-
-/* font->clip_mode */
-#define BLF_CLIP_DISABLE 0
-#define BLF_CLIP_OUT 1
-
-/* font->type */
-#define BLF_FONT_FREETYPE2 0
-#define BLF_FONT_INTERNAL 1
 
 #endif /* BLF_INTERNAL_TYPES_H */

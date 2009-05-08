@@ -31,15 +31,11 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef WITH_FREETYPE2
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
-
-#endif /* WITH_FREETYPE2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -58,8 +54,6 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-
-#ifdef WITH_FREETYPE2
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -433,7 +427,7 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-static void blf_glyph_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
+static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
 {
 	
 	glBegin(GL_QUADS);
@@ -452,7 +446,7 @@ static void blf_glyph_texture_draw(float uv[2][2], float dx, float y1, float dx1
 	
 }
 
-static void blf_glyph_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	float soft[25]= {
 		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
@@ -469,14 +463,14 @@ static void blf_glyph_texture5_draw(float uv[2][2], float x1, float y1, float x2
 	for(dx=-2; dx<3; dx++) {
 		for(dy=-2; dy<3; dy++, fp++) {
 			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_glyph_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
+			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
 	
 	glColor4fv(color);
 }
 
-static void blf_glyph_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
 	float color[4], *fp= soft;
@@ -487,14 +481,12 @@ static void blf_glyph_texture3_draw(float uv[2][2], float x1, float y1, float x2
 	for(dx=-1; dx<2; dx++) {
 		for(dy=-1; dy<2; dy++, fp++) {
 			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_glyph_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
+			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
 	
 	glColor4fv(color);
 }
-
-
 
 int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
@@ -525,11 +517,11 @@ int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, gt->tex);
 
 	if (font->blur==3)
-		blf_glyph_texture3_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture3_draw(gt->uv, dx, y1, dx1, y2);
 	else if (font->blur==5)
-		blf_glyph_texture5_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture5_draw(gt->uv, dx, y1, dx1, y2);
 	else
-		blf_glyph_texture_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture_draw(gt->uv, dx, y1, dx1, y2);
 	
 	return(1);
 }
@@ -542,6 +534,17 @@ int blf_glyph_bitmap_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	gt= g->bitmap_data;
 	if (!gt->image)
 		return(1);
+
+	if (font->flags & BLF_CLIPPING) {
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + font->pos[1]))
+			return(0);
+	}
 
 	glBitmap(0, 0, 0.0, 0.0, x + font->pos[0], y - font->pos[1], (const GLubyte *)&null_bitmap);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, gt->pitch * 8);
@@ -556,5 +559,3 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		return(blf_glyph_bitmap_render(font, g, x, y));
 	return(blf_glyph_texture_render(font, g, x, y));
 }
-
-#endif /* WITH_FREETYPE2 */

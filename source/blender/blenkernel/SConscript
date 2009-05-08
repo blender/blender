@@ -8,7 +8,6 @@ incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
-incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 
@@ -33,9 +32,6 @@ if env['WITH_BF_SDL']:
 else:
 	defs.append('DISABLE_SDL')
 
-if env['WITH_BF_INTERNATIONAL']:
-	defs.append('WITH_FREETYPE2')
-	
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
 
