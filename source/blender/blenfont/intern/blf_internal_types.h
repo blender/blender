@@ -143,9 +143,6 @@ typedef struct FontBLF {
 	/* draw mode, texture or bitmap. */
 	int mode;
 
-	/* reference count. */
-	int ref;
-
 	/* aspect ratio or scale. */
 	float aspect;
 
@@ -182,16 +179,8 @@ typedef struct FontBLF {
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
 
-	/* engine data. */
-	void *engine;
-
-	/* engine functions. */
-	void (*size_set)(struct FontBLF *, int, int);
-	void (*draw)(struct FontBLF *, char *);
-	void (*boundbox_get)(struct FontBLF *, char *, rctf *);
-	float (*width_get)(struct FontBLF *, char *);
-	float (*height_get)(struct FontBLF *, char *);
-	void (*free)(struct FontBLF *);
+	/* freetype2 face. */
+	FT_Face face;
 } FontBLF;
 
 typedef struct DirBLF {
