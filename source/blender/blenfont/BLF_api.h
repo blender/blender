@@ -37,6 +37,9 @@ void BLF_exit(void);
 int BLF_load(char *name);
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
 
+/* Attach a file with metrics information from memory. */
+void BLF_metrics_attach(unsigned char *mem, int mem_size);
+
 /*
  * Set/Get the current font.
  */

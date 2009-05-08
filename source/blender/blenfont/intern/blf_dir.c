@@ -173,3 +173,37 @@ int blf_dir_split(const char *str, char *file, int *size)
 	}
 	return(0);
 }
+
+/* Some font have additional file with metrics information,
+ * in general, the extension of the file is: .afm or .pfm
+ */
+char *blf_dir_metrics_search(char *filename)
+{
+	char *mfile;
+	char *s;
+
+	mfile= BLI_strdup(filename);
+	s= strrchr(mfile, '.');
+	if (s) {
+		if (strlen(s) < 4) {
+			MEM_freeN(mfile);
+			return(NULL);
+		}
+		s++;
+		s[0]= 'a';
+		s[1]= 'f';
+		s[2]= 'm';
+
+		/* first check .afm */
+		if (BLI_exist(s))
+			return(s);
+
+		/* and now check .pfm */
+		s[0]= 'p';
+
+		if (BLI_exist(s))
+			return(s);
+	}
+	MEM_freeN(mfile);
+	return(NULL);
+}

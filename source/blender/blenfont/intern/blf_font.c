@@ -308,6 +308,7 @@ FontBLF *blf_font_new(char *name, char *filename)
 {
 	FontBLF *font;
 	FT_Error err;
+	char *mfile;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
 	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
@@ -324,10 +325,26 @@ FontBLF *blf_font_new(char *name, char *filename)
 		return(NULL);
 	}
 
+	mfile= blf_dir_metrics_search(filename);
+	if (mfile) {
+		err= FT_Attach_File(font->face, mfile);
+		MEM_freeN(mfile);
+	}
+
 	font->name= BLI_strdup(name);
 	font->filename= BLI_strdup(filename);
 	blf_font_fill(font);
 	return(font);
+}
+
+void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size)
+{
+	FT_Open_Args open;
+
+	open.flags= FT_OPEN_MEMORY;
+	open.memory_base= (FT_Byte *)mem;
+	open.memory_size= mem_size;
+	FT_Attach_Stream(font->face, &open);
 }
 
 FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)

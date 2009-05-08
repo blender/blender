@@ -156,6 +156,15 @@ int BLF_load(char *name)
 	return(i);
 }
 
+void BLF_metrics_attach(unsigned char *mem, int mem_size)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		blf_font_attach_from_mem(font, mem, mem_size);
+}
+
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
