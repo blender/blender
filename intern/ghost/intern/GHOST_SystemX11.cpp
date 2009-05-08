@@ -1182,49 +1182,68 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(int flag) const
 	//0 = Regular clipboard 1 = selection
 	
 	// Options for where to get the selection from
-	Atom sseln= flag ? m_clipboard : m_primary;
+	Atom sseln= flag ? m_primary : m_clipboard;
 	Atom target= m_string;
+	Window owner;
 
 	// from xclip.c doOut() v0.11
-	unsigned char *sel_buf; /* buffer for selection data */
-	unsigned long sel_len= 0; /* length of sel_buf */
-	XEvent evt; /* X Event Structures */
+	unsigned char *sel_buf;
+	unsigned long sel_len= 0;
+	XEvent evt;
 	unsigned int context= XCLIB_XCOUT_NONE;
 
-	if (sseln == m_string)
-		sel_buf= (unsigned char *)XFetchBuffer(m_display, (int *)&sel_len, 0);
-	else {
-		while (1) {
-			/* only get an event if xcout() is doing something */
-			if (context != XCLIB_XCOUT_NONE)
-				XNextEvent(m_display, &evt);
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	Window win = window->getXWindow();
 
-			/* fetch the selection, or part of it */
-			getClipboard_xcout(evt, sseln, target, &sel_buf, &sel_len, &context);
-
-			/* fallback is needed. set XA_STRING to target and restart the loop. */
-			if (context == XCLIB_XCOUT_FALLBACK) {
-				context= XCLIB_XCOUT_NONE;
-				target= m_string;
-				continue;
-			}
-			else if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
-				/* utf8 fail, move to compouned text. */
-				context= XCLIB_XCOUT_NONE;
-				target= m_compound_text;
-				continue;
-			}
-			else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
-				/* compouned text faile, move to text. */
-				context= XCLIB_XCOUT_NONE;
-				target= m_text;
-				continue;
-			}
-
-			/* only continue if xcout() is doing something */
-			if (context == XCLIB_XCOUT_NONE)
-				break;
+	/* check if we are the owner. */
+	owner= XGetSelectionOwner(m_display, sseln);
+	if (owner == win) {
+		if (sseln == m_clipboard) {
+			sel_buf= (unsigned char *)malloc(strlen(txt_cut_buffer)+1);
+			strcpy((char *)sel_buf, txt_cut_buffer);
+			return((GHOST_TUns8*)sel_buf);
 		}
+		else {
+			sel_buf= (unsigned char *)malloc(strlen(txt_select_buffer)+1);
+			strcpy((char *)sel_buf, txt_select_buffer);
+			return((GHOST_TUns8*)sel_buf);
+		}
+	}
+	else if (owner == None)
+		return(NULL);
+
+	while (1) {
+		/* only get an event if xcout() is doing something */
+		if (context != XCLIB_XCOUT_NONE)
+			XNextEvent(m_display, &evt);
+
+		/* fetch the selection, or part of it */
+		getClipboard_xcout(evt, sseln, target, &sel_buf, &sel_len, &context);
+
+		/* fallback is needed. set XA_STRING to target and restart the loop. */
+		if (context == XCLIB_XCOUT_FALLBACK) {
+			context= XCLIB_XCOUT_NONE;
+			target= m_string;
+			continue;
+		}
+		else if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
+			/* utf8 fail, move to compouned text. */
+			context= XCLIB_XCOUT_NONE;
+			target= m_compound_text;
+			continue;
+		}
+		else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
+			/* compouned text faile, move to text. */
+			context= XCLIB_XCOUT_NONE;
+			target= m_text;
+			continue;
+		}
+
+		/* only continue if xcout() is doing something */
+		if (context == XCLIB_XCOUT_NONE)
+			break;
 	}
 
 	if (sel_len) {
