@@ -34,6 +34,17 @@
 
 #include "MEM_guardedalloc.h"
 
+EnumPropertyItem fmodifier_type_items[] = {
+	{FMODIFIER_TYPE_NULL, "NULL", "Invalid", ""},
+	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
+	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
+	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
+	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
+	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
+	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
+	{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
+	{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 float FModGenFunc_amplitude_get(PointerRNA *ptr)
@@ -457,18 +468,6 @@ void rna_def_fmodifier(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_type_items[] = {
-		{FMODIFIER_TYPE_NULL, "NULL", "Invalid", ""},
-		{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
-		{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
-		{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
-		{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
-		{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
-		{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
-		{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
-		{0, NULL, NULL, NULL}};
-		
-		
 	/* base struct definition */
 	srna= RNA_def_struct(brna, "FModifier", NULL);
 	RNA_def_struct_refine_func(srna, "rna_FModifierType_refine");
@@ -484,7 +483,7 @@ void rna_def_fmodifier(BlenderRNA *brna)
 	/* type */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, fmodifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "F-Curve Modifier Type");
 	
 	/* settings */

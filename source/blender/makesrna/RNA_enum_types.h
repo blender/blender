@@ -34,6 +34,11 @@ extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
 
+extern EnumPropertyItem beztriple_handle_type_items[];
+extern EnumPropertyItem beztriple_interpolation_mode_items[];
+
+extern EnumPropertyItem fmodifier_type_items[];
+
 #endif /* RNA_ENUM_TYPES */
 
 
