@@ -46,6 +46,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -81,6 +82,140 @@ static ListBase *context_get_markers(const bContext *C)
 #endif
 	
 	return &CTX_data_scene(C)->markers;
+}
+
+/* Get the marker that is closest to this point */
+TimeMarker *ED_markers_find_nearest_marker (ListBase *markers, float x) 
+{
+	TimeMarker *marker, *nearest=NULL;
+	float dist, min_dist= 1000000;
+	
+	if (markers) {
+		for (marker= markers->first; marker; marker= marker->next) {
+			dist = ABS((float)marker->frame - x);
+			
+			if (dist < min_dist) {
+				min_dist= dist;
+				nearest= marker;
+			}
+		}
+	}
+	
+	return nearest;
+}
+
+/* Return the time of the marker that occurs on a frame closest to the given time */
+int ED_markers_find_nearest_marker_time (ListBase *markers, float x)
+{
+	TimeMarker *nearest= ED_markers_find_nearest_marker(markers, x);
+	return (nearest) ? (nearest->frame) : (int)floor(x + 0.5f);
+}
+
+
+void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *last)
+{
+	TimeMarker *marker;
+	float min, max;
+	int selcount = 0;
+	
+	/* sanity check */
+	if (markers == NULL) {
+		*first = 0.0f;
+		*last = 0.0f;
+		return;
+	}
+	
+	if (markers->first && markers->last) {
+		TimeMarker *first= markers->first;
+		TimeMarker *last= markers->last;
+		
+		min= first->frame;
+		max= last->frame;
+	}
+	else {
+		*first = 0.0f;
+		*last = 0.0f;
+		return;
+	}
+	
+	/* count how many markers are usable - see later */
+	if (sel) {
+		for (marker= markers->first; marker; marker= marker->next) {
+			if (marker->flag & SELECT)
+				selcount++;
+		}
+	}
+	else
+		selcount= BLI_countlist(markers);
+	
+	/* if only selected are to be considered, only consider the selected ones
+	 * (optimisation for not searching list) 
+	 */
+	if (selcount > 1) {
+		for (marker= markers->first; marker; marker= marker->next) {
+			if (sel) {
+				if (marker->flag & SELECT) {
+					if (marker->frame < min)
+						min= (float)marker->frame;
+					else if (marker->frame > max)
+						max= (float)marker->frame;
+				}
+			}
+			else {
+				if (marker->frame < min)
+					min= marker->frame;
+				else if (marker->frame > max)
+					max= marker->frame;
+			}	
+		}
+	}
+	
+	/* set the min/max values */
+	*first= min;
+	*last= max;
+}
+
+/* Adds a marker to list of cfra elems */
+void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only_sel)
+{
+	CfraElem *ce, *cen;
+	
+	/* should this one only be considered if it is selected? */
+	if ((only_sel) && ((marker->flag & SELECT)==0))
+		return;
+	
+	/* insertion sort - try to find a previous cfra elem */
+	for (ce= lb->first; ce; ce= ce->next) {
+		if (ce->cfra == marker->frame) {
+			/* do because of double keys */
+			if (marker->flag & SELECT) 
+				ce->sel= marker->flag;
+			return;
+		}
+		else if (ce->cfra > marker->frame) break;
+	}	
+	
+	cen= MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");	
+	if (ce) BLI_insertlinkbefore(lb, ce, cen);
+	else BLI_addtail(lb, cen);
+
+	cen->cfra= marker->frame;
+	cen->sel= marker->flag;
+}
+
+/* This function makes a list of all the markers. The only_sel
+ * argument is used to specify whether only the selected markers
+ * are added.
+ */
+void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
+{
+	TimeMarker *marker;
+	
+	if (markers == NULL)
+		return;
+	
+	for (marker= markers->first; marker; marker= marker->next)
+		add_marker_to_cfra_elem(lb, marker, only_sel);
 }
 
 /* ************* Marker Drawing ************ */
@@ -184,8 +319,6 @@ void draw_markers_time(const bContext *C, int flag)
 			draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
 	}
 }
-
-
 
 /* ************************** add markers *************************** */
 
@@ -598,24 +731,6 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-int find_nearest_marker_time (ListBase *markers, float dx)
-{
-	TimeMarker *marker, *nearest= NULL;
-	float dist, min_dist= 1000000;
-	
-	for (marker= markers->first; marker; marker= marker->next) {
-		dist = ABS((float)marker->frame - dx);
-		if (dist < min_dist) {
-			min_dist= dist;
-			nearest= marker;
-		}
-	}
-	
-	if (nearest) return nearest->frame;
-	else return (int)floor(dx); /* hrmf? */
-}
-
-
 static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 {
 	ListBase *markers= context_get_markers(C);
@@ -631,7 +746,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	
 	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);	
 	
-	cfra= find_nearest_marker_time(markers, viewx);
+	cfra= ED_markers_find_nearest_marker_time(markers, viewx);
 	
 	if (extend)
 		select_timeline_marker_frame(markers, cfra, 1);
@@ -834,9 +949,9 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if(changed) {
+	if (changed)
 		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
-	}
+	
 	return OPERATOR_FINISHED;
 }
 

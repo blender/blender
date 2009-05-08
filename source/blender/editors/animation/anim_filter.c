@@ -291,7 +291,12 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	
 	/* get useful default context settings from context */
 	ac->scene= scene;
-	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
+	if (scene) {
+		ac->markers.first= scene->markers.first;
+		ac->markers.last= scene->markers.last;
+		
+		ac->obact= (scene->basact)?  scene->basact->object : NULL;
+	}
 	ac->sa= sa;
 	ac->ar= ar;
 	ac->spacetype= (sa) ? sa->spacetype : 0;

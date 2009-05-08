@@ -1118,6 +1118,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
+	bed.list= ac->scene->markers; /* for marker-snapping option */
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {

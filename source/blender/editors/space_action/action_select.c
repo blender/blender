@@ -74,6 +74,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
@@ -394,11 +395,8 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	float min, max;
 	
 	/* get extreme markers */
-	//get_minmax_markers(1, &min, &max); // FIXME... add back markers api!
-	min= (float)ac->scene->r.sfra; // xxx temp code
-	max= (float)ac->scene->r.efra; // xxx temp code
+	ED_markers_get_minmax(&ac->markers, 1, &min, &max);
 	
-	if (min==max) return;
 	min -= 0.5f;
 	max += 0.5f;
 	
@@ -430,21 +428,6 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	BLI_freelistN(&anim_data);
 }
 
-
-/* helper callback for columnselect_action_keys() -> populate list CfraElems with frame numbers from selected beztriples */
-// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
-static short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
-{
-	/* only if selected */
-	if (bezt->f2 & SELECT) {
-		CfraElem *ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
-		BLI_addtail(&bed->list, ce);
-		
-		ce->cfra= bezt->vec[1][0];
-	}
-	
-	return 0;
-}
 
 /* Selects all visible keyframes in the same frames as the specified elements */
 static void columnselect_action_keys (bAnimContext *ac, short mode)
@@ -490,9 +473,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 			break;
 			
 		case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-			// FIXME: markers api needs to be improved for this first!
-			//make_marker_cfra_list(&elems, 1);
-			return; // XXX currently, this does nothing!
+			ED_markers_make_cfra_list(&ac->markers, &bed.list, 1);
 			break;
 			
 		default: /* invalid option */
@@ -509,7 +490,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {

@@ -1388,7 +1388,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	BeztEditFunc edit_cb;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1396,6 +1396,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
+	bed.list= ac->markers; /* for marker-snapping option */
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1486,11 +1487,10 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == GRAPHKEYS_MIRROR_MARKER) {
-		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= scene->markers.first; marker; marker=marker->next) {
+		for (marker= ac->markers.first; marker; marker=marker->next) {
 			if (marker->flag & SELECT) {
 				break;
 			}
