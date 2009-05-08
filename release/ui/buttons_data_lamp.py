@@ -8,7 +8,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	
 	def poll(self, context):
 		ob = context.active_object
-		return (ob and ob.type == "LAMP")
+		return (ob and ob.type == 'LAMP')
 	
 class DATA_PT_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_lamp"
@@ -108,6 +108,89 @@ class DATA_PT_sunsky(DataButtonsPanel):
 				sub.itemR(lamp, "atmosphere_inscattering", text="Inscattering")
 				sub.itemR(lamp, "atmosphere_extinction", text="Extinction")
 				sub.itemR(lamp, "atmosphere_distance_factor", text="Distance")
+				
+class DATA_PT_shadow(DataButtonsPanel):
+	__idname__ = "DATA_PT_shadow"
+	__label__ = "Shadow"
+	
+	def poll(self, context):
+		ob = context.active_object
+		lamp = context.main.lamps[0]
+		return (ob.type == 'LAMP' and lamp.type in ('LOCAL','SUN', 'SPOT', 'AREA'))
+
+	def draw(self, context):
+		lamp = context.main.lamps[0]
+		layout = self.layout
+
+		if not lamp:
+			return
+		
+		layout.row()
+		layout.itemR(lamp, "shadow_method", expand=True)
+		
+		layout.row()
+		layout.itemR(lamp, "only_shadow")
+		layout.itemR(lamp, "shadow_layer", text="Layer")
+		if (lamp.shadow_method == 'RAY_SHADOW'):
+			if (lamp.type in ('LOCAL', 'SUN', 'SPOT', 'AREA')):
+
+				layout.split(number=2)
+
+				sub = layout.sub(0)
+				sub.column()
+				sub.itemL(text="Display:")
+				sub.itemR(lamp, "shadow_color")
+		
+				sub = layout.sub(1)
+				sub.column()
+				sub.itemL(text="Sampling:")
+				sub.itemR(lamp, "shadow_ray_sampling_method", text="")
+				
+				if (lamp.type in ('LOCAL', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC')):
+					sub.itemR(lamp, "shadow_soft_size", text="Soft Size")
+					sub.itemR(lamp, "shadow_ray_samples", text="Samples")
+					if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
+						sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+						
+				if (lamp.type == 'AREA'):
+					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+					if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
+						sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+					if (lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED'):
+						sub.itemR(lamp, "umbra")
+						sub.itemR(lamp, "dither")
+						sub.itemR(lamp, "jitter")
+						
+class DATA_PT_spot(DataButtonsPanel):
+	__idname__ = "DATA_PT_spot"
+	__label__ = "Spot"
+	
+	def poll(self, context):
+		ob = context.active_object
+		lamp = context.main.lamps[0]
+		return (ob.type == 'LAMP' and lamp.type == 'SPOT')
+
+	def draw(self, context):
+		lamp = context.main.lamps[0]
+		layout = self.layout
+
+		if not lamp:
+			return
+		
+		layout.split(number=2)
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemR(lamp, "square")
+		sub.itemR(lamp, "halo")
+		
+		sub = layout.sub(1)
+		sub.column()
+		sub.itemR(lamp, "spot_size")
+		sub.itemR(lamp, "spot_blend")
+		sub.itemR(lamp, "halo_intensity")
 
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_sunsky)
+bpy.types.register(DATA_PT_shadow)
+bpy.types.register(DATA_PT_spot)
