@@ -31,17 +31,8 @@ class DATA_PT_lamp(DataButtonsPanel):
 		sub.itemL(text="LAMP DATABLOCKS")
 		sub.itemR(lamp, "energy")
 		sub.itemR(lamp, "distance")
-		sub.itemR(lamp, "color")
 	
 		sub = layout.sub(1)
-		
-		sub.column()
-		sub.itemL(text="Illumination:")
-		sub.itemR(lamp, "layer")
-		sub.itemR(lamp, "negative")
-		sub.itemR(lamp, "specular")
-		sub.itemR(lamp, "diffuse")
-		
 		if (lamp.type in ('LOCAL', 'SPOT')):
 			sub.column()
 			sub.itemR(lamp, "falloff_type")
@@ -60,6 +51,20 @@ class DATA_PT_lamp(DataButtonsPanel):
 			if (lamp.shape == 'RECTANGLE'):
 				sub.itemR(lamp, "size", text="Size X")
 				sub.itemR(lamp, "size_y")
+		
+		layout.split(number=2)	
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemL(text="Illumination:")
+		sub.itemR(lamp, "layer")
+		sub.itemR(lamp, "negative")
+		sub.itemR(lamp, "specular")
+		sub.itemR(lamp, "diffuse")
+		
+		sub = layout.sub(1)
+		sub.column()
+		sub.itemR(lamp, "color")
 				
 class DATA_PT_sunsky(DataButtonsPanel):
 	__idname__ = "DATA_PT_sunsky"
@@ -128,39 +133,72 @@ class DATA_PT_shadow(DataButtonsPanel):
 		layout.row()
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
-		layout.row()
-		layout.itemR(lamp, "only_shadow")
-		layout.itemR(lamp, "shadow_layer", text="Layer")
 		if (lamp.shadow_method == 'RAY_SHADOW'):
-			if (lamp.type in ('LOCAL', 'SUN', 'SPOT', 'AREA')):
-
-				layout.split(number=2)
-
-				sub = layout.sub(0)
-				sub.column()
-				sub.itemL(text="Display:")
-				sub.itemR(lamp, "shadow_color")
 		
-				sub = layout.sub(1)
-				sub.column()
-				sub.itemL(text="Sampling:")
-				sub.itemR(lamp, "shadow_ray_sampling_method", text="")
+			layout.column()
+			layout.itemL(text="Sampling:")
+			layout.itemR(lamp, "shadow_ray_sampling_method", expand=True)
 				
-				if (lamp.type in ('LOCAL', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC')):
-					sub.itemR(lamp, "shadow_soft_size", text="Soft Size")
-					sub.itemR(lamp, "shadow_ray_samples", text="Samples")
-					if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
-						sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+			if (lamp.type in ('LOCAL', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC')):
+				layout.column_flow()
+				layout.itemR(lamp, "shadow_soft_size", text="Soft Size")
+				layout.itemR(lamp, "shadow_ray_samples", text="Samples")
+				if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
+					layout.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
 						
-				if (lamp.type == 'AREA'):
-					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples")
-					if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
-						sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-					if (lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED'):
-						sub.itemR(lamp, "umbra")
-						sub.itemR(lamp, "dither")
-						sub.itemR(lamp, "jitter")
-						
+			if (lamp.type == 'AREA'):
+				layout.column_flow()
+				layout.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+				if (lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC'):
+					layout.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+				if (lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED'):
+					layout.itemR(lamp, "umbra")
+					layout.itemR(lamp, "dither")
+					layout.itemR(lamp, "jitter")	
+		
+		if (lamp.shadow_method == 'BUFFER_SHADOW'):
+			layout.row()
+			layout.itemR(lamp, "shadow_buffer_type")
+
+			if (lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY')):
+				layout.column_flow()
+				layout.itemL(text="Sample Buffers:")
+				layout.itemR(lamp, "shadow_sample_buffers", text="")
+				layout.itemL(text="Filter Type:")
+				layout.itemR(lamp, "shadow_filter_type", text="")
+				layout.column_flow()
+				layout.itemR(lamp, "shadow_buffer_size", text="Size")
+				layout.itemR(lamp, "shadow_buffer_samples", text="Samples")
+				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
+				layout.itemR(lamp, "shadow_buffer_soft", text="Soft")
+				
+			if (lamp.shadow_buffer_type == 'IRREGULAR'):
+				layout.row()
+				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
+				
+			layout.row()
+			layout.itemR(lamp, "auto_clip_start", text="Autoclip Start")
+			if not (lamp.auto_clip_start):
+				layout.itemR(lamp, "shadow_buffer_clip_start", text="Clip Start")
+			layout.row()
+			layout.itemR(lamp, "auto_clip_end", text="Autoclip End")
+			if not (lamp.auto_clip_end):
+				layout.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
+		
+		if (lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW')):
+		
+			layout.split(number=2)
+			
+			sub = layout.sub(0)
+			sub.column()
+			sub.itemL(text="Display:")
+			sub.itemR(lamp, "only_shadow")
+			sub.itemR(lamp, "shadow_layer")
+			
+			sub = layout.sub(1)
+			sub.column()
+			sub.itemR(lamp, "shadow_color")
+		
 class DATA_PT_spot(DataButtonsPanel):
 	__idname__ = "DATA_PT_spot"
 	__label__ = "Spot"
@@ -182,15 +220,18 @@ class DATA_PT_spot(DataButtonsPanel):
 		sub = layout.sub(0)
 		sub.column()
 		sub.itemR(lamp, "square")
-		sub.itemR(lamp, "halo")
+		sub.itemR(lamp, "spot_size")
+		sub.itemR(lamp, "spot_blend")
 		
 		sub = layout.sub(1)
 		sub.column()
-		sub.itemR(lamp, "spot_size")
-		sub.itemR(lamp, "spot_blend")
-		sub.itemR(lamp, "halo_intensity")
+		sub.itemR(lamp, "halo")
+		if (lamp.halo):
+			sub.itemR(lamp, "halo_intensity")
+			if (lamp.shadow_method == 'BUFFER_SHADOW'):
+				sub.itemR(lamp, "halo_step")
 
 bpy.types.register(DATA_PT_lamp)
-bpy.types.register(DATA_PT_sunsky)
 bpy.types.register(DATA_PT_shadow)
+bpy.types.register(DATA_PT_sunsky)
 bpy.types.register(DATA_PT_spot)
