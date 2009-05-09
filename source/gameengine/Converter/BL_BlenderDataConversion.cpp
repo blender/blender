@@ -2121,7 +2121,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				//tf.Add(gameobj->GetSGNode());
 				
 				gameobj->NodeUpdateGS(0);
-				gameobj->AddMeshUser();
+				//move to after finishing everything so that soft body deformer is included
+				//gameobj->AddMeshUser();
 		
 			}
 			else
@@ -2311,7 +2312,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								//tf.Add(gameobj->GetSGNode());
 								
 								gameobj->NodeUpdateGS(0);
-								gameobj->AddMeshUser();
+								//move to after finishing everything so that soft body deformer is included
+								//gameobj->AddMeshUser();
 							}
 							else
 							{
@@ -2665,6 +2667,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
 		gameobj->ResetState();
+		gameobj->AddMeshUser();
 	}
 
 #endif //CONVERT_LOGIC
