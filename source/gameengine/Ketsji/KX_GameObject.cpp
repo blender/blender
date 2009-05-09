@@ -1726,7 +1726,7 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	for(i=0; i < (int)self->m_meshes.size(); i++)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
-		PyList_SET_ITEM(meshes, i, meshproxy->GetProxy());
+		PyList_SET_ITEM(meshes, i, meshproxy->NewProxy(true));
 	}
 	
 	return meshes;

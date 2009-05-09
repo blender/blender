@@ -1847,5 +1847,9 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 
 
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
+	
+	// release here because AddReplicaObject AddRef's
+	// the object is added to the scene so we dont want python to own a reference
+	replica->Release();
 	return replica->GetProxy();
 }
