@@ -251,15 +251,10 @@ http://projects.blender.org/tracker/?func=detail&aid=18655&group_id=9&atid=125
 	m_imagesize = (1 << i);
 
 	if (warp.usemesh){
-		// trying to use twice the size of the cube faces
-		GLint glMaxTexDim;
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glMaxTexDim);
-
-		if (2 * m_imagesize > glMaxTexDim)
-			warp.imagesize = m_imagesize;
-
-		else
-			warp.imagesize = 2 * m_imagesize;
+		// warp FBO needs to be up to twice as big as m_buffersize to get more resolution
+		warp.imagesize = m_imagesize;
+		if (m_buffersize == m_imagesize)
+			warp.imagesize *= 2;
 
 		//if FBO is not working/supported, we use the canvas dimension as buffer
 		warp.bufferwidth  = canvaswidth;
