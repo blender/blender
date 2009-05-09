@@ -251,35 +251,44 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	{
 	case INPUT_VECTOR:
 		mi->apply = InputVector;
+		t->helpline = HLP_NONE;
 		break;
 	case INPUT_SPRING:
 		calcSpringFactor(mi);
 		mi->apply = InputSpring;
+		t->helpline = HLP_SPRING;
 		break;
 	case INPUT_SPRING_FLIP:
 		calcSpringFactor(mi);
 		mi->apply = InputSpringFlip;
+		t->helpline = HLP_SPRING;
 		break;
 	case INPUT_ANGLE:
 		mi->apply = InputAngle;
+		t->helpline = HLP_ANGLE;
 		break;
 	case INPUT_TRACKBALL:
 		/* factor has to become setting or so */
 		mi->factor = 0.1f;
 		mi->apply = InputTrackBall;
+		t->helpline = HLP_TRACKBALL;
 		break;
 	case INPUT_HORIZONTAL_RATIO:
 		mi->factor = (float)(mi->center[0] - mi->imval[0]);
 		mi->apply = InputHorizontalRatio;
+		t->helpline = HLP_HARROW;
 		break;
 	case INPUT_HORIZONTAL_ABSOLUTE:
 		mi->apply = InputHorizontalAbsolute;
+		t->helpline = HLP_HARROW;
 		break;
 	case INPUT_VERTICAL_RATIO:
 		mi->apply = InputVerticalRatio;
+		t->helpline = HLP_VARROW;
 		break;
 	case INPUT_VERTICAL_ABSOLUTE:
 		mi->apply = InputVerticalAbsolute;
+		t->helpline = HLP_VARROW;
 		break;
 	case INPUT_NONE:
 	default:

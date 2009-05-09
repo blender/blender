@@ -989,22 +989,24 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int i = 0;
 	
-	head= uiPupMenuBegin("Insert Keyframe", 0);
+	pup= uiPupMenuBegin("Insert Keyframe", 0);
+	layout= uiPupMenuLayout(pup);
 	
 	/* active Keying Set */
-	uiMenuItemIntO(head, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
-	uiMenuSeparator(head);
+	uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+	uiItemS(layout);
 	
 	/* user-defined Keying Sets 
 	 *	- these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
 		for (ks= scene->keyingsets.first; ks; ks= ks->next)
-			uiMenuItemIntO(head, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
-		uiMenuSeparator(head);
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+		uiItemS(layout);
 	}
 	
 	/* builtin Keying Sets */
@@ -1013,11 +1015,11 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
 		/* only show KeyingSet if context is suitable */
 		if (keyingset_context_ok_poll(C, ks)) {
-			uiMenuItemIntO(head, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i--);
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i--);
 		}
 	}
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

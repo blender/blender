@@ -71,8 +71,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BMF_Api.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "ED_node.h"

@@ -6,6 +6,9 @@ class ObjectButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "object"
 
+	def poll(self, context):
+		return (context.active_object != None)
+
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
 	__label__ = "Transform"
@@ -13,9 +16,6 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 	def draw(self, context):
 		ob = context.active_object
 		layout = self.layout
-
-		if not ob:
-			return
 
 		layout.row()
 		layout.itemR(ob, "location")
@@ -29,9 +29,6 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 	def draw(self, context):
 		ob = context.active_object
 		layout = self.layout
-
-		if not ob:
-			return
 
 		layout.row()
 		layout.itemR(ob, "pass_index")
@@ -59,10 +56,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 	def draw(self, context):
 		ob = context.active_object
 		layout = self.layout
-
-		if not ob:
-			return
-
+			
 		layout.row()
 		layout.itemR(ob, "max_draw_type", text="Type")
 		layout.itemR(ob, "draw_bounds_type", text="Bounds")
@@ -83,18 +77,15 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		if not ob:
-			return
-
 		layout.column()
 		layout.itemR(ob, "dupli_type", text="", expand=True)
 
 		if ob.dupli_type == "FRAMES":
 			layout.column_flow()
-			layout.itemR(ob, "dupli_frames_start", text="Start:")
-			layout.itemR(ob, "dupli_frames_end", text="End:")
-			layout.itemR(ob, "dupli_frames_on", text="On:")
-			layout.itemR(ob, "dupli_frames_off", text="Off:")
+			layout.itemR(ob, "dupli_frames_start", text="Start")
+			layout.itemR(ob, "dupli_frames_end", text="End")
+			layout.itemR(ob, "dupli_frames_on", text="On")
+			layout.itemR(ob, "dupli_frames_off", text="Off")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_animation"
@@ -103,9 +94,6 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 	def draw(self, context):
 		ob = context.active_object
 		layout = self.layout
-
-		if not ob:
-			return
 
 		layout.split(number=2)
 		
@@ -116,7 +104,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub.itemR(ob, "time_offset_particle", text="Particle")
 		sub.itemR(ob, "time_offset_parent", text="Parent")
 		sub.itemR(ob, "slow_parent")
-		sub.itemR(ob, "time_offset", text="Offset:")
+		sub.itemR(ob, "time_offset", text="Offset")
 		
 		sub = layout.sub(1)
 		sub.column()

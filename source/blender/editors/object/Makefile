@@ -37,7 +37,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
-CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 CPPFLAGS += -I../../windowmanager

@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(SoundSystem string ghost guardedalloc bmfont moto container memutil decimation iksolver boolop opennl)
+SUBDIRS(SoundSystem string ghost guardedalloc moto container memutil decimation iksolver boolop opennl)
 
 IF(WITH_ELBEEM)
   SUBDIRS(elbeem)

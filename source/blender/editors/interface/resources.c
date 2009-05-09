@@ -40,30 +40,38 @@
 
 #include "MEM_guardedalloc.h"
 
+
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_blenlib.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_interface_icons.h"
-//#include "UI_icons.h"
 
-#include "BLI_blenlib.h"
+#include "interface_intern.h"
 
 /* global for themes */
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
 static bTheme *theme_active=NULL;
 static int theme_spacetype= SPACE_VIEW3D;
-
+static int theme_regionid= RGN_TYPE_WINDOW;
 
 void ui_resources_init(void)
 {
@@ -86,7 +94,6 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 	static char error[4]={240, 0, 240, 255};
 	static char alert[4]={240, 60, 60, 255};
 	static char headerdesel[4]={0,0,0,255};
-	static char custom[4]={0,0,0,255};
 	
 	char *cp= error;
 	
@@ -96,51 +103,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 		if(colorid < TH_THEMEUI) {
 		
 			switch(colorid) {
-			case TH_BUT_OUTLINE:
-				cp= btheme->tui.outline; break;
-			case TH_BUT_NEUTRAL:
-				cp= btheme->tui.neutral; break;
-			case TH_BUT_ACTION:
-				cp= btheme->tui.action; break;
-			case TH_BUT_SETTING:
-				cp= btheme->tui.setting; break;
-			case TH_BUT_SETTING1:
-				cp= btheme->tui.setting1; break;
-			case TH_BUT_SETTING2:
-				cp= btheme->tui.setting2; break;
-			case TH_BUT_NUM:
-				cp= btheme->tui.num; break;
-			case TH_BUT_TEXTFIELD:
-				cp= btheme->tui.textfield; break;
-			case TH_BUT_TEXTFIELD_HI:
-				cp= btheme->tui.textfield_hi; break;
-			case TH_BUT_POPUP:
-				cp= btheme->tui.popup; break;
-			case TH_BUT_TEXT:
-				cp= btheme->tui.text; break;
-			case TH_BUT_TEXT_HI:
-				cp= btheme->tui.text_hi; break;
-			case TH_MENU_BACK:
-				cp= btheme->tui.menu_back; break;
-			case TH_MENU_ITEM:
-				cp= btheme->tui.menu_item; break;
-			case TH_MENU_HILITE:
-				cp= btheme->tui.menu_hilite; break;
-			case TH_MENU_TEXT:
-				cp= btheme->tui.menu_text; break;
-			case TH_MENU_TEXT_HI:
-				cp= btheme->tui.menu_text_hi; break;
-			
-			case TH_BUT_DRAWTYPE:
-				cp= &btheme->tui.but_drawtype; break;
 
-			case TH_ICONFILE:
-				cp= btheme->tui.iconfile; break;
-				
 			case TH_REDALERT:
 				cp= alert; break;
-			case TH_CUSTOM:
-				cp= custom; break;
 			}
 		}
 		else {
@@ -198,11 +163,46 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			
 			switch(colorid) {
 			case TH_BACK:
-				cp= ts->back; break;
+				if(theme_regionid==RGN_TYPE_WINDOW)
+					cp= ts->back;
+				else if(theme_regionid==RGN_TYPE_CHANNELS)
+					cp= ts->list;
+				else if(theme_regionid==RGN_TYPE_HEADER)
+					cp= ts->header;
+				else
+					cp= ts->button; 
+				break;
 			case TH_TEXT:
-				cp= ts->text; break;
+				if(theme_regionid==RGN_TYPE_WINDOW)
+					cp= ts->text; 
+				else if(theme_regionid==RGN_TYPE_CHANNELS)
+					cp= ts->list_text;
+				else if(theme_regionid==RGN_TYPE_HEADER)
+					cp= ts->header_text;
+				else
+					cp= ts->button_text; 
+				break;
 			case TH_TEXT_HI:
-				cp= ts->text_hi; break;
+				if(theme_regionid==RGN_TYPE_WINDOW)
+					cp= ts->text_hi;
+				else if(theme_regionid==RGN_TYPE_CHANNELS)
+					cp= ts->list_text_hi;
+				else if(theme_regionid==RGN_TYPE_HEADER)
+					cp= ts->header_text_hi;
+				else
+					cp= ts->button_text_hi; 
+				break;
+			case TH_TITLE:
+				if(theme_regionid==RGN_TYPE_WINDOW)
+					cp= ts->title;
+				else if(theme_regionid==RGN_TYPE_CHANNELS)
+					cp= ts->list_title;
+				else if(theme_regionid==RGN_TYPE_HEADER)
+					cp= ts->header_title;
+				else
+					cp= ts->button_title; 
+				break;
+				
 			case TH_HEADER:
 				cp= ts->header; break;
 			case TH_HEADERDESEL:
@@ -213,8 +213,25 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				headerdesel[2]= cp[2]>10?cp[2]-10:0;
 				cp= headerdesel;
 				break;
+			case TH_HEADER_TEXT:
+				cp= ts->header_text; break;
+			case TH_HEADER_TEXT_HI:
+				cp= ts->header_text_hi; break;
+				
 			case TH_PANEL:
 				cp= ts->panel; break;
+			case TH_PANEL_TEXT:
+				cp= ts->panel_text; break;
+			case TH_PANEL_TEXT_HI:
+				cp= ts->panel_text_hi; break;
+				
+			case TH_BUTBACK:
+				cp= ts->button; break;
+			case TH_BUTBACK_TEXT:
+				cp= ts->button_text; break;
+			case TH_BUTBACK_TEXT_HI:
+				cp= ts->button_text_hi; break;
+				
 			case TH_SHADE1:
 				cp= ts->shade1; break;
 			case TH_SHADE2:
@@ -340,11 +357,56 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 	return cp;
 }
 
-#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+#define SETCOLTEST(col, r, g, b, a)  if(col[3]==0) {col[0]=r; col[1]=g; col[2]= b; col[3]= a;}
 
-/* initialize
+/* use this call to init new variables in themespace, if they're same for all */
+static void ui_theme_init_new_do(ThemeSpace *ts)
+{
+	SETCOLTEST(ts->header_text,		0, 0, 0, 255);
+	SETCOLTEST(ts->header_title,	0, 0, 0, 255);
+	SETCOLTEST(ts->header_text_hi,	255, 255, 255, 255);
+	
+	SETCOLTEST(ts->panel_text,		0, 0, 0, 255);
+	SETCOLTEST(ts->panel_title,		0, 0, 0, 255);
+	SETCOLTEST(ts->panel_text_hi,	255, 255, 255, 255);
+	
+	SETCOLTEST(ts->button,			145, 145, 145, 245);
+	SETCOLTEST(ts->button_title,	0, 0, 0, 255);
+	SETCOLTEST(ts->button_text,		0, 0, 0, 255);
+	SETCOLTEST(ts->button_text_hi,	255, 255, 255, 255);
+	
+	SETCOLTEST(ts->list,			165, 165, 165, 255);
+	SETCOLTEST(ts->list_title,		0, 0, 0, 255);
+	SETCOLTEST(ts->list_text,		0, 0, 0, 255);
+	SETCOLTEST(ts->list_text_hi,	255, 255, 255, 255);
+}
+
+static void ui_theme_init_new(bTheme *btheme)
+{
+	ui_theme_init_new_do(&btheme->tbuts);
+	ui_theme_init_new_do(&btheme->tv3d);
+	ui_theme_init_new_do(&btheme->tfile);
+	ui_theme_init_new_do(&btheme->tipo);
+	ui_theme_init_new_do(&btheme->tinfo);
+	ui_theme_init_new_do(&btheme->tsnd);
+	ui_theme_init_new_do(&btheme->tact);
+	ui_theme_init_new_do(&btheme->tnla);
+	ui_theme_init_new_do(&btheme->tseq);
+	ui_theme_init_new_do(&btheme->tima);
+	ui_theme_init_new_do(&btheme->timasel);
+	ui_theme_init_new_do(&btheme->text);
+	ui_theme_init_new_do(&btheme->toops);
+	ui_theme_init_new_do(&btheme->ttime);
+	ui_theme_init_new_do(&btheme->tnode);
+	
+}
+
+#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+#define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
+
+/* initialize default theme, can't be edited
    Note: when you add new colors, created & saved themes need initialized
-   in usiblender.c, search for "versionfile"
+   use function below, init_userdef_do_versions() 
 */
 void ui_theme_init_userdef(void)
 {
@@ -361,43 +423,26 @@ void ui_theme_init_userdef(void)
 		strcpy(btheme->name, "Default");
 	}
 	
-	UI_SetTheme(NULL);	// make sure the global used in this file is set
+	UI_SetTheme(0, 0);	// make sure the global used in this file is set
 
 	/* UI buttons */
-	SETCOL(btheme->tui.outline, 	130, 130, 130, 255);
-	SETCOL(btheme->tui.neutral, 	165, 165, 165, 255);
-	SETCOL(btheme->tui.action, 		165, 165, 165, 255);
-	SETCOL(btheme->tui.setting, 	165, 165, 165, 255);
-	SETCOL(btheme->tui.setting1, 	165, 165, 165, 255);
-	SETCOL(btheme->tui.setting2, 	165, 165, 165, 255);
-	SETCOL(btheme->tui.num,		 	165, 165, 165, 255);
-	SETCOL(btheme->tui.textfield,	143, 142, 143, 255);
-	SETCOL(btheme->tui.textfield_hi,255, 151, 26,  255);
-	SETCOL(btheme->tui.popup,		174, 174, 174, 255);
-	
-	SETCOL(btheme->tui.text,		0,0,0, 255);
-	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
-	
-	SETCOL(btheme->tui.menu_back, 	220, 220, 220, 235);
-	SETCOL(btheme->tui.menu_item, 	255, 255, 255, 20);
-	SETCOL(btheme->tui.menu_hilite, 110, 110, 110, 255);
-	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
-	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
+	ui_widget_color_init(&btheme->tui);
 
-	btheme->tui.but_drawtype= TH_ROUNDSHADED;
-	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
-
+	/* common (new) variables */
+	ui_theme_init_new(btheme);
+	
 	/* space view3d */
-	SETCOL(btheme->tv3d.back,       90, 90, 90, 255);
+	SETCOLF(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	SETCOL(btheme->tv3d.text,       0, 0, 0, 255);
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tv3d.header,		185, 185, 185, 255);
+	
+	SETCOLF(btheme->tv3d.header,	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
-
+	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
-	SETCOL(btheme->tv3d.grid,       74, 74, 74	, 255);
+	SETCOLF(btheme->tv3d.grid,     0.222, 0.222, 0.222, 1.0);
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
@@ -427,19 +472,16 @@ void ui_theme_init_userdef(void)
 	/* to have something initialized */
 	btheme->tbuts= btheme->tv3d;
 
-	SETCOL(btheme->tbuts.back, 	0x82, 0x82, 0x82, 255);
-	SETCOL(btheme->tbuts.header, 185, 185, 185, 255);
+	SETCOLF(btheme->tbuts.back, 	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tbuts.panel, 0x82, 0x82, 0x82, 255);
 
-	/* space ipo */
-	/* to have something initialized */
+	/* graph editor */
 	btheme->tipo= btheme->tv3d;
-
+	SETCOLF(btheme->tipo.back, 	0.42, 0.42, 0.42, 1.0);
+	SETCOLF(btheme->tipo.list, 	0.4, 0.4, 0.4, 1.0);
 	SETCOL(btheme->tipo.grid, 	94, 94, 94, 255);
-	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
-	SETCOL(btheme->tipo.header, 185, 185, 185, 255);
 	SETCOL(btheme->tipo.panel,  255, 255, 255, 150);
-	SETCOL(btheme->tipo.shade1,		172, 172, 172, 100);
+	SETCOL(btheme->tipo.shade1,		150, 150, 150, 100);	/* scrollbars */
 	SETCOL(btheme->tipo.shade2,		0x70, 0x70, 0x70, 100);
 	SETCOL(btheme->tipo.vertex,		0, 0, 0, 255);
 	SETCOL(btheme->tipo.vertex_select, 255, 133, 0, 255);
@@ -455,13 +497,15 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tipo.group, 79, 101, 73, 255);
 	SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
 
+	/* dopesheet */
+	btheme->tact= btheme->tipo;
+
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
 	SETCOL(btheme->tfile.back, 	90, 90, 90, 255);
 	SETCOL(btheme->tfile.text, 	250, 250, 250, 255);
 	SETCOL(btheme->tfile.text_hi, 15, 15, 15, 255);
-	SETCOL(btheme->tfile.header, 185, 185, 185, 255);
 	SETCOL(btheme->tfile.panel, 180, 180, 180, 255);	// bookmark/ui regions
 	SETCOL(btheme->tfile.active, 130, 130, 130, 255); // selected files
 	SETCOL(btheme->tfile.hilite, 255, 140, 25, 255); // selected files
@@ -472,31 +516,13 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tfile.scene,	250, 250, 250, 255);
 
 	
-	/* space action */
-	btheme->tact= btheme->tv3d;
-	SETCOL(btheme->tact.back, 	116, 116, 116, 255);
-	SETCOL(btheme->tact.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tact.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tact.header, 185, 185, 185, 255);
-	SETCOL(btheme->tact.grid,  94, 94, 94, 255);
-	SETCOL(btheme->tact.face,  166, 166, 166, 255);	// RVK
-	SETCOL(btheme->tact.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tact.shade2,  74, 74, 74, 100);	// bar
-	SETCOL(btheme->tact.hilite,  255, 160, 0, 100);	// bar
-	SETCOL(btheme->tact.strip_select, 	255, 160, 0, 255);
-	SETCOL(btheme->tact.strip, 78, 78, 78, 255);
-	SETCOL(btheme->tact.group, 79, 101, 73, 255);
-	SETCOL(btheme->tact.group_active, 135, 177, 125, 255)
-	SETCOL(btheme->tact.ds_channel, 82, 96, 110, 255);
-	SETCOL(btheme->tact.ds_subchannel, 124, 137, 150, 255);
-
+	
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
 	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
 	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
 	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tnla.header, 185, 185, 185, 255);
 	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
 	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
 	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
@@ -533,7 +559,6 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
 	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
 	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.header,	185, 185, 185, 255);
 	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
 	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
 	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
@@ -557,17 +582,17 @@ void ui_theme_init_userdef(void)
 	
 	/* space oops */
 	btheme->toops= btheme->tv3d;
-	SETCOL(btheme->toops.back, 	153, 153, 153, 255);
-
+	SETCOLF(btheme->toops.back, 	0.45, 0.45, 0.45, 1.0);
+	
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
 	SETCOL(btheme->tinfo.back, 	153, 153, 153, 255);
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
-	SETCOL(btheme->tsnd.back, 	153, 153, 153, 255);
+	SETCOLF(btheme->tsnd.back, 	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tsnd.grid, 	0.36, 0.36, 0.36, 1.0);
 	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
-	SETCOL(btheme->tsnd.grid, 140, 140, 140, 255);
 	
 	/* space time */
 	btheme->ttime= btheme->tsnd;	// same as sound space
@@ -583,188 +608,19 @@ void ui_theme_init_userdef(void)
 
 }
 
-char *UI_ThemeColorsPup(int spacetype)
-{
-	char *cp= MEM_callocN(32*32, "theme pup");
-	char *str = cp;
-	
-	if(spacetype==0) {
-		str += sprintf(str, "Outline %%x%d|", TH_BUT_OUTLINE);
-		str += sprintf(str, "Neutral %%x%d|", TH_BUT_NEUTRAL);
-		str += sprintf(str, "Action %%x%d|", TH_BUT_ACTION);
-		str += sprintf(str, "Setting %%x%d|", TH_BUT_SETTING);
-		str += sprintf(str, "Special Setting 1%%x%d|", TH_BUT_SETTING1);
-		str += sprintf(str, "Special Setting 2 %%x%d|", TH_BUT_SETTING2);
-		str += sprintf(str, "Number Input %%x%d|", TH_BUT_NUM);
-		str += sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD);
-		str += sprintf(str, "Text Input Highlight %%x%d|", TH_BUT_TEXTFIELD_HI);
-		str += sprintf(str, "Popup %%x%d|", TH_BUT_POPUP);
-		str += sprintf(str, "Text %%x%d|", TH_BUT_TEXT);
-		str += sprintf(str, "Text Highlight %%x%d|", TH_BUT_TEXT_HI);
-		str += sprintf(str, "%%l|");
-		str += sprintf(str, "Menu Background %%x%d|", TH_MENU_BACK);
-		str += sprintf(str, "Menu Item %%x%d|", TH_MENU_ITEM);
-		str += sprintf(str, "Menu Item Highlight %%x%d|", TH_MENU_HILITE);
-		str += sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT);
-		str += sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI);
-		str += sprintf(str, "%%l|");
-		str += sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE);
-		str += sprintf(str, "%%l|");
-		str += sprintf(str, "Icon File %%x%d|", TH_ICONFILE);
-	}
-	else {
-		// first defaults for each space
-		str += sprintf(str, "Background %%x%d|", TH_BACK);
-		str += sprintf(str, "Text %%x%d|", TH_TEXT);
-		str += sprintf(str, "Text Highlight %%x%d|", TH_TEXT_HI);
-		str += sprintf(str, "Header %%x%d|", TH_HEADER);
-		
-		switch(spacetype) {
-		case SPACE_VIEW3D:
-			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "Wire %%x%d|", TH_WIRE);
-			str += sprintf(str, "Lamp %%x%d|", TH_LAMP);
-			str += sprintf(str, "Object Selected %%x%d|", TH_SELECT);
-			str += sprintf(str, "Object Active %%x%d|", TH_ACTIVE);
-			str += sprintf(str, "Object Grouped %%x%d|", TH_GROUP);
-			str += sprintf(str, "Object Grouped Active %%x%d|", TH_GROUP_ACTIVE);
-			str += sprintf(str, "Transform %%x%d|", TH_TRANSFORM);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
-			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
-			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
-			str += sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT);
-			str += sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM);
-			str += sprintf(str, "Edge Sharp %%x%d|", TH_EDGE_SHARP);
-			str += sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL);
-			str += sprintf(str, "Face (transp) %%x%d|", TH_FACE);
-			str += sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT);
-			str += sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT);
-			str += sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE);
-			str += sprintf(str, "Active Vert/Edge/Face %%x%d|", TH_EDITMESH_ACTIVE);
-			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
-			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
-			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_IPO:
-			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2);
-			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
-			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
-			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_FILE:
-			str += sprintf(str, "Selected file %%x%d", TH_HILITE);
-			break;
-		case SPACE_NLA:
-			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Bars %%x%d|", TH_SHADE2);
-			str += sprintf(str, "Bars selected %%x%d|", TH_HILITE);
-			str += sprintf(str, "Strips %%x%d|", TH_STRIP);
-			str += sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_ACTION:
-			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "RVK Sliders %%x%d|", TH_FACE);
-			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Channels %%x%d|", TH_SHADE2);
-			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
-			str += sprintf(str, "Long Key %%x%d|", TH_STRIP);
-			str += sprintf(str, "Long Key selected %%x%d|", TH_STRIP_SELECT);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_IMAGE:
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
-			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
-			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
-			str += sprintf(str, "Face %%x%d|", TH_FACE);
-			str += sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT);
-			break;
-		case SPACE_SEQ:
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Movie Strip %%x%d|", TH_SEQ_MOVIE);
-			str += sprintf(str, "Image Strip %%x%d|", TH_SEQ_IMAGE);
-			str += sprintf(str, "Scene Strip %%x%d|", TH_SEQ_SCENE);
-			str += sprintf(str, "Audio Strip %%x%d|", TH_SEQ_AUDIO);
-			str += sprintf(str, "Effect Strip %%x%d|", TH_SEQ_EFFECT);
-			str += sprintf(str, "Plugin Strip %%x%d|", TH_SEQ_PLUGIN);
-			str += sprintf(str, "Transition Strip %%x%d|", TH_SEQ_TRANSITION);
-			str += sprintf(str, "Meta Strip %%x%d|", TH_SEQ_META);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_SOUND:
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "Window Slider %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_BUTS:
-			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			break;
-		case SPACE_IMASEL:
-			str += sprintf(str, "Tiles %%x%d|", TH_PANEL);
-			str += sprintf(str, "Scrollbar %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Scroll Handle %%x%d|", TH_SHADE2);
-			str += sprintf(str, "Selected File %%x%d|", TH_HILITE);
-			str += sprintf(str, "Active File %%x%d|", TH_ACTIVE);
-			str += sprintf(str, "Active File Text%%x%d|", TH_GRID);			
-			break;
-		case SPACE_TEXT:
-			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);
-			str += sprintf(str, "Selected Text %%x%d|", TH_SHADE2);
-			str += sprintf(str, "Cursor %%x%d|", TH_HILITE);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Syntax Builtin %%x%d|", TH_SYNTAX_B);
-			str += sprintf(str, "Syntax Special %%x%d|", TH_SYNTAX_V);
-			str += sprintf(str, "Syntax Comment %%x%d|", TH_SYNTAX_C);
-			str += sprintf(str, "Syntax Strings %%x%d|", TH_SYNTAX_L);
-			str += sprintf(str, "Syntax Numbers %%x%d|", TH_SYNTAX_N);
-			break;
-		case SPACE_TIME:
-			str += sprintf(str, "Grid %%x%d|", TH_GRID);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
-			break;
-		case SPACE_NODE:
-			str += sprintf(str, "Wires %%x%d|", TH_WIRE);
-			str += sprintf(str, "Wires Select %%x%d|", TH_EDGE_SELECT);
-			str += sprintf(str, "%%l|");
-			str += sprintf(str, "Node Backdrop %%x%d|", TH_NODE);
-			str += sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT);
-			str += sprintf(str, "Convertor Node %%x%d|", TH_NODE_CONVERTOR);
-			str += sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR);
-			str += sprintf(str, "Group Node %%x%d|", TH_NODE_GROUP);
-			break;
-		}
-	}
-	return cp;
-}
 
-void UI_SetTheme(ScrArea *sa)
+void UI_SetTheme(int spacetype, int regionid)
 {
-	if(sa==NULL) {	// called for safety, when delete themes
+	if(spacetype==0) {	// called for safety, when delete themes
 		theme_active= U.themes.first;
 		theme_spacetype= SPACE_VIEW3D;
+		theme_regionid= RGN_TYPE_WINDOW;
 	}
 	else {
 		// later on, a local theme can be found too
 		theme_active= U.themes.first;
-		theme_spacetype= sa->spacetype;
-	
+		theme_spacetype= spacetype;
+		theme_regionid= regionid;
 	}
 }
 
@@ -984,4 +840,418 @@ void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 	col[1] = g;
 	col[2] = b;
 }
+
+void UI_make_axis_color(char *src_col, char *dst_col, char axis)
+{
+	switch(axis)
+	{
+		case 'x':
+		case 'X':
+			dst_col[0]= src_col[0]>219?255:src_col[0]+36;
+			dst_col[1]= src_col[1]<26?0:src_col[1]-26;
+			dst_col[2]= src_col[2]<26?0:src_col[2]-26;
+			break;
+		case 'y':
+		case 'Y':
+			dst_col[0]= src_col[0]<46?0:src_col[0]-36;
+			dst_col[1]= src_col[1]>189?255:src_col[1]+66;
+			dst_col[2]= src_col[2]<46?0:src_col[2]-36;
+			break;
+		default: 
+			dst_col[0]= src_col[0]<26?0:src_col[0]-26; 
+			dst_col[1]= src_col[1]<26?0:src_col[1]-26; 
+			dst_col[2]= src_col[2]>209?255:src_col[2]+46;
+	}
+}
+
+/* ************************************************************* */
+
+/* patching UserDef struct and Themes */
+void init_userdef_do_versions(void)
+{
+//	countall();
+	
+	/* the UserDef struct is not corrected with do_versions() .... ugh! */
+	if(U.wheellinescroll == 0) U.wheellinescroll = 3;
+	if(U.menuthreshold1==0) {
+		U.menuthreshold1= 5;
+		U.menuthreshold2= 2;
+	}
+	if(U.tb_leftmouse==0) {
+		U.tb_leftmouse= 5;
+		U.tb_rightmouse= 5;
+	}
+	if(U.mixbufsize==0) U.mixbufsize= 2048;
+	if (BLI_streq(U.tempdir, "/")) {
+		char *tmp= getenv("TEMP");
+		
+		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+	}
+	if (U.savetime <= 0) {
+		U.savetime = 1;
+// XXX		error(".B.blend is buggy, please consider removing it.\n");
+	}
+	/* transform widget settings */
+	if(U.tw_hotspot==0) {
+		U.tw_hotspot= 14;
+		U.tw_size= 20;			// percentage of window size
+		U.tw_handlesize= 16;	// percentage of widget radius
+	}
+	if(U.pad_rot_angle==0)
+		U.pad_rot_angle= 15;
+	
+	if(U.flag & USER_CUSTOM_RANGE) 
+		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
+	
+	if (G.main->versionfile <= 191) {
+		strcpy(U.plugtexdir, U.textudir);
+		strcpy(U.sounddir, "/");
+	}
+	
+	/* patch to set Dupli Armature */
+	if (G.main->versionfile < 220) {
+		U.dupflag |= USER_DUP_ARM;
+	}
+	
+	/* added seam, normal color, undo */
+	if (G.main->versionfile <= 234) {
+		bTheme *btheme;
+		
+		U.uiflag |= USER_GLOBALUNDO;
+		if (U.undosteps==0) U.undosteps=32;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.edge_seam[3]==0) {
+				SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
+			}
+			if(btheme->tv3d.normal[3]==0) {
+				SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+			}
+			if(btheme->tv3d.face_dot[3]==0) {
+				SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
+				btheme->tv3d.facedot_size= 4;
+			}
+		}
+	}
+	if (G.main->versionfile <= 235) {
+		/* illegal combo... */
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+	}
+	if (G.main->versionfile <= 236) {
+		bTheme *btheme;
+		/* new space type */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->ttime.back[3]==0) {
+				btheme->ttime = btheme->tsnd;	// copy from sound
+			}
+			if(btheme->text.syntaxn[3]==0) {
+				SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
+				SETCOL(btheme->text.syntaxl,	100, 0, 0, 255);	/* Strings  red */
+				SETCOL(btheme->text.syntaxc,	0, 100, 50, 255);	/* Comments greenish */
+				SETCOL(btheme->text.syntaxv,	95, 95, 0, 255);	/* Special */
+				SETCOL(btheme->text.syntaxb,	128, 0, 80, 255);	/* Builtin, red-purple */
+			}
+		}
+	}
+	if (G.main->versionfile <= 237) {
+		bTheme *btheme;
+		/* bone colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.bone_solid[3]==0) {
+				SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
+				SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);
+			}
+		}
+	}
+	if (G.main->versionfile <= 238) {
+		bTheme *btheme;
+		/* bone colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tnla.strip[3]==0) {
+				SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
+				SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
+			}
+		}
+	}
+	if (G.main->versionfile <= 239) {
+		bTheme *btheme;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* Lamp theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.lamp[3]==0) {
+				SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
+/* TEMPORAL, remove me! (ton) */				
+				U.uiflag |= USER_PLAINMENUS;
+			}
+			
+		}
+		if(U.obcenter_dia==0) U.obcenter_dia= 6;
+	}
+	if (G.main->versionfile <= 241) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* Node editor theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tnode.syntaxn[3]==0) {
+				/* re-uses syntax color storage */
+				btheme->tnode= btheme->tv3d;
+				SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
+				SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
+				SETCOL(btheme->tnode.syntaxn, 129, 131, 144, 255);	/* in/output */
+				SETCOL(btheme->tnode.syntaxb, 127,127,127, 255);	/* operator */
+				SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
+				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
+			}
+			/* Group theme colors */
+			if(btheme->tv3d.group[3]==0) {
+				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
+				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
+			}
+			/* Sequence editor theme*/
+			if(btheme->tseq.movie[3]==0) {
+				SETCOL(btheme->tseq.movie, 	81, 105, 135, 255);
+				SETCOL(btheme->tseq.image, 	109, 88, 129, 255);
+				SETCOL(btheme->tseq.scene, 	78, 152, 62, 255);
+				SETCOL(btheme->tseq.audio, 	46, 143, 143, 255);
+				SETCOL(btheme->tseq.effect, 	169, 84, 124, 255);
+				SETCOL(btheme->tseq.plugin, 	126, 126, 80, 255);
+				SETCOL(btheme->tseq.transition, 162, 95, 111, 255);
+				SETCOL(btheme->tseq.meta, 	109, 145, 131, 255);
+			}
+		}
+		
+		/* set defaults for 3D View rotating axis indicator */ 
+		/* since size can't be set to 0, this indicates it's not saved in .B.blend */
+		if (U.rvisize == 0) {
+			U.rvisize = 15;
+			U.rvibright = 8;
+			U.uiflag |= USER_SHOW_ROTVIEWICON;
+		}
+		
+	}
+	if (G.main->versionfile <= 242) {
+		bTheme *btheme;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* long keyframe color */
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tact.strip[3]==0) {
+				SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
+				SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 204);
+				SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 204);
+			}
+			
+			/* IPO-Editor - Vertex Size*/
+			if(btheme->tipo.vertex_size == 0) {
+				btheme->tipo.vertex_size= 3;
+			}
+		}
+	}
+	if (G.main->versionfile <= 243) {
+		/* set default number of recently-used files (if not set) */
+		if (U.recent_files == 0) U.recent_files = 10;
+	}
+	if (G.main->versionfile < 245 || (G.main->versionfile == 245 && G.main->subversionfile < 3)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
+		}
+		if(U.coba_weight.tot==0)
+			init_colorband(&U.coba_weight, 1);
+	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* these should all use the same colour */
+			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
+		}
+	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* these should all use the same color */
+			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
+		}
+	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* action channel groups (recolor anyway) */
+			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
+			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
+			
+			/* bone custom-color sets */
+			// FIXME: this check for initialised colors is bad
+			if (btheme->tarm[0].solid[3] == 0) {
+					/* set 1 */
+				SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
+				SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
+				SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
+					/* set 2 */
+				SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
+				SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
+				SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
+					/* set 3 */
+				SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
+				SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
+				SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
+					/* set 4 */
+				SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
+				SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
+				SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
+					/* set 5 */
+				SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
+				SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
+				SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
+					/* set 6 */
+				SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
+				SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
+				SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
+					/* set 7 */
+				SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
+				SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
+				SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
+					/* set 8 */
+				SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
+				SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
+				SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
+					/* set 9 */
+				SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
+				SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
+				SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
+					/* set 10 */
+				SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
+				SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
+				SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
+					/* set 11 */
+				SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
+				SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
+				SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
+					/* set 12 */
+				SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
+				SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
+				SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+					/* set 13 */
+				SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
+				SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
+				SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
+					/* set 14 */
+				SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
+				SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
+				SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
+					/* set 15 */
+				SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
+				SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
+				SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
+			}
+		}
+	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
+		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
+	}
+	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 2)) {
+		bTheme *btheme;
+		
+		/* adjust themes */
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			char *col;
+			
+			/* IPO Editor: Handles/Vertices */
+			col = btheme->tipo.vertex;
+			SETCOL(btheme->tipo.handle_vertex, col[0], col[1], col[2], 255);
+			col = btheme->tipo.vertex_select;
+			SETCOL(btheme->tipo.handle_vertex_select, col[0], col[1], col[2], 255);
+			btheme->tipo.handle_vertex_size= btheme->tipo.vertex_size;
+			
+			/* Sequence/Image Editor: colors for GPencil text */
+			col = btheme->tv3d.bone_pose;
+			SETCOL(btheme->tseq.bone_pose, col[0], col[1], col[2], 255);
+			SETCOL(btheme->tima.bone_pose, col[0], col[1], col[2], 255);
+			col = btheme->tv3d.vertex_select;
+			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
+		}
+	}
+	if (G.main->versionfile < 250) {
+		bTheme *btheme;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* this was not properly initialized in 2.45 */
+			if(btheme->tima.face_dot[3]==0) {
+				SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+				SETCOL(btheme->tima.face_dot, 255, 133, 0, 255);
+				btheme->tima.facedot_size= 2;
+			}
+			
+			/* DopeSheet - (Object) Channel color */
+			SETCOL(btheme->tact.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tact.ds_subchannel,	124, 137, 150, 255);
+			/* DopeSheet - Group Channel color (saner version) */
+			SETCOL(btheme->tact.group, 79, 101, 73, 255);
+			SETCOL(btheme->tact.group_active, 135, 177, 125, 255);
+			
+			/* Graph Editor - (Object) Channel color */
+			SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
+			/* Graph Editor - Group Channel color */
+			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
+			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
+		}
+		
+		/* adjust grease-pencil distances */
+		U.gp_manhattendist= 1;
+		U.gp_euclideandist= 2;
+		
+		/* adjust default interpolation for new IPO-curves */
+		U.ipo_new= BEZT_IPO_BEZ;
+	}
+	
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 1)) {
+		bTheme *btheme;
+
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			
+			/* common (new) variables, it checks for alpha==0 */
+			ui_theme_init_new(btheme);
+
+			if(btheme->tui.wcol_num.outline[3]==0)
+				ui_widget_color_init(&btheme->tui);
+		}
+	}
+	
+	/* GL Texture Garbage Collection (variable abused above!) */
+	if (U.textimeout == 0) {
+		U.texcollectrate = 60;
+		U.textimeout = 120;
+	}
+	if (U.memcachelimit <= 0) {
+		U.memcachelimit = 32;
+	}
+	if (U.frameserverport == 0) {
+		U.frameserverport = 8080;
+	}
+
+	/* funny name, but it is GE stuff, moves userdef stuff to engine */
+// XXX	space_set_commmandline_options();
+	/* this timer uses U */
+// XXX	reset_autosave();
+
+}
+
+
 

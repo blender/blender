@@ -47,9 +47,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "ED_screen.h"
+#include "BLF_api.h"
 
-#include "BMF_Api.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1391,8 +1391,7 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 	}
 	
 	/* draw it */
-	glRasterPos2f(x, y);
-	BMF_DrawString(G.fonts, str); // XXX check this again when new text-drawing api is done
+	BLF_draw_default(x, y, 0.0f, str);
 }
 
 /* local defines for scrollers drawing */

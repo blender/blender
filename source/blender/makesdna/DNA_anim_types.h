@@ -28,6 +28,7 @@ typedef struct FModifier {
 	struct FModifier *next, *prev;
 	
 	void *data;			/* pointer to modifier data */
+	void *edata;		/* pointer to temporary data used during evaluation */
 	
 	char name[64];		/* user-defined description for the modifier */
 	short type;			/* type of f-curve modifier */
@@ -61,6 +62,8 @@ enum {
 	FMODIFIER_FLAG_EXPANDED		= (1<<1),
 		/* modifier is active one (in UI) for editing purposes */
 	FMODIFIER_FLAG_ACTIVE		= (1<<2),
+		/* user wants modifier to be skipped */
+	FMODIFIER_FLAG_MUTED		= (1<<3),
 } eFModifier_Flags; 
 
 /* --- */
@@ -141,6 +144,7 @@ enum {
 	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
 	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
+	FCM_EXTRAPOLATE_MIRROR,				/* alternate between forward and reverse playback of keyframe range */
 } eFMod_Cycling_Modes;
 
 
@@ -165,6 +169,26 @@ enum {
 	FCM_LIMIT_YMIN		= (1<<2),
 	FCM_LIMIT_YMAX		= (1<<3),
 } eFMod_Limit_Flags;
+
+/* noise modifier data */
+typedef struct FMod_Noise {
+	float size;
+	float strength;
+	float phase;
+	float pad;
+
+	short depth;
+	short modification;
+
+} FMod_Noise;
+	
+/* modification modes */
+enum {
+	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
+	FCM_NOISE_MODIF_ADD,			/* Add noise to the curve */
+	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
+	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
+} eFMod_Noise_Modifications;
 
 /* Drivers -------------------------------------- */
 

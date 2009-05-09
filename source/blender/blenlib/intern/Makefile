@@ -53,9 +53,6 @@ CPPFLAGS += -I$(NAN_ZLIB)/include
 ifdef NAN_PTHREADS
   CPPFLAGS += -I$(NAN_PTHREADS)/include
 endif
-ifeq ($(WITH_FREETYPE2), true)
-	CPPFLAGS += -DWITH_FREETYPE2
-endif
 ifeq ($(OS),linux)
 	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include
 endif

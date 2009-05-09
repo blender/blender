@@ -243,11 +243,8 @@ IF(UNIX)
     bf_guardedalloc 
     blender_CTR 
     bf_moto 
-    bf_bmfont 
     bf_windowmanager
-	bf_editors
-    bf_ftfont 
-    extern_ftgl 
+    bf_editors
     bf_blroutines 
     bf_converter 
     bf_dummy 

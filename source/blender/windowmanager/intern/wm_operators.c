@@ -201,7 +201,8 @@ void WM_operator_properties_free(PointerRNA *ptr)
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
@@ -210,9 +211,10 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {
-		head= uiPupMenuBegin(op->type->name, 0);
-		uiMenuItemsEnumO(head, op->type->idname, "type");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(op->type->name, 0);
+		layout= uiPupMenuLayout(pup);
+		uiItemsEnumO(layout, op->type->idname, "type");
+		uiPupMenuEnd(C, pup);
 	}
 
 	return OPERATOR_CANCELLED;
@@ -221,11 +223,13 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("OK?", ICON_HELP);
-	uiMenuItemO(head, 0, op->type->idname);
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("OK?", ICON_HELP);
+	layout= uiPupMenuLayout(pup);
+	uiItemO(layout, NULL, 0, op->type->idname);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -370,21 +374,23 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	struct RecentFile *recent;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int i, ofs= 0;
 
-	head= uiPupMenuBegin("Open Recent", 0);
+	pup= uiPupMenuBegin("Open Recent", 0);
+	layout= uiPupMenuLayout(pup);
 
 	if(G.sce[0]) {
-		uiMenuItemIntO(head, G.sce, 0, op->type->idname, "nr", 1);
+		uiItemIntO(layout, G.sce, 0, op->type->idname, "nr", 1);
 		ofs = 1;
 	}
 	
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++)
 		if(strcmp(recent->filename, G.sce))
-			uiMenuItemIntO(head, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
+			uiItemIntO(layout, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
 
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

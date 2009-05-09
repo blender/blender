@@ -444,7 +444,7 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->funcN != oldbut->funcN) return 0;
 	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
 	if(oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
-	if(!but->funcN && (but->poin != oldbut->poin || but->pointype != oldbut->pointype)) return 0;
+	if(!but->funcN && ((but->poin != oldbut->poin && (uiBut*)oldbut->poin != oldbut) || but->pointype != oldbut->pointype)) return 0;
 
 	return 1;
 }
@@ -650,7 +650,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
 	else if(block->panel)
-		ui_draw_panel(ar, &style, block, &rect);
+		ui_draw_aligned_panel(ar, &style, block, &rect);
 
 	if(block->drawextra) block->drawextra(C, block);
 
@@ -1970,12 +1970,6 @@ void uiBlockEndAlign(uiBlock *block)
 {
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
-	int theme= UI_GetThemeValue(TH_BUT_DRAWTYPE);
-	
-	if ( !(ELEM4(theme, TH_MINIMAL, TH_SHADED, TH_ROUNDED, TH_ROUNDSHADED)) ) {
-		block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
-		return;
-	}
 	
 	/* auto align:
 		- go back to first button of align start (ALIGN_DOWN)
@@ -2747,7 +2741,7 @@ uiBut *uiDefMenuSep(uiBlock *block)
 uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name)
 {
 	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
-	return uiDefIconTextBlockBut(block, func, NULL, ICON_RIGHTARROW_THIN, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, "");
+	return uiDefIconTextBlockBut(block, func, NULL, ICON_BLANK1, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, "");
 }
 
 uiBut *uiDefMenuTogR(uiBlock *block, PointerRNA *ptr, char *propname, char *propvalue, char *name)
@@ -2997,7 +2991,7 @@ uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, in
 	but->flag|= UI_HAS_ICON;
 
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 
 	but->menu_create_func= func;
 	ui_check_but(but);
@@ -3010,11 +3004,13 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	
-	but->icon= (BIFIconID) icon;
+	/* XXX temp, old menu calls pass on icon arrow, which is now UI_ICON_SUBMENU flag */
+	if(icon!=ICON_RIGHTARROW_THIN) {
+		but->icon= (BIFIconID) icon;
+		but->flag|= UI_ICON_LEFT;
+	}
 	but->flag|= UI_HAS_ICON;
-
-	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 
 	but->block_create_func= func;
 	ui_check_but(but);
@@ -3031,7 +3027,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	but->flag|= UI_HAS_ICON;
 	
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_RIGHT;
+	but->flag|= UI_ICON_SUBMENU;
 	
 	but->block_create_func= func;
 	ui_check_but(but);
@@ -3052,15 +3048,19 @@ void UI_init(void)
 	ui_resources_init();
 }
 
-void UI_init_userdef()
+/* after reading userdef file */
+void UI_init_userdef(void)
 {
-	uiStyleInit();
+	/* fix saved themes */
+	init_userdef_do_versions();
+	/* set default colors in default theme */
 	ui_theme_init_userdef();
+	
+	uiStyleInit();
 }
 
 void UI_exit(void)
 {
-	uiStyleExit();
 	ui_resources_free();
 }
 

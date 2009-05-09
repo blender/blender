@@ -355,11 +355,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 		}
 		
 		if (pf) {
-#ifdef WITH_FREETYPE2
 			vfont->data= BLI_vfontdata_from_freetypefont(pf);
-#else
-			vfont->data= BLI_vfontdata_from_psfont(pf);
-#endif			
 			if (pf != vfont->packedfile) {
 				freePackedFile(pf);
 			}
@@ -398,12 +394,7 @@ VFont *load_vfont(char *name)
 	if (pf) {
 		VFontData *vfd;
 
-#ifdef WITH_FREETYPE2
 		vfd= BLI_vfontdata_from_freetypefont(pf);
-#else
-		vfd= BLI_vfontdata_from_psfont(pf);
-#endif
-		
 		if (vfd) {
 			vfont = alloc_libblock(&G.main->vfont, ID_VF, filename);
 			vfont->data = vfd;
@@ -755,21 +746,22 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			che = che->next;
 		}
 
-#ifdef WITH_FREETYPE2
-		// The character wasn't in the current curve base so load it
-		// But if the font is <builtin> then do not try loading since whole font is in the memory already
+		/*
+		 * The character wasn't in the current curve base so load it
+		 * But if the font is <builtin> then do not try loading since
+		 * whole font is in the memory already
+		 */
 		if(che == NULL && strcmp(vfont->name, "<builtin>"))	{
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 
-		// Try getting the character again from the list
+		/* Try getting the character again from the list */
 		che = vfd->characters.first;
 		while(che) {
 			if(che->index == ascii)
 				break;
 			che = che->next;
 		}
-#endif
 
 		/* No VFont found */
 		if (vfont==0) {

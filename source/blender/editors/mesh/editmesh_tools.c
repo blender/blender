@@ -82,8 +82,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BMF_Api.h"
-
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -6587,11 +6585,13 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Subdivision Type", 0);
-	uiMenuItemsEnumO(head, "MESH_OT_subdivs", "type");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin("Subdivision Type", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }

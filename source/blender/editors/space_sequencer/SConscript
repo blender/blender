@@ -3,8 +3,8 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenlib ../../blenkernel ../../blenfont ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' #intern/bmfont ../../makesrna'
+incs += ' ../../makesrna'
 
 env.BlenderLib ( 'bf_editors_space_sequencer', sources, Split(incs), [], libtype=['core'], priority=[100] )

@@ -54,8 +54,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
@@ -120,7 +118,7 @@ void WM_init(bContext *C)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 	
-	BLF_init();
+	BLF_init(11, U.dpi);
 	BLF_lang_init();
 	
 	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
@@ -129,11 +127,6 @@ void WM_init(bContext *C)
 	WM_read_homefile(C, NULL);
 	
 	UI_init();
-	
-	/* goes away */
-	G.font= BMF_GetFont(BMF_kHelvetica12);
-	G.fonts= BMF_GetFont(BMF_kHelvetica10);
-	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
 	
 	//	clear_matcopybuf(); /* XXX */
 	
@@ -264,7 +257,7 @@ void WM_exit(bContext *C)
 	ED_file_exit(); /* for fsmenu */
 
 	UI_exit();
-	BLI_freelistN(&U.themes);
+	BKE_userdef_free();
 
 	RNA_exit();
 	

@@ -47,6 +47,12 @@
 #include "BLI_winstuff.h"
 #endif
 
+#ifdef __APPLE__
+#include <CoreServices/CoreServices.h>
+
+#include "BKE_utildefines.h"
+#endif
+
 #include "fsmenu.h"  /* include ourselves */
 
 
@@ -300,6 +306,27 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, folder, 1, 0);
 		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, folder, 1, 0);
+	}
+#endif
+
+#ifdef __APPLE__
+	{
+		OSErr err=noErr;
+		int i;
+		
+		/* loop through all the OS X Volumes, and add them to the SYSTEM section */
+		for (i=1; err!=nsvErr; i++)
+		{
+			FSRef dir;
+			unsigned char path[FILE_MAXDIR+FILE_MAXFILE];
+			
+			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, NULL, kFSVolInfoNone, NULL, NULL, &dir);
+			if (err != noErr)
+				continue;
+			
+			FSRefMakePath(&dir, path, FILE_MAXDIR+FILE_MAXFILE);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
+		}
 	}
 #endif
 

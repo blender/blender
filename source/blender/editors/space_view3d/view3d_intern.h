@@ -99,7 +99,6 @@ void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
-void make_axis_color(char *col, char *col2, char axis);
 void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
@@ -134,8 +133,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
-
 void view3d_buttons_area_defbuts(const struct bContext *C, ARegion *ar);
+
+/* view3d_buttons.c */
+void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
+void view3d_tools_area_defbuts(const struct bContext *C, ARegion *ar);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);
@@ -150,6 +152,7 @@ void VIEW3D_OT_snap_menu(struct wmOperatorType *ot);
 
 /* space_view3d.c */
 ARegion *view3d_has_buttons_region(ScrArea *sa);
+ARegion *view3d_has_tools_region(ScrArea *sa);
 
 
 #endif /* ED_VIEW3D_INTERN_H */

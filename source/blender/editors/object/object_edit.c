@@ -120,8 +120,6 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
-#include "BMF_Api.h"
-
 #include "BIF_transform.h"
 
 #include "UI_interface.h"
@@ -405,7 +403,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Mesh";
+	ot->name= "Mesh";
 	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
@@ -462,14 +460,16 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
 	if(!obedit || obedit->type == OB_CURVE)
-		uiMenuItemsEnumO(head, op->type->idname, "type");
+		uiItemsEnumO(layout, op->type->idname, "type");
 	else
-		uiMenuItemsEnumO(head, "OBJECT_OT_surface_add", "type");
-	uiPupMenuEnd(C, head);
+		uiItemsEnumO(layout, "OBJECT_OT_surface_add", "type");
+	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }
@@ -477,7 +477,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Curve";
+	ot->name= "Curve";
 	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
@@ -535,7 +535,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface";
+	ot->name= "Surface";
 	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
@@ -572,7 +572,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Text";
+	ot->name= "Text";
 	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
@@ -617,7 +617,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Add Armature";
+	ot->name= "Armature";
 	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
@@ -632,20 +632,21 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
-	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuLevelEnumO(head, "OBJECT_OT_surface_add", "type");
-	uiMenuItemO(head, 0, "OBJECT_OT_text_add");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemO(head, 0, "OBJECT_OT_armature_add");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
+	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -2622,26 +2623,27 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head= uiPupMenuBegin("Set Parent To", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Set Parent To", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
+	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
 	}
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -3200,7 +3202,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Object *ob;
 	int freedata = flag & EM_FREEDATA;
 	
 	if(obedit==NULL) return;
@@ -3248,22 +3249,20 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		if(freedata) BLI_freelistN(&editelems);
 	}
 	
-	ob= obedit;
+	/* freedata only 0 now on file saves */
+	if(freedata) {
+		/* for example; displist make is different in editmode */
+		scene->obedit= NULL; // XXX for context
+		
+		/* also flush ob recalc, doesn't take much overhead, but used for particles */
+		DAG_object_flush_update(scene, obedit, OB_RECALC_OB|OB_RECALC_DATA);
 	
-	/* for example; displist make is different in editmode */
-	if(freedata) obedit= NULL;
-	scene->obedit= obedit; // XXX for context
-	
-	/* also flush ob recalc, doesn't take much overhead, but used for particles */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-	
-	if(obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
 		ED_undo_push(C, "Editmode");
 	
-	if(flag & EM_WAITCURSOR) waitcursor(0);
+		if(flag & EM_WAITCURSOR) waitcursor(0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
-
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
+	}
 }
 
 

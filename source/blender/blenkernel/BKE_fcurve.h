@@ -68,6 +68,8 @@ typedef struct FModifierTypeInfo {
 	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
+		/* evaluate time that the modifier requires the F-Curve to be evaluated at */
+	float (*evaluate_modifier_time)(struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime);
 		/* evaluate the modifier for the given time and 'accumulated' value */
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
@@ -125,7 +127,7 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
 
 /* test if there is a keyframe at cfra */
-int on_keyframe_fcurve(struct FCurve *fcu, float cfra);
+short on_keyframe_fcurve(struct FCurve *fcu, float cfra);
 
 /* get the time extents for F-Curve */
 void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);

@@ -179,7 +179,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				PyErr_Print();
+				PyErr_Print(); PyErr_Clear();
 				BPY_free_compiled_text( text );
 				PyGILState_Release(gilstate);
 				return 0;
@@ -195,10 +195,12 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	}
 	
 	if (!py_result) {
-		PyErr_Print();
+		PyErr_Print(); PyErr_Clear();
 	} else {
 		Py_DECREF( py_result );
 	}
+	
+	Py_DECREF(py_dict);
 	PyGILState_Release(gilstate);
 	
 	//BPY_end_python();
@@ -220,7 +222,7 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	script = sc->script;
 
 	if( err ) {
-		PyErr_Print(  );
+		PyErr_Print(); PyErr_Clear();
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -327,13 +329,14 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 		}
 	}
 	
-	if (!py_result)
-		PyErr_Print();
-	else
+	if (!py_result) {
+		PyErr_Print(); PyErr_Clear();
+	} else
 		Py_DECREF( py_result );
 	
 	Py_XDECREF(module);
 	
+	Py_DECREF(py_dict);
 	
 	PyGILState_Release(gilstate);
 	return 1;
@@ -347,7 +350,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #endif
 
 /* XXX this is temporary, need a proper script registration system for 2.5 */
-void BPY_run_ui_scripts(bContext *C)
+void BPY_run_ui_scripts(bContext *C, int reload)
 {
 #ifdef TIME_REGISTRATION
 	double time = PIL_check_seconds_timer();
@@ -396,13 +399,19 @@ void BPY_run_ui_scripts(bContext *C)
 			
 			mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
 			if (mod) {
-				Py_DECREF(mod);			
-			}
-			else {
-				PyErr_Print();
-				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+				if (reload) {
+					PyObject *mod_orig= mod;
+					mod= PyImport_ReloadModule(mod);
+					Py_DECREF(mod_orig);
+				}
 			}
 			
+			if(mod) {
+				Py_DECREF(mod); /* could be NULL from reloading */
+			} else {
+				PyErr_Print(); PyErr_Clear();
+				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+			}
 		}
 	}
 
@@ -521,7 +530,7 @@ static float pydriver_error(ChannelDriver *driver)
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
 	
-	PyErr_Print();
+	PyErr_Print(); PyErr_Clear();
 
 	return 0.0f;
 }
@@ -560,7 +569,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		}
 	}
 	
-	/* add target values to a py dictionary that we add to the drivers dict as 'd' */
+	/* add target values to a dict that will be used as '__locals__' dict */
 	driver_vars = PyDict_New(); // XXX do we need to decref this?
 	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
 		PyObject *driver_arg = NULL;
@@ -569,11 +578,10 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		/* try to get variable value */
 		tval= driver_get_target_value(driver, dtar);
 		driver_arg= PyFloat_FromDouble((double)tval);
-		if (driver_arg == NULL) continue;
 		
 		/* try to add to dictionary */
 		if (PyDict_SetItemString(driver_vars, dtar->name, driver_arg)) {
-			/* this target failed */
+			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */
 				fprintf(stderr, "\nBPY_pydriver_eval() - Error while evaluating PyDriver:\n");
@@ -581,7 +589,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			}
 			
 			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			PyErr_Print();
+			PyErr_Print(); PyErr_Clear();
 		}
 	}
 	

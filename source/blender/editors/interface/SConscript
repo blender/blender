@@ -7,14 +7,12 @@ for source in env.Glob('*_api.c'):
 	sources.remove(source)
 
 incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc #intern/bmfont'
+incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc'
 incs += ' #/extern/glew/include'
 
 defs = []
 
 if env['WITH_BF_INTERNATIONAL']:
-    incs += ' ../../ftfont'
     defs.append('INTERNATIONAL')
-    defs.append('FTGL_STATIC_LIBRARY')
 
 env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core'], priority=[110] )

@@ -86,3 +86,33 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	RNA_def_string_file_path(ot->srna, "filename", "", 512, "Filename", "");
 }
 
+static int run_ui_scripts_exec(bContext *C, wmOperator *op)
+{
+#ifndef DISABLE_PYTHON
+	BPY_run_ui_scripts(C, 1); /* reload */
+#endif
+	return OPERATOR_FINISHED;
+}
+
+static int run_ui_scripts_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{	
+	int ret= run_ui_scripts_exec(C, op);
+	
+	if(ret==OPERATOR_FINISHED)
+		WM_event_add_notifier(C, NC_WINDOW, NULL);	
+	
+	return ret;
+}
+
+
+void SCRIPT_OT_python_run_ui_scripts(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reload Python Interface";
+	ot->idname= "SCRIPT_OT_python_run_ui_scripts";
+
+	/* api callbacks */
+	ot->exec= run_ui_scripts_exec;
+	ot->invoke= run_ui_scripts_invoke;
+	ot->poll= ED_operator_areaactive;
+}

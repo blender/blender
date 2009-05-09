@@ -31,15 +31,11 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef WITH_FREETYPE2
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
-
-#endif /* WITH_FREETYPE2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -59,8 +55,6 @@
 #include "blf_internal.h"
 
 
-#ifdef WITH_FREETYPE2
-
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
 	GlyphCacheBLF *p;
@@ -78,10 +72,8 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
-	FT_Face face;
 	int i;
 
-	face= (FT_Face)font->engine;
 	gc= (GlyphCacheBLF *)MEM_mallocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 	gc->next= NULL;
 	gc->prev= NULL;
@@ -100,23 +92,23 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->y_offs= 0;
 	gc->pad= 3;
 
-	gc->num_glyphs= face->num_glyphs;
-	gc->rem_glyphs= face->num_glyphs;
-	gc->ascender= ((float)face->size->metrics.ascender) / 64.0f;
-	gc->descender= ((float)face->size->metrics.descender) / 64.0f;
+	gc->num_glyphs= font->face->num_glyphs;
+	gc->rem_glyphs= font->face->num_glyphs;
+	gc->ascender= ((float)font->face->size->metrics.ascender) / 64.0f;
+	gc->descender= ((float)font->face->size->metrics.descender) / 64.0f;
 
-	if (FT_IS_SCALABLE(face)) {
-		gc->max_glyph_width= (float)((face->bbox.xMax - face->bbox.xMin) *
-					(((float)face->size->metrics.x_ppem) /
-					 ((float)face->units_per_EM)));
+	if (FT_IS_SCALABLE(font->face)) {
+		gc->max_glyph_width= (float)((font->face->bbox.xMax - font->face->bbox.xMin) *
+					(((float)font->face->size->metrics.x_ppem) /
+					 ((float)font->face->units_per_EM)));
 
-		gc->max_glyph_height= (float)((face->bbox.yMax - face->bbox.yMin) *
-					(((float)face->size->metrics.y_ppem) /
-					 ((float)face->units_per_EM)));
+		gc->max_glyph_height= (float)((font->face->bbox.yMax - font->face->bbox.yMin) *
+					(((float)font->face->size->metrics.y_ppem) /
+					 ((float)font->face->units_per_EM)));
 	}
 	else {
-		gc->max_glyph_width= ((float)face->size->metrics.max_advance) / 64.0f;
-		gc->max_glyph_height= ((float)face->size->metrics.height) / 64.0f;
+		gc->max_glyph_width= ((float)font->face->size->metrics.max_advance) / 64.0f;
+		gc->max_glyph_height= ((float)font->face->size->metrics.height) / 64.0f;
 	}
 
 	gc->p2_width= 0;
@@ -203,7 +195,6 @@ GlyphBLF *blf_glyph_texture_add(FontBLF *font, FT_UInt index, unsigned int c)
 	GlyphCacheBLF *gc;
 	GlyphBLF *g;
 	GlyphTextureBLF *gt;
-	FT_Face face;
 	FT_Error err;
 	FT_Bitmap bitmap;
 	FT_BBox bbox;
@@ -222,13 +213,12 @@ GlyphBLF *blf_glyph_texture_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	face= (FT_Face)font->engine;
-	err= FT_Load_Glyph(face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 	if (err)
 		return(NULL);
 
 	/* get the glyph. */
-	slot= face->glyph;
+	slot= font->face->glyph;
 
 	err= FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
@@ -317,7 +307,6 @@ GlyphBLF *blf_glyph_bitmap_add(FontBLF *font, FT_UInt index, unsigned int c)
 	GlyphCacheBLF *gc;
 	GlyphBLF *g;
 	GlyphBitmapBLF *gt;
-	FT_Face face;
 	FT_Error err;
 	FT_Bitmap bitmap;
 	FT_BBox bbox;
@@ -339,13 +328,12 @@ GlyphBLF *blf_glyph_bitmap_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	face= (FT_Face)font->engine;
-	err= FT_Load_Glyph(face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 	if (err)
 		return(NULL);
 
 	/* get the glyph. */
-	slot= face->glyph;
+	slot= font->face->glyph;
 
 	err= FT_Render_Glyph(slot, FT_RENDER_MODE_MONO);
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
@@ -433,7 +421,7 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-static void blf_glyph_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
+static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
 {
 	
 	glBegin(GL_QUADS);
@@ -452,7 +440,7 @@ static void blf_glyph_texture_draw(float uv[2][2], float dx, float y1, float dx1
 	
 }
 
-static void blf_glyph_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	float soft[25]= {
 		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
@@ -469,14 +457,14 @@ static void blf_glyph_texture5_draw(float uv[2][2], float x1, float y1, float x2
 	for(dx=-2; dx<3; dx++) {
 		for(dy=-2; dy<3; dy++, fp++) {
 			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_glyph_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
+			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
 	
 	glColor4fv(color);
 }
 
-static void blf_glyph_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
 	float color[4], *fp= soft;
@@ -487,14 +475,12 @@ static void blf_glyph_texture3_draw(float uv[2][2], float x1, float y1, float x2
 	for(dx=-1; dx<2; dx++) {
 		for(dy=-1; dy<2; dy++, fp++) {
 			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
-			blf_glyph_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
+			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
 	
 	glColor4fv(color);
 }
-
-
 
 int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
@@ -525,11 +511,11 @@ int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, gt->tex);
 
 	if (font->blur==3)
-		blf_glyph_texture3_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture3_draw(gt->uv, dx, y1, dx1, y2);
 	else if (font->blur==5)
-		blf_glyph_texture5_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture5_draw(gt->uv, dx, y1, dx1, y2);
 	else
-		blf_glyph_texture_draw(gt->uv, dx, y1, dx1, y2);
+		blf_texture_draw(gt->uv, dx, y1, dx1, y2);
 	
 	return(1);
 }
@@ -542,6 +528,17 @@ int blf_glyph_bitmap_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	gt= g->bitmap_data;
 	if (!gt->image)
 		return(1);
+
+	if (font->flags & BLF_CLIPPING) {
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + gt->height + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, x + gt->width + font->pos[0], y + font->pos[1]))
+			return(0);
+	}
 
 	glBitmap(0, 0, 0.0, 0.0, x + font->pos[0], y - font->pos[1], (const GLubyte *)&null_bitmap);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, gt->pitch * 8);
@@ -556,5 +553,3 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		return(blf_glyph_bitmap_render(font, g, x, y));
 	return(blf_glyph_texture_render(font, g, x, y));
 }
-
-#endif /* WITH_FREETYPE2 */

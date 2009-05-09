@@ -27,9 +27,6 @@ if env['WITH_BF_PYTHON']:
 else:
 	defs.append('DISABLE_PYTHON')
 
-if env['WITH_BF_INTERNATIONAL']:
-	defs.append('WITH_FREETYPE2')
-
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
 

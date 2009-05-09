@@ -30,8 +30,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
@@ -57,6 +55,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BLF_api.h"
 
 #include "ED_anim_api.h"
 #include "ED_space_api.h"
@@ -404,12 +403,14 @@ static void draw_seq_handle(SpaceSeq *sseq, Sequence *seq, float pixelx, short d
 		cpack(0xFFFFFF);
 		if (direction == SEQ_LEFTHANDLE) {
 			sprintf(str, "%d", seq->startdisp);
-			glRasterPos3f(rx1,  y1-0.15, 0.0);
+			x1= rx1;
+			y1 -= 0.15;
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			glRasterPos3f((x2-BMF_GetStringWidth(G.fonts, str)*pixelx),  y2+0.05, 0.0);
+			x1= x2 - BLF_width_default(str) * pixelx;
+			y1= y2 + 0.05;
 		}
-		BMF_DrawString(G.fonts, str);
+		BLF_draw_default(x1, y1, 0.0f, str);
 	}	
 }
 
@@ -572,8 +573,9 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	}
 	
 	strp= str;
-	
-	while( (len= BMF_GetStringWidth(G.font, strp)) > size) {
+	// XXX
+	/* The correct thing is used a Styla and set the clipping region. */
+	while( (len= BLF_width_default(strp)) > size) {
 		if(len < 10) break;
 		if(strp[1]==0) break;
 		strp++;
@@ -590,8 +592,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	}else{
 		cpack(0);
 	}
-	glRasterPos3f(x1,  y1+SEQ_STRIP_OFSBOTTOM, 0.0);
-	BMF_DrawString(G.font, strp);
+	BLF_draw_default(x1,  y1+SEQ_STRIP_OFSBOTTOM, 0.0, strp);
 }
 
 /* draws a shaded strip, made from gradient + flat color + gradient */
