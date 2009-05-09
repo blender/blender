@@ -125,15 +125,24 @@ KX_Dome::KX_Dome (
 			m_numfaces = 6;
 			break;
 		default: //DOME_TRUNCATED_DOWN and DOME_TRUNCATED_UP
-			cubetop.resize(1);
-			cubebottom.resize(1);
-			cubeleft.resize(2);
-			cuberight.resize(2);
+			if (m_angle <= 180){
+				cubetop.resize(1);
+				cubebottom.resize(1);
+				cubeleft.resize(2);
+				cuberight.resize(2);
 
-			m_angle = 180;
-			CreateMeshDome180();
-			m_numfaces = 4;
-			break;
+				CreateMeshDome180();
+				m_numfaces = 4;
+			}else if (m_angle > 180){
+				cubetop.resize(2);
+				cubebottom.resize(2);
+				cubeleft.resize(2);
+				cubefront.resize(2);
+				cuberight.resize(2);
+
+				CreateMeshDome250();
+				m_numfaces = 5;
+			} break;
 	}
 
 	m_numimages =(warp.usemesh?m_numfaces+1:m_numfaces);
@@ -1485,9 +1494,9 @@ Uses 6 cameras for angles up to 360º
 	MT_Scalar c = cos(deg45);
 	MT_Scalar s = sin(deg45);
 
-	if ((m_mode == DOME_FISHEYE && m_angle <= 180)
+	if (m_angle <= 180 && (m_mode == DOME_FISHEYE 
 		|| m_mode == DOME_TRUNCATED_UP 
-		|| m_mode == DOME_TRUNCATED_DOWN){
+		|| m_mode == DOME_TRUNCATED_DOWN)){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						c, -s, 0.0,
@@ -1509,7 +1518,9 @@ Uses 6 cameras for angles up to 360º
 						0.0, 1.0, 0.0,
 						s, 0.0, c);
 
-	} else if ((m_mode == DOME_FISHEYE && m_angle > 180) || m_mode == DOME_ENVMAP){
+	} else if (m_mode == DOME_ENVMAP || (m_angle > 180 && (m_mode == DOME_FISHEYE
+		|| m_mode == DOME_TRUNCATED_UP 
+		|| m_mode == DOME_TRUNCATED_DOWN))){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						 1.0, 0.0, 0.0,
