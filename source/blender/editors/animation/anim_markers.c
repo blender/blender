@@ -119,6 +119,7 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 	int selcount = 0;
 	
 	/* sanity check */
+	printf("markers = %p -  %p, %p \n", markers, markers->first, markers->last);
 	if (markers == NULL) {
 		*first = 0.0f;
 		*last = 0.0f;
@@ -126,11 +127,11 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 	}
 	
 	if (markers->first && markers->last) {
-		TimeMarker *first= markers->first;
-		TimeMarker *last= markers->last;
+		TimeMarker *fm= markers->first;
+		TimeMarker *lm= markers->last;
 		
-		min= first->frame;
-		max= last->frame;
+		min= (float)fm->frame;
+		max= (float)lm->frame;
 	}
 	else {
 		*first = 0.0f;
@@ -157,15 +158,15 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 				if (marker->flag & SELECT) {
 					if (marker->frame < min)
 						min= (float)marker->frame;
-					else if (marker->frame > max)
+					if (marker->frame > max)
 						max= (float)marker->frame;
 				}
 			}
 			else {
 				if (marker->frame < min)
-					min= marker->frame;
-				else if (marker->frame > max)
-					max= marker->frame;
+					min= (float)marker->frame;
+				if (marker->frame > max)
+					max= (float)marker->frame;
 			}	
 		}
 	}

@@ -354,18 +354,19 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc select_cb;
+	BeztEditFunc ok_cb, select_cb;
 	BeztEditData bed;
 	float min, max;
 	
 	/* get extreme markers */
-	ED_markers_get_minmax(&ac->markers, 1, &min, &max);
-	
+	ED_markers_get_minmax(ac->markers, 1, &min, &max);
 	min -= 0.5f;
 	max += 0.5f;
 	
 	/* get editing funcs + data */
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
+	
 	memset(&bed, 0, sizeof(BeztEditData));
 	bed.f1= min; 
 	bed.f2= max;
@@ -380,11 +381,11 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		
 		if (nob) {	
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		else {
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 		}
 	}
 	

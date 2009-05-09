@@ -1396,7 +1396,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
-	bed.list= ac->markers; /* for marker-snapping option */
+	if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
+		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
+		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1490,9 +1493,11 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= ac->markers.first; marker; marker=marker->next) {
-			if (marker->flag & SELECT) {
-				break;
+		if (ac->markers) {
+			for (marker= ac->markers->first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					break;
+				}
 			}
 		}
 		

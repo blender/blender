@@ -1118,7 +1118,10 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
-	bed.list= ac->scene->markers; /* for marker-snapping option */
+	if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
+		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
+		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1211,13 +1214,14 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == ACTKEYS_MIRROR_MARKER) {
-		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= scene->markers.first; marker; marker=marker->next) {
-			if (marker->flag & SELECT) {
-				break;
+		if (ac->markers) {
+			for (marker= ac->markers->first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					break;
+				}
 			}
 		}
 		
