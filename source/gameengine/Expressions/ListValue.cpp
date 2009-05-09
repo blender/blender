@@ -78,13 +78,15 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		STR_String  index(PyString_AsString(pyindex));
 		CValue *item = ((CListValue*) list)->FindValue(index);
 		if (item)
+		{
+			item->Release(); /* FindValue() AddRef's */ 
 			return item->GetProxy();
-			
+		}
 	}
-	if (PyInt_Check(pyindex))
+	else if (PyInt_Check(pyindex))
 	{
 		int index = PyInt_AsLong(pyindex);
-		return listvalue_buffer_item(self, index);
+		return listvalue_buffer_item(self, index); /* wont add a ref */
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */

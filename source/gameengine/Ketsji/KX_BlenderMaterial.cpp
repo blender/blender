@@ -715,6 +715,7 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 		mScene->GetObjectList()->FindValue(mMaterial->mapping[i].objconame);
 
 	if(!obj) return;
+	obj->Release(); /* FindValue() AddRef's */
 
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
