@@ -20,7 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * The Original Code is: none of this file.
  *
  * Contributor(s): Campbell Barton
  *
@@ -52,26 +52,26 @@ PyObject *KX_PythonSeq_CreatePyObject( PyObject *base, short type )
 	PyObject_DEL( self );
 }
 
-static int KX_PythonSeq_len( KX_PythonSeq * self )
+static Py_ssize_t KX_PythonSeq_len( PyObject * self )
 {
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self->base);
+	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	 
 	if(self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
-	switch(self->type) {
+	switch(((KX_PythonSeq *)self)->type) {
 	case KX_PYGENSEQ_CONT_TYPE_SENSORS:
-		return (int)(((SCA_IController *)self_plus)->GetLinkedSensors().size());
+		return ((SCA_IController *)self_plus)->GetLinkedSensors().size();
 	case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
-		return (int)(((SCA_IController *)self_plus)->GetLinkedActuators().size());
+		return ((SCA_IController *)self_plus)->GetLinkedActuators().size();
 	case KX_PYGENSEQ_OB_TYPE_SENSORS:
-		return (int)(((KX_GameObject *)self_plus)->GetSensors().size());
+		return ((KX_GameObject *)self_plus)->GetSensors().size();
 	case KX_PYGENSEQ_OB_TYPE_CONTROLLERS:
-		return (int)(((KX_GameObject *)self_plus)->GetControllers().size());
+		return ((KX_GameObject *)self_plus)->GetControllers().size();
 	case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
-		return (int)(((KX_GameObject *)self_plus)->GetActuators().size());
+		return ((KX_GameObject *)self_plus)->GetActuators().size();
 	default:
 		/* Should never happen */
 		PyErr_SetString(PyExc_SystemError, "invalid type, internal error");
@@ -79,16 +79,16 @@ static int KX_PythonSeq_len( KX_PythonSeq * self )
 	}
 }
 
-static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
+static PyObject *KX_PythonSeq_getIndex(PyObject* self, int index)
 {
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self->base);
+	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	 
 	if(self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
-	switch(self->type) {
+	switch(((KX_PythonSeq *)self)->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
 			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
@@ -146,9 +146,9 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 }
 
 
-static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
+static PyObject * KX_PythonSeq_subscript(PyObject * self, PyObject *key)
 {
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self->base);
+	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	char *name = NULL;
 	
 	if(self_plus==NULL) {
@@ -165,7 +165,7 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 		return NULL;
 	}
 	
-	switch(self->type) {
+	switch(((KX_PythonSeq *)self)->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
 			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
@@ -228,8 +228,8 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 }
 
 static PyMappingMethods KX_PythonSeq_as_mapping = {
-	( inquiry ) KX_PythonSeq_len,	/* mp_length */
-	( binaryfunc ) KX_PythonSeq_subscript,	/* mp_subscript */
+	KX_PythonSeq_len,	/* mp_length */
+	KX_PythonSeq_subscript,	/* mp_subscript */
 	0,	/* mp_ass_subscript */
 };
 
@@ -238,7 +238,7 @@ static PyMappingMethods KX_PythonSeq_as_mapping = {
  * Initialize the interator index
  */
 
-static PyObject *KX_PythonSeq_getIter( KX_PythonSeq * self )
+static PyObject *KX_PythonSeq_getIter(KX_PythonSeq *self)
 {
 	if(BGE_PROXY_REF(self->base)==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
@@ -260,9 +260,9 @@ static PyObject *KX_PythonSeq_getIter( KX_PythonSeq * self )
  * Return next KX_PythonSeq iter.
  */
  
-static PyObject *KX_PythonSeq_nextIter( KX_PythonSeq * self )
+static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 {
-	PyObject *object = KX_PythonSeq_getIndex(self, self->iter);
+	PyObject *object = KX_PythonSeq_getIndex((PyObject *)self, self->iter);
 	
 	self->iter++;
 	if( object==NULL ) {
