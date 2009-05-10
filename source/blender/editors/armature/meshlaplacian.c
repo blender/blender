@@ -30,6 +30,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -105,7 +106,7 @@ struct LaplacianSystem {
 		float *p;			/* values from all p vectors */
 		float *mindist;		/* minimum distance to a bone for all vertices */
 		
-		RayTree *raytree;	/* ray tracing acceleration structure */
+		RayObject *raytree;	/* ray tracing acceleration structure */
 		MFace **vface;		/* a face that the vertex belongs to */
 	} heat;
 
@@ -394,77 +395,31 @@ float laplacian_system_get_solution(int v)
 #define DISTANCE_EPSILON	1e-4f
 
 /* Raytracing for vertex to bone visibility */
-
-static LaplacianSystem *HeatSys = NULL;
-
-static void heat_ray_coords_func(RayFace *face, float **v1, float **v2, float **v3, float **v4)
-{
-	MFace *mface= (MFace*)face;
-	float (*verts)[3]= HeatSys->heat.verts;
-
-	*v1= verts[mface->v1];
-	*v2= verts[mface->v2];
-	*v3= verts[mface->v3];
-	*v4= (mface->v4)? verts[mface->v4]: NULL;
-}
-
-static int heat_ray_check_func(Isect *is, int ob, RayFace *face)
-{
-	float *v1, *v2, *v3, *v4, nor[3];
-
-	/* don't intersect if the ray faces along the face normal */
-	heat_ray_coords_func(face, &v1, &v2, &v3, &v4);
-
-	if(v4) CalcNormFloat4(v1, v2, v3, v4, nor);
-	else CalcNormFloat(v1, v2, v3, nor);
-
-	return (INPR(nor, is->vec) < 0);
-}
-
 static void heat_ray_tree_create(LaplacianSystem *sys)
 {
 	Mesh *me = sys->heat.mesh;
-	RayTree *tree;
 	MFace *mface;
-	float min[3], max[3];
 	int a;
 
-	/* create a raytrace tree from the mesh */
-	INIT_MINMAX(min, max);
+	sys->heat.raytree = RayObject_mesh_create(me, me);
 
-	for(a=0; a<me->totvert; a++)
-		DO_MINMAX(sys->heat.verts[a], min, max);
-
-	tree= RE_ray_tree_create(64, me->totface, min, max,
-		heat_ray_coords_func, heat_ray_check_func, NULL, NULL);
-	
-	sys->heat.vface= MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
-
-	HeatSys= sys;
-
+	sys->heat.vface = MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
 	for(a=0, mface=me->mface; a<me->totface; a++, mface++) {
-		RE_ray_tree_add_face(tree, 0, mface);
-
 		sys->heat.vface[mface->v1]= mface;
 		sys->heat.vface[mface->v2]= mface;
 		sys->heat.vface[mface->v3]= mface;
 		if(mface->v4) sys->heat.vface[mface->v4]= mface;
 	}
-
-	HeatSys= NULL;
-	
-	RE_ray_tree_done(tree);
-
-	sys->heat.raytree= tree;
 }
 
 static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 {
 	Isect isec;
 	MFace *mface;
-	float dir[3];
+	float end[3];
 	int visible;
 
+	assert( 0 );
 	mface= sys->heat.vface[vertex];
 	if(!mface)
 		return 1;
@@ -473,22 +428,24 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 	memset(&isec, 0, sizeof(isec));
 	isec.mode= RE_RAY_SHADOW;
 	isec.lay= -1;
-	isec.face_last= NULL;
-	isec.faceorig= mface;
+	isec.orig.face = mface;
+	isec.skip = RE_SKIP_CULLFACE;
 
 	VECCOPY(isec.start, sys->heat.verts[vertex]);
-	PclosestVL3Dfl(isec.end, isec.start,
-		sys->heat.root[bone], sys->heat.tip[bone]);
+	PclosestVL3Dfl(end, isec.start, sys->heat.root[bone], sys->heat.tip[bone]);
 
+	VECSUB(isec.vec, end, isec.start);
+	isec.labda = 1.0f;
+
+#if 0
+	TODO
 	/* add an extra offset to the start position to avoid self intersection */
-	VECSUB(dir, isec.end, isec.start);
+	VECCOPY(dir, isec.vec);
 	Normalize(dir);
 	VecMulf(dir, 1e-5);
 	VecAddf(isec.start, isec.start, dir);
-	
-	HeatSys= sys;
-	visible= !RE_ray_tree_intersect(sys->heat.raytree, &isec);
-	HeatSys= NULL;
+#endif	
+	visible= !RayObject_raycast(sys->heat.raytree, &isec);
 
 	return visible;
 }
@@ -752,7 +709,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 	/* free */
 	if(vertsflipped) MEM_freeN(vertsflipped);
 
-	RE_ray_tree_free(sys->heat.raytree);
+	RayObject_free(sys->heat.raytree);
 	MEM_freeN(sys->heat.vface);
 
 	MEM_freeN(sys->heat.mindist);
@@ -1049,7 +1006,7 @@ typedef struct MeshDeformBind {
 	int *varidx;
 
 	/* raytrace */
-	RayTree *raytree;
+	RayObject *raytree;
 } MeshDeformBind;
 
 /* ray intersection */
@@ -1173,13 +1130,15 @@ static void meshdeform_ray_tree_free(MeshDeformBind *mdb)
 static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
 {
 	MFace *mface;
-	float face[4][3], co[3], uvw[3], len, nor[3];
+	float face[4][3], co[3], uvw[3], len, nor[3], end[3];
 	int f, hit, is= 0, totface;
 
 	isec->labda= 1e10;
 
 	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
 	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+
+	VECADDFAC( end, isec->start, isec->vec, isec->labda );
 
 	for(f=0; f<totface; f++, mface++) {
 		VECCOPY(face[0], mdb->cagecos[mface->v1]);
@@ -1188,26 +1147,26 @@ static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
 
 		if(mface->v4) {
 			VECCOPY(face[3], mdb->cagecos[mface->v4]);
-			hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[1], face[2], co, uvw);
+			hit = meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
 
 			if(hit) {
 				CalcNormFloat(face[0], face[1], face[2], nor);
 			}
 			else {
-				hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[2], face[3], co, uvw);
+				hit= meshdeform_tri_intersect(isec->start, end, face[0], face[2], face[3], co, uvw);
 				CalcNormFloat(face[0], face[2], face[3], nor);
 			}
 		}
 		else {
-			hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[1], face[2], co, uvw);
+			hit= meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
 			CalcNormFloat(face[0], face[1], face[2], nor);
 		}
 
 		if(hit) {
-			len= VecLenf(isec->start, co)/VecLenf(isec->start, isec->end);
+			len= VecLenf(isec->start, co)/VecLenf(isec->start, end);
 			if(len < isec->labda) {
 				isec->labda= len;
-				isec->face= mface;
+				isec->hit.face = mface;
 				isec->isect= (INPR(isec->vec, nor) <= 0.0f);
 				is= 1;
 			}
@@ -1223,20 +1182,18 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	Isect isec;
 	float (*cagecos)[3];
 	MFace *mface;
-	float vert[4][3], len;
+	float vert[4][3], len, end[3];
 	static float epsilon[3]= {0, 0, 0}; //1e-4, 1e-4, 1e-4};
 
 	/* setup isec */
 	memset(&isec, 0, sizeof(isec));
 	isec.mode= RE_RAY_MIRROR; /* we want the closest intersection */
 	isec.lay= -1;
-	isec.face_last= NULL;
-	isec.faceorig= NULL;
 	isec.labda= 1e10f;
 
 	VECADD(isec.start, co1, epsilon);
-	VECADD(isec.end, co2, epsilon);
-	VECSUB(isec.vec, isec.end, isec.start);
+	VECADD(end, co2, epsilon);
+	VECSUB(isec.vec, end, isec.start);
 
 #if 0
 	/*if(RE_ray_tree_intersect(mdb->raytree, &isec)) {*/
@@ -1244,7 +1201,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 
 	if(meshdeform_intersect(mdb, &isec)) {
 		len= isec.labda;
-		mface= isec.face;
+		mface=(MFace*)isec.hit.face;
 
 		/* create MDefBoundIsect */
 		isect= BLI_memarena_alloc(mdb->memarena, sizeof(*isect));

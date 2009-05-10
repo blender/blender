@@ -53,6 +53,7 @@ struct VlakTableNode;
 struct GHash;
 struct RenderBuckets;
 struct ObjectInstanceRen;
+struct RayObject;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -168,7 +169,8 @@ struct Render
 	ListBase parts;
 	
 	/* octree tables and variables for raytrace */
-	void *raytree;
+	struct RayObject *raytree;
+	struct RayObject *rayfaces; /* TODO Temporary */
 
 	/* occlusion tree */
 	void *occlusiontree;
@@ -491,8 +493,7 @@ typedef struct LampRen {
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last[BLENDER_MAX_THREADS];
-	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
+	struct RayObject *last_hit[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
 
