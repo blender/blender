@@ -12,13 +12,13 @@ class SCA_IController(SCA_ILogicBrick):
 	@ivar sensors: a list of sensors linked to this controller
 					- note: the sensors are not necessarily owned by the same object.
 					- note: when objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
-	@type sensors: list
+	@type sensors: sequence supporting index/string lookups and iteration.
 	@ivar actuators: a list of actuators linked to this controller.
 						- note: the sensors are not necessarily owned by the same object.
 						- note: when objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
-	@type actuators: list
+	@type actuators: sequence supporting index/string lookups and iteration.
 	
-	@group Deprecated: getState, getSensors, getActuators
+	@group Deprecated: getState, getSensors, getActuators, getSensor, getActuator
 	"""
 
 	def getState():
@@ -39,6 +39,7 @@ class SCA_IController(SCA_ILogicBrick):
 		"""
 	def getSensor(name):
 		"""
+		DEPRECATED: use the sensors[name] property
 		Gets the named linked sensor.
 		
 		@type name: string
@@ -53,6 +54,7 @@ class SCA_IController(SCA_ILogicBrick):
 		"""
 	def getActuator(name):
 		"""
+		DEPRECATED: use the actuators[name] property
 		Gets the named linked actuator.
 		
 		@type name: string

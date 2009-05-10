@@ -31,6 +31,7 @@
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "PyObjectPlus.h"
+#include "../Ketsji/KX_PythonSeq.h" /* not nice, only need for KX_PythonSeq_CreatePyObject */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -241,10 +242,9 @@ PyParentObject SCA_IController::Parents[] = {
 };
 
 PyMethodDef SCA_IController::Methods[] = {
-	{"getActuator", (PyCFunction) SCA_IController::sPyGetActuator, METH_O},
-	{"getSensor", (PyCFunction) SCA_IController::sPyGetSensor, METH_O},
-	
 	//Deprecated functions ------>
+	{"getSensor", (PyCFunction) SCA_IController::sPyGetSensor, METH_O},
+	{"getActuator", (PyCFunction) SCA_IController::sPyGetActuator, METH_O},
 	{"getSensors", (PyCFunction) SCA_IController::sPyGetSensors, METH_NOARGS},
 	{"getActuators", (PyCFunction) SCA_IController::sPyGetActuators, METH_NOARGS},
 	{"getState", (PyCFunction) SCA_IController::sPyGetState, METH_NOARGS},
@@ -290,7 +290,8 @@ PyObject* SCA_IController::PyGetActuators()
 
 PyObject* SCA_IController::PyGetSensor(PyObject* value)
 {
-
+	ShowDeprecationWarning("getSensor(string)", "the sensors[string] property");
+	
 	char *scriptArg = PyString_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
@@ -313,7 +314,8 @@ PyObject* SCA_IController::PyGetSensor(PyObject* value)
 
 PyObject* SCA_IController::PyGetActuator(PyObject* value)
 {
-
+	ShowDeprecationWarning("getActuator(string)", "the actuators[string] property");
+	
 	char *scriptArg = PyString_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
@@ -360,24 +362,10 @@ PyObject* SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_D
 
 PyObject* SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_IController* self= static_cast<SCA_IController*>(self_v);
-	vector<SCA_ISensor*> linkedsensors = self->GetLinkedSensors();
-	PyObject* resultlist = PyList_New(linkedsensors.size());
-	
-	for (unsigned int index=0;index<linkedsensors.size();index++)
-		PyList_SET_ITEM(resultlist,index, linkedsensors[index]->GetProxy());
-	
-	return resultlist;
+	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_SENSORS);	
 }
 
 PyObject* SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_IController* self= static_cast<SCA_IController*>(self_v);
-	vector<SCA_IActuator*> linkedactuators = self->GetLinkedActuators();
-	PyObject* resultlist = PyList_New(linkedactuators.size());
-	
-	for (unsigned int index=0;index<linkedactuators.size();index++)
-		PyList_SET_ITEM(resultlist,index, linkedactuators[index]->GetProxy());
-
-	return resultlist;
+	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_ACTUATORS);	
 }

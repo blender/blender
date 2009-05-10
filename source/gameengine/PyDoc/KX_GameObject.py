@@ -67,15 +67,15 @@ class KX_GameObject(SCA_IObject):
 		- note: Most objects use only 1 mesh.
 		- note: Changes to this list will not update the KX_GameObject.
 	@type meshes: list of L{KX_MeshProxy}
-	@ivar sensors: a list of L{SCA_ISensor} objects.
+	@ivar sensors: a sequence of L{SCA_ISensor} objects with string/index lookups and iterator support.
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type sensors: list
-	@ivar controllers: a list of L{SCA_IController} objects.
+	@ivar controllers: a sequence of L{SCA_IController} objects with string/index lookups and iterator support.
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type controllers: list of L{SCA_ISensor}.
-	@ivar actuators: a list of L{SCA_IActuator} objects.
+	@ivar actuators: a list of L{SCA_IActuator} with string/index lookups and iterator support.
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type actuators: list

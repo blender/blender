@@ -981,6 +981,5 @@ void			PyObjectPlus::SetDeprecationWarningFirst(WarnLink* wlink) {m_base_wlink_f
 void			PyObjectPlus::SetDeprecationWarningLinkLast(WarnLink* wlink) {m_base_wlink_last= wlink;}
 void			PyObjectPlus::NullDeprecationWarning() {m_base_wlink_first= m_base_wlink_last= NULL;}
 
-
 #endif //NO_EXP_PYTHON_EMBEDDING
 

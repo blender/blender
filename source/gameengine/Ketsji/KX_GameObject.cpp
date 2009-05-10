@@ -63,6 +63,7 @@ typedef unsigned long uint_ptr;
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
+#include "KX_PythonSeq.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
@@ -1735,38 +1736,17 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 /* experemental! */
 PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	SCA_SensorList& sensors= self->GetSensors();
-	PyObject* resultlist = PyList_New(sensors.size());
-	
-	for (unsigned int index=0;index<sensors.size();index++)
-		PyList_SET_ITEM(resultlist, index, sensors[index]->GetProxy());
-	
-	return resultlist;
+	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_SENSORS);
 }
 
 PyObject* KX_GameObject::pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	SCA_ControllerList& controllers= self->GetControllers();
-	PyObject* resultlist = PyList_New(controllers.size());
-	
-	for (unsigned int index=0;index<controllers.size();index++)
-		PyList_SET_ITEM(resultlist, index, controllers[index]->GetProxy());
-	
-	return resultlist;
+	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_CONTROLLERS);
 }
 
 PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	SCA_ActuatorList& actuators= self->GetActuators();
-	PyObject* resultlist = PyList_New(actuators.size());
-	
-	for (unsigned int index=0;index<actuators.size();index++)
-		PyList_SET_ITEM(resultlist, index, actuators[index]->GetProxy());
-	
-	return resultlist;
+	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_ACTUATORS);
 }
 
 PyObject* KX_GameObject::pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
