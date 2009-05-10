@@ -33,6 +33,20 @@ class DATA_PT_lamp(DataButtonsPanel):
 		sub.itemR(lamp, "distance")
 	
 		sub = layout.sub(1)
+		sub.column()
+		sub.itemR(lamp, "color")
+		
+		layout.split(number=2)	
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemL(text="Illumination:")
+		sub.itemR(lamp, "layer")
+		sub.itemR(lamp, "negative")
+		sub.itemR(lamp, "specular")
+		sub.itemR(lamp, "diffuse")
+		
+		sub = layout.sub(1)
 		if (lamp.type in ('LOCAL', 'SPOT')):
 			sub.column()
 			sub.itemR(lamp, "falloff_type")
@@ -51,20 +65,6 @@ class DATA_PT_lamp(DataButtonsPanel):
 			if (lamp.shape == 'RECTANGLE'):
 				sub.itemR(lamp, "size", text="Size X")
 				sub.itemR(lamp, "size_y")
-		
-		layout.split(number=2)	
-		
-		sub = layout.sub(0)
-		sub.column()
-		sub.itemL(text="Illumination:")
-		sub.itemR(lamp, "layer")
-		sub.itemR(lamp, "negative")
-		sub.itemR(lamp, "specular")
-		sub.itemR(lamp, "diffuse")
-		
-		sub = layout.sub(1)
-		sub.column()
-		sub.itemR(lamp, "color")
 				
 class DATA_PT_sunsky(DataButtonsPanel):
 	__idname__ = "DATA_PT_sunsky"
@@ -95,17 +95,17 @@ class DATA_PT_sunsky(DataButtonsPanel):
 			if (lamp.sky):
 				sub = layout.sub(0)
 				sub.column()
+				sub.itemR(lamp, "sky_blend_type", text="Blend Type")
+				sub.itemR(lamp, "sky_blend")
+				sub.itemR(lamp, "sky_color_space", text="Color Space")
+				sub.itemR(lamp, "sky_exposure")
+				sub.column()
 				sub.itemR(lamp, "horizon_brightness", text="Hor Bright")
 				sub.itemR(lamp, "spread", text="Hor Spread")
 				sub.itemR(lamp, "sun_brightness", text="Sun Bright")
 				sub.itemR(lamp, "sun_size")
 				sub.itemR(lamp, "backscattered_light", text="Back Light")
-				sub.column()
-				sub.itemR(lamp, "sky_blend_type", text="Blend Type")
-				sub.itemR(lamp, "sky_blend")
-				sub.itemR(lamp, "sky_color_space", text="Color Space")
-				sub.itemR(lamp, "sky_exposure")
-			
+				
 			if (lamp.atmosphere):
 				sub = layout.sub(1)
 				sub.column()
@@ -133,6 +133,20 @@ class DATA_PT_shadow(DataButtonsPanel):
 		layout.row()
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
+		if (lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW')):
+		
+			layout.split(number=2)
+			
+			sub = layout.sub(0)
+			sub.column()
+			sub.itemL(text="Options:")
+			sub.itemR(lamp, "only_shadow")
+			sub.itemR(lamp, "shadow_layer")
+			
+			sub = layout.sub(1)
+			sub.column()
+			sub.itemR(lamp, "shadow_color")
+		
 		if (lamp.shadow_method == 'RAY_SHADOW'):
 		
 			layout.column()
@@ -157,15 +171,16 @@ class DATA_PT_shadow(DataButtonsPanel):
 					layout.itemR(lamp, "jitter")	
 		
 		if (lamp.shadow_method == 'BUFFER_SHADOW'):
-			layout.row()
-			layout.itemR(lamp, "shadow_buffer_type")
+			layout.column()
+			layout.itemL(text="Buffer Type:")
+			layout.itemR(lamp, "shadow_buffer_type", expand=True)
 
 			if (lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY')):
 				layout.column_flow()
 				layout.itemL(text="Sample Buffers:")
-				layout.itemR(lamp, "shadow_sample_buffers", text="")
+				layout.itemR(lamp, "shadow_sample_buffers", expand=True)
 				layout.itemL(text="Filter Type:")
-				layout.itemR(lamp, "shadow_filter_type", text="")
+				layout.itemR(lamp, "shadow_filter_type", expand=True)
 				layout.column_flow()
 				layout.itemR(lamp, "shadow_buffer_size", text="Size")
 				layout.itemR(lamp, "shadow_buffer_samples", text="Samples")
@@ -175,7 +190,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			if (lamp.shadow_buffer_type == 'IRREGULAR'):
 				layout.row()
 				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
-				
+			
 			layout.row()
 			layout.itemR(lamp, "auto_clip_start", text="Autoclip Start")
 			if not (lamp.auto_clip_start):
@@ -184,21 +199,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			layout.itemR(lamp, "auto_clip_end", text="Autoclip End")
 			if not (lamp.auto_clip_end):
 				layout.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
-		
-		if (lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW')):
-		
-			layout.split(number=2)
-			
-			sub = layout.sub(0)
-			sub.column()
-			sub.itemL(text="Display:")
-			sub.itemR(lamp, "only_shadow")
-			sub.itemR(lamp, "shadow_layer")
-			
-			sub = layout.sub(1)
-			sub.column()
-			sub.itemR(lamp, "shadow_color")
-		
+
 class DATA_PT_spot(DataButtonsPanel):
 	__idname__ = "DATA_PT_spot"
 	__label__ = "Spot"
