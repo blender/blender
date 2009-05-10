@@ -52,7 +52,7 @@ PyObject *KX_PythonSeq_CreatePyObject( PyObject *base, short type )
 	PyObject_DEL( self );
 }
 
-static Py_ssize_t KX_PythonSeq_len( KX_PythonSeq * self )
+static int KX_PythonSeq_len( KX_PythonSeq * self )
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self->base);
 	 
@@ -63,15 +63,15 @@ static Py_ssize_t KX_PythonSeq_len( KX_PythonSeq * self )
 	
 	switch(self->type) {
 	case KX_PYGENSEQ_CONT_TYPE_SENSORS:
-		return ((SCA_IController *)self_plus)->GetLinkedSensors().size();
+		return (int)(((SCA_IController *)self_plus)->GetLinkedSensors().size());
 	case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
-		return ((SCA_IController *)self_plus)->GetLinkedActuators().size();
+		return (int)(((SCA_IController *)self_plus)->GetLinkedActuators().size());
 	case KX_PYGENSEQ_OB_TYPE_SENSORS:
-		return ((KX_GameObject *)self_plus)->GetSensors().size();
+		return (int)(((KX_GameObject *)self_plus)->GetSensors().size());
 	case KX_PYGENSEQ_OB_TYPE_CONTROLLERS:
-		return ((KX_GameObject *)self_plus)->GetControllers().size();
+		return (int)(((KX_GameObject *)self_plus)->GetControllers().size());
 	case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
-		return ((KX_GameObject *)self_plus)->GetActuators().size();
+		return (int)(((KX_GameObject *)self_plus)->GetActuators().size());
 	default:
 		/* Should never happen */
 		PyErr_SetString(PyExc_SystemError, "invalid type, internal error");
