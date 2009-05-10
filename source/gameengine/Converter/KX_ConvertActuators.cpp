@@ -1105,7 +1105,8 @@ void BL_ConvertActuators(char* maggiename,
 				buf = txt_to_buf(_2dfilter->text);
 				if (buf)
 				{
-					tmp->SetShaderText(STR_String(buf));
+					STR_String buf_str= buf;
+					tmp->SetShaderText(buf_str);
 					MEM_freeN(buf);
 				}
 			}
