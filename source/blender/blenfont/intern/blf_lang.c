@@ -107,7 +107,7 @@ void BLF_lang_init(void)
 	}
 }
 
-void BLF_lang_set(char *str)
+void BLF_lang_set(const char *str)
 {
 #if defined (_WIN32) || defined(__APPLE__)
 	char envstr[12];
@@ -140,14 +140,13 @@ void BLF_lang_set(char *str)
 
 	setlocale(LC_NUMERIC, "C");
 #endif
-
+	textdomain(DOMAIN_NAME);
 	bindtextdomain(DOMAIN_NAME, global_messagepath);
 	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-	textdomain(DOMAIN_NAME);
 	strcpy(global_language, str);
 }
 
-void BLF_lang_encoding(char *str)
+void BLF_lang_encoding(const char *str)
 {
 	strcpy(global_encoding_name, str);
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */

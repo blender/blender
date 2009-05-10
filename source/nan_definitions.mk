@@ -106,17 +106,14 @@ endif
     export NAN_ACTION ?= $(LCGDIR)/action
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
-    export NAN_BMFONT ?= $(LCGDIR)/bmfont
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)
-      export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg
       export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libavdevice.a
     else
-      export NAN_FTGL ?= $(LCGDIR)/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
       export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
     endif
@@ -171,9 +168,6 @@ endif
 
     # l10n
     #export INTERNATIONAL ?= true
-
-    # enable freetype2 support for text objects
-    #export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),darwin)
@@ -246,9 +240,6 @@ endif
     # enable l10n
     export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    export WITH_FREETYPE2 ?= true
-
   else
   ifeq ($(OS),freebsd)
 
@@ -289,9 +280,6 @@ endif
 
     # enable l10n
     # export INTERNATIONAL ?= true
-
-    # enable freetype2 support for text objects
-    # export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),irix)
@@ -347,9 +335,6 @@ endif
     # enable l10n
     export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    export WITH_FREETYPE2 ?= true
-
   else
   ifeq ($(OS),linux)
 
@@ -403,9 +388,6 @@ endif
     # l10n
     export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    export WITH_FREETYPE2 ?= true
-
     export WITH_BINRELOC ?= true
 
     # enable ffmpeg support
@@ -454,9 +436,6 @@ endif
     # l10n
     #export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    #export WITH_FREETYPE2 ?= true
-
   else
   ifeq ($(OS),solaris)
 
@@ -501,9 +480,6 @@ endif
 
     # l10n
     #export INTERNATIONAL ?= true
-
-    # enable freetype2 support for text objects
-    #export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),windows)
@@ -561,9 +537,6 @@ endif
     # l10n
     export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    export WITH_FREETYPE2 ?= true
-
     # enable quicktime support
     # export WITH_QUICKTIME ?= true
 
@@ -605,9 +578,6 @@ endif
     # l10n
     #export INTERNATIONAL ?= true
 
-    # enable freetype2 support for text objects
-    #export WITH_FREETYPE2 ?= true
-
   endif # windows + fallback
   endif # solaris
   endif # openbsd
@@ -623,9 +593,4 @@ endif # CONFIG_GUESS
 ifeq ($(NAN_NO_KETSJI), true)
    export NAN_JUST_BLENDERDYNAMIC=true
    export NAN_NO_OPENAL=true
-endif
-
-# INTERNATIONAL implies WITH_FREETYPE2
-ifeq ($(INTERNATIONAL), true)
-   export WITH_FREETYPE2=true
 endif

@@ -84,5 +84,8 @@ void GROUP_OT_objects_remove(struct wmOperatorType *ot);
 void GROUP_OT_objects_add_active(struct wmOperatorType *ot);
 void GROUP_OT_objects_remove_active(struct wmOperatorType *ot);
 
+/* object_modifier.c */
+void OBJECT_OT_modifier_add(struct wmOperatorType *ot);
+
 #endif /* ED_OBJECT_INTERN_H */
 

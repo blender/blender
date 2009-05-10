@@ -38,6 +38,7 @@ struct bScreen;
 struct ListBase;
 struct Panel;
 struct Header;
+struct Menu;
 struct ScrArea;
 struct SpaceType;
 struct wmNotifier;
@@ -136,6 +137,9 @@ typedef struct ARegionType {
 	/* header type definitions */
 	ListBase headertypes;
 
+	/* menu type definitions */
+	ListBase menutypes;
+
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
 	/* default keymaps to add */
@@ -182,6 +186,27 @@ typedef struct HeaderType {
 	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
 	void				(*py_free)(void *py_data);
 } HeaderType;
+
+/* menu types */
+
+typedef struct MenuType {
+	struct MenuType *next, *prev;
+
+	char		idname[BKE_ST_MAXNAME];	/* unique name */
+	char		label[BKE_ST_MAXNAME];	/* for button text */
+	int 		space_type;
+
+	/* verify if the menu should draw or not */
+	int			(*poll)(const struct bContext *, struct MenuType *);
+	/* draw entirely, view changes should be handled here */
+	void		(*draw)(const struct bContext *, struct Menu *);	
+
+	/* python integration */
+	void				*py_data;
+	struct StructRNA	*py_srna;
+	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
+	void				(*py_free)(void *py_data);
+} MenuType;
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);

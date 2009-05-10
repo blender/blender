@@ -19,6 +19,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_curve.h" 
@@ -174,15 +175,16 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
-int on_keyframe_fcurve(FCurve *fcu, float cfra)
+short on_keyframe_fcurve(FCurve *fcu, float cfra)
 {
 	BezTriple *bezt;
-	int i;
+	unsigned i;
 
 	bezt= fcu->bezt;
-	for (i=0; i<fcu->totvert; i++, bezt++)
-		if(IS_EQ(bezt->vec[1][0], cfra))
+	for (i=0; i<fcu->totvert; i++, bezt++) {
+		if (IS_EQ(bezt->vec[1][0], cfra))
 			return 1;
+	}
 	
 	return 0;
 }
@@ -1252,46 +1254,10 @@ static FModifierTypeInfo FMI_MODNAME = {
 	fcm_modname_copy, /* copy data */
 	fcm_modname_new_data, /* new data */
 	fcm_modname_verify, /* verify */
+	fcm_modname_time, /* evaluate time */
 	fcm_modname_evaluate /* evaluate */
 };
 #endif
-
-/* Utilities For F-Curve Modifiers ---------------------- */
-
-/* Recalculate the F-Curve at evaltime, as modified by the given F-Curve */
-// TODO: this isn't really such an elegant solution for time-modifying F-Modifiers, but it gets too difficult otherwise for now...
-static float fcm_reevaluate_fcurve (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
-{ 
-	ListBase modifiers = {NULL, NULL};
-	float new_value = 0.0f;
-	
-	/* sanity checking */
-	if ELEM(NULL, fcu, fcm)
-		return cvalue;
-	
-	/* unlink given modifier from previous modifiers, keeping the previous ones on the F-Curve,
-	 * but ones after off the F-Curve (so that we avoid the infinitely re-entrant situation).
-	 */
-	modifiers.first= fcm;
-	modifiers.last= fcu->modifiers.last;
-	
-	if (fcm->prev) {
-		fcm->prev->next= NULL;
-		fcu->modifiers.last= fcm->prev;
-	}
-	else
-		fcu->modifiers.first= fcu->modifiers.last= NULL;
-	fcm->prev= NULL;
-	
-	/* re-enter the evaluation loop (but without the burden of evaluating any modifiers, so 'should' be relatively quick) */
-	new_value= evaluate_fcurve(fcu, evaltime);
-	
-	/* restore modifiers (don't assume everything is still ok after being re-entrant) */
-	addlisttolist(&fcu->modifiers, &modifiers);
-	
-	/* return the new value */
-	return new_value;
-}
 
 /* Generator F-Curve Modifier --------------------------- */
 
@@ -1544,7 +1510,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			
 			/* execute function callback to set value if appropriate */
 			if (fn) {
-				float value= data->coefficients[0]*fn(arg) + data->coefficients[3];
+				float value= (float)(data->coefficients[0]*fn(arg) + data->coefficients[3]);
 				
 				if (data->flag & FCM_GENERATOR_ADDITIVE)
 					*cvalue += value;
@@ -1573,6 +1539,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	fcm_generator_copy, /* copy data */
 	fcm_generator_new_data, /* new data */
 	fcm_generator_verify, /* verify */
+	NULL, /* evaluate time */
 	fcm_generator_evaluate /* evaluate */
 };
 
@@ -1679,6 +1646,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	fcm_envelope_copy, /* copy data */
 	fcm_envelope_new_data, /* new data */
 	fcm_envelope_verify, /* verify */
+	NULL, /* evaluate time */
 	fcm_envelope_evaluate /* evaluate */
 };
 
@@ -1694,6 +1662,11 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  * 				as appropriate
  */
 
+/* temp data used during evaluation */
+typedef struct tFCMED_Cycles {
+	float cycyofs;		/* y-offset to apply */
+} tFCMED_Cycles;
+ 
 static void fcm_cycles_new_data (void *mdata)
 {
 	FMod_Cycles *data= (FMod_Cycles *)mdata;
@@ -1701,8 +1674,8 @@ static void fcm_cycles_new_data (void *mdata)
 	/* turn on cycles by default */
 	data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
 }
- 
-static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+
+static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
 	float prevkey[2], lastkey[2], cycyofs=0.0f;
@@ -1713,7 +1686,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	// FIXME...
 	if (fcm->prev) {
 		fcm->flag |= FMODIFIER_FLAG_DISABLED;
-		return;
+		return evaltime;
 	}
 	
 	/* calculate new evaltime due to cyclic interpolation */
@@ -1738,7 +1711,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		lastkey[1]= lastfpt->vec[1];
 	}
 	else
-		return;
+		return evaltime;
 		
 	/* check if modifier will do anything
 	 *	1) if in data range, definitely don't do anything
@@ -1759,11 +1732,12 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		}
 	}
 	if ELEM(0, side, mode)
-		return;
+		return evaltime;
 		
 	/* find relative place within a cycle */
 	{
 		float cycdx=0, cycdy=0, ofs=0;
+		float cycle= 0;
 		
 		/* ofs is start frame of cycle */
 		ofs= prevkey[0];
@@ -1774,19 +1748,22 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		
 		/* check if cycle is infinitely small, to be point of being impossible to use */
 		if (cycdx == 0)
-			return;
+			return evaltime;
 			
+		/* calculate the 'number' of the cycle */
+		cycle= ((float)side * (evaltime - ofs) / cycdx);
+		
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
 			/* catch this case so that we don't exit when we have cycles=0
 			 * as this indicates infinite cycles...
 			 */
 		}
-		else if ( ((float)side * (evaltime - ofs) / cycdx) > (cycles+1) ) {
+		else if (cycle > (cycles+1)) {
 			/* we are too far away from range to evaluate
 			 * TODO: but we should still hold last value... 
 			 */
-			return;
+			return evaltime;
 		}
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
@@ -1796,12 +1773,49 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		}
 		
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
-		evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle) % 2)) {
+			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse 
+			 *	- for 'before' extrapolation, we need to flip in a different way, otherwise values past
+			 *	  then end of the curve get referenced (result of fmod will be negative, and with different phase)
+			 */
+			if (side < 0)
+				evaltime= (float)(prevkey[0] - fmod(evaltime-ofs, cycdx));
+			else
+				evaltime= (float)(lastkey[0] - fmod(evaltime-ofs, cycdx));
+		}
+		else {
+			/* the cycle is played normally... */
+			evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		}
 		if (evaltime < ofs) evaltime += cycdx;
 	}
 	
-	/* reevaluate F-Curve at the new time that we've decided on */
-	*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, evaltime) + cycyofs;
+	/* store temp data if needed */
+	if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
+		tFCMED_Cycles *edata;
+		
+		/* for now, this is just a float, but we could get more stuff... */
+		fcm->edata= edata= MEM_callocN(sizeof(tFCMED_Cycles), "tFCMED_Cycles");
+		edata->cycyofs= cycyofs;
+	}
+	
+	/* return the new frame to evaluate */
+	return evaltime;
+}
+ 
+static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	tFCMED_Cycles *edata= (tFCMED_Cycles *)fcm->edata;
+	
+	/* use temp data */
+	if (edata) {
+		/* add cyclic offset - no need to check for now, otherwise the data wouldn't exist! */
+		*cvalue += edata->cycyofs;
+		
+		/* free temp data */
+		MEM_freeN(edata);
+		fcm->edata= NULL;
+	}
 }
 
 static FModifierTypeInfo FMI_CYCLES = {
@@ -1815,12 +1829,48 @@ static FModifierTypeInfo FMI_CYCLES = {
 	NULL, /* copy data */
 	fcm_cycles_new_data, /* new data */
 	NULL /*fcm_cycles_verify*/, /* verify */
+	fcm_cycles_time, /* evaluate time */
 	fcm_cycles_evaluate /* evaluate */
 };
 
 /* Noise F-Curve Modifier  --------------------------- */
 
-#if 0 // XXX not yet implemented 
+static void fcm_noise_new_data (void *mdata)
+{
+	FMod_Noise *data= (FMod_Noise *)mdata;
+	
+	/* defaults */
+	data->size= 1.0f;
+	data->strength= 1.0f;
+	data->phase= 1.0f;
+	data->depth = 0;
+	data->modification = FCM_NOISE_MODIF_REPLACE;
+}
+ 
+static void fcm_noise_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Noise *data= (FMod_Noise *)fcm->data;
+	float noise;
+	
+	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.f, data->depth);
+	
+	switch (data->modification) {
+		case FCM_NOISE_MODIF_ADD:
+			*cvalue= *cvalue + noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_SUBTRACT:
+			*cvalue= *cvalue - noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_MULTIPLY:
+			*cvalue= *cvalue * noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_REPLACE:
+		default:
+			*cvalue= *cvalue + (noise - 0.5f) * data->strength;
+			break;
+	}
+}
+
 static FModifierTypeInfo FMI_NOISE = {
 	FMODIFIER_TYPE_NOISE, /* type */
 	sizeof(FMod_Noise), /* size */
@@ -1832,9 +1882,9 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL, /* copy data */
 	fcm_noise_new_data, /* new data */
 	NULL /*fcm_noise_verify*/, /* verify */
+	NULL, /* evaluate time */
 	fcm_noise_evaluate /* evaluate */
 };
-#endif // XXX not yet implemented
 
 /* Filter F-Curve Modifier --------------------------- */
 
@@ -1850,6 +1900,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL /*fcm_filter_verify*/, /* verify */
+	NULL, /* evlauate time */
 	fcm_filter_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1905,21 +1956,30 @@ static FModifierTypeInfo FMI_PYTHON = {
 	fcm_python_copy, /* copy data */
 	fcm_python_new_data, /* new data */
 	NULL /*fcm_python_verify*/, /* verify */
+	NULL /*fcm_python_time*/, /* evaluate time */
 	fcm_python_evaluate /* evaluate */
 };
 
 
 /* Limits F-Curve Modifier --------------------------- */
 
-static void fcm_limits_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static float fcm_limits_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
 {
 	FMod_Limits *data= (FMod_Limits *)fcm->data;
 	
-	/* time limits first */
+	/* check for the time limits */
 	if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin))
-		*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, data->rect.xmin);
+		return data->rect.xmin;
 	if ((data->flag & FCM_LIMIT_XMAX) && (evaltime > data->rect.xmax))
-		*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, data->rect.xmax);
+		return data->rect.xmax;
+		
+	/* modifier doesn't change time */
+	return evaltime;
+}
+
+static void fcm_limits_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
 	
 	/* value limits now */
 	if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin))
@@ -1938,7 +1998,8 @@ static FModifierTypeInfo FMI_LIMITS = {
 	NULL, /* free data */
 	NULL, /* copy data */
 	NULL, /* new data */
-	NULL /*fcm_python_verify*/, /* verify */
+	NULL, /* verify */
+	fcm_limits_time, /* evaluate time */
 	fcm_limits_evaluate /* evaluate */
 };
 
@@ -1958,7 +2019,7 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
 	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
 	fmodifiersTypeInfo[3]=  &FMI_CYCLES;			/* Cycles F-Curve Modifier */
-	fmodifiersTypeInfo[4]=  NULL/*&FMI_NOISE*/;				/* Apply-Noise F-Curve Modifier */ // XXX unimplemented
+	fmodifiersTypeInfo[4]=  &FMI_NOISE;				/* Apply-Noise F-Curve Modifier */
 	fmodifiersTypeInfo[5]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[6]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
 	fmodifiersTypeInfo[7]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
@@ -2178,9 +2239,11 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
 float evaluate_fcurve (FCurve *fcu, float evaltime) 
 {
 	FModifier *fcm;
-	float cvalue = 0.0f;
+	float cvalue= 0.0f;
+	float devaltime;
 	
 	/* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime" 
+	 * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
 	 *	- this value will also be returned as the value of the 'curve', if there are no keyframes
 	 */
 	if (fcu->driver) {
@@ -2188,11 +2251,37 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		evaltime= cvalue= evaluate_driver(fcu->driver, evaltime);
 	}
 	
-	/* evaluate curve-data */
+	/* evaluate time modifications imposed by some F-Curve Modifiers
+	 *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
+	 *	  several times by modifiers requesting the time be modified, as the final result
+	 *	  would have required using the modified time
+	 *	- modifiers only ever recieve the unmodified time, as subsequent modifiers should be
+	 *	  working on the 'global' result of the modified curve, not some localised segment,
+	 *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
+	 *	- we start from the end of the stack, as only the last one matters for now
+	 */
+	devaltime= evaltime;
+	
+	for (fcm= fcu->modifiers.last; fcm; fcm= fcm->prev) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* only evaluate if there's a callback for this */
+		// TODO: implement the 'influence' control feature...
+		if (fmi && fmi->evaluate_modifier_time) {
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+				devaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+			break;
+		}
+	}
+	
+	/* evaluate curve-data 
+	 *	- 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying 
+	 *	  F-Curve modifier on the stack requested the curve to be evaluated at
+	 */
 	if (fcu->bezt)
-		cvalue= fcurve_eval_keyframes(fcu, fcu->bezt, evaltime);
+		cvalue= fcurve_eval_keyframes(fcu, fcu->bezt, devaltime);
 	else if (fcu->fpt)
-		cvalue= fcurve_eval_samples(fcu, fcu->fpt, evaltime);
+		cvalue= fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 	
 	/* evaluate modifiers */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
@@ -2201,7 +2290,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		/* only evaluate if there's a callback for this */
 		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier) {
-			if ((fcm->flag & FMODIFIER_FLAG_DISABLED) == 0)
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
 		}
 	}

@@ -1573,19 +1573,21 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *lastop;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int items, i;
 	
 	items= BLI_countlist(&wm->operators);
 	if(items==0)
 		return OPERATOR_CANCELLED;
 	
-	head= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
 
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
-		uiMenuItemIntO(head, lastop->type->name, 0, op->type->idname, "index", i);
+		uiItemIntO(layout, lastop->type->name, 0, op->type->idname, "index", i);
 
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -1813,27 +1815,28 @@ static void testfunc(bContext *C, void *argv, int arg)
 	printf("arg %d\n", arg);
 }
 
-static void newlevel1(bContext *C, uiMenuItem *head, void *arg)
+static void newlevel1(bContext *C, uiLayout *layout, void *arg)
 {
-	uiMenuFunc(head, testfunc, NULL);
+	uiLayoutFunc(layout, testfunc, NULL);
 	
-	uiMenuItemVal(head, "First", ICON_PROP_ON, 1);
-	uiMenuItemVal(head, "Second", ICON_PROP_CON, 2);
-	uiMenuItemVal(head, "Third", ICON_SMOOTHCURVE, 3);
-	uiMenuItemVal(head, "Fourth", ICON_SHARPCURVE, 4);	
+	uiItemV(layout, "First", ICON_PROP_ON, 1);
+	uiItemV(layout, "Second", ICON_PROP_CON, 2);
+	uiItemV(layout, "Third", ICON_SMOOTHCURVE, 3);
+	uiItemV(layout, "Fourth", ICON_SHARPCURVE, 4);	
 }
 
 static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Hello world", 0);
+	uiPopupMenu *pup= uiPupMenuBegin("Hello world", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemO(head, ICON_PROP_ON, "SCREEN_OT_region_flip");
-	uiMenuItemO(head, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
-	uiMenuItemO(head, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
-	uiMenuLevel(head, "Submenu", newlevel1);
+	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemO(layout, NULL, ICON_PROP_ON, "SCREEN_OT_region_flip");
+	uiItemO(layout, NULL, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
+	uiItemO(layout, NULL, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
+	uiItemMenuF(layout, "Submenu", 0, newlevel1);
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -2443,6 +2446,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
+	
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", F7KEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	WM_keymap_verify_item(keymap, "SCRIPT_OT_python_run_ui_scripts", F8KEY, KM_PRESS, 0, 0);
 
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_exec", RETKEY, KM_PRESS, 0, 0);

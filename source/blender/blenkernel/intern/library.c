@@ -1102,6 +1102,27 @@ void test_idbutton(char *name)
 	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
 }
 
+void text_idbutton(struct ID *id, char *text)
+{
+	if(id) {
+		if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCE: ");
+        else if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCR: ");
+        else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+			strcpy(text, "NT: ");
+        else {
+			text[0]= id->name[0];
+			text[1]= id->name[1];
+			text[2]= ':';
+			text[3]= ' ';
+			text[4]= 0;
+        }
+	}
+	else
+		strcpy(text, "");
+}
+
 void rename_id(ID *id, char *name)
 {
 	ListBase *lb;

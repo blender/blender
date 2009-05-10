@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -52,38 +53,44 @@
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
 
+/* frees all editmode stuff */
 void ED_editors_exit(bContext *C)
 {
-	Object *ob= CTX_data_edit_object(C);
+	Scene *sce;
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	undo_imagepaint_clear();
 	
-	/* global in meshtools... */
-	mesh_octree_table(ob, NULL, NULL, 'e');
-	
-	if(ob) {
-		if(ob->type==OB_MESH) {
-			Mesh *me= ob->data;
-			if(me->edit_mesh) {
-				free_editMesh(me->edit_mesh);
-				MEM_freeN(me->edit_mesh);
-				me->edit_mesh= NULL;
+	for(sce=G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->obedit) {
+			Object *ob= sce->obedit;
+		
+			/* global in meshtools... */
+			mesh_octree_table(ob, NULL, NULL, 'e');
+			
+			if(ob) {
+				if(ob->type==OB_MESH) {
+					Mesh *me= ob->data;
+					if(me->edit_mesh) {
+						free_editMesh(me->edit_mesh);
+						MEM_freeN(me->edit_mesh);
+						me->edit_mesh= NULL;
+					}
+				}
+				else if(ob->type==OB_ARMATURE) {
+					ED_armature_edit_free(ob);
+				}
+				else if(ob->type==OB_FONT) {
+					//			free_editText();
+				}
+				//		else if(ob->type==OB_MBALL) 
+				//			BLI_freelistN(&editelems);
+				//	free_editLatt();
+				//	free_posebuf();
 			}
 		}
-		else if(ob->type==OB_ARMATURE) {
-			ED_armature_edit_free(ob);
-		}
-		else if(ob->type==OB_FONT) {
-			//			free_editText();
-		}
-		//		else if(ob->type==OB_MBALL) 
-		//			BLI_freelistN(&editelems);
 	}
-	
-	//	free_editLatt();
-	//	free_posebuf();
 	
 }
 

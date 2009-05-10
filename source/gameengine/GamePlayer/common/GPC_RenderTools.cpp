@@ -29,8 +29,6 @@
 
 #include "GL/glew.h"
 
-#include "BMF_Api.h"
-
 #include "DNA_scene_types.h"
 
 #include "RAS_IRenderTools.h"
@@ -61,7 +59,7 @@ unsigned int GPC_RenderTools::m_numgllights;
 
 GPC_RenderTools::GPC_RenderTools()
 {
-	m_font = BMF_GetFont(BMF_kHelvetica10);
+// XXX	m_font = BMF_GetFont(BMF_kHelvetica10);
 
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
 	if (m_numgllights < 8)

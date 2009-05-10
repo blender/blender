@@ -382,6 +382,20 @@ short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* helper callback for columnselect_<animeditor>_keys() -> populate list CfraElems with frame numbers from selected beztriples */
+short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		CfraElem *ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+		BLI_addtail(&bed->list, ce);
+		
+		ce->cfra= bezt->vec[1][0];
+	}
+	
+	return 0;
+}
+
 /* ******************************************* */
 /* Transform */
 
@@ -412,22 +426,22 @@ static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 
 static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 {
-	//if (bezt->f2 & SELECT)
-	//	bezt->vec[1][0]= (float)find_nearest_marker_time(bezt->vec[1][0]);  // XXX missing function!
+	if (bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)ED_markers_find_nearest_marker_time(&bed->list, bezt->vec[1][0]);
 	return 0;
 }
 
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }
 
-// calchandles_ipocurve
+
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
 	/* eEditKeyframes_Snap */

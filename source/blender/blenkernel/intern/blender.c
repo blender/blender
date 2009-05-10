@@ -325,8 +325,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if (bfd->user) {
 		
 		/* only here free userdef themes... */
-		BLI_freelistN(&U.themes);
-
+		BKE_userdef_free();
+		
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
 	}
@@ -412,6 +412,15 @@ static void handle_subversion_warning(Main *main)
 // XXX		error(str);
 	}
 		
+}
+
+void BKE_userdef_free(void)
+{
+	
+	BLI_freelistN(&U.uistyles);
+	BLI_freelistN(&U.uifonts);
+	BLI_freelistN(&U.themes);
+	
 }
 
 /* returns:

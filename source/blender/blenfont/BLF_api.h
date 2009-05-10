@@ -31,11 +31,14 @@
 
 struct rctf;
 
-int BLF_init(void);
+int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
 int BLF_load(char *name);
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
+
+/* Attach a file with metrics information from memory. */
+void BLF_metrics_attach(unsigned char *mem, int mem_size);
 
 /*
  * Set/Get the current font.
@@ -46,6 +49,11 @@ int BLF_get(void);
 void BLF_aspect(float aspect);
 void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
+
+/* Draw the string using the default font, size and dpi. */
+void BLF_draw_default(float x, float y, float z, char *str);
+
+/* Draw the string using the current font. */
 void BLF_draw(char *str);
 
 /*
@@ -63,6 +71,14 @@ float BLF_width(char *str);
 float BLF_height(char *str);
 
 /*
+ * and this two function return the width and height
+ * of the string, using the default font and both value
+ * are multiplied by the aspect of the font.
+ */
+float BLF_width_default(char *str);
+float BLF_height_default(char *str);
+
+/*
  * By default, rotation and clipping are disable and
  * have to be enable/disable using BLF_enable/disable.
  */
@@ -74,25 +90,17 @@ void BLF_blur(int size);
 void BLF_enable(int option);
 void BLF_disable(int option);
 
-/* Read the .Blanguages file, return 1 on success or 0 if fails. */
-int BLF_lang_init(void);
-
-/* Free the memory allocate for the .Blanguages. */
-void BLF_lang_exit(void);
-
-/* Set the current Language. */
-void BLF_lang_set(int id);
-
-/* Return a string with all the Language available. */
-char *BLF_lang_pup(void);
-
-/* Return the number of invalid lines in the .Blanguages file,
- * zero means no error found.
+/*
+ * Search the path directory to the locale files, this try all
+ * the case for Linux, Win and Mac.
  */
-int BLF_lang_error(void);
+void BLF_lang_init(void);
 
-/* Return the code string for the specified language code. */
-char *BLF_lang_find_code(short langid);
+/* Set the current locale. */
+void BLF_lang_set(const char *);
+
+/* Set the current encoding name. */
+void BLF_lang_encoding_name(const char *str);
 
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);

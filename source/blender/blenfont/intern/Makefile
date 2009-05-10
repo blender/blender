@@ -60,16 +60,11 @@ ifeq ($(OS),linux)
     endif
 endif
 
-ifeq ($(WITH_FREETYPE2), true)
-    CPPFLAGS += -DWITH_FREETYPE2
-endif
-
 # Modules
 CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
-CPPFLAGS += -I../../ftfont
 
 # Memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

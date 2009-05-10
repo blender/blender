@@ -34,8 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "IMB_imbuf.h"
 
 
@@ -107,6 +105,7 @@
 #include "UI_interface_icons.h"
 
 #include "WM_api.h"
+#include "BLF_api.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -361,16 +360,15 @@ void drawaxes(float size, int flag, char drawtype)
 			glEnd();
 				
 			v2[axis]+= size*0.125;
-			glRasterPos3fv(v2);
 			
 			// patch for 3d cards crashing on glSelect for text drawing (IBM)
 			if((flag & DRAW_PICKING) == 0) {
 				if (axis==0)
-					BMF_DrawString(G.font, "x");
+					BLF_draw_default(v2[0], v2[1], v2[2], "x");
 				else if (axis==1)
-					BMF_DrawString(G.font, "y");
+					BLF_draw_default(v2[0], v2[1], v2[2], "y");
 				else
-					BMF_DrawString(G.font, "z");
+					BLF_draw_default(v2[0], v2[1], v2[2], "z");
 			}
 		}
 		break;
@@ -1778,7 +1776,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	Mesh *me= ob->data;
 	EditEdge *eed;
 	EditFace *efa;
-	float v1[3], v2[3], v3[3], v4[3];
+	float v1[3], v2[3], v3[3], v4[3], x, y, z;
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
@@ -1818,7 +1816,9 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				VECCOPY(v1, eed->v1->co);
 				VECCOPY(v2, eed->v2->co);
 				
-				glRasterPos3f( 0.5*(v1[0]+v2[0]),  0.5*(v1[1]+v2[1]),  0.5*(v1[2]+v2[2]));
+				x= 0.5*(v1[0]+v2[0]);
+				y= 0.5*(v1[1]+v2[1]);
+				z= 0.5*(v1[2]+v2[2]);
 				
 				if(v3d->flag & V3D_GLOBAL_STATS) {
 					Mat4MulVecfl(ob->obmat, v1);
@@ -1826,7 +1826,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				}
 				
 				sprintf(val, conv_float, VecLenf(v1, v2));
-				BMF_DrawString( G.fonts, val);
+				BLF_draw_default(x, y, z, val);
 			}
 		}
 	}
@@ -1861,8 +1861,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 					area = AreaT3Dfl(v1, v2, v3);
 
 				sprintf(val, conv_float, area);
-				glRasterPos3fv(efa->cent);
-				BMF_DrawString( G.fonts, val);
+				BLF_draw_default(efa->cent[0], efa->cent[1], efa->cent[2], val);
 			}
 		}
 	}
@@ -1904,15 +1903,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
 				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8);
-				glRasterPos3fv(fvec);
-				BMF_DrawString( G.fonts, val);
+				BLF_draw_default(efa->cent[0], efa->cent[1], efa->cent[2], val);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
 				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8);
-				glRasterPos3fv(fvec);
-				BMF_DrawString( G.fonts, val);
+				BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
@@ -1921,16 +1918,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
 				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8);
-				glRasterPos3fv(fvec);
-				BMF_DrawString( G.fonts, val);
+				BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
 					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8);
-					glRasterPos3fv(fvec);
-					BMF_DrawString( G.fonts, val);
+					BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
 				}
 			}
 		}
@@ -3257,9 +3252,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
 						/* in path drawing state.co is the end point */
-						glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
 						sprintf(val," %i",a);
-						BMF_DrawString(G.font, val);
+						BLF_draw_default(state.co[0],  state.co[1],  state.co[2], val);
 					}
 				}
 			}
@@ -3574,9 +3568,8 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
 						if(key->flag & PEK_HIDE) continue;
 
-						glRasterPos3fv(key->world_co);
 						sprintf(val," %.1f",*key->time);
-						BMF_DrawString(G.font, val);
+						BLF_draw_default(key->world_co[0], key->world_co[1], key->world_co[2], val);
 					}
 				}
 			}
@@ -3598,9 +3591,8 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 					glEnd();
 
 					if((pset->flag & PE_SHOW_TIME) && !(G.f & G_RENDER_SHADOW)){
-						glRasterPos3fv(key->world_co);
 						sprintf(val," %.1f",*key->time);
-						BMF_DrawString(G.font, val);
+						BLF_draw_default(key->world_co[0], key->world_co[1], key->world_co[2], val);
 					}
 				}
 			}
@@ -4625,13 +4617,12 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 			glVertex3fv(v1);
 			glVertex3fv(v);			
 			glEnd();
-			glRasterPos3fv(v);
 			if (axis==0)
-				BMF_DrawString(G.font, "px");
+				BLF_draw_default(v[0], v[1], v[2], "px");
 			else if (axis==1)
-				BMF_DrawString(G.font, "py");
+				BLF_draw_default(v[0], v[1], v[2], "py");
 			else
-				BMF_DrawString(G.font, "pz");			
+				BLF_draw_default(v[0], v[1], v[2], "pz");			
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);
@@ -4666,7 +4657,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		/* don't do xray in particle mode, need the z-buffer */
 		if(!(G.f & G_PARTICLEEDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
-			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY)) {
+			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
 				add_view3d_after(v3d, base, V3D_XRAY, flag);
 				return;
 			}
@@ -5051,10 +5042,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
 				if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-				glRasterPos3f(0.0,  0.0,  0.0);
-
-				BMF_DrawString(G.font, " ");
-				BMF_DrawString(G.font, ob->id.name+2);
+				BLF_draw_default(0.0, 0.0, 0.0, " ");
+				BLF_draw_default(0.0 + BLF_width_default(" "), 0.0, 0.0, ob->id.name+2);
 				if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 			}
 		}
@@ -5135,7 +5124,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			char col[4], col2[4];
 			
 			UI_GetThemeColor3ubv(TH_GRID, col);
-			make_axis_color(col, col2, 'z');
+			UI_make_axis_color(col, col2, 'z');
 			glColor3ubv((GLubyte *)col2);
 			
 			cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);

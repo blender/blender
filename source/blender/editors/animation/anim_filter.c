@@ -291,7 +291,10 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	
 	/* get useful default context settings from context */
 	ac->scene= scene;
-	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
+	if (scene) {
+		ac->markers= &scene->markers;		
+		ac->obact= (scene->basact)?  scene->basact->object : NULL;
+	}
 	ac->sa= sa;
 	ac->ar= ar;
 	ac->spacetype= (sa) ? sa->spacetype : 0;
@@ -1195,7 +1198,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short actOk, keyOk, dataOk, matOk;
+			short actOk=1, keyOk=1, dataOk=1, matOk=1;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1204,8 +1207,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 			 */
 			// TODO: if cache is implemented, just check name here, and then 
 			if (filter_mode & ANIMFILTER_VISIBLE) {
-				/* layer visibility */
-				if ((ob->lay & sce->lay)==0) continue;
+				/* layer visibility - we check both object and base, since these may not be in sync yet */
+				if ((sce->lay & (ob->lay|base->lay))==0) continue;
 				
 				/* outliner restrict-flag */
 				if (ob->restrictflag & OB_RESTRICT_VIEW) continue;

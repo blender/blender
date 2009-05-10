@@ -137,9 +137,9 @@ typedef struct SpaceButs {
 	short re_align;
 	
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
-	char pad, flag;
+	char flag, texact;
 	
-	char texact, tab[7];	/* storing tabs for each context */
+	char tab[8];	/* storing tabs for each context */
 		
 } SpaceButs;
 
@@ -418,8 +418,8 @@ typedef struct SpaceImaSel {
 
 /* **************** SPACE DEFINES ********************* */
 
-/* button defines  */
-/* warning: the values of these defines are used in sbuts->tabs[7] */
+/* button defines (deprecated) */
+/* warning: the values of these defines are used in sbuts->tabs[8] */
 /* sbuts->mainb new */
 #define CONTEXT_SCENE	0
 #define CONTEXT_OBJECT	1
@@ -429,7 +429,7 @@ typedef struct SpaceImaSel {
 #define CONTEXT_SCRIPT	5
 #define CONTEXT_LOGIC	6
 
-/* sbuts->mainb old */
+/* sbuts->mainb old (deprecated) */
 #define BUTS_VIEW			0
 #define BUTS_LAMP			1
 #define BUTS_MAT			2
@@ -446,7 +446,7 @@ typedef struct SpaceImaSel {
 #define BUTS_CONSTRAINT		13
 #define BUTS_EFFECTS		14
 
-/* sbuts->tab new */
+/* sbuts->tab new (deprecated) */
 #define TAB_SHADING_MAT 	0
 #define TAB_SHADING_TEX 	1
 #define TAB_SHADING_RAD 	2

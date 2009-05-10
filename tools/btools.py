@@ -49,7 +49,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
-			'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
@@ -235,7 +234,7 @@ def read_opts(cfg, args):
 		('BF_ZLIB_LIB', 'ZLib library', ''),
 		('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', True)),
+		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
 
 		('BF_GETTEXT', 'gettext base path', ''),
 		('BF_GETTEXT_INC', 'gettext include path', ''),
@@ -308,11 +307,6 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 		
-		(BoolVariable('WITH_BF_FTGL', 'Use FTGL if true', True)),
-		('BF_FTGL', 'FTGL base path', ''),
-		('BF_FTGL_INC', 'FTGL include path', ''),
-		('BF_FTGL_LIB', 'FTGL libraries', ''),
-
 		(BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
 		(BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 

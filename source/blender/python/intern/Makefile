@@ -42,7 +42,6 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 # PreProcessor stuff 
 
 CPPFLAGS += -I$(NAN_GHOST)/include
-CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
 
 # modules
