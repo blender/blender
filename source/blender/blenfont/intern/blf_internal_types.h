@@ -140,14 +140,8 @@ typedef struct FontBLF {
 	/* filename or NULL. */
 	char *filename;
 
-	/* font type, can be freetype2 or internal. */
-	int type;
-
 	/* draw mode, texture or bitmap. */
 	int mode;
-
-	/* reference count. */
-	int ref;
 
 	/* aspect ratio or scale. */
 	float aspect;
@@ -185,35 +179,9 @@ typedef struct FontBLF {
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
 
-	/* engine data. */
-	void *engine;
-
-	/* engine functions. */
-	void (*size_set)(struct FontBLF *, int, int);
-	void (*draw)(struct FontBLF *, char *);
-	void (*boundbox_get)(struct FontBLF *, char *, rctf *);
-	float (*width_get)(struct FontBLF *, char *);
-	float (*height_get)(struct FontBLF *, char *);
-	void (*free)(struct FontBLF *);
+	/* freetype2 face. */
+	FT_Face face;
 } FontBLF;
-
-typedef struct CharDataBLF {
-	signed char width, height;
-	signed char xorig, yorig;
-	signed char advance;
-	
-	short data_offset;
-} CharDataBLF;
-
-typedef struct FontDataBLF {
-	int xmin, ymin;
-	int xmax, ymax;
-
-	CharDataBLF chars[256];
-	unsigned char *bitmap_data;
-
-	GLuint texid;
-} FontDataBLF;
 
 typedef struct DirBLF {
 	struct DirBLF *next;

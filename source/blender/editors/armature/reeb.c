@@ -53,8 +53,6 @@
 
 //#include "BDR_editobject.h"
 
-#include "BMF_Api.h"
-
 #include "ED_mesh.h"
 #include "ED_armature.h"
 //#include "BIF_interface.h"

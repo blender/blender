@@ -7,7 +7,6 @@ SET(INC
   ../../../intern/string
   ../../../intern/guardedalloc
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
-  ../../../intern/bmfont
   ../../../source/gameengine/Converter
   ../../../source/blender/imbuf
   ../../../intern/ghost/include
@@ -15,6 +14,7 @@ SET(INC
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel 
+  ../../../source/blender/blenfont
   ../../../source/blender/editors/include
   ../../../source/blender/windowmanager
   ../../../source/blender 

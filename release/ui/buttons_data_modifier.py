@@ -6,6 +6,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "data"
 
+	def poll(self, context):
+		ob = context.active_object
+		return (ob and ob.type in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'LATTICE'))
+		
 class DATA_PT_modifiers(DataButtonsPanel):
 	__idname__ = "DATA_PT_modifiers"
 	__label__ = "Modifiers"
@@ -32,11 +36,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			sub.itemR(md, "editmode", text="")
 			sub.itemR(md, "on_cage", text="")
 
-			if md.expanded:
+			if (md.expanded):
 				sub.row()
 				sub.itemS()
 
-				if md.type == "ARMATURE":
+				if (md.type == 'ARMATURE'):
 					self.armature(sub, md)
 
 	def armature(self, layout, md):
@@ -51,6 +55,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "quaternion")
 		layout.itemR(md, "b_bone_rest")
 		layout.itemR(md, "multi_modifier")
-
+		
 bpy.types.register(DATA_PT_modifiers)
+
 

@@ -3564,7 +3564,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLEINSTANCE); break;
+						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_ParticleInstance:
 						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_EdgeSplit:
@@ -3593,6 +3593,12 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
 					case eModifierType_Explode:
 						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
+					case eModifierType_Collision:
+						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
+					case eModifierType_Fluidsim:
+						UI_icon_draw(x, y, ICON_MOD_FLUIDSIM); break;
+					case eModifierType_Multires:
+						UI_icon_draw(x, y, ICON_MOD_MULTIRES); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
@@ -3982,6 +3988,9 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	float col[4];
 	
 #if 0 // XXX was #ifdef INTERNATIONAL
+	/* Maybe the INTERNATIONAL was really for check about freetype2 ?
+	 * anyway I think that we can remove this now - Diego
+	 */
 	FTF_SetFontSize('l');
 	BIF_SetScale(1.0);
 #endif

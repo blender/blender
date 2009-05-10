@@ -30,14 +30,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef WITH_FREETYPE2
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-
-#endif /* WITH_FREETYPE2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -58,8 +54,6 @@
 #include "blf_internal.h"
 
 
-#ifdef WITH_FREETYPE2
-
 /* freetype2 handle. */
 FT_Library global_ft_lib;
 
@@ -78,7 +72,7 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 	GlyphCacheBLF *gc;
 	FT_Error err;
 
-	err= FT_Set_Char_Size((FT_Face)font->engine, 0, (size * 64), dpi, dpi);
+	err= FT_Set_Char_Size(font->face, 0, (size * 64), dpi, dpi);
 	if (err) {
 		/* FIXME: here we can go through the fixed size and choice a close one */
 		printf("The current font don't support the size, %d and dpi, %d\n", size, dpi);
@@ -105,7 +99,6 @@ void blf_font_draw(FontBLF *font, char *str)
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_Face face;
 	FT_UInt glyph_index, g_prev_index;
 	int pen_x, pen_y;
 	int i, has_kerning;
@@ -113,11 +106,10 @@ void blf_font_draw(FontBLF *font, char *str)
 	if (!font->glyph_cache)
 		return;
 
-	face= (FT_Face)font->engine;
 	i= 0;
 	pen_x= 0;
 	pen_y= 0;
-	has_kerning= FT_HAS_KERNING(face);
+	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 	g_prev_index= 0;
 
@@ -126,7 +118,7 @@ void blf_font_draw(FontBLF *font, char *str)
 		if (c == 0)
 			break;
 
-		glyph_index= FT_Get_Char_Index(face, c);
+		glyph_index= FT_Get_Char_Index(font->face, c);
 		g= blf_glyph_search(font->glyph_cache, c);
 		if (!g)
 			g= blf_glyph_add(font, glyph_index, c);
@@ -150,7 +142,7 @@ void blf_font_draw(FontBLF *font, char *str)
 			delta.x= 0;
 			delta.y= 0;
 
-			FT_Get_Kerning(face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
 			pen_x += delta.x >> 6;
 		}
 
@@ -169,7 +161,6 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
-	FT_Face face;
 	rctf gbox;
 	int pen_x, pen_y;
 	int i, has_kerning;
@@ -177,7 +168,6 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	if (!font->glyph_cache)
 		return;
 
-	face= (FT_Face)font->engine;
 	box->xmin= 32000.0f;
 	box->xmax= -32000.0f;
 	box->ymin= 32000.0f;
@@ -186,7 +176,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	i= 0;
 	pen_x= 0;
 	pen_y= 0;
-	has_kerning= FT_HAS_KERNING(face);
+	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 	g_prev_index= 0;
 
@@ -195,7 +185,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 		if (c == 0)
 			break;
 
-		glyph_index= FT_Get_Char_Index(face, c);
+		glyph_index= FT_Get_Char_Index(font->face, c);
 		g= blf_glyph_search(font->glyph_cache, c);
 		if (!g)
 			g= blf_glyph_add(font, glyph_index, c);
@@ -219,7 +209,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 			delta.x= 0;
 			delta.y= 0;
 
-			FT_Get_Kerning(face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
 			pen_x += delta.x >> 6;
 		}
 
@@ -284,7 +274,7 @@ void blf_font_free(FontBLF *font)
 		blf_glyph_cache_free(gc);
 	}
 
-	FT_Done_Face((FT_Face)font->engine);
+	FT_Done_Face(font->face);
 	if (font->filename)
 		MEM_freeN(font->filename);
 	if (font->name)
@@ -294,9 +284,7 @@ void blf_font_free(FontBLF *font)
 
 void blf_font_fill(FontBLF *font)
 {
-	font->type= BLF_FONT_FREETYPE2;
 	font->mode= BLF_MODE_TEXTURE;
-	font->ref= 1;
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
@@ -312,76 +300,75 @@ void blf_font_fill(FontBLF *font)
 	font->cache.first= NULL;
 	font->cache.last= NULL;
 	font->glyph_cache= NULL;
+	font->blur= 0;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
-
-	font->size_set= blf_font_size;
-	font->draw= blf_font_draw;
-	font->boundbox_get= blf_font_boundbox;
-	font->width_get= blf_font_width;
-	font->height_get= blf_font_height;
-	font->free= blf_font_free;
 }
 
 FontBLF *blf_font_new(char *name, char *filename)
 {
 	FontBLF *font;
 	FT_Error err;
-	FT_Face face;
+	char *mfile;
 
-	err= FT_New_Face(global_ft_lib, filename, 0, &face);
-	if (err)
-		return(NULL);
-
-	err= FT_Select_Charmap(face, ft_encoding_unicode);
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
+	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
 	if (err) {
-		printf("Can't set the unicode character map!\n");
-		FT_Done_Face(face);
+		MEM_freeN(font);
 		return(NULL);
 	}
 
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
+	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
+	if (err) {
+		printf("Can't set the unicode character map!\n");
+		FT_Done_Face(font->face);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
+	mfile= blf_dir_metrics_search(filename);
+	if (mfile) {
+		err= FT_Attach_File(font->face, mfile);
+		MEM_freeN(mfile);
+	}
+
 	font->name= BLI_strdup(name);
 	font->filename= BLI_strdup(filename);
-	font->engine= (void *)face;
 	blf_font_fill(font);
 	return(font);
+}
+
+void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size)
+{
+	FT_Open_Args open;
+
+	open.flags= FT_OPEN_MEMORY;
+	open.memory_base= (FT_Byte *)mem;
+	open.memory_size= mem_size;
+	FT_Attach_Stream(font->face, &open);
 }
 
 FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	FT_Error err;
-	FT_Face face;
 
-	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &face);
-	if (err)
-		return(NULL);
-
-	err= FT_Select_Charmap(face, ft_encoding_unicode);
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
+	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
-		printf("Can't set the unicode character map!\n");
-		FT_Done_Face(face);
+		MEM_freeN(font);
 		return(NULL);
 	}
 
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
+	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
+	if (err) {
+		printf("Can't set the unicode character map!\n");
+		FT_Done_Face(font->face);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
 	font->name= BLI_strdup(name);
 	font->filename= NULL;
-	font->engine= (void *)face;
-	font->blur= 0;
 	blf_font_fill(font);
 	return(font);
 }
-
-#else /* !WITH_FREETYPE2 */
-
-int blf_font_init(void)
-{
-	return(0);
-}
-
-void blf_font_exit(void)
-{
-}
-
-#endif /* WITH_FREETYPE2 */

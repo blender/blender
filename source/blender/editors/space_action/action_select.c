@@ -74,6 +74,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
@@ -389,21 +390,19 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc select_cb;
+	BeztEditFunc ok_cb, select_cb;
 	BeztEditData bed;
 	float min, max;
 	
 	/* get extreme markers */
-	//get_minmax_markers(1, &min, &max); // FIXME... add back markers api!
-	min= (float)ac->scene->r.sfra; // xxx temp code
-	max= (float)ac->scene->r.efra; // xxx temp code
-	
-	if (min==max) return;
+	ED_markers_get_minmax(ac->markers, 1, &min, &max);
 	min -= 0.5f;
 	max += 0.5f;
 	
 	/* get editing funcs + data */
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
+	
 	memset(&bed, 0, sizeof(BeztEditData));
 	bed.f1= min; 
 	bed.f2= max;
@@ -418,11 +417,11 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		
 		if (nob) {	
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		else {
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 		}
 	}
 	
@@ -430,21 +429,6 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	BLI_freelistN(&anim_data);
 }
 
-
-/* helper callback for columnselect_action_keys() -> populate list CfraElems with frame numbers from selected beztriples */
-// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
-static short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
-{
-	/* only if selected */
-	if (bezt->f2 & SELECT) {
-		CfraElem *ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
-		BLI_addtail(&bed->list, ce);
-		
-		ce->cfra= bezt->vec[1][0];
-	}
-	
-	return 0;
-}
 
 /* Selects all visible keyframes in the same frames as the specified elements */
 static void columnselect_action_keys (bAnimContext *ac, short mode)
@@ -490,9 +474,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 			break;
 			
 		case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-			// FIXME: markers api needs to be improved for this first!
-			//make_marker_cfra_list(&elems, 1);
-			return; // XXX currently, this does nothing!
+			ED_markers_make_cfra_list(ac->markers, &bed.list, 1);
 			break;
 			
 		default: /* invalid option */
@@ -509,7 +491,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -784,6 +766,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	if (ale == NULL) {
 		/* channel not found */
 		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+		return;
 	}
 	else {
 		/* found match - must return here... */

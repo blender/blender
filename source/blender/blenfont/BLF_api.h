@@ -31,11 +31,14 @@
 
 struct rctf;
 
-int BLF_init(void);
+int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
 int BLF_load(char *name);
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
+
+/* Attach a file with metrics information from memory. */
+void BLF_metrics_attach(unsigned char *mem, int mem_size);
 
 /*
  * Set/Get the current font.
@@ -43,15 +46,14 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
 void BLF_set(int fontid);
 int BLF_get(void);
 
-/*
- * Return the font type, can be freetype2 or internal, -1 if
- * some error happen (no current font).
- */
-int BLF_type_get(void);
-
 void BLF_aspect(float aspect);
 void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
+
+/* Draw the string using the default font, size and dpi. */
+void BLF_draw_default(float x, float y, float z, char *str);
+
+/* Draw the string using the current font. */
 void BLF_draw(char *str);
 
 /*
@@ -67,6 +69,14 @@ void BLF_boundbox(char *str, struct rctf *box);
  */
 float BLF_width(char *str);
 float BLF_height(char *str);
+
+/*
+ * and this two function return the width and height
+ * of the string, using the default font and both value
+ * are multiplied by the aspect of the font.
+ */
+float BLF_width_default(char *str);
+float BLF_height_default(char *str);
 
 /*
  * By default, rotation and clipping are disable and
@@ -111,9 +121,5 @@ void BLF_dir_free(char **dirs, int count);
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0
 #define BLF_MODE_BITMAP 1
-
-/* font->type */
-#define BLF_FONT_FREETYPE2 0
-#define BLF_FONT_INTERNAL 1
 
 #endif /* BLF_API_H */

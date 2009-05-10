@@ -1723,6 +1723,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 			/* relink general data */
 			fcm->data = newdataadr(fd, fcm->data);
+			fcm->edata= NULL;
 			
 			/* do relinking of data for specific types */
 			switch (fcm->type) {
@@ -4088,6 +4089,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	
+	/* we must firstly have some grease-pencil data to link! */
+	if (gpd == NULL)
+		return;
 	
 	/* relink layers */
 	link_list(fd, &gpd->layers);

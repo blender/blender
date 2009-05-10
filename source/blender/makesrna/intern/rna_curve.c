@@ -32,6 +32,19 @@
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
 
+EnumPropertyItem beztriple_handle_type_items[] = {
+		{HD_FREE, "FREE", "Free", ""},
+		{HD_AUTO, "AUTO", "Auto", ""},
+		{HD_VECT, "VECTOR", "Vector", ""},
+		{HD_ALIGN, "ALIGNED", "Aligned", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", "Auto Clamped", ""},
+		{0, NULL, NULL, NULL}};
+EnumPropertyItem beztriple_interpolation_mode_items[] = {
+		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
+		{BEZT_IPO_BEZ, "BEZIER", "Bezier", ""},
+		{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
@@ -160,18 +173,6 @@ static void rna_def_beztriple(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_handle_type_items[] = {
-		{HD_FREE, "FREE", "Free", ""},
-		{HD_AUTO, "AUTO", "Auto", ""},
-		{HD_VECT, "VECTOR", "Vector", ""},
-		{HD_ALIGN, "ALIGNED", "Aligned", ""},
-		{HD_AUTO_ANIM, "AUTO_CLAMPED", "Auto Clamped", ""},
-		{0, NULL, NULL, NULL}};
-	static EnumPropertyItem prop_mode_interpolation_items[] = {
-		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
-		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
-		{BEZT_IPO_BEZ, "BEZIER", "Bezier", ""},
-		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BezierCurvePoint", NULL);
 	RNA_def_struct_sdna(srna, "BezTriple");
@@ -197,18 +198,18 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	/* Enums */
 	prop= RNA_def_property(srna, "handle1_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
-	RNA_def_property_enum_items(prop, prop_handle_type_items);
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
 
 	prop= RNA_def_property(srna, "handle2_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
-	RNA_def_property_enum_items(prop, prop_handle_type_items);
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
+	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "(For F-Curves Only) Interpolation to use for segment of curve starting from current BezTriple.");
 
 	/* Vector values */

@@ -121,36 +121,49 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 	if(but->rnapoin.data && but->rnaprop) {
 		pup= uiPupMenuBegin(RNA_property_ui_name(but->rnaprop), 0);
 		layout= uiPupMenuLayout(pup);
-
+		
 		length= RNA_property_array_length(but->rnaprop);
-
+		
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {
+				uiItemBooleanO(layout, "Replace Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
+				uiItemBooleanO(layout, "Replace Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 				uiItemBooleanO(layout, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
 				uiItemBooleanO(layout, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
-				
-				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 			else {
+				uiItemBooleanO(layout, "Replace Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
 				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
-				
-				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 		}
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			if(length) {
 				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
 				uiItemBooleanO(layout, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				
+			}
+			else 
+				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+		}
+		
+		if(but->flag & UI_BUT_DRIVEN) {
+			uiItemS(layout);
+			
+			if(length) {
+				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+			}
+			else
+				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+		}
+		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			uiItemS(layout);
+			
+			if(length) {
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 1);
 				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
-			else {
-				uiItemBooleanO(layout, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
-				
+			else
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
-			}
 		}
 
 		uiPupMenuEnd(C, pup);

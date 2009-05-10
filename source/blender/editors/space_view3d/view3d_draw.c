@@ -69,9 +69,9 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BMF_Api.h"
 
 #include "WM_api.h"
+#include "BLF_api.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -558,8 +558,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "x");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
 	}
 	
 	/* Y */
@@ -579,8 +578,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "y");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
 	}
 	
 	/* Z */
@@ -600,8 +598,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
-		BMF_DrawString(G.fonts, "z");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z");
 	}
 	
 	/* restore line-width */
@@ -693,8 +690,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (printable) {
 		UI_ThemeColor(TH_TEXT_HI);
-		glRasterPos2i(10,  ar->winy-20);
-		BMF_DrawString(G.fonts, printable);
+		BLF_draw_default(10,  ar->winy-20, 0.0f, printable);
 	}
 
 	if (v3d->localview) {
@@ -799,7 +795,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-	if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
+		if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -817,9 +813,8 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = 14 + (U.rvisize * 2);
-	
-	glRasterPos2i(offset,  10);
-	BMF_DrawString(G.fonts, info);
+
+	BLF_draw_default(offset,  10, 0.0f, info);
 }
 
 static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2])
@@ -999,9 +994,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		glRasterPos2f(x1, y1-15);
-		
-		BMF_DrawString(G.font, v3d->camera->id.name+2);
+		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
 		UI_ThemeColor(TH_WIRE);
 	}
 	

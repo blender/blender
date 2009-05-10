@@ -171,11 +171,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 		xofs= rect->xmax - rect->xmin - BLF_width(str);
 	
 	/* clip is very strict, so we give it some space */
-	if (BLF_type_get() == BLF_FONT_INTERNAL)
-		BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+8, rect->ymax+4);
-	else
-		BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
-
+	BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
 	BLF_enable(BLF_CLIPPING);
 	
 	if(fs->shadow) 
@@ -240,18 +236,13 @@ void uiStyleInit(void)
 				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		}
 
-		if (font->blf_id == -1) {
-			/* when all fail, we go back to the internal font. */
-			font->blf_id= BLF_load_mem("helv", NULL, 0);
-		}
-
 		if (font->blf_id == -1)
 			printf("uiStyleInit error, no fonts available\n");
 		else {
 			BLF_set(font->blf_id);
 			/* ? just for speed to initialize?
-			 * Yes but only if we used the freetype2 library,
-			 * this build the glyph cache and create the texture.
+			 * Yes, this build the glyph cache and create
+			 * the texture.
 			 */
 			BLF_size(11, U.dpi);
 			BLF_size(12, U.dpi);

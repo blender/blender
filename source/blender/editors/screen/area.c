@@ -50,12 +50,11 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BLF_api.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "BMF_Api.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -270,8 +269,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		UI_ThemeColor(TH_TEXT);
-		glRasterPos2i(20, 6);
-		BMF_DrawString(G.font, ar->headerstr);
+		BLF_draw_default(20, 6, 0.0f, ar->headerstr);
 	}
 	else if(at->draw) {
 		at->draw(C, ar);

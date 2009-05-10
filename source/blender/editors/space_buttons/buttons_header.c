@@ -156,16 +156,16 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 
 	if(ob) {
 		switch(ob->type) {
-			case OB_EMPTY: dataicon= ICON_OUTLINER_OB_EMPTY; break;
-			case OB_MESH: dataicon= ICON_OUTLINER_OB_MESH; break;
-			case OB_CURVE: dataicon= ICON_OUTLINER_OB_CURVE; break;
-			case OB_SURF: dataicon= ICON_OUTLINER_OB_SURFACE; break;
-			case OB_FONT: dataicon= ICON_OUTLINER_OB_FONT; break;
-			case OB_MBALL: dataicon= ICON_OUTLINER_OB_META; break;
-			case OB_LAMP: dataicon= ICON_OUTLINER_OB_LAMP; break;
-			case OB_CAMERA: dataicon= ICON_OUTLINER_OB_CAMERA; break;
-			case OB_LATTICE: dataicon= ICON_OUTLINER_OB_LATTICE; break;
-			case OB_ARMATURE: dataicon= ICON_OUTLINER_OB_ARMATURE; break;
+			case OB_EMPTY: dataicon= ICON_EMPTY_DATA; break;
+			case OB_MESH: dataicon= ICON_MESH_DATA; break;
+			case OB_CURVE: dataicon= ICON_CURVE_DATA; break;
+			case OB_SURF: dataicon= ICON_SURFACE_DATA; break;
+			case OB_FONT: dataicon= ICON_FONT_DATA; break;
+			case OB_MBALL: dataicon= ICON_META_DATA; break;
+			case OB_LAMP: dataicon= ICON_LAMP_DATA; break;
+			case OB_CAMERA: dataicon= ICON_CAMERA_DATA; break;
+			case OB_LATTICE: dataicon= ICON_LATTICE_DATA; break;
+			case OB_ARMATURE: dataicon= ICON_ARMATURE_DATA; break;
 			default: break;
 		}
 	}
@@ -179,9 +179,12 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
 	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
 		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+	if(ob && ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_LAMP))
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
 	if(ob && ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+
+	if(ob && ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_EMPTY))
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
 	
 	xco+= XIC;

@@ -46,13 +46,16 @@ class WORLD_PT_mist(WorldButtonsPanel):
 
 		layout.row()
 		layout.itemR(world.mist, "enabled", text="Enable")
-		layout.itemR(world.mist, "falloff")
+		if (world.mist.enabled):
 	
-		layout.column_flow()
-		layout.itemR(world.mist, "start")
-		layout.itemR(world.mist, "depth")
-		layout.itemR(world.mist, "height")
-		layout.itemR(world.mist, "intensity")
+			layout.column_flow()
+			layout.itemR(world.mist, "start")
+			layout.itemR(world.mist, "depth")
+			layout.itemR(world.mist, "height")
+			layout.itemR(world.mist, "intensity")
+			layout.column()
+			layout.itemL(text="Fallof:")
+			layout.itemR(world.mist, "falloff", expand=True)
 		
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
@@ -63,12 +66,13 @@ class WORLD_PT_stars(WorldButtonsPanel):
 
 		layout.row()
 		layout.itemR(world.stars, "enabled", text="Enable")
+		if (world.stars.enabled):
 
-		layout.column_flow()
-		layout.itemR(world.stars, "size")
-		layout.itemR(world.stars, "min_distance", text="MinDist")
-		layout.itemR(world.stars, "average_separation", text="StarDist")
-		layout.itemR(world.stars, "color_randomization", text="Colnoise")
+			layout.column_flow()
+			layout.itemR(world.stars, "size")
+			layout.itemR(world.stars, "min_distance", text="MinDist")
+			layout.itemR(world.stars, "average_separation", text="StarDist")
+			layout.itemR(world.stars, "color_randomization", text="Colnoise")
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
@@ -81,46 +85,47 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		
 		layout.row()
 		layout.itemR(ao, "enabled", text="Enable")
+		if (ao.enabled):
 
-		layout.row()
-		layout.itemR(ao, "gather_method", expand=True)
-		
-		if ao.gather_method == 'RAYTRACE':
 			layout.row()
-			layout.itemR(ao, "samples")
-			layout.itemR(ao, "distance")
+			layout.itemR(ao, "gather_method", expand=True)
 			
-			layout.row()
-			layout.itemR(ao, "sample_method")
-			if ao.sample_method == 'ADAPTIVE_QMC':
+			if ao.gather_method == 'RAYTRACE':
 				layout.row()
-				layout.itemR(ao, "threshold")
-				layout.itemR(ao, "adapt_to_speed")
+				layout.itemR(ao, "samples")
+				layout.itemR(ao, "distance")
 				
-			if ao.sample_method == 'CONSTANT_JITTERED':
 				layout.row()
-				layout.itemR(ao, "bias")
-						
-		if ao.gather_method == 'APPROXIMATE':
-			layout.row()
-			layout.itemR(ao, "passes")
-			layout.itemR(ao, "error_tolerance")
-			
-			layout.row()
-			layout.itemR(ao, "correction")
-			layout.itemR(ao, "pixel_cache")
+				layout.itemR(ao, "sample_method")
+				if ao.sample_method == 'ADAPTIVE_QMC':
+					layout.row()
+					layout.itemR(ao, "threshold")
+					layout.itemR(ao, "adapt_to_speed")
+					
+				if ao.sample_method == 'CONSTANT_JITTERED':
+					layout.row()
+					layout.itemR(ao, "bias")
+							
+			if ao.gather_method == 'APPROXIMATE':
+				layout.row()
+				layout.itemR(ao, "passes")
+				layout.itemR(ao, "error_tolerance")
+				
+				layout.row()
+				layout.itemR(ao, "correction")
+				layout.itemR(ao, "pixel_cache")
 
-		layout.row()
-		layout.itemS()
+			layout.row()
+			layout.itemS()
+				
+			layout.row()
+			layout.itemR(ao, "falloff")	
+			layout.itemR(ao, "strength")
 			
-		layout.row()
-		layout.itemR(ao, "falloff")	
-		layout.itemR(ao, "strength")
-		
-		layout.column()
-		layout.itemR(ao, "blend_mode", expand=True)
-		layout.itemR(ao, "color", expand=True)
-		layout.itemR(ao, "energy")
+			layout.column()
+			layout.itemR(ao, "blend_mode", expand=True)
+			layout.itemR(ao, "color", expand=True)
+			layout.itemR(ao, "energy")
 	
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_mist)

@@ -33,8 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -67,6 +65,8 @@
 #include "ED_types.h"
 
 #include "gpencil_intern.h"
+
+#if 0 // XXX disabled until grease pencil code stabilises again
 
 /* XXX */
 static void actdata_filter() {} // is now ANIM_animdata_filter()
@@ -507,7 +507,8 @@ void paste_gpdata (Scene *scene)
 				ScrArea *sa;
 				
 				/* get area that gp-data comes from */
-				sa= gpencil_data_findowner((bGPdata *)ale->owner);				
+				//sa= gpencil_data_findowner((bGPdata *)ale->owner);	
+				sa = NULL;
 				
 				/* this should be the right frame... as it may be a pre-existing frame, 
 				 * must make sure that only compatible stroke types get copied over 
@@ -738,3 +739,4 @@ void mirror_gplayer_frames (bGPDlayer *gpl, Scene *scene, short mode)
 }
 
 /* ***************************************** */
+#endif // XXX disabled until Grease Pencil code stabilises again...

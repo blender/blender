@@ -59,8 +59,6 @@ CPPFLAGS += -I../../editors/include
 # to include the render stuff:
 CPPFLAGS += -I../../render/extern/include
 
-# for image stamping
-CPPFLAGS += -I$(NAN_BMFONT)/include
 # for sound
 #CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS +=  $(NAN_SDLCFLAGS)
@@ -85,12 +83,8 @@ CPPFLAGS += -I..
 
 # path to bullet2, for cloth
 CPPFLAGS += -I../../../../extern/bullet2/src
-
-ifeq ($(WITH_FREETYPE2), true)
-    CPPFLAGS += -DWITH_FREETYPE2
-    CPPFLAGS += -I$(NAN_FREETYPE)/include
-    CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
-endif
+CPPFLAGS += -I$(NAN_FREETYPE)/include
+CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG

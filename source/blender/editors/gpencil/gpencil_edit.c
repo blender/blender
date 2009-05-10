@@ -33,8 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -524,6 +522,7 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 }
 
 /* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
+// XXX depreceated... we now have etch-a-ton for this...
 static void gp_layer_to_armature (bGPdata *gpd, bGPDlayer *gpl, Scene *scene, View3D *v3d, short mode)
 {
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, scene->r.cfra, 0);
@@ -620,21 +619,6 @@ void gpencil_convert_operation (short mode)
 	
 	/* redraw and undo-push */
 	BIF_undo_push("GPencil Convert");
-}
-
-/* display a menu for converting grease-pencil strokes */
-void gpencil_convert_menu (void)
-{
-	bGPdata *gpd= gpencil_data_getactive(NULL);
-	short mode;
-	
-	/* only show menu if it will be relevant */
-	if (gpd == NULL) return;
-	
-	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Path%x1|Active Layer to Bezier%x2|Active Layer to Armature%x3");
-	if (mode <= 0) return;
-	
-	gpencil_convert_operation(mode);
 }
 
 /* ************************************************** */

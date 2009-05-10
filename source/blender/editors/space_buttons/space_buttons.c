@@ -237,6 +237,7 @@ static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_OB_ACTIVE:
 					ED_region_tag_redraw(ar);
 					break;
 			}

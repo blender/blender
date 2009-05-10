@@ -14,22 +14,25 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		layout = self.layout
 
 		rd = scene.render_data
-
-		layout.column_flow()
-		layout.itemR(rd, "render_shadows", text="Shadows")
-		layout.itemR(rd, "render_sss", text="SSS")
-		layout.itemR(rd, "render_envmaps", text="EnvMap")
-		layout.itemR(rd, "render_radiosity", text="Radio")
 		
-		layout.row()
-		layout.itemR(rd, "render_raytracing", text="Ray Tracing")
-		layout.itemR(rd, "octree_resolution")
-
-		layout.row()
-		layout.itemR(rd, "alpha_mode")
-		layout.row()
-		layout.itemR(rd, "free_image_textures")
-
+		layout.split(number=2)
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemR(rd, "render_shadows", text="Shadows")
+		sub.itemR(rd, "render_sss", text="SSS")
+		sub.itemR(rd, "render_envmaps", text="EnvMap")
+		sub.itemR(rd, "render_radiosity", text="Radio")
+		
+		sub = layout.sub(1)
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemR(rd, "render_raytracing", text="Ray Tracing")
+		if (rd.render_raytracing):
+			subsub.itemR(rd, "octree_resolution", text="Octree")
+		sub.row()
+		sub.itemR(rd, "alpha_mode")
+		
 class RENDER_PT_image(RenderButtonsPanel):
 	__label__ = "Image"
 
@@ -44,22 +47,17 @@ class RENDER_PT_image(RenderButtonsPanel):
 		layout.itemR(rd, "resolution_y", text="SizeY")
 		layout.itemR(rd, "pixel_aspect_x", text="AspX")
 		layout.itemR(rd, "pixel_aspect_y", text="AspY")
-		
-		layout.row()
-		layout.itemR(rd, "quality")
-		layout.itemR(rd, "color_mode")
-		
-		layout.row()
-		layout.itemR(rd, "image_type")
-		
-		layout.row()
-		layout.itemR(rd, "placeholders")
-		layout.itemR(rd, "no_overwrite")
-		layout.itemR(rd, "file_extensions")
-		
-		layout.row()
-		layout.itemR(rd, "crop_to_border")
 
+		sub = layout.box()
+		sub.row()
+		sub.itemR(rd, "image_type")
+		sub.row()
+		sub.itemR(rd, "file_extensions")
+		sub.itemR(rd, "color_mode")
+		if rd.image_type in ("AVIJPEG", "JPEG"):
+			sub.row()
+			sub.itemR(rd, "quality")
+	
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
@@ -71,16 +69,18 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 		layout.row()
 		layout.itemR(rd, "antialiasing", text="Enable")
-		layout.itemR(rd, "filter_size")
-		layout.row()
-		layout.itemR(rd, "pixel_filter")
-		layout.itemR(rd, "antialiasing_samples", text="Samples")
-		
-		
-		layout.row()
-		layout.itemR(rd, "save_buffers")
-		if (rd.save_buffers):
-			layout.itemR(rd, "full_sample")
+		if (rd.antialiasing):
+			layout.row()
+			layout.itemL(text="Samples:")
+			layout.itemR(rd, "antialiasing_samples", expand=True)
+			layout.row()
+			layout.itemR(rd, "pixel_filter")
+			layout.itemR(rd, "filter_size")
+
+			layout.row()
+			layout.itemR(rd, "save_buffers")
+			if (rd.save_buffers):
+				layout.itemR(rd, "full_sample")
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
@@ -97,11 +97,11 @@ class RENDER_PT_render(RenderButtonsPanel):
 
 		layout.row()
 		layout.itemR(scene, "start_frame", text="Start")
-		layout.itemR(scene, "end_frame", text="End")
+		layout.itemR(rd, "fps")
 		layout.itemR(scene, "current_frame", text="Frame")
 		
 		layout.row()
-		layout.itemR(rd, "fps")
+		layout.itemR(scene, "end_frame", text="End")
 		layout.itemR(rd, "fps_base",text="/")
 		layout.itemR(scene, "frame_step", text="Step")
 
@@ -117,23 +117,43 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.itemR(rd, "dither_intensity")
 		layout.itemR(rd, "parts_x")
 		layout.itemR(rd, "parts_y")
-
-		layout.row()
-		layout.itemR(rd, "threads_mode")
-		if (rd.threads_mode == 'THREADS_FIXED'):
-			layout.itemR(rd, "threads")
 		
-		layout.row()
-		layout.itemR(rd, "fields", text="Fields")
-		layout.itemR(rd, "field_order", text="Order")
-		layout.itemR(rd, "fields_still", text="Still")
-
-		layout.row()
-		layout.itemL(text="Extra:")
-		layout.row()
-		layout.itemR(rd, "border", text="Border Render")
-		layout.itemR(rd, "panorama")
-		layout.itemR(rd, "backbuf")
+		layout.split(number=2)
+		
+		sub = layout.sub(0)
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemL(text="Threads Mode:")
+		subsub.itemR(rd, "threads_mode", expand=True)
+		if rd.threads_mode == 'THREADS_FIXED':
+			subsub.itemR(rd, "threads")
+		
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemL(text="Distributed Rendering:")
+		subsub.itemR(rd, "placeholders")
+		subsub.itemR(rd, "no_overwrite")
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemR(rd, "fields", text="Fields")
+		if (rd.fields):
+			subsub.itemR(rd, "fields_still", text="Still")
+			subsub.itemR(rd, "field_order", text="Order")
+		
+		sub = layout.sub(1)
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemL(text="Extra:")
+		subsub.itemR(rd, "panorama")
+		subsub.itemR(rd, "backbuf")
+		subsub.itemR(rd, "free_image_textures")
+		
+		subsub = sub.box()
+		subsub.column()
+		subsub.itemL(text="Border:")
+		subsub.itemR(rd, "border", text="Border Render")
+		if (rd.border):
+			subsub.itemR(rd, "crop_to_border")
 
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_antialiasing)

@@ -33,8 +33,6 @@
 #include "BLI_winstuff.h"
 #endif
 
-//#include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 

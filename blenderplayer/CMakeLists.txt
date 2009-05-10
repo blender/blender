@@ -100,14 +100,11 @@ IF(UNIX)
     extern_bullet 
     bf_guardedalloc 
     bf_memutil 
-    bf_bmfont 
     bf_blenlib 
     bf_cineon 
     bf_openexr 
     extern_libopenjpeg 
     bf_dds
-    bf_ftfont 
-    extern_ftgl 
     bf_readblenfile 
     blenkernel_blc
     bf_quicktime
