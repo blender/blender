@@ -52,7 +52,7 @@ PyObject *KX_PythonSeq_CreatePyObject( PyObject *base, short type )
 	PyObject_DEL( self );
 }
 
-static int KX_PythonSeq_len( KX_PythonSeq * self )
+static Py_ssize_t KX_PythonSeq_len( KX_PythonSeq * self )
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self->base);
 	 
@@ -85,14 +85,13 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 	 
 	if(self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		NULL;
+		return NULL;
 	}
 	
 	switch(self->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
 			vector<SCA_ISensor*> linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
-			SCA_ISensor* sensor;
 			if(index<0) index += linkedsensors.size();
 			if(index<0 || index>= linkedsensors.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -103,7 +102,6 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 		case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
 		{
 			vector<SCA_IActuator*> linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
-			SCA_IActuator* sensor;
 			if(index<0) index += linkedactuators.size();
 			if(index<0 || index>= linkedactuators.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -114,7 +112,6 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 		case KX_PYGENSEQ_OB_TYPE_SENSORS:
 		{
 			SCA_SensorList& linkedsensors= ((KX_GameObject *)self_plus)->GetSensors();
-			SCA_ISensor *sensor;
 			if(index<0) index += linkedsensors.size();
 			if(index<0 || index>= linkedsensors.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -125,7 +122,6 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 		case KX_PYGENSEQ_OB_TYPE_CONTROLLERS:
 		{
 			SCA_ControllerList& linkedcontrollers= ((KX_GameObject *)self_plus)->GetControllers();
-			SCA_IController *controller;
 			if(index<0) index += linkedcontrollers.size();
 			if(index<0 || index>= linkedcontrollers.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -136,7 +132,6 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 		case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
 		{
 			SCA_ActuatorList& linkedactuators= ((KX_GameObject *)self_plus)->GetActuators();
-			SCA_IActuator *actuator;
 			if(index<0) index += linkedactuators.size();
 			if(index<0 || index>= linkedactuators.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -145,6 +140,9 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 			return linkedactuators[index]->GetProxy();
 		}
 	}
+	
+	PyErr_SetString(PyExc_SystemError, "invalid sequence type, this is a bug");
+	return NULL;
 }
 
 
@@ -182,11 +180,11 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 		case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
 		{
 			vector<SCA_IActuator*> linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
-			SCA_IActuator* sensor;
+			SCA_IActuator* actuator;
 			for (unsigned int index=0;index<linkedactuators.size();index++) {
-				sensor = linkedactuators[index];
-				if (sensor->GetName() == name)
-					return sensor->GetProxy();
+				actuator = linkedactuators[index];
+				if (actuator->GetName() == name)
+					return actuator->GetProxy();
 			}
 			break;
 		}
@@ -232,7 +230,7 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 static PyMappingMethods KX_PythonSeq_as_mapping = {
 	( inquiry ) KX_PythonSeq_len,	/* mp_length */
 	( binaryfunc ) KX_PythonSeq_subscript,	/* mp_subscript */
-	( objobjargproc ) 0,	/* mp_ass_subscript */
+	0,	/* mp_ass_subscript */
 };
 
 
@@ -244,7 +242,7 @@ static PyObject *KX_PythonSeq_getIter( KX_PythonSeq * self )
 {
 	if(BGE_PROXY_REF(self->base)==NULL) {
 		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		NULL;
+		return NULL;
 	}
 	
 	/* create a new iterator if were alredy using this one */
