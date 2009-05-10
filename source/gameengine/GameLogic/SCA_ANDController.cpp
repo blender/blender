@@ -73,19 +73,12 @@ void SCA_ANDController::Trigger(SCA_LogicManager* logicmgr)
 		}
 	}
 	
-	CValue* newevent = new CBoolValue(sensorresult);
-
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		logicmgr->AddActiveActuator(actua,newevent);
+		SCA_IActuator* actua = *i;
+		logicmgr->AddActiveActuator(actua,sensorresult);
 	}
-
-	// every actuator that needs the event, has a it's own reference to it now so
-	// release it (so to be clear: if there is no actuator, it's deleted right now)
-	newevent->Release();
-
 }
 
 

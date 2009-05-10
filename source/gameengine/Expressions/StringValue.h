@@ -26,7 +26,7 @@ class CStringValue : public CPropValue
 public:
 	/// Construction / destruction
 	CStringValue();
-	CStringValue (STR_String txt, STR_String name , AllocationTYPE alloctype = CValue::HEAPVALUE);
+	CStringValue (const char *txt, const char *name , AllocationTYPE alloctype = CValue::HEAPVALUE);
 
 	virtual ~CStringValue() {
 	};

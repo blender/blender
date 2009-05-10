@@ -188,14 +188,14 @@ double KX_GameObject::GetNumber()
 
 
 
-STR_String KX_GameObject::GetName()
+STR_String& KX_GameObject::GetName()
 {
 	return m_name;
 }
 
 
 
-void KX_GameObject::SetName(STR_String name)
+void KX_GameObject::SetName(const char *name)
 {
 	m_name = name;
 };								// Set the name of the value
@@ -452,14 +452,6 @@ void KX_GameObject::AddMeshUser()
 	double* fl = GetOpenGLMatrixPtr()->getPointer();
 	RAS_Deformer *deformer = GetDeformer();
 
-	//RAS_MeshSlot *ms;
-	//for(ms =static_cast<RAS_MeshSlot*>(m_meshSlots.QPeek());
-	//	ms!=static_cast<RAS_MeshSlot*>(m_meshSlots.Self());
-	//	ms =static_cast<RAS_MeshSlot*>(ms->QPeek()))
-	//{
-	//	ms->m_OpenGLMatrix = fl;
-	//	ms->SetDeformer(deformer);
-	//}
 	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
 	for(mit.begin(); !mit.end(); ++mit)
 	{
@@ -493,9 +485,7 @@ void KX_GameObject::UpdateBuckets( bool recursive )
 
 		if (GetSGNode()->IsDirty())
 			GetOpenGLMatrix();
-		//for(ms =static_cast<RAS_MeshSlot*>(m_meshSlots.QPeek());
-		//    ms!=static_cast<RAS_MeshSlot*>(m_meshSlots.Self());
-		//    ms =static_cast<RAS_MeshSlot*>(ms->QPeek()))
+
 		SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
 		for(mit.begin(); !mit.end(); ++mit)
 		{
@@ -1844,7 +1834,7 @@ int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro m
 	
 	if (ret==PY_SET_ATTR_COERCE_FAIL) {
 		/* CValue attribute exists, remove CValue and add PyDict value */
-		RemoveProperty(STR_String(PyString_AsString(attr)));
+		RemoveProperty(PyString_AsString(attr));
 		ret= PY_SET_ATTR_MISSING;
 	}
 	
@@ -1871,7 +1861,7 @@ int	KX_GameObject::py_delattro(PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr); 
 	
-	if (RemoveProperty(STR_String(attr_str))) // XXX - should call CValues instead but its only 2 lines here
+	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
 		return 0;
 	
 	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))

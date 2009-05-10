@@ -50,8 +50,9 @@ SCA_PropertyEventManager::~SCA_PropertyEventManager()
 void SCA_PropertyEventManager::NextFrame()
 {
 	// check for changed properties
-	for (set<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
+	SG_DList::iterator<SCA_ISensor> it(m_sensors);
+	for (it.begin();!it.end();++it)
 	{
-		(*it)->Activate(m_logicmgr,NULL);
+		(*it)->Activate(m_logicmgr);
 	}
 }

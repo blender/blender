@@ -104,7 +104,7 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 	PyObject_DEL( self );
 };
 
-PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
+PyObjectPlus::PyObjectPlus(PyTypeObject *T) : SG_QList()				// constructor
 {
 	MT_assert(T != NULL);
 	m_proxy= NULL;

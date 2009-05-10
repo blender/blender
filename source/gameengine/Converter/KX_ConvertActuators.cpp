@@ -105,7 +105,6 @@ void BL_ConvertActuators(char* maggiename,
 						 SCA_LogicManager* logicmgr,
 						 KX_Scene* scene,
 						 KX_KetsjiEngine* ketsjiEngine,
-						 int & executePriority, 
 						 int activeLayerBitInfo,
 						 bool isInActiveLayer,
 						 RAS_IRenderTools* rendertools,
@@ -114,11 +113,20 @@ void BL_ConvertActuators(char* maggiename,
 {
 	
 	int uniqueint = 0;
+	int actcount = 0;
+	int executePriority = 0;
 	bActuator* bact = (bActuator*) blenderobject->actuators.first;
+	while (bact)
+	{
+		actcount++;
+		bact = bact->next;
+	}
+	gameobj->ReserveActuator(actcount);
+	bact = (bActuator*) blenderobject->actuators.first;
 	while(bact)
 	{
 		STR_String uniquename = bact->name;
-		STR_String objectname = gameobj->GetName();
+		STR_String& objectname = gameobj->GetName();
 		
 		SCA_IActuator* baseact = NULL;
 		switch (bact->type)
@@ -1144,7 +1152,7 @@ void BL_ConvertActuators(char* maggiename,
 			CIntValue* uniqueval = new CIntValue(uniqueint);
 			uniquename += uniqueval->GetText();
 			uniqueval->Release();
-			baseact->SetName(STR_String(bact->name));
+			baseact->SetName(bact->name);
 			//gameobj->SetProperty(uniquename,baseact);
 			gameobj->AddActuator(baseact);
 			

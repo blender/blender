@@ -71,7 +71,6 @@ PyTypeObject KX_MeshProxy::Type = {
 
 PyParentObject KX_MeshProxy::Parents[] = {
 	&KX_MeshProxy::Type,
-	&SCA_IObject::Type,
 	&CValue::Type,
 	&PyObjectPlus::Type,
 	NULL
@@ -110,21 +109,21 @@ void KX_MeshProxy::SetMeshModified(bool v)
 
 PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
 {
- 	py_getattro_up(SCA_IObject);
+ 	py_getattro_up(CValue);
 }
 
 PyObject* KX_MeshProxy::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IObject);
+	py_getattro_dict_up(CValue);
 }
 
 int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
 {
-	py_setattro_up(SCA_IObject);
+	py_setattro_up(CValue);
 }
 
 
 KX_MeshProxy::KX_MeshProxy(RAS_MeshObject* mesh)
-	: SCA_IObject(&Type), m_meshobj(mesh)
+	: CValue(&Type), m_meshobj(mesh)
 {
 }
 
@@ -140,8 +139,8 @@ CValue*		KX_MeshProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValu
 
 const STR_String &	KX_MeshProxy::GetText() {return m_meshobj->GetName();};
 double		KX_MeshProxy::GetNumber() { return -1;}
-STR_String	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
-void		KX_MeshProxy::SetName(STR_String name) { };
+STR_String&	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
+void		KX_MeshProxy::SetName(const char *name) { };
 CValue*		KX_MeshProxy::GetReplica() { return NULL;}
 
 

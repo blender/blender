@@ -108,11 +108,6 @@ protected:
 	 * LogicEndFrame() via a call to RemoveObject().
 	 */
 	CListValue*	m_euthanasyobjects;
-	/**
-	* The list of objects that couldn't be released during logic update.
-	* for example, AddObject actuator sometimes releases an object that was cached from previous frame
-	*/
-	CListValue*	m_delayReleaseObjects;
 
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
@@ -331,8 +326,6 @@ public:
 	void RemoveObject(CValue* gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
-	void DelayedReleaseObject(CValue* gameobj);
-
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);

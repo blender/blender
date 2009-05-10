@@ -26,6 +26,9 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+const STR_String CBoolValue::sTrueString  = "TRUE";
+const STR_String CBoolValue::sFalseString = "FALSE";
+
 
 CBoolValue::CBoolValue()
 /*
@@ -45,7 +48,7 @@ CBoolValue::CBoolValue(bool inBool)
 
 
 
-CBoolValue::CBoolValue(bool innie,STR_String name,AllocationTYPE alloctype)
+CBoolValue::CBoolValue(bool innie,const char *name,AllocationTYPE alloctype)
 {
 	m_bool = innie;
 	SetName(name);
@@ -190,9 +193,6 @@ double CBoolValue::GetNumber()
 
 const STR_String& CBoolValue::GetText()
 {
-	static STR_String sTrueString  = STR_String("TRUE");
-	static STR_String sFalseString = STR_String("FALSE");
-	
 	return m_bool ? sTrueString : sFalseString;
 }
 

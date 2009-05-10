@@ -89,7 +89,7 @@ SCA_ActuatorSensor::~SCA_ActuatorSensor()
 
 
 
-bool SCA_ActuatorSensor::Evaluate(CValue* event)
+bool SCA_ActuatorSensor::Evaluate()
 {
 	if (m_actuator)
 	{

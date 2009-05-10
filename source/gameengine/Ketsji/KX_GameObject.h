@@ -241,7 +241,7 @@ public:
 	/**
 	 * Inherited from CValue -- returns the name of this object.
 	 */
-		STR_String			
+		STR_String&			
 	GetName(
 	);
 
@@ -250,7 +250,7 @@ public:
 	 */
 		void				
 	SetName(
-		STR_String name
+		const char *name
 	);
 
 	/** 

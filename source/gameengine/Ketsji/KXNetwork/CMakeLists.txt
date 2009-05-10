@@ -33,6 +33,7 @@ SET(INC
   ../../../../source/gameengine/Ketsji
   ../../../../source/gameengine/GameLogic
   ../../../../source/gameengine/Expressions
+  ../../../../source/gameengine/Scenegraph
   ../../../../source/gameengine/Network
   ${PYTHON_INC}
 )

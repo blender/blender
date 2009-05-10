@@ -70,7 +70,7 @@ SCA_IObject::~SCA_IObject()
 	}
 	for (ita = m_actuators.begin(); !(ita==m_actuators.end()); ++ita)
 	{
-		((CValue*)(*ita))->Release();
+		(*ita)->Delete();
 	}
 
 	//T_InterpolatorList::iterator i;
@@ -110,7 +110,7 @@ void SCA_IObject::RegisterActuator(SCA_IActuator* act)
 void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 {
 	SCA_ActuatorList::iterator ita;
-	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ita++)
+	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ++ita)
 	{
 		if ((*ita) == act) {
 			(*ita) = m_registeredActuators.back();
@@ -171,7 +171,7 @@ SCA_ISensor* SCA_IObject::FindSensor(const STR_String& sensorname)
 {
 	SCA_ISensor* foundsensor = NULL;
 
-	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());its++)
+	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());++its)
 	{
 		if ((*its)->GetName() == sensorname)
 		{
@@ -188,7 +188,7 @@ SCA_IController* SCA_IObject::FindController(const STR_String& controllername)
 {
 	SCA_IController* foundcontroller = NULL;
 
-	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());itc++)
+	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());++itc)
 	{
 		if ((*itc)->GetName() == controllername)
 		{
@@ -205,7 +205,7 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 {
 	SCA_IActuator* foundactuator = NULL;
 
-	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());ita++)
+	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());++ita)
 	{
 		if ((*ita)->GetName() == actuatorname)
 		{
@@ -272,7 +272,7 @@ void SCA_IObject::Suspend()
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Suspend();
-			i++;
+			++i;
 		}
 	}
 }
@@ -287,7 +287,7 @@ void SCA_IObject::Resume(void)
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Resume();
-			i++;
+			++i;
 		}
 	}
 }
@@ -307,7 +307,7 @@ void SCA_IObject::SetState(unsigned int state)
 	if (tmpstate != m_state)
 	{
 		// update the status of the controllers
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(tmpstate);
 		}
@@ -315,7 +315,7 @@ void SCA_IObject::SetState(unsigned int state)
 	m_state = state;
 	if (m_state != tmpstate)
 	{
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(m_state);
 		}

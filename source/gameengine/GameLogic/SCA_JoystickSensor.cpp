@@ -102,7 +102,7 @@ bool SCA_JoystickSensor::IsPositiveTrigger()
 }
 
 
-bool SCA_JoystickSensor::Evaluate(CValue* event)
+bool SCA_JoystickSensor::Evaluate()
 {
 	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	bool result = false;

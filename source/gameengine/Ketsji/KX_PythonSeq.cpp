@@ -91,7 +91,7 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 	switch(self->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
-			vector<SCA_ISensor*> linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
+			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
 			if(index<0) index += linkedsensors.size();
 			if(index<0 || index>= linkedsensors.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -101,7 +101,7 @@ static PyObject *KX_PythonSeq_getIndex(KX_PythonSeq * self, int index)
 		}
 		case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
 		{
-			vector<SCA_IActuator*> linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
+			vector<SCA_IActuator*>& linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
 			if(index<0) index += linkedactuators.size();
 			if(index<0 || index>= linkedactuators.size()) {
 				PyErr_SetString(PyExc_IndexError, "seq[i]: index out of range");
@@ -168,7 +168,7 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 	switch(self->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
-			vector<SCA_ISensor*> linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
+			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
 			SCA_ISensor* sensor;
 			for (unsigned int index=0;index<linkedsensors.size();index++) {
 				sensor = linkedsensors[index];
@@ -179,7 +179,7 @@ static PyObject * KX_PythonSeq_subscript(KX_PythonSeq * self, PyObject *key)
 		}
 		case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
 		{
-			vector<SCA_IActuator*> linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
+			vector<SCA_IActuator*>& linkedactuators = ((SCA_IController *)self_plus)->GetLinkedActuators();
 			SCA_IActuator* actuator;
 			for (unsigned int index=0;index<linkedactuators.size();index++) {
 				actuator = linkedactuators[index];

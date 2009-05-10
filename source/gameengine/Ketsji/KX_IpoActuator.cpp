@@ -164,14 +164,14 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
 	bool bNegativeEvent = false;
-	int numevents = 0;
+	bool numevents = false;
 	bool bIpoStart = false;
 
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 
 	if (frame)
 	{
-		numevents = m_events.size();
+		numevents = m_posevent || m_negevent;
 		bNegativeEvent = IsNegativeEvent();
 		RemoveAllEvents();
 	}
@@ -273,7 +273,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			{
 				result = false;
 				m_bNegativeEvent = false;
-				numevents = 0;
+				numevents = false;
 			}
 			if (!m_bIpoPlaying)
 			{

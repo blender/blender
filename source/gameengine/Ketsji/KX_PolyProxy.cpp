@@ -64,8 +64,8 @@ PyTypeObject KX_PolyProxy::Type = {
 
 PyParentObject KX_PolyProxy::Parents[] = {
 	&KX_PolyProxy::Type,
-	&SCA_IObject::Type,
 	&CValue::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
@@ -162,11 +162,11 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	py_getattro_up(SCA_IObject);
+	py_getattro_up(CValue);
 }
 
 PyObject* KX_PolyProxy::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IObject);
+	py_getattro_dict_up(CValue);
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
@@ -186,8 +186,8 @@ CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { re
 STR_String	sPolyName="polygone";
 const STR_String &	KX_PolyProxy::GetText() {return sPolyName;};
 double		KX_PolyProxy::GetNumber() { return -1;}
-STR_String	KX_PolyProxy::GetName() { return sPolyName;}
-void		KX_PolyProxy::SetName(STR_String) { };
+STR_String&	KX_PolyProxy::GetName() { return sPolyName;}
+void		KX_PolyProxy::SetName(const char *) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}
 
 // stuff for python integration

@@ -178,7 +178,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	if (PyString_Check(value)) {
 		/* get the actuator from the name */
 		char *name= PyString_AsString(value);
-		for(it = lacts.begin(); it!= lacts.end(); it++) {
+		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( name == (*it)->GetName() ) {
 				return *it;
 			}
@@ -186,7 +186,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	}
 	else if (BGE_PROXY_CHECK_TYPE(value)) {
 		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
-		for(it = lacts.begin(); it!= lacts.end(); it++) {
+		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
 				return *it;
 			}
@@ -215,9 +215,8 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* a
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(activate!=0);
+	bool boolval = (activate!=0);
 	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu,boolval);
-	boolval->Release();
 	Py_RETURN_NONE;
 }
 
@@ -473,7 +472,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		Py_DECREF(excdict);
 	}	
 	
-	m_triggeredSensors.erase(m_triggeredSensors.begin(), m_triggeredSensors.end());
+	m_triggeredSensors.clear();
 	m_sCurrentController = NULL;
 }
 
@@ -499,9 +498,7 @@ PyObject* SCA_PythonController::PyActivate(PyObject *value)
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(true);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
-	boolval->Release();
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, true);
 	Py_RETURN_NONE;
 }
 
@@ -511,9 +508,7 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(false);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
-	boolval->Release();
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, false);
 	Py_RETURN_NONE;
 }
 

@@ -45,7 +45,7 @@ void	SCA_ISensor::ReParent(SCA_IObject* parent)
 	SCA_ILogicBrick::ReParent(parent);
 	// will be done when the sensor is activated
 	//m_eventmgr->RegisterSensor(this);
-	this->SetActive(false);
+	//this->SetActive(false);
 }
 
 
@@ -75,6 +75,12 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 SCA_ISensor::~SCA_ISensor()  
 {
 	// intentionally empty
+}
+
+void SCA_ISensor::ProcessReplica()
+{
+	SCA_ILogicBrick::ProcessReplica();
+	m_linkedcontrollers.clear();
 }
 
 bool SCA_ISensor::IsPositiveTrigger() { 
@@ -150,29 +156,72 @@ void SCA_ISensor::RegisterToManager()
 	// sensor is just activated, initialize it
 	Init();
 	m_state = false;
-	m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
 	m_eventmgr->RegisterSensor(this);
+}
+
+void SCA_ISensor::LinkToController(SCA_IController* controller)
+{
+	m_linkedcontrollers.push_back(controller);
+}
+
+void SCA_ISensor::UnlinkController(SCA_IController* controller)
+{
+	std::vector<class SCA_IController*>::iterator contit;
+	for (contit = m_linkedcontrollers.begin();!(contit==m_linkedcontrollers.end());++contit)
+	{
+		if ((*contit) == controller)
+		{
+			*contit = m_linkedcontrollers.back();
+			m_linkedcontrollers.pop_back();
+			return;
+		}
+	}
+	printf("Missing link from sensor %s:%s to controller %s:%s\n", 
+		m_gameobj->GetName().ReadPtr(), GetName().ReadPtr(), 
+		controller->GetParent()->GetName().ReadPtr(), controller->GetName().ReadPtr());
+}
+
+void SCA_ISensor::UnlinkAllControllers()
+{
+	std::vector<class SCA_IController*>::iterator contit;
+	for (contit = m_linkedcontrollers.begin();!(contit==m_linkedcontrollers.end());++contit)
+	{
+		(*contit)->UnlinkSensor(this);
+	}
+	m_linkedcontrollers.clear();
 }
 
 void SCA_ISensor::UnregisterToManager()
 {
 	m_eventmgr->RemoveSensor(this);
+	m_links = 0;
 }
 
-void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
+void SCA_ISensor::ActivateControllers(class SCA_LogicManager* logicmgr)
+{
+    for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
+		c!=m_linkedcontrollers.end();++c)
+	{
+		SCA_IController* contr = *c;
+		if (contr->IsActive())
+			logicmgr->AddTriggeredController(contr, this);
+	}
+}
+
+void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 {
 	
 	// calculate if a __triggering__ is wanted
 	// don't evaluate a sensor that is not connected to any controller
 	if (m_links && !m_suspended) {
-		bool result = this->Evaluate(event);
+		bool result = this->Evaluate();
 		// store the state for the rest of the logic system
 		m_prev_state = m_state;
 		m_state = this->IsPositiveTrigger();
 		if (result) {
 			// the sensor triggered this frame
 			if (m_state || !m_tap) {
-				logicmgr->AddActivatedSensor(this);	
+				ActivateControllers(logicmgr);	
 				// reset these counters so that pulse are synchronized with transition
 				m_pos_ticks = 0;
 				m_neg_ticks = 0;
@@ -190,7 +239,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 				if (m_pos_ticks > m_pulse_frequency) {
 					if ( m_state )
 					{
-						logicmgr->AddActivatedSensor(this);
+						ActivateControllers(logicmgr);
 						result = true;
 					}
 					m_pos_ticks = 0;
@@ -203,7 +252,8 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 				if (m_neg_ticks > m_pulse_frequency) {
 					if (!m_state )
 					{
-						logicmgr->AddActivatedSensor(this);
+						ActivateControllers(logicmgr);
+						result = true;
 					}
 					m_neg_ticks = 0;
 				}
@@ -218,27 +268,24 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 				if (m_prev_state)
 				{
 					// but it triggered on previous frame => send a negative pulse
-					logicmgr->AddActivatedSensor(this);	
+					ActivateControllers(logicmgr);
+					result = true;
 				}
 				// in any case, absence of trigger means sensor off
 				m_state = false;
 			}
 		}
-		if (!m_newControllers.empty())
+		if (!result && m_level)
 		{
-			if (!IsActive() && m_level)
+			// This level sensor is connected to at least one controller that was just made 
+			// active but it did not generate an event yet, do it now to those controllers only 
+			for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
+				c!=m_linkedcontrollers.end();++c)
 			{
-				// This level sensor is connected to at least one controller that was just made 
-				// active but it did not generate an event yet, do it now to those controllers only 
-				for (std::vector<SCA_IController*>::iterator ci=m_newControllers.begin();
-					 ci != m_newControllers.end(); ci++)
-				{
-					logicmgr->AddTriggeredController(*ci, this);
-				}
+				SCA_IController* contr = *c;
+				if (contr->IsJustActivated())
+					logicmgr->AddTriggeredController(contr, this);
 			}
-			// clear the list. Instead of using clear, which also release the memory,
-			// use erase, which keeps the memory available for next time.
-			m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
 		}
 	} 
 }

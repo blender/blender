@@ -18,6 +18,7 @@
 #include "StringValue.h"
 #include "VoidValue.h"
 #include <algorithm>
+#include "BoolValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -75,7 +76,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	
 	if (PyString_Check(pyindex))
 	{
-		STR_String  index(PyString_AsString(pyindex));
+		const char *index = PyString_AsString(pyindex);
 		CValue *item = ((CListValue*) list)->FindValue(index);
 		if (item)
 		{
@@ -394,7 +395,7 @@ void CListValue::ReleaseAndRemoveAll()
 
 
 
-CValue* CListValue::FindValue(const STR_String & name)
+CValue* CListValue::FindValue(const char * name)
 {
 	CValue* resultval = NULL;
 	int i=0;
@@ -497,13 +498,12 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 	
 	if (eqval==NULL)
 		return false;
-		
-	STR_String txt = eqval->GetText();
-	eqval->Release();
-	if (txt=="TRUE")
+	const STR_String& text = eqval->GetText();
+	if (&text==&CBoolValue::sTrueString)
 	{
 		result = true;
 	}
+	eqval->Release();
 	return result;
 
 }

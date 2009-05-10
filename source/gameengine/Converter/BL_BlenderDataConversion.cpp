@@ -2610,8 +2610,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	templist->Release();
 	sumolist->Release();	
 
-	int executePriority=0; /* incremented by converter routines */
-	
 	// convert global sound stuff
 
 	/* XXX, glob is the very very wrong place for this
@@ -2642,7 +2640,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,executePriority, layerMask,isInActiveLayer,rendertools,converter);
+		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,layerMask,isInActiveLayer,rendertools,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
@@ -2650,7 +2648,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,executePriority,layerMask,isInActiveLayer,converter);
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,layerMask,isInActiveLayer,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
@@ -2658,7 +2656,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}

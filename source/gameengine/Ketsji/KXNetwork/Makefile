@@ -40,6 +40,7 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I../../Expressions
 CPPFLAGS += -I../../GameLogic
+CPPFLAGS += -I../../Scenegraph
 CPPFLAGS += -I../../Network
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I..

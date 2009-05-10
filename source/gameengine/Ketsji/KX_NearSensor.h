@@ -71,7 +71,7 @@ public:
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 
 	virtual void ReParent(SCA_IObject* parent);
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,

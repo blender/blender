@@ -54,7 +54,7 @@ effect: constructs a new CIntValue containing cInt innie
 
 
 
-CIntValue::CIntValue(cInt innie,STR_String name,AllocationTYPE alloctype)
+CIntValue::CIntValue(cInt innie,const char *name,AllocationTYPE alloctype)
 {
 	m_int = innie;
 	SetName(name);

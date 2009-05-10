@@ -95,7 +95,7 @@ bool SCA_2DFilterActuator::Update()
 }
 
 
-void SCA_2DFilterActuator::SetShaderText(STR_String text)
+void SCA_2DFilterActuator::SetShaderText(STR_String& text)
 {
 	m_shaderText = text;
 }

@@ -80,17 +80,12 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 		is++;
 	}
 	
-	CValue* newevent = new CBoolValue(sensorresult);
-
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		logicmgr->AddActiveActuator(actua,newevent);
+		SCA_IActuator* actua = *i;
+		logicmgr->AddActiveActuator(actua,sensorresult);
 	}
-
-
-	newevent->Release();
 }
 
 /* ------------------------------------------------------------------------- */

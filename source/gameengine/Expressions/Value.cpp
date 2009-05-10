@@ -291,13 +291,17 @@ CValue* CValue::GetProperty(const char *inName)
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-STR_String CValue::GetPropertyText(const STR_String & inName,const STR_String& deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName,const char *deftext)
 {
+	const static STR_String sEmpty("");
+
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
+	else if (deftext)
+		return STR_String(deftext);
 	else
-		return deftext;//String::sEmpty;
+		return sEmpty;
 }
 
 float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
@@ -647,7 +651,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 int	CValue::py_delattro(PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr);
-	if (RemoveProperty(STR_String(attr_str)))
+	if (RemoveProperty(attr_str))
 		return 0;
 	
 	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);

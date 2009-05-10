@@ -87,7 +87,7 @@ KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
 	if (m_OriginalObject)
 		m_OriginalObject->UnregisterActuator(this);
 	if (m_lastCreatedObject)
-		m_lastCreatedObject->Release();
+		m_lastCreatedObject->UnregisterActuator(this);
 } 
 
 
@@ -143,6 +143,12 @@ bool KX_SCA_AddObjectActuator::UnlinkObject(SCA_IObject* clientobj)
 	{
 		// this object is being deleted, we cannot continue to track it.
 		m_OriginalObject = NULL;
+		return true;
+	}
+	if (clientobj == m_lastCreatedObject)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_lastCreatedObject = NULL;
 		return true;
 	}
 	return false;
@@ -356,7 +362,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_OriginalObject->GetName());
+		return PyString_FromString(m_OriginalObject->GetName().ReadPtr());
 	else
 		return m_OriginalObject->GetProxy();
 }
@@ -464,13 +470,21 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 		// keep a copy of the last object, to allow python scripters to change it
 		if (m_lastCreatedObject)
 		{
-			//careful with destruction, it might still have outstanding collision callbacks
-			m_scene->DelayedReleaseObject(m_lastCreatedObject);
-			m_lastCreatedObject->Release();
+			//Let's not keep a reference to the object: it's bad, if the object is deleted
+			//this will force to keep a "zombie" in the game for no good reason.
+			//m_scene->DelayedReleaseObject(m_lastCreatedObject);
+			//m_lastCreatedObject->Release();
+
+			//Instead we use the registration mechanism
+			m_lastCreatedObject->UnregisterActuator(this);
+			m_lastCreatedObject = NULL;
 		}
 		
 		m_lastCreatedObject = replica;
-		m_lastCreatedObject->AddRef();
+		// no reference
+		//m_lastCreatedObject->AddRef();
+		// but registration
+		m_lastCreatedObject->RegisterActuator(this);
 		// finished using replica? then release it
 		replica->Release();
 	}

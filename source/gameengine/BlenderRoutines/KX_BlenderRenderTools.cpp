@@ -295,7 +295,7 @@ void KX_BlenderRenderTools::RenderText(
 	RAS_IPolyMaterial* polymat,
 	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
 {
-	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
 	struct MTFace* tface = 0;

@@ -63,7 +63,7 @@ public:
 	virtual ~KX_NetworkMessageSensor();
 
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	void EndFrame();

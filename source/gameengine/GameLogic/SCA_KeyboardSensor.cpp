@@ -118,7 +118,7 @@ bool SCA_KeyboardSensor::TriggerOnAllKeys()
 
 
 
-bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
+bool SCA_KeyboardSensor::Evaluate()
 {
 	bool result    = false;
 	bool reset     = m_reset && m_level;

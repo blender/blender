@@ -97,8 +97,8 @@ public:
 	unsigned int		GetLightLayer();
 
 	/* name */
-	void				SetName(STR_String name);
-	const STR_String&	GetName();
+	void				SetName(const char *name);
+	STR_String&			GetName();
 
 	/* modification state */
 	bool				MeshModified();

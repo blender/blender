@@ -160,16 +160,9 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	// maybe there are events for us in the queue !
 	if (frame)
 	{
-		for (vector<CValue*>::iterator i=m_events.begin(); !(i==m_events.end());i++)
-		{
-			if ((*i)->GetNumber() == 0.0f)
-				bNegativeEvent = true;
-			else
-				bPositiveEvent= true;
-			(*i)->Release();
-		
-		}
-		m_events.clear();
+		bNegativeEvent = m_negevent;
+		bPositiveEvent = m_posevent;
+		RemoveAllEvents();
 		
 		if (bPositiveEvent)
 			m_flag |= ACT_FLAG_ACTIVE;

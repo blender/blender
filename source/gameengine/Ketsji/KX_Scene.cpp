@@ -164,7 +164,6 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_lightlist= new CListValue();
 	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
-	m_delayReleaseObjects = new CListValue();
 
 	m_logicmgr = new SCA_LogicManager();
 	
@@ -223,8 +222,6 @@ KX_Scene::~KX_Scene()
 	// It's still there but we remove all properties here otherwise some
 	// reference might be hanging and causing late release of objects
 	RemoveAllDebugProperties();
-	// early removal of sensor map to avoid massive slow down when there are many objects
-	m_logicmgr->RemoveSensorMap();
 
 	while (GetRootParentList()->GetCount() > 0) 
 	{
@@ -249,8 +246,6 @@ KX_Scene::~KX_Scene()
 
 	if (m_euthanasyobjects)
 		m_euthanasyobjects->Release();
-	if (m_delayReleaseObjects)
-		m_delayReleaseObjects->Release();
 
 	if (m_logicmgr)
 		delete m_logicmgr;
@@ -419,11 +414,11 @@ void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gam
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
 	if (NewRemoveObject(orgobj) != 0)
 	{
-		// object is not yet deleted (this can happen when it hangs in an add object actuator
-		// last object created reference. It's a bad situation, don't know how to fix it exactly
-		// The least I can do, is remove the reference to the node in the object as the node
-		// will in any case be deleted. This ensures that the object will not try to use the node
-		// when it is finally deleted (see KX_GameObject destructor)
+		// object is not yet deleted because a reference is hanging somewhere.
+		// This should not happen anymore since we use proxy object for Python
+		// confident enough to put an assert?
+		//assert(false);
+		printf("Zombie object! name=%s\n", orgobj->GetName().ReadPtr());
 		orgobj->SetSGNode(NULL);
 		PHY_IGraphicController* ctrl = orgobj->GetGraphicController();
 		if (ctrl)
@@ -550,8 +545,9 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		vector<SCA_IActuator*> linkedactuators = cont->GetLinkedActuators();
 
 		// disconnect the sensors and actuators
-		cont->UnlinkAllSensors();
-		cont->UnlinkAllActuators();
+		// do it directly on the list at this controller is not connected to anything at this stage
+		cont->GetLinkedSensors().clear();
+		cont->GetLinkedActuators().clear();
 		
 		// now relink each sensor
 		for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());its++)
@@ -908,14 +904,6 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
-	/* Invalidate the python reference, since the object may exist in script lists
-	 * its possible that it wont be automatically invalidated, so do it manually here,
-	 * 
-	 * if for some reason the object is added back into the scene python can always get a new Proxy
-	 */
-	gameobj->InvalidateProxy();
-	
-	
 	// disconnect child from parent
 	SG_Node* node = newobj->GetSGNode();
 
@@ -929,12 +917,6 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 	//no need to do that: the object is destroyed and memory released 
 	//newobj->SetSGNode(0);
 }
-
-void KX_Scene::DelayedReleaseObject(CValue* gameobj)
-{
-	m_delayReleaseObjects->Add(gameobj->AddRef());
-}
-
 
 void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 {
@@ -951,6 +933,13 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	/* Invalidate the python reference, since the object may exist in script lists
+	 * its possible that it wont be automatically invalidated, so do it manually here,
+	 * 
+	 * if for some reason the object is added back into the scene python can always get a new Proxy
+	 */
+	newobj->InvalidateProxy();
 
 	// keep the blender->game object association up to date
 	// note that all the replicas of an object will have the same
@@ -981,7 +970,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ActuatorList::iterator ita = actuators.begin();
 		 !(ita==actuators.end());ita++)
 	{
-		m_logicmgr->RemoveDestroyedActuator(*ita);
+		m_logicmgr->RemoveActuator(*ita);
 	}
 	// the sensors/controllers/actuators must also be released, this is done in ~SCA_IObject
 
@@ -1464,23 +1453,16 @@ void KX_Scene::LogicEndFrame()
 	m_logicmgr->EndFrame();
 	int numobj = m_euthanasyobjects->GetCount();
 	int i;
-	for (i = numobj - 1; i >= 0; i--)
-	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
-		// KX_Scene::RemoveObject will also remove the object from this list
-		// that's why we start from the end
-		this->RemoveObject(gameobj);
-	}
+	KX_GameObject* obj;
 
-	numobj=	m_delayReleaseObjects->GetCount();
-	for (i = numobj-1;i>=0;i--)
+	while ((numobj = m_euthanasyobjects->GetCount()) > 0)
 	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
-		// This list is not for object removal, but just object release
-		gameobj->Release();
+		// remove the object from this list to make sure we will not hit it again
+		obj = (KX_GameObject*)m_euthanasyobjects->GetValue(numobj-1);
+		m_euthanasyobjects->Remove(numobj-1);
+		obj->Release();
+		RemoveObject(obj);
 	}
-	// empty the list as we have removed all references
-	m_delayReleaseObjects->Resize(0);	
 }
 
 

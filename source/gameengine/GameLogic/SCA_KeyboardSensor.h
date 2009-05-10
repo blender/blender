@@ -102,7 +102,7 @@ public:
 
 
 	short int GetHotkey();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	bool	TriggerOnAllKeys();
 

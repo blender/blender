@@ -55,14 +55,18 @@ public:
 		void begin()
 		{
 			m_current = (T*)m_head.QPeek();
-			if (m_current == (T*)m_head.Self())
-			{
-				m_current = NULL;
-			}
+		}
+		void back()
+		{
+			m_current = (T*)m_head.QBack();
 		}
 		bool end()
 		{
-			return (NULL == m_current);
+			return (m_current == (T*)m_head.Self());
+		}
+		bool add_back(T* item)
+		{
+			return m_current->QAddBack(item);
 		}
 		T* operator*()
 		{
@@ -70,12 +74,13 @@ public:
 		}
 		_myT& operator++()
 		{
-			assert(m_current);
 			m_current = (T*)m_current->QPeek();
-			if (m_current == (T*)m_head.Self())
-			{
-				m_current = NULL;
-			}
+			return *this;
+		}
+		_myT& operator--()
+		{
+			// no check on NULL! make sure you don't try to increment beyond end
+			m_current = (T*)m_current->QBack();
 			return *this;
 		}
 	};
@@ -129,18 +134,22 @@ public:
         item->m_fqlink = item->m_bqlink = item;
         return item;
     }
-    void QDelink()             // Remove from the middle
+    bool QDelink()             // Remove from the middle
     {
-		if (!QEmpty())
-		{
-			m_bqlink->m_fqlink = m_fqlink;
-			m_fqlink->m_bqlink = m_bqlink;
-			m_fqlink = m_bqlink = this;
-		}
+		if (QEmpty())
+			return false;
+		m_bqlink->m_fqlink = m_fqlink;
+		m_fqlink->m_bqlink = m_bqlink;
+		m_fqlink = m_bqlink = this;
+		return true;
     }
     inline SG_QList *QPeek()			// Look at front without removing
     { 
         return m_fqlink; 
+    }  
+    inline SG_QList *QBack()			// Look at front without removing
+    { 
+        return m_bqlink; 
     }  
 };
 

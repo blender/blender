@@ -178,7 +178,7 @@ bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo* client)
 	return true;
 }
 
-bool KX_RaySensor::Evaluate(CValue* event)
+bool KX_RaySensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;

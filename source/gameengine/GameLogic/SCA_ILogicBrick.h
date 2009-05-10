@@ -71,8 +71,8 @@ public:
 
 	virtual const STR_String &	GetText();
 	virtual double		GetNumber();
-	virtual STR_String	GetName();
-	virtual void		SetName(STR_String name);
+	virtual STR_String&	GetName();
+	virtual void		SetName(const char *);
 		
 	bool				IsActive()
 	{
@@ -84,6 +84,13 @@ public:
 		m_bActive=active;
 	}
 
+	// insert in a QList at position corresponding to m_Execute_Priority
+	void			    InsertActiveQList(SG_QList& head)
+	{
+		SG_QList::iterator<SCA_ILogicBrick> it(head);
+		for(it.begin(); !it.end() && m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
+		it.add_back(this);
+	}
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	

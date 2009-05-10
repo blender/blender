@@ -41,4 +41,5 @@ CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../kernel/gen_system
+CPPFLAGS += -I../../gameengine/Scenegraph
 

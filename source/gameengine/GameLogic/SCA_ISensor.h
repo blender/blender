@@ -32,16 +32,21 @@
 #ifndef __SCA_ISENSOR
 #define __SCA_ISENSOR
 
-#include "SCA_ILogicBrick.h"
+#include "SCA_IController.h"
 
 #include <vector>
 
 /**
  * Interface Class for all logic Sensors. Implements
- * pulsemode,pulsefrequency */
+ * pulsemode,pulsefrequency 
+ * Use of SG_DList element: link sensors to their respective event manager
+ *                          Head: SCA_EventManager::m_sensors
+ * Use of SG_QList element: not used
+ */
 class SCA_ISensor : public SCA_ILogicBrick
 {
 	Py_Header;
+protected:
 	class SCA_EventManager* m_eventmgr;
 
 	/** Pulse positive  pulses? */
@@ -83,8 +88,7 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** previous state (for tap option) */
 	bool m_prev_state;
 
-	/** list of controllers that have just activated this sensor because of a state change */
-	std::vector<class SCA_IController*> m_newControllers;
+	std::vector<class SCA_IController*>		m_linkedcontrollers;
 
 public:
 	SCA_ISensor(SCA_IObject* gameobj,
@@ -97,8 +101,8 @@ public:
 	/* an implementation on this level. It requires an evaluate on the lower */
 	/* level of individual sensors. Mapping the old activate()s is easy.     */
 	/* The IsPosTrig() also has to change, to keep things consistent.        */
-	void Activate(class SCA_LogicManager* logicmgr,CValue* event);
-	virtual bool Evaluate(CValue* event) = 0;
+	void Activate(class SCA_LogicManager* logicmgr);
+	virtual bool Evaluate() = 0;
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
@@ -121,6 +125,16 @@ public:
 
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
+	void ReserveController(int num)
+	{
+		m_linkedcontrollers.reserve(num);
+	}
+	void LinkToController(SCA_IController* controller);
+	void UnlinkController(SCA_IController* controller);
+	void UnlinkAllControllers();
+	void ActivateControllers(class SCA_LogicManager* logicmgr);
+
+	virtual void ProcessReplica();
 
 	virtual double GetNumber();
 
@@ -139,8 +153,6 @@ public:
 	/** Resume sensing. */
 	void Resume();
 
-	void AddNewController(class SCA_IController* controller)
-		{ m_newControllers.push_back(controller); }
 	void ClrLink()
 		{ m_links = 0; }
 	void IncLink()

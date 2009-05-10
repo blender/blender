@@ -75,6 +75,7 @@ public:
 	virtual bool Update(double curtime, bool frame);
 
 	CValue* GetReplica();
+	void ProcessReplica();
 
 	/* -------------------------------------------------------------------- */
 	/* Python interface --------------------------------------------------- */

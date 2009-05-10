@@ -32,6 +32,11 @@
 #include "SCA_ILogicBrick.h"
 #include "PyObjectPlus.h"
 
+/*
+ * Use of SG_DList element: none
+ * Use of SG_QList element: build ordered list of activated controller on the owner object
+ *                          Head: SCA_IObject::m_activeControllers
+ */
 class SCA_IController : public SCA_ILogicBrick
 {
 	Py_Header;
@@ -39,21 +44,48 @@ protected:
 	std::vector<class SCA_ISensor*>		m_linkedsensors;
 	std::vector<class SCA_IActuator*>	m_linkedactuators;
 	unsigned int						m_statemask;
+	bool								m_justActivated;
 public:
 	SCA_IController(SCA_IObject* gameobj,PyTypeObject* T);
 	virtual ~SCA_IController();
 	virtual void Trigger(class SCA_LogicManager* logicmgr)=0;
 	void	LinkToSensor(SCA_ISensor* sensor);
 	void	LinkToActuator(SCA_IActuator*);
-	const std::vector<class SCA_ISensor*>&		GetLinkedSensors();
-	const std::vector<class SCA_IActuator*>&	GetLinkedActuators();
+	std::vector<class SCA_ISensor*>&	GetLinkedSensors();
+	std::vector<class SCA_IActuator*>&	GetLinkedActuators();
+	void	ReserveActuator(int num)
+	{
+		m_linkedactuators.reserve(num);
+	}
 	void	UnlinkAllSensors();
 	void	UnlinkAllActuators();
 	void	UnlinkActuator(class SCA_IActuator* actua);
 	void	UnlinkSensor(class SCA_ISensor* sensor);
 	void    SetState(unsigned int state) { m_statemask = state; }
 	void    ApplyState(unsigned int state);
-	
+	void	Deactivate()
+	{
+		// the controller can only be part of a sensor m_newControllers list
+		Delink();
+	}
+	bool IsJustActivated()
+	{
+		return m_justActivated;
+	}
+	void ClrJustActivated()
+	{
+		m_justActivated = false;
+	}
+
+	void Activate(SG_DList& head)
+	{
+		if (QEmpty())
+		{
+			InsertActiveQList(m_gameobj->m_activeControllers);
+			head.AddBack(&m_gameobj->m_activeControllers);
+		}
+	}
+
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);

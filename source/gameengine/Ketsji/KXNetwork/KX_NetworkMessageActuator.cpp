@@ -75,7 +75,7 @@ bool KX_NetworkMessageActuator::Update()
 			m_toPropName,
 			GetParent()->GetName(),
 			m_subject,
-			GetParent()->GetPropertyText(m_body,""));
+			GetParent()->GetPropertyText(m_body));
 	} else
 	{
 		m_networkscene->SendMessage(

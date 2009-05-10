@@ -37,6 +37,7 @@
 #include "StringValue.h"
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
+#include "BoolValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -152,7 +153,7 @@ SCA_PropertySensor::~SCA_PropertySensor()
 
 
 
-bool SCA_PropertySensor::Evaluate(CValue* event)
+bool SCA_PropertySensor::Evaluate()
 {
 	bool result = CheckPropertyCondition();
 	bool reset = m_reset && m_level;
@@ -182,17 +183,14 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
 			if (!orgprop->IsError())
 			{
-				STR_String testprop = orgprop->GetText();
+				const STR_String& testprop = orgprop->GetText();
 				// Force strings to upper case, to avoid confusion in
 				// bool tests. It's stupid the prop's identity is lost
 				// on the way here...
-				if ((testprop == "TRUE") || (testprop == "FALSE")) {
-					STR_String checkprop = m_checkpropval;
-					checkprop.Upper();
-					result = (testprop == checkprop);
-				} else {
-					result = (orgprop->GetText() == m_checkpropval);
+				if ((&testprop == &CBoolValue::sTrueString) || (&testprop == &CBoolValue::sFalseString)) {
+					m_checkpropval.Upper();
 				}
+				result = (testprop == m_checkpropval);
 			}
 			orgprop->Release();
 
@@ -232,8 +230,8 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					CValue* vallie = m_range_expr->Calculate();
 					if (vallie)
 					{
-						STR_String errtext = vallie->GetText();
-						if (errtext == "TRUE")
+						const STR_String& errtext = vallie->GetText();
+						if (&errtext == &CBoolValue::sTrueString)
 						{
 							result = true;
 						} else

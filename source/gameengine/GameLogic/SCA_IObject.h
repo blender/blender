@@ -52,10 +52,24 @@ class SCA_IObject :	public CValue
 	Py_Header;
 	
 protected:
+	friend class SCA_IActuator;
+	friend class SCA_IController;
 	SCA_SensorList         m_sensors;
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
 	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
+
+	// SG_Dlist: element of objects with active actuators
+	//           Head: SCA_LogicManager::m_activeActuators
+	// SG_QList: Head of active actuators list on this object
+	//           Elements: SCA_IActuator
+	SG_QList			   m_activeActuators;
+	// SG_Dlist: element of objects with active controllers
+	//           Head: SCA_LogicManager::m_activeControllers
+	// SG_QList: Head of active controller list on this object
+	//           Elements: SCA_IController
+	SG_QList			   m_activeControllers;
+
 	static class MT_Point3 m_sDummy;
 
 	/**
@@ -95,10 +109,26 @@ public:
 	{
 		return m_actuators;
 	}
+	SG_QList& GetActiveActuators()
+	{
+		return m_activeActuators;
+	}
 
 	void AddSensor(SCA_ISensor* act);
+	void ReserveSensor(int num)
+	{
+		m_sensors.reserve(num);
+	}
 	void AddController(SCA_IController* act);
+	void ReserveController(int num)
+	{
+		m_controllers.reserve(num);
+	}
 	void AddActuator(SCA_IActuator* act);
+	void ReserveActuator(int num)
+	{
+		m_actuators.reserve(num);
+	}
 	void RegisterActuator(SCA_IActuator* act);
 	void UnregisterActuator(SCA_IActuator* act);
 	

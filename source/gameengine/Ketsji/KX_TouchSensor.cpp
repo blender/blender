@@ -66,10 +66,10 @@ void KX_TouchSensor::UnregisterToManager()
 {
 	// before unregistering the sensor, make sure we release all references
 	EndFrame();
-	m_eventmgr->RemoveSensor(this);
+	SCA_ISensor::UnregisterToManager();
 }
 
-bool KX_TouchSensor::Evaluate(CValue* event)
+bool KX_TouchSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;

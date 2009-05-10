@@ -160,7 +160,7 @@ KX_NearSensor::~KX_NearSensor()
 }
 
 
-bool KX_NearSensor::Evaluate(CValue* event)
+bool KX_NearSensor::Evaluate()
 {
 	bool result = false;
 //	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());

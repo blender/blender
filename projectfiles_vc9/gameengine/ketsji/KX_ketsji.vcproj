@@ -582,6 +582,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonSeq.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayCast.cpp"
 				>
 			</File>
@@ -888,6 +892,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInitTypes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonSeq.h"
 				>
 			</File>
 			<File

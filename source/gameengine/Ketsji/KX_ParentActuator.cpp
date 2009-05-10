@@ -267,7 +267,7 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_ob->GetName());
+		return PyString_FromString(m_ob->GetName().ReadPtr());
 	else
 		return m_ob->GetProxy();
 }

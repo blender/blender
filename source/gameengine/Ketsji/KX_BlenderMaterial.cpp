@@ -643,8 +643,7 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 
 			if (mode &USECUSTOMUV)
 			{
-				STR_String str = mMaterial->mapping[i].uvCoName;
-				if (!str.IsEmpty())
+				if (!mMaterial->mapping[i].uvCoName.IsEmpty())
 					ras->SetTexCoord(RAS_IRasterizer::RAS_TEXCO_UV2, i);
 				continue;
 			}
@@ -716,6 +715,8 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 
 	if(!obj) return;
 	obj->Release(); /* FindValue() AddRef's */
+
+	obj->Release();
 
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );

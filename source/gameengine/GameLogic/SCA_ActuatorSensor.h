@@ -52,7 +52,7 @@ public:
 	virtual ~SCA_ActuatorSensor();
 	virtual CValue* GetReplica();
 	virtual void Init();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool	IsPositiveTrigger();
 	virtual void	ReParent(SCA_IObject* parent);
 	void Update();

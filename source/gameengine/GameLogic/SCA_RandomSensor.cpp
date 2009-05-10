@@ -89,7 +89,7 @@ bool SCA_RandomSensor::IsPositiveTrigger()
 }
 
 
-bool SCA_RandomSensor::Evaluate(CValue* event)
+bool SCA_RandomSensor::Evaluate()
 {
     /* Random generator is the generator from Line 25 of Table 1 in          */
     /* [KNUTH 1981, The Art of Computer Programming Vol. 2                   */

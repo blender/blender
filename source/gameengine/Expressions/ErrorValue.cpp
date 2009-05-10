@@ -34,13 +34,15 @@ effect: constructs a new CErrorValue containing errormessage "Error"
 
 
 
-CErrorValue::CErrorValue(STR_String errmsg)
+CErrorValue::CErrorValue(const char *errmsg)
 /*
 pre:
 effect: constructs a new CErrorValue containing errormessage errmsg
 */
 {
-  m_strErrorText = "[" + errmsg + "]";
+  m_strErrorText = "[";
+  m_strErrorText += errmsg;
+  m_strErrorText += "]";
   SetError(true);
 }
 

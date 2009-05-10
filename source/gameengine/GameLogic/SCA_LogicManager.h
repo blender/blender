@@ -43,6 +43,7 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include "Value.h"
+#include "SG_QList.h"
 
 #include "KX_HashedPtr.h"
 
@@ -65,44 +66,17 @@ typedef std::map<class SCA_ISensor*,controllerlist > sensormap_t;
 
 #include "SCA_ILogicBrick.h"
 
-// todo: make this into a template, but first I want to think about what exactly to put in
-class	SmartActuatorPtr
-{
-	SCA_IActuator*	m_actuator;
-public:
-	SmartActuatorPtr(SCA_IActuator* actua,int dummy);
-	SmartActuatorPtr(const SmartActuatorPtr& other);
-	virtual ~SmartActuatorPtr();
-	bool operator <(const SmartActuatorPtr& other) const;
-	bool operator ==(const SmartActuatorPtr& other) const;
-	SCA_IActuator*	operator->() const;
-	SCA_IActuator* operator*() const;
-
-};
-
-class	SmartControllerPtr
-{
-	SCA_IController*	m_controller;
-public:
-	SmartControllerPtr(const SmartControllerPtr& copy);
-	SmartControllerPtr(SCA_IController* contr,int dummy);
-	virtual ~SmartControllerPtr();
-	bool	operator <(const SmartControllerPtr& other) const;
-	bool	operator ==(const SmartControllerPtr& other) const;
-	SCA_IController*	operator->() const;
-	SCA_IController* 	operator*() const; 
-
-};
 
 class SCA_LogicManager
 {
 	vector<class SCA_EventManager*>		m_eventmanagers;
 	
-	vector<class SCA_ISensor*>			m_activatedsensors;
-	set<class SmartActuatorPtr>			m_activeActuators;
-	set<class SmartControllerPtr>		m_triggeredControllerSet;
-
-	sensormap_t							m_sensorcontrollermapje;
+	// SG_DList: Head of objects having activated actuators
+	//           element: SCA_IObject::m_activeActuators
+	SG_DList							m_activeActuators;
+	// SG_DList: Head of objects having activated controllers
+	//           element: SCA_IObject::m_activeControllers
+	SG_DList							m_triggeredControllerSet;
 
 	// need to find better way for this
 	// also known as FactoryManager...
@@ -113,12 +87,11 @@ class SCA_LogicManager
 	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
 	GEN_Map<CHashedPtr,void*>			m_map_blendobj_to_gameobj;
 
-	vector<SmartActuatorPtr>			m_removedActuators;
+	// head of actuators being deactivated during the logic update
+	SG_DList							m_removedActuators;
 public:
 	SCA_LogicManager();
 	virtual ~SCA_LogicManager();
-	// can ONLY be used during scene destruction, avoid massive slow down when scene has many many objects
-	void RemoveSensorMap();		
 
 	//void	SetKeyboardManager(SCA_KeyboardManager* keyboardmgr) { m_keyboardmgr=keyboardmgr;}
 	void	RegisterEventManager(SCA_EventManager* eventmgr);
@@ -130,8 +103,7 @@ public:
 	void	BeginFrame(double curtime, double fixedtime);
 	void	UpdateFrame(double curtime, bool frame);
 	void	EndFrame();
-	void	AddActivatedSensor(SCA_ISensor* sensor);
-	void	AddActiveActuator(SCA_IActuator* sensor,class CValue* event);
+	void	AddActiveActuator(SCA_IActuator* sensor,bool event);
 	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	
@@ -142,7 +114,7 @@ public:
 	*/
 	void	RemoveSensor(SCA_ISensor* sensor);
 	void	RemoveController(SCA_IController* controller);
-	void	RemoveDestroyedActuator(SCA_IActuator* actuator);
+	void	RemoveActuator(SCA_IActuator* actuator);
 	
 
 	// for the scripting... needs a FactoryManager later (if we would have time... ;)

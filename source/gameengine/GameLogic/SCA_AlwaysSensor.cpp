@@ -86,7 +86,7 @@ bool SCA_AlwaysSensor::IsPositiveTrigger()
 
 
 
-bool SCA_AlwaysSensor::Evaluate(CValue* event)
+bool SCA_AlwaysSensor::Evaluate()
 {
 	/* Nice! :) */
 		//return true;

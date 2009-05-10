@@ -114,22 +114,15 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 
 	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
 	{
-#if 1
 		SG_DList::iterator<RAS_MeshSlot> mit((*bit)->GetActiveMeshSlots());
 		for(mit.begin(); !mit.end(); ++mit)
 			size++;
-#else
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
-			if (!mit->IsCulled())
-				size++;
-#endif
 	}
 
 	slots.resize(size);
 
 	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
 	{
-#if 1
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
@@ -139,11 +132,6 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		{
 			slots[i++].set(ms, bucket, pnorm);
 		}
-#else
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
-			if (!mit->IsCulled())
-				slots[i++].set(&*mit, *bit, pnorm);
-#endif
 	}
 		
 	if(alpha)

@@ -179,14 +179,14 @@ list<RAS_MeshMaterial>::iterator RAS_MeshObject::GetLastMaterial()
 
 
 
-void RAS_MeshObject::SetName(STR_String name)
+void RAS_MeshObject::SetName(const char *name)
 {
 	m_name = name;
 }
 
 
 
-const STR_String& RAS_MeshObject::GetName()
+STR_String& RAS_MeshObject::GetName()
 {
 	return m_name;
 }

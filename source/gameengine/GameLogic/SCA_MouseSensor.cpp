@@ -144,7 +144,7 @@ SCA_IInputDevice::KX_EnumInputs SCA_MouseSensor::GetHotKey()
 
 
 
-bool SCA_MouseSensor::Evaluate(CValue* event)
+bool SCA_MouseSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;

@@ -54,14 +54,18 @@ public:
 		void begin()
 		{
 			m_current = (T*)m_head.Peek();
-			if (m_current == (T*)m_head.Self())
-			{
-				m_current = NULL;
-			}
+		}
+		void back()
+		{
+			m_current = (T*)m_head.Back();
 		}
 		bool end()
 		{
-			return (NULL == m_current);
+			return (m_current == (T*)m_head.Self());
+		}
+		bool add_back(T* item)
+		{
+			return m_current->AddBack(item);
 		}
 		T* operator*()
 		{
@@ -69,12 +73,14 @@ public:
 		}
 		_myT& operator++()
 		{
-			assert(m_current);
+			// no check of NULL! make sure you don't try to increment beyond end
 			m_current = (T*)m_current->Peek();
-			if (m_current == (T*)m_head.Self())
-			{
-				m_current = NULL;
-			}
+			return *this;
+		}
+		_myT& operator--()
+		{
+			// no check of NULL! make sure you don't try to increment beyond end
+			m_current = (T*)m_current->Back();
 			return *this;
 		}
 	};
@@ -128,18 +134,22 @@ public:
         item->m_flink = item->m_blink = item;
         return item;
     }
-    void Delink()             // Remove from the middle
+    bool Delink()             // Remove from the middle
     {
-		if (!Empty())
-		{
-			m_blink->m_flink = m_flink;
-			m_flink->m_blink = m_blink;
-			m_flink = m_blink = this;
-		}
+		if (Empty())
+			return false;
+		m_blink->m_flink = m_flink;
+		m_flink->m_blink = m_blink;
+		m_flink = m_blink = this;
+		return true;
     }
     inline SG_DList *Peek()			// Look at front without removing
     { 
         return m_flink; 
+    }  
+    inline SG_DList *Back()			// Look at front without removing
+    { 
+        return m_blink; 
     }  
     inline SG_DList *Self() 
     { 

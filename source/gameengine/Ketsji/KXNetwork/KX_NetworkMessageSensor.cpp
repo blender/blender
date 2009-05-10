@@ -85,7 +85,7 @@ CValue* KX_NetworkMessageSensor::GetReplica() {
 }
 
 // Return true only for flank (UP and DOWN)
-bool KX_NetworkMessageSensor::Evaluate(CValue* event)
+bool KX_NetworkMessageSensor::Evaluate()
 {
 	bool result = false;
 	bool WasUp = m_IsUp;
@@ -102,8 +102,8 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 		m_SubjectList = NULL;
 	}
 
-	STR_String toname=GetParent()->GetName();
-	STR_String subject = this->m_subject;
+	STR_String& toname=GetParent()->GetName();
+	STR_String& subject = this->m_subject;
 
 	vector<NG_NetworkMessage*> messages =
 		m_NetworkScene->FindMessages(toname,"",subject,true);
@@ -123,9 +123,9 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 	for (mesit=messages.begin();mesit!=messages.end();mesit++)
 	{
 		// save the body
-		STR_String body = (*mesit)->GetMessageText();
+		const STR_String& body = (*mesit)->GetMessageText();
 		// save the subject
-		STR_String messub = (*mesit)->GetSubject();
+		const STR_String& messub = (*mesit)->GetSubject();
 #ifdef NAN_NET_DEBUG
 		if (body) {
 			cout << "body [" << body << "]\n";

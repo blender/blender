@@ -86,7 +86,7 @@ void KX_MouseFocusSensor::Init()
 	m_hitNormal.setValue(0,0,1);
 }
 
-bool KX_MouseFocusSensor::Evaluate(CValue* event)
+bool KX_MouseFocusSensor::Evaluate()
 {
 	bool result = false;
 	bool obHasFocus = false;
@@ -119,7 +119,7 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
          * mode is never used, because the converter never makes this
          * sensor for a mouse-key event. It is here for
          * completeness. */
-		result = SCA_MouseSensor::Evaluate(event);
+		result = SCA_MouseSensor::Evaluate();
 		m_positive_event = (m_val!=0);
 	}
 

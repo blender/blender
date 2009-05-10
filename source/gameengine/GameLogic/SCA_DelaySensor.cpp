@@ -89,7 +89,7 @@ bool SCA_DelaySensor::IsPositiveTrigger()
 	return (m_invert ? !m_lastResult : m_lastResult);
 }
 
-bool SCA_DelaySensor::Evaluate(CValue* event)
+bool SCA_DelaySensor::Evaluate()
 {
 	bool trigger = false;
 	bool result;

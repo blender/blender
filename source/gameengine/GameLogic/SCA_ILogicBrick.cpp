@@ -123,14 +123,14 @@ double SCA_ILogicBrick::GetNumber()
 
 
 
-STR_String SCA_ILogicBrick::GetName()
+STR_String& SCA_ILogicBrick::GetName()
 {
 	return m_name;
 }
 
 
 
-void SCA_ILogicBrick::SetName(STR_String name)
+void SCA_ILogicBrick::SetName(const char *name)
 {
 	m_name = name;
 }
@@ -222,7 +222,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
-	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
+	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Priority),
 	KX_PYATTRIBUTE_STRING_RO("name", SCA_ILogicBrick, m_name),
 	{NULL} //Sentinel
 };
@@ -286,7 +286,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
 		return NULL;
     }
 	
-	m_Execute_Ueber_Priority = priority;
+	m_Execute_Priority = priority;
 
 	Py_RETURN_NONE;
 }
@@ -296,7 +296,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
 PyObject* SCA_ILogicBrick::PyGetExecutePriority()
 {
 	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
-	return PyInt_FromLong(m_Execute_Ueber_Priority);
+	return PyInt_FromLong(m_Execute_Priority);
 }
 
 

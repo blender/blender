@@ -83,17 +83,19 @@ CValue* KX_SoundActuator::GetReplica()
 {
 	KX_SoundActuator* replica = new KX_SoundActuator(*this);
 	replica->ProcessReplica();
-	if (m_soundObject)
-	{
-	    SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
-		replica->setSoundObject(soundobj);
-		m_soundScene->AddObject(soundobj);
-	}
-	
 	return replica;
 };
 
-
+void KX_SoundActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
+	if (m_soundObject)
+	{
+	    SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
+		setSoundObject(soundobj);
+		m_soundScene->AddObject(soundobj);
+	}
+}	
 
 bool KX_SoundActuator::Update(double curtime, bool frame)
 {

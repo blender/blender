@@ -86,7 +86,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 	virtual void SynchronizeTransform();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 	virtual void ReParent(SCA_IObject* parent);
 	

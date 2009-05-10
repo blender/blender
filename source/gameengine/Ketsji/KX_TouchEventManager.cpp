@@ -100,7 +100,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	if (m_sensors.insert(touchsensor).second)
+	if (m_sensors.AddBack(touchsensor))
 		// the sensor was effectively inserted, register it
 		touchsensor->RegisterSumo(this);
 }
@@ -108,7 +108,7 @@ void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	if (m_sensors.erase(touchsensor))
+	if (touchsensor->Delink())
 		// the sensor was effectively removed, unregister it
 		touchsensor->UnregisterSumo(this);
 }
@@ -117,12 +117,10 @@ void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
 
 void KX_TouchEventManager::EndFrame()
 {
-	set<SCA_ISensor*>::iterator it;
-	for ( it = m_sensors.begin();
-	!(it==m_sensors.end());it++)
+	SG_DList::iterator<KX_TouchSensor> it(m_sensors);
+	for (it.begin();!it.end();++it)
 	{
-		((KX_TouchSensor*)*it)->EndFrame();
-
+		(*it)->EndFrame();
 	}
 }
 
@@ -130,12 +128,11 @@ void KX_TouchEventManager::EndFrame()
 
 void KX_TouchEventManager::NextFrame()
 {
-	if (m_sensors.size() > 0)
+	if (!m_sensors.Empty())
 	{
-		set<SCA_ISensor*>::iterator it;
-		
-		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
-			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
+		SG_DList::iterator<KX_TouchSensor> it(m_sensors);
+		for (it.begin();!it.end();++it)
+			(*it)->SynchronizeTransform();
 		
 		for (std::set<NewCollision>::iterator cit = m_newCollisions.begin(); cit != m_newCollisions.end(); ++cit)
 		{
@@ -161,7 +158,7 @@ void KX_TouchEventManager::NextFrame()
 			
 		m_newCollisions.clear();
 			
-		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
-			(*it)->Activate(m_logicmgr,NULL);
+		for (it.begin();!it.end();++it)
+			(*it)->Activate(m_logicmgr);
 	}
 }
