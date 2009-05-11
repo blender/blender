@@ -11,11 +11,13 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 	__label__ = "Material"
 	
 	def draw(self, context):
-		mat = context.main.materials[0]
-		layout = self.layout
+		try:		mat = context.active_object.active_material
+		except:	mat = None
 		
 		if not mat:
-			return 
+			return
+			
+		layout = self.layout
 	
 		layout.row()
 		layout.itemR(mat, "diffuse_color")
@@ -31,11 +33,13 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"
 	
 	def draw(self, context):
-		sss = context.main.materials[0].subsurface_scattering 
-		layout = self.layout
+		try:		sss = context.active_object.active_material.subsurface_scattering
+		except:	sss = None
 		
 		if not sss:
 			return 
+		
+		layout = self.layout
 		
 		layout.row()
 		layout.itemR(sss, "enabled", text="Enable")
@@ -60,12 +64,14 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__label__ = "Ray Mirror"
 	
 	def draw(self, context):
-		raym = context.main.materials[0].raytrace_mirror
-		layout = self.layout
+		try:		raym = context.active_object.active_material.raytrace_mirror
+		except:	raym = None
 		
 		if not raym:
 			return 
-
+		
+		layout = self.layout
+		
 		layout.row()
 		layout.itemR(raym, "enabled", text="Enable")
 		
@@ -94,11 +100,13 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__label__= "Ray Transparency"
 
 	def draw(self, context):
-		rayt = context.main.materials[0].raytrace_transparency
-		layout = self.layout
+		try:		rayt = context.active_object.active_material.raytrace_transparency
+		except:	rayt = None
 
 		if not rayt:
 			return
+		
+		layout = self.layout
 
 		layout.row()
 		layout.itemR(rayt, "enabled", text="Enable")
