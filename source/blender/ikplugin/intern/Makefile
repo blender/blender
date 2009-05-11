@@ -32,11 +32,12 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 CFLAGS += -I$(NAN_GUARDEDALLOC)/include
-CFLAGS += -I$(NAN_IKSOLVER)/include
 CFLAGS += -I../../makesdna
 CFLAGS += -I../../blenkernel
 CFLAGS += -I../../blenlib
 CFLAGS += -I../../include
+CFLAGS += -I../../../intern/itasc
+CFLAGS += -I../../../extern/Eigen2
 CFLAGS += -I..
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

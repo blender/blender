@@ -28,6 +28,7 @@ FILE(GLOB SRC intern/*.c intern/*.cpp)
 
 SET(INC 
   ../../../intern/guardedalloc ../../../intern/iksolver/extern
+  ../../../intern/itasc ../../../extern/Eigen2
   ../blenlib ../makesdna ../blenkernel ../include ../ikplugin
 )
 
