@@ -69,8 +69,11 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 		memset(&tmp, 0, sizeof(tmp));
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
+		
+		if(idtype->refine)
+			idtype= idtype->refine(&tmp);
 	}
-
+	
 	r_ptr->id.data= id;
 	r_ptr->type= idtype;
 	r_ptr->data= id;
@@ -2533,9 +2536,9 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 	PropertyRNA *pret, *parm;
 	PropertyType type;
 	int i, ofs, flen, flag, len, alen, err= 0;
-	const char *tid, *fid, *pid;
+	const char *tid, *fid, *pid=NULL;
 	char ftype;
-	void **retdata;
+	void **retdata=NULL;
 
 	RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 

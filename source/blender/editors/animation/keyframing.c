@@ -68,6 +68,7 @@ bAction *verify_adt_action (ID *id, short add)
 		adt= BKE_id_add_animdata(id);
 	if (adt == NULL) { 
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+		printf("ERROR: Couldn't add AnimData (ID = %s) \n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
 		
@@ -793,6 +794,9 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		}
 	}
 	
+	/* no F-Curve to add keyframes to */
+	printf("ERROR: no F-Curve to add keyframes to \n");
+	
 	/* return failure */
 	return 0;
 }
@@ -1203,11 +1207,11 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
-	if(ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+	if ((ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
-		if(path) {
-			if(all) {
+		if (path) {
+			if (all) {
 				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
@@ -1216,14 +1220,20 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			else
 				length= 1;
 			
-			for(a=0; a<length; a++)
+			for (a=0; a<length; a++)
 				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}
+		else if (G.f & G_DEBUG)
+			printf("Button Insert-Key: no path to property \n");
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
+		printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
 	}
 	
-	if(success) {
+	if (success) {
 		/* send updates */
 		ED_anim_dag_flush_update(C);	
 		
@@ -1267,11 +1277,11 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
-	if(ptr.data && prop) {
+	if (ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
-		if(path) {
-			if(all) {
+		if (path) {
+			if (all) {
 				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
@@ -1280,11 +1290,16 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			else
 				length= 1;
 			
-			for(a=0; a<length; a++)
+			for (a=0; a<length; a++)
 				success+= delete_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}
+		else if (G.f & G_DEBUG)
+			printf("Button Delete-Key: no path to property \n");
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p \n", ptr.data, prop);
 	}
 	
 	
