@@ -40,5 +40,5 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += $(NAN_SDLCFLAGS)
-
+CPPFLAGS += -I../../SceneGraph
 CPPFLAGS += -I../../../kernel/gen_system
