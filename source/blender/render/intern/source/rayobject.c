@@ -31,14 +31,96 @@
 #include "BKE_utildefines.h"
 
 #include "RE_raytrace.h"
+#include "render_types.h"
 #include "rayobject.h"
 
+/* only for self-intersecting test with current render face (where ray left) */
+static int intersection2(VlakRen *face, float r0, float r1, float r2, float rx1, float ry1, float rz1)
+{
+	float co1[3], co2[3], co3[3], co4[3];
+	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22;
+	float m0, m1, m2, divdet, det, det1;
+	float u1, v, u2;
+
+	VECCOPY(co1, face->v1->co);
+	VECCOPY(co2, face->v2->co);
+	if(face->v4)
+	{
+		VECCOPY(co3, face->v4->co);
+		VECCOPY(co4, face->v3->co);
+	}
+	else
+	{
+		VECCOPY(co3, face->v3->co);
+	}
+
+	t00= co3[0]-co1[0];
+	t01= co3[1]-co1[1];
+	t02= co3[2]-co1[2];
+	t10= co3[0]-co2[0];
+	t11= co3[1]-co2[1];
+	t12= co3[2]-co2[2];
+	
+	x0= t11*r2-t12*r1;
+	x1= t12*r0-t10*r2;
+	x2= t10*r1-t11*r0;
+
+	divdet= t00*x0+t01*x1+t02*x2;
+
+	m0= rx1-co3[0];
+	m1= ry1-co3[1];
+	m2= rz1-co3[2];
+	det1= m0*x0+m1*x1+m2*x2;
+	
+	if(divdet!=0.0f) {
+		u1= det1/divdet;
+
+		if(u1<ISECT_EPSILON) {
+			det= t00*(m1*r2-m2*r1);
+			det+= t01*(m2*r0-m0*r2);
+			det+= t02*(m0*r1-m1*r0);
+			v= det/divdet;
+
+			if(v<ISECT_EPSILON && (u1 + v) > -(1.0f+ISECT_EPSILON)) {
+				return 1;
+			}
+		}
+	}
+
+	if(face->v4) {
+
+		t20= co3[0]-co4[0];
+		t21= co3[1]-co4[1];
+		t22= co3[2]-co4[2];
+
+		divdet= t20*x0+t21*x1+t22*x2;
+		if(divdet!=0.0f) {
+			u2= det1/divdet;
+		
+			if(u2<ISECT_EPSILON) {
+				det= t20*(m1*r2-m2*r1);
+				det+= t21*(m2*r0-m0*r2);
+				det+= t22*(m0*r1-m1*r0);
+				v= det/divdet;
+	
+				if(v<ISECT_EPSILON && (u2 + v) >= -(1.0f+ISECT_EPSILON)) {
+					return 2;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+
 /* ray - triangle or quad intersection */
+/* this function shall only modify Isect if it detects an hit */
 static int intersect_rayface(RayFace *face, Isect *is)
 {
 	float co1[3],co2[3],co3[3],co4[3];
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
 	float m0, m1, m2, divdet, det1;
+	float labda, u, v;
 	short ok=0;
 	
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
@@ -51,8 +133,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
-	
-	//TODO if(v4) { SWAP(float*, v3, v4); }
 	if(face->v4)
 	{
 		VECCOPY(co3, face->v4);
@@ -86,12 +166,11 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	det1= m0*x0+m1*x1+m2*x2;
 	
 	if(divdet!=0.0f) {
-		float u;
 
 		divdet= 1.0f/divdet;
 		u= det1*divdet;
 		if(u<ISECT_EPSILON && u>-(1.0f+ISECT_EPSILON)) {
-			float v, cros0, cros1, cros2;
+			float cros0, cros1, cros2;
 			
 			cros0= m1*t02-m2*t01;
 			cros1= m2*t00-m0*t02;
@@ -99,12 +178,9 @@ static int intersect_rayface(RayFace *face, Isect *is)
 			v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 
 			if(v<ISECT_EPSILON && (u + v) > -(1.0f+ISECT_EPSILON)) {
-				float labda;
 				labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 
 				if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
-					is->labda= labda;
-					is->u= u; is->v= v;
 					ok= 1;
 				}
 			}
@@ -119,25 +195,21 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 		divdet= t20*x0+t21*x1+t22*x2;
 		if(divdet!=0.0f) {
-			float u;
 			divdet= 1.0f/divdet;
 			u = det1*divdet;
 			
 			if(u<ISECT_EPSILON && u>-(1.0f+ISECT_EPSILON)) {
-				float v, cros0, cros1, cros2;
+				float cros0, cros1, cros2;
 				cros0= m1*t22-m2*t21;
 				cros1= m2*t20-m0*t22;
 				cros2= m0*t21-m1*t20;
 				v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 	
 				if(v<ISECT_EPSILON && (u + v) >-(1.0f+ISECT_EPSILON)) {
-					float labda;
 					labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 					
 					if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
 						ok= 2;
-						is->labda= labda;
-						is->u= u; is->v= v;
 					}
 				}
 			}
@@ -145,8 +217,37 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	}
 
 	if(ok) {
-		is->isect= ok;	// wich half of the quad
-		
+	
+		/* when a shadow ray leaves a face, it can be little outside the edges of it, causing
+		intersection to be detected in its neighbour face */
+		if(is->skip & RE_SKIP_VLR_NEIGHBOUR)
+		{
+			if(labda < 0.1f && is->orig.ob == face->ob)
+			{
+				VlakRen * a = is->orig.face;
+				VlakRen * b = face->face;
+
+				/* so there's a shared edge or vertex, let's intersect ray with face
+				itself, if that's true we can safely return 1, otherwise we assume
+				the intersection is invalid, 0 */
+				if(a->v1==b->v1 || a->v2==b->v1 || a->v3==b->v1 || a->v4==b->v1
+				|| a->v1==b->v2 || a->v2==b->v2 || a->v3==b->v2 || a->v4==b->v2
+				|| a->v1==b->v3 || a->v2==b->v3 || a->v3==b->v3 || a->v4==b->v3
+				|| a->v1==b->v4 || a->v2==b->v4 || a->v3==b->v4 || (a->v4 && a->v4==b->v4))
+				if(!intersection2((VlakRen*)b, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]))
+				{
+					return 0;
+				}
+			}
+		}
+#if 0
+		else if(labda < ISECT_EPSILON)
+		{
+			/* too close to origin */
+			return 0;
+		}
+#endif
+
 /*
 		TODO
 		if(is->mode!=RE_RAY_SHADOW) {
@@ -157,46 +258,10 @@ static int intersect_rayface(RayFace *face, Isect *is)
 			}
 		}
 */		
+		is->isect= ok;	// wich half of the quad
+		is->labda= labda;
+		is->u= u; is->v= v;
 
-#if 0
-		TODO
-		/* when a shadow ray leaves a face, it can be little outside the edges of it, causing
-		intersection to be detected in its neighbour face */
-		if(is->facecontr && is->faceisect);	// optimizing, the tests below are not needed
-		else if(is->labda< .1) {
-			RayFace *face= is->orig.face;
-			float *origv1, *origv2, *origv3, *origv4;
-			short de= 0;
-
-			coordsfunc(face, &origv1, &origv2, &origv3, &origv4);
-			
-			if(ob == is->orig.ob) {
-				if(v1==origv1 || v2==origv1 || v3==origv1 || v4==origv1) de++;
-				if(v1==origv2 || v2==origv2 || v3==origv2 || v4==origv2) de++;
-				if(v1==origv3 || v2==origv3 || v3==origv3 || v4==origv3) de++;
-				if(origv4) {
-					if(v1==origv4 || v2==origv4 || v3==origv4 || v4==origv4) de++;
-				}
-			}
-			if(de) {
-				/* so there's a shared edge or vertex, let's intersect ray with face
-				itself, if that's true we can safely return 1, otherwise we assume
-				the intersection is invalid, 0 */
-				
-				if(is->facecontr==NULL) {
-					is->obcontr= is->orig.ob;
-					is->facecontr= face;
-					is->faceisect= intersection2(face, is->orig.ob, transformfunc, coordsfunc, is->userdata,
-												-r0, -r1, -r2,
-												is->start[0], is->start[1], is->start[2]);
-				}
-
-				if(is->faceisect) return 1;
-				return 0;
-			}
-		}
-#endif
-		
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
 		return 1;

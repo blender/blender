@@ -2055,6 +2055,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		VECCOPY(isec->start, shi->co);
 		VECCOPY(isec->vec, vec);
 		isec->labda = 1.0f;
+		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 		
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
 			/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
