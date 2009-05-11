@@ -29,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_report.h"

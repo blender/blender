@@ -1718,10 +1718,18 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		return NULL;
 	
 	if(!RNA_struct_is_ID(ptr->type)) {
-		if(ptr->type->path)
-			ptrpath= ptr->type->path(ptr);
-		else
-			return NULL;
+		if(ptr->type && ptr->type->nested) {
+			//StructRNA *nestedType= ptr->type->nested;
+			
+			printf("RNA - struct is nested \n");
+			// TODO: how do we get the identifier of the way this is nested into the main?
+		}
+		else {
+			if(ptr->type->path)
+				ptrpath= ptr->type->path(ptr);
+			else
+				return NULL;
+		}
 	}
 
 	propname= RNA_property_identifier(prop);
