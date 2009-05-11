@@ -38,6 +38,7 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_STRING)/include    
+CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../Expressions
 CPPFLAGS += -I../../GameLogic
 CPPFLAGS += -I../../Scenegraph

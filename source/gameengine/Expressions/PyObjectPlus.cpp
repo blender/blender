@@ -50,6 +50,7 @@
 #include "stdlib.h"
 #include "PyObjectPlus.h"
 #include "STR_String.h"
+#include "MT_Vector3.h"
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/
@@ -328,6 +329,16 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				float *val = reinterpret_cast<float*>(ptr);
 				return PyFloat_FromDouble(*val);
 			}
+		case KX_PYATTRIBUTE_TYPE_VECTOR:
+			{
+				PyObject* resultlist = PyList_New(3);
+				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
+				for (unsigned int i=0; i<3; i++)
+				{
+					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
+				}
+				return resultlist;
+			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
@@ -549,7 +560,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
 		}
-		if (attrdef->m_checkFunction != NULL)
+		if (attrdef->m_checkFunction != NULL || attrdef->m_type == KX_PYATTRIBUTE_TYPE_VECTOR)
 		{
 			// post check function is provided, prepare undo buffer
 			sourceBuffer = ptr;
@@ -572,6 +583,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				sourceBuffer = reinterpret_cast<STR_String*>(ptr)->Ptr();
 				if (sourceBuffer)
 					bufferSize = strlen(reinterpret_cast<char*>(sourceBuffer))+1;
+				break;
+			case KX_PYATTRIBUTE_TYPE_VECTOR:
+				bufferSize = sizeof(MT_Vector3);
 				break;
 			default:
 				PyErr_Format(PyExc_AttributeError, "unknown type for attribute \"%s\", report to blender.org", attrdef->m_name);
@@ -691,6 +705,42 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					goto FREE_AND_ERROR;
 				}
 				*var = (float)val;
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_VECTOR:
+			{
+				if (!PySequence_Check(value) || PySequence_Size(value) != 3) 
+				{
+					PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
+					return 1;
+				}
+				MT_Vector3 *var = reinterpret_cast<MT_Vector3*>(ptr);
+				for (int i=0; i<3; i++)
+				{
+					PyObject *item = PySequence_GetItem(value, i); /* new ref */
+					// we can decrement the reference immediately, the reference count
+					// is at least 1 because the item is part of an array
+					Py_DECREF(item);
+					double val = PyFloat_AsDouble(item);
+					if (val == -1.0 && PyErr_Occurred())
+					{
+						PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
+						goto RESTORE_AND_ERROR;
+					}
+					else if (attrdef->m_clamp)
+					{
+						if (val < attrdef->m_fmin)
+							val = attrdef->m_fmin;
+						else if (val > attrdef->m_fmax)
+							val = attrdef->m_fmax;
+					}
+					else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+					{
+						PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
+						goto RESTORE_AND_ERROR;
+					}
+					(*var)[i] = (MT_Scalar)val;
+				}
 				break;
 			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
