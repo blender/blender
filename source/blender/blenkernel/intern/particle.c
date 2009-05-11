@@ -351,8 +351,18 @@ void free_hair(ParticleSystem *psys, int softbody)
 }
 void free_keyed_keys(ParticleSystem *psys)
 {
-	if(psys->particles && psys->particles->keys)
+	ParticleData *pa;
+	int i;
+
+	if(psys->particles && psys->particles->keys) {
 		MEM_freeN(psys->particles->keys);
+
+		for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
+		if(pa->keys) {
+			pa->keys= NULL;
+			pa->totkey= 0;
+		}
+	}
 }
 void free_child_path_cache(ParticleSystem *psys)
 {

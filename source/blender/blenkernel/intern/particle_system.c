@@ -203,7 +203,7 @@ static void realloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 		if(psys->particles->keys)
 			MEM_freeN(psys->particles->keys);
 
-		for(i=totsaved, pa=psys->particles+totsaved; i<psys->totpart; i++, pa++)
+		for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
 			if(pa->keys) {
 				pa->keys= NULL;
 				pa->totkey= 0;
