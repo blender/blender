@@ -382,6 +382,30 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 	return prop;
 }
 
+/* Find the property which uses the given nested struct */
+PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
+{
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *prop;
+	int i = 0;
+
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+	prop= NULL;
+
+	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
+		/* This assumes that there can only be one user of this nested struct */
+		if (RNA_property_pointer_type(iter.ptr.data) == srna) {
+			prop= iter.ptr.data;
+			break;
+		}
+	}
+
+	RNA_property_collection_end(&iter);
+
+	return prop;
+}
+
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 {
 	return &srna->cont.properties;
@@ -1718,18 +1742,27 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		return NULL;
 	
 	if(!RNA_struct_is_ID(ptr->type)) {
-		if(ptr->type && ptr->type->nested) {
-			//StructRNA *nestedType= ptr->type->nested;
+		if(ptr->type->path) {
+			/* if type has a path to some ID, use it */
+			ptrpath= ptr->type->path(ptr);
+		}
+		else if(ptr->type->nested) {
+			PointerRNA parentptr;
+			PropertyRNA *userprop;
 			
-			printf("RNA - struct is nested \n");
-			// TODO: how do we get the identifier of the way this is nested into the main?
-		}
-		else {
-			if(ptr->type->path)
-				ptrpath= ptr->type->path(ptr);
+			/* find the property in the struct we're nested in that references this struct, and 
+			 * use its identifier as the first part of the path used...
+			 */
+			RNA_pointer_create(ptr->id.data, ptr->type->nested, ptr->data, &parentptr);
+			userprop= RNA_struct_find_nested(&parentptr, ptr->type); 
+			
+			if(userprop)
+				ptrpath= BLI_strdup(RNA_property_identifier(userprop));
 			else
-				return NULL;
+				return NULL; // can't do anything about this case yet...
 		}
+		else
+			return NULL;
 	}
 
 	propname= RNA_property_identifier(prop);
