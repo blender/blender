@@ -216,6 +216,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 		else if(type==OB_LAMP) {
 			BIF_undo_push("Add Lamp");
 			reshadeall_displist();	/* only frees */
+			BIF_preview_changed(ID_LA);
 		}
 		else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
 		else if(type==OB_CAMERA) BIF_undo_push("Add Camera");

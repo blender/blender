@@ -243,6 +243,13 @@ void BIF_preview_changed(short id_code)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 			}
+
+			for(ma=G.main->mat.first; ma; ma=ma->id.next) {
+				if(ma->gpumaterial.first) {
+					GPU_material_free(ma);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
 		} else if(OBACT) {
 			Object *ob = OBACT;
 
