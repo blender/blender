@@ -8,4 +8,4 @@
 LC_ALL=POSIX
 
 epydoc --debug -v  -o BPY_GE --url "http://www.blender.org" --top GameLogic \
- --name "Blender GameEngine" --no-private --no-frames --no-sourcecode --inheritance=included *.py 
+ --name "Blender GameEngine" --no-private --no-sourcecode --inheritance=included *.py 

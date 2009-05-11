@@ -4,46 +4,57 @@ class KX_PhysicsObjectWrapper(PyObjectPlus):
 	"""
 	KX_PhysicsObjectWrapper
 	
-	All placeholders have a __ prefix
 	"""
-	def __setActive(val):
+	def setActive(active):
 		"""
-		TODO - Description
+		Set the object to be active.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param active: set to True to be active
+		@type active: bool
 		"""
 
-	def __setAngularVelocity(val):
+	def setAngularVelocity(x, y, z, local):
 		"""
-		TODO - Description
+		Set the angular velocity of the object.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param x: angular velocity for the x-axis
+		@type x: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param y: angular velocity for the y-axis
+		@type y: float
+		
+		@param z: angular velocity for the z-axis
+		@type z: float
+		
+		@param local: set to True for local axis
+		@type local: bool
 		"""
-	def __setLinearVelocity(val):
+	def setLinearVelocity(x, y, z, local):
 		"""
-		TODO - Description
+		Set the linear velocity of the object.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param x: linear velocity for the x-axis
+		@type x: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param y: linear velocity for the y-axis
+		@type y: float
+		
+		@param z: linear velocity for the z-axis
+		@type z: float
+		
+		@param local: set to True for local axis
+		@type local: bool
 		"""
-	def __setPosition(val):
+	def setPosition(x, y, z):
 		"""
-		TODO - Description
+		Set the position of the object
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param x: x coordinate
+		@type x: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param y: y coordinate
+		@type y: float
+		
+		@param z: z coordinate
+		@type z: float
 		"""

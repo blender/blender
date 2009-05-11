@@ -5,227 +5,244 @@ class BL_Shader(PyObjectPlus):
 	"""
 	BL_Shader GLSL shaders.
 	
-	All placeholders have a __ prefix
+	TODO - Description
 	"""
 	
-	def __setUniformfv(val):
+	def setUniformfv(name, fList):
 		"""
-		TODO - Description
+		Set a uniform with a list of float values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
 		
-		@rtype: integer
-		@return: TODO Description
+		@param fList: a list (2, 3 or 4 elements) of float values
+		@type fList: list[float]
 		"""
 
-	def __delSource(val):
+	def delSource():
 		"""
 		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+
 		"""
-	def __getFragmentProg(val):
+	def getFragmentProg():
 		"""
-		TODO - Description
+		Returns the fragment program.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@rtype: string
+		@return: The fragment program.
 		"""
-	def __getVertexProg(val):
+	def getVertexProg():
 		"""
-		TODO - Description
+		Get the vertex program.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@rtype: string
+		@return: The vertex program.
 		"""
-	def __isValid(val):
+	def isValid():
 		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		Check if the shader is valid.
+
+		@rtype: bool
+		@return: True if the shader is valid
 		"""
-	def __setAttrib(val):
+	def setAttrib(enum):
 		"""
-		TODO - Description
+		Set attribute location. (The parameter is ignored a.t.m. and the value of "tangent" is always used.)
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param enum: attribute location value
+		@type enum: integer
 		"""
-	def __setNumberOfPasses(val):
+	def setNumberOfPasses( max_pass ):
 		"""
-		TODO - Description
+		Set the maximum number of passes. Not used a.t.m.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param max_pass: the maximum number of passes
+		@type max_pass: integer
 		"""
-	def __setSampler(val):
+	def setSampler(name, index):
 		"""
-		TODO - Description
+		Set uniform texture sample index.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param name: Uniform name
+		@type name: string
+
+		@param index: Texture sample index.
+		@type index: integer
 		"""
-	def __setSource(val):
+	def setSource(vertexProgram, fragmentProgram):
 		"""
-		TODO - Description
+		Set the vertex and fragment programs
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param vertexProgram: Vertex program
+		@type vertexProgram: string
+
+		@param fragmentProgram: Fragment program
+		@type fragmentProgram: string
 		"""
-	def __setUniform1f(val):
+	def setUniform1f(name, fx):
 		"""
-		TODO - Description
+		Set a uniform with 1 float value.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
 		
-		@rtype: integer
-		@return: TODO Description
+		@param fx: Uniform value
+		@type fx: float
 		"""
-	def __setUniform1i(val):
+	def setUniform1i(name, ix):
 		"""
-		TODO - Description
+		Set a uniform with an integer value.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param name: the uniform name
+		@type name: string
+
+		@param ix: the uniform value
+		@type ix: integer
 		"""
-	def __setUniform2f(val):
+	def setUniform2f(name, fx, fy):
 		"""
-		TODO - Description
+		Set a uniform with 2 float values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param fx: first float value
+		@type fx: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param fy: second float value
+		@type fy: float
 		"""
-	def __setUniform2i(val):
+	def setUniform2i(name, ix, iy):
 		"""
-		TODO - Description
+		Set a uniform with 2 integer values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param ix: first integer value
+		@type ix: integer
 		
-		@rtype: integer
-		@return: TODO Description
+		@param iy: second integer value
+		@type iy: integer
 		"""
-	def __setUniform3f(val):
+	def setUniform3f(name, fx,fy,fz):
 		"""
-		TODO - Description
+		Set a uniform with 3 float values.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param fx: first float value
+		@type fx: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param fy: second float value
+		@type fy: float
+
+		@param fz: third float value
+		@type fz: float
 		"""
-	def __setUniform3i(val):
+	def setUniform3i(name, ix,iy,iz):
 		"""
-		TODO - Description
+		Set a uniform with 3 integer values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param ix: first integer value
+		@type ix: integer
 		
-		@rtype: integer
-		@return: TODO Description
+		@param iy: second integer value
+		@type iy: integer
+		
+		@param iz: third integer value
+		@type iz: integer
 		"""
-	def __setUniform4f(val):
+	def setUniform4f(name, fx,fy,fz,fw):
 		"""
-		TODO - Description
+		Set a uniform with 4 float values.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param fx: first float value
+		@type fx: float
 		
-		@rtype: integer
-		@return: TODO Description
+		@param fy: second float value
+		@type fy: float
+
+		@param fz: third float value
+		@type fz: float
+
+		@param fw: fourth float value
+		@type fw: float
 		"""
-	def __setUniform4i(val):
+	def setUniform4i(name, ix,iy,iz, iw):
 		"""
-		TODO - Description
+		Set a uniform with 4 integer values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param ix: first integer value
+		@type ix: integer
 		
-		@rtype: integer
-		@return: TODO Description
+		@param iy: second integer value
+		@type iy: integer
+		
+		@param iz: third integer value
+		@type iz: integer
+		
+		@param iw: fourth integer value
+		@type iw: integer
 		"""
-	def __setUniformDef(val):
+	def setUniformDef(name, type):
 		"""
-		TODO - Description
+		Define a new uniform
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param name: the uniform name
+		@type name: string
+
+		@param type: uniform type
+		@type type: UNI_NONE, UNI_INT, UNI_FLOAT, UNI_INT2, UNI_FLOAT2,	UNI_INT3, UNI_FLOAT3, UNI_INT4,	UNI_FLOAT4,	UNI_MAT3, UNI_MAT4,	UNI_MAX
 		"""
-	def __setUniformMatrix3(val):
+	def setUniformMatrix3(name, mat, transpose):
 		"""
-		TODO - Description
+		Set a uniform with a 3x3 matrix value
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param mat: A 3x3 matrix [[f,f,f], [f,f,f], [f,f,f]]
+		@type mat: 3x3 matrix
 		
-		@rtype: integer
-		@return: TODO Description
+		@param transpose: set to True to transpose the matrix
+		@type transpose: bool
 		"""
-	def __setUniformMatrix4(val):
+	def setUniformMatrix4(name, mat, transpose):
 		"""
-		TODO - Description
+		Set a uniform with a 4x4 matrix value
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
+
+		@param mat: A 4x4 matrix [[f,f,f,f], [f,f,f,f], [f,f,f,f], [f,f,f,f]]
+		@type mat: 4x4 matrix
 		
-		@rtype: integer
-		@return: TODO Description
+		@param transpose: set to True to transpose the matrix
+		@type transpose: bool
 		"""
-	def __setUniformiv(val):
+	def setUniformiv(name, iList):
 		"""
-		TODO - Description
+		Set a uniform with a list of integer values
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param name: the uniform name
+		@type name: string
 		
-		@rtype: integer
-		@return: TODO Description
+		@param iList: a list (2, 3 or 4 elements) of integer values
+		@type iList: list[integer]
 		"""
-	def __validate(val):
+	def validate():
 		"""
-		TODO - Description
+		Validate the shader object.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
 		"""

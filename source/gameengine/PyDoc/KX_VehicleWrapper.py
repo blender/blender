@@ -4,13 +4,13 @@ class KX_VehicleWrapper(PyObjectPlus):
 	"""
 	KX_VehicleWrapper
 	
-	All placeholders have a __ prefix
+	TODO - description
 	"""
 	
 	def addWheel(wheel, attachPos, attachDir, axleDir, suspensionRestLength, wheelRadius, hasSteering):
 		
 		"""
-		TODO - Description
+		Add a wheel to the vehicle
 		
 		@param wheel: The object to use as a wheel.
 		@type wheel: L{KX_GameObject<KX_GameObject.KX_GameObject>} or a KX_GameObject name
@@ -26,143 +26,135 @@ class KX_VehicleWrapper(PyObjectPlus):
 		@type wheelRadius: float
 		"""
 
-	def __applyBraking(val):
+	def applyBraking(force, wheelIndex):
 		"""
-		TODO - Description
+		Apply a braking force to the specified wheel
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param force: the brake force
+		@type force: float
+		
+		@param wheelIndex: index of the wheel where the force needs to be applied
+		@type wheelIndex: integer
+		"""
+	def applyEngineForce(force, wheelIndex):
+		"""
+		Apply an engine force to the specified wheel
+		
+		@param force: the engine force
+		@type force: float
+		
+		@param wheelIndex: index of the wheel where the force needs to be applied
+		@type wheelIndex: integer
+		"""
+	def getConstraintId():
+		"""
+		Get the constraint ID
 		
 		@rtype: integer
-		@return: TODO Description
+		@return: the constraint id
 		"""
-	def __applyEngineForce(val):
+	def getConstraintType():
 		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
+		Returns the constraint type.
 		
 		@rtype: integer
-		@return: TODO Description
+		@return: constraint type
 		"""
-	def __getConstraintId(val):
+	def getNumWheels():
 		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
+		Returns the number of wheels.
 		
 		@rtype: integer
+		@return: the number of wheels for this vehicle
+		"""
+	def getWheelOrientationQuaternion(wheelIndex):
+		"""
+		Returns the wheel orientation as a quaternion.
+		
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
+		
+		@rtype: TODO - type should be quat as per method name but from the code it looks like a matrix
 		@return: TODO Description
 		"""
-	def __getConstraintType(val):
+	def getWheelPosition(wheelIndex):
 		"""
-		TODO - Description
+		Returns the position of the specified wheel
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		
-		@rtype: integer
-		@return: TODO Description
+		@rtype: list[x, y, z]
+		@return: position vector
 		"""
-	def __getNumWheels(val):
+	def getWheelRotation(wheelIndex):
 		"""
-		TODO - Description
+		Returns the rotation of the specified wheel
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		
-		@rtype: integer
-		@return: TODO Description
+		@rtype: float
+		@return: the wheel rotation
 		"""
-	def __getWheelOrientationQuaternion(val):
+	def setRollInfluence(rollInfluece, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's roll influence.
+		The higher the roll influence the more the vehicle will tend to roll over in corners.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param rollInfluece: the wheel roll influence
+		@type rollInfluece: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
-	def __getWheelPosition(val):
+	def setSteeringValue(steering, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's steering
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param steering: the wheel steering
+		@type steering: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
-	def __getWheelRotation(val):
+	def setSuspensionCompression(compression, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's compression
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param compression: the wheel compression
+		@type compression: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
-	def __setRollInfluence(val):
+	def setSuspensionDamping(damping, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's damping
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param damping: the wheel damping
+		@type damping: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
-	def __setSteeringValue(val):
+	def setSuspensionStiffness(stiffness, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's stiffness
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param stiffness: the wheel stiffness
+		@type stiffness: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
-	def __setSuspensionCompression(val):
+	def setTyreFriction(friction, wheelIndex):
 		"""
-		TODO - Description
+		Set the specified wheel's tyre friction
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
-		"""
-	def __setSuspensionDamping(val):
-		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
-		"""
-	def __setSuspensionStiffness(val):
-		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
-		"""
-	def __setTyreFriction(val):
-		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@param friction: the tyre friction
+		@type friction: float
+
+		@param wheelIndex: the wheel index
+		@type wheelIndex: integer
 		"""
