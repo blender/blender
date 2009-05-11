@@ -546,7 +546,7 @@ class Euler:
   The Euler object
   ================
     This object gives access to Eulers in Blender.
-  @group Axises: x, y, z, w
+  @group Axises: x, y, z
   @ivar x: The heading value in degrees.
   @ivar y: The pitch value in degrees.
   @ivar z: The roll value in degrees.
