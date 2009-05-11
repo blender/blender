@@ -93,7 +93,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 
 		layout.row()
 		layout.itemO("SCREEN_OT_render", text="RENDER", icon=0) # ICON_SCENE
-		#layout.itemO("SCREEN_OT_render", text="ANIM", icon=0) # "anim", 1
+		layout.item_booleanO("SCREEN_OT_render", 'anim', True, text="ANIM", icon=0)
 
 		layout.row()
 		layout.itemR(scene, "start_frame", text="Start")
