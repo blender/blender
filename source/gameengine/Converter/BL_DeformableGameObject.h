@@ -83,10 +83,7 @@ public:
 		return (m_pDeformer) ? ((BL_MeshDeformer*)m_pDeformer)->GetMesh()->key : NULL;
 	}
 	
-	virtual void	SetDeformer(class RAS_Deformer* deformer)
-	{
-		m_pDeformer = deformer;
-	}
+	virtual void	SetDeformer(class RAS_Deformer* deformer);
 	virtual class RAS_Deformer* GetDeformer()
 	{
 		return m_pDeformer;
