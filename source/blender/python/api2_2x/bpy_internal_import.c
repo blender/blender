@@ -316,7 +316,7 @@ void bpy_text_clear_modules(int clear_all)
 		if(fname) {
 			if (clear_all || ((strstr(fname, SEPSTR))==0)) { /* no path ? */
 				file_extension = strstr(fname, ".py");
-				if(file_extension && *(file_extension + 3) == '\0') { /* .py extension ? */
+				if(file_extension && (*(file_extension + 3) == '\0' || *(file_extension + 4) == '\0')) { /* .py or pyc extension? */
 					/* now we can be fairly sure its a python import from the blendfile */
 					PyList_Append(list, key); /* free'd with the list */
 				}
