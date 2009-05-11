@@ -148,12 +148,6 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			
 			/* Array Index - only if applicable */
 			if (RNA_property_array_length(prop)) {
-					// XXX the format of these is not final... we don't know how this will go yet
-					// format 1 style
-				//static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
-				//static char *quatitem[4]= {".W", ".X", ".Y", ".Z"};
-				//static char *coloritem[4]= {".R", ".G", ".B", ".A"};
-					// format 2 style
 				static char *vectoritem[4]= {"X ", "Y ", "Z ", "W "};
 				static char *quatitem[4]= {"W ", "X ", "Y ", "Z "};
 				static char *coloritem[4]= {"R ", "G ", "B ", "A "};
@@ -181,8 +175,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			
 			/* putting this all together into the buffer */
 			// XXX we need to check for invalid names...
-			//BLI_snprintf(name, 128, "%s.%s%s", structname, propname, arrayname);  // format 1
-			BLI_snprintf(name, 128, "%s%s (%s)", arrayname, propname, structname);  // format 2
+			BLI_snprintf(name, 128, "%s%s (%s)", arrayname, propname, structname); 
 			
 			/* free temp name if nameprop is set */
 			if (nameprop)
@@ -197,6 +190,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 /* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */
 
+#if 0
 /* used for FCURVE_COLOR_AUTO_RAINBOW */
 // XXX this still doesn't work too great when there are more than 32 curves (which happens most of the time)
 void ipo_rainbow (int cur, int tot, float *out)
@@ -206,14 +200,57 @@ void ipo_rainbow (int cur, int tot, float *out)
 	dfac= (float)(1.0/( (float)tot+1.0));
 	
 	/* this calculation makes 2 or 4 different cycles of rainbow colors */
+		// 2 different cycles - for hue
 	if(cur< tot/2) fac= (float)(cur*2.0f*dfac);
 	else fac= (float)((cur-tot/2)*2.0f*dfac +dfac);
+	
+		// third cycle with altered hue
 	if(tot > 32) fac= fac*1.95f;
+		// clamping for excessive ranges
 	if(fac>1.0f) fac-= 1.0f;
 	
+		// saturation adjustments for more visible range
 	if(fac>0.5f && fac<0.8f) sat= 0.5f;
 	else sat= 0.6f;
 	
-	//return hsv_to_cpack(fac, sat, 1.0f);
 	hsv_to_rgb(fac, sat, 1.0f, out, out+1, out+2);
+}
+#endif
+
+/* step between the major distinguishable color bands of the primary colors */
+#define HSV_BANDWIDTH	0.3f
+
+/* testbed for FCURVE_COLOR_AUTO_RAINBOW determination methods */
+//void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
+void ipo_rainbow (int cur, int tot, float *out)
+{
+	float hue, val, sat, fac;
+	int grouping;
+	
+	/* we try to divide the colours into groupings of n colors,
+	 * where n is:
+	 *	3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
+	 *	4 - for 'even' numbers of curves - there should be a majority of quartets of curves
+	 * so the base color is simply one of the three primary colors
+	 */
+	grouping= (4 - (tot % 2));
+	hue= HSV_BANDWIDTH * (float)(cur % grouping);
+	
+	/* 'Value' (i.e. darkness) needs to vary so that larger sets of three will be 
+	 * 'darker' (i.e. smaller value), so that they don't look that similar to previous ones.
+	 * However, only a range of 0.3 to 1.0 is really usable to avoid clashing
+	 * with some other stuff 
+	 */
+	fac = ((float)cur / (float)tot) * 0.7f;
+	val = 1.0f - fac;
+	
+	/* the base color can get offset a bit so that the colors aren't so identical */
+	hue += fac * HSV_BANDWIDTH; 
+	if (hue > 1.0f) hue= fmod(hue, 1.0f);
+	
+	/* saturation fluctuates between 0.5 and 1.0 */
+	sat = ((cur / grouping) % 2) ? 0.61f : 0.96f;
+	
+	/* finally, conver this to RGB colors */
+	hsv_to_rgb(hue, sat, val, out, out+1, out+2); 
 }
