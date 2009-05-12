@@ -133,6 +133,7 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_multires.h" // for multires_free
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -617,6 +618,11 @@ static BHeadN *get_bhead(FileData *fd)
 	BHeadN *new_bhead = 0;
 	int readsize;
 
+	/* not strictly needed but shuts valgrind up
+	 * since uninitialized memory gets compared */
+	memset(&bhead8, 0, sizeof(BHead8));
+	memset(&bhead4, 0, sizeof(BHead4));
+	
 	if (fd) {
 		if ( ! fd->eof) {
 
@@ -9233,6 +9239,8 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, dir, sfile->file, sfile->flag, idcode);
+	BLO_blendhandle_close(sfile->libfiledata);
+	sfile->libfiledata= NULL;
 }
 
 void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)
