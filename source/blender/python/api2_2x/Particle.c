@@ -64,6 +64,7 @@ static PyObject *M_ParticleSys_Get( PyObject * self, PyObject * args );
 static PyObject *Part_freeEdit( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_SetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args );
 static int Part_setSeed( BPy_PartSys * self, PyObject * args );
@@ -127,6 +128,16 @@ static int Part_setTargetPsys( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getTargetPsys( BPy_PartSys * self );
 static int Part_setRenderObject( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderObject( BPy_PartSys * self );
+static int Part_setRenderMaterialColor( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderMaterialColor( BPy_PartSys * self );
+static int Part_setRenderParents( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderParents( BPy_PartSys * self );
+static int Part_setRenderUnborn( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderUnborn( BPy_PartSys * self );
+static int Part_setRenderDied( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderDied( BPy_PartSys * self );
+static int Part_setRenderMaterialIndex( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderMaterialIndex( BPy_PartSys * self );
 static int Part_setStep( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getStep( BPy_PartSys * self );
 static int Part_setRenderStep( BPy_PartSys * self, PyObject * args );
@@ -257,6 +268,8 @@ static PyMethodDef BPy_ParticleSys_methods[] = {
 	 METH_VARARGS, "() - Get particles location"},
    	{"getRot", ( PyCFunction ) Part_GetRot,
 	 METH_VARARGS, "() - Get particles rotations (list of 4 floats quaternion)"},
+    {"setMat", ( PyCFunction ) Part_SetMat,
+	 METH_VARARGS, "() - Set particles material"},
    	{"getMat", ( PyCFunction ) Part_GetMat,
 	 METH_NOARGS, "() - Get particles material"},
    	{"getSize", ( PyCFunction ) Part_GetSize,
@@ -389,6 +402,26 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
      {"renderEmitter",
 	 (getter)Part_getRenderObject, (setter)Part_setRenderObject,
 	 "Render emitter object",
+	 NULL},
+	 {"renderMatCol",
+	 (getter)Part_getRenderMaterialColor, (setter)Part_setRenderMaterialColor,
+	 "Draw particles using material's diffuse color",
+	 NULL},
+	 {"renderParents",
+	 (getter)Part_getRenderParents, (setter)Part_setRenderParents,
+	 "Render parent particles",
+	 NULL},
+	 {"renderUnborn",
+	 (getter)Part_getRenderUnborn, (setter)Part_setRenderUnborn,
+	 "Show particles before they are emitted",
+	 NULL},
+	 {"renderDied",
+	 (getter)Part_getRenderDied, (setter)Part_setRenderDied,
+	 "Show particles after they have died",
+	 NULL},
+	 {"renderMaterial",
+	 (getter)Part_getRenderMaterialIndex, (setter)Part_setRenderMaterialIndex,
+	 "Specify material index used for the particles",
 	 NULL},
      {"displayPercentage",
 	 (getter)Part_getParticleDisp, (setter)Part_setParticleDisp,
@@ -1778,6 +1811,37 @@ error:
 	return NULL;
 }
 
+static PyObject *Part_SetMat( BPy_PartSys * self, PyObject * args )
+{
+	Object *ob = self->object;
+	BPy_Material *pymat;
+	Material *mat;
+	short index;
+
+	if( !PyArg_ParseTuple( args, "O!", &Material_Type, &pymat ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected Blender Material PyObject" );
+
+	mat = pymat->material;
+
+	if( ob->totcol >= MAXMAT )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "object data material lists can't have more than 16 materials" );
+
+	index = find_material_index(ob,mat);
+	if (index == 0){	/*Not found*/
+		assign_material(ob,mat,ob->totcol+1);
+		index = find_material_index(ob,mat);
+	}
+
+	if (index>0 && index<MAXMAT)
+		self->psys->part->omat = index;
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;
+
+	Py_RETURN_NONE;
+}
 
 static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args ){
 	Material *ma;
@@ -2385,6 +2449,115 @@ static int Part_setRenderObject( BPy_PartSys * self, PyObject * args )
 static PyObject *Part_getRenderObject( BPy_PartSys * self )
 {
 	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_EMITTER )) > 0 );
+}
+
+static int Part_setRenderMaterialColor( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->draw |= PART_DRAW_MAT_COL;
+	}else{
+		self->psys->part->draw &= ~PART_DRAW_MAT_COL;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getRenderMaterialColor( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_MAT_COL )) > 0 );
+}
+
+static int Part_setRenderParents( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->draw |= PART_DRAW_PARENT;
+	}else{
+		self->psys->part->draw &= ~PART_DRAW_PARENT;
+	}
+
+	return 0;
+}
+
+static PyObject *Part_getRenderParents( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_PARENT )) > 0 );
+}
+
+static int Part_setRenderUnborn( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_UNBORN;
+	}else{
+		self->psys->part->flag &= ~PART_UNBORN;
+	}
+
+	return 0;
+}
+
+static PyObject *Part_getRenderUnborn( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_UNBORN )) > 0 );
+}
+
+static int Part_setRenderDied( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_DIED;
+	}else{
+		self->psys->part->flag &= ~PART_DIED;
+	}
+
+	return 0;
+}
+
+static int Part_setRenderMaterialIndex( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->omat,
+			1, 16, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRenderMaterialIndex( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->omat )) );
+}
+
+static PyObject *Part_getRenderDied( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_DIED )) > 0 );
 }
 
 static int Part_setParticleDisp( BPy_PartSys * self, PyObject * args )

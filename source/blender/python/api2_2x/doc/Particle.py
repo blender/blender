@@ -152,6 +152,16 @@ class Particle:
 	@type object: Blender Object
 	@ivar renderEmitter: Render emitter object.
 	@type renderEmitter: int
+	@ivar renderMatCol: Draw particles using material's diffuse color.
+	@type renderMatCol: int
+	@ivar renderParents: Render parent particles.
+	@type renderParents: int
+	@ivar renderUnborn: Show particles before they are emitted.
+	@type renderUnborn: int
+	@ivar renderDied: Show particles after they have died.
+	@type renderDied: int
+	@ivar renderMaterial: Specify material used for the particles.
+	@type renderMaterial: int
 	@ivar displayPercentage: Particle display percentage.
 	@type displayPercentage: int
 	@ivar hairDisplayStep: How many steps paths are drawn with (power of 2) in visu mode.
@@ -289,6 +299,15 @@ class Particle:
 		@param id: add the particle id in the return tuple
 		@rtype: list of tuple of 4 or 5 elements (if id is not zero)
 		@return: list of 4-tuples or None if system is disabled
+		"""
+		
+	def setMat(mat):
+		"""
+		Set the particles' material. This method checks if the argument
+		given is really a material, imposes a limit of 16 materials and adds
+		the material if it wasn't already in the list of the object.
+		@type mat: Blender Material
+		@param mat: The material to be assigned to particles
 		"""
 		
 	def getMat():
