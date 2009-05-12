@@ -11,13 +11,14 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 	__label__ = "Material"
 	
 	def draw(self, context):
-		try:		mat = context.active_object.active_material
-		except:	mat = None
+		layout = self.layout
+		try:		
+			mat = context.active_object.active_material
+		except:	
+			mat = None
 		
 		if not mat:
 			return
-			
-		layout = self.layout
 	
 		layout.row()
 		layout.itemR(mat, "diffuse_color")
@@ -28,18 +29,24 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		layout.itemR(mat, "color_model")
 		layout.itemR(mat, "alpha")
 		
+		halo = context.active_object.active_material.halo
+		
+		layout.row()
+		layout.itemR(halo, "enabled", text="Enable Halo")
+		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
 	__label__ = "Subsurface Scattering"
 	
 	def draw(self, context):
-		try:		sss = context.active_object.active_material.subsurface_scattering
-		except:	sss = None
+		layout = self.layout
+		try:		
+			sss = context.active_object.active_material.subsurface_scattering
+		except:	
+			sss = None
 		
 		if not sss:
-			return 
-		
-		layout = self.layout
+			return
 		
 		layout.row()
 		layout.itemR(sss, "enabled", text="Enable")
@@ -64,13 +71,14 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__label__ = "Ray Mirror"
 	
 	def draw(self, context):
-		try:		raym = context.active_object.active_material.raytrace_mirror
-		except:	raym = None
+		layout = self.layout
+		try:		
+			raym = context.active_object.active_material.raytrace_mirror
+		except:	
+			raym = None
 		
 		if not raym:
 			return 
-		
-		layout = self.layout
 		
 		layout.row()
 		layout.itemR(raym, "enabled", text="Enable")
@@ -100,13 +108,14 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__label__= "Ray Transparency"
 
 	def draw(self, context):
-		try:		rayt = context.active_object.active_material.raytrace_transparency
-		except:	rayt = None
+		layout = self.layout
+		try:		
+			rayt = context.active_object.active_material.raytrace_transparency
+		except:	
+			rayt = None
 
 		if not rayt:
 			return
-		
-		layout = self.layout
 
 		layout.row()
 		layout.itemR(rayt, "enabled", text="Enable")
@@ -131,8 +140,74 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		layout.itemR(rayt, "falloff")
 		layout.itemR(rayt, "specular_opacity")
 		layout.itemR(rayt, "depth")
+		
+class MATERIAL_PT_halo(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_halo"
+	__label__= "Halo"
+	
+	def poll(self, context):
+		ob = context.active_object
+		halo = context.active_object.active_material.halo
+		return (ob and halo.enabled)
 
+	def draw(self, context):
+		layout = self.layout
+		try:		
+			halo = context.active_object.active_material.halo
+		except:	
+			halo = None
+
+		if not halo:
+			return
+		
+		layout.split(number=2)
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemL(text="General Settings:")
+		sub.itemR(halo, "size")
+		sub.itemR(halo, "hardness")
+		sub.itemR(halo, "add")
+		
+		sub = layout.sub(1)
+		sub.column()
+		sub.itemL(text="Elements:")
+		sub.itemR(halo, "ring")
+		sub.itemR(halo, "lines")
+		sub.itemR(halo, "star")
+		sub.itemR(halo, "flare_mode")
+
+		layout.split(number=2)
+		
+		sub = layout.sub(0)
+		sub.column()
+		sub.itemL(text="Options:")
+		sub.itemR(halo, "use_texture", text="Texture")
+		sub.itemR(halo, "use_vertex_normal", text="Vertex Normal")
+		sub.itemR(halo, "xalpha")
+		sub.itemR(halo, "shaded")
+		sub.itemR(halo, "soft")
+	
+		sub = layout.sub(1)
+		sub.column()
+		if (halo.ring):
+			sub.itemR(halo, "rings")
+		if (halo.lines):
+			sub.itemR(halo, "line_number")
+		if (halo.ring or halo.lines):
+			sub.itemR(halo, "seed")
+		if (halo.star):
+			sub.itemR(halo, "star_tips")
+		if (halo.flare_mode):
+			sub.itemL(text="Flare:")
+			sub.itemR(halo, "flare_size", text="Size")
+			sub.itemR(halo, "flare_subsize", text="Subsize")
+			sub.itemR(halo, "flare_boost", text="Boost")
+			sub.itemR(halo, "flare_seed", text="Seed")
+			sub.itemR(halo, "flares_sub", text="Sub")
+			
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
+bpy.types.register(MATERIAL_PT_halo)
