@@ -662,7 +662,8 @@ int main(int argc, char **argv)
 				a++;
 				if (G.scene) {
 					if (a < argc) {
-						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+						int frame = atoi(argv[a]);
+						frame = MIN2(MAXFRAME, MAX2(1, frame));
 						Render *re= RE_NewRender(G.scene->id.name);
 #ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
@@ -701,8 +702,10 @@ int main(int argc, char **argv)
 			case 's':
 				a++;
 				if(G.scene) {
-					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->r.sfra) = frame;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(G.scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-s'.\n");
 				}
@@ -710,8 +713,10 @@ int main(int argc, char **argv)
 			case 'e':
 				a++;
 				if(G.scene) {
-					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->r.efra) = frame;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(G.scene->r.efra) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-e'.\n");
 				}
@@ -719,8 +724,10 @@ int main(int argc, char **argv)
 			case 'j':
 				a++;
 				if(G.scene) {
-					int fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->frame_step) = fstep;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(G.scene->frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-j'.\n");
 				}
