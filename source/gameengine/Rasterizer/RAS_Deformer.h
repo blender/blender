@@ -39,7 +39,7 @@
 class RAS_Deformer
 {
 public:
-	RAS_Deformer(){};
+	RAS_Deformer() : m_pMesh(0), m_bDynamic(false) {};
 	virtual ~RAS_Deformer(){};
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)=0;
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
@@ -55,8 +55,14 @@ public:
 	{
 		return true;
 	}
+	// true when deformer produces varying vertex (shape or armature)
+	bool IsDynamic()
+	{
+		return m_bDynamic;
+	}
 protected:
 	class RAS_MeshObject	*m_pMesh;
+	bool  m_bDynamic;	
 };
 
 #endif

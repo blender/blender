@@ -597,7 +597,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	// then it won't have texture coordinates for actual drawing. also
 	// for zsort we can't make a display list, since the polygon order
 	// changes all the time.
-	if(ms.m_pDeformer)
+	if(ms.m_pDeformer && ms.m_pDeformer->IsDynamic())
 		ms.m_bDisplayList = false;
 	else if(!ms.m_DisplayList && rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW)
 		ms.m_bDisplayList = false;

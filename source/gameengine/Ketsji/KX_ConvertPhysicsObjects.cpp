@@ -757,6 +757,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 		virtual bool Update(void)
 		{
 			//printf("update\n");
+			m_bDynamic = true;
 			return true;//??
 		}
 		virtual bool UpdateBuckets(void)
@@ -775,6 +776,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 		virtual void ProcessReplica()
 		{
 			// we have two pointers to deal with but we cannot do it now, will be done in Relink
+			m_bDynamic = false;
 		}
 		virtual bool SkipVertexTransform()
 		{

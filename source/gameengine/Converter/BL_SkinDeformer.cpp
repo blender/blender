@@ -201,7 +201,8 @@ bool BL_SkinDeformer::Update(void)
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
 
 		m_armobj->RestorePose();
-
+		/* dynamic vertex, cannot use display list */
+		m_bDynamic = true;
 		/* indicate that the m_transverts and normals are up to date */
 		return true;
 	}
