@@ -230,8 +230,8 @@ typedef struct ProjPaintState {
 	char *faceSeamFlags;				/* store info about faces, if they are initialized etc*/
 	float (*faceSeamUVs)[4][2];			/* expanded UVs for faces to use as seams */
 	LinkNode **vertFaces;				/* Only needed for when seam_bleed_px is enabled, use to find UV seams */
-	char *vertFlags;					/* store options per vert, now only store if the vert is pointing away from the view */
 #endif
+	char *vertFlags;					/* store options per vert, now only store if the vert is pointing away from the view */
 	int buckets_x;						/* The size of the bucket grid, the grid span's screenMin/screenMax so you can paint outsize the screen or with 2 brushes at once */
 	int buckets_y;
 	
@@ -867,7 +867,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 				else
 					isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], w, ps->is_ortho);
 			}
-			if (isect_ret==1) {
+			if (isect_ret>=1) {
 				/* TODO - we may want to cache the first hit,
 				 * it is not possible to swap the face order in the list anymore */
 				return 1;
@@ -952,6 +952,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
  * Its possible this gives incorrect results, when the UVs for 1 face go into the next 
  * tile, but do not do this for the adjacent face, it could return a false positive.
  * This is so unlikely that Id not worry about it. */
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 static int cmp_uv(const float vec2a[2], const float vec2b[2])
 {
 	/* if the UV's are not between 0.0 and 1.0 */
@@ -969,10 +970,11 @@ static int cmp_uv(const float vec2a[2], const float vec2b[2])
 	
 	return ((fabsf(xa-xb) < PROJ_GEOM_TOLERANCE) && (fabsf(ya-yb) < PROJ_GEOM_TOLERANCE)) ? 1:0;
 }
-
+#endif
 
 /* set min_px and max_px to the image space bounds of the UV coords 
  * return zero if there is no area in the returned rectangle */
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 static int pixel_bounds_uv(
 		const float uv1[2], const float uv2[2], const float uv3[2], const float uv4[2],
 		rcti *bounds_px,
@@ -1000,6 +1002,7 @@ static int pixel_bounds_uv(
 	/* face uses no UV area when quantized to pixels? */
 	return (bounds_px->xmin == bounds_px->xmax || bounds_px->ymin == bounds_px->ymax) ? 0 : 1;
 }
+#endif
 
 static int pixel_bounds_array(float (* uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
 {
@@ -2498,7 +2501,6 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 			float (*outset_uv)[2] = ps->faceSeamUVs[face_index];
 			float insetCos[4][3]; /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in prespective view */
 
-			float *uv_seam_quad[4];
 			float fac;
 			float *vCoSS[4]; /* vertex screenspace coords */
 			
@@ -2554,16 +2556,11 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						fac1 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[0]) / ftot;
 						fac2 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[1]) / ftot;
 						
-						uv_seam_quad[0] = tf_uv_pxoffset[fidx1];
-						uv_seam_quad[1] = tf_uv_pxoffset[fidx2];
-						uv_seam_quad[2] = outset_uv[fidx2];
-						uv_seam_quad[3] = outset_uv[fidx1];
-						
-						Vec2Lerpf(seam_subsection[0], uv_seam_quad[0], uv_seam_quad[1], fac1);
-						Vec2Lerpf(seam_subsection[1], uv_seam_quad[0], uv_seam_quad[1], fac2);
-						
-						Vec2Lerpf(seam_subsection[2], uv_seam_quad[3], uv_seam_quad[2], fac2);
-						Vec2Lerpf(seam_subsection[3], uv_seam_quad[3], uv_seam_quad[2], fac1);
+						Vec2Lerpf(seam_subsection[0], tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2], fac1);
+						Vec2Lerpf(seam_subsection[1], tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2], fac2);
+
+						Vec2Lerpf(seam_subsection[2], outset_uv[fidx1], outset_uv[fidx2], fac2);
+						Vec2Lerpf(seam_subsection[3], outset_uv[fidx1], outset_uv[fidx2], fac1);
 						
 						/* if the bucket_clip_edges values Z values was kept we could avoid this
 						 * Inset needs to be added so occlusion tests wont hit adjacent faces */
@@ -2616,14 +2613,28 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											
 											/* Only bother calculating the weights if we intersect */
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
-												/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
+#if 0
+												/* This is not QUITE correct since UV is not inside the UV's but good enough for seams */
 												if (side) {
 													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], w);
 												}
 												else {
 													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], w);
 												}
-												
+#endif
+#if 1
+												/* Cheat, we know where we are along the edge so work out the weights from that */
+												fac = fac1 + (fac * (fac2-fac1));
+												w[0]=w[1]=w[2]= 0.0;
+												if (side) {
+													w[fidx1?fidx1-1:0] = fac;
+													w[fidx2?fidx2-1:0] = 1.0-fac;
+												}
+												else {
+													w[fidx1] = fac;
+													w[fidx2] = 1.0-fac;
+												}
+#endif
 											}
 											
 											/* a pitty we need to get the worldspace pixel location here */
@@ -3356,14 +3367,15 @@ static void project_paint_end(ProjPaintState *ps)
 	MEM_freeN(ps->bucketFaces);
 	MEM_freeN(ps->bucketFlags);
 	
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
 		MEM_freeN(ps->vertFaces);
 		MEM_freeN(ps->faceSeamFlags);
 		MEM_freeN(ps->faceSeamUVs);
 	}
+#endif
 	
 	if (ps->vertFlags) MEM_freeN(ps->vertFlags);
-	
 	
 	for (a=0; a<ps->thread_tot; a++) {
 		BLI_memarena_free(ps->arena_mt[a]);

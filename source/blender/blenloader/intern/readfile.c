@@ -617,15 +617,16 @@ static BHeadN *get_bhead(FileData *fd)
 	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
-
-	/* not strictly needed but shuts valgrind up
-	 * since uninitialized memory gets compared */
-	memset(&bhead8, 0, sizeof(BHead8));
-	memset(&bhead4, 0, sizeof(BHead4));
 	
 	if (fd) {
 		if ( ! fd->eof) {
 
+			/* not strictly needed but shuts valgrind up
+			 * since uninitialized memory gets compared */
+			memset(&bhead8, 0, sizeof(BHead8));
+			memset(&bhead4, 0, sizeof(BHead4));
+			memset(&bhead,  0, sizeof(BHead));
+			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can
 			// be a big or little endian BHead4 or BHead8 structure.
