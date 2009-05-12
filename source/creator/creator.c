@@ -663,8 +663,9 @@ int main(int argc, char **argv)
 				if (G.scene) {
 					if (a < argc) {
 						int frame = atoi(argv[a]);
+						Render *re = RE_NewRender(G.scene->id.name);
+
 						frame = MIN2(MAXFRAME, MAX2(1, frame));
-						Render *re= RE_NewRender(G.scene->id.name);
 #ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
