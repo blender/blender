@@ -340,3 +340,24 @@ class Particle:
 		@rtype: list of floats
 		@return: list of floats or list of tuples if id is not zero (size,id) or None if system is disabled.
 		"""
+	
+	def getVertGroup(attribute):
+		"""
+		Get vertex group name and negation bit assigned to affect parameter attribute.
+		A list of string and integer (vertex group name, negation bit).
+		@type attribute: int
+		@param attribute: Particle.VERTEXGROUPS([ 'DENSITY' | 'VELOCITY' | ... ])
+		@rtype: list of objects
+		@return: first element is the vg name and second the negation bit
+		"""
+	def setVertGroup(name,attribute,negated):
+		"""
+		Set vertex group and negation bit to affect particles system attribute.
+		@type name: string
+		@param name: Name of the vertex group
+		@type attribute: int
+		@param attribute: Particle.VERTEXGROUPS([ 'DENSITY' | 'VELOCITY' | ... ])
+		@type negated: int
+		@param negated: Negate the effect of the vertex group
+		@return: None
+		"""

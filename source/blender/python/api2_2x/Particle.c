@@ -67,6 +67,8 @@ static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_SetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_GetVertGroup( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args );
 static int Part_setSeed( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getSeed( BPy_PartSys * self );
 static int Part_setType( BPy_PartSys * self, PyObject * args );
@@ -276,6 +278,10 @@ static PyMethodDef BPy_ParticleSys_methods[] = {
 	 METH_VARARGS, "() - Get particles size in a list"},
     	{"getAge", ( PyCFunction ) Part_GetAge,
 	 METH_VARARGS, "() - Get particles life in a list"},
+	{"getVertGroup", ( PyCFunction ) Part_GetVertGroup,
+	 METH_VARARGS, "() - Get the vertex group which affects a particles attribute"},
+	{"setVertGroup", ( PyCFunction ) Part_SetVertGroup,
+	 METH_VARARGS, "() - Set the vertex group to affect a particles attribute"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1134,6 +1140,44 @@ static PyObject *Particle_ChildTypeDict( void )
 	return ChildTypes;
 }
 
+/* create the Blender.Particle.VertexGroups constant dict */
+
+static PyObject *Particle_VertexGroupsDict( void )
+{
+	PyObject *VertexGroups = PyConstant_New(  );
+
+	if( VertexGroups ) {
+		BPy_constant *c = ( BPy_constant * ) VertexGroups;
+
+		PyConstant_Insert( c, "EFFECTOR",
+				 PyInt_FromLong( 11 ) );
+		PyConstant_Insert( c, "TANROT",
+				 PyInt_FromLong( 10 ) );
+		PyConstant_Insert( c, "TANVEL",
+				 PyInt_FromLong( 9 ) );
+		PyConstant_Insert( c, "SIZE",
+				 PyInt_FromLong( 8 ) );
+		PyConstant_Insert( c, "ROUGHE",
+				 PyInt_FromLong( 7 ) );
+		PyConstant_Insert( c, "ROUGH2",
+				 PyInt_FromLong( 6 ) );
+		PyConstant_Insert( c, "ROUGH1",
+				 PyInt_FromLong( 5 ) );
+		PyConstant_Insert( c, "KINK",
+				 PyInt_FromLong( 4 ) );
+		PyConstant_Insert( c, "CLUMP",
+				 PyInt_FromLong( 3 ) );
+		PyConstant_Insert( c, "LENGHT",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "VELOCITY",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "DENSITY",
+				 PyInt_FromLong( 0 ) );
+	}
+	return VertexGroups;
+}
+
+
 /* create the Blender.Particle.ChildKink constant dict */
 
 static PyObject *Particle_ChildKinkDict( void )
@@ -1227,6 +1271,7 @@ PyObject *ParticleSys_Init( void ){
 	PyObject *Rotation;
 	PyObject *AngularV;
 	PyObject *ChildTypes;
+	PyObject *VertexGroups;
 	PyObject *ChildKinks;
 	PyObject *ChildKinkAxes;
 
@@ -1243,6 +1288,7 @@ PyObject *ParticleSys_Init( void ){
 	Integrator = Particle_IntegratorDict();
 	Rotation = Particle_RotationDict();
 	AngularV = Particle_AngularVDict();
+	VertexGroups = Particle_VertexGroupsDict();
 	ChildTypes = Particle_ChildTypeDict();
 	ChildKinks = Particle_ChildKinkDict();
 	ChildKinkAxes = Particle_ChildKinkAxisDict();
@@ -1268,6 +1314,8 @@ PyObject *ParticleSys_Init( void ){
 		PyModule_AddObject( submodule, "ROTATION", Rotation );
 	if( AngularV )
 		PyModule_AddObject( submodule, "ANGULARV", AngularV );
+	if( VertexGroups )
+		PyModule_AddObject( submodule, "VERTEXGROUPS", VertexGroups );
 	if( ChildTypes )
 		PyModule_AddObject( submodule, "CHILDTYPE", ChildTypes );
 	if( ChildKinks )
@@ -1852,6 +1900,111 @@ static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args ){
 
 	mat = Material_CreatePyObject(ma);
 	return mat;
+}
+
+static PyObject *Part_GetVertGroup( BPy_PartSys * self, PyObject * args ){
+	PyObject *list;
+	char errstr[128];
+	bDeformGroup *defGroup = NULL;
+	Object *obj = self->object;
+	int vg_attribute = 0;
+	int vg_number = 0;
+	int count;
+	PyObject *vg_neg;
+	PyObject *vg_name;
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "particle system must be linked to an object first" );
+	
+	if( obj->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "linked object is not a mesh" );
+	
+	if( !PyArg_ParseTuple( args, "i", &vg_attribute ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected integer argument" );
+	
+	if( vg_attribute < 0 || vg_attribute > PSYS_TOT_VG-1 ){
+		sprintf ( errstr, "expected int argument in [0,%d]", PSYS_TOT_VG-1 );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
+
+	/*search*/
+	vg_number = self->psys->vgroup[vg_attribute];
+	count = 1;
+	defGroup = obj->defbase.first;
+	while(count<vg_number && defGroup){
+		defGroup = defGroup->next;
+		count++;
+	}
+
+	/*vg_name*/
+	if (defGroup && vg_number>0)
+		vg_name = PyString_FromString( defGroup->name );
+	else
+		vg_name = PyString_FromString( "" );
+	
+	/*vg_neg*/
+	vg_neg = PyInt_FromLong( ((long)( self->psys->vg_neg & (1<<vg_attribute) )) > 0 );
+
+	list = PyList_New( 2 );
+	PyList_SET_ITEM( list, 0, vg_name );
+	PyList_SET_ITEM( list, 1, vg_neg );
+
+	return list;
+}
+
+static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args ){
+	char errstr[128];
+	bDeformGroup *defGroup;
+	Object *obj = self->object;
+	char *vg_name = NULL;
+	int vg_attribute = 0;
+	int vg_neg = 0;
+	int vg_number = 0;
+	int count;
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "particle system must be linked to an object first" );
+	
+	if( obj->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "linked object is not a mesh" );
+	
+	if( !PyArg_ParseTuple( args, "sii", &vg_name, &vg_attribute, &vg_neg ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected one string and two integers arguments" );
+	
+	if( vg_attribute < 0 || vg_attribute > PSYS_TOT_VG-1 ){
+		sprintf ( errstr, "expected int argument in [0,%d]", PSYS_TOT_VG-1 );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
+
+	/*search*/
+	count = 1;
+	defGroup = obj->defbase.first;
+	while (defGroup){
+		if (strcmp(vg_name,defGroup->name)==0)
+			vg_number = count;
+		defGroup = defGroup->next;
+		count++;
+	}
+
+	/*vgroup*/
+	self->psys->vgroup[vg_attribute] = vg_number;
+
+	/*vg_neg*/
+	if (vg_neg){
+		self->psys->vg_neg |= (1<<vg_attribute);
+	}else{
+		self->psys->vg_neg &= ~(1<<vg_attribute);
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	Py_RETURN_NONE;
 }
 
 
