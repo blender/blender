@@ -7,9 +7,9 @@ Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
 
-__author__= "Campbell Barton", "Jiri Hnidek"
+__author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
-__version__= "2.1"
+__version__= "2.11"
 
 __bpydoc__= """\
 This script imports a Wavefront OBJ files to Blender.
@@ -48,7 +48,6 @@ import BPyMessages
 
 try:		import os
 except:		os= False
-
 
 # Generic path functions
 def stripFile(path):
@@ -320,7 +319,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.iteritems()]
 
 
-def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, dataname):
+def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
 	'''
 	Takes all the data gathered and generates a mesh, adding the new object to new_objects
 	deals with fgons, sharp edges and assigning materials
@@ -530,6 +529,13 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	ob= scn.objects.new(me)
 	new_objects.append(ob)
 
+	# Create the vertex groups. No need to have the flag passed here since we test for the 
+	# content of the vertex_groups. If the user selects to NOT have vertex groups saved then
+	# the following test will never run
+	for group_name, group_indicies in vertex_groups.iteritems():
+		me.addVertGroup(group_name)
+		me.assignVertsToGroup(group_name, group_indicies,1.00, Mesh.AssignModes.REPLACE)
+
 def get_float_func(filepath):
 	'''
 	find the float function for this obj file
@@ -547,7 +553,16 @@ def get_float_func(filepath):
 	# incase all vert values were ints 
 	return float
 
-def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True, IMAGE_SEARCH=True):
+def load_obj(filepath,
+						 CLAMP_SIZE= 0.0, 
+						 CREATE_FGONS= True, 
+						 CREATE_SMOOTH_GROUPS= True, 
+						 CREATE_EDGES= True, 
+						 SPLIT_OBJECTS= True, 
+						 SPLIT_GROUPS= True, 
+						 SPLIT_MATERIALS= True, 
+						 IMAGE_SEARCH=True,
+						 POLYGROUPS=False):
 	'''
 	Called by the user interface or another script.
 	load_obj(path) - should give acceptable results.
@@ -556,13 +571,16 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	'''
 	print '\nimporting obj "%s"' % filepath
 	
+	if SPLIT_OBJECTS or SPLIT_GROUPS or SPLIT_MATERIALS:
+		POLYGROUPS = False
+	
 	time_main= sys.time()
 	
 	verts_loc= []
 	verts_tex= []
 	faces= [] # tuples of the faces
 	material_libs= [] # filanems to material libs this uses
-	
+	vertex_groups = {} # when POLYGROUPS is true
 	
 	# Get the string to float conversion func for this file- is 'float' for almost all files.
 	float_func= get_float_func(filepath)
@@ -571,7 +589,8 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	context_material= None
 	context_smooth_group= None
 	context_object= None
-	
+	context_vgroup = None
+
 	has_ngons= False
 	# has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
 	
@@ -589,6 +608,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	print '\tparsing obj file "%s"...' % filepath,
 	time_sub= sys.time()
+
 	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
 		line = line.lstrip() # rare cases there is white space at the start of the line
@@ -641,6 +661,10 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 				obj_vert= v.split('/')
 				
 				vert_loc_index= int(obj_vert[0])-1
+				# Add the vertex to the current group
+				# *warning*, this wont work for files that have groups defined around verts
+				if	POLYGROUPS and context_vgroup:
+					vertex_groups[context_vgroup].append(vert_loc_index)
 				
 				# Make relative negative vert indicies absolute
 				if vert_loc_index < 0:
@@ -684,6 +708,12 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 				context_object= line_value(line.split())
 				# print 'context_object', context_object
 				# unique_obects[context_object]= None
+			elif POLYGROUPS:
+				context_vgroup = line_value(line.split())
+				if context_vgroup and context_vgroup != '(null)':
+					vertex_groups.setdefault(context_vgroup, [])
+				else:
+					context_vgroup = None # dont assign a vgroup
 		
 		elif line.startswith('usemtl'):
 			context_material= line_value(line.split())
@@ -721,8 +751,8 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	else:								SPLIT_OB_OR_GROUP = False
 	
 	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
-		# Create meshes from the data
-		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, dataname)
+		# Create meshes from the data, warning 'vertex_groups' wont support splitting
+		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3
@@ -758,7 +788,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
-	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, KEEP_VERT_ORDER
+	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
 	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
@@ -768,6 +798,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	SPLIT_MATERIALS= Draw.Create(0)
 	CLAMP_SIZE= Draw.Create(10.0)
 	IMAGE_SEARCH= Draw.Create(1)
+	POLYGROUPS= Draw.Create(0)
 	KEEP_VERT_ORDER= Draw.Create(1)
 	
 	
@@ -817,9 +848,10 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			GLOBALS['EVENT'] = e
 		
 		def do_split(e,v):
-			global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER
+			global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER, POLYGROUPS
 			if SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val:
 				KEEP_VERT_ORDER.val = 0
+				POLYGROUPS.val = 0
 			else:
 				KEEP_VERT_ORDER.val = 1
 			
@@ -830,6 +862,11 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			else:
 				if not (SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val):
 					KEEP_VERT_ORDER.val = 1
+			
+		def do_polygroups(e,v):
+			global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER, POLYGROUPS
+			if POLYGROUPS.val:
+				SPLIT_OBJECTS.val = SPLIT_GROUPS.val = SPLIT_MATERIALS.val = 0
 			
 		def do_help(e,v):
 			url = __url__[0]
@@ -849,7 +886,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			ui_x -= 165
 			ui_y -= 90
 			
-			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, KEEP_VERT_ORDER
+			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
 			
 			Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
 			Draw.BeginAlign()
@@ -869,8 +906,9 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+229, ui_y+89, 110, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
 			
 			Draw.Label('Options...', ui_x+9, ui_y+60, 211, 20)
-			CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 211, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
-			IMAGE_SEARCH = Draw.Toggle('Image Search', EVENT_NONE, ui_x+229, ui_y+39, 110, 21, IMAGE_SEARCH.val, 'Search subdirs for any assosiated images (Warning, may be slow)')
+			CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 130, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
+			POLYGROUPS = Draw.Toggle('Poly Groups', EVENT_REDRAW, ui_x+144, ui_y+39, 90, 21, POLYGROUPS.val, 'Import OBJ groups as vertex groups.', do_polygroups)
+			IMAGE_SEARCH = Draw.Toggle('Image Search', EVENT_NONE, ui_x+239, ui_y+39, 100, 21, IMAGE_SEARCH.val, 'Search subdirs for any assosiated images (Warning, may be slow)')
 			Draw.BeginAlign()
 			Draw.PushButton('Online Help', EVENT_REDRAW, ui_x+9, ui_y+9, 110, 21, 'Load the wiki page for this script', do_help)
 			Draw.PushButton('Cancel', EVENT_EXIT, ui_x+119, ui_y+9, 110, 21, '', obj_ui_set_event)
@@ -921,6 +959,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			  SPLIT_GROUPS.val,\
 			  SPLIT_MATERIALS.val,\
 			  IMAGE_SEARCH.val,\
+			  POLYGROUPS.val
 			)
 	
 	else: # Normal load
@@ -933,6 +972,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		  SPLIT_GROUPS.val,\
 		  SPLIT_MATERIALS.val,\
 		  IMAGE_SEARCH.val,\
+		  POLYGROUPS.val
 		)
 	
 	Window.WaitCursor(0)
