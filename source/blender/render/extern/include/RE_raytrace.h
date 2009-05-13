@@ -38,16 +38,16 @@ typedef struct Isect Isect;
 struct DerivedMesh;
 struct Mesh;
 
-int  RayObject_raycast(RayObject *r, Isect *i);
-void RayObject_add    (RayObject *r, RayObject *);
-void RayObject_done(RayObject *r);
-void RayObject_free(RayObject *r);
+int  RE_rayobject_raycast(RayObject *r, Isect *i);
+void RE_rayobject_add    (RayObject *r, RayObject *);
+void RE_rayobject_done(RayObject *r);
+void RE_rayobject_free(RayObject *r);
 
 /* RayObject constructors */
-RayObject* RayObject_octree_create(int ocres, int size);
+RayObject* RE_rayobject_octree_create(int ocres, int size);
 
 //RayObject* RayObject_derivedmesh_create(struct DerivedMesh*, void *ob);
-RayObject* RayObject_mesh_create(struct Mesh*, void *ob);
+RayObject* RE_rayobject_mesh_create(struct Mesh*, void *ob);
 
 /* Ray Intersection */
 struct Isect

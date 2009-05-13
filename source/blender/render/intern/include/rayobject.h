@@ -84,19 +84,19 @@ struct RayObject
 	
 };
 
-typedef int  (*RayObject_raycast_callback)(RayObject *, Isect *);
-typedef void (*RayObject_add_callback)(RayObject *, RayObject *);
-typedef void (*RayObject_done_callback)(RayObject *);
-typedef void (*RayObject_free_callback)(RayObject *);
-typedef void (*RayObject_bb_callback)(RayObject *, float *min, float *max);
+typedef int  (*RE_rayobject_raycast_callback)(RayObject *, Isect *);
+typedef void (*RE_rayobject_add_callback)(RayObject *, RayObject *);
+typedef void (*RE_rayobject_done_callback)(RayObject *);
+typedef void (*RE_rayobject_free_callback)(RayObject *);
+typedef void (*RE_rayobject_merge_bb_callback)(RayObject *, float *min, float *max);
 
 typedef struct RayObjectAPI
 {
-	RayObject_raycast_callback	raycast;
-	RayObject_add_callback		add;
-	RayObject_done_callback		done;
-	RayObject_free_callback		free;
-	RayObject_bb_callback		bb;
+	RE_rayobject_raycast_callback	raycast;
+	RE_rayobject_add_callback		add;
+	RE_rayobject_done_callback		done;
+	RE_rayobject_free_callback		free;
+	RE_rayobject_merge_bb_callback	bb;
 	
 } RayObjectAPI;
 
@@ -104,18 +104,19 @@ typedef struct RayObjectAPI
 #define RayObject_align(o)		((RayObject*)(((int)o)&(~3)))
 #define RayObject_unalign(o)	((RayObject*)(((int)o)|1))
 #define RayObject_isFace(o)		((((int)o)&3) == 0)
+#define RayObject_isAligned(o)	((((int)o)&3) == 0)
 
 /*
  * Extend min/max coords so that the rayobject is inside them
  */
-void RayObject_merge_bb(RayObject *ob, float *min, float *max);
+void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
 
 /*
- * This function differs from RayObject_raycast
- * RayObject_intersect does NOT perform last-hit optimization
+ * This function differs from RE_rayobject_raycast
+ * RE_rayobject_intersect does NOT perform last-hit optimization
  * So this is probably a function to call inside raytrace structures
  */
-int RayObject_intersect(RayObject *r, Isect *i);
+int RE_rayobject_intersect(RayObject *r, Isect *i);
 
 #define ISECT_EPSILON ((float)FLT_EPSILON)
 

@@ -401,7 +401,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 	MFace *mface;
 	int a;
 
-	sys->heat.raytree = RayObject_mesh_create(me, me);
+	sys->heat.raytree = RE_rayobject_mesh_create(me, me);
 
 	sys->heat.vface = MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
 	for(a=0, mface=me->mface; a<me->totface; a++, mface++) {
@@ -445,7 +445,7 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 	VecMulf(dir, 1e-5);
 	VecAddf(isec.start, isec.start, dir);
 #endif	
-	visible= !RayObject_raycast(sys->heat.raytree, &isec);
+	visible= !RE_rayobject_raycast(sys->heat.raytree, &isec);
 
 	return visible;
 }
@@ -709,7 +709,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 	/* free */
 	if(vertsflipped) MEM_freeN(vertsflipped);
 
-	RayObject_free(sys->heat.raytree);
+	RE_rayobject_free(sys->heat.raytree);
 	MEM_freeN(sys->heat.vface);
 
 	MEM_freeN(sys->heat.mindist);

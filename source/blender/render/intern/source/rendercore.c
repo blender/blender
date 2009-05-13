@@ -2268,7 +2268,7 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	isect->dir[2] = dir[2]*sign;
 	isect->labda = maxdist;
 
-	hit = RayObject_raycast(raytree, isect);
+	hit = RE_rayobject_raycast(raytree, isect);
 	//TODO bake_check_intersect
 	if(hit) {
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];

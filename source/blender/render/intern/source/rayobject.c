@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include "assert.h"
+#include <assert.h>
 
 #include "BKE_utildefines.h"
 
@@ -270,15 +270,15 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	return 0;
 }
 
-int RayObject_raycast(RayObject *r, Isect *i)
+int RE_rayobject_raycast(RayObject *r, Isect *i)
 {
-	if(i->mode==RE_RAY_SHADOW && i->last_hit && RayObject_intersect(i->last_hit, i))
+	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
 		return 1;
 
-	return RayObject_intersect(r, i);
+	return RE_rayobject_intersect(r, i);
 }
 
-int RayObject_intersect(RayObject *r, Isect *i)
+int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
 	assert(i->mode==RE_RAY_SHADOW);
 	if(RayObject_isFace(r))
@@ -304,25 +304,25 @@ int RayObject_intersect(RayObject *r, Isect *i)
 	}
 }
 
-void RayObject_add(RayObject *r, RayObject *o)
+void RE_rayobject_add(RayObject *r, RayObject *o)
 {
 	r = RayObject_align( r );
 	return r->api->add( r, o );
 }
 
-void RayObject_done(RayObject *r)
+void RE_rayobject_done(RayObject *r)
 {
 	r = RayObject_align( r );
 	r->api->done( r );
 }
 
-void RayObject_free(RayObject *r)
+void RE_rayobject_free(RayObject *r)
 {
 	r = RayObject_align( r );
 	r->api->free( r );
 }
 
-void RayObject_merge_bb(RayObject *r, float *min, float *max)
+void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 {
 	if(RayObject_isFace(r))
 	{

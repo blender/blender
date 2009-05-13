@@ -109,7 +109,7 @@ static float *vlr_get_transform(void *userdata, int i)
 void freeraytree(Render *re)
 {
 	if(re->raytree) {
-		RayObject_free(re->raytree);
+		RE_rayobject_free(re->raytree);
 		re->raytree= NULL;
 		MEM_freeN( re->rayfaces );
 	}
@@ -144,7 +144,7 @@ void makeraytree(Render *re)
 		}
 	}
 	
-	re->raytree = RayObject_octree_create( re->r.ocres, totface );
+	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
 	
 	//Fill rayfaces
 	re->rayfaces = (RayObject*)MEM_callocN(totface*sizeof(RayFace), "render faces");
@@ -187,14 +187,14 @@ void makeraytree(Render *re)
 					cur_face->ob   = (void*)obi;
 					cur_face->face = vlr;
 					
-					RayObject_add( re->raytree, (RayObject*) cur_face );
+					RE_rayobject_add( re->raytree, (RayObject*) cur_face );
 					cur_face++;
 				}
 			}
 		}
 	}
 
-	RayObject_done( re->raytree );
+	RE_rayobject_done( re->raytree );
 //TODO	vlr_face_coords, vlr_check_intersect, vlr_get_transform, re);
 
 	re->i.infostr= NULL;
@@ -434,7 +434,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;
 
-	if(RayObject_raycast(R.raytree, &isec)) {
+	if(RE_rayobject_raycast(R.raytree, &isec)) {
 		float d= 1.0f;
 		
 		shi.mask= origshi->mask;
@@ -1274,7 +1274,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 	
 	assert(0);
 
-	if(RayObject_raycast(R.raytree, is)) {
+	if(RE_rayobject_raycast(R.raytree, is)) {
 		float d= 1.0f;
 		/* we got a face */
 		
@@ -1354,7 +1354,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 		VECCOPY(isec.vec, vec );
 		isec.labda = RE_RAYTRACE_MAXDIST;
 
-		if(RayObject_raycast(R.raytree, &isec)) {
+		if(RE_rayobject_raycast(R.raytree, &isec)) {
 			float fac;
 			
 			/* Warning, This is not that nice, and possibly a bit slow for every ray,
@@ -1611,7 +1611,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		prev = fac;
 		
-		if(RayObject_raycast(R.raytree, &isec)) {
+		if(RE_rayobject_raycast(R.raytree, &isec)) {
 			if (R.wrld.aomode & WO_AODIST) fac+= exp(-isec.labda*R.wrld.aodistfac); 
 			else fac+= 1.0f;
 		}
@@ -1743,7 +1743,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 			isec.labda = maxdist;
 			
 			/* do the trace */
-			if(RayObject_raycast(R.raytree, &isec)) {
+			if(RE_rayobject_raycast(R.raytree, &isec)) {
 				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
 				else sh+= 1.0f;
 			}
@@ -1974,7 +1974,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			colsq[2] += isec->col[2]*isec->col[2];
 		}
 		else {
-			if( RayObject_raycast(R.raytree, isec) ) fac+= 1.0f;
+			if( RE_rayobject_raycast(R.raytree, isec) ) fac+= 1.0f;
 		}
 		
 		samples++;
@@ -2068,7 +2068,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 			shadfac[2] += isec->col[2];
 			shadfac[3] += isec->col[3];
 		}
-		else if( RayObject_raycast(R.raytree, isec) ) fac+= 1.0f;
+		else if( RE_rayobject_raycast(R.raytree, isec) ) fac+= 1.0f;
 		
 		div+= 1.0f;
 		jitlamp+= 2;
@@ -2148,7 +2148,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			else
 			{
 				assert(0);
-				if(RayObject_raycast(R.raytree, &isec)) shadfac[3]= 0.0f;
+				if(RE_rayobject_raycast(R.raytree, &isec)) shadfac[3]= 0.0f;
 			}
 		}
 		else {
@@ -2193,7 +2193,7 @@ static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float
 	VECCOPY(isec.start, shi->co);
 	VECCOPY(isec.end, lampco);
 	
-	if(RayObject_raycast(R.raytree, &isec)) {
+	if(RE_rayobject_raycast(R.raytree, &isec)) {
 		/* we got a face */
 		
 		/* render co */

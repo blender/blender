@@ -447,9 +447,10 @@ static void RayObject_octree_free(RayObject *tree)
 }
 
 
-RayObject *RayObject_octree_create(int ocres, int size)
+RayObject *RE_rayobject_octree_create(int ocres, int size)
 {
 	Octree *oc= MEM_callocN(sizeof(Octree), "Octree");
+	assert( RayObject_isAligned(oc) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	oc->rayobj.api = &octree_api;
 	
@@ -600,7 +601,7 @@ static void RayObject_octree_done(RayObject *tree)
 	
 	/* Calculate Bounding Box */
 	for(c=0; c<oc->ro_nodes_used; c++)
-		RayObject_merge_bb(oc->ro_nodes[c], oc->min, oc->max);
+		RE_rayobject_merge_bb(oc->ro_nodes[c], oc->min, oc->max);
 		
 	/* Alloc memory */
 	oc->adrbranch= MEM_callocN(sizeof(void *)*BRANCH_ARRAY, "octree branches");
@@ -667,7 +668,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{
-				if( RayObject_intersect(face,is) )
+				if( RE_rayobject_intersect(face,is) )
 					return 1;
 			}
 		}
@@ -693,7 +694,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{ 
 
-				if( RayObject_raycast(face,is) )
+				if( RE_rayobject_raycast(face,is) )
 					if(isect.labda<is->labda) {
 						*is= isect;
 						found= 1;

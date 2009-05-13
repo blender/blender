@@ -26,6 +26,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include <assert.h>
+ 
 #include "rayobject.h"
 
 #include "MEM_guardedalloc.h"
@@ -66,7 +68,7 @@ static int  RayObject_mesh_intersect(RayObject *o, Isect *isec)
 	RayMesh *rm= (RayMesh*)o;
 	int i, hit = 0;
 	for(i = 0; i<rm->num_faces; i++)
-		if(RayObject_raycast( (RayObject*)rm->faces+i, isec ))
+		if(RE_rayobject_raycast( (RayObject*)rm->faces+i, isec ))
 		{
 			hit = 1;
 			if(isec->mode == RE_RAY_SHADOW)
@@ -99,12 +101,14 @@ static void RayObject_mesh_bb(RayObject *o, float *min, float *max)
 		DO_MINMAX( rm->mesh->mvert[i].co, min, max);
 }
 
-RayObject* RayObject_mesh_create(Mesh *mesh, void *ob)
+RayObject* RE_rayobject_mesh_create(Mesh *mesh, void *ob)
 {
 	RayMesh *rm= MEM_callocN(sizeof(RayMesh), "Octree");
 	int i;
 	RayFace *face;
 	MFace *mface;
+	
+	assert( RayObject_isAligned(rm) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	rm->rayobj.api = &mesh_api;
 	rm->mesh = mesh;
