@@ -44,6 +44,7 @@ class KX_LightObject : public KX_GameObject
 	Py_Header;
 protected:
 	RAS_LightObject		m_lightobj;
+	float				m_initialvalues [4];
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
 	bool				m_glsl;
 	Scene*				m_blenderscene;

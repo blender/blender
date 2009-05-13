@@ -3152,12 +3152,14 @@ typedef struct View3DShadow{
 static void gpu_render_lamp_update(View3D *v3d, Object *ob, Object *par, float obmat[][4], ListBase *shadows)
 {
 	GPULamp *lamp;
+	Lamp *la = (Lamp*)ob->data;
 	View3DShadow *shadow;
 
 	lamp = GPU_lamp_from_blender(G.scene, ob, par);
 
 	if(lamp) {
 		GPU_lamp_update(lamp, ob->lay, obmat);
+		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
 		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
