@@ -134,7 +134,7 @@ void init_sensor(bSensor *sens)
 	
 	switch(sens->type) {
 	case SENS_ALWAYS:
-		sens->pulse = 1;
+		sens->pulse = 0;
 		break;
 	case SENS_TOUCH:
 		sens->data= MEM_callocN(sizeof(bTouchSensor), "touchsens");
