@@ -1046,7 +1046,7 @@ static PyObject *shrinkwrap_getter( BPy_Modifier * self, int type )
 				( md->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) ) ;	
 	case EXPP_MOD_PROJECT_OVER_NORMAL:
 		return PyBool_FromLong( ( long ) 
-				( md->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) ) ;
+				( md->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) ) ;
 	case EXPP_MOD_SUBSURFLEVELS:
 		return PyInt_FromLong( ( long )md->subsurfLevels );	
 	default:
@@ -1107,10 +1107,10 @@ static int shrinkwrap_setter( BPy_Modifier *self, int type, PyObject *value )
 	case EXPP_MOD_PROJECT_OVER_Z_AXIS:
 		return EXPP_setBitfield( value, &md->projAxis,
 					MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, 'h' );
-	case EXPP_MOD_PROJECT_OVER_NORMAL:
-		return EXPP_setBitfield( value, &md->projAxis,
-					MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, 'h' );
-
+	case EXPP_MOD_PROJECT_OVER_NORMAL:{
+					md->projAxis = MOD_SHRINKWRAP_PROJECT_OVER_NORMAL; 
+		return 0;
+	} 					
 	case EXPP_MOD_ALLOW_POS_DIR:
 				return EXPP_setBitfield( value, &md->shrinkOpts,
 					MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, 'h' );
@@ -1974,8 +1974,7 @@ for var in st.replace(',','').split('\n'):
 			PyConstant_Insert( d, "LOCK_AXIS_X", 
 				PyInt_FromLong( EXPP_MOD_LOCK_AXIS_X ) );
 			PyConstant_Insert( d, "LOCK_AXIS_Y", 
-				PyInt_FromLong( EXPP_MOD_LOCK_AXIS_Y ) );
-			
+				PyInt_FromLong( EXPP_MOD_LOCK_AXIS_Y ) );		
 			PyConstant_Insert( d, "OBJECT_AUX", 
 				PyInt_FromLong( EXPP_MOD_OBJECT_AUX ) );
 			PyConstant_Insert( d, "KEEPDIST", 
@@ -1985,7 +1984,9 @@ for var in st.replace(',','').split('\n'):
 			PyConstant_Insert( d, "PROJECT_OVER_Y_AXIS", 
 				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_Y_AXIS ) );					
 			PyConstant_Insert( d, "PROJECT_OVER_Z_AXIS", 
-				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_Z_AXIS ) );					
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_Z_AXIS ) );
+			PyConstant_Insert( d, "PROJECT_OVER_NORMAL", 
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_NORMAL ) );
 			PyConstant_Insert( d, "SUBSURFLEVELS", 
 				PyInt_FromLong( EXPP_MOD_SUBSURFLEVELS ) );					
 			PyConstant_Insert( d, "ALLOW_POS_DIR", 
