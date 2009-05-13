@@ -34,7 +34,6 @@
  * @date	May 7, 2001
  */
 
-
 #include <Carbon/Carbon.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include "GHOST_SystemCarbon.h"
@@ -428,6 +427,29 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 		GHOST_PRINT("GHOST_SystemCarbon::createWindow(): could not create window\n");
 	}
     return window;
+}
+
+GHOST_TSuccess GHOST_SystemCarbon::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
+{	
+	GHOST_TSuccess success = GHOST_kFailure;
+
+	// need yo make this Carbon all on 10.5 for fullscreen to work correctly
+	CGCaptureAllDisplays();
+	
+	success = GHOST_System::beginFullScreen( setting, window, stereoVisual);
+	
+	if( success != GHOST_kSuccess ) {
+			// fullscreen failed for other reasons, release
+			CGReleaseAllDisplays();	
+	}
+
+	return success;
+}
+
+GHOST_TSuccess GHOST_SystemCarbon::endFullScreen(void)
+{	
+	CGReleaseAllDisplays();
+	return GHOST_System::endFullScreen();
 }
 
 /* this is an old style low level event queue.
