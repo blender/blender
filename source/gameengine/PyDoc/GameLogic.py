@@ -17,7 +17,7 @@ Documentation for the GameLogic Module.
 	
 	All the other modules are accessible through the methods in GameLogic.
 	
-	See L{WhatsNew} for updates, changes and new functionality in the Game Engine Python API.
+	See U{release notes<http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.49/Game_Engine>} for updates, changes and new functionality in the Game Engine Python API.
 	
 	Examples::
 		# To get the controller thats running this python script:
@@ -38,18 +38,18 @@ Documentation for the GameLogic Module.
 		sensors = co.getSensors()
 
 	See the sensor's reference for available methods:
-		- L{DelaySensor<SCA_DelaySensor.SCA_DelaySensor>}
-		- L{JoystickSensor<SCA_JoystickSensor.SCA_JoystickSensor>}
-		- L{KeyboardSensor<SCA_KeyboardSensor.SCA_KeyboardSensor>}
-		- L{MouseFocusSensor<KX_MouseFocusSensor.KX_MouseFocusSensor>}
-		- L{MouseSensor<SCA_MouseSensor.SCA_MouseSensor>}
-		- L{NearSensor<KX_NearSensor.KX_NearSensor>}
-		- L{NetworkMessageSensor<KX_NetworkMessageSensor.KX_NetworkMessageSensor>}
-		- L{PropertySensor<SCA_PropertySensor.SCA_PropertySensor>}
-		- L{RadarSensor<KX_RadarSensor.KX_RadarSensor>}
-		- L{RandomSensor<SCA_RandomSensor.SCA_RandomSensor>}
-		- L{RaySensor<KX_RaySensor.KX_RaySensor>}
-		- L{TouchSensor<KX_TouchSensor.KX_TouchSensor>}
+		- L{DelaySensor<GameTypes.SCA_DelaySensor>}
+		- L{JoystickSensor<GameTypes.SCA_JoystickSensor>}
+		- L{KeyboardSensor<GameTypes.SCA_KeyboardSensor>}
+		- L{MouseFocusSensor<GameTypes.KX_MouseFocusSensor>}
+		- L{MouseSensor<GameTypes.SCA_MouseSensor>}
+		- L{NearSensor<GameTypes.KX_NearSensor>}
+		- L{NetworkMessageSensor<GameTypes.KX_NetworkMessageSensor>}
+		- L{PropertySensor<GameTypes.SCA_PropertySensor>}
+		- L{RadarSensor<GameTypes.KX_RadarSensor>}
+		- L{RandomSensor<GameTypes.SCA_RandomSensor>}
+		- L{RaySensor<GameTypes.KX_RaySensor>}
+		- L{TouchSensor<GameTypes.KX_TouchSensor>}
 	
 	You can also access actuators linked to the controller::
 		# To get an actuator attached to the controller:
@@ -62,28 +62,28 @@ Documentation for the GameLogic Module.
 		controller.activate(actuator)
 		
 	See the actuator's reference for available methods:
-		- L{2DFilterActuator<SCA_2DFilterActuator.SCA_2DFilterActuator>}
-		- L{ActionActuator<BL_ActionActuator.BL_ActionActuator>}
-		- L{AddObjectActuator<KX_SCA_AddObjectActuator.KX_SCA_AddObjectActuator>}
-		- L{CameraActuator<KX_CameraActuator.KX_CameraActuator>}
-		- L{CDActuator<KX_CDActuator.KX_CDActuator>}
-		- L{ConstraintActuator<KX_ConstraintActuator.KX_ConstraintActuator>}
-		- L{DynamicActuator<KX_SCA_DynamicActuator.KX_SCA_DynamicActuator>}
-		- L{EndObjectActuator<KX_SCA_EndObjectActuator.KX_SCA_EndObjectActuator>}
-		- L{GameActuator<KX_GameActuator.KX_GameActuator>}
-		- L{IpoActuator<KX_IpoActuator.KX_IpoActuator>}
-		- L{NetworkMessageActuator<KX_NetworkMessageActuator.KX_NetworkMessageActuator>}
-		- L{ObjectActuator<KX_ObjectActuator.KX_ObjectActuator>}
-		- L{ParentActuator<KX_ParentActuator.KX_ParentActuator>}
-		- L{PropertyActuator<SCA_PropertyActuator.SCA_PropertyActuator>}
-		- L{RandomActuator<SCA_RandomActuator.SCA_RandomActuator>}
-		- L{ReplaceMeshActuator<KX_SCA_ReplaceMeshActuator.KX_SCA_ReplaceMeshActuator>}
-		- L{SceneActuator<KX_SceneActuator.KX_SceneActuator>}
-		- L{ShapeActionActuator<BL_ShapeActionActuator.BL_ShapeActionActuator>}
-		- L{SoundActuator<KX_SoundActuator.KX_SoundActuator>}
-		- L{StateActuator<KX_StateActuator.KX_StateActuator>}
-		- L{TrackToActuator<KX_TrackToActuator.KX_TrackToActuator>}
-		- L{VisibilityActuator<KX_VisibilityActuator.KX_VisibilityActuator>}
+		- L{2DFilterActuator<GameTypes.SCA_2DFilterActuator>}
+		- L{ActionActuator<GameTypes.BL_ActionActuator>}
+		- L{AddObjectActuator<GameTypes.KX_SCA_AddObjectActuator>}
+		- L{CameraActuator<GameTypes.KX_CameraActuator>}
+		- L{CDActuator<GameTypes.KX_CDActuator>}
+		- L{ConstraintActuator<GameTypes.KX_ConstraintActuator>}
+		- L{DynamicActuator<GameTypes.KX_SCA_DynamicActuator>}
+		- L{EndObjectActuator<GameTypes.KX_SCA_EndObjectActuator>}
+		- L{GameActuator<GameTypes.KX_GameActuator>}
+		- L{IpoActuator<GameTypes.KX_IpoActuator>}
+		- L{NetworkMessageActuator<GameTypes.KX_NetworkMessageActuator>}
+		- L{ObjectActuator<GameTypes.KX_ObjectActuator>}
+		- L{ParentActuator<GameTypes.KX_ParentActuator>}
+		- L{PropertyActuator<GameTypes.SCA_PropertyActuator>}
+		- L{RandomActuator<GameTypes.SCA_RandomActuator>}
+		- L{ReplaceMeshActuator<GameTypes.KX_SCA_ReplaceMeshActuator>}
+		- L{SceneActuator<GameTypes.KX_SceneActuator>}
+		- L{ShapeActionActuator<GameTypes.BL_ShapeActionActuator>}
+		- L{SoundActuator<GameTypes.KX_SoundActuator>}
+		- L{StateActuator<GameTypes.KX_StateActuator>}
+		- L{TrackToActuator<GameTypes.KX_TrackToActuator>}
+		- L{VisibilityActuator<GameTypes.KX_VisibilityActuator>}
 
 	Most logic brick's methods are accessors for the properties available in the logic buttons.
 	Consult the logic bricks documentation for more information on how each logic brick works.
