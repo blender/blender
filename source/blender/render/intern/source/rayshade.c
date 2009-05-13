@@ -1890,7 +1890,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	
 	VECCOPY(vec, lampco);
 	
-	
+	isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 	while (samples < max_samples) {
 
 		isec->orig.ob   = shi->obi;
