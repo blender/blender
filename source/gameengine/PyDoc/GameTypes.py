@@ -512,8 +512,7 @@ class BL_Shader(PyObjectPlus):
 
 	def delSource():
 		"""
-		TODO - Description
-
+		Clear the shader. Use this method before the source is changed with L{setSource}.
 		"""
 	def getFragmentProg():
 		"""
@@ -997,39 +996,56 @@ class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 	"""
 	KX_BlenderMaterial
 	
-	All placeholders have a __ prefix
 	"""
 	
-	def __getShader(val):
+	def getShader():
 		"""
-		TODO - Description
+		Returns the material's shader.
 		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@rtype: L{BL_Shader}
+		@return: the material's shader
 		"""
 
-	def __setBlending(val):
+	def setBlending(src, dest):
 		"""
-		TODO - Description
+		Set the pixel color arithmetic functions.
 		
-		@param val: the starting frame of the animation
-		@type val: float
+		@param src: Specifies how the red, green, blue,
+                    and alpha source blending factors are computed.
+		@type src: 	GL_ZERO,
+					GL_ONE,
+					GL_SRC_COLOR,
+					GL_ONE_MINUS_SRC_COLOR,
+					GL_DST_COLOR,
+					GL_ONE_MINUS_DST_COLOR,
+					GL_SRC_ALPHA,
+					GL_ONE_MINUS_SRC_ALPHA,
+					GL_DST_ALPHA,
+					GL_ONE_MINUS_DST_ALPHA,
+					GL_SRC_ALPHA_SATURATE
+
+		
+		@param dest: Specifies how the red, green, blue,
+                    and alpha destination blending factors are computed.
+		@type dest: GL_ZERO,
+					GL_ONE,
+					GL_SRC_COLOR,
+					GL_ONE_MINUS_SRC_COLOR,
+					GL_DST_COLOR,
+					GL_ONE_MINUS_DST_COLOR,
+					GL_SRC_ALPHA,
+					GL_ONE_MINUS_SRC_ALPHA,
+					GL_DST_ALPHA,
+					GL_ONE_MINUS_DST_ALPHA,
+					GL_SRC_ALPHA_SATURATE
+
+		"""
+	def getMaterialIndex():
+		"""
+		Returns the material's index.
 		
 		@rtype: integer
-		@return: TODO Description
-		"""
-	def __getMaterialIndex(val):
-		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@return: the material's index
 		"""
 
 class KX_CDActuator(SCA_IActuator):
@@ -1419,28 +1435,13 @@ class KX_ConstraintWrapper(PyObjectPlus):
 	"""
 	KX_ConstraintWrapper
 	
-	All placeholders have a __ prefix
 	"""
-	def __getConstraintId(val):
+	def getConstraintId(val):
 		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
+		Returns the contraint's ID
 		
 		@rtype: integer
-		@return: TODO Description
-		"""
-
-	def __testMethod(val):
-		"""
-		TODO - Description
-		
-		@param val: the starting frame of the animation
-		@type val: float
-		
-		@rtype: integer
-		@return: TODO Description
+		@return: the constraint's ID
 		"""
 
 class KX_GameActuator(SCA_IActuator):

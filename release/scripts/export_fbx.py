@@ -2611,10 +2611,9 @@ Takes:  {''')
 										if frame!=act_start:
 											file.write(',')
 										
-										# Curve types are 
+										# Curve types are 'C,n' for constant, 'L' for linear
 										# C,n is for bezier? - linear is best for now so we can do simple keyframe removal
-										file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
-										#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
+										file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
 										frame+=1
 								else:
 									# remove unneeded keys, j is the frame, needed when some frames are removed.
@@ -2622,11 +2621,32 @@ Takes:  {''')
 									
 									# last frame to fisrt frame, missing 1 frame on either side.
 									# removeing in a backwards loop is faster
-									for j in xrange( (act_end-act_start)-1, 0, -1 ):
-										# Is this key reduenant?
-										if	abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
-											abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+									#for j in xrange( (act_end-act_start)-1, 0, -1 ):
+									# j = (act_end-act_start)-1
+									j = len(context_bone_anim_keys)-2
+									while j > 0 and len(context_bone_anim_keys) > 2:
+										# print j, len(context_bone_anim_keys)
+										# Is this key the same as the ones next to it?
+										
+										# co-linear horizontal...
+										if		abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
+												abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+												
 											del context_bone_anim_keys[j]
+											
+										else:
+											frame_range = float(context_bone_anim_keys[j+1][1] - context_bone_anim_keys[j-1][1])
+											frame_range_fac1 = (context_bone_anim_keys[j+1][1] - context_bone_anim_keys[j][1]) / frame_range
+											frame_range_fac2 = 1.0 - frame_range_fac1
+											
+											if abs(((context_bone_anim_keys[j-1][0]*frame_range_fac1 + context_bone_anim_keys[j+1][0]*frame_range_fac2)) - context_bone_anim_keys[j][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+												del context_bone_anim_keys[j]
+											else:
+												j-=1
+											
+										# keep the index below the list length
+										if j > len(context_bone_anim_keys)-2:
+											j = len(context_bone_anim_keys)-2
 									
 									if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
 										# This axis has no moton, its okay to skip KeyCount and Keys in this case
@@ -2639,8 +2659,7 @@ Takes:  {''')
 											if frame != context_bone_anim_keys[0][1]: # not the first
 												file.write(',')
 											# frame is alredy one less then blenders frame
-											file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
-											#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
+											file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
 								
 								if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
 								elif	i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
@@ -2919,7 +2938,7 @@ def fbx_ui():
 		Draw.BeginAlign()
 		GLOBALS['ANIM_OPTIMIZE'] =				Draw.Toggle('Optimize Keyframes',	EVENT_REDRAW, x+20,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE'].val,	'Remove double keyframes', do_redraw)
 		if GLOBALS['ANIM_OPTIMIZE'].val:
-			GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Number('Precission: ',			EVENT_NONE, x+180,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,	3, 16, 'Tolerence for comparing double keyframes (higher for greater accuracy)')
+			GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Number('Precission: ',			EVENT_NONE, x+180,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,	1, 16, 'Tolerence for comparing double keyframes (higher for greater accuracy)')
 		Draw.EndAlign()
 		
 		Draw.BeginAlign()
@@ -2997,7 +3016,7 @@ def write_ui():
 	# animation opts
 	GLOBALS['ANIM_ENABLE'] =				Draw.Create(1)
 	GLOBALS['ANIM_OPTIMIZE'] =				Draw.Create(1)
-	GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Create(6) # decimal places
+	GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Create(4) # decimal places
 	GLOBALS['ANIM_ACTION_ALL'] =			[Draw.Create(0), Draw.Create(1)] # not just the current action
 	
 	# batch export options
