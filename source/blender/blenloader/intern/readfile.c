@@ -8092,6 +8092,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->occlusionRes = 128;
 		}
 	}
+		
+	if (main->versionfile < 249) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next)
+			sce->r.renderer= 0;
+		
+	}
+	
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

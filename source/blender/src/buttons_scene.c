@@ -2277,15 +2277,7 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
-#ifndef DISABLE_YAFRAY
-	/* yafray: on request, render engine menu is back again, and moved to Render panel */
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
-												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
-#else
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0", 
-												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
-#endif /* disable yafray */
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 142, 191,59, 0, 0, 0, 0, 0, "Render the current frame (F12)");
 
 	uiBlockBeginAlign(block);
 	if((G.scene->r.scemode & R_FULL_SAMPLE) && (G.scene->r.scemode & R_EXR_TILE_FILE))
