@@ -740,6 +740,7 @@ static void transformEvent(unsigned short event, short val) {
 				resetTransRestrictions(&Trans); 
 				restoreTransObjects(&Trans);
 				initTranslation(&Trans);
+				initSnapping(&Trans);
 				Trans.redraw = 1;
 			}
 			break;
@@ -749,6 +750,7 @@ static void transformEvent(unsigned short event, short val) {
 				resetTransRestrictions(&Trans); 
 				restoreTransObjects(&Trans);
 				initResize(&Trans);
+				initSnapping(&Trans);
 				Trans.redraw = 1;
 			}
 			break;
@@ -766,6 +768,7 @@ static void transformEvent(unsigned short event, short val) {
 					restoreTransObjects(&Trans);
 					initRotation(&Trans);
 				}
+				initSnapping(&Trans);
 				Trans.redraw = 1;
 			}
 			break;
