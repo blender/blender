@@ -1703,13 +1703,27 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 	return self->GetActiveCamera()->GetProxy();
 }
 
+
+int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Camera *camOb;
+	
+	if (!ConvertPythonToCamera(value, &camOb, false, "scene.active_camera = value: KX_Scene"))
+		return PY_SET_ATTR_FAIL;
+	
+	self->SetActiveCamera(camOb);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",			KX_Scene, pyattr_get_objects),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects_inactive",	KX_Scene, pyattr_get_objects_inactive),	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
 	KX_PYATTRIBUTE_RO_FUNCTION("cameras",			KX_Scene, pyattr_get_cameras),
 	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
-	KX_PYATTRIBUTE_RO_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera),
+	KX_PYATTRIBUTE_RW_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera, pyattr_set_active_camera),
 	KX_PYATTRIBUTE_BOOL_RO("suspended",				KX_Scene, m_suspend),
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",		KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
@@ -1717,15 +1731,14 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-
 PyObject* KX_Scene::py_getattro__internal(PyObject *attr)
 {	
 	py_getattro_up(PyObjectPlus);
 }
 
-int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *pyvalue)
+int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *value)
 {
-	return PyObjectPlus::py_setattro(attr, pyvalue);
+	py_setattro_up(PyObjectPlus);
 }
 
 PyObject* KX_Scene::py_getattro(PyObject *attr)

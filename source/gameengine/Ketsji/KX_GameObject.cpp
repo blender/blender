@@ -1819,9 +1819,7 @@ PyObject* KX_GameObject::py_getattro_dict() {
 
 int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
 {
-	int ret;
-	
-	ret= py_setattro__internal(attr, value);
+	int ret= py_setattro__internal(attr, value);
 	
 	if (ret==PY_SET_ATTR_SUCCESS) {
 		/* remove attribute in our own dict to avoid double ups */

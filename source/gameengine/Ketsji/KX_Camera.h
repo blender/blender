@@ -41,6 +41,9 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+/* utility conversion function */
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+
 class KX_Camera : public KX_GameObject
 {
 	Py_Header;

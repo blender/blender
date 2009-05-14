@@ -933,3 +933,57 @@ PyObject* KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *
 PyObject* KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {	return PyInt_FromLong(INTERSECT); }
 
+
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix)
+{
+	if (value==NULL) {
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
+		*object = NULL;
+		return false;
+	}
+		
+	if (value==Py_None) {
+		*object = NULL;
+		
+		if (py_none_ok) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_Camera or a KX_Camera name, None is invalid", error_prefix);
+			return false;
+		}
+	}
+	
+	if (PyString_Check(value)) {
+		STR_String value_str = PyString_AsString(value);
+		*object = KX_GetActiveScene()->FindCamera(value_str);
+		
+		if (*object) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, PyString_AsString(value));
+			return false;
+		}
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_Camera::Type)) {
+		*object = static_cast<KX_Camera*>BGE_PROXY_REF(value);
+		
+		/* sets the error */
+		if (*object==NULL) {
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	*object = NULL;
+	
+	if (py_none_ok) {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera, a string or None", error_prefix);
+	} else {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera or a string", error_prefix);
+	}
+	
+	return false;
+}

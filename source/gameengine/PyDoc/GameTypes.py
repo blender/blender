@@ -235,7 +235,7 @@ class SCA_IController(SCA_ILogicBrick):
 		"""
 		Get the controllers state bitmask, this can be used with the GameObject's state to test if the the controller is active.
 		This for instance will always be true however you could compare with a previous state to see when the state was activated.
-		GameLogic.getCurrentController().getState() & GameLogic.getCurrentController().getOwner().getState()
+		GameLogic.getCurrentController().state & GameLogic.getCurrentController().owner.state
 		@deprecated: Use the L{state} property
 		@rtype: int
 		"""
@@ -2126,7 +2126,7 @@ class KX_LightObject(KX_GameObject):
 	import GameLogic
 	
 	co = GameLogic.getCurrentController()
-	light = co.getOwner()
+	light = co.owner
 	
 	light.energy = 1.0
 	light.colour = [1.0, 0.0, 0.0]
@@ -2187,8 +2187,8 @@ class KX_MeshProxy(SCA_IObject):
 	The correct method of iterating over every L{KX_VertexProxy} in a game object::
 		import GameLogic
 		
-		co = GameLogic.getcurrentController()
-		obj = co.getOwner()
+		co = GameLogic.getCurrentController()
+		obj = co.owner
 		
 		m_i = 0
 		mesh = obj.getMesh(m_i) # There can be more than one mesh...
@@ -3177,9 +3177,9 @@ class KX_PolygonMaterial:
 				self.pass_no = 0	
 				return False
 		
-		obj = GameLogic.getCurrentController().getOwner()
+		obj = GameLogic.getCurrentController().owner
 		
-		mesh = obj.getMesh(0)
+		mesh = obj.meshes[0]
 		
 		for mat in mesh.materials:
 			mat.setCustomMaterial(MyMaterial())
@@ -3596,8 +3596,8 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 				)
 		
 		co = GameLogic.getCurrentController()
-		obj = co.getOwner()
-		act = co.getActuator("LOD." + obj.name)
+		obj = co.owner
+		act = co.actuators["LOD." + obj.name]
 		cam = GameLogic.getCurrentScene().active_camera
 		
 		def Depth(pos, plane):
@@ -3684,7 +3684,7 @@ class KX_Scene(PyObjectPlus):
 		# Get the depth of an object in the camera view.
 		import GameLogic
 		
-		obj = GameLogic.getCurrentController().getOwner()
+		obj = GameLogic.getCurrentController().owner
 		cam = GameLogic.getCurrentScene().active_camera
 		
 		# Depth is negative and decreasing further from the camera
@@ -3692,19 +3692,20 @@ class KX_Scene(PyObjectPlus):
 	
 	@bug: All attributes are read only at the moment.
 		
-	@ivar name: The scene's name
+	@ivar name: The scene's name, (read-only).
 	@type name: string
-	@ivar objects: A list of objects in the scene.
+	@ivar objects: A list of objects in the scene, (read-only).
 	@type objects: L{CListValue} of L{KX_GameObject}
-	@ivar objects_inactive: A list of objects on background layers (used for the addObject actuator).
+	@ivar objects_inactive: A list of objects on background layers (used for the addObject actuator), (read-only).
 	@type objects_inactive: L{CListValue} of L{KX_GameObject}
-	@ivar lights: A list of lights in the scene.
+	@ivar lights: A list of lights in the scene, (read-only).
 	@type lights: L{CListValue} of L{KX_LightObject}
-	@ivar cameras: A list of cameras in the scene.
+	@ivar cameras: A list of cameras in the scene, (read-only).
 	@type cameras: L{CListValue} of L{KX_Camera}
-	@ivar active_camera: The current active camera
+	@ivar active_camera: The current active camera.
+						 @note: this can be set directly from python to avoid using the L{KX_SceneActuator}
 	@type active_camera: L{KX_Camera}
-	@ivar suspended: True if the scene is suspended.
+	@ivar suspended: True if the scene is suspended, (read-only).
 	@type suspended: boolean
 	@ivar activity_culling: True if the scene is activity culling
 	@type activity_culling: boolean
@@ -5328,7 +5329,7 @@ class KX_Camera(KX_GameObject):
 		Example::
 			import GameLogic
 			co = GameLogic.getCurrentController()
-			cam = co.GetOwner()
+			cam = co.owner
 			
 			# A sphere of radius 4.0 located at [x, y, z] = [1.0, 1.0, 1.0]
 			if (cam.sphereInsideFrustum([1.0, 1.0, 1.0], 4) != cam.OUTSIDE):
@@ -5344,7 +5345,7 @@ class KX_Camera(KX_GameObject):
 		Example::
 			import GameLogic
 			co = GameLogic.getCurrentController()
-			cam = co.GetOwner()
+			cam = co.owner
 			
 			# Box to test...
 			box = []
@@ -5374,7 +5375,7 @@ class KX_Camera(KX_GameObject):
 		Example::
 			import GameLogic
 			co = GameLogic.getCurrentController()
-			cam = co.GetOwner()
+			cam = co.owner
 	
 			# Test point [0.0, 0.0, 0.0]
 			if (cam.pointInsideFrustum([0.0, 0.0, 0.0])):
@@ -5451,7 +5452,7 @@ class KX_Camera(KX_GameObject):
 					      [1.0/cam.scaling[0], 1.0/cam.scaling[1], 1.0/cam.scaling[2], 1.0])
 			
 			co = GameLogic.getCurrentController()
-			cam = co.getOwner()
+			cam = co.owner
 			cam.setProjectionMatrix(Perspective(cam)))
 		
 		@type matrix: 4x4 matrix.
