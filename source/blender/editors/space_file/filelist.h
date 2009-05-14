@@ -41,19 +41,7 @@ struct FileList;
 struct direntry;
 struct BlendHandle;
 struct Scene;
-
-#define MAX_FILE_COLUMN 8
-
-typedef enum FileListColumns {
-	COLUMN_NAME = 0,
-	COLUMN_DATE,
-	COLUMN_TIME,
-	COLUMN_SIZE,
-	COLUMN_MODE1,
-	COLUMN_MODE2,
-	COLUMN_MODE3,
-	COLUMN_OWNER
-} FileListColumns;
+struct rcti;
 
 struct FileList *	filelist_new();
 void				filelist_init_icons();
@@ -78,7 +66,6 @@ struct ImBuf *		filelist_getimage(struct FileList* filelist, int index);
 struct ImBuf *		filelist_geticon(struct FileList* filelist, int index);
 short				filelist_changed(struct FileList* filelist);
 void				filelist_readdir(struct FileList* filelist);
-int					filelist_column_len(struct FileList* filelist, FileListColumns column);
 
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);

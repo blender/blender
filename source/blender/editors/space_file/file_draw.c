@@ -44,11 +44,15 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "BLF_Api.h"
+
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "ED_datafiles.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -88,8 +92,6 @@ enum {
 	B_FS_PARENT,
 } eFile_ButEvents;
 
-/* XXX very bad, need to check font code */
-static int gFontsize=12;
 
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
@@ -152,19 +154,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 
-#if 0
-	/* menu[0] = NULL happens when no .Bfs is there, and first time browse
-	   disallow external directory browsing for databrowse */
-
-	if(menu[0] && (params->type != FILE_MAIN))	{ 
-		uiDefButS(block, MENU, 0 /* B_FS_DIR_MENU */, menu, xmin, filebuty2, fsmenubut_width, 21, &params->menu, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, 0 /* B_FS_BOOKMARK */, "B", xmin, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
-	}
-
-	MEM_freeN(menu);
-#endif
-
-
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 }
@@ -180,8 +169,6 @@ static void draw_tile(short sx, short sy, short width, short height, int colorid
 	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
-	// glRecti(sx, sy - height, sx + width, sy);
-
 	uiRoundBox(sx, sy - height, sx + width, sy, 6);
 }
 
@@ -195,14 +182,14 @@ static float shorten_string(char* string, float w, int flag)
 	float sw = 0;
 	float pad = 0;
 
-	sw = UI_GetStringWidth(string);
+	sw = file_string_width(string);
 	if (flag == FILE_SHORTEN_FRONT) {
 		char *s = string;
 		BLI_strncpy(temp, "...", 4);
-		pad = UI_GetStringWidth(temp);
+		pad = file_string_width(temp);
 		while (s && (sw+pad>w)) {
 			s++;
-			sw = UI_GetStringWidth(s);
+			sw = file_string_width(s);
 			shortened = 1;
 		}
 		if (shortened) {
@@ -216,7 +203,7 @@ static float shorten_string(char* string, float w, int flag)
 		while (sw>w) {
 			int slen = strlen(string);
 			string[slen-1] = '\0';
-			sw = UI_GetStringWidth(s);
+			sw = file_string_width(s);
 			shortened = 1;
 		}
 		if (shortened) {
@@ -267,7 +254,8 @@ static void file_draw_icon(short sx, short sy, int icon, short width, short heig
 	UI_icon_draw_aspect_blended(x, y, icon, 1.f, blend);
 }
 
-static void file_draw_string(short sx, short sy, const char* string, short width, short height, int flag)
+
+static void file_draw_string(short sx, short sy, const char* string, float width, short height, int flag)
 {
 	short soffs;
 	char fname[FILE_MAXFILE];
@@ -281,12 +269,8 @@ static void file_draw_string(short sx, short sy, const char* string, short width
 	x = (float)(sx);
 	y = (float)(sy-height);
 
-	/* XXX TODO: handling of international fonts.
-	    TODO: proper support for utf8 in languages different from ja_JP abd zh_CH
-	    needs update of iconv in lib/windows to support getting the system language string
-	*/
-	UI_DrawString(x, y, fname);
-
+	BLF_position(x, y, 0);
+	BLF_draw(fname);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -329,7 +313,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx += v2d->tot.xmin+2;
 		sy = v2d->tot.ymax - sy;
-		file = filelist_file(files, i);				
+		file = filelist_file(files, i);	
 
 		if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
@@ -351,29 +335,54 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 		}
 
 		if (imb) {
-			float fx = ((float)layout->prv_w - (float)imb->x)/2.0f;
-			float fy = ((float)layout->prv_h - (float)imb->y)/2.0f;
-			float dx = (fx + 0.5f + sfile->layout->prv_border_x);
-			float dy = (fy + 0.5f - sfile->layout->prv_border_y);
-			short xco = (float)sx + dx;
-			short yco = (float)sy - sfile->layout->prv_h + dy;
-			
+			float fx, fy;
+			float dx, dy;
+			short xco, yco;
+			float scaledx, scaledy;
+			float scale;
+			short ex, ey;
+
+			if ( (imb->x > layout->prv_w) || (imb->y > layout->prv_h) ) {
+				if (imb->x > imb->y) {
+					scaledx = (float)layout->prv_w;
+					scaledy =  ( (float)imb->y/(float)imb->x )*layout->prv_w;
+					scale = scaledx/imb->x;
+				}
+				else {
+					scaledy = (float)layout->prv_h;
+					scaledx =  ( (float)imb->x/(float)imb->y )*layout->prv_h;
+					scale = scaledy/imb->y;
+				}
+			} else {
+				scaledx = (float)imb->x;
+				scaledy = (float)imb->y;
+				scale = 1.0;
+			}
+			ex = (short)scaledx;
+			ey = (short)scaledy;
+			fx = ((float)layout->prv_w - (float)ex)/2.0f;
+			fy = ((float)layout->prv_h - (float)ey)/2.0f;
+			dx = (fx + 0.5f + sfile->layout->prv_border_x);
+			dy = (fy + 0.5f - sfile->layout->prv_border_y);
+			xco = (float)sx + dx;
+			yco = (float)sy - sfile->layout->prv_h + dy;
+
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 			
 			/* shadow */
 			if (!is_icon && (file->flags & IMAGEFILE))
-				uiDrawBoxShadow(220, xco, yco, xco + imb->x, yco + imb->y);
+				uiDrawBoxShadow(220, xco, yco, xco + ex, yco + ey);
 			
 			glEnable(GL_BLEND);
 			
 			/* the image */
 			glColor4f(1.0, 1.0, 1.0, 1.0);
-			glaDrawPixelsTex(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect);
+			glaDrawPixelsTexScaled(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect, scale, scale);
 			
 			/* border */
 			if (!is_icon && (file->flags & IMAGEFILE)) {
 				glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-				fdrawbox(xco, yco, xco + imb->x, yco + imb->y);
+				fdrawbox(xco, yco, xco + ex, yco + ey);
 			}
 			
 			glDisable(GL_BLEND);
@@ -443,17 +452,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	if (offset<0) offset=0;
 
 	/* alternating flat shade background */
-	for (i=0; (i <= layout->rows); ++i)
+	for (i=0; (i <= layout->rows); i+=2)
 	{
 		sx = v2d->cur.xmin;
 		sy = v2d->cur.ymax - i*(layout->tile_h+2*layout->tile_border_y) - layout->tile_border_y;
-		
-		if (i % 2) {
-			UI_ThemeColor(TH_BACK);
-		} else {
-			UI_ThemeColorShade(TH_BACK, -7);
-		}
+
+		UI_ThemeColorShade(TH_BACK, -7);
 		glRectf(v2d->cur.xmin, sy, v2d->cur.xmax, sy+layout->tile_h+2*layout->tile_border_y);
+		
 	}
 	
 	/* vertical column dividers */
@@ -493,15 +499,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		
 		UI_ThemeColor4(TH_TEXT);
 		
-		
-		sw = UI_GetStringWidth(file->relname);
+		sw = file_string_width(file->relname);
 		file_draw_string(spos, sy, file->relname, sw, layout->tile_h, FILE_SHORTEN_END);
-		spos += filelist_column_len(sfile->files, COLUMN_NAME) + 10;
+		spos += layout->column_widths[COLUMN_NAME] + 12;
 		if (params->display == FILE_SHOWSHORT) {
 			if (!(file->type & S_IFDIR)) {
-				sw = UI_GetStringWidth(file->size);
-				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
-				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);	
+				sw = file_string_width(file->size);
+				spos += layout->column_widths[COLUMN_SIZE] + 12 - sw;
+				file_draw_string(spos, sy, file->size, sw+1, layout->tile_h, FILE_SHORTEN_END);	
 			}
 		} else {
 #if 0 // XXX TODO: add this for non-windows systems
@@ -524,17 +529,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 #endif
 
 			
-			sw = UI_GetStringWidth(file->date);
+			sw = file_string_width(file->date);
 			file_draw_string(spos, sy, file->date, sw, layout->tile_h, FILE_SHORTEN_END);
-			spos += filelist_column_len(sfile->files, COLUMN_DATE) + 10;
+			spos += layout->column_widths[COLUMN_DATE] + 12;
 
-			sw = UI_GetStringWidth(file->time);
+			sw = file_string_width(file->time);
 			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
-			spos += filelist_column_len(sfile->files, COLUMN_TIME) + 10;
+			spos += layout->column_widths[COLUMN_TIME] + 12;
 
 			if (!(file->type & S_IFDIR)) {
-				sw = UI_GetStringWidth(file->size);
-				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
+				sw = file_string_width(file->size);
+				spos += layout->column_widths[COLUMN_SIZE] + 12 - sw;
 				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
 			}
 		}
@@ -546,10 +551,10 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	struct FSMenu* fsmenu = fsmenu_get();
 	char bookmark[FILE_MAX];
 	int nentries = fsmenu_get_nentries(fsmenu, category);
-	int linestep = gFontsize*2.0f;
+	
 	short sx, sy, xpos, ypos;
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X - ICON_DEFAULT_WIDTH - 4;
-	int fontsize = gFontsize;
+	int fontsize = file_font_pointsize();
 	int cat_icon;
 	int i;
 
@@ -559,7 +564,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	UI_ThemeColor(TH_TEXT_HI);
 	file_draw_string(sx, sy, category_name, bmwidth, fontsize, FILE_SHORTEN_END);
 	
-	sy -= linestep;
+	sy -= fontsize*2.0f;
 
 	switch(category) {
 		case FS_CATEGORY_SYSTEM:
@@ -579,17 +584,15 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 		
 			sl = strlen(bookmark)-1;
 			if (sl > 1) {
-				while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
-					bookmark[sl] = '\0';
-					sl--;
-				}
+			while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+				bookmark[sl] = '\0';
+				sl--;
+			}
 			}
 			
 			if (fsmenu_is_selected(fsmenu, category, i) ) {
 				UI_ThemeColor(TH_HILITE);
-				//uiSetRoundBox(15);	
-				uiRoundBox(sx, sy - linestep, ar->v2d.cur.xmax - TILE_BORDER_X, sy, 4.0f);
-				// glRectf(ar->v2d.cur.xmin, sy-linestep, ar->v2d.cur.xmax + 2*TILE_BORDER_X, sy);
+				uiRoundBox(sx, sy - fontsize*2.0f, ar->v2d.cur.xmax - TILE_BORDER_X, sy, 4.0f);
 				UI_ThemeColor(TH_TEXT);
 			} else {
 				UI_ThemeColor(TH_TEXT_HI);
@@ -601,7 +604,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			file_draw_icon(xpos, ypos, cat_icon, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
 			xpos += ICON_DEFAULT_WIDTH + 4;
 			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize, FILE_SHORTEN_FRONT);
-			sy -= linestep;
+			sy -= fontsize*2.0;
 			fsmenu_set_pos(fsmenu, category, i, xpos, ypos);
 		}
 	}
@@ -611,9 +614,9 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 
 void file_draw_fsmenu(const bContext *C, ARegion *ar)
 {
-	int linestep = gFontsize*2.0f;
+	int linestep = file_font_pointsize()*2.0f;
 	short sy= ar->v2d.cur.ymax-2*TILE_BORDER_Y;
-	
+
 	file_draw_fsmenu_category(C, ar, FS_CATEGORY_SYSTEM, "SYSTEM", &sy);
 	sy -= linestep;
 	file_draw_fsmenu_category(C, ar, FS_CATEGORY_BOOKMARKS, "BOOKMARKS", &sy);

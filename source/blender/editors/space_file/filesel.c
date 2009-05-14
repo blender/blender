@@ -45,6 +45,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -57,6 +58,8 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
+
+#include "BLF_Api.h"
 
 #include "DNA_userdef_types.h"
 
@@ -144,14 +147,13 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) offsetx = layout->columns-1 ;
-	if (offsety > layout->rows-1) offsety = layout->rows-1 ;
+	if (offsetx > layout->columns-1) offsetx = -1 ;
+	if (offsety > layout->rows-1) offsety = -1 ;
 
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
 	else
 		active_file = offsetx + layout->columns*offsety;
-	printf("OFFSET %d %d %d %d %d\n", x,y, offsetx, offsety, active_file);
 	return active_file;
 }
 
@@ -166,6 +168,56 @@ void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, short *x, short 
 	}
 }
 
+float file_string_width(const char* str)
+{
+	uiStyle *style= U.uistyles.first;
+	uiStyleFontSet(&style->widget);
+	return BLF_width(str);
+}
+
+float file_font_pointsize()
+{
+	float s;
+	char tmp[2] = "X";
+	uiStyle *style= U.uistyles.first;
+	uiStyleFontSet(&style->widget);
+	s = BLF_height(tmp);
+	return style->widget.points;
+}
+
+static void column_widths(struct FileList* files, struct FileLayout* layout)
+{
+	int i;
+	int numfiles = filelist_numfiles(files);
+
+	for (i=0; i<MAX_FILE_COLUMN; ++i) {
+		layout->column_widths[i] = 0;
+	}
+
+	for (i=0; (i < numfiles); ++i)
+	{
+		struct direntry* file = filelist_file(files, i);	
+		if (file) {
+			int len;
+			len = file_string_width(file->relname);
+			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
+			len = file_string_width(file->date);
+			if (len > layout->column_widths[COLUMN_DATE]) layout->column_widths[COLUMN_DATE] = len;
+			len = file_string_width(file->time);
+			if (len > layout->column_widths[COLUMN_TIME]) layout->column_widths[COLUMN_TIME] = len;
+			len = file_string_width(file->size);
+			if (len > layout->column_widths[COLUMN_SIZE]) layout->column_widths[COLUMN_SIZE] = len;
+			len = file_string_width(file->mode1);
+			if (len > layout->column_widths[COLUMN_MODE1]) layout->column_widths[COLUMN_MODE1] = len;
+			len = file_string_width(file->mode2);
+			if (len > layout->column_widths[COLUMN_MODE2]) layout->column_widths[COLUMN_MODE2] = len;
+			len = file_string_width(file->mode3);
+			if (len > layout->column_widths[COLUMN_MODE3]) layout->column_widths[COLUMN_MODE3] = len;
+			len = file_string_width(file->owner);
+			if (len > layout->column_widths[COLUMN_OWNER]) layout->column_widths[COLUMN_OWNER] = len;
+		}
+	}
+}
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
@@ -173,11 +225,10 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	int maxlen = 0;
 	int numfiles = filelist_numfiles(sfile->files);
-
+	int textheight = file_font_pointsize();
 	if (sfile->layout == 0) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
 	}
-
 	if (params->display == FILE_IMGDISPLAY) {
 		sfile->layout->prv_w = 96;
 		sfile->layout->prv_h = 96;
@@ -186,7 +237,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->prv_border_x = 6;
 		sfile->layout->prv_border_y = 6;
 		sfile->layout->tile_w = sfile->layout->prv_w + 2*sfile->layout->prv_border_x;
-		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + 12; // XXX 12 = font h
+		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + textheight;
 		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x);
 		sfile->layout->columns= sfile->layout->width / (sfile->layout->tile_w + 2*sfile->layout->tile_border_x);
 		if(sfile->layout->columns > 0)
@@ -204,23 +255,22 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->tile_border_y = 2;
 		sfile->layout->prv_border_x = 0;
 		sfile->layout->prv_border_y = 0;
-		sfile->layout->tile_h = 12*3/2; // XXX 12 = font h
+		sfile->layout->tile_h = textheight*3/2;
 		sfile->layout->height= v2d->cur.ymax - v2d->cur.ymin;
 		sfile->layout->rows = sfile->layout->height / (sfile->layout->tile_h + 2*sfile->layout->tile_border_y);;
         
+		column_widths(sfile->files, sfile->layout);
+
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = filelist_column_len(sfile->files, COLUMN_NAME) +
-					 filelist_column_len(sfile->files, COLUMN_SIZE);
+			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
+					 sfile->layout->column_widths[COLUMN_SIZE];
 			maxlen += 20+2*10; // for icon and space between columns
 		} else {
-			maxlen = filelist_column_len(sfile->files, COLUMN_NAME) +
-			     filelist_column_len(sfile->files, COLUMN_DATE) + 
-			     filelist_column_len(sfile->files, COLUMN_TIME) +
-				 filelist_column_len(sfile->files, COLUMN_SIZE) /* +
-				 filelist_column_len(sfile->files, COLUMN_MODE1) +
-				 filelist_column_len(sfile->files, COLUMN_MODE2) +
-				 filelist_column_len(sfile->files, COLUMN_MODE3) +
-				 filelist_column_len(sfile->files, COLUMN_OWNER) */ ;
+			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
+					 sfile->layout->column_widths[COLUMN_DATE] +
+					 sfile->layout->column_widths[COLUMN_TIME] +
+					 sfile->layout->column_widths[COLUMN_SIZE];
+					/* XXX add mode1, mode2, mode3, owner columns for non-windows platforms */
 			maxlen += 20+4*10; // for icon and space between columns
 		}
 		sfile->layout->tile_w = maxlen + 40;

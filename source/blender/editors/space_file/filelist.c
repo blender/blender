@@ -120,7 +120,6 @@ typedef struct FileList
 	short hide_dot;
 	unsigned int filter;
 	short changed;
-	int columns[MAX_FILE_COLUMN];
 	ListBase loadimages;
 	ListBase threads;
 } FileList;
@@ -531,7 +530,7 @@ void filelist_loadimage(struct FileList* filelist, int index)
 				dx = imgwidth - ex;
 				dy = imgheight - ey;
 				
-				IMB_scaleImBuf(imb, ex, ey);
+				// IMB_scaleImBuf(imb, ex, ey);
 				filelist->filelist[fidx].image = imb;
 			} else {
 				/* prevent loading image twice */
@@ -622,6 +621,7 @@ struct direntry * filelist_file(struct FileList* filelist, int index)
 	return &filelist->filelist[fidx];
 }
 
+
 int filelist_find(struct FileList* filelist, char *file)
 {
 	int index = -1;
@@ -658,15 +658,9 @@ void filelist_setfilter(struct FileList* filelist, unsigned int filter)
 	filelist->filter = filter;
 }
 
-int	filelist_column_len(struct FileList* filelist, FileListColumns column)
-{
-	return filelist->columns[column];
-}
-
 void filelist_readdir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
-	int i;
 
 	if (!filelist) return;
 	filelist->fidx = 0;
@@ -684,34 +678,6 @@ void filelist_readdir(struct FileList* filelist)
 	
 	if (!filelist->threads.first) {
 		BLI_init_threads(&filelist->threads, exec_loadimages, 2);
-	}
-
-	for (i=0; i<MAX_FILE_COLUMN; ++i) {
-		filelist->columns[i] = 0;
-	}
-
-	for (i=0; (i < filelist->numfiles); ++i)
-	{
-		struct direntry* file = filelist_file(filelist, i);	
-		if (file) {
-			int len;
-			len = UI_GetStringWidth(file->relname);
-			if (len > filelist->columns[COLUMN_NAME]) filelist->columns[COLUMN_NAME] = len;
-			len = UI_GetStringWidth(file->date);
-			if (len > filelist->columns[COLUMN_DATE]) filelist->columns[COLUMN_DATE] = len;
-			len = UI_GetStringWidth(file->time);
-			if (len > filelist->columns[COLUMN_TIME]) filelist->columns[COLUMN_TIME] = len;
-			len = UI_GetStringWidth(file->size);
-			if (len > filelist->columns[COLUMN_SIZE]) filelist->columns[COLUMN_SIZE] = len;
-			len = UI_GetStringWidth(file->mode1);
-			if (len > filelist->columns[COLUMN_MODE1]) filelist->columns[COLUMN_MODE1] = len;
-			len = UI_GetStringWidth(file->mode2);
-			if (len > filelist->columns[COLUMN_MODE2]) filelist->columns[COLUMN_MODE2] = len;
-			len = UI_GetStringWidth(file->mode3);
-			if (len > filelist->columns[COLUMN_MODE3]) filelist->columns[COLUMN_MODE3] = len;
-			len = UI_GetStringWidth(file->owner);
-			if (len > filelist->columns[COLUMN_OWNER]) filelist->columns[COLUMN_OWNER] = len;
-		}
 	}
 }
 
