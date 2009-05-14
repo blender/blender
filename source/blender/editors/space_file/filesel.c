@@ -59,7 +59,7 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
-#include "BLF_Api.h"
+#include "BLF_api.h"
 
 #include "DNA_userdef_types.h"
 

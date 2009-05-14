@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-#include "BLF_Api.h"
+#include "BLF_api.h"
 
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
