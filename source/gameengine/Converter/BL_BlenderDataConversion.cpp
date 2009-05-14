@@ -1249,18 +1249,34 @@ static void my_tex_space_mesh(Mesh *me)
 	
 }
 
-static void my_get_local_bounds(Object *ob, float *center, float *size)
+static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, float *size)
 {
 	BoundBox *bb= NULL;
 	/* uses boundbox, function used by Ketsji */
 	switch (ob->type)
 	{
 		case OB_MESH:
-			bb= ( (Mesh *)ob->data )->bb;
-			if(bb==0) 
+			if (dm)
 			{
-				my_tex_space_mesh((struct Mesh *)ob->data);
+				float min_r[3], max_r[3];
+				INIT_MINMAX(min_r, max_r);
+				dm->getMinMax(dm, min_r, max_r);
+				size[0]= 0.5*fabs(max_r[0] - min_r[0]);
+				size[1]= 0.5*fabs(max_r[1] - min_r[1]);
+				size[2]= 0.5*fabs(max_r[2] - min_r[2]);
+					
+				center[0]= 0.5*(max_r[0] + min_r[0]);
+				center[1]= 0.5*(max_r[1] + min_r[1]);
+				center[2]= 0.5*(max_r[2] + min_r[2]);
+				return;
+			} else
+			{
 				bb= ( (Mesh *)ob->data )->bb;
+				if(bb==0) 
+				{
+					my_tex_space_mesh((struct Mesh *)ob->data);
+					bb= ( (Mesh *)ob->data )->bb;
+				}
 			}
 			break;
 		case OB_CURVE:
@@ -1498,7 +1514,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	KX_BoxBounds bb;
-	my_get_local_bounds(blenderobject,objprop.m_boundobject.box.m_center,bb.m_extends);
+	DerivedMesh* dm = NULL;
+	if (gameobj->GetDeformer())
+		dm = gameobj->GetDeformer()->GetFinalMesh();
+	my_get_local_bounds(blenderobject,dm,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)
 	{
 		switch (blenderobject->boundtype)
@@ -1567,7 +1586,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	{
 #ifdef USE_BULLET
 		case UseBullet:
-			KX_ConvertBulletObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
+			KX_ConvertBulletObject(gameobj, meshobj, dm, kxscene, shapeprops, smmaterial, &objprop);
 			break;
 
 #endif
@@ -1947,8 +1966,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	int activeLayerBitInfo = blenderscene->lay;
 	
-	// templist to find Root Parents (object with no parents)
-	CListValue* templist = new CListValue();
+	// list of all object converted, active and inactive
 	CListValue*	sumolist = new CListValue();
 	
 	vector<parentChildLink> vec_parent_child;
@@ -2048,9 +2066,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 			gameobj->SetName(blenderobject->id.name);
 	
-			// templist to find Root Parents (object with no parents)
-			templist->Add(gameobj->AddRef());
-			
 			// update children/parent hierarchy
 			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 			{
@@ -2243,9 +2258,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					
 							gameobj->SetName(blenderobject->id.name);
 					
-							// templist to find Root Parents (object with no parents)
-							templist->Add(gameobj->AddRef());
-							
 							// update children/parent hierarchy
 							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 							{
@@ -2398,8 +2410,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			for ( i=0;i<childrenlist->GetCount();i++)
 			{
 				KX_GameObject* obj = static_cast<KX_GameObject*>(childrenlist->GetValue(i));
-				if (templist->RemoveValue(obj))
-					obj->Release();
 				if (sumolist->RemoveValue(obj))
 					obj->Release();
 				if (logicbrick_conversionlist->RemoveValue(obj))
@@ -2455,16 +2465,47 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	vec_parent_child.clear();
 	
 	// find 'root' parents (object that has not parents in SceneGraph)
-	for (i=0;i<templist->GetCount();++i)
+	for (i=0;i<sumolist->GetCount();++i)
 	{
-		KX_GameObject* gameobj = (KX_GameObject*) templist->GetValue(i);
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
 		if (gameobj->GetSGNode()->GetSGParent() == 0)
 		{
 			parentlist->Add(gameobj->AddRef());
 			gameobj->NodeUpdateGS(0);
 		}
 	}
-	
+
+	// create graphic controller for culling
+	if (kxscene->GetDbvtCulling())
+	{
+		bool occlusion = false;
+		for (i=0; i<sumolist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+			if (gameobj->GetMeshCount() > 0) 
+			{
+				MT_Point3 box[2];
+				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
+				// box[0] is the min, box[1] is the max
+				bool isactive = objectlist->SearchValue(gameobj);
+				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
+				if (gameobj->GetOccluder())
+					occlusion = true;
+			}
+		}
+		if (occlusion)
+			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
+	}
+
+	// now that the scenegraph is complete, let's instantiate the deformers.
+	// We need that to create reusable derived mesh and physic shapes
+	for (i=0;i<sumolist->GetCount();++i)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		if (gameobj->GetDeformer())
+			gameobj->GetDeformer()->UpdateBuckets();
+	}
+
 	bool processCompoundChildren = false;
 
 	// create physics information
@@ -2496,28 +2537,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
-	}
-	
-	// create graphic controller for culling
-	if (kxscene->GetDbvtCulling())
-	{
-		bool occlusion = false;
-		for (i=0; i<sumolist->GetCount();i++)
-		{
-			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-			if (gameobj->GetMeshCount() > 0) 
-			{
-				MT_Point3 box[2];
-				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
-				// box[0] is the min, box[1] is the max
-				bool isactive = objectlist->SearchValue(gameobj);
-				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
-				if (gameobj->GetOccluder())
-					occlusion = true;
-			}
-		}
-		if (occlusion)
-			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
 	}
 	
 	//set ini linearVel and int angularVel //rcruiz
@@ -2605,7 +2624,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	templist->Release();
 	sumolist->Release();	
 
 	// convert global sound stuff

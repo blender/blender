@@ -35,6 +35,10 @@ subject to the following restrictions:
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+extern "C"{
+#include "BKE_cdderivedmesh.h"
+}
+
 class BP_Proxy;
 
 ///todo: fill all the empty CcdPhysicsController methods, hook them up to the btRigidBody class
@@ -1312,9 +1316,9 @@ void	DefaultMotionState::calculateWorldTransformations()
 // Shape constructor
 std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> CcdShapeConstructionInfo::m_meshShapeMap;
 
-CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, bool polytope)
+CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact)
 {
-	if (polytope)
+	if (polytope || dm || gimpact)
 		// not yet supported
 		return NULL;
 
@@ -1324,9 +1328,9 @@ CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mes
 	return NULL;
 }
 
-bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bool useGimpact)
+bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm, bool polytope,bool useGimpact)
 {
-	int numpolys;
+	int numpolys, numverts;
 
 	m_useGimpact = useGimpact;
 
@@ -1335,6 +1339,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 	assert(IsUnused());
 	m_shapeType = PHY_SHAPE_NONE;
 	m_meshObject = NULL;
+	bool free_dm = false;
 
 	// No mesh object or mesh has no polys
 	if (!meshobj || meshobj->HasColliderPolygon()==false) {
@@ -1344,12 +1349,21 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 		return false;
 	}
 
-	numpolys = meshobj->NumPolygons();
+	if (!dm) {
+		free_dm = true;
+		dm = CDDM_from_mesh(meshobj->GetMesh(), NULL);
+	}
+
+	MVert *mvert = dm->getVertArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
+	numpolys = dm->getNumFaces(dm);
+	numverts = dm->getNumVerts(dm);
+	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
 	/* Convert blender geometry into bullet mesh, need these vars for mapping */
-	vector<bool> vert_tag_array(meshobj->GetMesh()->totvert, false);
+	vector<bool> vert_tag_array(numverts, false);
 	unsigned int tot_bt_verts= 0;
 	unsigned int orig_index;
 	int i;
@@ -1359,19 +1373,16 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 		// Tag verts we're using
 		for (int p2=0; p2<numpolys; p2++)
 		{
-			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly = meshobj->GetPolygon(index[p2]);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
 			{
-				for(i=0; i<poly->VertexCount(); i++) {
-					orig_index= poly->GetVertex(i)->getOrigIndex();
-					if (vert_tag_array[orig_index]==false)
-					{
-						vert_tag_array[orig_index]= true;
-						tot_bt_verts++;
-					}
-				}
+				if (vert_tag_array[mf->v1]==false) {vert_tag_array[mf->v1]= true;tot_bt_verts++;}
+				if (vert_tag_array[mf->v2]==false) {vert_tag_array[mf->v2]= true;tot_bt_verts++;}
+				if (vert_tag_array[mf->v3]==false) {vert_tag_array[mf->v3]= true;tot_bt_verts++;}
+				if (mf->v4 && vert_tag_array[mf->v4]==false) {vert_tag_array[mf->v4]= true;tot_bt_verts++;}
 			}
 		}
 
@@ -1381,51 +1392,69 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 
 		for (int p2=0; p2<numpolys; p2++)
 		{
-			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
 			{
-				for(i=0; i<poly->VertexCount(); i++) {
-					RAS_TexVert *v= poly->GetVertex(i);
-					orig_index= v->getOrigIndex();
-
-					if (vert_tag_array[orig_index]==true)
-					{
-						const float* vtx = v->getXYZ();
-						vert_tag_array[orig_index]= false;
-
-						*bt++ = vtx[0];
-						*bt++ = vtx[1];
-						*bt++ = vtx[2];
-					}
+				if (vert_tag_array[mf->v1]==true)
+				{
+					const float* vtx = mvert[mf->v1].co;
+					vert_tag_array[mf->v1]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
+				}
+				if (vert_tag_array[mf->v2]==true)
+				{
+					const float* vtx = mvert[mf->v2].co;
+					vert_tag_array[mf->v2]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
+				}
+				if (vert_tag_array[mf->v3]==true)
+				{
+					const float* vtx = mvert[mf->v3].co;
+					vert_tag_array[mf->v3]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
+				}
+				if (mf->v4 && vert_tag_array[mf->v4]==true)
+				{
+					const float* vtx = mvert[mf->v4].co;
+					vert_tag_array[mf->v4]= false;
+					*bt++ = vtx[0];
+					*bt++ = vtx[1];
+					*bt++ = vtx[2];
 				}
 			}
 		}
 	}
 	else {
 		unsigned int tot_bt_tris= 0;
-		vector<int> vert_remap_array(meshobj->GetMesh()->totvert, 0);
+		vector<int> vert_remap_array(numverts, 0);
 		
 		// Tag verts we're using
 		for (int p2=0; p2<numpolys; p2++)
 		{
-			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
 			{
-				for(i=0; i<poly->VertexCount(); i++) {
-					orig_index= poly->GetVertex(i)->getOrigIndex();
-					if (vert_tag_array[orig_index]==false)
-					{
-						vert_tag_array[orig_index]= true;
-						vert_remap_array[orig_index]= tot_bt_verts;
-						tot_bt_verts++;
-					}
-				}
-
-				tot_bt_tris += (i==4 ? 2:1); /* a quad or a tri */
+				if (vert_tag_array[mf->v1]==false)
+					{vert_tag_array[mf->v1]= true;vert_remap_array[mf->v1]= tot_bt_verts;tot_bt_verts++;}
+				if (vert_tag_array[mf->v2]==false)
+					{vert_tag_array[mf->v2]= true;vert_remap_array[mf->v2]= tot_bt_verts;tot_bt_verts++;}
+				if (vert_tag_array[mf->v3]==false)
+					{vert_tag_array[mf->v3]= true;vert_remap_array[mf->v3]= tot_bt_verts;tot_bt_verts++;}
+				if (mf->v4 && vert_tag_array[mf->v4]==false)
+					{vert_tag_array[mf->v4]= true;vert_remap_array[mf->v4]= tot_bt_verts;tot_bt_verts++;}
+				tot_bt_tris += (mf->v4 ? 2:1); /* a quad or a tri */
 			}
 		}
 
@@ -1437,76 +1466,67 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 		int *poly_index_pt= &m_polygonIndexArray[0];
 		int *tri_pt= &m_triFaceArray[0];
 
-
 		for (int p2=0; p2<numpolys; p2++)
 		{
-			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+			MFace* mf = &mface[p2];
+			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
 			{
-				RAS_TexVert *v1= poly->GetVertex(0);
-				RAS_TexVert *v2= poly->GetVertex(1);
-				RAS_TexVert *v3= poly->GetVertex(2);
-				int i1= v1->getOrigIndex();
-				int i2= v2->getOrigIndex();
-				int i3= v3->getOrigIndex();
-				const float* vtx;
+				MVert *v1= &mvert[mf->v1];
+				MVert *v2= &mvert[mf->v2];
+				MVert *v3= &mvert[mf->v3];
 
 				// the face indicies
-				tri_pt[0]= vert_remap_array[i1];
-				tri_pt[1]= vert_remap_array[i2];
-				tri_pt[2]= vert_remap_array[i3];
+				tri_pt[0]= vert_remap_array[mf->v1];
+				tri_pt[1]= vert_remap_array[mf->v2];
+				tri_pt[2]= vert_remap_array[mf->v3];
 				tri_pt= tri_pt+3;
 
 				// m_polygonIndexArray
-				*poly_index_pt= p2;
+				*poly_index_pt= index[p2];
 				poly_index_pt++;
 
 				// the vertex location
-				if (vert_tag_array[i1]==true) { /* *** v1 *** */
-					vert_tag_array[i1]= false;
-					vtx = v1->getXYZ();
-					*bt++ = vtx[0];
-					*bt++ = vtx[1];
-					*bt++ = vtx[2];
+				if (vert_tag_array[mf->v1]==true) { /* *** v1 *** */
+					vert_tag_array[mf->v1]= false;
+					*bt++ = v1->co[0];
+					*bt++ = v1->co[1];
+					*bt++ = v1->co[2];
 				}
-				if (vert_tag_array[i2]==true) { /* *** v2 *** */
-					vert_tag_array[i2]= false;
-					vtx = v2->getXYZ();
-					*bt++ = vtx[0];
-					*bt++ = vtx[1];
-					*bt++ = vtx[2];
+				if (vert_tag_array[mf->v2]==true) { /* *** v2 *** */
+					vert_tag_array[mf->v2]= false;
+					*bt++ = v2->co[0];
+					*bt++ = v2->co[1];
+					*bt++ = v2->co[2];
 				}
-				if (vert_tag_array[i3]==true) { /* *** v3 *** */
-					vert_tag_array[i3]= false;
-					vtx = v3->getXYZ();
-					*bt++ = vtx[0];	
-					*bt++ = vtx[1];
-					*bt++ = vtx[2];
+				if (vert_tag_array[mf->v3]==true) { /* *** v3 *** */
+					vert_tag_array[mf->v3]= false;
+					*bt++ = v3->co[0];	
+					*bt++ = v3->co[1];
+					*bt++ = v3->co[2];
 				}
 
-				if (poly->VertexCount()==4)
+				if (mf->v4)
 				{
-					RAS_TexVert *v4= poly->GetVertex(3);
-					int i4= v4->getOrigIndex();
+					MVert *v4= &mvert[mf->v4];
 
-					tri_pt[0]= vert_remap_array[i1];
-					tri_pt[1]= vert_remap_array[i3];
-					tri_pt[2]= vert_remap_array[i4];
+					tri_pt[0]= vert_remap_array[mf->v1];
+					tri_pt[1]= vert_remap_array[mf->v3];
+					tri_pt[2]= vert_remap_array[mf->v4];
 					tri_pt= tri_pt+3;
 
 					// m_polygonIndexArray
-					*poly_index_pt= p2;
+					*poly_index_pt= index[p2];
 					poly_index_pt++;
 
 					// the vertex location
-					if (vert_tag_array[i4]==true) { /* *** v4 *** */
-						vert_tag_array[i4]= false;
-						vtx = v4->getXYZ();
-						*bt++ = vtx[0];
-						*bt++ = vtx[1];	
-						*bt++ = vtx[2];
+					if (vert_tag_array[mf->v4]==true) { /* *** v4 *** */
+						vert_tag_array[mf->v4]= false;
+						*bt++ = v4->co[0];
+						*bt++ = v4->co[1];	
+						*bt++ = v4->co[2];
 					}
 				}
 			}
@@ -1538,7 +1558,13 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 #endif
 	
 	m_meshObject = meshobj;
-	if (!polytope)
+	if (free_dm) {
+		dm->release(dm);
+		dm = NULL;
+	}
+
+	// sharing only on static mesh at present, if you change that, you must also change in FindMesh
+	if (!polytope && !dm && !useGimpact)
 	{
 		// triangle shape can be shared, store the mesh object in the map
 		m_meshShapeMap.insert(std::pair<RAS_MeshObject*,CcdShapeConstructionInfo*>(meshobj,this));

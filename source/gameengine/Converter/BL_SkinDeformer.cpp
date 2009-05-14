@@ -127,24 +127,26 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	if (!Update())
 		return false;
 
-	// the vertex cache is unique to this deformer, no need to update it
-	// if it wasn't updated! We must update all the materials at once
-	// because we will not get here again for the other material
-	nmat = m_pMeshObject->NumMaterials();
-	for (imat=0; imat<nmat; imat++) {
-		mmat = m_pMeshObject->GetMeshMaterial(imat);
-		if(!mmat->m_slots[(void*)m_gameobj])
-			continue;
+	if (m_transverts) {
+		// the vertex cache is unique to this deformer, no need to update it
+		// if it wasn't updated! We must update all the materials at once
+		// because we will not get here again for the other material
+		nmat = m_pMeshObject->NumMaterials();
+		for (imat=0; imat<nmat; imat++) {
+			mmat = m_pMeshObject->GetMeshMaterial(imat);
+			if(!mmat->m_slots[(void*)m_gameobj])
+				continue;
 
-		slot = *mmat->m_slots[(void*)m_gameobj];
+			slot = *mmat->m_slots[(void*)m_gameobj];
 
-		// for each array
-		for(slot->begin(it); !slot->end(it); slot->next(it)) {
-			// for each vertex
-			// copy the untransformed data from the original mvert
-			for(i=it.startvertex; i<it.endvertex; i++) {
-				RAS_TexVert& v = it.vertex[i];
-				v.SetXYZ(m_transverts[v.getOrigIndex()]);
+			// for each array
+			for(slot->begin(it); !slot->end(it); slot->next(it)) {
+				// for each vertex
+				// copy the untransformed data from the original mvert
+				for(i=it.startvertex; i<it.endvertex; i++) {
+					RAS_TexVert& v = it.vertex[i];
+					v.SetXYZ(m_transverts[v.getOrigIndex()]);
+				}
 			}
 		}
 	}
@@ -159,6 +161,13 @@ RAS_Deformer *BL_SkinDeformer::GetReplica()
 	/* there is m_armobj that must be fixed but we cannot do it now, it will be done in Relink */
 	result->ProcessReplica();
 	return result;
+}
+
+void BL_SkinDeformer::ProcessReplica()
+{
+	BL_MeshDeformer::ProcessReplica();
+	m_lastArmaUpdate = -1;
+	m_releaseobject = false;
 }
 
 //void where_is_pose (Object *ob);

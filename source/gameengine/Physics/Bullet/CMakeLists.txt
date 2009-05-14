@@ -32,6 +32,7 @@ SET(INC
   ../../../../extern/bullet2/src
   ../../../../extern/glew/include
   ../../../../intern/moto/include
+  ../../../../intern/guardedalloc
   ../../../kernel/gen_system
   ../../../../intern/string
   ../../../../intern/SoundSystem 
@@ -41,6 +42,8 @@ SET(INC
   ../../GameLogic
   ../../SceneGraph
   ../../../../source/blender/makesdna
+  ../../../../source/blender/blenlib
+  ../../../../source/blender/blenkernel
   ${PYTHON_INC}
 )
 

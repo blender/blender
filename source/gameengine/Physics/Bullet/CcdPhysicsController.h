@@ -36,6 +36,7 @@ extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
 class RAS_MeshObject;
+struct DerivedMesh;
 class btCollisionShape;
 
 
@@ -59,7 +60,7 @@ class CcdShapeConstructionInfo
 public:
 	
 
-	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
@@ -139,7 +140,7 @@ public:
 		return true;
 	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
+	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;

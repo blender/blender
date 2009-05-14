@@ -52,6 +52,10 @@
 
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 
+extern "C"{
+	#include "BKE_DerivedMesh.h"
+}
+
 #ifdef USE_ODE
 
 #include "KX_OdePhysicsController.h"
@@ -792,6 +796,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
+	struct  DerivedMesh* dm,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,
@@ -884,41 +889,35 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		}
 	case KX_BOUNDPOLYTOPE:
 		{
-			shapeInfo->SetMesh(meshobj, true,false);
+			shapeInfo->SetMesh(meshobj, dm,true,false);
 			bm = shapeInfo->CreateBulletShape();
 			break;
 		}
 	case KX_BOUNDMESH:
 		{
-			
-			if (!ci.m_mass ||objprop->m_softbody)
-			{				
-				// mesh shapes can be shared, check first if we already have a shape on that mesh
-				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
-				if (sharedShapeInfo != NULL) 
-				{
-					delete shapeInfo;
-					shapeInfo = sharedShapeInfo;
-					shapeInfo->AddRef();
-				} else
-				{
-					shapeInfo->SetMesh(meshobj, false,false);
-				}
+			bool useGimpact = (ci.m_mass && !objprop->m_softbody);
 
-				// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
-				if (objprop->m_softbody)
-				{
-					shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
-				}
-
-				bm = shapeInfo->CreateBulletShape();
-				//no moving concave meshes, so don't bother calculating inertia
-				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			// mesh shapes can be shared, check first if we already have a shape on that mesh
+			class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, dm, false,useGimpact);
+			if (sharedShapeInfo != NULL) 
+			{
+				delete shapeInfo;
+				shapeInfo = sharedShapeInfo;
+				shapeInfo->AddRef();
 			} else
 			{
-				shapeInfo->SetMesh(meshobj, false,true);
-				bm = shapeInfo->CreateBulletShape();
+				shapeInfo->SetMesh(meshobj, dm, false,useGimpact);
 			}
+
+			// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
+			if (objprop->m_softbody)
+			{
+				shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
+			}
+
+			bm = shapeInfo->CreateBulletShape();
+			//should we compute inertia for dynamic shape?
+			//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
 
 			break;
 		}

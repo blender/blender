@@ -66,7 +66,7 @@ public:
 	virtual bool Update(void){ return false; };
 	virtual bool UpdateBuckets(void){ return false; };
 	virtual	RAS_Deformer*	GetReplica(){return NULL;};
-	virtual void ProcessReplica() {m_bDynamic=false;};
+	virtual void ProcessReplica();
 	struct Mesh* GetMesh() { return m_bmesh; };
 	//	virtual void InitDeform(double time){};
 

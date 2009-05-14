@@ -47,6 +47,7 @@
 
 class RAS_MeshObject;
 class KX_Scene;
+struct DerivedMesh;
 
 typedef enum {
 	KX_BOUNDBOX,
@@ -183,6 +184,7 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
+	struct  DerivedMesh* dm,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,

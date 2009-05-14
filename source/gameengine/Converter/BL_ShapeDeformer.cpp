@@ -77,6 +77,12 @@ RAS_Deformer *BL_ShapeDeformer::GetReplica()
 	return result;
 }
 
+void BL_ShapeDeformer::ProcessReplica()
+{
+	BL_SkinDeformer::ProcessReplica();
+	m_lastShapeUpdate = -1;
+}
+
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 {
 	IpoCurve *icu;
@@ -163,7 +169,8 @@ bool BL_ShapeDeformer::Update(void)
 	// check for armature deform
 	bSkinUpdate = BL_SkinDeformer::Update();
 
-	if (!bSkinUpdate && bShapeUpdate) {
+	// non dynamic deformer = Modifer without armature and shape keys, no need to create storage
+	if (!bSkinUpdate && bShapeUpdate && m_bDynamic) {
 		// this means that there is no armature, we still need to copy the vertex to m_transverts
 		// and update the normal (was not done after shape key calculation)
 

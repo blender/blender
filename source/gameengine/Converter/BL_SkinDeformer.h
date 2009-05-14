@@ -68,6 +68,8 @@ public:
 					BL_ArmatureObject* arma = NULL);
 
 	virtual RAS_Deformer *GetReplica();
+	virtual void ProcessReplica();
+
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);

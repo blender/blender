@@ -91,6 +91,15 @@ BL_MeshDeformer::~BL_MeshDeformer()
 		delete [] m_transnors;
 }
  
+void BL_MeshDeformer::ProcessReplica()
+{
+	m_transverts = NULL;
+	m_transnors = NULL;
+	m_tvtot = 0;
+	m_bDynamic=false;
+	m_lastDeformUpdate = -1;
+}
+
 void BL_MeshDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 {
 	void **h_obj = (*map)[m_gameobj];

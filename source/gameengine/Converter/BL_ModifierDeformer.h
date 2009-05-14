@@ -86,6 +86,11 @@ public:
 	{
 		m_lastModifierUpdate = -1.0;
 	};
+	virtual struct DerivedMesh* GetFinalMesh()
+	{
+		return m_dm;
+	}
+
 
 protected:
 	double					 m_lastModifierUpdate;

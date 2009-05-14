@@ -67,6 +67,7 @@ public:
 	};
 
 	virtual RAS_Deformer *GetReplica();
+	virtual void ProcessReplica();
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);

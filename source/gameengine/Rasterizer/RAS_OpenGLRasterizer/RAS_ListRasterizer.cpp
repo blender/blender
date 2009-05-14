@@ -118,16 +118,24 @@ RAS_ListRasterizer::~RAS_ListRasterizer()
 
 void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 {
-	if (list->m_flag & LIST_STANDALONE)
-		return ;
-	
-	RAS_ArrayLists::iterator it = mArrayLists.begin();
-	while(it != mArrayLists.end()) {
-		if (it->second == list) {
-			mArrayLists.erase(it);
-			break;
+	if (list->m_flag & LIST_DERIVEDMESH) {
+		RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();
+		while(it != mDerivedMeshLists.end()) {
+			if (it->second == list) {
+				mDerivedMeshLists.erase(it);
+				break;
+			}
+			it++;
 		}
-		it++;
+	} else {
+		RAS_ArrayLists::iterator it = mArrayLists.begin();
+		while(it != mArrayLists.end()) {
+			if (it->second == list) {
+				mArrayLists.erase(it);
+				break;
+			}
+			it++;
+		}
 	}
 }
 
@@ -143,9 +151,15 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 	if(!localSlot) {
 		if (ms.m_pDerivedMesh) {
 			// that means that we draw based on derived mesh, a display list is possible
-			// but it's unique to this mesh slot
-			localSlot = new RAS_ListSlot(this);
-			localSlot->m_flag |= LIST_STANDALONE;
+			// Note that we come here only for static derived mesh
+			RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.find(ms.m_pDerivedMesh);
+			if(it == mDerivedMeshLists.end()) {
+				localSlot = new RAS_ListSlot(this);
+				localSlot->m_flag |= LIST_DERIVEDMESH;
+				mDerivedMeshLists.insert(std::pair<DerivedMesh*, RAS_ListSlot*>(ms.m_pDerivedMesh, localSlot));
+			} else {
+				localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
+			}
 		} else {
 			RAS_ArrayLists::iterator it = mArrayLists.find(ms.m_displayArrays);
 			if(it == mArrayLists.end()) {
@@ -162,12 +176,12 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 
 void RAS_ListRasterizer::ReleaseAlloc()
 {
-	RAS_ArrayLists::iterator it = mArrayLists.begin();
-	while(it != mArrayLists.end()) {
+	for(RAS_ArrayLists::iterator it = mArrayLists.begin();it != mArrayLists.end();++it)
 		delete it->second;
-		it++;
-	}
 	mArrayLists.clear();
+	for (RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();it != mDerivedMeshLists.end();++it)
+		delete it->second;
+	mDerivedMeshLists.clear();
 }
 
 void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)

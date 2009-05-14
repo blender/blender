@@ -34,16 +34,20 @@ enum RAS_ListSlotFlags	{
 	LIST_BEGIN		=16,
 	LIST_END		=32,
 	LIST_REGEN		=64,
-	LIST_STANDALONE =128,
+	LIST_DERIVEDMESH=128,
 };
 
+struct DerivedMesh;
+
 typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_ArrayLists;
+typedef std::map<DerivedMesh*, RAS_ListSlot*>		  RAS_DerivedMeshLists;
 
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {
 	bool mUseVertexArrays;
 	bool mATI;
 	RAS_ArrayLists mArrayLists;
+	RAS_DerivedMeshLists mDerivedMeshLists;
 
 	RAS_ListSlot* FindOrAdd(class RAS_MeshSlot& ms);
 	void ReleaseAlloc();
