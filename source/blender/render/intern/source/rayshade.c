@@ -1274,7 +1274,7 @@ static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 	shadfac[3]= (1.0f-alpha)*shadfac[3];
 }
 
-static void ray_trace_shadow_tra(Isect *is, int thread, int depth, int traflag)
+static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int traflag)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
 	   if it has col[3]>0.0f  continue. so exit when alpha is full */
@@ -1291,10 +1291,14 @@ static void ray_trace_shadow_tra(Isect *is, int thread, int depth, int traflag)
 		/* end warning! - Campbell */
 		
 		shi.depth= 1;					/* only used to indicate tracing */
-		shi.mask= 1;
-		shi.thread= thread;
+		shi.mask= origshi->mask;
+		shi.thread= origshi->thread;
 		shi.passflag= SCE_PASS_COMBINED;
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
+	
+		shi.xs= origshi->xs;
+		shi.ys= origshi->ys;
+		shi.lay= origshi->lay;
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
@@ -1310,7 +1314,7 @@ static void ray_trace_shadow_tra(Isect *is, int thread, int depth, int traflag)
 			is->oborig= RAY_OBJECT_SET(&R, shi.obi);
 			is->faceorig= (RayFace*)shi.vlr;
 
-			ray_trace_shadow_tra(is, thread, depth-1, traflag | RAY_TRA);
+			ray_trace_shadow_tra(is, origshi, depth-1, traflag | RAY_TRA);
 		}
 	}
 }
@@ -1938,7 +1942,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			isec->col[0]= isec->col[1]= isec->col[2]=  1.0f;
 			isec->col[3]= 1.0f;
 			
-			ray_trace_shadow_tra(isec, shi->thread, DEPTH_SHADOW_TRA, 0);
+			ray_trace_shadow_tra(isec, shi, DEPTH_SHADOW_TRA, 0);
 			shadfac[0] += isec->col[0];
 			shadfac[1] += isec->col[1];
 			shadfac[2] += isec->col[2];
@@ -2036,7 +2040,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 			isec->col[0]= isec->col[1]= isec->col[2]=  1.0f;
 			isec->col[3]= 1.0f;
 			
-			ray_trace_shadow_tra(isec, shi->thread, DEPTH_SHADOW_TRA, 0);
+			ray_trace_shadow_tra(isec, shi, DEPTH_SHADOW_TRA, 0);
 			shadfac[0] += isec->col[0];
 			shadfac[1] += isec->col[1];
 			shadfac[2] += isec->col[2];
@@ -2117,7 +2121,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				isec.col[0]= isec.col[1]= isec.col[2]=  1.0f;
 				isec.col[3]= 1.0f;
 
-				ray_trace_shadow_tra(&isec, shi->thread, DEPTH_SHADOW_TRA, 0);
+				ray_trace_shadow_tra(&isec, shi, DEPTH_SHADOW_TRA, 0);
 				QUATCOPY(shadfac, isec.col);
 			}
 			else if(RE_ray_tree_intersect(R.raytree, &isec)) shadfac[3]= 0.0f;
