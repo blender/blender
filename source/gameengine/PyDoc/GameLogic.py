@@ -104,17 +104,14 @@ Documentation for the GameLogic Module.
 @var KX_TRUE: True value used by some modules.
 @var KX_FALSE: False value used by some modules.
 
-@group Property Sensor: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL, KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED, KX_PROPSENSOR_EXPRESSION
+@group Property Sensor: KX_PROPSENSOR_*
 @var KX_PROPSENSOR_EQUAL:		Activate when the property is equal to the sensor value.
 @var KX_PROPSENSOR_NOTEQUAL:	Activate when the property is not equal to the sensor value.
 @var KX_PROPSENSOR_INTERVAL:	Activate when the property is between the specified limits.
 @var KX_PROPSENSOR_CHANGED:	Activate when the property changes
 @var KX_PROPSENSOR_EXPRESSION:	Activate when the expression matches
 
-
-
-
-@group Constraint Actuator: KX_CONSTRAINTACT_LOCX, KX_CONSTRAINTACT_LOCY, KX_CONSTRAINTACT_LOCZ, KX_CONSTRAINTACT_ROTX, KX_CONSTRAINTACT_ROTY, KX_CONSTRAINTACT_ROTZ, KX_CONSTRAINTACT_DIRNX, KX_CONSTRAINTACT_DIRNY, KX_CONSTRAINTACT_DIRPX, KX_CONSTRAINTACT_DIRPY, KX_CONSTRAINTACT_ORIX, KX_CONSTRAINTACT_ORIY, KX_CONSTRAINTACT_ORIZ
+@group Constraint Actuator: KX_CONSTRAINTACT_*
 @var KX_CONSTRAINTACT_LOCX: See L{KX_ConstraintActuator}
 @var KX_CONSTRAINTACT_LOCY: See L{KX_ConstraintActuator}
 @var KX_CONSTRAINTACT_LOCZ: See L{KX_ConstraintActuator}
@@ -129,7 +126,7 @@ Documentation for the GameLogic Module.
 @var KX_CONSTRAINTACT_ORIY: See L{KX_ConstraintActuator}
 @var KX_CONSTRAINTACT_ORIZ: See L{KX_ConstraintActuator}
 
-@group IPO Actuator: KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP
+@group IPO Actuator: KX_IPOACT_*
 @var KX_IPOACT_PLAY:	 See L{KX_IpoActuator}
 @var KX_IPOACT_PINGPONG:	 See L{KX_IpoActuator}
 @var KX_IPOACT_FLIPPER:	 See L{KX_IpoActuator}
@@ -137,7 +134,7 @@ Documentation for the GameLogic Module.
 @var KX_IPOACT_LOOPEND:	 See L{KX_IpoActuator}
 @var KX_IPOACT_FROM_PROP:	 See L{KX_IpoActuator}
 
-@group Random Distributions: KX_RANDOMACT_BOOL_CONST, KX_RANDOMACT_BOOL_UNIFORM, KX_RANDOMACT_BOOL_BERNOUILLI, KX_RANDOMACT_INT_CONST, KX_RANDOMACT_INT_UNIFORM, KX_RANDOMACT_INT_POISSON, KX_RANDOMACT_FLOAT_CONST, KX_RANDOMACT_FLOAT_UNIFORM, KX_RANDOMACT_FLOAT_NORMAL, KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
+@group Random Distributions: KX_RANDOMACT_*
 @var KX_RANDOMACT_BOOL_CONST:		See L{SCA_RandomActuator}
 @var KX_RANDOMACT_BOOL_UNIFORM:		See L{SCA_RandomActuator}
 @var KX_RANDOMACT_BOOL_BERNOUILLI:		See L{SCA_RandomActuator}
@@ -149,14 +146,14 @@ Documentation for the GameLogic Module.
 @var KX_RANDOMACT_FLOAT_NORMAL:		See L{SCA_RandomActuator}
 @var KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL:		See L{SCA_RandomActuator}
 
-@group Action Actuator: KX_ACTIONACT_PLAY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND, KX_ACTIONACT_PROPERTY
+@group Action Actuator: KX_ACTIONACT_*
 @var KX_ACTIONACT_PLAY:	    See L{BL_ActionActuator}
 @var KX_ACTIONACT_FLIPPER:  See L{BL_ActionActuator}
 @var KX_ACTIONACT_LOOPSTOP: See L{BL_ActionActuator}
 @var KX_ACTIONACT_LOOPEND:  See L{BL_ActionActuator}
 @var KX_ACTIONACT_PROPERTY: See L{BL_ActionActuator}
 
-@group Sound Actuator: KX_SOUNDACT_PLAYSTOP, KX_SOUNDACT_PLAYEND, KX_SOUNDACT_LOOPSTOP, KX_SOUNDACT_LOOPEND, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+@group Sound Actuator: KX_SOUNDACT_*
 @var KX_SOUNDACT_PLAYSTOP:		    See L{KX_SoundActuator}
 @var KX_SOUNDACT_PLAYEND:		    See L{KX_SoundActuator}
 @var KX_SOUNDACT_LOOPSTOP:		    See L{KX_SoundActuator}
@@ -164,7 +161,7 @@ Documentation for the GameLogic Module.
 @var KX_SOUNDACT_LOOPBIDIRECTIONAL:	    See L{KX_SoundActuator}
 @var KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:    See L{KX_SoundActuator}
 
-@group Radar Sensor: KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
+@group Radar Sensor: KX_RADAR_*
 @var KX_RADAR_AXIS_POS_X:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_POS_Y:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_POS_Z:		    See L{KX_RadarSensor}
@@ -172,7 +169,7 @@ Documentation for the GameLogic Module.
 @var KX_RADAR_AXIS_NEG_Y:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_NEG_Z:		    See L{KX_RadarSensor}
 
-@group Ray Sensor: KX_RAY_AXIS_POS_X, KX_RAY_AXIS_POS_Y, KX_RAY_AXIS_POS_Z, KX_RAY_AXIS_NEG_X, KX_RAY_AXIS_NEG_Y, KX_RAY_AXIS_NEG_Z
+@group Ray Sensor: KX_RAY_*
 @var KX_RAY_AXIS_POS_X:		    See L{KX_RaySensor}
 @var KX_RAY_AXIS_POS_Y:		    See L{KX_RaySensor}
 @var KX_RAY_AXIS_POS_Z:		    See L{KX_RaySensor}
@@ -180,44 +177,44 @@ Documentation for the GameLogic Module.
 @var KX_RAY_AXIS_NEG_Y:		    See L{KX_RaySensor}
 @var KX_RAY_AXIS_NEG_Z:		    See L{KX_RaySensor}
 
-@group Dynamic Actuator: KX_DYN_RESTORE_DYNAMICS, KX_DYN_DISABLE_DYNAMICS, KX_DYN_ENABLE_RIGID_BODY, KX_DYN_DISABLE_RIGID_BODY,	KX_DYN_SET_MASS
+@group Dynamic Actuator: KX_DYN_*
 @var KX_DYN_RESTORE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_DISABLE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_ENABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_DISABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_SET_MASS:			See L{KX_SCA_DynamicActuator}
 
-@group Game Actuator: KX_GAME_LOAD, KX_GAME_START, KX_GAME_RESTART, KX_GAME_QUIT, KX_GAME_SAVECFG, KX_GAME_LOADCFG
-@var KX_Game_LOAD:		See L{KX_GameActuator}
-@var KX_Game_START:		See L{KX_GameActuator}
-@var KX_Game_RESTART:	See L{KX_GameActuator}
-@var KX_Game_QUIT:		See L{KX_GameActuator}
-@var KX_Game_SAVECFG:	See L{KX_GameActuator}
-@var KX_Game_LOADCFG:	See L{KX_GameActuator}
+@group Game Actuator: KX_GAME_*
+@var KX_GAME_LOAD:		See L{KX_GameActuator}
+@var KX_GAME_START:		See L{KX_GameActuator}
+@var KX_GAME_RESTART:	See L{KX_GameActuator}
+@var KX_GAME_QUIT:		See L{KX_GameActuator}
+@var KX_GAME_SAVECFG:	See L{KX_GameActuator}
+@var KX_GAME_LOADCFG:	See L{KX_GameActuator}
 
-@group Scene Actuator: KX_SCENE_RESTART, KX_SCENE_SET_SCENE, KX_SCENE_SET_CAMERA, KX_SCENE_ADD_FRONT_SCENE, KX_SCENE_ADD_BACK_SCENE, KX_SCENE_REMOVE_SCENE, KX_SCENE_SUSPEND, KX_SCENE_RESUME
-KX_SCENE_RESTART:			See L{KX_SceneActuator}
-KX_SCENE_SET_SCENE:			See L{KX_SceneActuator}
-KX_SCENE_SET_CAMERA:		See L{KX_SceneActuator}
-KX_SCENE_ADD_FRONT_SCENE:	See L{KX_SceneActuator}
-KX_SCENE_ADD_BACK_SCENE:	See L{KX_SceneActuator}
-KX_SCENE_REMOVE_SCENE:		See L{KX_SceneActuator}
-KX_SCENE_SUSPEND:			See L{KX_SceneActuator}
-KX_SCENE_RESUME:			See L{KX_SceneActuator}
+@group Scene Actuator: KX_SCENE_*
+@var KX_SCENE_RESTART:			See L{KX_SceneActuator}
+@var KX_SCENE_SET_SCENE:			See L{KX_SceneActuator}
+@var KX_SCENE_SET_CAMERA:		See L{KX_SceneActuator}
+@var KX_SCENE_ADD_FRONT_SCENE:	See L{KX_SceneActuator}
+@var KX_SCENE_ADD_BACK_SCENE:	See L{KX_SceneActuator}
+@var KX_SCENE_REMOVE_SCENE:		See L{KX_SceneActuator}
+@var KX_SCENE_SUSPEND:			See L{KX_SceneActuator}
+@var KX_SCENE_RESUME:			See L{KX_SceneActuator}
 
-@group Input Status: KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
+@group Input Status: KX_INPUT_*
 @var KX_INPUT_NONE:				See L{SCA_MouseSensor}
 @var KX_INPUT_JUST_ACTIVATED:	See L{SCA_MouseSensor}
 @var KX_INPUT_ACTIVE:			See L{SCA_MouseSensor}
 @var KX_INPUT_JUST_RELEASED:	See L{SCA_MouseSensor}
 
 
-@group Mouse Buttons: KX_MOUSE_BUT_LEFT, KX_MOUSE_BUT_MIDDLE, KX_MOUSE_BUT_RIGHT
+@group Mouse Buttons: KX_MOUSE_BUT_*
 @var KX_MOUSE_BUT_LEFT:		See L{SCA_MouseSensor}
 @var KX_MOUSE_BUT_MIDDLE:	See L{SCA_MouseSensor}
 @var KX_MOUSE_BUT_RIGHT:	See L{SCA_MouseSensor}
 
-@group States: KX_STATE1, KX_STATE10, KX_STATE11, KX_STATE12, KX_STATE13, KX_STATE14, KX_STATE15, KX_STATE16, KX_STATE17, KX_STATE18, KX_STATE19, KX_STATE2, KX_STATE20, KX_STATE21, KX_STATE22, KX_STATE23, KX_STATE24, KX_STATE25, KX_STATE26, KX_STATE27, KX_STATE28, KX_STATE29, KX_STATE3, KX_STATE30, KX_STATE4, KX_STATE5, KX_STATE6, KX_STATE7, KX_STATE8, KX_STATE9, KX_STATE_OP_CLR, KX_STATE_OP_CPY, KX_STATE_OP_NEG, KX_STATE_OP_SET
+@group States: KX_STATE*
 @var KX_STATE1:
 @var KX_STATE10:
 @var KX_STATE11:
@@ -253,40 +250,7 @@ KX_SCENE_RESUME:			See L{KX_SceneActuator}
 @var KX_STATE_OP_NEG:
 @var KX_STATE_OP_SET:
 
-@group UNSORTED: BL_DST_ALPHA, BL_DST_COLOR, BL_ONE, BL_ONE_MINUS_DST_ALPHA, BL_ONE_MINUS_DST_COLOR, BL_ONE_MINUS_SRC_ALPHA, BL_ONE_MINUS_SRC_COLOR, BL_SRC_ALPHA, BL_SRC_ALPHA_SATURATE, BL_SRC_COLOR, BL_ZERO, CAM_POS, CONSTANT_TIMER, KX_ACT_CONSTRAINT_DISTANCE, KX_ACT_CONSTRAINT_DOROTFH, KX_ACT_CONSTRAINT_FHNX, KX_ACT_CONSTRAINT_FHNY, KX_ACT_CONSTRAINT_FHNZ, KX_ACT_CONSTRAINT_FHPX, KX_ACT_CONSTRAINT_FHPY, KX_ACT_CONSTRAINT_FHPZ, KX_ACT_CONSTRAINT_LOCAL, KX_ACT_CONSTRAINT_MATERIAL, KX_ACT_CONSTRAINT_NORMAL, KX_ACT_CONSTRAINT_PERMANENT, MODELMATRIX, MODELMATRIX_INVERSE, MODELMATRIX_INVERSETRANSPOSE, MODELMATRIX_TRANSPOSE, MODELVIEWMATRIX, MODELVIEWMATRIX_INVERSE, MODELVIEWMATRIX_INVERSETRANSPOSE, MODELVIEWMATRIX_TRANSPOSE, RAS_2DFILTER_BLUR, RAS_2DFILTER_CUSTOMFILTER, RAS_2DFILTER_DILATION, RAS_2DFILTER_DISABLED, RAS_2DFILTER_ENABLED, RAS_2DFILTER_EROSION, RAS_2DFILTER_GRAYSCALE, RAS_2DFILTER_INVERT, RAS_2DFILTER_LAPLACIAN, RAS_2DFILTER_MOTIONBLUR, RAS_2DFILTER_NOFILTER, RAS_2DFILTER_PREWITT, RAS_2DFILTER_SEPIA, RAS_2DFILTER_SHARPEN, RAS_2DFILTER_SOBEL, SHD_TANGENT, VIEWMATRIX, VIEWMATRIX_INVERSE, VIEWMATRIX_INVERSETRANSPOSE, VIEWMATRIX_TRANSPOSE
-@var BL_DST_ALPHA:
-@var BL_DST_COLOR:
-@var BL_ONE:
-@var BL_ONE_MINUS_DST_ALPHA:
-@var BL_ONE_MINUS_DST_COLOR:
-@var BL_ONE_MINUS_SRC_ALPHA:
-@var BL_ONE_MINUS_SRC_COLOR:
-@var BL_SRC_ALPHA:
-@var BL_SRC_ALPHA_SATURATE:
-@var BL_SRC_COLOR:
-@var BL_ZERO:
-@var CAM_POS:
-@var CONSTANT_TIMER:
-@var KX_ACT_CONSTRAINT_DISTANCE:
-@var KX_ACT_CONSTRAINT_DOROTFH:
-@var KX_ACT_CONSTRAINT_FHNX:
-@var KX_ACT_CONSTRAINT_FHNY:
-@var KX_ACT_CONSTRAINT_FHNZ:
-@var KX_ACT_CONSTRAINT_FHPX:
-@var KX_ACT_CONSTRAINT_FHPY:
-@var KX_ACT_CONSTRAINT_FHPZ:
-@var KX_ACT_CONSTRAINT_LOCAL:
-@var KX_ACT_CONSTRAINT_MATERIAL:
-@var KX_ACT_CONSTRAINT_NORMAL:
-@var KX_ACT_CONSTRAINT_PERMANENT:
-@var MODELMATRIX:
-@var MODELMATRIX_INVERSE:
-@var MODELMATRIX_INVERSETRANSPOSE:
-@var MODELMATRIX_TRANSPOSE:
-@var MODELVIEWMATRIX:
-@var MODELVIEWMATRIX_INVERSE:
-@var MODELVIEWMATRIX_INVERSETRANSPOSE:
-@var MODELVIEWMATRIX_TRANSPOSE:
+@group 2D Filter: RAS_2DFILTER_*
 @var RAS_2DFILTER_BLUR:
 @var RAS_2DFILTER_CUSTOMFILTER:
 @var RAS_2DFILTER_DILATION:
@@ -302,11 +266,54 @@ KX_SCENE_RESUME:			See L{KX_SceneActuator}
 @var RAS_2DFILTER_SEPIA:
 @var RAS_2DFILTER_SHARPEN:
 @var RAS_2DFILTER_SOBEL:
-@var SHD_TANGENT:
+
+@group Constraint Actuator: KX_ACT_CONSTRAINT_*
+@var KX_ACT_CONSTRAINT_DISTANCE:
+@var KX_ACT_CONSTRAINT_DOROTFH:
+@var KX_ACT_CONSTRAINT_FHNX:
+@var KX_ACT_CONSTRAINT_FHNY:
+@var KX_ACT_CONSTRAINT_FHNZ:
+@var KX_ACT_CONSTRAINT_FHPX:
+@var KX_ACT_CONSTRAINT_FHPY:
+@var KX_ACT_CONSTRAINT_FHPZ:
+@var KX_ACT_CONSTRAINT_LOCAL:
+@var KX_ACT_CONSTRAINT_MATERIAL:
+@var KX_ACT_CONSTRAINT_NORMAL:
+@var KX_ACT_CONSTRAINT_PERMANENT:
+
+@group Parent Actuator: KX_PARENT_*
+@var KX_PARENT_REMOVE:
+@var KX_PARENT_SET:
+
+@group Shader: MODELMATRIX*, MODELVIEWMATRIX*, VIEWMATRIX*, CAM_POS, CONSTANT_TIMER
 @var VIEWMATRIX:
 @var VIEWMATRIX_INVERSE:
 @var VIEWMATRIX_INVERSETRANSPOSE:
 @var VIEWMATRIX_TRANSPOSE:
+@var MODELMATRIX:
+@var MODELMATRIX_INVERSE:
+@var MODELMATRIX_INVERSETRANSPOSE:
+@var MODELMATRIX_TRANSPOSE:
+@var MODELVIEWMATRIX:
+@var MODELVIEWMATRIX_INVERSE:
+@var MODELVIEWMATRIX_INVERSETRANSPOSE:
+@var MODELVIEWMATRIX_TRANSPOSE:
+@var CAM_POS: Current camera position
+@var CONSTANT_TIMER: Current camera position
+@var SHD_TANGENT: Current camera position
+
+@group Blender Material: BL_*
+@var BL_DST_ALPHA:
+@var BL_DST_COLOR:
+@var BL_ONE:
+@var BL_ONE_MINUS_DST_ALPHA:
+@var BL_ONE_MINUS_DST_COLOR:
+@var BL_ONE_MINUS_SRC_ALPHA:
+@var BL_ONE_MINUS_SRC_COLOR:
+@var BL_SRC_ALPHA:
+@var BL_SRC_ALPHA_SATURATE:
+@var BL_SRC_COLOR:
+@var BL_ZERO:
 
 @group Deprecated: addActiveActuator
 """
@@ -337,8 +344,9 @@ def getSceneList():
 	"""
 def addActiveActuator(actuator, activate):
 	"""
-	Activates the given actuator. (B{deprecated})
+	Activates the given actuator.
 	
+	@deprecated: Use L{SCA_PythonController.activate} and L{SCA_PythonController.deactivate} instead.
 	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
@@ -355,10 +363,6 @@ def sendMessage(subject, body="", to="", message_from=""):
 	@type to: string
 	@param message_from: The name of the object that the message is coming from (optional)
 	@type message_from: string
-	"""
-def getRandomFloat():
-	"""
-	Returns a random floating point value in the range [0...1)
 	"""
 def setGravity(gravity):
 	"""
@@ -429,6 +433,8 @@ def setPhysicsTicRate(ticrate):
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
 	"""
+
+#{ Utility functions
 def getAverageFrameRate():
 	"""
 	Gets the estimated average framerate
@@ -436,7 +442,6 @@ def getAverageFrameRate():
 	@return: The estimed average framerate in frames per second
 	@rtype: float
 	"""
-
 def expandPath(path):
 	"""
 	Converts a blender internal path into a proper file system path.
@@ -466,3 +471,8 @@ def PrintGLInfo():
 	"""
 	Prints GL Extension Info into the console
 	"""
+def getRandomFloat():
+	"""
+	Returns a random floating point value in the range [0...1)
+	"""
+#}

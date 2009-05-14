@@ -235,7 +235,7 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("color", KX_LightObject, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_RW_FUNCTION("colour", KX_LightObject, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_FLOAT_RW("lin_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att1),
-	KX_PYATTRIBUTE_FLOAT_RW("quat_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att2),
+	KX_PYATTRIBUTE_FLOAT_RW("quad_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att2),
 	KX_PYATTRIBUTE_FLOAT_RW("spotsize", 1, 180, KX_LightObject, m_lightobj.m_spotsize),
 	KX_PYATTRIBUTE_FLOAT_RW("spotblend", 0, 1, KX_LightObject, m_lightobj.m_spotblend),
 	KX_PYATTRIBUTE_RO_FUNCTION("SPOT", KX_LightObject, pyattr_get_typeconst),

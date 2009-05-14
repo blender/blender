@@ -476,13 +476,13 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_Camera, pointInsideFrustum),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getCameraToWorld),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getWorldToCamera),
-	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, setOnTop),
 	
 	// DEPRECATED
 	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
+	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
+	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -496,9 +496,9 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("near",	KX_Camera,	pyattr_get_near, pyattr_set_near),
 	KX_PYATTRIBUTE_RW_FUNCTION("far",	KX_Camera,	pyattr_get_far,  pyattr_set_far),
 	
-	KX_PYATTRIBUTE_RW_FUNCTION("isViewport",	KX_Camera,	pyattr_get_is_viewport,  pyattr_set_is_viewport),
+	KX_PYATTRIBUTE_RW_FUNCTION("useViewport",	KX_Camera,	pyattr_get_use_viewport,  pyattr_set_use_viewport),
 	
-	KX_PYATTRIBUTE_RO_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix),
+	KX_PYATTRIBUTE_RW_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix, pyattr_set_projection_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("modelview_matrix",	KX_Camera,	pyattr_get_modelview_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("camera_to_world",	KX_Camera,	pyattr_get_camera_to_world),
 	KX_PYATTRIBUTE_RO_FUNCTION("world_to_camera",	KX_Camera,	pyattr_get_world_to_camera),
@@ -693,6 +693,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getProjectionMatrix,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
+	ShowDeprecationWarning("getProjectionMatrix()", "the projection_matrix property");
 	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 }
 
@@ -738,6 +739,8 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
 "\tcam = co.getOwner()\n"
 "\tcam.setProjectionMatrix(Perspective(-1.0, 1.0, -1.0, 1.0, 0.1, 1))\n")
 {
+	ShowDeprecationWarning("setProjectionMatrix(mat)", "the projection_matrix property");
+	
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat))
 	{
@@ -871,18 +874,18 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 }
 
 
-PyObject* KX_Camera::pyattr_get_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* KX_Camera::pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	return PyBool_FromLong(self->GetViewport());
 }
 
-int KX_Camera::pyattr_set_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+int KX_Camera::pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "camera.isViewport = bool: KX_Camera, expected True or False");
+		PyErr_SetString(PyExc_AttributeError, "camera.useViewport = bool: KX_Camera, expected True or False");
 		return 1;
 	}
 	self->EnableViewport((bool)param);
