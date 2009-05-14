@@ -788,6 +788,7 @@ typedef struct Scene {
 #define PROP_RANDOM		6
 
 	/* return flag next_object function */
+#define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1
 #define F_SET			2
