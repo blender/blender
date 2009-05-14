@@ -28,26 +28,18 @@ class DATA_PT_lamp(DataButtonsPanel):
 		
 		sub = layout.sub(0)
 		sub.column()
-		sub.itemL(text="LAMP DATABLOCKS")
 		sub.itemR(lamp, "energy")
 		sub.itemR(lamp, "distance")
+		sub.itemR(lamp, "negative")
+		sub.itemR(lamp, "color")
 	
 		sub = layout.sub(1)
 		sub.column()
-		sub.itemR(lamp, "color")
-		
-		layout.split(number=2)	
-		
-		sub = layout.sub(0)
-		sub.column()
-		sub.itemL(text="Illumination:")
-		sub.itemR(lamp, "layer")
-		sub.itemR(lamp, "negative")
+		sub.itemR(lamp, "layer", text="This Layer Only")
 		sub.itemR(lamp, "specular")
 		sub.itemR(lamp, "diffuse")
 		
-		sub = layout.sub(1)
-		if (lamp.type in ('LOCAL', 'SPOT')):
+		if (lamp.type in ('POINT', 'SPOT')):
 			sub.column()
 			sub.itemR(lamp, "falloff_type")
 			sub.itemR(lamp, "sphere")
@@ -121,7 +113,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 	def poll(self, context):
 		ob = context.active_object
 		lamp = context.main.lamps[0]
-		return (ob.type == 'LAMP' and lamp.type in ('LOCAL','SUN', 'SPOT', 'AREA'))
+		return (ob.type == 'LAMP' and lamp.type in ('POINT','SUN', 'SPOT', 'AREA'))
 
 	def draw(self, context):
 		lamp = context.main.lamps[0]
@@ -153,7 +145,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			layout.itemL(text="Sampling:")
 			layout.itemR(lamp, "shadow_ray_sampling_method", expand=True)
 				
-			if (lamp.type in ('LOCAL', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC')):
+			if (lamp.type in ('POINT', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC')):
 				layout.column_flow()
 				layout.itemR(lamp, "shadow_soft_size", text="Soft Size")
 				layout.itemR(lamp, "shadow_ray_samples", text="Samples")

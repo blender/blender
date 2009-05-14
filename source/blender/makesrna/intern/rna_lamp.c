@@ -252,7 +252,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "LOCAL", "Local", "Omnidirectional point light source."},
+		{LA_LOCAL, "POINT", "Point", "Omnidirectional point light source."},
 		{LA_SUN, "SUN", "Sun", "Constant direction parallel ray light source."},
 		{LA_SPOT, "SPOT", "Spot", "Directional cone light source."},
 		{LA_HEMI, "HEMI", "Hemi", "180 degree constant light source."},
