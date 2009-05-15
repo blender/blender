@@ -370,7 +370,7 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RO("para1",SCA_RandomActuator,m_parameter1),
 	KX_PYATTRIBUTE_FLOAT_RO("para2",SCA_RandomActuator,m_parameter2),
 	KX_PYATTRIBUTE_ENUM_RO("distribution",SCA_RandomActuator,m_distribution),
-	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_RW_FUNCTION("seed",SCA_RandomActuator,pyattr_get_seed,pyattr_set_seed),
 	{ NULL }	//Sentinel
 };	
@@ -477,7 +477,7 @@ const char SCA_RandomActuator::SetProperty_doc[] =
 "\tSet the property to which the random value is assigned. If the \n"
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PySetProperty(PyObject* args) {
-	ShowDeprecationWarning("setProperty()", "the 'property' property");
+	ShowDeprecationWarning("setProperty()", "the 'propName' property");
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
 		return NULL;
@@ -501,7 +501,7 @@ const char SCA_RandomActuator::GetProperty_doc[] =
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PyGetProperty()
 {
-	ShowDeprecationWarning("getProperty()", "the 'property' property");
+	ShowDeprecationWarning("getProperty()", "the 'propName' property");
 	return PyString_FromString(m_propname);
 }
 

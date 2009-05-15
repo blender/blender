@@ -292,11 +292,11 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 };
 
 PyAttributeDef KX_TouchSensor::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("property",0,100,false,KX_TouchSensor,m_touchedpropname),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,100,false,KX_TouchSensor,m_touchedpropname),
 	KX_PYATTRIBUTE_BOOL_RW("useMaterial",KX_TouchSensor,m_bFindMaterial),
-	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
-	KX_PYATTRIBUTE_RO_FUNCTION("objectHit", KX_TouchSensor, pyattr_get_object_hit),
-	KX_PYATTRIBUTE_RO_FUNCTION("objectHitList", KX_TouchSensor, pyattr_get_object_hit_list),
+	KX_PYATTRIBUTE_BOOL_RW("usePulseCollision",KX_TouchSensor,m_bTouchPulse),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObject", KX_TouchSensor, pyattr_get_object_hit),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObjectList", KX_TouchSensor, pyattr_get_object_hit_list),
 	{ NULL }	//Sentinel
 };
 
@@ -325,7 +325,7 @@ const char KX_TouchSensor::SetProperty_doc[] =
 "\tmaterials.";
 PyObject* KX_TouchSensor::PySetProperty(PyObject* value)
 {
-	ShowDeprecationWarning("setProperty()", "the propertyName property");
+	ShowDeprecationWarning("setProperty()", "the propName property");
 	char *nameArg= PyString_AsString(value);
 	if (nameArg==NULL) {
 		PyErr_SetString(PyExc_ValueError, "expected a ");
@@ -342,6 +342,8 @@ const char KX_TouchSensor::GetProperty_doc[] =
 "\tgetTouchMaterial() to find out whether this sensor\n"
 "\tlooks for properties or materials.";
 PyObject*  KX_TouchSensor::PyGetProperty() {
+	ShowDeprecationWarning("getProperty()", "the propName property");
+	
 	return PyString_FromString(m_touchedpropname);
 }
 
@@ -350,7 +352,7 @@ const char KX_TouchSensor::GetHitObject_doc[] =
 ;
 PyObject* KX_TouchSensor::PyGetHitObject()
 {
-	ShowDeprecationWarning("getHitObject()", "the objectHit property");
+	ShowDeprecationWarning("getHitObject()", "the hitObject property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */
 	if (m_hitObject)
@@ -366,7 +368,7 @@ const char KX_TouchSensor::GetHitObjectList_doc[] =
 "\tbut only those matching the property/material condition.\n";
 PyObject* KX_TouchSensor::PyGetHitObjectList()
 {
-	ShowDeprecationWarning("getHitObjectList()", "the objectHitList property");
+	ShowDeprecationWarning("getHitObjectList()", "the hitObjectList property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
 	return m_colliders->GetProxy();

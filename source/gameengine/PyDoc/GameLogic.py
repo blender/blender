@@ -318,6 +318,8 @@ Documentation for the GameLogic Module.
 @group Deprecated: addActiveActuator
 """
 
+import GameTypes
+
 # TODO
 # globalDict
 # error
@@ -346,7 +348,7 @@ def addActiveActuator(actuator, activate):
 	"""
 	Activates the given actuator.
 	
-	@deprecated: Use L{SCA_PythonController.activate} and L{SCA_PythonController.deactivate} instead.
+	@deprecated: Use L{GameTypes.SCA_PythonController.activate} and L{GameTypes.SCA_PythonController.deactivate} instead.
 	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.

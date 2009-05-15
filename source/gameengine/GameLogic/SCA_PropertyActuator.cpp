@@ -270,9 +270,9 @@ PyMethodDef SCA_PropertyActuator::Methods[] = {
 };
 
 PyAttributeDef SCA_PropertyActuator::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_STRING_RW("value",0,100,false,SCA_PropertyActuator,m_exprtxt),
-	KX_PYATTRIBUTE_INT_RW("type", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
+	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
 	{ NULL }	//Sentinel
 };
 
@@ -296,7 +296,7 @@ const char SCA_PropertyActuator::SetProperty_doc[] =
 "\tof this name, the call is ignored.\n";
 PyObject* SCA_PropertyActuator::PySetProperty(PyObject* args, PyObject* kwds)
 {
-	ShowDeprecationWarning("setProperty()", "the 'property' property");
+	ShowDeprecationWarning("setProperty()", "the 'propName' property");
 	/* Check whether the name exists first ! */
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
@@ -321,7 +321,7 @@ const char SCA_PropertyActuator::GetProperty_doc[] =
 "\tReturn the property on which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* args, PyObject* kwds)
 {
-	ShowDeprecationWarning("getProperty()", "the 'property' property");
+	ShowDeprecationWarning("getProperty()", "the 'propName' property");
 	return PyString_FromString(m_propname);
 }
 

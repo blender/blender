@@ -419,7 +419,7 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("min",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_minHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_height),
-	KX_PYATTRIBUTE_BOOL_RW("xy",KX_CameraActuator,m_x),
+	KX_PYATTRIBUTE_BOOL_RW("useXY",KX_CameraActuator,m_x),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
 	{NULL}
 };
@@ -561,7 +561,7 @@ const char KX_CameraActuator::SetXY_doc[] =
 "\t1=x, 0=y\n";
 PyObject* KX_CameraActuator::PySetXY(PyObject* args)
 {
-	ShowDeprecationWarning("setXY()", "the xy property");
+	ShowDeprecationWarning("setXY()", "the useXY property");
 	int value;
 	if(PyArg_ParseTuple(args,"i:setXY", &value))
 	{

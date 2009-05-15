@@ -70,10 +70,9 @@ class SCA_ILogicBrick(CValue):
 	@type owner: L{KX_GameObject} or None in exceptional cases.
 	@ivar name: The name of this logic brick (read-only).
 	@type name: string
-	@group Deprecated: getOwner, setExecutePriority, getExecutePriority
 	"""
-	
-	#--The following methods are deprecated--
+
+#{ Deprecated
 	def getOwner():
 		"""
 		Gets the game object associated with this logic brick.
@@ -101,7 +100,7 @@ class SCA_ILogicBrick(CValue):
 		@rtype: integer
 		@return: this logic bricks current priority.
 		"""
-
+#}
 
 class SCA_IObject(CValue):
 	"""
@@ -137,7 +136,6 @@ class SCA_ISensor(SCA_ILogicBrick):
 	@type triggered: boolean
 	@ivar positive: True if this sensor brick is in a positive state. (read-only)
 	@type positive: boolean
-	@group Deprecated: isPositive, isTriggered, getUsePosPulseMode, setUsePosPulseMode, getFrequency, setFrequency, getUseNegPulseMode,	setUseNegPulseMode, getInvert, setInvert, getLevel, setLevel
 	"""
 	
 	def reset():
@@ -146,8 +144,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		The sensor is put in its initial state as if it was just activated.
 		"""
-		
-	#--The following methods are deprecated--
+#{ Deprecated
 	def isPositive():
 		"""
 		True if this sensor brick is in a positive state.
@@ -223,6 +220,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		@param level: Detect level instead of edge? (KX_TRUE, KX_FALSE)
 		@type level: boolean
 		"""
+#}
 
 class SCA_IController(SCA_ILogicBrick):
 	"""
@@ -239,10 +237,8 @@ class SCA_IController(SCA_ILogicBrick):
 						- note: the sensors are not necessarily owned by the same object.
 						- note: when objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 	@type actuators: sequence supporting index/string lookups and iteration.
-	
-	@group Deprecated: getState, getSensors, getActuators, getSensor, getActuator
 	"""
-
+#{ Deprecated
 	def getState():
 		"""
 		Get the controllers state bitmask, this can be used with the GameObject's state to test if the the controller is active.
@@ -277,6 +273,7 @@ class SCA_IController(SCA_ILogicBrick):
 		@type name: string
 		@rtype: L{SCA_IActuator}
 		"""
+#}
 
 class SCA_IActuator(SCA_ILogicBrick):
 	"""
@@ -289,31 +286,31 @@ class BL_ActionActuator(SCA_IActuator):
 	
 	@ivar action: The name of the action to set as the current action.
 	@type action: string
-	@ivar start: Specifies the starting frame of the animation.
-	@type start: float
-	@ivar end: Specifies the ending frame of the animation.
-	@type end: float
-	@ivar blendin: Specifies the number of frames of animation to generate when making transitions between actions.
-	@type blendin: float
+	@ivar frameStart: Specifies the starting frame of the animation.
+	@type frameStart: float
+	@ivar frameEnd: Specifies the ending frame of the animation.
+	@type frameEnd: float
+	@ivar blendIn: Specifies the number of frames of animation to generate when making transitions between actions.
+	@type blendIn: float
 	@ivar priority: Sets the priority of this actuator. Actuators will lower
 		                 priority numbers will override actuators with higher
 		                 numbers.
 	@type priority: integer
 	@ivar frame: Sets the current frame for the animation.
 	@type frame: float
-	@ivar property: Sets the property to be used in FromProp playback mode.
-	@type property: string
+	@ivar propName: Sets the property to be used in FromProp playback mode.
+	@type propName: string
 	@ivar blendTime: Sets the internal frame timer. This property must be in
-						the range from 0.0 to blendin.
+						the range from 0.0 to blendIn.
 	@type blendTime: float
-	@ivar type: The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
-	@type type: integer
+	@ivar mode: The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+	@type mode: integer
 	@ivar useContinue: The actions continue option, True or False.
 					When True, the action will always play from where last left off,
 					otherwise negative events to this actuator will reset it to its start frame.
 	@type: boolean
-	@ivar frameProperty: The name of the property that is set to the current frame number.
-	@type frameProperty: string
+	@ivar framePropName: The name of the property that is set to the current frame number.
+	@type framePropName: string
 	"""
 	def setChannel(channel, matrix, mode = False):
 		"""
@@ -326,7 +323,7 @@ class BL_ActionActuator(SCA_IActuator):
 		@type mode: boolean
 		"""
 
-	#--The following methods are deprecated--
+#{ Deprecated
 	def setAction(action, reset = True):
 		"""
 		Sets the current action.
@@ -343,7 +340,7 @@ class BL_ActionActuator(SCA_IActuator):
 	def setStart(start):
 		"""
 		Specifies the starting frame of the animation.
-		@deprecated: Use the L{start} property
+		@deprecated: Use the L{frameStart} property
 		@param start: the starting frame of the animation
 		@type start: float
 		"""
@@ -351,7 +348,7 @@ class BL_ActionActuator(SCA_IActuator):
 	def setEnd(end):
 		"""
 		Specifies the ending frame of the animation.
-		@deprecated: use the L{end} property 
+		@deprecated: use the L{frameEnd} property 
 		@param end: the ending frame of the animation
 		@type end: float
 		"""
@@ -359,7 +356,7 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 		Specifies the number of frames of animation to generate
 		when making transitions between actions.
-		@deprecated: use the L{blendin} property
+		@deprecated: use the L{blendIn} property
 		@param blendin: the number of frames in transition.
 		@type blendin: float
 		"""
@@ -417,7 +414,7 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 		Set the actions continue option True or False. see getContinue.
 
-		@deprecated: use the L{continue} property
+		@deprecated: use the L{useContinue} property
 		@param cont: The continue option.
 		@type cont: bool
 		"""
@@ -451,21 +448,21 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 		Returns the starting frame of the action.
 		
-		@deprecated: use the L{start} property
+		@deprecated: use the L{frameStart} property
 		@rtype: float
 		"""
 	def getEnd():
 		"""
 		Returns the last frame of the action.
 		
-		@deprecated: use the L{end} property
+		@deprecated: use the L{frameEnd} property
 		@rtype: float
 		"""
 	def getBlendin():
 		"""
 		Returns the number of interpolation animation frames to be generated when this actuator is triggered.
 		
-		@deprecated: use the L{blendin} property
+		@deprecated: use the L{blendIn} property
 		@rtype: float
 		"""
 	def getPriority():
@@ -492,7 +489,7 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 	def setFrameProperty(prop):
 		"""
-		@deprecated: use the L{frameProperty} property
+		@deprecated: use the L{framePropName} property
 		@param prop: A string specifying the property of the object that will be updated with the action frame number.
 		@type prop: string
 		"""
@@ -500,9 +497,10 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 		Returns the name of the property that is set to the current frame number.
 		
-		@deprecated: use the L{frameProperty} property
+		@deprecated: use the L{framePropName} property
 		@rtype: string
 		"""
+#}
 
 class BL_Shader(PyObjectPlus):
 	"""
@@ -755,31 +753,32 @@ class BL_ShapeActionActuator(SCA_IActuator):
 
 	@ivar action: The name of the action to set as the current shape action.
 	@type action: string
-	@ivar start: Specifies the starting frame of the shape animation.
-	@type start: float
-	@ivar end: Specifies the ending frame of the shape animation.
-	@type end: float
-	@ivar blendin: Specifies the number of frames of animation to generate when making transitions between actions.
-	@type blendin: float
+	@ivar frameStart: Specifies the starting frame of the shape animation.
+	@type frameStart: float
+	@ivar frameEnd: Specifies the ending frame of the shape animation.
+	@type frameEnd: float
+	@ivar blendIn: Specifies the number of frames of animation to generate when making transitions between actions.
+	@type blendIn: float
 	@ivar priority: Sets the priority of this actuator. Actuators will lower
 		                 priority numbers will override actuators with higher
 		                 numbers.
 	@type priority: integer
 	@ivar frame: Sets the current frame for the animation.
 	@type frame: float
-	@ivar property: Sets the property to be used in FromProp playback mode.
-	@type property: string
+	@ivar propName: Sets the property to be used in FromProp playback mode.
+	@type propName: string
 	@ivar blendTime: Sets the internal frame timer. This property must be in
 						the range from 0.0 to blendin.
 	@type blendTime: float
-	@ivar type: The operation mode of the actuator.
+	@ivar mode: The operation mode of the actuator.
 					KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER,
 					KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
-	@type type: integer
-	@ivar frameProperty: The name of the property that is set to the current frame number.
-	@type frameProperty: string
+	@type mode: integer
+	@ivar framePropName: The name of the property that is set to the current frame number.
+	@type framePropName: string
 	
 	"""
+#{ Deprecated
 	def setAction(action, reset = True):
 		"""
 		Sets the current action.
@@ -798,7 +797,7 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		"""
 		Specifies the starting frame of the animation.
 		
-		@deprecated: use the L{start} property
+		@deprecated: use the L{frameStart} property
 		@param start: the starting frame of the animation
 		@type start: float
 		"""
@@ -807,7 +806,7 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		"""
 		Specifies the ending frame of the animation.
 		
-		@deprecated: use the L{end} property
+		@deprecated: use the L{frameEnd} property
 		@param end: the ending frame of the animation
 		@type end: float
 		"""
@@ -816,7 +815,7 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		Specifies the number of frames of animation to generate
 		when making transitions between actions.
 		
-		@deprecated: use the L{blendin} property
+		@deprecated: use the L{blendIn} property
 		@param blendin: the number of frames in transition.
 		@type blendin: float
 		"""
@@ -891,21 +890,21 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		"""
 		Returns the starting frame of the action.
 		
-		@deprecated: use the L{start} property
+		@deprecated: use the L{frameStart} property
 		@rtype: float
 		"""
 	def getEnd():
 		"""
 		Returns the last frame of the action.
 		
-		@deprecated: use the L{end} property
+		@deprecated: use the L{frameEnd} property
 		@rtype: float
 		"""
 	def getBlendin():
 		"""
 		Returns the number of interpolation animation frames to be generated when this actuator is triggered.
 		
-		@deprecated: use the L{blendin} property
+		@deprecated: use the L{blendIn} property
 		@rtype: float
 		"""
 	def getPriority():
@@ -932,7 +931,7 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		"""
 	def setFrameProperty(prop):
 		"""
-		@deprecated: use the L{frameProperty} property
+		@deprecated: use the L{framePropName} property
 		@param prop: A string specifying the property of the object that will be updated with the action frame number.
 		@type prop: string
 		"""
@@ -940,9 +939,10 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		"""
 		Returns the name of the property that is set to the current frame number.
 		
-		@deprecated: use the L{frameProperty} property
+		@deprecated: use the L{framePropName} property
 		@rtype: string
 		"""
+#}
 
 class CListValue(CPropValue):
 	"""
@@ -1002,7 +1002,7 @@ class CListValue(CPropValue):
 		This has the advantage that you can store the id in places you could not store a gameObject.
 		
 		Warning: the id is derived from a memory location and will be different each time the game engine starts.
-		"""# 
+		"""
 
 class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 	"""
@@ -1023,7 +1023,7 @@ class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 		Set the pixel color arithmetic functions.
 		
 		@param src: Specifies how the red, green, blue,
-                    and alpha source blending factors are computed.
+					and alpha source blending factors are computed.
 		@type src: 	GL_ZERO,
 					GL_ONE,
 					GL_SRC_COLOR,
@@ -1094,6 +1094,7 @@ class KX_CDActuator(SCA_IActuator):
 		"""
 		Plays the track selected.
 		"""
+#{ Deprecated
 	def setGain(gain):
 		"""
 		Sets the gain (volume) of the CD.
@@ -1110,6 +1111,7 @@ class KX_CDActuator(SCA_IActuator):
 		@rtype: float
 		@return: Between 0.0 (silent) and 1.0 (max volume)
 		"""
+#}
 
 class KX_CameraActuator(SCA_IActuator):
 	"""
@@ -1121,16 +1123,18 @@ class KX_CameraActuator(SCA_IActuator):
 	@type max: float
 	@ivar height: height to stay above the target object
 	@type height: float
-	@ivar xy: axis this actuator is tracking, true=X, false=Y
-	@type xy: boolean
+	@ivar useXY: axis this actuator is tracking, true=X, false=Y
+	@type useXY: boolean
 	@ivar object: the object this actuator tracks.
 	@type object: KX_GameObject or None
 	@author: snail
 	"""
+#{ Deprecated
 	def getObject(name_only = 1):
 		"""
 		Returns the name of the object this actuator tracks.
 		
+		@deprecated: Use the L{object} attribute instead.
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject
 		@rtype: string, KX_GameObject or None if no object is set
@@ -1140,6 +1144,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Sets the object this actuator tracks.
 		
+		@deprecated: Use the L{object} attribute instead.
 		@param target: the object to track.
 		@type target: L{KX_GameObject}, string or None
 		"""
@@ -1148,6 +1153,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Returns the minimum distance to target maintained by the actuator.
 		
+		@deprecated: Use the L{min} attribute instead.
 		@rtype: float
 		"""
 	
@@ -1156,6 +1162,7 @@ class KX_CameraActuator(SCA_IActuator):
 		Sets the minimum distance to the target object maintained by the
 		actuator.
 		
+		@deprecated: Use the L{min} attribute instead.
 		@param distance: The minimum distance to maintain.
 		@type distance: float
 		"""
@@ -1164,6 +1171,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Gets the maximum distance to stay from the target object.
 		
+		@deprecated: Use the L{max} attribute instead.
 		@rtype: float
 		"""
 	
@@ -1171,6 +1179,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Sets the maximum distance to stay from the target object.
 		
+		@deprecated: Use the L{max} attribute instead.
 		@param distance: The maximum distance to maintain.
 		@type distance: float
 		"""
@@ -1179,6 +1188,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Returns the height to stay above the target object.
 		
+		@deprecated: Use the L{height} attribute instead.
 		@rtype: float
 		"""
 	
@@ -1186,6 +1196,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Sets the height to stay above the target object.
 		
+		@deprecated: Use the L{height} attribute instead.
 		@type height: float
 		@param height: The height to stay above the target object.
 		"""
@@ -1194,6 +1205,7 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Sets the axis to get behind.
 		
+		@deprecated: Use the L{useXY} attribute instead.
 		@param xaxis: False to track Y axis, True to track X axis.
 		@type xaxis: boolean
 		"""
@@ -1202,9 +1214,11 @@ class KX_CameraActuator(SCA_IActuator):
 		"""
 		Returns the axis this actuator is tracking.
 		
+		@deprecated: Use the L{useXY} attribute instead.
 		@return: True if tracking X axis, False if tracking Y axis.
 		@rtype: boolean
 		"""
+#}
 
 class KX_ConstraintActuator(SCA_IActuator):
 	"""
@@ -1238,8 +1252,8 @@ class KX_ConstraintActuator(SCA_IActuator):
 		        If set to 0, the actuator is not limited in time.
 	@type time: integer
 	
-	@ivar property: the name of the property or material for the ray detection of the distance constraint.
-	@type property: string
+	@ivar propName: the name of the property or material for the ray detection of the distance constraint.
+	@type propName: string
 	
 	@ivar min: The lower bound of the constraint
 	           For the rotation and orientation constraint, it represents radiant
@@ -1279,6 +1293,7 @@ class KX_ConstraintActuator(SCA_IActuator):
 	              KX_ACT_CONSTRAINT_FHNZ  (21) : set force field along negative Z axis
 	@type limit: integer
 	"""
+#{ Deprecated
 	def setDamp(time):
 		"""
 		Sets the time this constraint is delayed.
@@ -1442,6 +1457,7 @@ class KX_ConstraintActuator(SCA_IActuator):
 		
 		@rtype: float
 		"""
+#}
 
 class KX_ConstraintWrapper(PyObjectPlus):
 	"""
@@ -1462,8 +1478,8 @@ class KX_GameActuator(SCA_IActuator):
 	
 	Properties:
 	
-	@ivar file: the new .blend file to load
-	@type file: string.
+	@ivar fileName: the new .blend file to load
+	@type fileName: string.
 	@ivar mode: The mode of this actuator
 	@type mode: Constant in...
 				- L{GameLogic.KX_GAME_LOAD}
@@ -1473,21 +1489,23 @@ class KX_GameActuator(SCA_IActuator):
 				- L{GameLogic.KX_GAME_SAVECFG}
 				- L{GameLogic.KX_GAME_LOADCFG}
 	"""
+#{ Deprecated
 	def getFile():
 		"""
 		Returns the filename of the new .blend file to load.
 		
-		@deprecated: use the L{file} property
+		@deprecated: use the L{fileName} property
 		@rtype: string
 		"""
 	def setFile(filename):
 		"""
 		Sets the new .blend file to load.
 		
-		@deprecated: use the L{file} property
+		@deprecated: use the L{fileName} property
 		@param filename: The file name this actuator will load.
 		@type filename: string
 		"""
+#}
 
 class KX_GameObject(SCA_IObject):
 	"""
@@ -1530,16 +1548,16 @@ class KX_GameObject(SCA_IObject):
 	@type orientation: 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
 
-				   deprecated: use L{localScaling} and L{worldScaling}
+				   deprecated: use L{localScale} and L{worldScale}
 	@type scaling: list [sx, sy, sz] On write: local scaling, on read: world scaling
 	@ivar localOrientation: The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 	@type localOrientation: 3x3 Matrix [[float]]
 	@ivar worldOrientation: The object's world orientation.
 	@type worldOrientation: 3x3 Matrix [[float]]
-	@ivar localScaling: The object's local scaling factor.
-	@type localScaling: list [sx, sy, sz]
-	@ivar worldScaling: The object's world scaling factor. Read-only
-	@type worldScaling: list [sx, sy, sz]
+	@ivar localScale: The object's local scaling factor.
+	@type localScale: list [sx, sy, sz]
+	@ivar worldScale: The object's world scaling factor. Read-only
+	@type worldScale: list [sx, sy, sz]
 	@ivar localPosition: The object's local position.
 	@type localPosition: list [x, y, z]
 	@ivar worldPosition: The object's world position. 
@@ -2002,16 +2020,16 @@ class KX_IpoActuator(SCA_IActuator):
 	"""
 	IPO actuator activates an animation.
 	
-	@ivar startFrame: Start frame.
-	@type startFrame: float
-	@ivar endFrame: End frame.
-	@type endFrame: float
+	@ivar frameStart: Start frame.
+	@type frameStart: float
+	@ivar frameEnd: End frame.
+	@type frameEnd: float
 	@ivar propName: Use this property to define the Ipo position
 	@type propName: string
 	@ivar framePropName: Assign this property this action current frame number
 	@type framePropName: string
-	@ivar type: Play mode for the ipo. (In GameLogic.KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP)
-	@type type: int
+	@ivar mode: Play mode for the ipo. (In GameLogic.KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP)
+	@type mode: int
 	@ivar useIpoAsForce: Apply Ipo as a global or local force depending on the local option (dynamic objects only)
 	@type useIpoAsForce: bool
 	@ivar useIpoAdd: Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag
@@ -2021,6 +2039,7 @@ class KX_IpoActuator(SCA_IActuator):
 	@ivar useChildren: Update IPO on all children Objects as well
 	@type useChildren: bool
 	"""
+#{ Deprecated
 	def set(mode, startframe, endframe, force):
 		"""
 		Sets the properties of the actuator.
@@ -2046,28 +2065,28 @@ class KX_IpoActuator(SCA_IActuator):
 		"""
 		Sets the frame from which the IPO starts playing.
 		
-		@deprecated: use L{startFrame}
+		@deprecated: use L{frameStart}
 		@type startframe: integer
 		"""
 	def getStart():
 		"""
 		Returns the frame from which the IPO starts playing.
 		
-		@deprecated: use L{startFrame}
+		@deprecated: use L{frameStart}
 		@rtype: integer
 		"""
 	def setEnd(endframe):
 		"""
 		Sets the frame at which the IPO stops playing.
 		
-		@deprecated: use L{endFrame}
+		@deprecated: use L{frameEnd}
 		@type endframe: integer
 		"""
 	def getEnd():
 		"""
 		Returns the frame at which the IPO stops playing.
 		
-		@deprecated: use L{endFrame}
+		@deprecated: use L{frameEnd}
 		@rtype: integer
 		"""
 	def setIpoAsForce(force):
@@ -2133,6 +2152,7 @@ class KX_IpoActuator(SCA_IActuator):
 		
 		@deprecated: use L{useIpoLocal}
 		"""
+#}
 
 class KX_LightObject(KX_GameObject):
 	"""
@@ -2420,20 +2440,19 @@ class KX_TouchSensor(SCA_ISensor):
 	"""
 	Touch sensor detects collisions between objects.
 	
-	@ivar property: The property or material to collide with.
-	@type property: string
+	@ivar propName: The property or material to collide with.
+	@type propName: string
 	@ivar useMaterial: Determines if the sensor is looking for a property or material.
 						KX_True = Find material; KX_False = Find property
 	@type useMaterial: boolean
-	@ivar pulseCollisions: The last collided object.
-	@type pulseCollisions: bool
-	@ivar objectHit: The last collided object. (read-only)
-	@type objectHit: L{KX_GameObject} or None
-	@ivar objectHitList: A list of colliding objects. (read-only)
-	@type objectHitList: L{CListValue} of L{KX_GameObject}
+	@ivar usePulseCollision: The last collided object.
+	@type usePulseCollision: bool
+	@ivar hitObject: The last collided object. (read-only)
+	@type hitObject: L{KX_GameObject} or None
+	@ivar hitObjectList: A list of colliding objects. (read-only)
+	@type hitObjectList: L{CListValue} of L{KX_GameObject}
 	"""
-		
-	#--The following methods are deprecated, please use properties instead.
+#{ Deprecated
 	def setProperty(name):
 		"""
 		Set the property or material to collide with. Use
@@ -2457,7 +2476,7 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 		Returns the last object hit by this touch sensor.
 		
-		@deprecated: use the L{objectHit} property
+		@deprecated: use the L{hitObject} property
 		@rtype: L{KX_GameObject}
 		"""
 	def getHitObjectList():
@@ -2466,8 +2485,8 @@ class KX_TouchSensor(SCA_ISensor):
 		
 		Only objects that have the requisite material/property are listed.
 		
-		@deprecated: use the L{objectHitList} property
-		@rtype: L{CListValue} of L{KX_GameObject}
+		@deprecated: use the L{hitObjectList} property
+		@rtype: L{CListValue} of L{hitObjectList}
 		"""
 	def getTouchMaterial():
 		"""
@@ -2476,6 +2495,7 @@ class KX_TouchSensor(SCA_ISensor):
 		
 		@deprecated: use the L{useMaterial} property
 		"""
+#}
 
 class KX_NearSensor(KX_TouchSensor):
 	"""
@@ -3393,8 +3413,8 @@ class KX_RaySensor(SCA_ISensor):
 	"""
 	A ray sensor detects the first object in a given direction.
 	
-	@ivar property: The property the ray is looking for.
-	@type property: string
+	@ivar propName: The property the ray is looking for.
+	@type propName: string
 	@ivar range: The distance of the ray.
 	@type range: float
 	@ivar useMaterial: Whether or not to look for a material (false = property)
@@ -3414,7 +3434,7 @@ class KX_RaySensor(SCA_ISensor):
 		KX_RAY_AXIS_POS_X, KX_RAY_AXIS_POS_Y, KX_RAY_AXIS_POS_Z,
 		KX_RAY_AXIS_NEG_X, KX_RAY_AXIS_NEG_Y, KX_RAY_AXIS_NEG_Z
 	"""
-	
+#{ Deprecated
 	def getHitObject():
 		"""
 		Returns the game object that was hit by this ray.
@@ -3443,6 +3463,7 @@ class KX_RaySensor(SCA_ISensor):
 		@deprecated: Use the L{rayDirection} attribute instead.
 		@rtype: list [dx, dy, dz]
 		"""
+#}
 
 class KX_SCA_AddObjectActuator(SCA_IActuator):
 	"""
@@ -3562,13 +3583,14 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 class KX_SCA_DynamicActuator(SCA_IActuator):
 	"""
 	Dynamic Actuator.
-	@ivar operation: the type of operation of the actuator, 0-4
+	@ivar mode: the type of operation of the actuator, 0-4
 						KX_DYN_RESTORE_DYNAMICS, KX_DYN_DISABLE_DYNAMICS, 
 						KX_DYN_ENABLE_RIGID_BODY, KX_DYN_DISABLE_RIGID_BODY, KX_DYN_SET_MASS
-	@type operation: integer
+	@type mode: integer
 	@ivar mass: the mass value for the KX_DYN_SET_MASS operation
 	@type mass: float
 	"""
+#{ Deprecated
 	def setOperation(operation):
 		"""
 		Set the type of operation when the actuator is activated:
@@ -3578,13 +3600,14 @@ class KX_SCA_DynamicActuator(SCA_IActuator):
 				- 3 = disable rigid body
 				- 4 = set mass
 		
-		@deprecated: Use the L{operation} attribute instead.
+		@deprecated: Use the L{mode} attribute instead.
 		"""
 	def getOperation():
 		"""
 		return the type of operation
-		@deprecated: Use the L{operation} attribute instead.
+		@deprecated: Use the L{mode} attribute instead.
 		"""
+#}
 
 class KX_SCA_EndObjectActuator(SCA_IActuator):
 	"""
@@ -3714,8 +3737,8 @@ class KX_Scene(PyObjectPlus):
 	@type name: string
 	@ivar objects: A list of objects in the scene, (read-only).
 	@type objects: L{CListValue} of L{KX_GameObject}
-	@ivar objects_inactive: A list of objects on background layers (used for the addObject actuator), (read-only).
-	@type objects_inactive: L{CListValue} of L{KX_GameObject}
+	@ivar objectsInactive: A list of objects on background layers (used for the addObject actuator), (read-only).
+	@type objectsInactive: L{CListValue} of L{KX_GameObject}
 	@ivar lights: A list of lights in the scene, (read-only).
 	@type lights: L{CListValue} of L{KX_LightObject}
 	@ivar cameras: A list of cameras in the scene, (read-only).
@@ -3791,6 +3814,7 @@ class KX_SceneActuator(SCA_IActuator):
 	@ivar mode: The mode of the actuator
 	@type mode: int from 0 to 5 L{GameLogic.Scene Actuator}
 	"""
+#{ Deprecated
 	def setUseRestart(flag):
 		"""
 		Set flag to True to restart the scene.
@@ -3837,6 +3861,7 @@ class KX_SceneActuator(SCA_IActuator):
 		@deprecated: use the L{camera} attribute instead.
 		@rtype: string
 		"""
+#}
 
 class KX_SoundActuator(SCA_IActuator):
 	"""
@@ -3846,8 +3871,8 @@ class KX_SoundActuator(SCA_IActuator):
 	the actuator to be activated - they act instantly provided that the actuator has
 	been activated once at least.
 
-	@ivar filename: Sets the filename of the sound this actuator plays.
-	@type filename: string
+	@ivar fileName: Sets the filename of the sound this actuator plays.
+	@type fileName: string
 
 	@ivar volume: Sets the volume (gain) of the sound.
 	@type volume: float
@@ -3871,31 +3896,17 @@ class KX_SoundActuator(SCA_IActuator):
 	                   also use quaternion [float,float,float,float] or euler angles [float,float,float]
 	@type orientation: 3x3 matrix [[float]]
 	
-	@ivar type: Sets the operation mode of the actuator. You can use one of the following constant:
+	@ivar mode: Sets the operation mode of the actuator. You can use one of the following constant:
 				- KX_SOUNDACT_PLAYSTOP               (1)
 				- KX_SOUNDACT_PLAYEND                (2)
 				- KX_SOUNDACT_LOOPSTOP               (3)
 				- KX_SOUNDACT_LOOPEND                (4)
 				- KX_SOUNDACT_LOOPBIDIRECTIONAL      (5)
 				- KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP (6)
-	@type type:	integer
-	
-	@group Play Methods: startSound, pauseSound, stopSound
+	@type mode:	integer
 	"""
-	def setFilename(filename):
-		"""
-		Sets the filename of the sound this actuator plays.
-		
-		@deprecated: Use the L{filename} attribute instead.
-		@type filename: string
-		"""
-	def getFilename():
-		"""
-		Returns the filename of the sound this actuator plays.
-		
-		@deprecated: Use the L{filename} attribute instead.
-		@rtype: string
-		"""
+
+#{ Play Methods
 	def startSound():
 		"""
 		Starts the sound.
@@ -3907,6 +3918,23 @@ class KX_SoundActuator(SCA_IActuator):
 	def stopSound():
 		"""
 		Stops the sound.
+		"""
+#}
+
+#{ Deprecated
+	def setFilename(filename):
+		"""
+		Sets the filename of the sound this actuator plays.
+		
+		@deprecated: Use the L{fileName} attribute instead.
+		@type filename: string
+		"""
+	def getFilename():
+		"""
+		Returns the filename of the sound this actuator plays.
+		
+		@deprecated: Use the L{fileName} attribute instead.
+		@rtype: string
 		"""
 	def setGain(gain):
 		"""
@@ -4030,6 +4058,7 @@ class KX_SoundActuator(SCA_IActuator):
 		@rtype: integer
 		@return:  KX_SOUNDACT_PLAYSTOP, KX_SOUNDACT_PLAYEND, KX_SOUNDACT_LOOPSTOP, KX_SOUNDACT_LOOPEND, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
 		"""
+#}
 
 class KX_StateActuator(SCA_IActuator):
 	"""
@@ -4451,11 +4480,12 @@ class KX_VisibilityActuator(SCA_IActuator):
 	Visibility Actuator.
 	@ivar visibility: whether the actuator makes its parent object visible or invisible
 	@type visibility: boolean
-	@ivar occlusion: whether the actuator makes its parent object an occluder or not
-	@type occlusion: boolean
-	@ivar recursion: whether the visibility/occlusion should be propagated to all children of the object
-	@type recursion: boolean
+	@ivar useOcclusion: whether the actuator makes its parent object an occluder or not
+	@type useOcclusion: boolean
+	@ivar useRecursion: whether the visibility/occlusion should be propagated to all children of the object
+	@type useRecursion: boolean
 	"""
+#{ Deprecated
 	def set(visible):
 		"""
 		Sets whether the actuator makes its parent object visible or invisible.
@@ -4464,8 +4494,7 @@ class KX_VisibilityActuator(SCA_IActuator):
 		@param visible: - True: Makes its parent visible.
 		                - False: Makes its parent invisible.
 		"""
-#
-# Documentation for PyObjectPlus base class
+#}
 
 class SCA_2DFilterActuator(SCA_IActuator):
 	"""
@@ -4483,7 +4512,7 @@ class SCA_2DFilterActuator(SCA_IActuator):
 	@type shaderText: string
 	@ivar disableMotionBlur: action on motion blur: 0=enable, 1=disable
 	@type disableMotionBlur: integer
-	@ivar type: type of 2D filter, use one of the following constants:
+	@ivar mode: type of 2D filter, use one of the following constants:
 				RAS_2DFILTER_ENABLED      (-2) : enable the filter that was previously disabled
 				RAS_2DFILTER_DISABLED     (-1) : disable the filter that is currently active
 				RAS_2DFILTER_NOFILTER      (0) : disable and destroy the filter that is currently active
@@ -4499,10 +4528,10 @@ class SCA_2DFilterActuator(SCA_IActuator):
 				RAS_2DFILTER_SEPIA        (10)
 				RAS_2DFILTER_INVERT       (11)
 				RAS_2DFILTER_CUSTOMFILTER (12) : customer filter, the code code is set via shaderText property
-	@type type: integer				
-	@ivar passNb: order number of filter in the stack of 2D filters. Filters are executed in increasing order of passNb.
+	@type mode: integer				
+	@ivar passNumber: order number of filter in the stack of 2D filters. Filters are executed in increasing order of passNb.
 	              Only be one filter can be defined per passNb.
-	@type passNb: integer (0-100)
+	@type passNumber: integer (0-100)
 	@ivar value: argument for motion blur filter
 	@type value: float (0.0-100.0)
 	"""
@@ -4706,7 +4735,7 @@ class SCA_JoystickSensor(SCA_ISensor):
 		"""
 		Returns the state of the joysticks axis. See differs to L{getAxis()<SCA_JoystickSensor.getAxis>} returning the current state of the joystick.
 		
-		@deprecated: Use the L{axisPosition} attribute instead.
+		@deprecated: Use the L{axisSingle} attribute instead.
 		@rtype: list
 		@return: 4 values, each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing. 
 
@@ -4929,13 +4958,14 @@ class SCA_PropertyActuator(SCA_IActuator):
 
 	Properties:
 	
-	@ivar property: the property on which to operate.
-	@type property: string
+	@ivar propName: the property on which to operate.
+	@type propName: string
 	@ivar value: the value with which the actuator operates.
 	@type value: string
-	@ivar type: TODO - add constants to game logic dict!.
-	@type type: iny
+	@ivar mode: TODO - add constants to game logic dict!.
+	@type mode: int
 	"""
+#{ Deprecated
 	def setProperty(prop):
 		"""
 		Set the property on which to operate. 
@@ -4970,6 +5000,7 @@ class SCA_PropertyActuator(SCA_IActuator):
 		@deprecated: Use the L{value} attribute instead.
 		@rtype: string
 		"""
+#}
 
 class SCA_PropertySensor(SCA_ISensor):
 	"""
@@ -4977,21 +5008,21 @@ class SCA_PropertySensor(SCA_ISensor):
 	
 	Properties:
 	
-	@ivar type: type of check on the property: 
+	@ivar mode: type of check on the property: 
 	            KX_PROPSENSOR_EQUAL(1), KX_PROPSENSOR_NOTEQUAL(2), KX_PROPSENSOR_INTERVAL(3), 
 	            KX_PROPSENSOR_CHANGED(4), KX_PROPSENSOR_EXPRESSION(5)
-	@type type: integer
-	@ivar property: the property with which the sensor operates.
-	@type property: string
+	@type mode: integer
+	@ivar propName: the property the sensor operates.
+	@type propName: string
 	@ivar value: the value with which the sensor compares to the value of the property.
 	@type value: string
 	"""
-	
+#{ Deprecated
 	def getType():
 		"""
 		Gets when to activate this sensor.
 		
-		@deprecated: Use the L{type} attribute instead.
+		@deprecated: Use the L{mode} attribute instead.
 		@return: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,
 			 KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,
 			 or KX_PROPSENSOR_EXPRESSION.
@@ -5001,7 +5032,7 @@ class SCA_PropertySensor(SCA_ISensor):
 		"""
 		Set the type of check to perform.
 		
-		@deprecated: Use the L{type} attribute instead.
+		@deprecated: Use the L{mode} attribute instead.
 		@type checktype: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,
 			KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,
 			or KX_PROPSENSOR_EXPRESSION.
@@ -5011,7 +5042,7 @@ class SCA_PropertySensor(SCA_ISensor):
 		"""
 		Return the property with which the sensor operates.
 		
-		@deprecated: Use the L{property} attribute instead.
+		@deprecated: Use the L{propName} attribute instead.
 		@rtype: string
 		@return: the name of the property this sensor is watching.
 		"""
@@ -5020,7 +5051,7 @@ class SCA_PropertySensor(SCA_ISensor):
 		Sets the property with which to operate.  If there is no property
 		of that name, this call is ignored.
 		
-		@deprecated: Use the L{property} attribute instead.
+		@deprecated: Use the L{propName} attribute instead.
 		@type name: string.
 		"""
 	def getValue():
@@ -5040,6 +5071,7 @@ class SCA_PropertySensor(SCA_ISensor):
 		@deprecated: Use the L{value} attribute instead.
 		@type value: string
 		"""
+#}
 
 class SCA_PythonController(SCA_IController):
 	"""
@@ -5102,76 +5134,11 @@ class SCA_RandomActuator(SCA_IActuator):
 	                    KX_RANDOMACT_FLOAT_CONST, KX_RANDOMACT_FLOAT_UNIFORM, KX_RANDOMACT_FLOAT_NORMAL,
 	                    KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
 	@type distribution: integer, read-only
-	@ivar property: the name of the property to set with the random value.
+	@ivar propName: the name of the property to set with the random value.
 	                If the generator and property types do not match, the assignment is ignored.
-	@type property: string
+	@type propName: string
 
 	"""
-	def setSeed(seed):
-		"""
-		Sets the seed of the random number generator.
-		
-		Equal seeds produce equal series. If the seed is 0, 
-		the generator will produce the same value on every call.
-		
-		@deprecated: Use the L{seed} attribute instead.
-		@type seed: integer
-		"""
-	def getSeed():
-		"""
-		Returns the initial seed of the generator.
-		
-		@deprecated: Use the L{seed} attribute instead.
-		@rtype: integer
-		"""
-	def getPara1():
-		"""
-		Returns the first parameter of the active distribution. 
-		
-		Refer to the documentation of the generator types for the meaning
-		of this value.
-		
-		@deprecated: Use the L{para1} attribute instead.
-		@rtype: float
-		"""
-	def getPara2():
-		"""
-		Returns the second parameter of the active distribution. 
-		
-		Refer to the documentation of the generator types for the meaning
-		of this value.
-		
-		@deprecated: Use the L{para2} attribute instead.
-		@rtype: float
-		"""
-	def getDistribution():
-		"""
-		Returns the type of random distribution.
-		
-		@deprecated: Use the L{distribution} attribute instead.
-		@rtype: distribution type
-		@return: KX_RANDOMACT_BOOL_CONST, KX_RANDOMACT_BOOL_UNIFORM, KX_RANDOMACT_BOOL_BERNOUILLI,
-		        KX_RANDOMACT_INT_CONST, KX_RANDOMACT_INT_UNIFORM, KX_RANDOMACT_INT_POISSON, 
-		        KX_RANDOMACT_FLOAT_CONST, KX_RANDOMACT_FLOAT_UNIFORM, KX_RANDOMACT_FLOAT_NORMAL,
-		        KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
-		"""
-	def setProperty(property):
-		"""
-		Set the property to which the random value is assigned. 
-		
-		If the generator and property types do not match, the assignment is ignored.
-		
-		@deprecated: Use the L{property} attribute instead.
-		@type property: string
-		@param property: The name of the property to set.
-		"""
-	def getProperty():
-		"""
-		Returns the name of the property to set.
-		
-		@deprecated: Use the L{property} attribute instead.
-		@rtype: string
-		"""
 	def setBoolConst(value):
 		"""
 		Sets this generator to produce a constant boolean value.
@@ -5249,6 +5216,74 @@ class SCA_RandomActuator(SCA_IActuator):
 		
 		@type half_life: float
 		"""
+#{ Deprecated
+	def setSeed(seed):
+		"""
+		Sets the seed of the random number generator.
+		
+		Equal seeds produce equal series. If the seed is 0, 
+		the generator will produce the same value on every call.
+		
+		@deprecated: Use the L{seed} attribute instead.
+		@type seed: integer
+		"""
+	def getSeed():
+		"""
+		Returns the initial seed of the generator.
+		
+		@deprecated: Use the L{seed} attribute instead.
+		@rtype: integer
+		"""
+	def getPara1():
+		"""
+		Returns the first parameter of the active distribution. 
+		
+		Refer to the documentation of the generator types for the meaning
+		of this value.
+		
+		@deprecated: Use the L{para1} attribute instead.
+		@rtype: float
+		"""
+	def getPara2():
+		"""
+		Returns the second parameter of the active distribution. 
+		
+		Refer to the documentation of the generator types for the meaning
+		of this value.
+		
+		@deprecated: Use the L{para2} attribute instead.
+		@rtype: float
+		"""
+	def getDistribution():
+		"""
+		Returns the type of random distribution.
+		
+		@deprecated: Use the L{distribution} attribute instead.
+		@rtype: distribution type
+		@return: KX_RANDOMACT_BOOL_CONST, KX_RANDOMACT_BOOL_UNIFORM, KX_RANDOMACT_BOOL_BERNOUILLI,
+		        KX_RANDOMACT_INT_CONST, KX_RANDOMACT_INT_UNIFORM, KX_RANDOMACT_INT_POISSON, 
+		        KX_RANDOMACT_FLOAT_CONST, KX_RANDOMACT_FLOAT_UNIFORM, KX_RANDOMACT_FLOAT_NORMAL,
+		        KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
+		"""
+	def setProperty(property):
+		"""
+		Set the property to which the random value is assigned. 
+		
+		If the generator and property types do not match, the assignment is ignored.
+		
+		@deprecated: Use the L{propName} attribute instead.
+		@type property: string
+		@param property: The name of the property to set.
+		"""
+	def getProperty():
+		"""
+		Returns the name of the property to set.
+		
+		@deprecated: Use the L{propName} attribute instead.
+		@rtype: string
+		"""
+#}
+
 
 class SCA_RandomSensor(SCA_ISensor):
 	"""

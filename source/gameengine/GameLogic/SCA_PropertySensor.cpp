@@ -347,8 +347,8 @@ PyMethodDef SCA_PropertySensor::Methods[] = {
 };
 
 PyAttributeDef SCA_PropertySensor::Attributes[] = {
-	KX_PYATTRIBUTE_INT_RW("type",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype),
-	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
+	KX_PYATTRIBUTE_INT_RW("mode",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
 	{ NULL }	//Sentinel
 };
@@ -372,7 +372,7 @@ const char SCA_PropertySensor::GetType_doc[] =
 "\tReturns the type of check this sensor performs.\n";
 PyObject* SCA_PropertySensor::PyGetType()
 {
-	ShowDeprecationWarning("getType()", "the type property");
+	ShowDeprecationWarning("getType()", "the mode property");
 	return PyInt_FromLong(m_checktype);
 }
 
@@ -385,7 +385,7 @@ const char SCA_PropertySensor::SetType_doc[] =
 "\tSet the type of check to perform.\n";
 PyObject* SCA_PropertySensor::PySetType(PyObject* args) 
 {
-	ShowDeprecationWarning("setType()", "the type property");
+	ShowDeprecationWarning("setType()", "the mode property");
 	int typeArg;
 	
 	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
@@ -406,7 +406,7 @@ const char SCA_PropertySensor::GetProperty_doc[] =
 "\tReturn the property with which the sensor operates.\n";
 PyObject* SCA_PropertySensor::PyGetProperty() 
 {
-	ShowDeprecationWarning("getProperty()", "the 'property' property");
+	ShowDeprecationWarning("getProperty()", "the 'propName' property");
 	return PyString_FromString(m_checkpropname);
 }
 
@@ -418,7 +418,7 @@ const char SCA_PropertySensor::SetProperty_doc[] =
 "\tof this name, the call is ignored.\n";
 PyObject* SCA_PropertySensor::PySetProperty(PyObject* args) 
 {
-	ShowDeprecationWarning("setProperty()", "the 'property' property");
+	ShowDeprecationWarning("setProperty()", "the 'propName' property");
 	/* We should query whether the name exists. Or should we create a prop   */
 	/* on the fly?                                                           */
 	char *propNameArg = NULL;

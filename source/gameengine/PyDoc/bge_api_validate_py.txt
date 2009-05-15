@@ -51,7 +51,11 @@ if doc_dir not in sys.path:
 
 
 def check_attribute(class_ob, member):
-	for l in class_ob.__doc__.split('\n'):
+	doc = class_ob.__doc__
+	if not doc:
+		return False
+	
+	for l in doc.split('\n'):
 		l = l.strip()
 		
 		'''
@@ -128,6 +132,5 @@ for mod_name, pymod in mods_dict.iteritems():
 
 
 sys.path.pop() # remove the pydoc dir from our import paths
-
 
 

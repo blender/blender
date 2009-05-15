@@ -631,7 +631,7 @@ PyAttributeDef KX_ConstraintActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RW_CHECK("direction",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_refDirection,3,pyattr_check_direction),
 	KX_PYATTRIBUTE_INT_RW("option",0,0xFFFF,false,KX_ConstraintActuator,m_option),
 	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_ConstraintActuator,m_activeTime),
-	KX_PYATTRIBUTE_STRING_RW("property",0,32,true,KX_ConstraintActuator,m_property),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,32,true,KX_ConstraintActuator,m_property),
 	KX_PYATTRIBUTE_FLOAT_RW("min",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("distance",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_maximumBound),
