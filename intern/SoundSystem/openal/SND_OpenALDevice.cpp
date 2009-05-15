@@ -514,7 +514,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					bitrate = SND_GetBitRate(memlocation);
 					
 					/* load the sample into openal */
-					SND_alutLoadWAVMemory((char*)memlocation, size, &sampleformat, &data, &numberofsamples, &samplerate, &loop);
+					SND_alutLoadWAVMemory((ALbyte*)memlocation, size, &sampleformat, &data, &numberofsamples, &samplerate, &loop);
 					/* put it in the buffer */
 					alBufferData(m_buffers[buffer], sampleformat, data, numberofsamples, samplerate);
 				}

@@ -99,20 +99,6 @@ IF(UNIX)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
 
-  FIND_LIBRARY(ALUT_LIBRARY
-    NAMES alut
-    PATHS
-    /usr/local/lib
-    /usr/lib
-    /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
-  )
-  IF(ALUT_LIBRARY)
-    SET(OPENAL_LIB ${OPENAL_LIB} ${ALUT_LIBRARY})
-  ENDIF(ALUT_LIBRARY)
-
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
     PATHS
