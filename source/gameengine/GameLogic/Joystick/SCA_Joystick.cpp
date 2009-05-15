@@ -249,7 +249,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		else if (m_axismax < 0) m_axismax = 0;
 		
 		if(m_buttonmax<0) m_buttonmax= 0;
-		if(m_hatmax<0) m_buttonmax= 0;
+		if(m_hatmax<0) m_hatmax= 0;
 	}
 	return true;
 #endif

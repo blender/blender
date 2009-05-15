@@ -5504,3 +5504,19 @@ class KX_Camera(KX_GameObject):
 		@type right: int
 		@type top: int
 		"""
+
+# Util func to extract all attrs
+"""
+import types
+attrs = []
+for name, val in __builtins__.locals().items():
+	if name.startswith('__'):
+		continue
+	if type(val) == types.ClassType:
+		for line in val.__doc__.split('\n'):
+			if '@ivar' in line:
+				attrs.append(name + '::' + line.split()[1].replace(':', ''))
+
+for a in attrs:
+	print a
+"""
