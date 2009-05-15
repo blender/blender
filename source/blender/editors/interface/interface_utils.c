@@ -320,13 +320,12 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout;
+	uiLayout *layout, *split;
 	char *name;
 	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
 
-	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
 	iterprop= RNA_struct_iterator_property(ptr->type);
@@ -338,17 +337,16 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		uiLayoutSplit(layout, 2, 0);
+		split = uiLayoutSplit(layout);
 
 		name= (char*)RNA_property_ui_name(prop);
-		uiLayoutColumn(uiLayoutSub(layout, 0));
-		uiItemL(uiLayoutSub(layout, 0), name, 0);
-		uiLayoutColumn(uiLayoutSub(layout, 1));
-		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0, 0);
+
+		uiItemL(uiLayoutColumn(split, 0), name, 0);
+		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
-	uiLayoutEnd(C, block, layout, &x, &y);
+	uiBlockLayoutResolve(C, block, &x, &y);
 
 	return -y;
 }
@@ -363,9 +361,8 @@ int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	char *name;
 	int x= 0, y= 0;
 	
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
 	
-	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 	
 	iterprop= RNA_struct_iterator_property(ptr->type);
@@ -377,17 +374,13 @@ int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 		
-		uiLayoutSplit(layout, 1, 0);
-		uiLayoutColumn(uiLayoutSub(layout, 0));
-		
 		name= (char*)RNA_property_ui_name(prop);
-		uiItemL(uiLayoutSub(layout, 0), name, 0);
-
-		uiItemFullR(uiLayoutSub(layout, 0), "", 0, ptr, prop, -1, 0, 0);
+		uiItemL(layout, name, 0);
+		uiItemFullR(layout, "", 0, ptr, prop, -1, 0, 0);
 	}
 	
 	RNA_property_collection_end(&iter);
-	uiLayoutEnd(C, block, layout, &x, &y);
+	uiBlockLayoutResolve(C, block, &x, &y);
 	
 	return -y;
 }

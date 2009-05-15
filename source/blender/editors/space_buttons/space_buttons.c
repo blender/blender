@@ -170,21 +170,21 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	int vertical= (sbuts->align == BUT_VERTICAL);
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
-		uiRegionPanelLayout(C, ar, vertical, "scene");
+		ED_region_panels(C, ar, vertical, "scene");
 	else if(sbuts->mainb == BCONTEXT_WORLD)
-		uiRegionPanelLayout(C, ar, vertical, "world");
+		ED_region_panels(C, ar, vertical, "world");
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
-		uiRegionPanelLayout(C, ar, vertical, "object");
+		ED_region_panels(C, ar, vertical, "object");
 	else if(sbuts->mainb == BCONTEXT_DATA)
-		uiRegionPanelLayout(C, ar, vertical, "data");
+		ED_region_panels(C, ar, vertical, "data");
 	else if(sbuts->mainb == BCONTEXT_MATERIAL)
-		uiRegionPanelLayout(C, ar, vertical, "material");
+		ED_region_panels(C, ar, vertical, "material");
 	else if(sbuts->mainb == BCONTEXT_TEXTURE)
-		uiRegionPanelLayout(C, ar, vertical, "texture");
+		ED_region_panels(C, ar, vertical, "texture");
 	else if(sbuts->mainb == BCONTEXT_PARTICLE)
-		uiRegionPanelLayout(C, ar, vertical, "particle");
+		ED_region_panels(C, ar, vertical, "particle");
 	else if(sbuts->mainb == BCONTEXT_PHYSICS)
-		uiRegionPanelLayout(C, ar, vertical, "physics");
+		ED_region_panels(C, ar, vertical, "physics");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;

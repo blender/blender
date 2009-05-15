@@ -6588,7 +6588,7 @@ static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("Subdivision Type", 0);
+	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
 	uiPupMenuEnd(C, pup);

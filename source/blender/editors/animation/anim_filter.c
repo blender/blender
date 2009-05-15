@@ -754,7 +754,17 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 		Material *ma= give_current_material(ob, a);
 		
 		/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
-		if (ELEM3(NULL, ma, ma->adt, ma->adt->action)) continue;
+		if (ELEM(NULL, ma, ma->adt)) 
+			continue;
+		
+		if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS)==0) {
+			if (ANIMDATA_HAS_KEYS(ma) == 0)
+				continue;
+		}
+		else {
+			if (ANIMDATA_HAS_DRIVERS(ma) == 0)
+				continue;
+		}
 		
 		/* make a temp list elem for this */
 		ld= MEM_callocN(sizeof(LinkData), "DopeSheet-MaterialCache");
@@ -791,10 +801,16 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 				}
 			}
 			
-			/* add material's F-Curve channels? */
+			/* add material's F-Curve or Driver channels? */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS)==0) {
 					// XXX the 'owner' info here is still subject to improvement
-				items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
+					items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
+				}
+				else {
+					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
+					items += animdata_filter_fcurves(anim_data, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);
+				}	
 			}
 		}
 	}

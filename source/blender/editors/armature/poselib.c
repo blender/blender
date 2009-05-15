@@ -326,7 +326,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	pup= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
 	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
 	
@@ -460,7 +460,7 @@ static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent
 		return OPERATOR_CANCELLED;
 	
 	/* start building */
-	pup= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
 	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
 	

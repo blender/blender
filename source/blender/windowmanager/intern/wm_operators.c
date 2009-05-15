@@ -211,7 +211,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {
-		pup= uiPupMenuBegin(op->type->name, 0);
+		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
 		uiItemsEnumO(layout, op->type->idname, "type");
 		uiPupMenuEnd(C, pup);
@@ -226,7 +226,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("OK?", ICON_HELP);
+	pup= uiPupMenuBegin(C, "OK?", ICON_HELP);
 	layout= uiPupMenuLayout(pup);
 	uiItemO(layout, NULL, 0, op->type->idname);
 	uiPupMenuEnd(C, pup);
@@ -378,7 +378,7 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiLayout *layout;
 	int i, ofs= 0;
 
-	pup= uiPupMenuBegin("Open Recent", 0);
+	pup= uiPupMenuBegin(C, "Open Recent", 0);
 	layout= uiPupMenuLayout(pup);
 
 	if(G.sce[0]) {

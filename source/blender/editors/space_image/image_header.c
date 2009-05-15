@@ -945,7 +945,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 
-	pup= uiPupMenuBegin("Toolbox", 0);
+	pup= uiPupMenuBegin(C, "Toolbox", 0);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemMenuF(layout, "View", 0, image_viewmenu);

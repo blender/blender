@@ -210,8 +210,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				BezTriple *bezt;
 				
 				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-					yminv= MIN2(yminv, bezt->vec[1][1]);
-					ymaxv= MAX2(ymaxv, bezt->vec[1][1]);
+					if (bezt->vec[1][1] < yminv)
+						yminv= bezt->vec[1][1];
+					if (bezt->vec[1][1] > ymaxv)
+						ymaxv= bezt->vec[1][1];
 				}
 			}
 		}
@@ -227,8 +229,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				FPoint *fpt;
 				
 				for (fpt=fcu->fpt, i=0; i < fcu->totvert; fpt++, i++) {
-					yminv= MIN2(yminv, fpt->vec[1]);
-					ymaxv= MAX2(ymaxv, fpt->vec[1]);
+					if (fpt->vec[1] < yminv)
+						yminv= fpt->vec[1];
+					if (fpt->vec[1] > ymaxv)
+						ymaxv= fpt->vec[1];
 				}
 			}
 		}

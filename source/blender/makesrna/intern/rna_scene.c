@@ -502,6 +502,10 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Back Buffer", "Render backbuffer image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "output_path", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "pic");
+	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 }
 
 void RNA_def_scene(BlenderRNA *brna)

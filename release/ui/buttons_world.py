@@ -16,15 +16,15 @@ class WORLD_PT_world(WorldButtonsPanel):
 		world = context.scene.world
 		layout = self.layout
 		
-		layout.row()
-		layout.itemR(world, "blend_sky")
-		layout.itemR(world, "paper_sky")
-		layout.itemR(world, "real_sky")
+		row = layout.row()
+		row.itemR(world, "blend_sky")
+		row.itemR(world, "paper_sky")
+		row.itemR(world, "real_sky")
 		
-		layout.row()
-		layout.itemR(world, "horizon_color")
-		layout.itemR(world, "zenith_color")
-		layout.itemR(world, "ambient_color")
+		row = layout.row()
+		row.column().itemR(world, "horizon_color")
+		row.column().itemR(world, "zenith_color")
+		row.column().itemR(world, "ambient_color")
 		
 class WORLD_PT_color_correction(WorldButtonsPanel):
 	__label__ = "Color Correction"
@@ -33,9 +33,9 @@ class WORLD_PT_color_correction(WorldButtonsPanel):
 		world = context.scene.world
 		layout = self.layout
 
-		layout.row()
-		layout.itemR(world, "exposure")
-		layout.itemR(world, "range")
+		row = layout.row()
+		row.itemR(world, "exposure")
+		row.itemR(world, "range")
 	
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
@@ -44,18 +44,18 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		world = context.scene.world
 		layout = self.layout
 
-		layout.row()
-		layout.itemR(world.mist, "enabled", text="Enable")
+		row = layout.row()
+		row.itemR(world.mist, "enabled", text="Enable")
 		if (world.mist.enabled):
 	
-			layout.column_flow()
-			layout.itemR(world.mist, "start")
-			layout.itemR(world.mist, "depth")
-			layout.itemR(world.mist, "height")
-			layout.itemR(world.mist, "intensity")
-			layout.column()
-			layout.itemL(text="Fallof:")
-			layout.itemR(world.mist, "falloff", expand=True)
+			flow = layout.column_flow()
+			flow.itemR(world.mist, "start")
+			flow.itemR(world.mist, "depth")
+			flow.itemR(world.mist, "height")
+			flow.itemR(world.mist, "intensity")
+			col = layout.column()
+			col.itemL(text="Fallof:")
+			col.row().itemR(world.mist, "falloff", expand=True)
 		
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
@@ -64,15 +64,15 @@ class WORLD_PT_stars(WorldButtonsPanel):
 		world = context.scene.world
 		layout = self.layout
 
-		layout.row()
-		layout.itemR(world.stars, "enabled", text="Enable")
+		row = layout.row()
+		row.itemR(world.stars, "enabled", text="Enable")
 		if (world.stars.enabled):
 
-			layout.column_flow()
-			layout.itemR(world.stars, "size")
-			layout.itemR(world.stars, "min_distance", text="MinDist")
-			layout.itemR(world.stars, "average_separation", text="StarDist")
-			layout.itemR(world.stars, "color_randomization", text="Colnoise")
+			flow = layout.column_flow()
+			flow.itemR(world.stars, "size")
+			flow.itemR(world.stars, "min_distance", text="MinDist")
+			flow.itemR(world.stars, "average_separation", text="StarDist")
+			flow.itemR(world.stars, "color_randomization", text="Colnoise")
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
@@ -83,49 +83,49 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
 		ao = world.ambient_occlusion
 		
-		layout.row()
-		layout.itemR(ao, "enabled", text="Enable")
+		row = layout.row()
+		row.itemR(ao, "enabled", text="Enable")
 		if (ao.enabled):
 
-			layout.row()
-			layout.itemR(ao, "gather_method", expand=True)
+			row = layout.row()
+			row.itemR(ao, "gather_method", expand=True)
 			
 			if ao.gather_method == 'RAYTRACE':
-				layout.row()
-				layout.itemR(ao, "samples")
-				layout.itemR(ao, "distance")
+				row = layout.row()
+				row.itemR(ao, "samples")
+				row.itemR(ao, "distance")
 				
-				layout.row()
-				layout.itemR(ao, "sample_method")
+				row = layout.row()
+				row.itemR(ao, "sample_method")
 				if ao.sample_method == 'ADAPTIVE_QMC':
-					layout.row()
-					layout.itemR(ao, "threshold")
-					layout.itemR(ao, "adapt_to_speed")
+					row = layout.row()
+					row.itemR(ao, "threshold")
+					row.itemR(ao, "adapt_to_speed")
 					
 				if ao.sample_method == 'CONSTANT_JITTERED':
-					layout.row()
-					layout.itemR(ao, "bias")
+					row = layout.row()
+					row.itemR(ao, "bias")
 							
 			if ao.gather_method == 'APPROXIMATE':
-				layout.row()
-				layout.itemR(ao, "passes")
-				layout.itemR(ao, "error_tolerance")
+				row = layout.row()
+				row.itemR(ao, "passes")
+				row.itemR(ao, "error_tolerance")
 				
-				layout.row()
-				layout.itemR(ao, "correction")
-				layout.itemR(ao, "pixel_cache")
+				row = layout.row()
+				row.itemR(ao, "correction")
+				row.itemR(ao, "pixel_cache")
 
-			layout.row()
-			layout.itemS()
+			row = layout.row()
+			row.itemS()
 				
-			layout.row()
-			layout.itemR(ao, "falloff")	
-			layout.itemR(ao, "strength")
+			row = layout.row()
+			row.itemR(ao, "falloff")	
+			row.itemR(ao, "strength")
 			
-			layout.column()
-			layout.itemR(ao, "blend_mode", expand=True)
-			layout.itemR(ao, "color", expand=True)
-			layout.itemR(ao, "energy")
+			col = layout.column()
+			col.row().itemR(ao, "blend_mode", expand=True)
+			col.row().itemR(ao, "color", expand=True)
+			col.itemR(ao, "energy")
 	
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_mist)

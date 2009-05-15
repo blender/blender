@@ -38,9 +38,11 @@ struct bContext;
 struct IDProperty;
 struct uiHandleButtonData;
 struct wmEvent;
+struct wmOperatorType;
 struct wmWindow;
 struct uiStyle;
 struct uiWidgetColors;
+struct uiLayout;
 
 /* ****************** general defines ************** */
 
@@ -99,8 +101,6 @@ typedef enum {
 
 /* internal panel drawing defines */
 #define PNL_GRID	4
-#define PNL_DIST	4
-#define PNL_SAFETY 	8
 #define PNL_HEADER  20
 
 /* panel->flag */
@@ -145,6 +145,7 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
+	short alignnr;
 	int flag;
 	
 	char *str;
@@ -196,7 +197,7 @@ struct uiBut {
 	int rnaindex;
 
 	/* Operator data */
-	const char *opname;
+	struct wmOperatorType *optype;
 	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
@@ -216,10 +217,13 @@ struct uiBut {
 
 struct uiBlock {
 	uiBlock *next, *prev;
-	
+
 	ListBase buttons;
 	Panel *panel;
 	uiBlock *oldblock;
+
+	struct uiLayout *layout;
+	struct uiLayout *curlayout;
 	
 	char name[UI_MAX_NAME_STR];
 	
@@ -227,6 +231,8 @@ struct uiBlock {
 	
 	float minx, miny, maxx, maxy;
 	float aspect;
+
+	short alignnr;
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -302,6 +308,7 @@ extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
+extern void ui_block_do_align(uiBlock *block);
 
 /* interface_regions.c */
 
@@ -318,7 +325,7 @@ struct uiPopupBlockHandle {
 	void *popup_arg;
 
 	/* for operator popups */
-	const char *opname;
+	struct wmOperatorType *optype;
 	int opcontext;
 	ScrArea *ctx_area;
 	ARegion *ctx_region;
@@ -389,6 +396,8 @@ void ui_theme_init_userdef(void);
 void ui_resources_init(void);
 void ui_resources_free(void);
 
+/* interface_layout.c */
+void ui_layout_add_but(struct uiLayout *layout, uiBut *but);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

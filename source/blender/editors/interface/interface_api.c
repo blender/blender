@@ -56,9 +56,20 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* simple layout specifiers */
 	func= RNA_def_function(srna, "row", "uiLayoutRow");
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
+	RNA_def_function_return(func, parm);
+	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
+
 	func= RNA_def_function(srna, "column", "uiLayoutColumn");
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
+	RNA_def_function_return(func, parm);
+	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
+
 	func= RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
 	parm= RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
+	RNA_def_function_return(func, parm);
+	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other.");
 
 	/* box layout */
 	func= RNA_def_function(srna, "box", "uiLayoutBox");
@@ -67,13 +78,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* split layout */
 	func= RNA_def_function(srna, "split", "uiLayoutSplit");
-	parm= RNA_def_int(func, "number", 2, 0, INT_MAX, "", "Number of splits.", 0, INT_MAX);
-	parm= RNA_def_boolean(func, "lr", 0, "", "LR.");
-
-	/* sub layout */
-	func= RNA_def_function(srna, "sub", "uiLayoutSub");
-	parm= RNA_def_int(func, "n", 0, 0, INT_MAX, "", "Index of sub-layout.", 0, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 
@@ -161,6 +165,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "itemM", "uiItemM");
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
 	parm= RNA_def_string(func, "menu", "", 0, "", "Identifier of the menu.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -169,8 +175,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "template_header_ID", "uiTemplateHeaderID");
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of pointer property in data.");

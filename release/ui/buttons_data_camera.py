@@ -21,30 +21,30 @@ class DATA_PT_cameralens(DataButtonsPanel):
 		if not cam:
 			return
 		
-		layout.row()
 		layout.itemR(cam, "type", expand=True)
 		
-		layout.row()
-		if (cam.type == 'PERSP'):
-			layout.itemR(cam, "lens_unit")
-			if (cam.lens_unit == 'MILLIMETERS'):
-				layout.itemR(cam, "lens", text="Angle")
-			if (cam.lens_unit == 'DEGREES'):
-				layout.itemR(cam, "angle")
-		if (cam.type == 'ORTHO'):
-			layout.itemR(cam, "ortho_scale")
+		row = layout.row(align=True)
+		if cam.type == 'PERSP':
+			if cam.lens_unit == 'MILLIMETERS':
+				row.itemR(cam, "lens", text="Angle")
+			elif cam.lens_unit == 'DEGREES':
+				row.itemR(cam, "angle")
+
+			row.itemR(cam, "lens_unit", text="")
+		elif cam.type == 'ORTHO':
+			row.itemR(cam, "ortho_scale")
 		
-		layout.column_flow()
-		layout.itemL(text="Shift:")
-		layout.itemR(cam, "shift_x", text="X")
-		layout.itemR(cam, "shift_y", text="Y")
-		layout.itemL(text="Clipping:")
-		layout.itemR(cam, "clip_start", text="Start")
-		layout.itemR(cam, "clip_end", text="End")
+		flow = layout.column_flow()
+		flow.itemL(text="Shift:")
+		flow.itemR(cam, "shift_x", text="X")
+		flow.itemR(cam, "shift_y", text="Y")
+		flow.itemL(text="Clipping:")
+		flow.itemR(cam, "clip_start", text="Start")
+		flow.itemR(cam, "clip_end", text="End")
 		
-		layout.row()
-		layout.itemR(cam, "dof_object")
-		layout.itemR(cam, "dof_distance")
+		row = layout.row()
+		row.itemR(cam, "dof_object")
+		row.itemR(cam, "dof_distance")
 		
 class DATA_PT_cameradisplay(DataButtonsPanel):
 	__idname__ = "DATA_PT_cameradisplay"
@@ -57,23 +57,21 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		if not cam:
 			return
 			
-		layout.split(number=2)
+		split = layout.split()
 		
-		sub = layout.sub(0)
-		sub.column()
+		sub = split.column()
 		sub.itemR(cam, "show_limits", text="Limits")
 		sub.itemR(cam, "show_mist", text="Mist")
 		sub.itemR(cam, "show_title_safe", text="Title Safe")
 		sub.itemR(cam, "show_name", text="Name")
 		
-		sub = layout.sub(1)
+		sub = split.column()
 		subsub = sub.box()
-		subsub.column()
 		subsub.itemR(cam, "show_passepartout", text="Passepartout")
 		if (cam.show_passepartout):
 			subsub.itemR(cam, "passepartout_alpha", text="Alpha")
-		sub.row()
-		sub.itemR(cam, "draw_size", text="Size")
+		row = sub.row()
+		row.itemR(cam, "draw_size", text="Size")
 		
 bpy.types.register(DATA_PT_cameralens)
 bpy.types.register(DATA_PT_cameradisplay)

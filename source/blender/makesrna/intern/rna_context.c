@@ -97,6 +97,7 @@ void RNA_def_context(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Context", NULL);
 	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context.");
+	RNA_def_struct_sdna(srna, "bContext");
 
 	/* WM */
 	prop= RNA_def_property(srna, "manager", PROP_POINTER, PROP_NONE);

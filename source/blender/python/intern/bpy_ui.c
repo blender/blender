@@ -43,12 +43,13 @@
 
 static PyObject *Method_pupMenuBegin( PyObject * self, PyObject * args )
 {
+	PyObject *py_context;
 	char *title; int icon;
 	
-	if( !PyArg_ParseTuple( args, "si:pupMenuBegin", &title, &icon))
+	if( !PyArg_ParseTuple( args, "O!si:pupMenuBegin", &PyCObject_Type, &py_context, &title, &icon))
 		return NULL;
 	
-	return PyCObject_FromVoidPtr( uiPupMenuBegin(title, icon), NULL );
+	return PyCObject_FromVoidPtr( uiPupMenuBegin(PyCObject_AsVoidPtr(py_context), title, icon), NULL );
 }
 
 static PyObject *Method_pupMenuEnd( PyObject * self, PyObject * args )

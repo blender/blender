@@ -1133,7 +1133,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		pup= uiPupMenuBegin("OK", ICON_HELP);
+		pup= uiPupMenuBegin(C, "OK", ICON_HELP);
 		layout= uiPupMenuLayout(pup);
 		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);

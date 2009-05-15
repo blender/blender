@@ -428,7 +428,6 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 
 /* ****************************************** */
 /* Drivers - PyExpression Evaluation */
-// XXX Hopefully I haven't committed any PyAPI coding sins here ;)  - Aligorith, 2009Apr20
 
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict = NULL;

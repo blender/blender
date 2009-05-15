@@ -1581,7 +1581,7 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(items==0)
 		return OPERATOR_CANCELLED;
 	
-	pup= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
 
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
@@ -1827,7 +1827,7 @@ static void newlevel1(bContext *C, uiLayout *layout, void *arg)
 
 static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiPopupMenu *pup= uiPupMenuBegin("Hello world", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Hello world", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);

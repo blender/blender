@@ -121,6 +121,8 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->boxspace= 5;
 	style->buttonspacex= 5;
 	style->buttonspacey= 2;
+	style->panelspace= 8;
+	style->panelouter= 4;
 	
 	return style;
 }
