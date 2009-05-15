@@ -2166,34 +2166,6 @@ void fcurve_free_modifiers (FCurve *fcu)
 	}
 }
 
-/* Bake modifiers for given F-Curve to curve sample data, in the frame range defined
- * by start and end (inclusive).
- */
-void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
-{
-	ChannelDriver *driver;
-	
-	/* sanity checks */
-	// TODO: make these tests report errors using reports not printf's
-	if ELEM(NULL, fcu, fcu->modifiers.first) {
-		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
-		return;
-	}
-	
-	/* temporarily, disable driver while we sample, so that they don't influence the outcome */
-	driver= fcu->driver;
-	fcu->driver= NULL;
-	
-	/* bake the modifiers, by sampling the curve at each frame */
-	fcurve_store_samples(fcu, NULL, start, end, fcurve_samplingcb_evalcurve);
-	
-	/* free the modifiers now */
-	fcurve_free_modifiers(fcu);
-	
-	/* restore driver */
-	fcu->driver= driver;
-}
-
 /* Find the active F-Curve Modifier */
 FModifier *fcurve_find_active_modifier (FCurve *fcu)
 {
@@ -2231,6 +2203,98 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
 		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
+/* Evaluation API --------------------------- */
+
+/* evaluate time modifications imposed by some F-Curve Modifiers
+ *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
+ *	  several times by modifiers requesting the time be modified, as the final result
+ *	  would have required using the modified time
+ *	- modifiers only ever recieve the unmodified time, as subsequent modifiers should be
+ *	  working on the 'global' result of the modified curve, not some localised segment,
+ *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
+ *	- we start from the end of the stack, as only the last one matters for now
+ */
+float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, float evaltime)
+{
+	FModifier *fcm;
+	float m_evaltime= evaltime;
+	
+	/* sanity checks */
+	if ELEM(NULL, modifiers, modifiers->first)
+		return evaltime;
+		
+	/* find the first modifier from end of stack that modifies time, and calculate the time the modifier
+	 * would calculate time at
+	 */
+	for (fcm= fcu->modifiers.last; fcm; fcm= fcm->prev) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* only evaluate if there's a callback for this */
+		// TODO: implement the 'influence' control feature...
+		if (fmi && fmi->evaluate_modifier_time) {
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+				m_evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+			break;
+		}
+	}
+	
+	/* return the modified evaltime */
+	return m_evaltime;
+}
+
+/* Evalautes the given set of F-Curve Modifiers using the given data
+ * Should only be called after evaluate_time_fmodifiers() has been called...
+ */
+void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue, float evaltime)
+{
+	FModifier *fcm;
+	
+	/* sanity checks */
+	if ELEM(NULL, modifiers, modifiers->first)
+		return;
+	
+	/* evaluate modifiers */
+	for (fcm= modifiers->first; fcm; fcm= fcm->next) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* only evaluate if there's a callback for this */
+		// TODO: implement the 'influence' control feature...
+		if (fmi && fmi->evaluate_modifier) {
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+				fmi->evaluate_modifier(fcu, fcm, cvalue, evaltime);
+		}
+	}
+} 
+
+
+/* Bake modifiers for given F-Curve to curve sample data, in the frame range defined
+ * by start and end (inclusive).
+ */
+void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
+{
+	ChannelDriver *driver;
+	
+	/* sanity checks */
+	// TODO: make these tests report errors using reports not printf's
+	if ELEM(NULL, fcu, fcu->modifiers.first) {
+		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
+		return;
+	}
+	
+	/* temporarily, disable driver while we sample, so that they don't influence the outcome */
+	driver= fcu->driver;
+	fcu->driver= NULL;
+	
+	/* bake the modifiers, by sampling the curve at each frame */
+	fcurve_store_samples(fcu, NULL, start, end, fcurve_samplingcb_evalcurve);
+	
+	/* free the modifiers now */
+	fcurve_free_modifiers(fcu);
+	
+	/* restore driver */
+	fcu->driver= driver;
+}
+
 /* ***************************** F-Curve - Evaluation ********************************* */
 
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
@@ -2238,7 +2302,6 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
  */
 float evaluate_fcurve (FCurve *fcu, float evaltime) 
 {
-	FModifier *fcm;
 	float cvalue= 0.0f;
 	float devaltime;
 	
@@ -2251,28 +2314,8 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		evaltime= cvalue= evaluate_driver(fcu->driver, evaltime);
 	}
 	
-	/* evaluate time modifications imposed by some F-Curve Modifiers
-	 *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
-	 *	  several times by modifiers requesting the time be modified, as the final result
-	 *	  would have required using the modified time
-	 *	- modifiers only ever recieve the unmodified time, as subsequent modifiers should be
-	 *	  working on the 'global' result of the modified curve, not some localised segment,
-	 *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
-	 *	- we start from the end of the stack, as only the last one matters for now
-	 */
-	devaltime= evaltime;
-	
-	for (fcm= fcu->modifiers.last; fcm; fcm= fcm->prev) {
-		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-		
-		/* only evaluate if there's a callback for this */
-		// TODO: implement the 'influence' control feature...
-		if (fmi && fmi->evaluate_modifier_time) {
-			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				devaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
-			break;
-		}
-	}
+	/* evaluate modifiers which modify time to evaluate the base curve at */
+	devaltime= evaluate_time_fmodifiers(&fcu->modifiers, fcu, cvalue, evaltime);
 	
 	/* evaluate curve-data 
 	 *	- 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying 
@@ -2284,16 +2327,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		cvalue= fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 	
 	/* evaluate modifiers */
-	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-		
-		/* only evaluate if there's a callback for this */
-		// TODO: implement the 'influence' control feature...
-		if (fmi && fmi->evaluate_modifier) {
-			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
-		}
-	}
+	evaluate_value_fmodifiers(&fcu->modifiers, fcu, &cvalue, evaltime);
 	
 	/* if curve can only have integral values, perform truncation (i.e. drop the decimal part)
 	 * here so that the curve can be sampled correctly

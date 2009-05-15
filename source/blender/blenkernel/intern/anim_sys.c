@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <float.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -564,7 +565,7 @@ enum {
 typedef struct NlaEvalChannel {
 	struct NlaEvalChannel *next, *prev;
 	
-	PointerRNA *ptr;		/* pointer to struct containing property to use */
+	PointerRNA ptr;			/* pointer to struct containing property to use */
 	PropertyRNA *prop;		/* RNA-property type to use (should be in the struct given) */
 	int index;				/* array index (where applicable) */
 	
@@ -638,13 +639,13 @@ static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 }
 
 /* evaluate the evaluation time and influence for the strip, storing the results in the strip */
-void nlastrip_evaluate_controls (NlaStrip *strip, float cframe)
+void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 {
 	/* firstly, analytically generate values for influence and time (if applicable) */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
-		strip->strip_time= nlastrip_get_frame(strip, cframe, 1); /* last arg '1' means current time to 'strip'/action time */
+		strip->strip_time= nlastrip_get_frame(strip, ctime, 1); /* last arg '1' means current time to 'strip'/action time */
 	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
-		strip->influence= nlastrip_get_influence(strip, cframe);
+		strip->influence= nlastrip_get_influence(strip, ctime);
 	
 	/* now strip's evaluate F-Curves for these settings (if applicable) */
 	if (strip->fcurves.first) {
@@ -766,13 +767,104 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 
 /* ---------------------- */
 
-/* evaluates the given evaluation strip */
-// FIXME: will we need the evaluation cache table set up to blend stuff in?
-// TODO: only evaluate here, but flush in one go using the accumulated channels at end...
-static void nlastrip_ctime_evaluate (ListBase *channels, NlaEvalStrip *nes, float ctime)
+/* verify that an appropriate NlaEvalChannel for this F-Curve */
+static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes, FCurve *fcu, short *newChan)
 {
-	// 1. (in old code) was to extract 'IPO-channels' from actions
-	// 2. blend between the 'accumulated' data, and the new data
+	NlaEvalChannel *nec= NULL;
+	NlaStrip *strip= nes->strip;
+	PropertyRNA *prop;
+	PointerRNA new_ptr;
+	char *path = NULL;
+	short free_path=0;
+	
+	/* sanity checks */
+	if (channels == NULL)
+		return NULL;
+	
+	/* get RNA pointer+property info from F-Curve for more convenient handling */
+		/* get path, remapped as appropriate to work in its new environment */
+	free_path= animsys_remap_path(strip->remap, fcu->rna_path, &path);
+	
+		/* get property to write to */
+	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0)
+		return NULL;
+		/* only ok if animateable */
+	else if (RNA_property_animateable(&new_ptr, prop) == 0) 
+		return NULL;
+	
+	/* loop through existing channels, checking for a channel which affects the same property */
+	for (nec= channels->first; nec; nec= nec->next) {
+		if ((nec->ptr.data == new_ptr.data) && (nec->prop == prop))
+			return nec;
+	}
+	
+	/* allocate a new struct for this */
+	nec= MEM_callocN(sizeof(NlaEvalChannel), "NlaEvalChannel");
+	*newChan= 1;
+	BLI_addtail(channels, nec);
+	
+	nec->ptr= new_ptr; 
+	nec->prop= prop;
+	nec->index= fcu->array_index;
+	
+	return nec;
+}
+
+/* ---------------------- */
+
+/* evaluate action-clip strip */
+static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+{
+	NlaStrip *strip= nes->strip;
+	FCurve *fcu;
+	float evaltime;
+	
+	/* evaluate strip's modifiers which modify time to evaluate the base curves at */
+	evaltime= evaluate_time_fmodifiers(&strip->modifiers, NULL, 0.0f, strip->strip_time);
+	
+	/* evaluate all the F-Curves in the action, saving the relevant pointers to data that will need to be used */
+	for (fcu= strip->act->curves.first; fcu; fcu= fcu->next) {
+		NlaEvalChannel *nec;
+		float value = 0.0f;
+		short newChan = -1;
+		
+		/* check if this curve should be skipped */
+		if (fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) 
+			continue;
+			
+		/* evaluate the F-Curve's value for the time given in the strip 
+		 * NOTE: we use the modified time here, since strip's F-Curve Modifiers are applied on top of this 
+		 */
+		value= evaluate_fcurve(fcu, evaltime);
+		
+		/* apply strip's F-Curve Modifiers on this value 
+		 * NOTE: we apply the strip's original evaluation time not the modified one (as per standard F-Curve eval)
+		 */
+		evaluate_value_fmodifiers(&strip->modifiers, fcu, &value, strip->strip_time);
+		
+		
+		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
+		 * stored in this channel if it has been used already
+		 */
+		nec= nlaevalchan_verify(ptr, channels, nes, fcu, &newChan);
+		//if (nec)
+		//	nlaevalchan_accumulate(ptr, nec, nes, newChan, value);
+	}
+}
+
+/* evaluates the given evaluation strip */
+// TODO: only evaluate here, but flush in one go using the accumulated channels at end...
+static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+{
+	/* actions to take depend on the type of strip */
+	switch (nes->strip->type) {
+		case NLASTRIP_TYPE_CLIP: /* action-clip */
+			nlastrip_evaluate_actionclip(ptr, channels, nes);
+			break;
+		case NLASTRIP_TYPE_TRANSITION: /* transition */
+			// XXX code this...
+			break;
+	}
 }
 
 /* write the accumulated settings to */
@@ -807,7 +899,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	/* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
 	for (nes= estrips.first; nes; nes= nes->next) 
-		nlastrip_ctime_evaluate(&echannels, nes, ctime);
+		nlastrip_evaluate(ptr, &echannels, nes);
 	
 	/* 3. flush effects of accumulating channels in NLA to the actual data they affect */
 	nladata_flush_channels(ptr, &echannels);

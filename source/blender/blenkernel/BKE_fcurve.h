@@ -108,10 +108,14 @@ struct FModifier *fcurve_add_modifier(struct FCurve *fcu, int type);
 void fcurve_copy_modifiers(ListBase *dst, ListBase *src);
 void fcurve_remove_modifier(struct FCurve *fcu, struct FModifier *fcm);
 void fcurve_free_modifiers(struct FCurve *fcu);
-void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
 
 struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
 void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
+
+float evaluate_time_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float cvalue, float evaltime);
+void evaluate_value_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float *cvalue, float evaltime);
+
+void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
 
 /* ************** F-Curves API ******************** */
 
