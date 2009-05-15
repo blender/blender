@@ -58,6 +58,27 @@ bool SCA_IActuator::Update()
 	return false;
 }
 
+void SCA_IActuator::Activate(SG_DList& head)
+{
+	if (QEmpty())
+	{
+		InsertActiveQList(m_gameobj->m_activeActuators);
+		head.AddBack(&m_gameobj->m_activeActuators);
+	}
+}
+
+void SCA_IActuator::Deactivate()
+{
+	if (QDelink())
+	{
+		// the actuator was in the active list
+		if (m_gameobj->m_activeActuators.QEmpty())
+			// the owner object has no more active actuators, remove it from the global list
+			m_gameobj->m_activeActuators.Delink();
+	}
+}
+
+
 void SCA_IActuator::ProcessReplica()
 {
 	SCA_ILogicBrick::ProcessReplica();

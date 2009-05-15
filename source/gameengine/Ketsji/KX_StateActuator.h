@@ -46,6 +46,7 @@ class KX_StateActuator : public SCA_IActuator
 		OP_NEG,
 		OP_COUNT
 	};
+	static SG_QList	m_stateActuatorHead;
 	int				m_operation;
 	int				m_mask;
 
@@ -70,6 +71,9 @@ class KX_StateActuator : public SCA_IActuator
 
 	virtual bool
 		Update();
+
+	virtual void Deactivate();
+	virtual void Activate(SG_DList& head);
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

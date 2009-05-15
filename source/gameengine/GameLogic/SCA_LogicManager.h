@@ -65,6 +65,7 @@ typedef std::map<class SCA_ISensor*,controllerlist > sensormap_t;
 */
 
 #include "SCA_ILogicBrick.h"
+#include "SCA_IActuator.h"
 
 
 class SCA_LogicManager
@@ -103,7 +104,13 @@ public:
 	void	BeginFrame(double curtime, double fixedtime);
 	void	UpdateFrame(double curtime, bool frame);
 	void	EndFrame();
-	void	AddActiveActuator(SCA_IActuator* sensor,bool event);
+	void	AddActiveActuator(SCA_IActuator* actua,bool event)
+	{
+		actua->SetActive(true);
+		actua->Activate(m_activeActuators);
+		actua->AddEvent(event);
+	}
+
 	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	

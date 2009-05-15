@@ -118,23 +118,8 @@ public:
 	/**
 	 * remove this actuator from the list of active actuators
 	 */
-	void Deactivate()
-	{
-		if (QDelink())
-			// the actuator was in the active list
-			if (m_gameobj->m_activeActuators.QEmpty())
-				// the owner object has no more active actuators, remove it from the global list
-				m_gameobj->m_activeActuators.Delink();
-	}
-
-	void Activate(SG_DList& head)
-	{
-		if (QEmpty())
-		{
-			InsertActiveQList(m_gameobj->m_activeActuators);
-			head.AddBack(&m_gameobj->m_activeActuators);
-		}
-	}
+	virtual void Deactivate();
+	virtual void Activate(SG_DList& head);
 
 	void	LinkToController(SCA_IController* controller);
 	void	UnlinkController(class SCA_IController* cont);

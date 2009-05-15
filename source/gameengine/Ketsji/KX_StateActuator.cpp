@@ -55,6 +55,9 @@ KX_StateActuator::~KX_StateActuator(
 	// intentionally empty
 }
 
+// used to put state actuator to be executed before any other actuators
+SG_QList KX_StateActuator::m_stateActuatorHead;
+
 CValue*
 KX_StateActuator::GetReplica(
 	void
@@ -98,6 +101,28 @@ KX_StateActuator::Update()
 	obj->SetState(objMask);
 	return false;
 }
+
+void KX_StateActuator::Deactivate()
+{
+	if (QDelink())
+	{
+		// the actuator was in the active list
+		if (m_stateActuatorHead.QEmpty())
+			// no more state object active
+			m_stateActuatorHead.Delink();
+	}
+}
+
+void KX_StateActuator::Activate(SG_DList& head)
+{
+	// no need to sort the state actuators
+	if (m_stateActuatorHead.QAddBack(this))
+	{
+		// add front to make sure it runs before other actuators
+		head.AddFront(&m_stateActuatorHead);
+	}
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

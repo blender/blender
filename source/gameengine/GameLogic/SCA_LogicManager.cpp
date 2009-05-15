@@ -312,16 +312,6 @@ void SCA_LogicManager::AddTriggeredController(SCA_IController* controller, SCA_I
 	}
 }
 
-
-void SCA_LogicManager::AddActiveActuator(SCA_IActuator* actua,bool event)
-{
-	actua->SetActive(true);
-	actua->Activate(m_activeActuators);
-	actua->AddEvent(event);
-}
-
-
-
 SCA_EventManager* SCA_LogicManager::FindEventManager(int eventmgrtype)
 {
 	// find an eventmanager of a certain type
