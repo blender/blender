@@ -27,10 +27,10 @@ class DATA_PT_lamp(DataButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
+		sub.itemR(lamp, "color")
 		sub.itemR(lamp, "energy")
 		sub.itemR(lamp, "distance")
 		sub.itemR(lamp, "negative")
-		sub.itemR(lamp, "color")
 	
 		sub = split.column()
 		sub.itemR(lamp, "layer", text="This Layer Only")
@@ -124,11 +124,11 @@ class DATA_PT_shadow(DataButtonsPanel):
 			split = layout.split()
 			
 			sub = split.column()
-			sub.itemR(lamp, "only_shadow")
-			sub.itemR(lamp, "shadow_layer")
+			sub.itemR(lamp, "shadow_color")
 			
 			sub = split.column()
-			sub.itemR(lamp, "shadow_color")
+			sub.itemR(lamp, "shadow_layer", text="This Layer Only")
+			sub.itemR(lamp, "only_shadow")
 		
 		if lamp.shadow_method == 'RAY_SHADOW':
 		
@@ -136,7 +136,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			col.itemL(text="Sampling:")
 			col.row().itemR(lamp, "shadow_ray_sampling_method", expand=True)
 				
-			if lamp.type in ('POINT', 'SUN', 'SPOT') and lamp.shadow_ray_sampling_method in ('CONSTANT_QMC', 'ADAPTIVE_QMC'):
+			if lamp.type in ('POINT', 'SUN', 'SPOT'):
 				flow = layout.column_flow()
 				flow.itemR(lamp, "shadow_soft_size", text="Soft Size")
 				flow.itemR(lamp, "shadow_ray_samples", text="Samples")
@@ -161,9 +161,10 @@ class DATA_PT_shadow(DataButtonsPanel):
 			if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY'):
 				flow = layout.column_flow()
 				flow.itemL(text="Sample Buffers:")
-				flow.row().itemR(lamp, "shadow_sample_buffers", expand=True)
+				flow.itemR(lamp, "shadow_sample_buffers", text="")
 				flow.itemL(text="Filter Type:")
-				flow.row().itemR(lamp, "shadow_filter_type", expand=True)
+				flow.itemR(lamp, "shadow_filter_type", text="")
+				
 				flow = layout.column_flow()
 				flow.itemR(lamp, "shadow_buffer_size", text="Size")
 				flow.itemR(lamp, "shadow_buffer_samples", text="Samples")
