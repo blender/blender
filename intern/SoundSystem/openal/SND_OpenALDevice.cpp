@@ -43,11 +43,9 @@
 #ifdef APPLE_FRAMEWORK_FIX
 #include <al.h>
 #include <alc.h>
-#include <alut.h>
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <AL/alut.h>
 #endif
 
 #include <stdio.h>
@@ -61,13 +59,12 @@
 
 #include <signal.h>
 
-/* untill openal gets unified we need this hack for non-windows systems */
-#if !defined(WIN32) && !defined(ALC_MAJOR_VERSION)
+/*************************** ALUT replacement *****************************/
 
-#include <malloc.h>
+/* instead of relying on alut, we just implement our own
+ * WAV loading functions, hopefully more reliable */
 
-ALvoid alutLoadWAVMemory(ALbyte *memory,ALenum *format,ALvoid **data,ALsizei *size,ALsizei *freq,ALboolean *loop);
-ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq);
+#include <stdlib.h>
 
 typedef struct                                  /* WAV File-header */
 {
@@ -120,93 +117,189 @@ typedef struct                                  /* WAV Chunk-header */
   ALuint   Size;
 } WAVChunkHdr_Struct;
 
-ALvoid alutLoadWAVMemory(ALbyte *memory,ALenum *format,ALvoid **data,ALsizei *size,ALsizei *freq,ALboolean *loop)
+static void *SND_loadFileIntoMemory(const char *filename, int *len_r)
+{
+	FILE *fp= fopen(filename, "rb");
+	void *data;
+
+	if (!fp) {
+		*len_r= -1;
+		return NULL;
+	}
+
+	fseek(fp, 0L, SEEK_END);
+	*len_r= ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+
+	data= malloc(*len_r);
+	if (!data) {
+		*len_r= -1;
+		return NULL;
+	}
+
+	if (fread(data, *len_r, 1, fp)!=1) {
+		*len_r= -1;
+		free(data);
+		return NULL;
+	}
+
+	return data;
+}
+
+#define TEST_SWITCH_INT(a) if(big_endian) { \
+    char s_i, *p_i; \
+    p_i= (char *)&(a); \
+    s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
+    s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
+
+#define TEST_SWITCH_SHORT(a) if(big_endian) { \
+    char s_i, *p_i; \
+    p_i= (char *)&(a); \
+    s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
+
+static int stream_read(void *out, ALbyte **stream, ALsizei size, ALsizei *memsize)
+{
+	if(size <= *memsize) {
+		memcpy(out, *stream, size);
+		return 1;
+	}
+	else {
+		memset(out, 0, size);
+		return 0;
+	}
+}
+
+static int stream_skip(ALbyte **stream, ALsizei size, ALsizei *memsize)
+{
+	if(size <= *memsize) {
+		*stream += size;
+		*memsize -= size;
+		return 1;
+	}
+	else
+		return 0;
+}
+
+ALvoid SND_alutLoadWAVMemory(ALbyte *memory,ALsizei memsize,ALenum *format,ALvoid **data,ALsizei *size,ALsizei *freq,ALboolean *loop)
 {
 	WAVChunkHdr_Struct ChunkHdr;
 	WAVFmtExHdr_Struct FmtExHdr;
 	WAVFileHdr_Struct FileHdr;
 	WAVSmplHdr_Struct SmplHdr;
 	WAVFmtHdr_Struct FmtHdr;
-	ALbyte *Stream;
+	ALbyte *Stream= memory;
+	int test_endian= 1;
+	int big_endian= !((char*)&test_endian)[0];
 	
 	*format=AL_FORMAT_MONO16;
 	*data=NULL;
 	*size=0;
 	*freq=22050;
 	*loop=AL_FALSE;
-	if (memory)
+
+	if(!Stream)
+		return;
+ 
+ 	stream_read(&FileHdr,&Stream,sizeof(WAVFileHdr_Struct),&memsize);
+	stream_skip(&Stream,sizeof(WAVFileHdr_Struct),&memsize);
+
+	TEST_SWITCH_INT(FileHdr.Size);
+	FileHdr.Size=((FileHdr.Size+1)&~1)-4;
+
+	while((FileHdr.Size!=0) && stream_read(&ChunkHdr,&Stream,sizeof(WAVChunkHdr_Struct),&memsize))
 	{
-		Stream=memory;
-		if (Stream)
+		TEST_SWITCH_INT(ChunkHdr.Size);
+		stream_skip(&Stream,sizeof(WAVChunkHdr_Struct),&memsize);
+
+		if (!memcmp(ChunkHdr.Id,"fmt ",4))
 		{
-			memcpy(&FileHdr,Stream,sizeof(WAVFileHdr_Struct));
-			Stream+=sizeof(WAVFileHdr_Struct);
-			FileHdr.Size=((FileHdr.Size+1)&~1)-4;
-			while ((FileHdr.Size!=0)&&(memcpy(&ChunkHdr,Stream,sizeof(WAVChunkHdr_Struct))))
+			stream_read(&FmtHdr,&Stream,sizeof(WAVFmtHdr_Struct),&memsize);
+
+			TEST_SWITCH_SHORT(FmtHdr.Format);
+			TEST_SWITCH_SHORT(FmtHdr.Channels);
+			TEST_SWITCH_INT(FmtHdr.SamplesPerSec);
+			TEST_SWITCH_INT(FmtHdr.BytesPerSec);
+			TEST_SWITCH_SHORT(FmtHdr.BlockAlign);
+			TEST_SWITCH_SHORT(FmtHdr.BitsPerSample);
+
+			if (FmtHdr.Format==0x0001)
 			{
-				Stream+=sizeof(WAVChunkHdr_Struct);
-				if (!memcmp(ChunkHdr.Id,"fmt ",4))
-				{
-					memcpy(&FmtHdr,Stream,sizeof(WAVFmtHdr_Struct));
-					if (FmtHdr.Format==0x0001)
-					{
-						*format=(FmtHdr.Channels==1?
-								(FmtHdr.BitsPerSample==8?AL_FORMAT_MONO8:AL_FORMAT_MONO16):
-								(FmtHdr.BitsPerSample==8?AL_FORMAT_STEREO8:AL_FORMAT_STEREO16));
-						*freq=FmtHdr.SamplesPerSec;
-						Stream+=ChunkHdr.Size;
-					} 
-					else
-					{
-						memcpy(&FmtExHdr,Stream,sizeof(WAVFmtExHdr_Struct));
-						Stream+=ChunkHdr.Size;
-					}
-				}
-				else if (!memcmp(ChunkHdr.Id,"data",4))
-				{
-					if (FmtHdr.Format==0x0001)
-					{
-						*size=ChunkHdr.Size;
-						*data=malloc(ChunkHdr.Size+31);
-						if (*data) memcpy(*data,Stream,ChunkHdr.Size);
-						memset(((char *)*data)+ChunkHdr.Size,0,31);
-						Stream+=ChunkHdr.Size;
-					}
-					else if (FmtHdr.Format==0x0011)
-					{
-						//IMA ADPCM
-					}
-					else if (FmtHdr.Format==0x0055)
-					{
-						//MP3 WAVE
-					}
-				}
-				else if (!memcmp(ChunkHdr.Id,"smpl",4))
-				{
-					memcpy(&SmplHdr,Stream,sizeof(WAVSmplHdr_Struct));
-					*loop = (SmplHdr.Loops ? AL_TRUE : AL_FALSE);
-					Stream+=ChunkHdr.Size;
-				}
-				else Stream+=ChunkHdr.Size;
-				Stream+=ChunkHdr.Size&1;
-				FileHdr.Size-=(((ChunkHdr.Size+1)&~1)+8);
+				*format=(FmtHdr.Channels==1?
+						(FmtHdr.BitsPerSample==8?AL_FORMAT_MONO8:AL_FORMAT_MONO16):
+						(FmtHdr.BitsPerSample==8?AL_FORMAT_STEREO8:AL_FORMAT_STEREO16));
+				*freq=FmtHdr.SamplesPerSec;
+			} 
+			else
+			{
+				stream_read(&FmtExHdr,&Stream,sizeof(WAVFmtExHdr_Struct),&memsize);
+				TEST_SWITCH_SHORT(FmtExHdr.Size);
+				TEST_SWITCH_SHORT(FmtExHdr.SamplesPerBlock);
 			}
 		}
+		else if (!memcmp(ChunkHdr.Id,"data",4))
+		{
+			if (FmtHdr.Format==0x0001)
+			{
+				if((ALsizei)ChunkHdr.Size <= memsize)
+				{
+					*size=ChunkHdr.Size;
+					*data=malloc(ChunkHdr.Size+31);
+
+					if (*data) {
+						stream_read(*data,&Stream,ChunkHdr.Size,&memsize);
+						memset(((char *)*data)+ChunkHdr.Size,0,31);
+
+						if(FmtHdr.BitsPerSample == 16 && big_endian) {
+							int a, len= *size/2;
+							short *samples= (short*)*data;
+
+							for(a=0; a<len; a++) {
+								TEST_SWITCH_SHORT(samples[a])
+							}
+						}
+					}
+				}
+			}
+			else if (FmtHdr.Format==0x0011)
+			{
+				//IMA ADPCM
+			}
+			else if (FmtHdr.Format==0x0055)
+			{
+				//MP3 WAVE
+			}
+		}
+		else if (!memcmp(ChunkHdr.Id,"smpl",4))
+		{
+			stream_read(&SmplHdr,&Stream,sizeof(WAVSmplHdr_Struct),&memsize);
+
+			TEST_SWITCH_INT(SmplHdr.Manufacturer);
+			TEST_SWITCH_INT(SmplHdr.Product);
+			TEST_SWITCH_INT(SmplHdr.SamplePeriod);
+			TEST_SWITCH_INT(SmplHdr.Note);
+			TEST_SWITCH_INT(SmplHdr.FineTune);
+			TEST_SWITCH_INT(SmplHdr.SMPTEFormat);
+			TEST_SWITCH_INT(SmplHdr.SMPTEOffest);
+			TEST_SWITCH_INT(SmplHdr.Loops);
+			TEST_SWITCH_INT(SmplHdr.SamplerData);
+
+			*loop = (SmplHdr.Loops ? AL_TRUE : AL_FALSE);
+		}
+
+		if(!stream_skip(&Stream, ChunkHdr.Size + (ChunkHdr.Size&1), &memsize))
+			break;
+
+		FileHdr.Size-=(((ChunkHdr.Size+1)&~1)+8);
 	}
 }
 
-ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
+ALvoid SND_alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
 {
 	if (data)
 		free(data);
 }
 
-#endif /* WIN32 */
-
-#ifdef __APPLE__
-#define OUDE_OPENAL 1
-#endif
-
+/************************ Device Implementation ****************************/
 
 SND_OpenALDevice::SND_OpenALDevice()
 	: SND_AudioDevice(),
@@ -223,10 +316,6 @@ SND_OpenALDevice::SND_OpenALDevice()
 	// let's check if we can get openal to initialize...
 	if (m_audio)
 	{
-#ifdef OUDE_OPENAL
-		m_audio = true;			// openal_2.12
-		alutInit(NULL, NULL);	// openal_2.12
-#else
 		m_audio = false;
 
 		ALCdevice *dev = alcOpenDevice(NULL);
@@ -236,7 +325,6 @@ SND_OpenALDevice::SND_OpenALDevice()
 			if (m_context) {
 #ifdef AL_VERSION_1_1
 			alcMakeContextCurrent((ALCcontext*)m_context);
-			alutInitWithoutContext(NULL, NULL); /* in this case we dont want alut to initialize the context, see above */
 #else
 			alcMakeContextCurrent(m_context);
 #endif
@@ -259,7 +347,6 @@ SND_OpenALDevice::SND_OpenALDevice()
 			}
 		}
 
-#endif
 	}
 
 	// then try to generate some buffers
@@ -283,7 +370,7 @@ SND_OpenALDevice::SND_OpenALDevice()
 	// next: the sources
 	if (m_audio)
 	{
-#ifdef OUDE_OPENAL
+#ifdef __APPLE__
 		ALenum alc_error = ALC_NO_ERROR;	// openal_2.12
 #elif defined(_WIN32)
 		// alcGetError has no arguments on windows
@@ -375,18 +462,9 @@ SND_OpenALDevice::~SND_OpenALDevice()
 	if (m_cdrom)
 		delete m_cdrom;
 #endif
-#ifdef OUDE_OPENAL
-	if (m_audio)
-		alutExit();
-#else
 	if (m_device)
 		alcCloseDevice((ALCdevice*) m_device);
-#ifdef AL_VERSION_1_1
-	alutExit();
-#endif
-#endif
 }
-
 
 
 SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
@@ -406,22 +484,21 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 		{
 			if (waveslot)
 			{
+				bool freemem = false;
 				int buffer = waveslot->GetBuffer();
 				void* data = NULL;
-#ifndef __APPLE__
 				char loop = 'a';
-#endif
 				int sampleformat, bitrate, numberofchannels;
 				ALenum al_error = alGetError();
-				
-#ifdef OUDE_OPENAL
-				ALsizei samplerate, numberofsamples;		// openal_2.12
-#else
-				int samplerate, numberofsamples;  // openal_2.14+
-#endif
+				ALsizei samplerate, numberofsamples;  // openal_2.14+
 				
 				/* Give them some safe defaults just incase */
 				bitrate = numberofchannels = 0;
+
+				if (!(size && memlocation)) {
+					memlocation = SND_loadFileIntoMemory(samplename.Ptr(), &size);
+					freemem = true;
+				}
 
 				/* load the sample from memory? */
 				if (size && memlocation)
@@ -437,33 +514,14 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					bitrate = SND_GetBitRate(memlocation);
 					
 					/* load the sample into openal */
-#if defined(OUDE_OPENAL) || defined (__APPLE__)
-					alutLoadWAVMemory((char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate);				//	openal_2.12
-#else
-#ifdef AL_VERSION_1_1					
-					float frequency = 0.0f;
-					data = alutLoadMemoryFromFileImage(memlocation, size, &sampleformat, &numberofsamples, &frequency);
-					samplerate = (int)frequency;
-#else
-					 alutLoadWAVMemory((signed char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//  openal_2.14+
-					 
-#endif 
-#endif
-					/* put it in the buffer */
-					alBufferData(m_buffers[buffer], sampleformat, data, numberofsamples, samplerate);
-				}
-				/* or from file? */
-				else
-				{
-#ifdef __APPLE__
-					alutLoadWAVFile((ALbyte *)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate);
-#else
-					alutLoadWAVFile((ALbyte *)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate, &loop);
-#endif
+					SND_alutLoadWAVMemory((char*)memlocation, size, &sampleformat, &data, &numberofsamples, &samplerate, &loop);
 					/* put it in the buffer */
 					alBufferData(m_buffers[buffer], sampleformat, data, numberofsamples, samplerate);
 				}
 				
+				if(freemem)
+						free(memlocation);
+								
 				/* fill the waveslot with info */
 				al_error = alGetError();
 				if (al_error == AL_NO_ERROR && m_buffers[buffer])
@@ -486,11 +544,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				}
 				
 				/* and free the original stuff (copy was made in openal) */
-#if defined(OUDE_OPENAL) || defined (__APPLE__) || !defined(AL_VERSION_1_1)
-				alutUnloadWAV(sampleformat, data, numberofsamples, samplerate);
-#else
-				free(data);
-#endif
+				SND_alutUnloadWAV(sampleformat, data, numberofsamples, samplerate);
 			}
 		}
 		else
@@ -591,11 +645,7 @@ int SND_OpenALDevice::GetPlayState(int id)
     int alstate = 0;
 	int result = 0;
 
-#ifdef __APPLE__
 	alGetSourcei(m_sources[id], AL_SOURCE_STATE, &alstate);
-#else
-    alGetSourceiv(m_sources[id], AL_SOURCE_STATE, &alstate);
-#endif
 	
 	switch(alstate)
 	{
