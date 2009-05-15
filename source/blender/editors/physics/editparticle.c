@@ -3842,7 +3842,7 @@ static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("Specials", 0);
+	pup= uiPupMenuBegin(C, "Specials", 0);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");

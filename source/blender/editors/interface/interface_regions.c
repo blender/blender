@@ -624,6 +624,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
+	handle->region= ar;
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_block_region_draw;
@@ -631,15 +632,21 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	UI_add_region_handlers(&ar->handlers);
 
-	handle->region= ar;
-	ar->regiondata= handle;
-
 	/* create ui block */
 	if(create_func)
 		block= create_func(C, handle->region, arg);
 	else
 		block= handle_create_func(C, handle, arg);
-	block->handle= handle;
+	
+	if(block->handle) {
+		memcpy(block->handle, handle, sizeof(uiPopupBlockHandle));
+		MEM_freeN(handle);
+		handle= block->handle;
+	}
+	else
+		block->handle= handle;
+
+	ar->regiondata= handle;
 
 	if(!block->endblock)
 		uiEndBlock(C, block);
@@ -1625,28 +1632,9 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 /* prototype */
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info);
 
-#define MAX_MENU_STR	64
-
-/* type, internal */
-#define MENU_ITEM_TITLE				0
-#define MENU_ITEM_ITEM				1
-#define MENU_ITEM_SEPARATOR			2
-#define MENU_ITEM_OPNAME			10
-#define MENU_ITEM_OPNAME_BOOL		11
-#define MENU_ITEM_OPNAME_ENUM		12
-#define MENU_ITEM_OPNAME_INT		13
-#define MENU_ITEM_OPNAME_FLOAT		14
-#define MENU_ITEM_OPNAME_STRING		15
-#define MENU_ITEM_RNA_BOOL			20
-#define MENU_ITEM_RNA_ENUM			21
-#define MENU_ITEM_LEVEL				30
-#define MENU_ITEM_LEVEL_OPNAME_ENUM	31
-#define MENU_ITEM_LEVEL_RNA_ENUM	32
-
 struct uiPopupMenu {
+	uiBlock *block;
 	uiLayout *layout;
-	int icon;
-	char name[MAX_MENU_STR];
 };
 
 typedef struct uiMenuInfo {
@@ -1694,46 +1682,26 @@ typedef struct MenuItemLevel {
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
 {
 	uiBlock *block;
-	uiBut *but;
 	uiMenuInfo *info= arg_info;
 	uiPopupMenu *pup;
 	ScrArea *sa;
 	ARegion *ar;
-	static int counter= 0;
-	char str[16];
 	
 	pup= info->pup;
+	block= pup->block;
 	
 	/* block stuff first, need to know the font */
-	sprintf(str, "tb %d", counter++);
-	block= uiBeginBlock(C, handle->region, str, UI_EMBOSSP);
+	uiBlockSetRegion(block, handle->region);
 	block->direction= UI_DOWN;
 
-	/* here we go! */
-	if(pup->name[0]) {
-		char titlestr[256];
-		
-		if(pup->icon) {
-			sprintf(titlestr, " %s", pup->name);
-			uiDefIconTextBut(block, LABEL, 0, pup->icon, titlestr, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-		}
-		else {
-			but= uiDefBut(block, LABEL, 0, pup->name, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-			but->flag= UI_TEXT_LEFT;
-		}
-		
-		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-	}
-	
-	block->handle= handle;
-	uiLayoutEnd(C, block, pup->layout, NULL, NULL);
+	uiBlockLayoutResolve(C, block, NULL, NULL);
 
 	if(info->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 		uiBlockSetDirection(block, UI_DOWN);
 
 		/* here we set an offset for the mouse position */
-		uiMenuPopupBoundsBlock(block, 1, 0, MENU_BUTTON_HEIGHT/2);
+		uiMenuPopupBoundsBlock(block, 1, 0, 1.5*MENU_BUTTON_HEIGHT);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
@@ -1769,9 +1737,12 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiMenuInfo info;
 	
 	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	pup->block= uiBeginBlock(C, NULL, "ui_popup_menu_create", UI_EMBOSSP);
+	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
-	uiLayoutColumn(pup->layout);
+
+	/* create in advance so we can let buttons point to retval already */
+	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 
 	menu_func(C, pup->layout, arg);
 	
@@ -1792,20 +1763,35 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 /*************************** Popup Menu API **************************/
 
 /* only return handler, and set optional title */
-uiPopupMenu *uiPupMenuBegin(const char *title, int icon)
+uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 {
 	uiStyle *style= U.uistyles.first;
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "menu start");
+	uiBut *but;
 	
-	pup->icon= icon;
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
+	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutContext(pup->layout, WM_OP_EXEC_REGION_WIN);
-	uiLayoutColumn(pup->layout);
+
+	/* create in advance so we can let buttons point to retval already */
+	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 	
-	/* NULL is no title */
-	if(title)
-		BLI_strncpy(pup->name, title, MAX_MENU_STR);
-	
+	/* create title button */
+	if(title && title[0]) {
+		char titlestr[256];
+		
+		if(icon) {
+			sprintf(titlestr, " %s", title);
+			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+		}
+		else {
+			but= uiDefBut(pup->block, LABEL, 0, (char*)title, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+			but->flag= UI_TEXT_LEFT;
+		}
+		
+		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+	}
+
 	return pup;
 }
 
@@ -2002,7 +1988,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	
 	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup= 1;
-	handle->opname= opname;
+	handle->optype= (opname)? WM_operatortype_find(opname): NULL;
 	handle->opcontext= opcontext;
 	
 	UI_add_popup_handlers(C, &window->handlers, handle);

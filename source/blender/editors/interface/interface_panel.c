@@ -157,6 +157,7 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 
 Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 {
+	uiStyle *style= U.uistyles.first;
 	Panel *pa, *patab, *palast, *panext;
 	char *panelname= pt->label;
 	char *tabname= pt->label;
@@ -181,8 +182,8 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 		BLI_strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
 		BLI_strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
 	
-		pa->ofsx= PNL_DIST;
-		pa->ofsy= PNL_DIST;
+		pa->ofsx= style->panelouter;
+		pa->ofsy= style->panelouter;
 		pa->sizex= 0;
 		pa->sizey= 0;
 
@@ -377,31 +378,32 @@ static int panel_has_tabs(ARegion *ar, Panel *panel)
 
 static void ui_scale_panel_block(uiBlock *block)
 {
+	uiStyle *style= U.uistyles.first;
 	uiBut *but;
 	float facx= 1.0, facy= 1.0;
-	int centerx= 0, topy=0, tabsy=0;
+	int centerx= 0, topy=0, tabsy=0, space= style->panelspace;
 	
 	if(block->panel==NULL) return;
 
 	/* buttons min/max centered, offset calculated */
 	ui_bounds_block(block);
 
-	if((!block->panel->type) && block->maxx-block->minx > block->panel->sizex - 2*PNL_SAFETY)
-		facx= (block->panel->sizex - (2*PNL_SAFETY))/(block->maxx-block->minx);
+	if((!block->panel->type) && block->maxx-block->minx > block->panel->sizex - 2*space)
+		facx= (block->panel->sizex - (2*space))/(block->maxx-block->minx);
 	else
-		centerx= (block->panel->sizex-(block->maxx-block->minx) - 2*PNL_SAFETY)/2;
+		centerx= (block->panel->sizex-(block->maxx-block->minx) - 2*space)/2;
 	
 	// tabsy= PNL_HEADER*panel_has_tabs(block->panel);
-	if((!block->panel->type) && (block->maxy-block->miny) > block->panel->sizey - 2*PNL_SAFETY - tabsy)
-		facy= (block->panel->sizey - (2*PNL_SAFETY) - tabsy)/(block->maxy-block->miny);
+	if((!block->panel->type) && (block->maxy-block->miny) > block->panel->sizey - 2*space - tabsy)
+		facy= (block->panel->sizey - (2*space) - tabsy)/(block->maxy-block->miny);
 	else
-		topy= (block->panel->sizey- 2*PNL_SAFETY - tabsy) - (block->maxy-block->miny) ;
+		topy= (block->panel->sizey- 2*space - tabsy) - (block->maxy-block->miny) ;
 
 	for(but= block->buttons.first; but; but=but->next) {
-		but->x1= PNL_SAFETY+centerx+ facx*(but->x1-block->minx);
-		but->y1= PNL_SAFETY+topy   + facy*(but->y1-block->miny);
-		but->x2= PNL_SAFETY+centerx+ facx*(but->x2-block->minx);
-		but->y2= PNL_SAFETY+topy   + facy*(but->y2-block->miny);
+		but->x1= space+centerx+ facx*(but->x1-block->minx);
+		but->y1= space+topy   + facy*(but->y1-block->miny);
+		but->x2= space+centerx+ facx*(but->x2-block->minx);
+		but->y2= space+topy   + facy*(but->y2-block->miny);
 		if(facx!=1.0) ui_check_but(but);	/* for strlen */
 	}
 
@@ -413,6 +415,7 @@ static void ui_scale_panel_block(uiBlock *block)
 // for 'home' key
 void uiPanelsHome(ARegion *ar)
 {
+	uiStyle *style= U.uistyles.first;
 	Panel *pa;
 	uiBlock *block;
 	View2D *v2d;
@@ -432,10 +435,10 @@ void uiPanelsHome(ARegion *ar)
 	}
 
 	if(done) {
-		v2d->tot.xmin= minx-PNL_DIST;
-		v2d->tot.xmax= maxx+PNL_DIST;
-		v2d->tot.ymin= miny-PNL_DIST;
-		v2d->tot.ymax= maxy+PNL_DIST;
+		v2d->tot.xmin= minx-style->panelouter;
+		v2d->tot.xmax= maxx+style->panelouter;
+		v2d->tot.ymin= miny-style->panelouter;
+		v2d->tot.ymax= maxy+style->panelouter;
 	}
 	else {
 		v2d->tot.xmin= 0;
@@ -890,6 +893,7 @@ static int compare_panel(const void *a1, const void *a2)
 /* returns 1 when it did something */
 int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
+	uiStyle *style= U.uistyles.first;
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
 	int a, tot=0, done;
@@ -940,18 +944,18 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
-	ps->pa->ofsx= PNL_DIST;
-	ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST;
+	ps->pa->ofsx= style->panelouter;
+	ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-style->panelouter;
 
 	for(a=0; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
 		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;
+			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-style->panelouter;
 		}
 		else {
-			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa)+PNL_DIST;
+			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa)+style->panelouter;
 			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey - psnext->pa->sizey;
 		}
 	}

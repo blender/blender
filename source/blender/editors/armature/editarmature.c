@@ -3461,7 +3461,7 @@ static int armature_subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("Subdivision Type", 0);
+	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
 	layout= uiPupMenuLayout(pup);
 	uiItemsEnumO(layout, "ARMATURE_OT_subdivs", "type");
 	uiPupMenuEnd(C, pup);
@@ -3744,7 +3744,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	EditBone *actbone = CTX_data_active_bone(C);
-	uiPopupMenu *pup= uiPupMenuBegin("Make Parent ", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	

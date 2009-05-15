@@ -27,34 +27,32 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		for md in ob.modifiers:
 			sub = layout.box()
 
-			sub.row()
-			sub.itemR(md, "expanded", text="")
-			sub.itemR(md, "name", text="")
+			row = sub.row()
+			row.itemR(md, "expanded", text="")
+			row.itemR(md, "name", text="")
 
-			sub.itemR(md, "render", text="")
-			sub.itemR(md, "realtime", text="")
-			sub.itemR(md, "editmode", text="")
-			sub.itemR(md, "on_cage", text="")
+			row.itemR(md, "render", text="")
+			row.itemR(md, "realtime", text="")
+			row.itemR(md, "editmode", text="")
+			row.itemR(md, "on_cage", text="")
 
-			if (md.expanded):
-				sub.row()
+			if md.expanded:
 				sub.itemS()
 
 				if (md.type == 'ARMATURE'):
 					self.armature(sub, md)
 
 	def armature(self, layout, md):
-		layout.column()
 		layout.itemR(md, "object")
-		layout.row()
-		layout.itemR(md, "vertex_group")
-		layout.itemR(md, "invert")
-		layout.column_flow()
-		layout.itemR(md, "use_vertex_groups")
-		layout.itemR(md, "use_bone_envelopes")
-		layout.itemR(md, "quaternion")
-		layout.itemR(md, "b_bone_rest")
-		layout.itemR(md, "multi_modifier")
+		row = layout.row()
+		row.itemR(md, "vertex_group")
+		row.itemR(md, "invert")
+		flow = layout.column_flow()
+		flow.itemR(md, "use_vertex_groups")
+		flow.itemR(md, "use_bone_envelopes")
+		flow.itemR(md, "quaternion")
+		flow.itemR(md, "b_bone_rest")
+		flow.itemR(md, "multi_modifier")
 		
 bpy.types.register(DATA_PT_modifiers)
 

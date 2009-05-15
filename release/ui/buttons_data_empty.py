@@ -21,7 +21,6 @@ class DATA_PT_empty(DataButtonsPanel):
 		if not ob:
 			return
 			
-		layout.column()
 		layout.itemR(ob, "empty_draw_type")
 		layout.itemR(ob, "empty_draw_size")
 		

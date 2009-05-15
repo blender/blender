@@ -67,6 +67,10 @@ static void rna_def_scrarea(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "regionbase", NULL);
 	RNA_def_property_struct_type(prop, "Region");
 	RNA_def_property_ui_text(prop, "Regions", "Regions this area is subdivided in.");
+
+	prop= RNA_def_property(srna, "show_menus", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", HEADER_NO_PULLDOWN);
+	RNA_def_property_ui_text(prop, "Show Menus", "Show menus in the header.");
 }
 
 static void rna_def_region(BlenderRNA *brna)

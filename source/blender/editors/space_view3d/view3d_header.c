@@ -5554,7 +5554,7 @@ static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("Edit Faces", 0);
+	pup= uiPupMenuBegin(C, "Edit Faces", 0);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemO(layout, NULL, 0, "MESH_OT_fill");

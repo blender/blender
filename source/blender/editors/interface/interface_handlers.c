@@ -151,7 +151,7 @@ typedef struct uiAfterFunc {
 	void *butm_func_arg;
 	int a2;
 
-	const char *opname;
+	wmOperatorType *optype;
 	int opcontext;
 	PointerRNA *opptr;
 
@@ -222,7 +222,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
+	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
@@ -242,14 +242,14 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 			after->a2= but->a2;
 		}
 
-		after->opname= but->opname;
+		after->optype= but->optype;
 		after->opcontext= but->opcontext;
 		after->opptr= but->opptr;
 
 		after->rnapoin= but->rnapoin;
 		after->rnaprop= but->rnaprop;
 
-		but->opname= NULL;
+		but->optype= NULL;
 		but->opcontext= 0;
 		but->opptr= NULL;
 
@@ -280,8 +280,8 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.butm_func)
 			after.butm_func(C, after.butm_func_arg, after.a2);
 
-		if(after.opname)
-			WM_operator_name_call(C, after.opname, after.opcontext, after.opptr);
+		if(after.optype)
+			WM_operator_name_call(C, after.optype->idname, after.opcontext, after.opptr);
 		if(after.opptr) {
 			WM_operator_properties_free(after.opptr);
 			MEM_freeN(after.opptr);
@@ -3780,8 +3780,8 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		if(temp.menuretval == UI_RETURN_OK) {
 			if(temp.popup_func)
 				temp.popup_func(C, temp.popup_arg, temp.retvalue);
-			if(temp.opname)
-				WM_operator_name_call(C, temp.opname, temp.opcontext, NULL);
+			if(temp.optype)
+				WM_operator_name_call(C, temp.optype->idname, temp.opcontext, NULL);
 		}
 		else if(temp.cancel_func)
 			temp.cancel_func(temp.popup_arg);

@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
@@ -953,5 +956,130 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	return xco;
+}
+
+/************************ standard UI regions ************************/
+
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	PanelType *pt;
+	Panel *panel;
+	float col[3];
+	int xco, yco, x, y, w, em, header;
+
+	header= 20; // XXX
+	x= style->panelouter;
+	y= -(header + style->panelouter);
+
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	/* create panels */
+	uiBeginPanels(C, ar);
+
+	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
+		/* verify context */
+		if(context)
+			if(!pt->context || strcmp(context, pt->context) != 0)
+				continue;
+
+		/* draw panel */
+		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
+			panel= uiBeginPanel(ar, block, pt);
+
+			if(panel) {
+				if(vertical) {
+					w= (ar->type->minsizex)? ar->type->minsizex-12: uiBlockAspect(block)*ar->winx-12;
+					em= (ar->type->minsizex)? 10: 20;
+				}
+				else {
+					w= (ar->type->minsizex)? ar->type->minsizex-12: UI_PANEL_WIDTH-12;
+					em= (ar->type->minsizex)? 10: 20;
+				}
+
+				panel->type= pt;
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+					style->panelspace, 0, w-2*style->panelspace, em, style);
+
+				pt->draw(C, panel);
+
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				uiEndPanel(block, w, -yco + 12);
+				panel->layout= NULL;
+			}
+			else {
+				w= header;
+				yco= header;
+			}
+
+			uiEndBlock(C, block);
+
+			if(vertical)
+				y += yco+style->panelouter;
+			else
+				x += w+style->panelouter;
+		}
+	}
+
+	uiEndPanels(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+void ED_region_header(const bContext *C, ARegion *ar)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	uiLayout *layout;
+	HeaderType *ht;
+	Header header = {0};
+	float col[3];
+	int xco, yco;
+
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+
+	xco= 8;
+	yco= HEADERY-3;
+
+	/* draw all headers types */
+	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
+		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
+
+		if(ht->draw) {
+			header.type= ht;
+			header.layout= layout;
+			ht->draw(C, &header);
+		}
+
+		uiBlockLayoutResolve(C, block, &xco, &yco);
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+	}
+
+	/* always as last  */
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
 }
 

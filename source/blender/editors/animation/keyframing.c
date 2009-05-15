@@ -998,7 +998,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	uiLayout *layout;
 	int i = 0;
 	
-	pup= uiPupMenuBegin("Insert Keyframe", 0);
+	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
 	layout= uiPupMenuLayout(pup);
 	
 	/* active Keying Set */

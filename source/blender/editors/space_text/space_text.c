@@ -354,7 +354,7 @@ static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void text_header_area_draw(const bContext *C, ARegion *ar)
 {
-	uiRegionHeaderLayout(C, ar);
+	ED_region_header(C, ar);
 }
 
 /****************** properties region ******************/
@@ -367,7 +367,7 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)
 {
-	uiRegionPanelLayout(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL);
 }
 
 /********************* registration ********************/
