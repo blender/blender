@@ -735,8 +735,9 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	 *	- negative influence is not supported yet... how would that be defined?
 	 */
 	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
+	// TODO: should we clamp the time to only be on the endpoints of the strip?
 	nlastrip_evaluate_controls(estrip, ctime);
-	if (estrip->influence <= 0.0f)
+	if (estrip->influence <= 0.0f) // XXX is it useful to invert the strip?
 		return;
 		
 	/* check if strip has valid data to evaluate */
@@ -767,10 +768,36 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 
 /* ---------------------- */
 
-/* verify that an appropriate NlaEvalChannel for this F-Curve */
+/* find an NlaEvalChannel that matches the given criteria 
+ *	- ptr and prop are the RNA data to find a match for
+ */
+static NlaEvalChannel *nlaevalchan_find_match (ListBase *channels, PointerRNA *ptr, PropertyRNA *prop, int array_index)
+{
+	NlaEvalChannel *nec;
+	
+	/* sanity check */
+	if (channels == NULL)
+		return NULL;
+	
+	/* loop through existing channels, checking for a channel which affects the same property */
+	for (nec= channels->first; nec; nec= nec->next) {
+		/* - comparing the PointerRNA's is done by comparing the pointers
+		 *   to the actual struct the property resides in, since that all the
+		 *   other data stored in PointerRNA cannot allow us to definitively 
+		 *	identify the data 
+		 */
+		if ((nec->ptr.data == ptr->data) && (nec->prop == prop) && (nec->index == array_index))
+			return nec;
+	}
+	
+	/* not found */
+	return NULL;
+}
+
+/* verify that an appropriate NlaEvalChannel for this F-Curve exists */
 static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes, FCurve *fcu, short *newChan)
 {
-	NlaEvalChannel *nec= NULL;
+	NlaEvalChannel *nec;
 	NlaStrip *strip= nes->strip;
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
@@ -785,29 +812,77 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 		/* get path, remapped as appropriate to work in its new environment */
 	free_path= animsys_remap_path(strip->remap, fcu->rna_path, &path);
 	
-		/* get property to write to */
-	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0)
+		/* a valid property must be available, and it must be animateable */
+	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {
+		if (G.f & G_DEBUG) printf("NLA Strip Eval: Cannot resolve path \n");
 		return NULL;
+	}
 		/* only ok if animateable */
-	else if (RNA_property_animateable(&new_ptr, prop) == 0) 
+	else if (RNA_property_animateable(&new_ptr, prop) == 0) {
+		if (G.f & G_DEBUG) printf("NLA Strip Eval: Property not animateable \n");
 		return NULL;
-	
-	/* loop through existing channels, checking for a channel which affects the same property */
-	for (nec= channels->first; nec; nec= nec->next) {
-		if ((nec->ptr.data == new_ptr.data) && (nec->prop == prop))
-			return nec;
 	}
 	
-	/* allocate a new struct for this */
-	nec= MEM_callocN(sizeof(NlaEvalChannel), "NlaEvalChannel");
-	*newChan= 1;
-	BLI_addtail(channels, nec);
+	/* try to find a match */
+	nec= nlaevalchan_find_match(channels, &new_ptr, prop, fcu->array_index);
 	
-	nec->ptr= new_ptr; 
-	nec->prop= prop;
-	nec->index= fcu->array_index;
+	/* allocate a new struct for this if none found */
+	if (nec == NULL) {
+		nec= MEM_callocN(sizeof(NlaEvalChannel), "NlaEvalChannel");
+		*newChan= 1;
+		BLI_addtail(channels, nec);
+		
+		nec->ptr= new_ptr; 
+		nec->prop= prop;
+		nec->index= fcu->array_index;
+	}
 	
+	/* we can now return */
 	return nec;
+}
+
+/* accumulate (i.e. blend) the given value on to the channel it affects */
+static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, short newChan, float value)
+{
+	NlaStrip *strip= nes->strip;
+	float inf= strip->influence;
+	
+	/* if channel is new, just store value regardless of blending factors, etc. */
+	if (newChan) {
+		nec->value= value;
+		return;
+	}
+	
+	/* premultiply the value by the weighting factor */
+	if (IS_EQ(inf, 0)) return;
+	value *= inf;
+	
+	/* perform blending */
+	switch (strip->blendmode) {
+		case NLASTRIP_MODE_ADD:
+			/* simply add the scaled value on to the stack */
+			nec->value += value;
+			break;
+			
+		case NLASTRIP_MODE_SUBTRACT:
+			/* simply subtract the scaled value from the stack */
+			nec->value -= value;
+			break;
+			
+		case NLASTRIP_MODE_MULTIPLY:
+			/* multiply the scaled value with the stack */
+			nec->value *= value;
+			break;
+		
+		case NLASTRIP_MODE_BLEND:
+		default: // TODO: do we really want to blend by default? it seems more uses might prefer add...
+			/* do linear interpolation 
+			 *	- the influence of the accumulated data (elsewhere, that is called dstweight) 
+			 *	  is 1 - influence, since the strip's influence is srcweight
+			 */
+			nec->value= nec->value * (1.0f - inf)   +   value;
+			break;
+	}
 }
 
 /* ---------------------- */
@@ -847,8 +922,8 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 		 * stored in this channel if it has been used already
 		 */
 		nec= nlaevalchan_verify(ptr, channels, nes, fcu, &newChan);
-		//if (nec)
-		//	nlaevalchan_accumulate(ptr, nec, nes, newChan, value);
+		if (nec)
+			nlaevalchan_accumulate(nec, nes, newChan, value);
 	}
 }
 
@@ -868,9 +943,47 @@ static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip
 }
 
 /* write the accumulated settings to */
-static void nladata_flush_channels (PointerRNA *ptr, ListBase *channels)
+static void nladata_flush_channels (ListBase *channels)
 {
+	NlaEvalChannel *nec;
 	
+	/* sanity checks */
+	if (channels == NULL)
+		return;
+	
+	/* for each channel with accumulated values, write its value on the property it affects */
+	for (nec= channels->first; nec; nec= nec->next) {
+		PointerRNA *ptr= &nec->ptr;
+		PropertyRNA *prop= nec->prop;
+		int array_index= nec->index;
+		float value= nec->value;
+		
+		/* write values - see animsys_write_rna_setting() to sync the code */
+		switch (RNA_property_type(prop)) 
+		{
+			case PROP_BOOLEAN:
+				if (RNA_property_array_length(prop))
+					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
+				else
+					RNA_property_boolean_set(ptr, prop, (int)value);
+				break;
+			case PROP_INT:
+				if (RNA_property_array_length(prop))
+					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
+				else
+					RNA_property_int_set(ptr, prop, (int)value);
+				break;
+			case PROP_FLOAT:
+				if (RNA_property_array_length(prop))
+					RNA_property_float_set_index(ptr, prop, array_index, value);
+				else
+					RNA_property_float_set(ptr, prop, value);
+				break;
+			case PROP_ENUM:
+				RNA_property_enum_set(ptr, prop, (int)value);
+				break;
+		}
+	}
 }
 
 /* ---------------------- */
@@ -902,7 +1015,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		nlastrip_evaluate(ptr, &echannels, nes);
 	
 	/* 3. flush effects of accumulating channels in NLA to the actual data they affect */
-	nladata_flush_channels(ptr, &echannels);
+	nladata_flush_channels(&echannels);
 	
 	/* 4. free temporary evaluation data */
 	BLI_freelistN(&estrips);
