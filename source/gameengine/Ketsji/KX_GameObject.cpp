@@ -2509,6 +2509,34 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	Py_RETURN_NONE;
 }
 
+/* faster then Py_BuildValue since some scripts call raycast a lot */
+static PyObject *none_tuple_3()
+{
+	PyObject *ret= PyTuple_New(3);
+	PyTuple_SET_ITEM(ret, 0, Py_None);
+	PyTuple_SET_ITEM(ret, 1, Py_None);
+	PyTuple_SET_ITEM(ret, 2, Py_None);
+	
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	return ret;
+}
+static PyObject *none_tuple_4()
+{
+	PyObject *ret= PyTuple_New(4);
+	PyTuple_SET_ITEM(ret, 0, Py_None);
+	PyTuple_SET_ITEM(ret, 1, Py_None);
+	PyTuple_SET_ITEM(ret, 2, Py_None);
+	PyTuple_SET_ITEM(ret, 3, Py_None);
+	
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	return ret;
+}
+
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) of contact point with object within dist that matches prop.\n"
 				   " If no hit, return (None,None,None) or (None,None,None,None).\n"
@@ -2576,12 +2604,14 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	if (dist != 0.0f) {
 		MT_Vector3 toDir = toPoint-fromPoint;
 		if (MT_fuzzyZero(toDir.length2())) {
-			return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+			//return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+			return none_tuple_3();
 		}
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
 	} else if (MT_fuzzyZero((toPoint-fromPoint).length2())) {
-		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		//return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		return none_tuple_3();
 	}
 	
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
@@ -2629,9 +2659,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	}
 	// no hit
 	if (poly)
-		return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
+		//return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
+		return none_tuple_4();
 	else
-		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		//return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		return none_tuple_3();
 }
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage, 
