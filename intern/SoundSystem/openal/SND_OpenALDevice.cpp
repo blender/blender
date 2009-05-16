@@ -645,7 +645,11 @@ int SND_OpenALDevice::GetPlayState(int id)
     int alstate = 0;
 	int result = 0;
 
+#ifdef __APPLE__
 	alGetSourcei(m_sources[id], AL_SOURCE_STATE, &alstate);
+#else
+	alGetSourceiv(m_sources[id], AL_SOURCE_STATE, &alstate);
+#endif
 	
 	switch(alstate)
 	{
