@@ -355,13 +355,13 @@ void cache_voxeldata(struct Render *re,Tex *tex)
 	
 	if (!vd) return;
 	
-	read_voxeldata_header(fp, vd);
-	size = (vd->resolX)*(vd->resolY)*(vd->resolZ);
-	vd->dataset = MEM_mallocN(sizeof(float)*size, "voxel dataset");
-	
 	if (!BLI_exists(vd->source_path)) return;
 	fp = fopen(vd->source_path,"rb");
 	if (!fp) return;
+	
+	read_voxeldata_header(fp, vd);
+	size = (vd->resolX)*(vd->resolY)*(vd->resolZ);
+	vd->dataset = MEM_mallocN(sizeof(float)*size, "voxel dataset");
 	
 	//here improve the dataset loading function for more dataset types
 	if (vd->still) load_frame(fp, vd->dataset, size, vd->still_frame, sizeof(VoxelDataHeader));
