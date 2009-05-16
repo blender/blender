@@ -3,6 +3,27 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+
+void *BMIter_AtIndex(struct BMesh *bm, int type, void *data, int index)
+{
+	BMIter iter;
+	void *val;
+	int i;
+
+	/*sanity check*/
+	if (index < 0) return NULL;
+
+	val=BMIter_New(&iter, bm, type, data);
+
+	i = 0;
+	while (i < index) {
+		val=BMIter_Step(&iter);
+		i++;
+	}
+
+	return val;
+}
+
 /*
  *	BMESH ITERATOR STEP
  *
@@ -373,27 +394,27 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 			iter->step = face_of_mesh_step;
 			iter->bm = bm;
 			break;
-		case BM_EDGES_OF_MESH_OF_VERT:
+		case BM_EDGES_OF_VERT:
 			iter->begin = edge_of_vert_begin;
 			iter->step = edge_of_vert_step;
 			iter->vdata = data;
 			break;
-		case BM_FACES_OF_MESH_OF_VERT:
+		case BM_FACES_OF_VERT:
 			iter->begin = face_of_vert_begin;
 			iter->step = face_of_vert_step;
 			iter->vdata = data;
 			break;
-		case BM_FACES_OF_MESH_OF_EDGE:
+		case BM_FACES_OF_EDGE:
 			iter->begin = face_of_edge_begin;
 			iter->step = face_of_edge_step;
 			iter->edata = data;
 			break;
-		case BM_VERTS_OF_MESH_OF_FACE:
+		case BM_VERTS_OF_FACE:
 			iter->begin = vert_of_face_begin;
 			iter->step = vert_of_face_step;
 			iter->pdata = data;
 			break;
-		case BM_EDGES_OF_MESH_OF_FACE:
+		case BM_EDGES_OF_FACE:
 			iter->begin = edge_of_face_begin;
 			iter->step = edge_of_face_step;
 			iter->pdata = data;

@@ -99,6 +99,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "depsgraph_private.h"
 #include "BKE_deform.h"
@@ -196,12 +197,12 @@ static void curveModifier_deformVerts(
 }
 
 static void curveModifier_deformVertsEM(
-					ModifierData *md, Object *ob, EditMesh *editData,
+					ModifierData *md, Object *ob, BMTessMesh *editData,
      DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	curveModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
 
@@ -288,12 +289,12 @@ static void latticeModifier_deformVerts(
 }
 
 static void latticeModifier_deformVertsEM(
-					  ModifierData *md, Object *ob, EditMesh *editData,
+					  ModifierData *md, Object *ob, BMTessMesh *editData,
        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	latticeModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
 
@@ -349,7 +350,7 @@ static DerivedMesh *subsurfModifier_applyModifier(
 }
 
 static DerivedMesh *subsurfModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
@@ -1647,7 +1648,7 @@ static DerivedMesh *arrayModifier_applyModifier(
 }
 
 static DerivedMesh *arrayModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return arrayModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -2070,7 +2071,7 @@ static DerivedMesh *mirrorModifier_applyModifier(
 }
 
 static DerivedMesh *mirrorModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return mirrorModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -3293,7 +3294,7 @@ static DerivedMesh *edgesplitModifier_applyModifier(
 }
 
 static DerivedMesh *edgesplitModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return edgesplitModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -3377,7 +3378,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 }
 
 static DerivedMesh *bevelModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return bevelModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -3704,13 +3705,13 @@ static void displaceModifier_deformVerts(
 }
 
 static void displaceModifier_deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, BMTessMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
 
 	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
+	else dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 	CDDM_calc_normals(dm);
@@ -4035,7 +4036,7 @@ static DerivedMesh *uvprojectModifier_applyModifier(
 }
 
 static DerivedMesh *uvprojectModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return uvprojectModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -4385,13 +4386,13 @@ static void smoothModifier_deformVerts(
 }
 
 static void smoothModifier_deformVertsEM(
-					 ModifierData *md, Object *ob, EditMesh *editData,
+					 ModifierData *md, Object *ob, BMTessMesh *editData,
       DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
 
 	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
+	else dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 	CDDM_calc_normals(dm);
@@ -4966,14 +4967,14 @@ static void castModifier_deformVerts(
 }
 
 static void castModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+				       ModifierData *md, Object *ob, BMTessMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 	CastModifierData *cmd = (CastModifierData *)md;
 
 	if (!dm && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
+		dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -5373,7 +5374,7 @@ static void waveModifier_deformVerts(
 }
 
 static void waveModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+				       ModifierData *md, Object *ob, BMTessMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
@@ -5382,7 +5383,7 @@ static void waveModifier_deformVertsEM(
 	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
 		dm = derivedData;
 	else if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
+	else dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	if(wmd->flag & MOD_WAVE_NORM) {
 		CDDM_apply_vert_coords(dm, vertexCos);
@@ -5473,13 +5474,13 @@ static void armatureModifier_deformVerts(
 }
 
 static void armatureModifier_deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, BMTessMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
 			      amd->deformflag, NULL, amd->defgrp_name);
@@ -5488,14 +5489,14 @@ static void armatureModifier_deformVertsEM(
 }
 
 static void armatureModifier_deformMatricesEM(
-					      ModifierData *md, Object *ob, EditMesh *editData,
+					      ModifierData *md, Object *ob, BMTessMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3],
 					     float (*defMats)[3][3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 			      amd->deformflag, NULL, amd->defgrp_name);
@@ -5691,12 +5692,12 @@ static void hookModifier_deformVerts(
 }
 
 static void hookModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+				       ModifierData *md, Object *ob, BMTessMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts);
 
@@ -6268,12 +6269,12 @@ static void particleSystemModifier_deformVerts(
  * updates is coded */
 #if 0
 static void particleSystemModifier_deformVertsEM(
-                ModifierData *md, Object *ob, EditMesh *editData,
+                ModifierData *md, Object *ob, BMTessMesh *editData,
                 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+	if(!derivedData) dm = CDDM_from_BMTessMesh(editData, ob->data);
 
 	particleSystemModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
 
@@ -6489,7 +6490,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	return result;
 }
 static DerivedMesh *particleInstanceModifier_applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, BMTessMesh *editData,
   DerivedMesh *derivedData)
 {
 	return particleInstanceModifier_applyModifier(md, ob, derivedData, 0, 1);
@@ -7538,10 +7539,10 @@ static void meshdeformModifier_do(
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 	Mesh *me= ob->data;
+	BMTessMesh *bem = me->edit_btmesh;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
-	EditMesh *em = EM_GetEditMesh(me);
 	MVert *cagemvert;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
@@ -7551,11 +7552,10 @@ static void meshdeformModifier_do(
 		return;
 	
 	/* get cage derivedmesh */
-	if(em) {
-		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
+	if(bem) {
+		tmpdm= editbmesh_get_derived_cage_and_final(md->scene, ob, bem, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
-		EM_EndEditMesh(em);
 	}
 	else
 		cagedm= mmd->object->derivedFinal;
@@ -7707,13 +7707,13 @@ static void meshdeformModifier_deformVerts(
 }
 
 static void meshdeformModifier_deformVertsEM(
-					     ModifierData *md, Object *ob, EditMesh *editData,
+					     ModifierData *md, Object *ob, BMTessMesh *editData,
 	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
 
 	if(!derivedData && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
+		dm = CDDM_from_BMTessMesh(editData, ob->data);
 	else
 		dm = derivedData;
 
@@ -7863,7 +7863,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 		dm->release(dm);
 }
 
-static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, BMTessMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
@@ -7871,7 +7871,7 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else if(ob->type==OB_MESH) dm = CDDM_from_BMTessMesh(editData, ob->data);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
@@ -7978,7 +7978,7 @@ static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, Deriv
 
 }
 
-static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, BMTessMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
@@ -7987,7 +7987,7 @@ static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, Edi
 	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else if(ob->type==OB_MESH) dm = CDDM_from_BMTessMesh(editData, ob->data);
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 

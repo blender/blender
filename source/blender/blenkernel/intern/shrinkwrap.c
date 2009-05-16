@@ -101,7 +101,7 @@ static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, Cu
 	if (em)
 	{
 		DerivedMesh *final = NULL;
-		editmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
+		editbmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
 		
 		EM_EndEditMesh(me, em);
 		return final;

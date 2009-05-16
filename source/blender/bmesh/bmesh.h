@@ -113,6 +113,9 @@ typedef struct BMHeader {
 	int		flag;
 	int		type;
 	int			eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
+	
+	//this can only be used to store a temporary index.  don't use it for anything else.
+	int index;
 	struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
 } BMHeader;
 
@@ -203,7 +206,11 @@ void bmesh_error(void);
 
 /*Mesh Level Ops */
 struct BMesh *BM_Make_Mesh(int allocsize[4]);
+BMesh *BM_Copy_Mesh(BMesh *bmold);
 void BM_Free_Mesh(struct BMesh *bm);
+
+/*frees mesh, but not actual BMesh struct*/
+void BM_Free_Mesh_Data(BMesh *bm);
 void BM_Compute_Normals(struct BMesh *bm);
 
 /*Construction*/
@@ -215,6 +222,14 @@ struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BME
 defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble);
 
+/*stuff for dealing with header flags*/
+#define BM_TestHFlag(ele, f) (((BMHeader*)ele)->flag & (f))
+#define BM_SetHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag | (f))
+#define BM_ClearHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag & ~(f))
+
+/*stuff for setting indices*/
+#define BMINDEX_SET(ele, i) (((BMHeader*)ele)->index = i)
+#define BMINDEX_GET(ele) ((BMHeader*)ele)->index
 
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared(BMesh *bm, BMFace *f);

@@ -72,10 +72,20 @@ struct CustomData;
 
 /*recalculate tesselations for ngons*/
 void EDBM_Tesselate(struct EditMesh *em);
+void EDBM_MakeEditBMesh(struct Scene *scene, struct Object *ob);
+void EDBM_FreeEditBMesh(struct BMTessMesh *tm);
+void EDBM_LoadEditBMesh(struct Object *ob, struct Mesh *me);
+void EDBM_init_index_arrays(struct BMTessMesh *tm, int forvert, int foredge, int forface);
+void EDBM_free_index_arrays(struct BMTessMesh *tm);
+struct BMVert *EDBM_get_vert_for_index(struct BMTessMesh *tm, int index);
+struct BMEdge *EDBM_get_edge_for_index(struct BMTessMesh *tm, int index);
+struct BMFace *EDBM_get_face_for_index(struct BMTessMesh *tm, int index);
+struct BMFace *EDBM_get_actFace(struct BMTessMesh *em, int sloppy);
+void EDBM_selectmode_flush(struct BMTessMesh *em);
 
 /* meshtools.c */
 
-intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, char mode);
+intptr_t	mesh_octree_table(struct Object *ob, struct BMTessMesh *em, float *co, char mode);
 struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
@@ -95,8 +105,8 @@ void EM_EndEditMesh(struct Mesh *me, struct EditMesh *em);
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmWindowManager *wm);
 
-void		make_editMesh(struct Scene *scene, Object *ob);
-void		load_editMesh(struct Scene *scene, Object *ob);
+struct EditMesh *make_editMesh(struct Scene *scene, Object *ob);
+void		load_editMesh(struct Scene *scene, Object *ob, struct EditMesh *em);
 void		remake_editMesh(struct Scene *scene, Object *ob);
 void		free_editMesh(struct EditMesh *em);
 

@@ -66,6 +66,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -110,7 +111,7 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			recalc_editnormals(me->edit_mesh);	// does face centers too
+			BM_Compute_Normals(me->edit_btmesh->bm);	// does face centers too
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
@@ -178,7 +179,8 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	BPoint *bp;
 	TransVert *tv=NULL;
 	MetaElem *ml;
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	EditBone	*ebo;
 	float total, center[3], centroid[3];
 	int a;
@@ -190,45 +192,70 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em= me->edit_mesh;
+		BMTessMesh *em= me->edit_btmesh;
+		BMesh *bm = em->bm;
 		int proptrans= 0;
 		
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
-		if(em->selectmode & SCE_SELECT_VERTEX) {
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0 && (eve->f & SELECT)) {
-					eve->f1= SELECT;
+		if(em->bm->selectmode & SCE_SELECT_VERTEX) {
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter)) {
+				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
+					BMINDEX_SET(eve, 1);
 					tottrans++;
 				}
-				else eve->f1= 0;
+				else BMINDEX_SET(eve, 0);
 			}
 		}
-		else if(em->selectmode & SCE_SELECT_EDGE) {
-			EditEdge *eed;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0 && (eed->f & SELECT)) eed->v1->f1= eed->v2->f1= SELECT;
+		else if(em->bm->selectmode & SCE_SELECT_EDGE) {
+			BMEdge *eed;
+
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter))
+				BMINDEX_SET(eve, 0);
+
+			eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+			for (; eed; eed=BMIter_Step(&iter)) {
+				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
+					BMINDEX_SET(eed->v1, 0), BMINDEX_SET(eed->v2, 0);
 			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter))
+				if(BMINDEX_GET(eve)) tottrans++;
 		}
 		else {
-			EditFace *efa;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				if(efa->h==0 && (efa->f & SELECT)) {
-					efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-					if(efa->v4) efa->v4->f1= SELECT;
+			BMFace *efa;
+
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter))
+				BMINDEX_SET(eve, 0);
+
+			efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+			for (; efa; efa=BMIter_Step(&iter)) {
+				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
+					BMIter liter;
+					BMLoop *l;
+					
+					l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
+					for (; l; l=BMIter_Step(&iter)) {
+						BMINDEX_SET(l->v, 1);
+					}
 				}
 			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter))
+				if(BMINDEX_GET(eve)) tottrans++;
 		}
 		
 		/* proportional edit exception... */
 		if((mode & 1) && tottrans) {
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0) {
-					eve->f1 |= 2;
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter)) {
+				if(BMINDEX_GET(eve)) tottrans++;
+				if(!BM_TestHFlag(eve, BM_HIDDEN)) {
+					BMINDEX_SET(eve, BMINDEX_GET(eve)|2);
 					proptrans++;
 				}
 			}
@@ -239,13 +266,14 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		if(tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->f1) {
+			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter)) {
+				if(BMINDEX_GET(eve)) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
-					tv->flag= eve->f1 & SELECT;
+					tv->flag= BMINDEX_GET(eve) & SELECT;
 					tv++;
 				}
 			}
@@ -846,10 +874,10 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 		if (obedit->type == OB_MESH) {
 			/* check active */
 			Mesh *me= obedit->data;
-			EditSelection ese;
+			BMEditSelection ese;
 			
-			if (EM_get_actSelection(me->edit_mesh, &ese)) {
-				EM_editselection_center(curs, &ese);
+			if (EDBM_get_actSelection(me->edit_btmesh, &ese)) {
+				EDBM_editselection_center(curs, &ese);
 			}
 			
 			Mat4MulVecfl(obedit->obmat, curs);

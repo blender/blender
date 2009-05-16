@@ -85,6 +85,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -241,10 +242,11 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 }
 
 /* assumes obedit set to mesh object */
-static void editmesh_apply_to_mirror(TransInfo *t)
+static void editbmesh_apply_to_mirror(TransInfo *t)
 {
 	TransData *td = t->data;
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int i;
 	
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -461,7 +463,7 @@ void recalcData(TransInfo *t)
 	
 				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);
 			} else {
-				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+				BMTessMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					/* TRANSFORM_FIX_ME */
@@ -472,11 +474,11 @@ void recalcData(TransInfo *t)
 					clipMirrorModifier(t, t->obedit);
 				}
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
-					editmesh_apply_to_mirror(t);
+					editbmesh_apply_to_mirror(t);
 				
 				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 				
-				recalc_editnormals(em);
+				EDBM_RecalcNormals(em);
 			}
 		}
 		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
@@ -871,7 +873,7 @@ void postTrans (TransInfo *t)
 	} else if (t->spacetype==SPACE_VIEW3D) {
 		if (t->obedit) {
 			/*retesselate*/
-			EDBM_Tesselate(((Mesh*)t->obedit->data)->edit_mesh);
+			//EDBM_Tesselate(((Mesh*)t->obedit->data)->edit_mesh);
 		}
 	}
 }

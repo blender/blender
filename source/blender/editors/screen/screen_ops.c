@@ -187,7 +187,7 @@ int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH)
-		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+		return NULL != ((Mesh *)obedit->data)->edit_btmesh;
 	return 0;
 }
 

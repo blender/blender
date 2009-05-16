@@ -70,7 +70,7 @@ typedef struct Mesh {
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
-	struct EditMesh *edit_mesh;	/* not saved in file! */
+	struct BMTessMesh *edit_btmesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 

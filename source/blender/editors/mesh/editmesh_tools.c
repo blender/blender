@@ -531,6 +531,7 @@ static void xsortvert_flag__doSetX(void *userData, EditVert *eve, int x, int y, 
 /* all verts with (flag & 'flag') are sorted */
 void xsortvert_flag(bContext *C, int flag)
 {
+#if 0 //BMESH_TODO
 	ViewContext vc;
 	EditVert *eve;
 	xvertsort *sortblock;
@@ -562,7 +563,7 @@ void xsortvert_flag(bContext *C, int flag)
 	addlisttolist(&vc.em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
-
+#endif
 }
 
 /* called from buttons */

@@ -388,9 +388,6 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 	/*copy face corner data*/
 	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
 	
-	/*EVIL HACK WARNING: this uses a fixed size for the customdata
-	  blocks, when it should be more smart about it.
-	  initialize customdata memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
 	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);

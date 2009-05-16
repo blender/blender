@@ -449,7 +449,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		/* first try existing derivedmesh */
 		if(!draw_uvs_dm_shadow(em->derivedFinal)) {
 			/* create one if it does not exist */
-			cagedm = editmesh_get_derived_cage_and_final(scene, obedit, em, &finaldm, CD_MASK_BAREMESH|CD_MASK_MTFACE);
+			cagedm = editbmesh_get_derived_cage_and_final(scene, obedit, em, &finaldm, CD_MASK_BAREMESH|CD_MASK_MTFACE);
 
 			/* when sync selection is enabled, all faces are drawn (except for hidden)
 			 * so if cage is the same as the final, theres no point in drawing this */

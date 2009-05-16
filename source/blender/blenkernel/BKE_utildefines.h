@@ -225,6 +225,12 @@ behaviour, though it may not be the best in practice.
 
 #define V_DECLARE(vec) int _##vec##_count=0; void *_##vec##_tmp
 
+/*in the future, I plan on having V_DECLARE allocate stack memory it'll
+  use at first, and switch over to heap when it needs more.  that'll mess
+  up cases where you'd want to use this API to build a dynamic list for
+  non-local use, so all such cases should use this macro.*/
+#define V_DYNDECLARE(vec) V_DECLARE(vec)
+
 /*this returns the entire size of the array, including any buffering.*/
 #define V_SIZE(vec) ((signed int)((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec)))
 

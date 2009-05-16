@@ -550,6 +550,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
+#if 0
 	Mesh *me= ob->data;
 	
 	/* correct for negative scale */
@@ -586,5 +587,6 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	
 	/* in editmode, the blend mode needs to be set incase it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
 }
 

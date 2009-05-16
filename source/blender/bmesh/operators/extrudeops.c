@@ -36,7 +36,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_TestFlag(bm, e, EXT_INPUT)) continue;
 
 		found = 0;
-		f = BMIter_New(&fiter, bm, BM_FACES_OF_MESH_OF_EDGE, e);
+		f = BMIter_New(&fiter, bm, BM_FACES_OF_EDGE, e);
 		for (rlen=0; f; f=BMIter_Step(&fiter), rlen++) {
 			if (!BMO_TestFlag(bm, f, EXT_INPUT)) {
 				found = 1;

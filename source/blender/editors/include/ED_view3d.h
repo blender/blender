@@ -37,9 +37,10 @@ struct bglMats;
 struct BPoint;
 struct Nurb;
 struct BezTriple;
-struct EditVert;
-struct EditEdge;
-struct EditFace;
+struct BMVert;
+struct BMEdge;
+struct BMTessMesh;
+struct BMFace;
 struct ImBuf;
 struct Scene;
 struct bContext;
@@ -52,7 +53,7 @@ typedef struct ViewContext {
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;
-	struct EditMesh *em;
+	struct BMTessMesh *em;
 	short mval[2];
 } ViewContext;
 
@@ -96,9 +97,9 @@ void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, 
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 
 /* drawobject.c itterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
-void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, int clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
+void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 

@@ -32,9 +32,14 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_customdata.h" 
+#include "BKE_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
+
+#include "math.h"
+#include "stdio.h"
+#include "string.h"
 
 /*prototypes*/
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
@@ -361,4 +366,85 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, vo
 		bm_copy_loop_attributes(source_mesh, target_mesh, (BMLoop*)source, (BMLoop*)target);
 	else if(theader->type == BM_FACE)
 		bm_copy_face_attributes(source_mesh, target_mesh, (BMFace*)source, (BMFace*)target);
+}
+
+BMesh *BM_Copy_Mesh(BMesh *bmold)
+{
+	BMesh *bm;
+	BMVert *v, *v2, **vtable = NULL;
+	V_DECLARE(vtable);
+	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
+	V_DECLARE(edges);
+	V_DECLARE(etable);
+	BMLoop *l, *l2, **loops = NULL;
+	V_DECLARE(loops);
+	BMFace *f, *f2;
+
+	BMIter iter, liter;
+	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
+	int i;
+
+	/*allocate a bmesh*/
+	bm = BM_Make_Mesh(allocsize);
+
+	CustomData_copy(&bmold->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmold->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmold->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmold->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+
+	/*needed later*/
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
+	v = BMIter_New(&iter, bmold, BM_VERTS_OF_MESH, NULL);
+	for (i=0; v; v=BMIter_Step(&iter), i++) {
+		v2 = BM_Make_Vert(bm, v->co, NULL);
+		BM_Copy_Attributes(bmold, bm, v, v2);
+		V_GROW(vtable);
+		vtable[V_COUNT(vtable)-1] = v2;
+
+		BMINDEX_SET(v, i);
+		BMINDEX_SET(v2, i);
+	}
+	
+	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
+	for (i=0; e; e=BMIter_Step(&iter), i++) {
+		e2 = BM_Make_Edge(bm, vtable[BMINDEX_GET(e->v1)],
+			          vtable[BMINDEX_GET(e->v1)], e, 0);
+
+		BM_Copy_Attributes(bmold, bm, e, e2);
+		V_GROW(etable);
+		etable[V_COUNT(etable)-1] = e2;
+
+		BMINDEX_SET(e, i);
+		BMINDEX_SET(e2, i);
+	}
+	
+	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
+	for (; f; f=BMIter_Step(&iter)) {
+		V_RESET(loops);
+		V_RESET(edges);
+		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
+		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {
+			V_GROW(loops);
+			V_GROW(edges);
+			loops[i] = l;
+			edges[i] = etable[BMINDEX_GET(l->e)];
+		}
+
+		f2 = BM_Make_Ngon(bm, loops[0]->v, loops[1]->v, edges, f->len, 0);
+		BM_Copy_Attributes(bmold, bm, f, f2);
+
+		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f2);
+		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {
+			BM_Copy_Attributes(bmold, bm, loops[i], l);
+		}
+	}
+
+	return bm;
 }

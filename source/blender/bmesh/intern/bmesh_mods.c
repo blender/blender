@@ -47,7 +47,7 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
 
 	if (!v) return 0;
 	
-	e = BMIter_New(&iter, bm, BM_EDGES_OF_MESH_OF_VERT, v);
+	e = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v);
 	for (; e; e=BMIter_Step(&iter)) {
 		len++;
 	}
@@ -171,7 +171,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 			done = 1;
 			
 			/*loop the edges looking for an edge to dissolve*/
-			for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH_OF_VERT, v); e;
+			for (e=BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v); e;
 			     e = BMIter_Step(&iter)) {
 				f = NULL;
 				len = bmesh_cycle_length(&(e->loop->radial));
@@ -247,8 +247,8 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	/*this isn't the best thing in the world.  it doesn't handle cases where there's
 	  multiple faces yet.  that might require a convexity test to figure out which
 	  face is "best," and who knows what for non-manifold conditions.*/
-	for (face = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
-		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_MESH_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
+		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
 			if (v == v2) {
 				face = BM_Split_Face(bm, face, v1, v2, &nl, NULL);
 

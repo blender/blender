@@ -1463,6 +1463,19 @@ void *CustomData_get(const CustomData *data, int index, int type)
 	return (char *)data->layers[layer_index].data + offset;
 }
 
+void *CustomData_get_n(const CustomData *data, int type, int index, int n)
+{
+	int layer_index;
+	int offset;
+
+	/* get the layer index of the first layer of type */
+	layer_index = CustomData_get_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+	
+	offset = layerType_getInfo(type)->size * index;
+	return (char *)data->layers[layer_index].data + offset;
+}
+
 void *CustomData_get_layer(const CustomData *data, int type)
 {
 	/* get the layer index of the active layer of type */

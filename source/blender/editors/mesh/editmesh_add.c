@@ -122,6 +122,7 @@ static short icoface[20][3] = {
 
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
+#if 0 //BMESH_TODO
 	ViewContext vc;
 	EditVert *eve, *v1;
 	float min[3], max[3];
@@ -223,6 +224,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
+#endif
 }
 
 void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)

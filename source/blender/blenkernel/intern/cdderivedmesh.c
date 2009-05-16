@@ -44,6 +44,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -1031,6 +1032,159 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 
 		CustomData_from_em_block(&em->fdata, &dm->faceData, efa->data, i);
 		test_index_face(mf, &dm->faceData, i, efa->v4?4:3);
+	}
+
+	return dm;
+}
+
+
+static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
+				      int cdindex, BMLoop *l3[3],
+				      int numCol, int numTex)
+{
+	int i, j;
+	BMLoop *l;
+	BMFace *f = l3[0]->f;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+	
+		for (j=0; j<3; i++) {
+			l = l3[j];
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(facedata, CD_MCOL, cdindex, i);
+		
+		for (j=0; j<3; j++) {
+			l = l3[j];
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
+DerivedMesh *CDDM_from_BMTessMesh(BMTessMesh *em, Mesh *me)
+{
+	DerivedMesh *dm = CDDM_new(em->bm->totvert, em->bm->totedge, em->tottri);
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	BMesh *bm = em->bm;
+	BMIter iter;
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	MVert *mvert = cddm->mvert;
+	MEdge *medge = cddm->medge;
+	MFace *mface = cddm->mface;
+	int numCol = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
+	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+	int i, *index;
+
+	dm->deformedOnly = 1;
+
+	CustomData_merge(&em->bm->vdata, &dm->vertData, CD_MASK_DERIVEDMESH,
+	                 CD_CALLOC, dm->numVertData);
+	/* CustomData_merge(&em->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
+	                 CD_CALLOC, dm->numEdgeData); */
+	CustomData_merge(&em->bm->pdata, &dm->faceData, CD_MASK_DERIVEDMESH,
+	                 CD_CALLOC, dm->numFaceData);
+	
+	/*add mface and mcol layers as necassary*/
+	for (i=0; i<numTex; i++) {
+		CustomData_add_layer(&dm->faceData, CD_MTFACE, CD_CALLOC, NULL, em->tottri);
+	}
+
+	for (i=0; i<numCol; i++) {
+		CustomData_add_layer(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, em->tottri);
+	}
+
+	/* set vert index */
+	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for (i=0; eve; eve=BMIter_Step(&iter), i++)
+		BMINDEX_SET(eve, i);
+
+	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
+
+	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
+		MVert *mv = &mvert[i];
+
+		VECCOPY(mv->co, eve->co);
+
+		mv->no[0] = eve->no[0] * 32767.0;
+		mv->no[1] = eve->no[1] * 32767.0;
+		mv->no[2] = eve->no[2] * 32767.0;
+		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
+
+		mv->mat_nr = 0;
+		mv->flag = 0;
+
+		*index = i;
+
+		CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->data, i);
+	}
+
+	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
+	eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+	for (i=0; eed; eed=BMIter_Step(&iter), i++) {
+		MEdge *med = &medge[i];
+
+		med->v1 = BMINDEX_GET(eed->v1);
+		med->v2 = BMINDEX_GET(eed->v2);
+		med->crease = (unsigned char) (eed->crease * 255.0f);
+		med->bweight = (unsigned char) (eed->bweight * 255.0f);
+		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+		
+		if(BM_TestHFlag(eed, BM_SEAM)) med->flag |= ME_SEAM;
+		if(BM_TestHFlag(eed, BM_SHARP)) med->flag |= ME_SHARP;
+		if (BM_Wire_Edge(bm, eed)) med->flag |= ME_LOOSEEDGE;
+
+		*index = i;
+
+		/* CustomData_from_em_block(&em->edata, &dm->edgeData, eed->data, i); */
+	}
+
+	index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	for(i = 0; i < dm->numFaceData; i++, index++) {
+		MFace *mf = &mface[i];
+		BMLoop **l = em->looptris[i];
+		efa = l[0]->f;
+
+		mf->v1 = BMINDEX_GET(l[0]->v);
+		mf->v2 = BMINDEX_GET(l[1]->v);
+		mf->v3 = BMINDEX_GET(l[2]->v);
+		mf->v4 = 0;
+		mf->mat_nr = efa->mat_nr;
+
+		if (BM_TestHFlag(efa, BM_SELECT)) mf->flag |= ME_FACE_SEL;
+		if (BM_TestHFlag(efa, BM_HIDDEN)) mf->flag |= ME_HIDE;
+		if (BM_TestHFlag(efa, BM_SMOOTH)) mf->flag |= ME_SMOOTH;
+
+		*index = i;
+
+		loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
+
+		test_index_face(mf, &dm->faceData, i, 3);
 	}
 
 	return dm;

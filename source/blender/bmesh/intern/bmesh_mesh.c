@@ -119,7 +119,7 @@ BMesh *BM_Make_Mesh(int allocsize[4])
  *	Frees a BMesh structure.
 */
 
-void BM_Free_Mesh(BMesh *bm)
+void BM_Free_Mesh_Data(BMesh *bm)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -161,7 +161,12 @@ void BM_Free_Mesh(BMesh *bm)
 	BLI_mempool_destroy(bm->flagpool);
 	
 	BMO_ClearStack(bm);
-	MEM_freeN(bm);	
+}
+
+void BM_Free_Mesh(BMesh *bm)
+{
+	BM_Free_Mesh_Data(bm);
+	MEM_freeN(bm);
 }
 
 /*

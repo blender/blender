@@ -64,8 +64,8 @@ BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	/*this isn't the best thing in the world.  it doesn't handle cases where there's
 	  multiple faces yet.  that might require a convexity test to figure out which
 	  face is "best," and who knows what for non-manifold conditions.*/
-	for (face = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
-		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_MESH_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
+		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
 			if (v == v2) {
 				if (!curf || face->len < curf->len) curf = face;
 			}

@@ -338,7 +338,7 @@ void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
 	BMIter iter;
 	BMFace *f;
 	
-	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_EDGE, e);
+	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
 	for (; f; f=BMIter_Step(&iter)) {
 		BM_Face_UpdateNormal(bm, f);
 	}
@@ -355,7 +355,7 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 
 	v->no[0] = v->no[1] = v->no[2] = 0.0f;
 
-	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_VERT, v);
+	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
 	for (; f; f=BMIter_Step(&iter), len++) {
 		VecAddf(v->no, f->no, v->no);
 	}

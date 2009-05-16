@@ -68,6 +68,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -448,7 +449,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
-	EditMesh *em;
+	BMTessMesh *em;
 	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a, oblay;
 	
@@ -457,11 +458,10 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
-	em = EM_GetEditMesh(me);
+	em = me->edit_btmesh;
 	
 	if(em) {
-		dm= editmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
-		EM_EndEditMesh(me, em);
+		dm= editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 	} else
 		dm= mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
 	
@@ -564,7 +564,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
-	EditMesh *em;
+	BMTessMesh *em;
 	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
 	
 	/* simple preventing of too deep nested groups */
@@ -572,11 +572,11 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
-	em = EM_GetEditMesh(me);
+	em = me->edit_btmesh;
 	if(em) {
 		int totvert;
 		
-		dm= editmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
+		dm= editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -585,7 +585,6 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
 		dm->copyVertArray(dm, mvert);
 
-		EM_EndEditMesh(me, em);
 	}
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);

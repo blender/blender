@@ -498,7 +498,7 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
 	if (overlapface) *overlapface = NULL;
 
 	for(i=0; i < len; i++){
-		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_MESH_OF_VERT, varr[i] );
+		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
 		while(f){
 			amount = BM_VERTS_OF_MESH_In_Face(bm, f, varr, len);
 			if(amount >= len){
@@ -534,7 +534,7 @@ int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
 	if (existface) *existface = NULL;
 
 	for(i=0; i < len; i++){
-		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_MESH_OF_VERT, varr[i] );
+		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
 		while(f){
 			amount = BM_VERTS_OF_MESH_In_Face(bm, f, varr, len);
 			if(amount == len && amount == f->len){

@@ -99,6 +99,7 @@
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 
 //#include "BIF_editaction.h"
 //#include "BIF_editview.h"
@@ -156,6 +157,7 @@
 extern ListBase editelems;
 
 #include "transform.h"
+#include "bmesh.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -1886,22 +1888,31 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
-static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
+ static void get_face_center(float *centout, BMesh *bm, BMVert *eve)
+
 {
-	EditFace *efa;
-	
-	for(efa= em->faces.first; efa; efa= efa->next)
-		if(efa->f & SELECT)
-			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
-				break;
-	if(efa) {
-		VECCOPY(cent, efa->cent);
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter;
+	float cent[3] = {0.0, 0.0, 0.0};
+
+	efa = BMIter_New(&iter, bm, BM_FACES_OF_VERT, eve);
+	if (efa) {
+		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, efa);
+		for ( ; l; l=BMIter_Step(&iter)) {
+			VECADD(cent, cent, l->v->co);
+		}
+
+		VECMUL(cent, 1.0f / (float)efa->len);
 	}
+	
+	if (cent[0] == 0.0f && cent[1] == 0.0f && cent[2] == 0.0f) cent[2] = 1.0f;
+	VECCOPY(centout, cent);
 }
 
 //way to overwrite what data is edited with transform
 //static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
-static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert *eve)
+static void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve)
 {
 	td->flag = 0;
 	//if(key)
@@ -1968,13 +1979,13 @@ static float *get_crazy_mapped_editverts(TransInfo *t)
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(t->obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
+		makeDerivedMesh(t->scene, t->obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 	}
 
 	/* now get the cage */
-	dm= editmesh_get_derived_cage(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
+	dm= editbmesh_get_derived_cage(t->scene, t->obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
-	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_mesh->totvert, "vertexcos map");
+	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_btmesh->bm->totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
 	
 	dm->release(dm);
@@ -2003,17 +2014,18 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 }
 #undef TAN_MAKE_VEC
 
-static void set_crazyspace_quats(EditMesh *em, float *origcos, float *mappedcos, float *quats)
+static void set_crazyspace_quats(BMTessMesh *em, float *origcos, float *mappedcos, float *quats)
 {
-	EditVert *eve, *prev;
-	EditFace *efa;
+#if 0
+	BMVert *eve, *prev;
+	BMFace *efa;
 	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
 	intptr_t index= 0;
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
 		eve->tmp.p = NULL;
-		eve->prev= (EditVert *)index;
+		eve->prev= (BMVert *)index;
 	}
 	
 	/* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
@@ -2071,7 +2083,7 @@ static void set_crazyspace_quats(EditMesh *em, float *origcos, float *mappedcos,
 	/* restore abused prev pointer */
 	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
 		eve->prev= prev;
-
+#endif
 }
 
 void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
@@ -2103,10 +2115,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 {
 	Scene *scene = CTX_data_scene(C);
 	TransData *tob = NULL;
-	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
-	EditVert *eve;
-	EditVert **nears = NULL;
-	EditVert *eve_act = NULL;
+	BMTessMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMesh *bm = em->bm;
+	BMVert *eve;
+	BMVert **nears = NULL;
+	BMIter iter;
+	BMVert *eve_act = NULL;
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
@@ -2120,36 +2134,50 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(scene->selectmode & SCE_SELECT_VERTEX) {
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & SELECT)) 
-				eve->f1= SELECT;
+		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BMIter_Step(&iter)) {
+			if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
+				BMINDEX_SET(eve, SELECT);
 			else
-				eve->f1= 0;
+				BMINDEX_SET(eve, 0);
 		}
 	}
 	else if(scene->selectmode & SCE_SELECT_EDGE) {
-		EditEdge *eed;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0 && (eed->f & SELECT))
-				eed->v1->f1= eed->v2->f1= SELECT;
+		BMEdge *eed;
+
+		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BMIter_Step(&iter)) BMINDEX_SET(eve, 0);
+
+		eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
+		for( ; eed; eed=BMIter_Step(&iter)) {
+			if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
+				BMINDEX_SET(eed->v1, SELECT), BMINDEX_SET(eed->v2, SELECT);
 		}
 	}
 	else {
-		EditFace *efa;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->h==0 && (efa->f & SELECT)) {
-				efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-				if(efa->v4) efa->v4->f1= SELECT;
+		BMFace *efa;
+		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BMIter_Step(&iter)) BMINDEX_SET(eve, 0);
+
+		efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
+		for( ; efa; efa=BMIter_Step(&iter)) {
+			if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
+				BMIter liter;
+				BMLoop *l;
+
+				l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BMIter_Step(&liter)) {
+					BMINDEX_SET(l->v, SELECT);
+				}
 			}
 		}
 	}
 	
 	/* now we can count */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0) {
-			if(eve->f1) countsel++;
+	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for( ; eve; eve=BMIter_Step(&iter)) {
+		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
+			if(BMINDEX_GET(eve)) countsel++;
 			if(propmode) count++;
 		}
 	}
@@ -2159,9 +2187,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	
 	/* check active */
 	if (em->selected.last) {
-		EditSelection *ese = em->selected.last;
+		BMEditSelection *ese = em->selected.last;
 		if ( ese->type == EDITVERT ) {
-			eve_act = (EditVert *)ese->data;
+			eve_act = (BMVert *)ese->data;
 		}
 	}
 
@@ -2171,7 +2199,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	
 		/* allocating scratch arrays */
 		vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
-		nears = (EditVert**)MEM_mallocN(t->total * sizeof(EditVert*), "scratch nears");
+		nears = (BMVert**)MEM_mallocN(t->total * sizeof(BMVert*), "scratch nears");
 	}
 	else t->total = countsel;
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
@@ -2179,7 +2207,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(em, t->total, vectors, nears);
+	//BMESH_TODO if(propmode) editmesh_set_connectivity_distance(em, t->total, vectors, nears);
 	
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
@@ -2187,7 +2215,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(modifiers_isDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
+				totleft= editbmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
@@ -2208,8 +2236,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	
 	/* find out which half we do */
 	if(mirror) {
-		for (eve=em->verts.first; eve; eve=eve->next) {
-			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
+		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+		for( ; eve; eve=BMIter_Step(&iter)) {
+			if(!BM_TestHFlag(eve, BM_HIDDEN) && BMINDEX_GET(eve) && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
 					mirror = -1;
 				break;
@@ -2217,36 +2246,41 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 	
-	for (a=0, eve=em->verts.first; eve; eve=eve->next, a++) {
-		if(eve->h==0) {
-			if(propmode || eve->f1) {
-				VertsToTransData(t, tob, em, eve);
+	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
+	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
+		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
+			if(propmode || BMINDEX_GET(eve)) {
+				VertsToTransData(t, tob, bm, eve);
 				
 				/* selected */
-				if(eve->f1) tob->flag |= TD_SELECTED;
+				if(BMINDEX_GET(eve)) tob->flag |= TD_SELECTED;
 				
 				/* active */
 				if(eve == eve_act) tob->flag |= TD_ACTIVE;
 				
 				if(propmode) {
+					/*BMESH_TODO
+					this has to do with edge connectivity
+					PEP mode, I think. -joeedh
 					if (eve->f2) {
 						float vec[3];
 						VECCOPY(vec, E_VEC(eve));
 						Mat3MulVecfl(mtx, vec);
 						tob->dist= VecLength(vec);
 					}
-					else {
+					else {*/
 						tob->flag |= TD_NOTCONNECTED;
 						tob->dist = MAXFLOAT;
-					}
+					//}
 				}
 				
 				/* CrazySpace */
-				if(defmats || (quats && eve->tmp.p)) {
+				if(defmats) { // || (quats && eve->tmp.p)) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
 					/* use both or either quat and defmat correction */
-					if(quats && eve->tmp.f) {
+					//BMESH_TODO, need to restore this quats thing
+					/*if(quats && eve->tmp.f) {
 						QuatToMat3(eve->tmp.p, qmat);
 
 						if(defmats)
@@ -2255,7 +2289,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 						else
 							Mat3MulMat3(mat, mtx, qmat);
 					}
-					else
+					else*/
 						Mat3MulMat3(mat, mtx, defmats[a]);
 
 					Mat3Inv(imat, mat);
@@ -2269,10 +2303,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				}
 				
 				/* Mirror? */
-				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-					EditVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, tob->iloc);	/* initializes octree on first call */
-					if(vmir != eve) tob->extra = vmir;
-				}
+
+				//BMESH_TODO
+				//if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+				//	EditVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, tob->iloc);	/* initializes octree on first call */
+				//	if(vmir != eve) tob->extra = vmir;
+				//}
 				tob++;
 			}
 		}	
@@ -2419,6 +2455,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
+#if 0
 	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
 	Image *ima = CTX_data_edit_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2485,6 +2522,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	
 	if (sima->flag & SI_LIVE_UNWRAP)
 		ED_uvedit_live_unwrap_begin(t->scene, t->obedit);
+#endif
 }
 
 void flushTransUVs(TransInfo *t)
@@ -4611,7 +4649,7 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if (t->obedit->type == OB_MESH)
 		{
-			EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
+			BMTessMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

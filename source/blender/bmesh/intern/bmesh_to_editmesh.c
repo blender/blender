@@ -269,7 +269,7 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 	for (i=0; i<eout->len; i++) {
 		edge = ((BMEdge**)eout->data.buf)[i];
 		edge->head.flag |= BM_FGON;
-		face = BMIter_New(&iter, bmesh, BM_FACES_OF_MESH_OF_EDGE, edge);
+		face = BMIter_New(&iter, bmesh, BM_FACES_OF_EDGE, edge);
 		
 		for (; face; face=BMIter_Step(&iter)) {
 			face->head.flag |= BM_NONORMCALC;

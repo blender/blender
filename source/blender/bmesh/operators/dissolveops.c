@@ -198,7 +198,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 
 	/*test faces around verts for verts that would be wronly killed
 	  by dissolve faces.*/
-	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_VERT, v);
+	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
 	for (; f; f=BMIter_Step(&iter)) {
 		l=BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		for (; l; l=BMIter_Step(&liter)) {
@@ -208,10 +208,10 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 				   also if it forms a boundary with one
 				   of the face regions*/
 				found = 0;
-				e = BMIter_New(&iter2, bm, BM_EDGES_OF_MESH_OF_VERT, l->v);
+				e = BMIter_New(&iter2, bm, BM_EDGES_OF_VERT, l->v);
 				for (; e; e=BMIter_Step(&iter2)) {
 					if (BM_Edge_FaceCount(e)==1) found = 1;
-					f2 = BMIter_New(&iter3, bm, BM_FACES_OF_MESH_OF_EDGE, e);
+					f2 = BMIter_New(&iter3, bm, BM_FACES_OF_EDGE, e);
 					for (; f2; f2=BMIter_Step(&iter3)) {
 						if (!BMO_TestFlag(bm, f2, FACE_MARK)) {
 							found = 1;
@@ -240,7 +240,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	
 	for (v=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v=BMIter_Step(&iter)) {
 		if (BMO_TestFlag(bm, v, VERT_MARK)) {
-			f=BMIter_New(&fiter, bm, BM_FACES_OF_MESH_OF_VERT, v);
+			f=BMIter_New(&fiter, bm, BM_FACES_OF_VERT, v);
 			for (; f; f=BMIter_Step(&fiter)) {
 				BMO_SetFlag(bm, f, FACE_ORIG);
 				BMO_SetFlag(bm, f, FACE_MARK);
@@ -249,7 +249,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			/*check if our additions to the input to face dissolve
 			  will destroy nonmarked vertices.*/
 			if (!test_extra_verts(bm, v)) {
-				f=BMIter_New(&fiter, bm, BM_FACES_OF_MESH_OF_VERT, v);
+				f=BMIter_New(&fiter, bm, BM_FACES_OF_VERT, v);
 				for (; f; f=BMIter_Step(&fiter)) {
 					if (BMO_TestFlag(bm, f, FACE_ORIG)) {
 						BMO_ClearFlag(bm, f, FACE_MARK);
@@ -257,7 +257,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 			} else {
-				f=BMIter_New(&fiter, bm, BM_FACES_OF_MESH_OF_VERT, v);
+				f=BMIter_New(&fiter, bm, BM_FACES_OF_VERT, v);
 				for (; f; f=BMIter_Step(&fiter)) {
 					BMO_ClearFlag(bm, f, FACE_ORIG);
 				}
@@ -313,7 +313,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 					fe = l->e;
 					for (; l; l=BMIter_Step(&liter)) {
 						f2 = BMIter_New(&fiter, bm,
-								BM_FACES_OF_MESH_OF_EDGE, l->e);
+								BM_FACES_OF_EDGE, l->e);
 						for (; f2; f2=BMIter_Step(&fiter)) {
 							if (f2 != f) {
 								BM_Join_Faces(bm, f, f2, l->e);

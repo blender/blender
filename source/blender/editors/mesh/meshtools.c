@@ -69,6 +69,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -702,7 +703,7 @@ static struct {
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
+intptr_t mesh_octree_table(Object *ob, BMTessMesh *em, float *co, char mode)
 {
 	MocNode **bt;
 	
@@ -728,10 +729,12 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		 * we are using the undeformed coordinates*/
 		INIT_MINMAX(min, max);
 
-		if(em && me->edit_mesh==em) {
-			EditVert *eve;
+		if(em && me->edit_btmesh==em) {
+			BMIter iter;
+			BMVert *eve;
 			
-			for(eve= em->verts.first; eve; eve= eve->next)
+			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step(&iter))
 				DO_MINMAX(eve->co, min, max)
 		}
 		else {		
@@ -769,10 +772,12 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		
 		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		if(em && me->edit_mesh==em) {
-			EditVert *eve;
+		if(em && me->edit_btmesh==em) {
+			BMVert *eve;
+			BMIter iter;
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+			for (; eve; eve=BMIter_Step) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}

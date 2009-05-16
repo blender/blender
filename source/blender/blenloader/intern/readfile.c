@@ -3102,7 +3102,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;
-	mesh->edit_mesh= NULL;
+	mesh->edit_btmesh= NULL;
 	
 	/* Multires data */
 	mesh->mr= newdataadr(fd, mesh->mr);

@@ -72,6 +72,7 @@
 #include "BKE_softbody.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "LBM_fluidsim.h"
 
@@ -91,6 +92,8 @@
 
 /* own include */
 #include "mesh_intern.h"
+
+#include "bmesh.h"
 
 /* 
 editmesh.c:
@@ -775,7 +778,7 @@ static int editmesh_pointcache_edit(Scene *scene, Object *ob, int totvert, PTCac
 }
 
 /* turns Mesh into editmesh */
-void make_editMesh(Scene *scene, Object *ob)
+EditMesh *make_editMesh(Scene *scene, Object *ob)
 {
 	Mesh *me= ob->data;
 	MFace *mface;
@@ -793,13 +796,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	float cacheco[3], cachemat[4][4], *co;
 	int tot, a, cacheedit= 0, eekadoodle= 0;
 
-	if(me->edit_mesh==NULL)
-		me->edit_mesh= MEM_callocN(sizeof(EditMesh), "editmesh");
-	else 
-		/* because of reload */
-		free_editMesh(me->edit_mesh);
-	
-	em= me->edit_mesh;
+	em= MEM_callocN(sizeof(EditMesh), "editmesh");
 	
 	em->selectmode= scene->selectmode; // warning needs to be synced
 	em->act_face = NULL;
@@ -808,7 +805,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	em->totface= me->totface;
 	
 	if(tot==0) {
-		return;
+		return NULL;
 	}
 	
 	actkey = ob_get_keyblock(ob);
@@ -969,18 +966,18 @@ void make_editMesh(Scene *scene, Object *ob)
 	/* vertex coordinates change with cache edit, need to recalc */
 	if(cacheedit)
 		recalc_editnormals(em);
-	
+
+	return em;
 }
 
 /* makes Mesh out of editmesh */
-void load_editMesh(Scene *scene, Object *ob)
+void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 {
 	Mesh *me= ob->data;
 	MVert *mvert, *oldverts;
 	MEdge *medge;
 	MFace *mface;
 	MSelect *mselect;
-	EditMesh *em= me->edit_mesh;
 	EditVert *eve;
 	EditFace *efa, *efa_act;
 	EditEdge *eed;
@@ -1444,8 +1441,8 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* 2 */
 	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
 	me->id.us--;
-	make_editMesh(scene, basenew->object);
-	emnew= menew->edit_mesh;
+	emnew = make_editMesh(scene, basenew->object);
+	//emnew= menew->edit_mesh;
 	
 	/* 3 */
 	/* SPLIT: first make duplicate */
@@ -1486,7 +1483,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	}
 
 	/* 5 */
-	load_editMesh(scene, basenew->object);
+	load_editMesh(scene, basenew->object, emnew);
 	free_editMesh(emnew);
 	
 	/* hashedges are invalid now, make new! */
@@ -1650,6 +1647,7 @@ typedef struct UndoMesh {
 
 static void free_undoMesh(void *umv)
 {
+#if 0
 	UndoMesh *um= umv;
 	
 	if(um->verts) MEM_freeN(um->verts);
@@ -1661,10 +1659,12 @@ static void free_undoMesh(void *umv)
 	CustomData_free(&um->edata, um->totedge);
 	CustomData_free(&um->fdata, um->totface);
 	MEM_freeN(um);
+#endif
 }
 
 static void *editMesh_to_undoMesh(void *emv)
 {
+#if 0
 	EditMesh *em= (EditMesh *)emv;
 	UndoMesh *um;
 	EditVert *eve;
@@ -1762,10 +1762,12 @@ static void *editMesh_to_undoMesh(void *emv)
 //	um->retopo_mode= scene->toolsettings->retopo_mode;
 	
 	return um;
+#endif
 }
 
 static void undoMesh_to_editMesh(void *umv, void *emv)
 {
+#if 0
 	EditMesh *em= (EditMesh *)emv;
 	UndoMesh *um= (UndoMesh *)umv;
 	EditVert *eve, **evar=NULL;
@@ -1873,6 +1875,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 //		retopo_paint_view_update(G.vd);
 //	}
 	
+#endif
 }
 
 static void *getEditMesh(bContext *C)
@@ -1880,15 +1883,40 @@ static void *getEditMesh(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		return me->edit_mesh;
+		return me->edit_btmesh;
 	}
 	return NULL;
+}
+
+/*undo simply makes copies of a bmesh*/
+static void *editbtMesh_to_undoMesh(void *emv)
+{
+	return TM_Copy(emv);
+}
+
+static void undoMesh_to_editbtMesh(void *umv, void *emv)
+{
+	BMTessMesh *bm1 = umv, *bm2 = emv;
+
+	BM_Free_Mesh_Data(bm2->bm);
+	TM_Free(bm2);
+
+	*bm2 = *TM_Copy(bm1);
+}
+
+
+static void free_undo(void *umv)
+{
+	BMTessMesh *em = umv;
+
+	BM_Free_Mesh_Data(em->bm);
+	TM_Free(em);
 }
 
 /* and this is all the undo system needs to know */
 void undo_push_mesh(bContext *C, char *name)
 {
-	undo_editmode_push(C, name, getEditMesh, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
+	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
 }
 
 
@@ -1985,15 +2013,18 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	
 	if(vc->obedit) {
 		Mesh *me= vc->obedit->data;
-		vc->em= me->edit_mesh;
+		vc->em= me->edit_btmesh;
 	}
 }
 
 EditMesh *EM_GetEditMesh(Mesh *me)
 {
-	return me->edit_mesh;
+	return bmesh_to_editmesh(me->edit_btmesh->bm);
 }
 
 void EM_EndEditMesh(Mesh *me, EditMesh *em)
 {
+	BM_Free_Mesh(me->edit_btmesh->bm);
+	me->edit_btmesh->bm = editmesh_to_bmesh(em);
+	TM_RecalcTesselation(me->edit_btmesh);
 }

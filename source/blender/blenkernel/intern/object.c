@@ -96,6 +96,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -2296,12 +2297,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				EditMesh *em = EM_GetEditMesh(ob->data);
+				BMTessMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 
 					// here was vieweditdatamask? XXX
 				if(ob==scene->obedit) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
-					EM_EndEditMesh(ob->data, em);
 				} else
 					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}

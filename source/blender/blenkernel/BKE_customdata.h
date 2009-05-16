@@ -179,6 +179,7 @@ void CustomData_swap(struct CustomData *data, int index, int *corner_indices);
  * returns NULL if there is no layer of type
  */
 void *CustomData_get(const struct CustomData *data, int index, int type);
+void *CustomData_get_n(const struct CustomData *data, int type, int index, int n);
 void *CustomData_em_get(const struct CustomData *data, void *block, int type);
 void *CustomData_em_get_n(const struct CustomData *data, void *block, int type, int n);
 void *CustomData_bmesh_get(const struct CustomData *data, void *block, int type);

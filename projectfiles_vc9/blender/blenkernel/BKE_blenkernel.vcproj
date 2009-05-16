@@ -594,6 +594,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\editderivedbmesh.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\effect.c"
 				>
 			</File>
@@ -1048,6 +1052,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_suggestions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_tessmesh.h"
 				>
 			</File>
 			<File

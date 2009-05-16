@@ -52,11 +52,12 @@ struct MTFace;
 struct Object;
 struct Scene;
 struct Mesh;
-struct EditMesh;
+struct BMTessMesh;
 struct ModifierData;
 struct MCol;
 struct ColorBand;
 struct GPUVertexAttribs;
+struct BMTessMesh;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -432,6 +433,9 @@ DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object
 DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
                                         CustomDataMask dataMask);
 
+DerivedMesh *getEditDerivedBMesh(struct BMTessMesh *em, struct Object *ob,
+                                           float (*vertexCos)[3]);
+
 DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
@@ -444,17 +448,17 @@ DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Ob
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
 
-DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
-DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
-									   struct EditMesh *em, CustomDataMask dataMask);
-DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
-												 struct EditMesh *em, DerivedMesh **final_r,
+DerivedMesh *editbmesh_get_derived_base(struct Object *, struct BMTessMesh *em);
+DerivedMesh *editbmesh_get_derived_cage(struct Scene *scene, struct Object *, 
+									   struct BMTessMesh *em, CustomDataMask dataMask);
+DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
+						 struct BMTessMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
-void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
+void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMTessMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
-int editmesh_get_first_deform_matrices(struct Object *, struct EditMesh *em, float (**deformmats)[3][3],
+int editbmesh_get_first_deform_matrices(struct Object *, struct BMTessMesh *em, float (**deformmats)[3][3],
                                        float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);

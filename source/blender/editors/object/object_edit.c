@@ -108,6 +108,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
+#include "BKE_tessmesh.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -3172,13 +3173,14 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		if(retopo_mesh_paint_check())
 //			retopo_end_okee();
 		
-		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
+		if(me->edit_btmesh->bm->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
 		}
-		load_editMesh(scene, obedit);
+
+		EDBM_LoadEditBMesh(scene, obedit);
 		
-		if(freedata) free_editMesh(me->edit_mesh);
+		if(freedata) EDBM_FreeEditBMesh(me->edit_btmesh);
 		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
@@ -3260,7 +3262,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ok= 1;
 		scene->obedit= ob;	// context sees this
 		
-		make_editMesh(scene, ob);
+		EDBM_MakeEditBMesh(scene, ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}

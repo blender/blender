@@ -27,14 +27,14 @@
 #define BM_FACES_OF_MESH 			3
 
 /*these are topological iterators.*/
-#define BM_EDGES_OF_MESH_OF_VERT 			4
-#define BM_FACES_OF_MESH_OF_VERT 			5
-#define BM_FACES_OF_MESH_OF_EDGE 			6
-#define BM_VERTS_OF_MESH_OF_FACE 			7
-#define BM_FACEVERTS_OF_FACE 		8
-#define BM_EDGES_OF_MESH_OF_FACE 			9
+#define BM_EDGES_OF_VERT 			4
+#define BM_FACES_OF_VERT 			5
+#define BM_FACES_OF_EDGE 			6
+#define BM_VERTS_OF_FACE 			7
+#define BM_FACEVERTS_OF_FACE 			8
+#define BM_EDGES_OF_FACE 			9
 #define BM_LOOPS_OF_FACE 			10
-#define BM_LOOPS_OF_VERT		11
+#define BM_LOOPS_OF_VERT			11
 
 /*iterate through loops around this loop, which are fetched
   from the other faces in the radial cycle surrounding the
@@ -62,5 +62,6 @@ typedef struct BMIter{
 
 void *BMIter_New(struct BMIter *iter, struct BMesh *bm, int type, void *data);
 void *BMIter_Step(struct BMIter *iter);
+void *BMIter_AtIndex(struct BMesh *bm, int type, void *data, int index);
 
 #endif

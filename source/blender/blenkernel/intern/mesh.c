@@ -135,7 +135,7 @@ void free_mesh(Mesh *me)
 	
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->mselect) MEM_freeN(me->mselect);
-	if(me->edit_mesh) MEM_freeN(me->edit_mesh);
+	if(me->edit_btmesh) MEM_freeN(me->edit_btmesh);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)

@@ -1354,8 +1354,8 @@ int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obma
 		
 		if (editobject)
 		{
-			em = ((Mesh *)ob->data)->edit_mesh;
-			dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
+			em = ((Mesh *)ob->data)->edit_btmesh;
+			dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 		}
 		else
 		{
@@ -1644,8 +1644,8 @@ int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase
 				}
 				else
 				{
-					em = ((Mesh *)ob->data)->edit_mesh;
-					dm = editmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
+					em = ((Mesh *)ob->data)->edit_btmesh;
+					dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
 					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
 				}

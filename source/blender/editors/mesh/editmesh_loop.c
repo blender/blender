@@ -202,6 +202,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 }
 void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 {
+#if 0
 	ViewContext vc; // XXX
 	EditEdge *nearest=NULL, *eed;
 	float fac;
@@ -392,6 +393,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return;
+#endif
 }
 
 
