@@ -2051,14 +2051,8 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* args)
 	MT_Point3 point(0.0,0.0,0.0);
 	PyObject* pypos = NULL;
 	
-	if (PyArg_ParseTuple(args, "|O:getVelocity", &pypos))
-	{
-		if (pypos)
-			PyVecTo(pypos, point);
-	}
-	else {
+	if (!PyArg_ParseTuple(args, "|O:getVelocity", &pypos) || (pypos && !PyVecTo(pypos, point)))
 		return NULL;
-	}
 	
 	if (m_pPhysicsController1)
 	{

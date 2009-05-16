@@ -51,6 +51,7 @@
 #include "KX_PhysicsObjectWrapper.h"
 #include "KX_PolyProxy.h"
 #include "KX_PolygonMaterial.h"
+#include "KX_PythonSeq.h"
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
@@ -227,6 +228,9 @@ void initPyTypes(void)
 	PyType_Ready_Attr(dict, SCA_XNORController);
 	PyType_Ready_Attr(dict, SCA_XORController);
 	PyType_Ready_Attr(dict, SCA_IController);
+	
+	/* Normal python type */
+	PyType_Ready(&KX_PythonSeq_Type);
 }
 
 #endif

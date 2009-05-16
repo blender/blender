@@ -5544,7 +5544,7 @@ class KX_Camera(KX_GameObject):
 """
 import types
 attrs = []
-for name, val in __builtins__.locals().items():
+for name, val in locals().items():
 	if name.startswith('__'):
 		continue
 	if type(val) == types.ClassType:
