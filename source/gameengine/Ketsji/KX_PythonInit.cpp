@@ -1611,13 +1611,15 @@ static void backupPySysPath(void)
 static void initPySysPath__append(PyObject *sys_path, char *filename)
 {
 	PyObject *item;
-	char expanded[FILE_MAXDIR + FILE_MAXFILE] = "//";
+	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	
-	BLI_convertstringcode(expanded, filename);
+	BLI_split_dirfile_basic(filename, expanded, NULL); /* get the dir part of filename only */
+	BLI_convertstringcode(expanded, gp_GamePythonPath);
 	
 	item= PyString_FromString(expanded);
 	
 	if(PySequence_Index(sys_path, item) == -1) {
+		PyErr_Clear(); /* PySequence_Index sets a ValueError */
 		PyList_Insert(sys_path, 0, item);
 	}
 	
