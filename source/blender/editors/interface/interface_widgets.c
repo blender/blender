@@ -1026,7 +1026,7 @@ static struct uiWidgetColors wcol_radio= {
 	{0, 0, 0, 255},
 	
 	1,
-	25, -25
+	15, -15
 };
 
 static struct uiWidgetColors wcol_regular= {

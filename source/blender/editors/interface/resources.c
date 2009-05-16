@@ -442,7 +442,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
-	SETCOLF(btheme->tv3d.grid,     0.222, 0.222, 0.222, 1.0);
+	SETCOLF(btheme->tv3d.grid,     0.251, 0.251, 0.251, 1.0);
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
