@@ -499,6 +499,8 @@ void ui_theme_init_userdef(void)
 
 	/* dopesheet */
 	btheme->tact= btheme->tipo;
+	SETCOL(btheme->tact.strip, 			12, 10, 10, 128); 
+	SETCOL(btheme->tact.strip_select, 	255, 140, 0, 255); 
 
 	/* space file */
 	/* to have something initialized */

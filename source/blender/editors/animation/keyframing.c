@@ -1226,8 +1226,11 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			
 			MEM_freeN(path);
 		}
-		else if (G.f & G_DEBUG)
-			printf("Button Insert-Key: no path to property \n");
+		else {
+			if (G.f & G_DEBUG)
+				printf("Button Insert-Key: no path to property \n");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead.");
+		}
 	}
 	else if (G.f & G_DEBUG) {
 		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
