@@ -24,20 +24,35 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna python radiosity readblenfile render src yafray)
+ADD_SUBDIRECTORY(avi)
+ADD_SUBDIRECTORY(nodes)
+ADD_SUBDIRECTORY(blenkernel)
+ADD_SUBDIRECTORY(blenlib)
+ADD_SUBDIRECTORY(blenloader)
+ADD_SUBDIRECTORY(blenpluginapi)
+ADD_SUBDIRECTORY(imbuf)
+ADD_SUBDIRECTORY(imbuf/intern/cineon)
+ADD_SUBDIRECTORY(gpu)
+ADD_SUBDIRECTORY(makesdna)
+ADD_SUBDIRECTORY(python)
+ADD_SUBDIRECTORY(radiosity)
+ADD_SUBDIRECTORY(readblenfile)
+ADD_SUBDIRECTORY(render)
+ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(yafray)
 
 IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
+  ADD_SUBDIRECTORY(ftfont)
 ENDIF(WITH_INTERNATIONAL)
 
 IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
+  ADD_SUBDIRECTORY(imbuf/intern/openexr)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
+  ADD_SUBDIRECTORY(imbuf/intern/dds)
 ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
+  ADD_SUBDIRECTORY(quicktime)
 ENDIF(WITH_QUICKTIME)

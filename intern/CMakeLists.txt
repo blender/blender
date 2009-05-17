@@ -24,10 +24,21 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(SoundSystem string ghost guardedalloc bmfont moto container memutil decimation iksolver boolop opennl)
+ADD_SUBDIRECTORY(SoundSystem)
+ADD_SUBDIRECTORY(string)
+ADD_SUBDIRECTORY(ghost)
+ADD_SUBDIRECTORY(guardedalloc)
+ADD_SUBDIRECTORY(bmfont)
+ADD_SUBDIRECTORY(moto)
+ADD_SUBDIRECTORY(container)
+ADD_SUBDIRECTORY(memutil)
+ADD_SUBDIRECTORY(decimation)
+ADD_SUBDIRECTORY(iksolver)
+ADD_SUBDIRECTORY(boolop)
+ADD_SUBDIRECTORY(opennl)
 
 IF(WITH_ELBEEM)
-  SUBDIRS(elbeem)
+  ADD_SUBDIRECTORY(elbeem)
 ENDIF(WITH_ELBEEM)
 
-SUBDIRS(bsp)
+ADD_SUBDIRECTORY(bsp)

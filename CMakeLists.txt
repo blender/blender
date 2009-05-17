@@ -450,20 +450,18 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 #-----------------------------------------------------------------------------
 # Libraries
 FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
-SUBDIRS(
-  intern
-  extern
-  source
-)
+ADD_SUBDIRECTORY(intern)
+ADD_SUBDIRECTORY(extern)
+ADD_SUBDIRECTORY(source)
 
 
 #-----------------------------------------------------------------------------
 # Blender Application
-SUBDIRS(source/creator)
+ADD_SUBDIRECTORY(source/creator)
 
 
 #-----------------------------------------------------------------------------
 # Blender Player
 IF(WITH_PLAYER)
-  SUBDIRS(blenderplayer)
+  ADD_SUBDIRECTORY(blenderplayer)
 ENDIF(WITH_PLAYER)

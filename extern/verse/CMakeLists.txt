@@ -24,5 +24,5 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(dist)
+ADD_SUBDIRECTORY(dist)
 
