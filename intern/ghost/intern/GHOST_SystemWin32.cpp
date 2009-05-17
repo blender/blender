@@ -41,7 +41,7 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 
 #include "GHOST_SystemWin32.h"
-
+//#include <stdio.h> //for printf()
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
 #ifndef GWL_USERDATA
@@ -747,6 +747,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * the message is sent asynchronously, so the window is activated immediately. 
 					 */
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
+					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
+					will not be dispatched to OUR active window if we minimize one of OUR windows. */
+					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				case WM_PAINT:
 					/* An application sends the WM_PAINT message when the system or another application 
@@ -766,6 +769,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * message without calling DefWindowProc.
 					 */
 					event = processWindowEvent(GHOST_kEventWindowSize, window);
+					break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
@@ -904,7 +908,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	if (event) {
 		system->pushEvent(event);
-		lResult = 0;
+		if(!lResult) //WM_ACTIVATE might have returned something.
+			lResult = 0;
 	}
 	else {
 		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
