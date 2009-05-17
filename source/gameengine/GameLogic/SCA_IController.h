@@ -45,6 +45,7 @@ protected:
 	std::vector<class SCA_IActuator*>	m_linkedactuators;
 	unsigned int						m_statemask;
 	bool								m_justActivated;
+	bool								m_bookmark;
 public:
 	SCA_IController(SCA_IObject* gameobj,PyTypeObject* T);
 	virtual ~SCA_IController();
@@ -76,13 +77,24 @@ public:
 	{
 		m_justActivated = false;
 	}
-
+	void SetBookmark(bool bookmark)
+	{
+		m_bookmark = bookmark;
+	}
 	void Activate(SG_DList& head)
 	{
 		if (QEmpty())
 		{
-			InsertActiveQList(m_gameobj->m_activeControllers);
-			head.AddBack(&m_gameobj->m_activeControllers);
+			if (m_bookmark)
+			{
+				m_gameobj->m_activeBookmarkedControllers.QAddBack(this);
+				head.AddFront(&m_gameobj->m_activeBookmarkedControllers);
+			}
+			else
+			{
+				InsertActiveQList(m_gameobj->m_activeControllers);
+				head.AddBack(&m_gameobj->m_activeControllers);
+			}
 		}
 	}
 

@@ -3788,6 +3788,7 @@ void logic_buts(void)
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
+						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Bookmarl controller to run before all other non-bookmarked controllers on each logic frame");
 						uiBlockSetEmboss(block, UI_EMBOSSP);
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
 						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");
@@ -3796,7 +3797,7 @@ void logic_buts(void)
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
 							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, 19, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-136), 19, cont->name, 0, 31, 0, 0, "Controller name");
+							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), 19, cont->name, 0, 31, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -3808,7 +3809,7 @@ void logic_buts(void)
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, 19, cont, 0, 0, 0, 0, "Controller type");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-136), 19, cont, 0, 0, 0, 0, "Controller name");
+							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), 19, cont, 0, 0, 0, 0, "Controller name");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
 							ycoo= yco;
 						}

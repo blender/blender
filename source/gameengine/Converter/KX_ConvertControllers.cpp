@@ -199,6 +199,7 @@ void BL_ConvertControllers(
 		{
 			LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
 			gamecontroller->SetExecutePriority(executePriority++);
+			gamecontroller->SetBookmark((bcontr->flag & CONT_PRIO) != 0);
 			gamecontroller->SetState(bcontr->state_mask);
 			STR_String uniquename = bcontr->name;
 			uniquename += "#CONTR#";

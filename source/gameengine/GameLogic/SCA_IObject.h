@@ -64,11 +64,16 @@ protected:
 	// SG_QList: Head of active actuators list on this object
 	//           Elements: SCA_IActuator
 	SG_QList			   m_activeActuators;
-	// SG_Dlist: element of objects with active controllers
+	// SG_Dlist: element of list os lists with active controllers
 	//           Head: SCA_LogicManager::m_activeControllers
 	// SG_QList: Head of active controller list on this object
 	//           Elements: SCA_IController
 	SG_QList			   m_activeControllers;
+	// SG_Dlist: element of list of lists of active controllers
+	//           Head: SCA_LogicManager::m_activeControllers
+	// SG_QList: Head of active bookmarked controller list globally
+	//           Elements: SCA_IController with bookmark option
+	static SG_QList		   m_activeBookmarkedControllers;
 
 	static class MT_Point3 m_sDummy;
 

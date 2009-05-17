@@ -240,6 +240,10 @@ class SCA_IController(SCA_ILogicBrick):
 						- note: the sensors are not necessarily owned by the same object.
 						- note: when objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 	@type actuators: sequence supporting index/string lookups and iteration.
+	@ivar bookmark: the bookmark option.
+	                If set, the controller executes always before all other non-bookmarked controllers.
+	                - note: Order of execution between bookmarked controllers is not guaranteed.
+	@type bookmark: bool
 	"""
 #{ Deprecated
 	def getState():

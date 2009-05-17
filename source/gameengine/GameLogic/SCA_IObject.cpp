@@ -39,13 +39,12 @@
 #endif
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
+SG_QList SCA_IObject::m_activeBookmarkedControllers;
 
 SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0)
 {
 	m_suspended = false;
 }
-	
-
 
 SCA_IObject::~SCA_IObject()
 {

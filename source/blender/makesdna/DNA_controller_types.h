@@ -79,6 +79,7 @@ typedef struct bController {
 #define CONT_DEL		2
 #define CONT_NEW		4
 #define CONT_MASK		8
+#define CONT_PRIO		16
 
 /* pyctrl->flag */
 #define CONT_PY_DEBUG	1
