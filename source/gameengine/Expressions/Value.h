@@ -236,6 +236,8 @@ public:
 	virtual int				py_delattro(PyObject *attr);
 	virtual int				py_setattro(PyObject *attr, PyObject* value);
 	
+	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	
 	virtual PyObject* ConvertKeysToPython( void );
 	
 	KX_PYMETHOD_NOARGS(CValue,GetName);

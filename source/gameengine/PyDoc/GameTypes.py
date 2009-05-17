@@ -45,11 +45,14 @@ class PyObjectPlus:
 class CValue(PyObjectPlus):
 	"""
 	This class is a basis for other classes.
+	@ivar name: The name of this CValue derived object (read-only).
+	@type name: string
 	"""
 	def getName():
 		"""
 		Returns the name of the CValue.
 		
+		@deprecated: Use the L{name} attribute instead.
 		@note: in most cases the CValue's subclasses will override this function.
 		@rtype: string
 		"""
@@ -1584,7 +1587,11 @@ class KX_GameObject(SCA_IObject):
 	@type actuators: list
 	@ivar attrDict: get the objects internal python attribute dictionary for direct (faster) access.
 	@type attrDict: dict
-	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh
+	@ivar children: direct children of this object, (read-only).
+	@type children: L{CListValue} of L{KX_GameObject}'s
+	@ivar childrenRecursive: all children of this object including childrens children, (read-only).
+	@type childrenRecursive: L{CListValue} of L{KX_GameObject}'s
+	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh, getChildren, getChildrenRecursive
 	"""
 	def endObject():
 		"""
@@ -1647,6 +1654,7 @@ class KX_GameObject(SCA_IObject):
 		"""
 		Sets the game object's position in world coordinates regardless if the object is root or child.
 		
+		@deprecated: use L{worldPosition}
 		@type pos: [x, y, z]
 		@param pos: the new position, in world coordinates.
 		"""
@@ -2386,7 +2394,7 @@ class KX_MouseFocusSensor(SCA_MouseSensor):
 	@ivar hitNormal: the worldspace normal from the face at point of intersection.
 	@type hitNormal: list (normalized vector of 3 floats)
 	"""
-	
+#{ Deprecated
 	def getHitNormal():
 		"""
 		Returns the normal (in worldcoordinates) at the point of collision where the object was hit by this ray.
@@ -2435,6 +2443,7 @@ class KX_MouseFocusSensor(SCA_MouseSensor):
 		@rtype: list [x, y, z]
 		@return: the ray target.
 		"""
+#}
 
 class KX_TouchSensor(SCA_ISensor):
 	"""
@@ -2736,8 +2745,7 @@ class KX_ObjectActuator(SCA_IActuator):
 		
 		@rtype: list [dx, dy, dz, local]
 		@return: A four item list, containing the angular displacement vector, and whether
-		         the displacement is applied in local coordinates (True) or world
-			 coordinates (False)
+		         the displacement is applied in local coordinates (True) or world coordinates (False)
 		"""
 	def setDRot(dx, dy, dz, local):
 		"""
@@ -3660,7 +3668,7 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 			# The mesh is a different mesh - switch it.
 			# Check the current mesh is not a better fit.
 			if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
-				act.setMesh(obj.getName() + newmesh[0])
+				act.mesh = obj.getName() + newmesh[0]
 				GameLogic.addActiveActuator(act, True)
 	
 	@warning: Replace mesh actuators will be ignored if at game start, the
@@ -4008,7 +4016,7 @@ class KX_SoundActuator(SCA_IActuator):
 		"""
 		Sets the position this sound will come from.
 		
-		@deprecated: Use the L{position} attribute instead.
+		@deprecated: Use the L{localPosition} attribute instead.
 		@type x: float
 		@param x: The x coordinate of the sound.
 		@type y: float
@@ -4120,6 +4128,7 @@ class KX_TrackToActuator(SCA_IActuator):
 	@type use3D: boolean
 	
 	"""
+#{ Deprecated
 	def setObject(object):
 		"""
 		Sets the object to track.
@@ -4168,6 +4177,7 @@ class KX_TrackToActuator(SCA_IActuator):
 		@deprecated: Use the L{use3D} attribute instead.
 		@rtype: boolean
 		"""
+#}
 
 class KX_VehicleWrapper(PyObjectPlus):
 	"""

@@ -1213,6 +1213,8 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("localScale",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RO_FUNCTION("worldScale",	KX_GameObject, pyattr_get_worldScaling),
+	KX_PYATTRIBUTE_RO_FUNCTION("children",	KX_GameObject, pyattr_get_children),
+	KX_PYATTRIBUTE_RO_FUNCTION("childrenRecursive",	KX_GameObject, pyattr_get_children_recursive),
 	KX_PYATTRIBUTE_RO_FUNCTION("attrDict",	KX_GameObject, pyattr_get_attrDict),
 	
 	/* Experemental, dont rely on these yet */
@@ -1753,6 +1755,18 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_ACTUATORS);
 }
 
+PyObject* KX_GameObject::pyattr_get_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return self->GetChildren()->NewProxy(true);
+}
+
+PyObject* KX_GameObject::pyattr_get_children_recursive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return self->GetChildrenRecursive()->NewProxy(true);
+}
+
 PyObject* KX_GameObject::pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
@@ -2155,11 +2169,15 @@ PyObject* KX_GameObject::PyRemoveParent()
 
 PyObject* KX_GameObject::PyGetChildren()
 {
+	ShowDeprecationWarning("getChildren()", "the children property");
+	
 	return GetChildren()->NewProxy(true);
 }
 
 PyObject* KX_GameObject::PyGetChildrenRecursive()
 {
+	ShowDeprecationWarning("getChildrenRecursive()", "the childrenRecursive property");
+	
 	return GetChildrenRecursive()->NewProxy(true);
 }
 
@@ -2304,7 +2322,7 @@ PyObject* KX_GameObject::PyGetAxisVect(PyObject* value)
 
 PyObject* KX_GameObject::PySetPosition(PyObject* value)
 {
-	ShowDeprecationWarning("setPosition()", "the position property");
+	ShowDeprecationWarning("setPosition()", "the localPosition property");
 	MT_Point3 pos;
 	if (PyVecTo(value, pos))
 	{

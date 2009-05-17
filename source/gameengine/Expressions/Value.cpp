@@ -66,13 +66,14 @@ PyParentObject CValue::Parents[] = {
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
 	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* CValue::PyGetName()
 {
+	ShowDeprecationWarning("getName()", "the name property");
+	
 	return PyString_FromString(this->GetName());
 }
 
@@ -550,6 +551,7 @@ static PyMethodDef	CValueMethods[] =
 };
 
 PyAttributeDef CValue::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
 	{ NULL }	//Sentinel
 };
 
@@ -572,6 +574,11 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 
 PyObject* CValue::py_getattro_dict() {
 	py_getattro_dict_up(PyObjectPlus);
+}
+
+PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
+	CValue * self = static_cast<CValue *> (self_v);
+	return PyString_FromString(self->GetName());
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)

@@ -757,7 +757,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
 "Sets this camera's viewport status\n"
 )
 {
-	ShowDeprecationWarning("enableViewport(bool)", "the isViewport property");
+	ShowDeprecationWarning("enableViewport(bool)", "the useViewport property");
 	
 	int viewport = PyObject_IsTrue(value);
 	if (viewport == -1) {

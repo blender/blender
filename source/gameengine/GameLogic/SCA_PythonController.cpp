@@ -494,6 +494,11 @@ int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 
 PyObject* SCA_PythonController::PyActivate(PyObject *value)
 {
+	if(m_sCurrentController != this) {
+		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
+		return NULL;
+	}
+	
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
 		return NULL;
@@ -504,6 +509,11 @@ PyObject* SCA_PythonController::PyActivate(PyObject *value)
 
 PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 {
+	if(m_sCurrentController != this) {
+		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
+		return NULL;
+	}
+	
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
 		return NULL;
