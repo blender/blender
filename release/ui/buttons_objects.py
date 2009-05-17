@@ -81,11 +81,15 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		row.itemR(ob, "dupli_type", text="", expand=True)
 
 		if ob.dupli_type == "FRAMES":
-			col = layout.column_flow()
-			col.itemR(ob, "dupli_frames_start", text="Start")
-			col.itemR(ob, "dupli_frames_end", text="End")
-			col.itemR(ob, "dupli_frames_on", text="On")
-			col.itemR(ob, "dupli_frames_off", text="Off")
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_start", text="Start")
+			sub.itemR(ob, "dupli_frames_end", text="End")
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_on", text="On")
+			sub.itemR(ob, "dupli_frames_off", text="Off")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_animation"

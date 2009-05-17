@@ -202,8 +202,8 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", "Even Fields First", ""},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd Fields First", ""},
+		{0, "FIELDS_EVENFIRST", "Even", "Even Fields First"},
+		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd", "Odd Fields First"},
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
