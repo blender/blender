@@ -1007,9 +1007,9 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 /* pure AO, check for raytrace and world should have been done */
 void ambient_occlusion(ShadeInput *shi)
 {
-	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->mat->amb!=0.0f)
+	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->amb!=0.0f)
 		sample_occ(&R, shi);
-	else if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f)
+	else if((R.r.mode & R_RAYTRACE) && shi->amb!=0.0f)
 		ray_ao(shi, shi->ao);
 	else
 		shi->ao[0]= shi->ao[1]= shi->ao[2]= 1.0f;
@@ -1020,8 +1020,8 @@ void ambient_occlusion(ShadeInput *shi)
 void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 {
 	if((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX) {
-		if(shi->mat->amb!=0.0f) {
-			float f= R.wrld.aoenergy*shi->mat->amb;
+		if(shi->amb!=0.0f) {
+			float f= R.wrld.aoenergy*shi->amb;
 
 			if (R.wrld.aomix==WO_AOADDSUB) {
 				diff[0] = 2.0f*shi->ao[0]-1.0f;
