@@ -43,23 +43,23 @@ KX_Dome::KX_Dome (
     RAS_IRenderTools* rendertools,
     /// engine
     KX_KetsjiEngine* engine,
-	
-	float size,		//size for adjustments
+
 	short res,		//resolution of the mesh
 	short mode,		//mode - fisheye, truncated, warped, panoramic, ...
 	short angle,
 	float resbuf,	//size adjustment of the buffer
+	short tilt,
 	struct Text* warptext
 
 ):
 	dlistSupported(false),
 	canvaswidth(-1), canvasheight(-1),
 	m_drawingmode(engine->GetDrawType()),
-	m_size(size),
 	m_resolution(res),
 	m_mode(mode),
 	m_angle(angle),
 	m_resbuffer(resbuf),
+	m_tilt(tilt),
 	m_canvas(canvas),
 	m_rasterizer(rasterizer),
 	m_rendertools(rendertools),
@@ -124,7 +124,7 @@ KX_Dome::KX_Dome (
 			CreateMeshPanorama();
 			m_numfaces = 6;
 			break;
-		default: //DOME_TRUNCATED_DOWN and DOME_TRUNCATED_UP
+		default: //DOME_TRUNCATED_FRONT and DOME_TRUNCATED_REAR
 			if (m_angle <= 180){
 				cubetop.resize(1);
 				cubebottom.resize(1);
@@ -269,7 +269,7 @@ http://projects.blender.org/tracker/?func=detail&aid=18655&group_id=9&atid=125
 bool KX_Dome::CreateDL(){
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
-		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_UP || m_mode == DOME_TRUNCATED_DOWN){
+		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_FRONT || m_mode == DOME_TRUNCATED_REAR){
 			glNewList(dlistId, GL_COMPILE);
 				GLDrawTriangles(cubetop, nfacestop);
 			glEndList();
@@ -1485,13 +1485,14 @@ Uses 4 cameras for angles up to 180º
 Uses 5 cameras for angles up to 250º
 Uses 6 cameras for angles up to 360º
 */
+	int i;
 	float deg45 = MT_PI / 4;
 	MT_Scalar c = cos(deg45);
 	MT_Scalar s = sin(deg45);
 
 	if (m_angle <= 180 && (m_mode == DOME_FISHEYE 
-		|| m_mode == DOME_TRUNCATED_UP 
-		|| m_mode == DOME_TRUNCATED_DOWN)){
+		|| m_mode == DOME_TRUNCATED_FRONT
+		|| m_mode == DOME_TRUNCATED_REAR)){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						c, -s, 0.0,
@@ -1514,8 +1515,8 @@ Uses 6 cameras for angles up to 360º
 						s, 0.0, c);
 
 	} else if (m_mode == DOME_ENVMAP || (m_angle > 180 && (m_mode == DOME_FISHEYE
-		|| m_mode == DOME_TRUNCATED_UP 
-		|| m_mode == DOME_TRUNCATED_DOWN))){
+		|| m_mode == DOME_TRUNCATED_FRONT 
+		|| m_mode == DOME_TRUNCATED_REAR))){
 
 		m_locRot[0] = MT_Matrix3x3( // 90º - Top
 						 1.0, 0.0, 0.0,
@@ -1579,6 +1580,23 @@ Uses 6 cameras for angles up to 360º
 						0.0, 1.0, 0.0,
 						s, 0.0, c);
 	}
+
+	// rotating the camera in horizontal axis
+	if (m_tilt)
+	{
+		float tiltdeg = ((m_tilt % 360) * 2 * MT_PI) / 360;
+		c = cos(tiltdeg);
+		s = sin(tiltdeg);
+
+		MT_Matrix3x3 tilt_mat = MT_Matrix3x3(
+		1.0, 0.0, 0.0,
+		0.0, c, -s,
+		0.0, s,  c
+		);
+
+		for (i =0;i<6;i++)
+			m_locRot[i] = tilt_mat * m_locRot[i];
+	}
 }
 
 void KX_Dome::RotateCamera(KX_Camera* cam, int i)
@@ -1621,10 +1639,10 @@ void KX_Dome::Draw(void)
 		case DOME_PANORAM_SPH:
 			DrawPanorama();
 			break;
-		case DOME_TRUNCATED_UP:
+		case DOME_TRUNCATED_FRONT:
 			DrawDomeFisheye();
 			break;
-		case DOME_TRUNCATED_DOWN:
+		case DOME_TRUNCATED_REAR:
 			DrawDomeFisheye();
 			break;
 	}
@@ -1669,9 +1687,6 @@ void KX_Dome::DrawEnvMap(void)
 			ortho_height = 2.0f / 3;
 			ortho_width = (float)can_width/can_height * ortho_height;
 		}
-		
-		ortho_width /= m_size;
-		ortho_height /= m_size;
 		
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
 	}
@@ -1803,20 +1818,17 @@ void KX_Dome::DrawDomeFisheye(void)
 				ortho_height = 1.0;
 			}
 			
-			ortho_width /= m_size;
-			ortho_height /= m_size;
-			
 			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
 		}
 	}
-	else if(m_mode == DOME_TRUNCATED_UP)
+	else if(m_mode == DOME_TRUNCATED_FRONT)
 	{
 		ortho_width = 1.0;
 		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
 	}
-	else { //m_mode == DOME_TRUNCATED_DOWN
+	else { //m_mode == DOME_TRUNCATED_REAR
 		ortho_width = 1.0;
 		ortho_height = 2 * ((float)can_height/can_width) - 1.0 ;
 
@@ -1901,9 +1913,6 @@ void KX_Dome::DrawPanorama(void)
 			ortho_width = (float)can_width/can_height * 0.5;
 			ortho_height = 0.5;
 		}
-
-		ortho_width /= m_size;
-		ortho_height /= m_size;
 		
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
 	}
@@ -1972,7 +1981,6 @@ void KX_Dome::DrawDomeWarped(void)
 	int can_height = m_viewport.GetTop();
 
 	double screen_ratio = can_width/ (double) can_height;	
-	screen_ratio /= m_size;
 
     glOrtho(-screen_ratio,screen_ratio,-1.0,1.0,-20.0,10.0);
 

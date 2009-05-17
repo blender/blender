@@ -262,9 +262,9 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
 	m_sceneconverter = sceneconverter;
 }
 
-void KX_KetsjiEngine::InitDome(float size, short res, short mode, short angle, float resbuf, struct Text* text)
+void KX_KetsjiEngine::InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text)
 {
-	m_dome = new KX_Dome(m_canvas, m_rasterizer, m_rendertools,this, size, res, mode, angle, resbuf, text);
+	m_dome = new KX_Dome(m_canvas, m_rasterizer, m_rendertools,this, res, mode, angle, resbuf, tilt, text);
 	m_usedome = true;
 }
 
@@ -272,7 +272,6 @@ void KX_KetsjiEngine::RenderDome()
 {
 	GLuint	viewport[4]={0};
 	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
-//	unsigned int m_viewport[4] = {viewport[0], viewport[1], viewport[2], viewport[3]};
 	
 	m_dome->SetViewPort(viewport);
 
@@ -296,13 +295,6 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
-
-	// This is now done incrementally in KX_Scene::CalculateVisibleMeshes()
-	//for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
-	//{
-	//	// do this only once per scene
-	//	(*sceneit)->UpdateMeshTransformations();
-	//}
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){

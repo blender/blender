@@ -40,12 +40,12 @@ Developed as part of a Research and Development project for SAT - La Société des
 #include "BKE_text.h"
 
 //Dome modes: limit hardcoded in buttons_scene.c
-#define DOME_FISHEYE		1
-#define DOME_ENVMAP			2
-#define DOME_PANORAM_SPH	3
-#define DOME_TRUNCATED_UP	4
-#define DOME_TRUNCATED_DOWN	5
-#define DOME_NUM_MODES		6
+#define DOME_FISHEYE			1
+#define DOME_TRUNCATED_FRONT	2
+#define DOME_TRUNCATED_REAR		3
+#define DOME_ENVMAP				4
+#define DOME_PANORAM_SPH		5
+#define DOME_NUM_MODES			6
 
 
 /// class for render 3d scene
@@ -61,12 +61,12 @@ public:
     RAS_IRenderTools* m_rendertools,
     /// engine
     KX_KetsjiEngine* m_engine,
-	
-	float size,
+
 	short res,
 	short mode,
 	short angle,
 	float resbuf,
+	short tilt,
 	struct Text* warptext
 	);
 
@@ -159,13 +159,13 @@ protected:
 	int m_buffersize;	// canvas small dimension
 	int m_numfaces;		// 4 to 6 depending on the kind of dome image
 	int m_numimages;	//numfaces +1 if we have warp mesh
-	
-	float m_size;		// size to adjust
+
 	short m_resolution;	//resolution to tesselate the mesh
 	short m_mode;		// the mode (truncated, warped, panoramic,...)
 	short m_angle;		//the angle of the fisheye
 	float m_radangle;	//the angle of the fisheye in radians
 	float m_resbuffer;	//the resolution of the buffer
+	short m_tilt;		//the dome tilt (camera rotation on horizontal axis)
 	
 	RAS_Rect m_viewport;
 

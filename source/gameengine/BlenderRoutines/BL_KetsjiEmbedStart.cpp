@@ -376,7 +376,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 			//initialize Dome Settings
 			if(blscene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-				ketsjiengine->InitDome(blscene->r.domesize, blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometext);
+				ketsjiengine->InitDome(blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometilt, blscene->r.dometext);
 
 			if (sceneconverter)
 			{
