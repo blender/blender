@@ -203,6 +203,13 @@ public:
 		return m_SGcontrollers; 
 	}
 
+	/**
+	 * 
+	 */
+	SG_Callbacks& GetCallBackFunctions()
+	{
+		return m_callbacks;
+	}
 	
 	/**
 	 * Get the client object associated with this

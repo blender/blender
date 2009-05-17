@@ -737,7 +737,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
 		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
 		// we can now add the graphic controller to the physic engine
-		replica->ActivateGraphicController(true,true);
+		replica->ActivateGraphicController(true);
 
 		// done with replica
 		replica->Release();
@@ -850,7 +850,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
 	// the size is correct, we can add the graphic controller to the physic engine
-	replica->ActivateGraphicController(true,true);
+	replica->ActivateGraphicController(true);
 
 	// now replicate logic
 	vector<KX_GameObject*>::iterator git;

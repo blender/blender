@@ -19,7 +19,7 @@ private:
 
 public:
 
-	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool compound);
+	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound);
 	virtual ~KX_BulletPhysicsController ();
 
 	///////////////////////////////////
@@ -42,6 +42,7 @@ public:
 	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
+	virtual void SetTransform();
 	virtual	MT_Scalar	GetMass();
 	virtual	void	SetMass(MT_Scalar newmass);
 	virtual	MT_Vector3	GetLocalInertia();

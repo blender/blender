@@ -85,14 +85,34 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
 	KX_ClientObjectInfo* info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
 	// This call back should only be called for controllers of Near and Radar sensor
-	if (info &&
-        info->m_sensors.size() == 1 &&
-		(info->m_type == KX_ClientObjectInfo::NEAR ||
-		 info->m_type == KX_ClientObjectInfo::RADAR))
+	if (!info)
+		return true;
+
+	switch (info->m_type)
 	{
-		// only one sensor for this type of object
-		KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
-		return touchsensor->BroadPhaseFilterCollision(object1,object2);
+	case KX_ClientObjectInfo::SENSOR:
+		if (info->m_sensors.size() == 1)
+		{
+			// only one sensor for this type of object
+			KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
+			return touchsensor->BroadPhaseFilterCollision(object1,object2);
+		}
+		break;
+	case KX_ClientObjectInfo::OBSENSOR:
+		// this object may have multiple collision sensors, 
+		// check is any of them is interested in this object
+		for(std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
+			it != info->m_sensors.end();
+			++it)
+		{
+			if ((*it)->GetSensorType() == SCA_ISensor::TOUCH) 
+			{
+				KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*it);
+				if (touchsensor->BroadPhaseSensorFilterCollision(object1, object2))
+					return true;
+			}
+		}
+		return false;
 	}
 	return true;
 }

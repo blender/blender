@@ -92,16 +92,19 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 
 }
 
-btTransform	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
+btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
 {
-	btTransform trans;
-	float tmp[3];
-	motionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
-	trans.setOrigin(btVector3(tmp[0],tmp[1],tmp[2]));
+	static btTransform trans;
+	btVector3 tmp;
+	motionState->getWorldPosition(tmp.m_floats[0], tmp.m_floats[1], tmp.m_floats[2]);
+	trans.setOrigin(tmp);
 
-	btQuaternion orn;
-	motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	trans.setRotation(orn);
+	float ori[12];
+	motionState->getWorldOrientation(ori);
+	trans.getBasis().setFromOpenGLSubMatrix(ori);
+	//btQuaternion orn;
+	//motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
+	//trans.setRotation(orn);
 	return trans;
 
 }
@@ -118,18 +121,18 @@ public:
 
 	}
 
-	virtual void	getWorldTransform(btTransform& worldTrans ) const
+	void	getWorldTransform(btTransform& worldTrans ) const
 	{
-		float pos[3];
-		float quatOrn[4];
+		btVector3 pos;
+		float ori[12];
 
-		m_blenderMotionState->getWorldPosition(pos[0],pos[1],pos[2]);
-		m_blenderMotionState->getWorldOrientation(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3]);
-		worldTrans.setOrigin(btVector3(pos[0],pos[1],pos[2]));
-		worldTrans.setBasis(btMatrix3x3(btQuaternion(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3])));
+		m_blenderMotionState->getWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
+		m_blenderMotionState->getWorldOrientation(ori);
+		worldTrans.setOrigin(pos);
+		worldTrans.getBasis().setFromOpenGLSubMatrix(ori);
 	}
 
-	virtual void	setWorldTransform(const btTransform& worldTrans)
+	void	setWorldTransform(const btTransform& worldTrans)
 	{
 		m_blenderMotionState->setWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
 		btQuaternion rotQuat = worldTrans.getRotation();
@@ -493,10 +496,12 @@ void CcdPhysicsController::CreateRigidbody()
 	//convert collision flags!
 	//special case: a near/radar sensor controller should not be defined static or it will
 	//generate loads of static-static collision messages on the console
-	if ((m_cci.m_collisionFilterGroup & CcdConstructionInfo::SensorFilter) != 0)
+	if (m_cci.m_bSensor)
 	{
 		// reset the flags that have been set so far
 		GetCollisionObject()->setCollisionFlags(0);
+		// sensor must never go to sleep: they need to detect continously
+		GetCollisionObject()->setActivationState(DISABLE_DEACTIVATION);
 	}
 	GetCollisionObject()->setCollisionFlags(m_object->getCollisionFlags() | m_cci.m_collisionFlags);
 	btRigidBody* body = GetRigidBody();
@@ -613,12 +618,13 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 				body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_min / len));
 		}
 		
-		const btVector3& worldPos = body->getCenterOfMassPosition();
+		const btTransform& xform = body->getCenterOfMassTransform();
+		const btMatrix3x3& worldOri = xform.getBasis();
+		const btVector3& worldPos = xform.getOrigin();
+		float ori[12];
+		worldOri.getOpenGLSubMatrix(ori);
+		m_MotionState->setWorldOrientation(ori);
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
-		
-		const btQuaternion& worldquat = body->getOrientation();
-		m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
-
 		m_MotionState->calculateWorldTransformations();
 
 		float scale[3];
@@ -655,8 +661,10 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		
 void		CcdPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
-
+	btTransform& xform = CcdPhysicsController::GetTransformFromMotionState(m_MotionState);
+	SetCenterOfMassTransform(xform);
 }
+
 void		CcdPhysicsController::WriteDynamicsToMotionState()
 {
 }
@@ -673,12 +681,12 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	if (m_shapeInfo)
 	{
 		m_shapeInfo->AddRef();
-		m_collisionShape = m_shapeInfo->CreateBulletShape();
+		m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin);
 
 		if (m_collisionShape)
 		{
 			// new shape has no scaling, apply initial scaling
-			m_collisionShape->setMargin(m_cci.m_margin);
+			//m_collisionShape->setMargin(m_cci.m_margin);
 			m_collisionShape->setLocalScaling(m_cci.m_scaling);
 			
 			if (m_cci.m_mass)
@@ -697,8 +705,10 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		{
 			body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		}
-	}			
-	m_cci.m_physicsEnv->addCcdPhysicsController(this);
+	}	
+	// sensor object are added when needed
+	if (!m_cci.m_bSensor)
+		m_cci.m_physicsEnv->addCcdPhysicsController(this);
 
 
 /*	SM_Object* dynaparent=0;
@@ -773,7 +783,7 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -799,7 +809,7 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -843,7 +853,7 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -866,7 +876,7 @@ void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -895,7 +905,7 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject())
+		if (m_object->isStaticObject() && !m_cci.m_bSensor)
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
@@ -909,9 +919,19 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
-
-
 }
+
+void CcdPhysicsController::forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos)
+{
+	if (m_object)
+	{
+		btTransform& xform = m_object->getWorldTransform();
+		xform.setBasis(mat);
+		xform.setOrigin(pos);
+	}
+}
+
+
 void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
 }
@@ -961,7 +981,9 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		if (local)
 		{
@@ -989,27 +1011,26 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
-
+		btTransform xform = m_object->getWorldTransform();
+		
+		if (local)
+		{	
+			force	= xform.getBasis()*force;
+		}
+		btRigidBody* body = GetRigidBody();
+		if (body)
+			body->applyCentralForce(force);
+		btSoftBody* soft = GetSoftBody();
+		if (soft)
 		{
-			btTransform xform = m_object->getWorldTransform();
-			
-			if (local)
-			{	
-				force	= xform.getBasis()*force;
-			}
-			btRigidBody* body = GetRigidBody();
-			if (body)
-				body->applyCentralForce(force);
-			btSoftBody* soft = GetSoftBody();
-			if (soft)
-			{
-				// the force is applied on each node, must reduce it in the same extend
-				if (soft->m_nodes.size() > 0)
-					force /= soft->m_nodes.size();
-				soft->addForce(force);
-			}
+			// the force is applied on each node, must reduce it in the same extend
+			if (soft->m_nodes.size() > 0)
+				force /= soft->m_nodes.size();
+			soft->addForce(force);
 		}
 	}
 }
@@ -1021,19 +1042,18 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-		} else
-		{
-			btTransform xform = m_object->getWorldTransform();
-			if (local)
-			{
-				angvel	= xform.getBasis()*angvel;
-			}
-			btRigidBody* body = GetRigidBody();
-			if (body)
-				body->setAngularVelocity(angvel);
-
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
+		btTransform xform = m_object->getWorldTransform();
+		if (local)
+		{
+			angvel	= xform.getBasis()*angvel;
+		}
+		btRigidBody* body = GetRigidBody();
+		if (body)
+			body->setAngularVelocity(angvel);
 	}
 
 }
@@ -1046,7 +1066,8 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		m_object->activate(true);
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 			return;
 		}
 		
@@ -1080,7 +1101,9 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 		m_object->activate();
 		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		
 		btVector3 pos(attachX,attachY,attachZ);
@@ -1207,7 +1230,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 	if (m_shapeInfo)
 	{
 		// This situation does not normally happen
-		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape();
+		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape(0.01);
 	} 
 	else if (m_collisionShape)
 	{
@@ -1274,28 +1297,22 @@ void	DefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scal
 
 void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
-	quatIma0 = m_worldTransform.getRotation().x();
-	quatIma1 = m_worldTransform.getRotation().y();
-	quatIma2 = m_worldTransform.getRotation().z();
-	quatReal = m_worldTransform.getRotation()[3];
+	btQuaternion quat = m_worldTransform.getRotation();
+	quatIma0 = quat.x();
+	quatIma1 = quat.y();
+	quatIma2 = quat.z();
+	quatReal = quat[3];
 }
 		
 void	DefaultMotionState::getWorldOrientation(float* ori)
 {
-	*ori++ = m_worldTransform.getBasis()[0].x();
-	*ori++ = m_worldTransform.getBasis()[1].x();
-	*ori++ = m_worldTransform.getBasis()[1].x();
-	*ori++ = 0.f;
-	*ori++ = m_worldTransform.getBasis()[0].y();
-	*ori++ = m_worldTransform.getBasis()[1].y();
-	*ori++ = m_worldTransform.getBasis()[1].y();
-	*ori++ = 0.f;
-	*ori++ = m_worldTransform.getBasis()[0].z();
-	*ori++ = m_worldTransform.getBasis()[1].z();
-	*ori++ = m_worldTransform.getBasis()[1].z();
-	*ori++ = 0.f;
+	m_worldTransform.getBasis().getOpenGLSubMatrix(ori);
 }
 
+void	DefaultMotionState::setWorldOrientation(const float* ori)
+{
+	m_worldTransform.getBasis().setFromOpenGLSubMatrix(ori);
+}
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
 	btVector3 pos(posX,posY,posZ);
@@ -1583,7 +1600,7 @@ bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
 	return true;
 }
 
-btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
+btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 {
 	btCollisionShape* collisionShape = 0;
 	btTriangleMeshShape* concaveShape = 0;
@@ -1591,7 +1608,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 	CcdShapeConstructionInfo* nextShapeInfo;
 
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
-		return m_shapeProxy->CreateBulletShape();
+		return m_shapeProxy->CreateBulletShape(margin);
 
 	switch (m_shapeType) 
 	{
@@ -1600,22 +1617,27 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 
 	case PHY_SHAPE_BOX:
 		collisionShape = new btBoxShape(m_halfExtend);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_SPHERE:
 		collisionShape = new btSphereShape(m_radius);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_CYLINDER:
 		collisionShape = new btCylinderShapeZ(m_halfExtend);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_CONE:
 		collisionShape = new btConeShapeZ(m_radius, m_height);
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_POLYTOPE:
 		collisionShape = new btConvexHullShape(&m_vertexArray[0], m_vertexArray.size()/3, 3*sizeof(btScalar));
+		collisionShape->setMargin(margin);
 		break;
 
 	case PHY_SHAPE_MESH:
@@ -1638,7 +1660,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				);
 				
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
-
+				gimpactShape->setMargin(margin);
 				collisionShape = gimpactShape;
 				gimpactShape->updateBound();
 
@@ -1683,6 +1705,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				m_unscaledShape->recalcLocalAabb();
 			}
 			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
+			collisionShape->setMargin(margin);
 		}
 		break;
 
@@ -1694,7 +1717,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				 sit != m_shapeArray.end();
 				 sit++)
 			{
-				collisionShape = (*sit)->CreateBulletShape();
+				collisionShape = (*sit)->CreateBulletShape(margin);
 				if (collisionShape)
 				{
 					collisionShape->setLocalScaling((*sit)->m_childScale);

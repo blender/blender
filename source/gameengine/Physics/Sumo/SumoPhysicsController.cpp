@@ -390,6 +390,11 @@ void		SumoPhysicsController::PostProcessReplica(class PHY_IMotionState* motionst
 	m_sumoScene->add(* (m_sumoObj));
 }
 
+PHY_IMotionState* SumoPhysicsController::GetMotionState()
+{
+	return m_MotionState;
+}
+
 void			SumoPhysicsController::SetSimulatedTime(float)
 {
 }

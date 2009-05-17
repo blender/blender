@@ -415,61 +415,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 		obj->setActivationState(ISLAND_SLEEPING);
 	}
 
-
-	//CollisionObject(body,ctrl->GetCollisionFilterGroup(),ctrl->GetCollisionFilterMask());
-
 	assert(obj->getBroadphaseHandle());
-
-	btBroadphaseInterface* scene =  getBroadphase();
-
-
-	btCollisionShape* shapeinterface = ctrl->GetCollisionShape();
-
-	assert(shapeinterface);
-
-	const btTransform& t = ctrl->GetCollisionObject()->getWorldTransform();
-	
-
-	btVector3 minAabb,maxAabb;
-
-	shapeinterface->getAabb(t,minAabb,maxAabb);
-
-	float timeStep = 0.02f;
-
-
-	//extent it with the motion
-
-	if (body)
-	{
-		btVector3 linMotion = body->getLinearVelocity()*timeStep;
-
-		float maxAabbx = maxAabb.getX();
-		float maxAabby = maxAabb.getY();
-		float maxAabbz = maxAabb.getZ();
-		float minAabbx = minAabb.getX();
-		float minAabby = minAabb.getY();
-		float minAabbz = minAabb.getZ();
-
-		if (linMotion.x() > 0.f)
-			maxAabbx += linMotion.x(); 
-		else
-			minAabbx += linMotion.x();
-		if (linMotion.y() > 0.f)
-			maxAabby += linMotion.y(); 
-		else
-			minAabby += linMotion.y();
-		if (linMotion.z() > 0.f)
-			maxAabbz += linMotion.z(); 
-		else
-			minAabbz += linMotion.z();
-
-
-		minAabb = btVector3(minAabbx,minAabby,minAabbz);
-		maxAabb = btVector3(maxAabbx,maxAabby,maxAabbz);
-	}
-
-
-
 }
 
 		
@@ -1884,29 +1830,20 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 	//	addCcdPhysicsController(ctrl1);
 	//}
 	enableCcdPhysicsController(ctrl1);
-
-	//Collision filter/mask is now set at the time of the creation of the controller 
-	//force collision detection with everything, including static objects (might hurt performance!)
-	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::SensorTrigger;
-	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterGroup = btBroadphaseProxy::SensorTrigger;
-	//todo: make this 'sensor'!
-
-	requestCollisionCallback(ctrl);
-	//printf("addSensor\n");
 }
 
-void CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
+bool CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = (CcdPhysicsController*)ctrl;
-	if (ccdCtrl->Unregister())
-		m_triggerControllers.erase(ccdCtrl);
+	if (!ccdCtrl->Unregister())
+		return false;
+	m_triggerControllers.erase(ccdCtrl);
+	return true;
 }
 
 
 void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 {
-	removeCollisionCallback(ctrl);
-
 	disableCcdPhysicsController((CcdPhysicsController*)ctrl);
 }
 
@@ -1942,12 +1879,14 @@ void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCal
 	m_triggerCallbacksUserPtrs[response_class] = user;
 
 }
-void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
+bool CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
 
-	if (ccdCtrl->Register())
-		m_triggerControllers.insert(ccdCtrl);
+	if (!ccdCtrl->Register())
+		return false;
+	m_triggerControllers.insert(ccdCtrl);
+	return true;
 }
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
@@ -2096,12 +2035,13 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	// declare this object as Dyamic rather then static!!
 	// The reason as it is designed to detect all type of object, including static object
 	// It would cause static-static message to be printed on the console otherwise
-	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE/* | btCollisionObject::CF_KINEMATIC_OBJECT*/;
+	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_STATIC_OBJECT;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
 	// we will add later the possibility to select the filter from option
 	cinfo.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
 	cinfo.m_collisionFilterGroup = CcdConstructionInfo::SensorFilter;
+	cinfo.m_bSensor = true;
 	motionState->m_worldTransform.setIdentity();
 	motionState->m_worldTransform.setOrigin(btVector3(position[0],position[1],position[2]));
 
@@ -2555,13 +2495,14 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float conera
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
-	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
+	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_STATIC_OBJECT;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
 	
 	// we will add later the possibility to select the filter from option
 	cinfo.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
 	cinfo.m_collisionFilterGroup = CcdConstructionInfo::SensorFilter;
+	cinfo.m_bSensor = true;
 	motionState->m_worldTransform.setIdentity();
 //	motionState->m_worldTransform.setOrigin(btVector3(position[0],position[1],position[2]));
 

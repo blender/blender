@@ -152,8 +152,8 @@ class PHY_IPhysicsEnvironment
 		virtual void addSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void removeSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)=0;
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
 		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;

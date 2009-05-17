@@ -213,7 +213,7 @@ void SumoPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCa
 
 	m_sumoScene->addTouchCallback(sumoRespClass,SumoPHYCallbackBridge::StaticSolidToPHYCallback,bridge);
 }
-void SumoPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
+bool SumoPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	SumoPhysicsController* smctrl = dynamic_cast<SumoPhysicsController*>(ctrl);
 	MT_assert(smctrl);
@@ -225,12 +225,15 @@ void SumoPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ct
 		smObject->setPhysicsClientObject(ctrl);
 	
 		m_sumoScene->requestCollisionCallback(*smObject);
+		return true;
 	}
+	return false;
 }
 
-void SumoPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
+bool SumoPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	// intentionally empty
+	return false;
 }
 
 PHY_IPhysicsController*	SumoPhysicsEnvironment::CreateSphereController(float radius,const PHY__Vector3& position)

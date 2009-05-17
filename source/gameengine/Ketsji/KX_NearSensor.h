@@ -77,8 +77,8 @@ public:
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						 const PHY_CollData * coll_data); 
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
-	virtual void RegisterSumo(KX_TouchEventManager *touchman);
-	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
+	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2) { return false; };
+	virtual sensortype GetSensorType() { return NEAR; }
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

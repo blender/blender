@@ -91,6 +91,15 @@ protected:
 	std::vector<class SCA_IController*>		m_linkedcontrollers;
 
 public:
+
+	enum sensortype {
+		NONE = 0,
+		TOUCH,
+		NEAR,
+		RADAR,
+		// to be updated as needed
+	};
+
 	SCA_ISensor(SCA_IObject* gameobj,
 				class SCA_EventManager* eventmgr,
 				PyTypeObject* T );;
@@ -137,6 +146,8 @@ public:
 	virtual void ProcessReplica();
 
 	virtual double GetNumber();
+
+	virtual sensortype GetSensorType() { return NONE; }
 
 	/** Stop sensing for a while. */
 	void Suspend();

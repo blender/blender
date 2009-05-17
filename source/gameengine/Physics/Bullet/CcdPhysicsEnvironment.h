@@ -179,8 +179,8 @@ protected:
 		virtual void addSensor(PHY_IPhysicsController* ctrl);
 		virtual void removeSensor(PHY_IPhysicsController* ctrl);
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl);
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl);
 		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);

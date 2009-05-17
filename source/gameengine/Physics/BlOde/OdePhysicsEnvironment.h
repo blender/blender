@@ -64,8 +64,8 @@ public:
 	virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 	{
 	}
-	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
-	virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl) {}
+	virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl) {return false;}
+	virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl) {return false;}
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 

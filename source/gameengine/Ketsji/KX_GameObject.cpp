@@ -332,7 +332,7 @@ void KX_GameObject::ProcessReplica()
 		
 }
 
-static void setGraphicController_recursive(SG_Node* node, bool v)
+static void setGraphicController_recursive(SG_Node* node)
 {
 	NodeList& children = node->GetSGChildren();
 
@@ -341,24 +341,24 @@ static void setGraphicController_recursive(SG_Node* node, bool v)
 		SG_Node* childnode = (*childit);
 		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
 		if (clientgameobj != NULL) // This is a GameObject
-			clientgameobj->ActivateGraphicController(v, false);
+			clientgameobj->ActivateGraphicController(false);
 		
 		// if the childobj is NULL then this may be an inverse parent link
 		// so a non recursive search should still look down this node.
-		setGraphicController_recursive(childnode, v);
+		setGraphicController_recursive(childnode);
 	}
 }
 
 
-void KX_GameObject::ActivateGraphicController(bool active, bool recurse)
+void KX_GameObject::ActivateGraphicController(bool recurse)
 {
 	if (m_pGraphicController)
 	{
-		m_pGraphicController->Activate(active);
+		m_pGraphicController->Activate(m_bVisible);
 	}
 	if (recurse)
 	{
-		setGraphicController_recursive(GetSGNode(), active);
+		setGraphicController_recursive(GetSGNode());
 	}
 }
 
@@ -536,6 +536,20 @@ void KX_GameObject::UpdateTransform()
 void KX_GameObject::UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene)
 {
 	((KX_GameObject*)gameobj)->UpdateTransform();
+}
+
+void KX_GameObject::SynchronizeTransform()
+{
+	// only used for sensor object, do full synchronization as bullet doesn't do it
+	if (m_pPhysicsController1)
+		m_pPhysicsController1->SetTransform();
+	if (m_pGraphicController)
+		m_pGraphicController->SetGraphicTransform();
+}
+
+void KX_GameObject::SynchronizeTransformFunc(SG_IObject* node, void* gameobj, void* scene)
+{
+	((KX_GameObject*)gameobj)->SynchronizeTransform();
 }
 
 

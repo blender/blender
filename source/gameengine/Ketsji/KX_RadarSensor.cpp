@@ -30,6 +30,7 @@
 #include "KX_GameObject.h"
 #include "KX_PyMath.h"
 #include "PHY_IPhysicsController.h"
+#include "PHY_IMotionState.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -66,7 +67,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				m_coneheight(coneheight),
 				m_axis(axis)
 {
-	m_client_info->m_type = KX_ClientObjectInfo::RADAR;
+	m_client_info->m_type = KX_ClientObjectInfo::SENSOR;
 	//m_client_info->m_clientobject = gameobj;
 	//m_client_info->m_auxilary_info = NULL;
 	//sumoObj->setClientObject(&m_client_info);
@@ -82,12 +83,6 @@ CValue* KX_RadarSensor::GetReplica()
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
 	replica->ProcessReplica();
 	return replica;
-}
-
-void KX_RadarSensor::ProcessReplica()
-{
-	KX_NearSensor::ProcessReplica();
-	m_client_info->m_type = KX_ClientObjectInfo::RADAR;
 }
 
 /**
@@ -169,11 +164,13 @@ void KX_RadarSensor::SynchronizeTransform()
 
 	if (m_physCtrl)
 	{
-		MT_Quaternion orn = trans.getRotation();
-		MT_Point3 pos = trans.getOrigin();
-		m_physCtrl->setPosition(pos[0],pos[1],pos[2]);
-		m_physCtrl->setOrientation(orn[0],orn[1],orn[2],orn[3]);
-		m_physCtrl->calcXform();
+		PHY_IMotionState* motionState = m_physCtrl->GetMotionState();
+		const MT_Point3& pos = trans.getOrigin();
+		float ori[12];
+		trans.getBasis().getValue(ori);
+		motionState->setWorldPosition(pos[0], pos[1], pos[2]);
+		motionState->setWorldOrientation(ori);
+		m_physCtrl->WriteMotionStateToDynamics(true);
 	}
 
 }

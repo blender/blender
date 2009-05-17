@@ -173,19 +173,65 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
 	if (m_physCtrl)
 	{
-		touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl);
-		// collision
-		// Deprecated	
-
+		if (touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl))
+		{
+			KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			if (client_info->isSensor())
+				touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
+		}
 	}
 }
-
 void KX_TouchSensor::UnregisterSumo(KX_TouchEventManager* touchman)
 {
 	if (m_physCtrl)
 	{
-		touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl);
+		if (touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl))
+		{
+			// no more sensor on the controller, can remove it if it is a sensor object
+			KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			if (client_info->isSensor())
+				touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+		}
 	}
+}
+
+// this function is called only for sensor objects
+// return true if the controller can collide with the object
+bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
+{
+	assert(obj1==m_physCtrl && obj2);
+
+	KX_GameObject* myobj = (KX_GameObject*)GetParent();
+	KX_GameObject* myparent = myobj->GetParent();
+	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(((PHY_IPhysicsController*)obj2)->getNewClientInfo());
+	KX_GameObject* otherobj = ( client_info ? client_info->m_gameobject : NULL);
+
+	// first, decrement refcount as GetParent() increases it
+	if (myparent)
+		myparent->Release();
+
+	// we can only check on persistent characteristic: m_link and m_suspended are not
+	// good candidate because they are transient. That must be handled at another level
+	if (!otherobj ||
+		otherobj == myparent ||		// don't interact with our parent
+		client_info->m_type != KX_ClientObjectInfo::ACTOR)	// only with actor objects
+		return false;
+		
+	bool found = m_touchedpropname.IsEmpty();
+	if (!found)
+	{
+		if (m_bFindMaterial)
+		{
+			if (client_info->m_auxilary_info)
+			{
+				found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
+			}
+		} else
+		{
+			found = (otherobj->GetProperty(m_touchedpropname) != NULL);
+		}
+	}
+	return found;
 }
 
 bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)

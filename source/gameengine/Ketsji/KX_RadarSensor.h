@@ -76,7 +76,6 @@ public:
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
-	virtual void ProcessReplica();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -93,6 +92,7 @@ public:
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject* value);
+	virtual sensortype GetSensorType() { return RADAR; }
 
 	//Deprecated ----->
 	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeOrigin);

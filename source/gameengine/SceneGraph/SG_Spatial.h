@@ -148,6 +148,13 @@ public:
 		SetModified();
 	}
 
+	// rot is arrange like openGL matrix
+	void SetLocalOrientation(const float* rot)
+	{
+		m_localRotation.setValue(rot);
+		SetModified();
+	}
+
 	void SetWorldOrientation(const MT_Matrix3x3& rot) 
 	{
 		m_worldRotation = rot;

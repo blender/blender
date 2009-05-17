@@ -3064,29 +3064,33 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	Object *ob = arg2_object;
 
 	switch (ob->body_type) {
+	case OB_BODY_TYPE_SENSOR:
+		ob->gameflag |= OB_SENSOR|OB_COLLISION|OB_GHOST;
+		ob->gameflag &= ~(OB_OCCLUDER|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR|OB_ANISOTROPIC_FRICTION|OB_DO_FH|OB_ROT_FH|OB_COLLISION_RESPONSE);
+		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
-		ob->gameflag &= ~(OB_COLLISION|OB_DYNAMIC);
+		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~(OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
+		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;
-		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	case OB_BODY_TYPE_DYNAMIC:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	case OB_BODY_TYPE_RIGID:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	default:
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER|OB_SENSOR);
 		
 		/* assume triangle mesh, if no bounds chosen for soft body */
 		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
@@ -3271,17 +3275,31 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 static void buttons_bullet(uiBlock *block, Object *ob)
 {
 	uiBut *but;
+	char *tip;
 
 	/* determine the body_type setting based on flags */
-	if (!(ob->gameflag & OB_COLLISION))
-		ob->body_type = (ob->gameflag & OB_OCCLUDER) ? OB_BODY_TYPE_OCCLUDER : OB_BODY_TYPE_NO_COLLISION;
-	else if (!(ob->gameflag & OB_DYNAMIC))
+	if (!(ob->gameflag & OB_COLLISION)) {
+		if (ob->gameflag & OB_OCCLUDER) {
+			tip = "Occluder";
+			ob->body_type = OB_BODY_TYPE_OCCLUDER;
+		} else {
+			tip = "Disable colision for this object";
+			ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+		}
+	} else if (ob->gameflag & OB_SENSOR) {
+		tip = "Collision Sensor, detects static and dynamic objects but not the other collision sensor objects";
+		ob->body_type = OB_BODY_TYPE_SENSOR;
+	} else if (!(ob->gameflag & OB_DYNAMIC)) {
+		tip = "Static";
 		ob->body_type = OB_BODY_TYPE_STATIC;
-	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY)))
+	} else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY))) {
+		tip = "Dynamic";
 		ob->body_type = OB_BODY_TYPE_DYNAMIC;
-	else if (ob->gameflag & OB_RIGID_BODY)
+	} else if (ob->gameflag & OB_RIGID_BODY) {
+		tip = "Rigid body";
 		ob->body_type = OB_BODY_TYPE_RIGID;
-	else {
+	} else {
+		tip = "Soft body";
 		ob->body_type = OB_BODY_TYPE_SOFT;
 		/* create the structure here because we display soft body buttons in the main panel */
 		if (!ob->bsoft)
@@ -3292,28 +3310,36 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-			"Object type%t|Occluder%x5|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
-			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+			"Object type%t|Occluder%x5|No collision%x0|Sensor%x6|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, tip);
 	uiButSetFunc(but, check_body_type, but, ob);
 
 	if (ob->gameflag & OB_COLLISION) {
 
-		uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
-					110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
-					"Objects that are detected by the Near and Radar sensor");
+		if (ob->gameflag & OB_SENSOR) {
+			uiBlockEndAlign(block);
+			uiDefBlockBut(block, advanced_bullet_menu, ob, 
+						  "Advanced Settings", 
+						  210, 205, 140, 19, "Display collision advanced settings");
+			uiBlockBeginAlign(block);
+		} else {
+			uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
+						110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
+						"Objects that are detected by the Near and Radar sensor and the collision sensor objects");
 
-			
+				
 
-		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
-					160,205,50,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Objects that don't restitute collisions (like a ghost)");
+			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
+						160,205,50,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Objects that don't restitute collisions (like a ghost)");
 
-		//uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefBlockBut(block, advanced_bullet_menu, ob, 
-					  "Advanced Settings", 
-					  210, 205, 140, 19, "Display collision advanced settings");
-		//uiBlockSetCol(block, TH_BUT_SETTING2);
+			//uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefBlockBut(block, advanced_bullet_menu, ob, 
+						  "Advanced Settings", 
+						  210, 205, 140, 19, "Display collision advanced settings");
+			//uiBlockSetCol(block, TH_BUT_SETTING2);
+		}
 
 
 		if(ob->gameflag & OB_DYNAMIC) {
@@ -3394,7 +3420,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 		/* In Bullet, anisotripic friction can be applied to static objects as well, just not soft bodies */
 
-		if (!(ob->gameflag & OB_SOFT_BODY))
+		if (!(ob->gameflag & (OB_SOFT_BODY|OB_SENSOR)))
 		{
 			uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
 				230, 145, 120, 19,
