@@ -907,8 +907,12 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 			}
 		}		
+#ifdef WITH_LCMS
+		uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_COLOR_CORRECTION, 0, 0, NULL);
+		xco+= XIC;
+#endif
 		xco+= 8;
-		
+
 		/* record & play */
 		uiBlockBeginAlign(block);
 		if(ima->type==IMA_TYPE_COMPOSITE) {
@@ -921,6 +925,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		}
 		uiBlockEndAlign(block);
 		xco+= 8;
+
 	}
 	
 	/* draw lock */

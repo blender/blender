@@ -577,6 +577,8 @@ typedef struct SpaceImaSel {
 #define SI_DISPGP		1<<22
 #define SI_DRAW_OTHER	1<<23
 
+#define SI_COLOR_CORRECTION	1<<24
+
 /* SpaceIpo->flag (Graph Editor Settings) */
 #define SIPO_LOCK_VIEW			(1<<0)
 #define SIPO_NOTRANSKEYCULL		(1<<1)
