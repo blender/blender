@@ -804,15 +804,9 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 	em->totedge= me->totedge;
 	em->totface= me->totface;
 	
-	if(tot==0) {
-		return NULL;
-	}
-	
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
 		tot= actkey->totelem;
-		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
-		undo_editmode_clear();
 	}
 
 	
