@@ -1129,8 +1129,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		// bullet will not synchronize, we must do it explicitely
 		SG_Callbacks& callbacks = gameobj->GetSGNode()->GetCallBackFunctions();
 		callbacks.m_updatefunc = KX_GameObject::SynchronizeTransformFunc;
-		// make sensor object invisible by default
-		gameobj->SetVisible(false, false);
 	} 
 	// don't add automatically sensor object, they are added when a collision sensor is registered
 	else if (objprop->m_in_active_layer)

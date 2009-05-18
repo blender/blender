@@ -3068,7 +3068,7 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	switch (ob->body_type) {
 	case OB_BODY_TYPE_SENSOR:
 		ob->gameflag |= OB_SENSOR|OB_COLLISION|OB_GHOST;
-		ob->gameflag &= ~(OB_OCCLUDER|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR|OB_ANISOTROPIC_FRICTION|OB_DO_FH|OB_ROT_FH|OB_COLLISION_RESPONSE);
+		ob->gameflag &= ~(OB_OCCLUDER|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_ACTOR|OB_ANISOTROPIC_FRICTION|OB_DO_FH|OB_ROT_FH|OB_COLLISION_RESPONSE);
 		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
@@ -3315,14 +3315,21 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 			"Object type%t|Occluder%x5|No collision%x0|Sensor%x6|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
 			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, tip);
 	uiButSetFunc(but, check_body_type, but, ob);
-
+	
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, OB_RESTRICT_RENDER, B_NOP, "Invisible", 
+				210, 205, 60, 19,
+				&ob->restrictflag, 0, 0, 0, 0, 
+				"Initializes objects as invisible, this can be toggled by the visibility actuator (uses outliner render option)");
+	
 	if (ob->gameflag & OB_COLLISION) {
 
 		if (ob->gameflag & OB_SENSOR) {
 			uiBlockEndAlign(block);
 			uiDefBlockBut(block, advanced_bullet_menu, ob, 
-						  "Advanced Settings", 
-						  210, 205, 140, 19, "Display collision advanced settings");
+						  "Advanced", 
+						  270, 205, 80, 19, "Display collision advanced settings");
 			uiBlockBeginAlign(block);
 		} else {
 			uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
@@ -3338,8 +3345,8 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 			//uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefBlockBut(block, advanced_bullet_menu, ob, 
-						  "Advanced Settings", 
-						  210, 205, 140, 19, "Display collision advanced settings");
+						  "Advanced", 
+						  270, 205, 80, 19, "Display collision advanced settings");
 			//uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 
