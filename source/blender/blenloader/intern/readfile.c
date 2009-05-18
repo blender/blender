@@ -2176,9 +2176,12 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 		
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
+			
 			link_list(fd, &data->targets);
+			
 			data->prop = newdataadr(fd, data->prop);
-			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (data->prop)
+				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
 	}
 }
@@ -3417,7 +3420,13 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->bone= NULL;
 		pchan->parent= newdataadr(fd, pchan->parent);
 		pchan->child= newdataadr(fd, pchan->child);
+		
 		direct_link_constraints(fd, &pchan->constraints);
+		
+		pchan->prop = newdataadr(fd, pchan->prop);
+		if (pchan->prop)
+			IDP_DirectLinkProperty(pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
