@@ -1364,7 +1364,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		
-		write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())
+		poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
+		pose_items.append((my_mesh.fbxName, poseMatrix))
 		
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
