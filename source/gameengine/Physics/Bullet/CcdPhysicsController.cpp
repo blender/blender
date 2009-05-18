@@ -296,7 +296,11 @@ void CcdPhysicsController::CreateRigidbody()
 			}
 
 		}
-
+		if (m_cci.m_margin > 0.f)
+		{
+			psb->getCollisionShape()->setMargin(m_cci.m_margin);
+			psb->updateBounds();
+		}
 	
 		
 		m_object = psb;

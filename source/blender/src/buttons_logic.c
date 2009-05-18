@@ -3141,8 +3141,14 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiBlockEndAlign(block);
 			yco -= 20;
 			xco = 0;
-			uiDefButF(block, NUMSLI, 0, "Welding ", 
-				xco, yco, 360, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
+			if (ob->bsoft->margin < 0.001f)
+				ob->bsoft->margin = 0.25f;
+			uiDefButF(block, NUM, 0, "Margin", 
+					xco, yco, 180, 19, &ob->bsoft->margin, 0.001, 1.0, 1, 0, 
+					"Collision margin for soft body. Small value makes the algorithm unstable");
+
+			uiDefButF(block, NUM, 0, "Welding ", 
+				xco+=180, yco, 180, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
 				"Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
 
 			/*

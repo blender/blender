@@ -1456,7 +1456,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
-		
+			objprop.m_margin = blenderobject->bsoft->margin;
 		} else
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
@@ -1496,6 +1496,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_collisionflags= OB_BSB_COL_SDF_RS + OB_BSB_COL_VF_SS;
 			objprop.m_soft_numclusteriterations= 16;
 			objprop.m_soft_welding = 0.f;
+			objprop.m_margin = 0.f;
 		}
 	}
 
