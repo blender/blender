@@ -851,7 +851,7 @@ BMVert *editmesh_get_x_mirror_vert(Object *ob, BMEditMesh *em, float *co)
 	
 	poinval= mesh_octree_table(ob, em, vec, 'u');
 	if(poinval != -1)
-		return (EditVert *)(poinval);
+		return (BMVert *)(poinval);
 	return NULL;
 }
 

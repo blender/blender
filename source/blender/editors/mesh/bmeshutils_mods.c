@@ -624,7 +624,7 @@ static int unified_findnearest(ViewContext *vc, BMVert **eve, BMEdge **eed, BMFa
 	view3d_validate_backbuf(vc);
 	
 	if(em->selectmode & SCE_SELECT_VERTEX)
-		*eve= EDBM_findnearestvert(vc, &dist, SELECT, 0);
+		*eve= EDBM_findnearestvert(vc, &dist, BM_SELECT, 0);
 	if(em->selectmode & SCE_SELECT_FACE)
 		*efa= EDBM_findnearestface(vc, &dist);
 
@@ -1264,7 +1264,7 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 			}
 		}
 		else if(eed) {
-			if(!BM_TestHFlag(efa, BM_SELECT)) {
+			if(!BM_TestHFlag(eed, BM_SELECT)) {
 				EDBM_store_selection(vc.em, eed);
 				BM_Select(vc.em->bm, eed, 1);
 			}

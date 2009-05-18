@@ -300,6 +300,7 @@ void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMV
 
 /*computes the centroid of a face, using the center of the bounding box*/
 int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3]);
+void BM_SelectMode_Flush(BMesh *bm);
 
 /*convert an editmesh to a bmesh*/
 BMesh *editmesh_to_bmesh(struct EditMesh *em);

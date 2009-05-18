@@ -27,7 +27,7 @@
  *
 */
 
-void bmesh_selectmode_flush(BMesh *bm)
+void BM_SelectMode_Flush(BMesh *bm)
 {
 	BMEdge *e;
 	BMLoop *l;
@@ -178,7 +178,7 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 			BM_Select_Edge(bm, e, 0);
 		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces))
 			bmesh_clear_sysflag(&(f->head), 0);
-		bmesh_selectmode_flush(bm);
+		BM_SelectMode_Flush(bm);
 	}
 	else if(bm->selectmode & BM_EDGE){
 		for(v= BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts))
@@ -187,7 +187,7 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 			if(bmesh_test_sysflag(&(e->head), BM_SELECT))
 				BM_Select_Edge(bm, e, 1);
 		}
-		bmesh_selectmode_flush(bm);
+		BM_SelectMode_Flush(bm);
 	}
 	else if(bm->selectmode & BM_FACE){
 		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))

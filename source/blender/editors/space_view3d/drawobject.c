@@ -5413,22 +5413,22 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			bbs_mesh_solid_EM(em, scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
 			if(scene->selectmode & SCE_SELECT_FACE)
-				em_solidoffs = 1+em->bm->totface;
+				bm_solidoffs = 1+em->bm->totface;
 			else
-				em_solidoffs= 1;
+				bm_solidoffs= 1;
 			
 			bglPolygonOffset(rv3d->dist, 1.0);
 			
 			// we draw edges always, for loop (select) tools
-			bbs_mesh_wire(em, dm, em_solidoffs);
-			em_wireoffs= em_solidoffs + em->bm->totedge;
+			bbs_mesh_wire(em, dm, bm_solidoffs);
+			bm_wireoffs= bm_solidoffs + em->bm->totedge;
 			
 			// we draw verts if vert select mode or if in transform (for snap).
 			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
-				bbs_mesh_verts(em, dm, em_wireoffs);
-				em_vertoffs= em_wireoffs + em->bm->totvert;
+				bbs_mesh_verts(em, dm, bm_wireoffs);
+				bm_vertoffs= bm_wireoffs + em->bm->totvert;
 			}
-			else em_vertoffs= em_wireoffs;
+			else bm_vertoffs= bm_wireoffs;
 			
 			bglPolygonOffset(rv3d->dist, 0.0);
 

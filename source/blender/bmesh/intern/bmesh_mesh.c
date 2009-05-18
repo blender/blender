@@ -273,5 +273,5 @@ void bmesh_end_edit(BMesh *bm, int flag){
 
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
-	bmesh_selectmode_flush(bm);
+	BM_SelectMode_Flush(bm);
 }

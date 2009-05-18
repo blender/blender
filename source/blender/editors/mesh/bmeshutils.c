@@ -305,7 +305,7 @@ BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 		
 		ese = em->selected.last;
 		for (; ese; ese=ese->prev){
-			if(ese->type == EDITFACE) {
+			if(ese->type == BM_FACE) {
 				efa = (BMFace *)ese->data;
 				
 				if (BM_TestHFlag(efa, BM_HIDDEN)) efa= NULL;
@@ -328,97 +328,85 @@ BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 
 void EDBM_selectmode_flush(BMEditMesh *em)
 {
+	em->bm->selectmode = em->selectmode;
+	BM_SelectMode_Flush(em->bm);
 }
 
 
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {
-	ese->data = NULL;
-	return 0;
-#if 0
-	EditSelection *ese_last = em->selected.last;
-	EditFace *efa = EM_get_actFace(em, 0);
+	BMEditSelection *ese_last = em->selected.last;
+	BMFace *efa = EDBM_get_actFace(em, 0);
 
 	ese->next = ese->prev = NULL;
 	
 	if (ese_last) {
-		if (ese_last->type == EDITFACE) { /* if there is an active face, use it over the last selected face */
+		if (ese_last->type == BM_FACE) { /* if there is an active face, use it over the last selected face */
 			if (efa) {
 				ese->data = (void *)efa;
 			} else {
 				ese->data = ese_last->data;
 			}
-			ese->type = EDITFACE;
+			ese->type = BM_FACE;
 		} else {
 			ese->data = ese_last->data;
 			ese->type = ese_last->type;
 		}
 	} else if (efa) { /* no */
 		ese->data = (void *)efa;
-		ese->type = EDITFACE;
+		ese->type = BM_FACE;
 	} else {
 		ese->data = NULL;
 		return 0;
 	}
 	return 1;
-#endif
 }
 
 /* ********* Selection History ************ */
 static int EDBM_check_selection(BMEditMesh *em, void *data)
 {
-#if 0
-	EditSelection *ese;
+	BMEditSelection *ese;
 	
 	for(ese = em->selected.first; ese; ese = ese->next){
 		if(ese->data == data) return 1;
 	}
 	
 	return 0;
-#endif
 }
 
 void EDBM_remove_selection(BMEditMesh *em, void *data)
 {
-#if 0
-	EditSelection *ese;
+	BMEditSelection *ese;
 	for(ese=em->selected.first; ese; ese = ese->next){
 		if(ese->data == data){
 			BLI_freelinkN(&(em->selected),ese);
 			break;
 		}
 	}
-#endif
 }
 
 void EDBM_store_selection(BMEditMesh *em, void *data)
 {
-#if 0
-	EditSelection *ese;
-	if(!EM_check_selection(em, data)){
-		ese = (EditSelection*) MEM_callocN( sizeof(EditSelection), "Edit Selection");
-		ese->type = type;
+	BMEditSelection *ese;
+	if(!EDBM_check_selection(em, data)){
+		ese = (BMEditSelection*) MEM_callocN( sizeof(BMEditSelection), "BMEdit Selection");
+		ese->type = ((BMHeader*)data)->type;
 		ese->data = data;
 		BLI_addtail(&(em->selected),ese);
 	}
-#endif
 }
 
 void EDBM_validate_selections(BMEditMesh *em)
 {
-#if 0
-	EditSelection *ese, *nextese;
+	BMEditSelection *ese, *nextese;
 
 	ese = em->selected.first;
 
 	while(ese){
 		nextese = ese->next;
-		if(ese->type == EDITVERT && !(((EditVert*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
-		else if(ese->type == EDITEDGE && !(((EditEdge*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
-		else if(ese->type == EDITFACE && !(((EditFace*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
+		if (!BM_TestHFlag(ese->data, BM_SELECT)) BLI_freelinkN(&(em->selected), ese);
 		ese = nextese;
 	}
-#endif
 }
 
 void EDBM_clear_flag_all(BMEditMesh *em, int flag)
@@ -448,13 +436,13 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 
 static void EDBM_strip_selections(BMEditMesh *em)
 {
-#if 0
-	EditSelection *ese, *nextese;
+	BMEditSelection *ese, *nextese;
+
 	if(!(em->selectmode & SCE_SELECT_VERTEX)){
 		ese = em->selected.first;
 		while(ese){
 			nextese = ese->next; 
-			if(ese->type == EDITVERT) BLI_freelinkN(&(em->selected),ese);
+			if(ese->type == BM_VERT) BLI_freelinkN(&(em->selected),ese);
 			ese = nextese;
 		}
 	}
@@ -462,7 +450,7 @@ static void EDBM_strip_selections(BMEditMesh *em)
 		ese=em->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == EDITEDGE) BLI_freelinkN(&(em->selected), ese);
+			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->selected), ese);
 			ese = nextese;
 		}
 	}
@@ -470,11 +458,117 @@ static void EDBM_strip_selections(BMEditMesh *em)
 		ese=em->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == EDITFACE) BLI_freelinkN(&(em->selected), ese);
+			if(ese->type == BM_FACE) BLI_freelinkN(&(em->selected), ese);
 			ese = nextese;
 		}
 	}
-#endif
+}
+
+
+/* when switching select mode, makes sure selection is consistant for editing */
+/* also for paranoia checks to make sure edge or face mode works */
+void EDBM_selectmode_set(BMEditMesh *em)
+{
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+	
+	em->bm->selectmode = em->selectmode;
+
+	EDBM_strip_selections(em); /*strip BMEditSelections from em->selected that are not relevant to new mode*/
+	
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		BMIter iter;
+		
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		
+		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);
+
+		EDBM_selectmode_flush(em);
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		/* deselect vertices, and select again based on edge select */
+		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+		for ( ; eve; eve=BMIter_Step(&iter)) BM_Select(em->bm, eve, 0);
+		
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) {
+			if (BM_TestHFlag(eed, BM_SELECT))
+				BM_Select(em->bm, eed, 1);
+		}
+		
+		/* selects faces based on edge status */
+		EDBM_selectmode_flush(em);
+	}
+	else if(em->selectmode & SCE_SELECT_FACE) {
+		/* deselect eges, and select again based on face select */
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		
+		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		for ( ; efa; efa=BMIter_Step(&iter)) {
+			if (BM_TestHFlag(efa, BM_SELECT))
+				BM_Select(em->bm, efa, 1);
+		}
+	}
+}
+
+void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
+{
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+
+	/*have to find out what the selectionmode was previously*/
+	if(oldmode == SCE_SELECT_VERTEX) {
+		if(selectmode == SCE_SELECT_EDGE) {
+			/*select all edges associated with every selected vertex*/
+			eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+			for ( ; eed; eed=BMIter_Step(&iter)) {
+				if(BM_TestHFlag(eed->v1, BM_SELECT)) BM_Select(em->bm, eed, 1);
+				else if(BM_TestHFlag(eed->v2, BM_SELECT)) BM_Select(em->bm, eed, 1);
+			}
+		}		
+		else if(selectmode == SCE_SELECT_FACE) {
+			BMIter liter;
+			BMLoop *l;
+
+			/*select all faces associated with every selected vertex*/
+			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+			for ( ; efa; efa=BMIter_Step(&iter)) {
+				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BMIter_Step(&liter)) {
+					if (BM_TestHFlag(l->v, BM_SELECT)) {
+						BM_Select(em->bm, efa, 1);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	if(oldmode == SCE_SELECT_EDGE){
+		if(selectmode == SCE_SELECT_FACE) {
+			BMIter liter;
+			BMLoop *l;
+
+			/*select all faces associated with every selected vertex*/
+			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+			for ( ; efa; efa=BMIter_Step(&iter)) {
+				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BMIter_Step(&liter)) {
+					if (BM_TestHFlag(l->v, BM_SELECT)) {
+						BM_Select(em->bm, efa, 1);
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 /* generic way to get data from an EditSelection type 
@@ -486,14 +580,14 @@ EM_editselection_plane
 */
 void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
 {
-	if (ese->type==EDITVERT) {
+	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
 		VecCopyf(center, eve->co);
-	} else if (ese->type==EDITEDGE) {
+	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
 		VecAddf(center, eed->v1->co, eed->v2->co);
 		VecMulf(center, 0.5);
-	} else if (ese->type==EDITFACE) {
+	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
 		BM_Compute_Face_Center(em->bm, efa, center);
 	}
@@ -501,10 +595,10 @@ void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *e
 
 void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
 {
-	if (ese->type==EDITVERT) {
+	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
 		VecCopyf(normal, eve->no);
-	} else if (ese->type==EDITEDGE) {
+	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
@@ -520,7 +614,7 @@ void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
 		Crossf(normal, plane, vec); 
 		Normalize(normal);
 		
-	} else if (ese->type==EDITFACE) {
+	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
 		VecCopyf(normal, efa->no);
 	}
@@ -531,7 +625,7 @@ also make the plane run allong an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
 void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
 {
-	if (ese->type==EDITVERT) {
+	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
@@ -548,7 +642,7 @@ void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese
 			else				vec[2]=1;
 			Crossf(plane, eve->no, vec);
 		}
-	} else if (ese->type==EDITEDGE) {
+	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
 
 		/*the plane is simple, it runs allong the edge
@@ -561,7 +655,7 @@ void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese
 		else
 			VecSubf(plane, eed->v1->co, eed->v2->co);
 		
-	} else if (ese->type==EDITFACE) {
+	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
 		float vec[3] = {0.0f, 0.0f, 0.0f};
 		

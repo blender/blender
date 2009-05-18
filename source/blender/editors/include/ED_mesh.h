@@ -90,6 +90,14 @@ void EDBM_selectmode_flush(struct BMEditMesh *em);
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
 void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
 void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
+void EDBM_selectmode_set(struct BMEditMesh *em);
+void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
+
+int			EDBM_check_backbuf(unsigned int index);
+int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
+void		EDBM_free_backbuf(void);
+int			EDBM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
+int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
 
 /* meshtools.c */
 
@@ -156,7 +164,7 @@ struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
 /* editmesh_mods.c */
-extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
+extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
 void		mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
