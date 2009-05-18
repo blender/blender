@@ -1075,6 +1075,10 @@
 			Name="mesh"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\bmesh_tools.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\bmeshutils.c"
 				>
 			</File>
