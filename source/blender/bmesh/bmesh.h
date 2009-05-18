@@ -39,6 +39,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
+#include "DNA_scene_types.h"
 #include "BLI_mempool.h"
 #include "BKE_customdata.h"
 
@@ -153,9 +154,10 @@ typedef struct BMesh {
 	struct BMFace **plar;
 	int vtarlen, edarlen, lparlen, plarlen;
 	int totvert, totedge, totface, totloop;	
+	int totvertsel, totedgesel, totfacesel;
 	int nextv, nexte, nextp, nextl;
 	struct CustomData vdata, edata, pdata, ldata;
-	int selectmode;
+	int selectmode; /*now uses defines in DNA_scene_types.h*/
 	struct BLI_mempool *flagpool;					/*memory pool for dynamically allocated flag layers*/
 	int stackdepth;									/*current depth of operator stack*/
 	int totflags, walkers;							/*total number of tool flag layers*/
@@ -217,6 +219,8 @@ void BM_Compute_Normals(struct BMesh *bm);
 struct BMVert *BM_Make_Vert(struct BMesh *bm, float co[3], struct BMVert *example);
 struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble);
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
+/*more easier to use version of BM_Make_Quadtriangle*/
+BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4, BMFace *example);
 
 /*makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
 defining edges[0], and define the winding of the new face.*/

@@ -66,6 +66,7 @@ void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
 void EDBM_store_selection(struct BMEditMesh *em, void *data);
 void EDBM_validate_selections(struct BMEditMesh *em);
 void EDBM_remove_selection(struct BMEditMesh *em, void *data);
+void EDBM_stats_update(struct BMEditMesh *em);
 
 /* ******************** editface.c */
 

@@ -3,6 +3,25 @@
 
 #include <stdio.h>
 
+#if 0
+BMOpDefine def_makeprim = {
+	"makeprim",
+	{{BMOP_OPSLOT_INT, "type"},
+	{BMOP_OPSLOT_INT, "tot", /*rows/cols also applies to spheres*/
+	{BMOP_OPSLOT_INT, "seg",
+	{BMOP_OPSLOT_INT, "subdiv"},
+	{BMOP_OPSLOT_INT, "ext"},
+	{BMOP_OPSLOT_INT, "fill"},
+	{BMOP_OPSLOT_FLT, "dia"},
+	{BMOP_OPSLOT_FLT, "depth"},
+	{BMOP_OPSLOT_PNT, "mat"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //won't be implemented right away
+	{0}}
+	makeprim_exec,
+	0
+};
+#endif
+
 BMOpDefine def_connectverts = {
 	"connectverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
@@ -136,6 +155,7 @@ BMOpDefine *opdefines[] = {
 	&def_makefgonsop,
 	&def_extrudefaceregion,
 	&def_connectverts,
+	//&def_makeprim,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

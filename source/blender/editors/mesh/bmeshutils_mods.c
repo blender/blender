@@ -1230,8 +1230,6 @@ void MESH_OT_select_path_shortest(wmOperatorType *ot)
 
 
 /* ************************************************** */
-
-
 /* here actual select happens */
 /* gets called via generic mouse select operator */
 void mouse_mesh(bContext *C, short mval[2], short extend)

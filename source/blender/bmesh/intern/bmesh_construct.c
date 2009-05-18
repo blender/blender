@@ -122,6 +122,25 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
  *
 */
 
+BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4, BMFace *example)
+{
+	BMEdge *edar[4];
+	BMVert *vtar[4];
+
+	edar[0] = v1->edge;
+	edar[1] = v1->edge;
+	edar[2] = v1->edge;
+	if (v4) edar[3] = v1->edge;
+	else edar[3] = NULL;
+
+	vtar[0] = v1;
+	vtar[1] = v2;
+	vtar[2] = v3;
+	vtar[3] = v4;
+
+	return BM_Make_Quadtriangle(bm, vtar, edar, v4?4:3, example, 0);
+}
+
 /*remove the edge array bits from this. Its not really needed?*/
 BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len, BMFace *example, int nodouble)
 {
@@ -406,6 +425,8 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		v2 = BM_Make_Vert(bm, v->co, NULL);
 		BM_Copy_Attributes(bmold, bm, v, v2);
 		V_GROW(vtable);
+		VECCOPY(v2->no, v->no);
+
 		vtable[V_COUNT(vtable)-1] = v2;
 
 		BMINDEX_SET(v, i);
@@ -415,7 +436,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
 	for (i=0; e; e=BMIter_Step(&iter), i++) {
 		e2 = BM_Make_Edge(bm, vtable[BMINDEX_GET(e->v1)],
-			          vtable[BMINDEX_GET(e->v1)], e, 0);
+			          vtable[BMINDEX_GET(e->v2)], e, 0);
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
 		V_GROW(etable);
@@ -437,8 +458,17 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			edges[i] = etable[BMINDEX_GET(l->e)];
 		}
 
-		f2 = BM_Make_Ngon(bm, loops[0]->v, loops[1]->v, edges, f->len, 0);
+		v = vtable[BMINDEX_GET(loops[0]->v)];
+		v2 = vtable[BMINDEX_GET(loops[1]->v)];
+
+		if (!bmesh_verts_in_edge(v, v2, edges[0])) {
+			v = vtable[BMINDEX_GET(loops[V_COUNT(loops)-1]->v)];
+			v2 = vtable[BMINDEX_GET(loops[0]->v)];
+		}
+
+		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
 		BM_Copy_Attributes(bmold, bm, f, f2);
+		VECCOPY(f2->no, f->no);
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f2);
 		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {

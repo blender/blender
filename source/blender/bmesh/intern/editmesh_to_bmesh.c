@@ -120,7 +120,7 @@ static void editedge_to_BMEdge_internal(BMesh *bm, BMOperator *op, EditMesh *em,
 	e->crease = eed->crease;
 	e->bweight = eed->bweight;
 	
-	e->head.flag = eed->f & SELECT ? BM_SELECT : 0;
+	BM_Select(bm, e, eed->f & SELECT);
 	e->head.flag |= eed->seam ? BM_SEAM : 0;
 	e->head.flag |= eed->h & 1 ? BM_HIDDEN : 0;
 	e->head.flag |= eed->h & EM_FGON ? BM_FGON : 0;
@@ -399,9 +399,9 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 
 	/*copy over selection mode*/
 	bm->selectmode = 0;
-	if(em->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
-	if(em->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
-	if(em->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
+	if(em->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= SCE_SELECT_VERTEX;
+	if(em->selectmode & SCE_SELECT_EDGE) bm->selectmode |= SCE_SELECT_EDGE;
+	if(em->selectmode & SCE_SELECT_FACE) bm->selectmode |= SCE_SELECT_FACE;
 
 
 	/*begin editloop*/

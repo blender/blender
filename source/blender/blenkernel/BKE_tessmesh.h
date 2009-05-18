@@ -49,7 +49,7 @@ typedef struct BMEditMesh {
 	ListBase selected;
 
 	/*selection mode*/
-	int selectmode, totfacesel, totvertsel, totedgesel;
+	int selectmode;
 
 	int mat_nr;
 } BMEditMesh;

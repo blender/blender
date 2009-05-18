@@ -92,6 +92,31 @@
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
+	BM_Compute_Normals(em->bm);
+}
+
+void EDBM_stats_update(BMEditMesh *em)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	int *tots[3];
+	int i;
+
+	tots[0] = &em->bm->totvertsel;
+	tots[1] = &em->bm->totedgesel;
+	tots[2] = &em->bm->totfacesel;
+	
+	em->bm->totvertsel = em->bm->totedgesel = em->bm->totfacesel = 0;
+
+	for (i=0; i<3; i++) {
+		ele = BMIter_New(&iter, em->bm, types[i], NULL);
+		for ( ; ele; ele=BMIter_Step(&iter)) {
+			if (BM_TestHFlag(ele, BM_SELECT)) {
+				*tots[i]++;
+			}
+		}
+	}
 }
 
 /*this function is defunct, dead*/
@@ -429,6 +454,7 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 		}
 		ele = BMIter_New(&iter, em->bm, type, NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
+			if (flag & BM_SELECT) BM_Select(em->bm, ele, 0);
 			BM_ClearHFlag(ele, flag);
 		}
 	}
@@ -700,4 +726,53 @@ void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese
 #endif
 	}
 	Normalize(plane);
+}
+
+/**************-------------- Undo ------------*****************/
+
+/* for callbacks */
+
+static void *getEditMesh(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MESH) {
+		Mesh *me= obedit->data;
+		return me->edit_btmesh;
+	}
+	return NULL;
+}
+
+/*undo simply makes copies of a bmesh*/
+static void *editbtMesh_to_undoMesh(void *emv)
+{
+	/*we recalc the tesselation here, to avoid seeding calls to
+	  TM_RecalcTesselation throughout the code.*/
+	TM_RecalcTesselation(emv);
+
+	return TM_Copy(emv);
+}
+
+static void undoMesh_to_editbtMesh(void *umv, void *emv)
+{
+	BMEditMesh *bm1 = umv, *bm2 = emv;
+
+	BM_Free_Mesh_Data(bm2->bm);
+	TM_Free(bm2);
+
+	*bm2 = *TM_Copy(bm1);
+}
+
+
+static void free_undo(void *umv)
+{
+	BMEditMesh *em = umv;
+
+	BM_Free_Mesh_Data(em->bm);
+	TM_Free(em);
+}
+
+/* and this is all the undo system needs to know */
+void undo_push_mesh(bContext *C, char *name)
+{
+	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }

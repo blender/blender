@@ -102,10 +102,14 @@ BMEditMesh *TM_Create(BMesh *bm)
 
 BMEditMesh *TM_Copy(BMEditMesh *tm)
 {
-	BMEditMesh *tm2 = MEM_mallocN(sizeof(BMEditMesh), "tm2");
+	BMEditMesh *tm2 = MEM_callocN(sizeof(BMEditMesh), "tm2");
 	*tm2 = *tm;
+	
+	tm2->derivedCage = tm2->derivedFinal = NULL;
+	tm2->act_face = NULL;
 
 	tm2->bm = BM_Copy_Mesh(tm->bm);
+	TM_RecalcTesselation(tm2);
 
 	return tm2;
 }

@@ -704,56 +704,6 @@ void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 
 }
 
-// XXX should be a menu item
-static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
-
-	extrude_mesh(obedit,em, op);
-	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	EM_EndEditMesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
-}
-
-/* extrude without transform */
-static int mesh_extrude_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(obedit->data);
-	
-	extrude_mesh(obedit,em, op);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	EM_EndEditMesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
-}
-
-
-void MESH_OT_extrude(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Extrude Mesh";
-	ot->idname= "MESH_OT_extrude";
-	
-	/* api callbacks */
-	ot->invoke= mesh_extrude_invoke;
-	ot->exec= mesh_extrude_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
-}
-
 static int split_mesh(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -788,69 +738,6 @@ void MESH_OT_split(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-
-static int extrude_repeat_mesh(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
-
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
-		
-	int steps = RNA_int_get(op->ptr,"steps");
-	
-	float offs = RNA_float_get(op->ptr,"offset");
-
-	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
-	short a;
-
-	/* dvec */
-	dvec[0]= rv3d->persinv[2][0];
-	dvec[1]= rv3d->persinv[2][1];
-	dvec[2]= rv3d->persinv[2][2];
-	Normalize(dvec);
-	dvec[0]*= offs;
-	dvec[1]*= offs;
-	dvec[2]*= offs;
-
-	/* base correction */
-	Mat3CpyMat4(bmat, obedit->obmat);
-	Mat3Inv(tmat, bmat);
-	Mat3MulVecfl(tmat, dvec);
-
-	for(a=0; a<steps; a++) {
-		extrudeflag(obedit, em, SELECT, nor);
-		translateflag(em, SELECT, dvec);
-	}
-	
-	recalc_editnormals(em);
-	
-	EM_fgon_flags(em);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	EM_EndEditMesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_extrude_repeat(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Extrude Repeat Mesh";
-	ot->idname= "MESH_OT_extrude_repeat";
-	
-	/* api callbacks */
-	ot->exec= extrude_repeat_mesh;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
-	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
 }
 
 /* ************************** spin operator ******************** */

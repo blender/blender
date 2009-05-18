@@ -201,9 +201,7 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 
 	em = MEM_callocN(sizeof(EditMesh), "EditMesh from bmesh");
 
-	if(bm->selectmode & BM_VERT) em->selectmode |= SCE_SELECT_VERTEX;
-	if(bm->selectmode & BM_EDGE) em->selectmode |= SCE_SELECT_EDGE;
-	if(bm->selectmode & BM_FACE) em->selectmode |= SCE_SELECT_FACE;
+	em->selectmode = bm->selectmode;
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);

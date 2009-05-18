@@ -232,7 +232,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 	curvert = v2;
 	
 	if(bm->vtarlen < len){
-		MEM_freeN(bm->vtar);
+		if (bm->vtar) MEM_freeN(bm->vtar);
 		bm->vtar = MEM_callocN(sizeof(BMVert *)* len, "BM Vert pointer array");
 		bm->vtarlen = len;
 	}
@@ -337,6 +337,8 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 
 int bmesh_kv(BMesh *bm, BMVert *v){
 	if(v->edge == NULL){ 
+		if (BM_TestHFlag(v, BM_SELECT)) bm->totvertsel--;
+
 		BLI_remlink(&(bm->verts), &(v->head));
 		bmesh_free_vert(bm,v);
 		return 1;
@@ -370,6 +372,7 @@ int bmesh_ke(BMesh *bm, BMEdge *e){
 		if(edok) bmesh_error();
 		
 		/*remove and deallocate*/
+		if (BM_TestHFlag(e, BM_SELECT)) bm->totedgesel--;
 		BLI_remlink(&(bm->edges), &(e->head));
 		bmesh_free_edge(bm, e);
 		return 1;
@@ -408,6 +411,7 @@ int bmesh_kf(BMesh *bm, BMFace *bply){
 		bply->loopbase = newbase;
 	}
 	
+	if (BM_TestHFlag(bply, BM_SELECT)) bm->totfacesel--;
 	BLI_remlink(&(bm->polys), &(bply->head));
 	bmesh_free_poly(bm, bply);
 	return 1;

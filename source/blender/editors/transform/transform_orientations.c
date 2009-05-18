@@ -584,7 +584,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 			}
 			else
 			{
-				if (em->totfacesel >= 1)
+				if (em->bm->totfacesel >= 1)
 				{
 					BMFace *efa;
 					BMIter iter;
@@ -603,7 +603,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					
 					result = ORIENTATION_FACE;
 				}
-				else if (em->totvertsel == 3)
+				else if (em->bm->totvertsel == 3)
 				{
 					BMVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
 					BMIter iter;
@@ -631,7 +631,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 
 					/* if there's an edge available, use that for the tangent */
-					if (em->totedgesel >= 1)
+					if (em->bm->totedgesel >= 1)
 					{
 						BMEdge *eed = NULL;
 						BMIter iter;
@@ -647,7 +647,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 
 					result = ORIENTATION_FACE;
 				}
-				else if (em->totedgesel == 1)
+				else if (em->bm->totedgesel == 1)
 				{
 					BMEdge *eed = NULL;
 					BMIter iter;
@@ -664,7 +664,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->totvertsel == 2)
+				else if (em->bm->totvertsel == 2)
 				{
 					BMVert *v1=NULL, *v2=NULL;
 					BMIter iter;
@@ -688,7 +688,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (em->totvertsel == 1)
+				else if (em->bm->totvertsel == 1)
 				{
 					BMIter iter;
 
@@ -702,7 +702,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_VERT;
 				}
-				else if (em->totvertsel > 3)
+				else if (em->bm->totvertsel > 3)
 				{
 					BMIter iter;
 
