@@ -263,8 +263,10 @@ void duplicate_defgroup ( Object *ob )
 		dvert = dvert_array+i;
 		org = get_defweight (dvert, idg);
 		if (org) {
+			float weight = org->weight;
+			/* verify_defweight re-allocs org so need to store the weight first */
 			cpy = verify_defweight (dvert, icdg);
-			cpy->weight = org->weight;
+			cpy->weight = weight;
 		}
 	}
 }
