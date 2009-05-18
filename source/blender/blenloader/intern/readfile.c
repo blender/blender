@@ -3077,6 +3077,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bAddObjectActuator *eoa= act->data;
 					if(eoa) eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
 					if(eoa==NULL) {
@@ -3085,6 +3089,15 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					}
+				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -8861,6 +8874,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 				expand_doit(fd, mainvar, eoa->ob);
 				expand_doit(fd, mainvar, eoa->me);
 			}
+		}
+		else if(act->type==ACT_OBJECT) {
+			bObjectActuator *oa= act->data;
+			expand_doit(fd, mainvar, oa->reference);
 		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;

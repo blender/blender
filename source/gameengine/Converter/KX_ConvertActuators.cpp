@@ -134,6 +134,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_OBJECT:
 			{
 				bObjectActuator* obact = (bObjectActuator*) bact->data;
+				KX_GameObject* obref = NULL;
 				MT_Vector3 forcevec(KX_BLENDERTRUNC(obact->forceloc[0]),
 					KX_BLENDERTRUNC(obact->forceloc[1]),
 					KX_BLENDERTRUNC(obact->forceloc[2]));
@@ -171,9 +172,13 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
 				bitLocalFlag.ServoControl = bool(obact->type == ACT_OBJECT_SERVO);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
-				
+				if (obact->reference && bitLocalFlag.ServoControl)
+				{
+					obref = converter->FindGameObject(obact->reference);
+				}
 				
 				KX_ObjectActuator* tmpbaseact = new KX_ObjectActuator(gameobj,
+					obref,
 					forcevec.getValue(),
 					torquevec.getValue(),
 					dlocvec.getValue(),

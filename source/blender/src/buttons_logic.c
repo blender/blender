@@ -1830,42 +1830,44 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				}				
 			} else if (oa->type == ACT_OBJECT_SERVO)
 			{
-				ysize= 172;
+				ysize= 195;
 				
 				glRects(xco, yco-ysize, xco+width, yco);
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 				
-				uiDefBut(block, LABEL, 0, "linV",	xco, yco-45, 45, 19, NULL, 0, 0, 0, 0, "Sets the target linear velocity, it will be achieve by automatic application of force. Null velocity is a valid target");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-45, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-45, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-45, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
-				uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Velocity is defined in local coordinates");
+				uiDefBut(block, LABEL, 0, "Ref",	xco, yco-45, 45, 19, NULL, 0, 0, 0, 0, "");
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+45, yco-45, wval*3, 19, &(oa->reference), "Reference object for velocity calculation, leave empty for world reference");
+				uiDefBut(block, LABEL, 0, "linV",	xco, yco-68, 45, 19, NULL, 0, 0, 0, 0, "Sets the target relative linear velocity, it will be achieve by automatic application of force. Null velocity is a valid target");
+				uiDefButF(block, NUM, 0, "",		xco+45, yco-68, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-68, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
+				uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-68, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Velocity is defined in local coordinates");
 
-				uiDefBut(block, LABEL, 0, "Limit",	xco, yco-68, 45, 19, NULL, 0, 0, 0, 0, "Select if the force need to be limited along certain axis (local or global depending on LinV Local flag)");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_X, B_REDR, "X",		xco+45, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the X axis");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Y, B_REDR, "Y",		xco+45+wval, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Y axis");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Z, B_REDR, "Z",		xco+45+2*wval, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Z axis");
-				uiDefBut(block, LABEL, 0, "Max",	xco, yco-87, 45, 19, NULL, 0, 0, 0, 0, "Set the upper limit for force");
-				uiDefBut(block, LABEL, 0, "Min",	xco, yco-106, 45, 19, NULL, 0, 0, 0, 0, "Set the lower limit for force");
+				uiDefBut(block, LABEL, 0, "Limit",	xco, yco-91, 45, 19, NULL, 0, 0, 0, 0, "Select if the force need to be limited along certain axis (local or global depending on LinV Local flag)");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_X, B_REDR, "X",		xco+45, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the X axis");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Y, B_REDR, "Y",		xco+45+wval, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Y axis");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Z, B_REDR, "Z",		xco+45+2*wval, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Z axis");
+				uiDefBut(block, LABEL, 0, "Max",	xco, yco-110, 45, 19, NULL, 0, 0, 0, 0, "Set the upper limit for force");
+				uiDefBut(block, LABEL, 0, "Min",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Set the lower limit for force");
 				if (oa->flag & ACT_SERVO_LIMIT_X) {
-					uiDefButF(block, NUM, 0, "",		xco+45, yco-87, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-110, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-129, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
 				}
 				if (oa->flag & ACT_SERVO_LIMIT_Y) {
-					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-87, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-110, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-129, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
 				}
 				if (oa->flag & ACT_SERVO_LIMIT_Z) {
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-87, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-110, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-129, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
 				}
-				uiDefBut(block, LABEL, 0, "Servo",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Coefficients of the PID servo controller");
-				uiDefButF(block, NUMSLI, B_REDR, "P: ",		xco+45, yco-129, wval*3, 19, oa->forcerot, 0.00, 200.0, 100, 0, "Proportional coefficient, typical value is 60x Integral coefficient");
-				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-148, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
-				but = uiDefButF(block, NUMSLI, B_REDR, " I : ",		xco+45, yco-148, wval*3, 19, oa->forcerot+1, 0.0, 3.0, 1, 0, "Integral coefficient, low value (0.01) for slow response, high value (0.5) for fast response");
+				uiDefBut(block, LABEL, 0, "Servo",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Coefficients of the PID servo controller");
+				uiDefButF(block, NUMSLI, B_REDR, "P: ",		xco+45, yco-152, wval*3, 19, oa->forcerot, 0.00, 200.0, 100, 0, "Proportional coefficient, typical value is 60x Integral coefficient");
+				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
+				but = uiDefButF(block, NUMSLI, B_REDR, " I : ",		xco+45, yco-171, wval*3, 19, oa->forcerot+1, 0.0, 3.0, 1, 0, "Integral coefficient, low value (0.01) for slow response, high value (0.5) for fast response");
 				uiButSetFunc(but, update_object_actuator_PID, oa, NULL);
-				uiDefBut(block, LABEL, 0, "Fast",	xco+45+3*wval, yco-148, 45, 19, NULL, 0, 0, 0, 0, "High value of I coefficient correspond to fast response");
-				uiDefButF(block, NUMSLI, B_REDR, "D: ",		xco+45, yco-167, wval*3, 19, oa->forcerot+2, -100.0, 100.0, 100, 0, "Derivate coefficient, not required, high values can cause instability");
+				uiDefBut(block, LABEL, 0, "Fast",	xco+45+3*wval, yco-171, 45, 19, NULL, 0, 0, 0, 0, "High value of I coefficient correspond to fast response");
+				uiDefButF(block, NUMSLI, B_REDR, "D: ",		xco+45, yco-190, wval*3, 19, oa->forcerot+2, -100.0, 100.0, 100, 0, "Derivate coefficient, not required, high values can cause instability");
 			}
 			str= "Motion Type %t|Simple motion %x0|Servo Control %x1";
 			but = uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-23, (width-80), 19, &oa->type, 0.0, 0.0, 0, 0, "");
@@ -3788,7 +3790,7 @@ void logic_buts(void)
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
-						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Bookmarl controller to run before all other non-bookmarked controllers on each logic frame");
+						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Bookmarl controller to run before all other non-bookmarked controllers");
 						uiBlockSetEmboss(block, UI_EMBOSSP);
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
 						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");

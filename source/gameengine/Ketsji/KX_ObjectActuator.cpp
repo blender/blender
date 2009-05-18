@@ -45,6 +45,7 @@
 KX_ObjectActuator::
 KX_ObjectActuator(
 	SCA_IObject* gameobj,
+	KX_GameObject* refobj,
 	const MT_Vector3& force,
 	const MT_Vector3& torque,
 	const MT_Vector3& dloc,
@@ -69,6 +70,7 @@ KX_ObjectActuator(
 	m_previous_error(0.0,0.0,0.0),
 	m_error_accumulator(0.0,0.0,0.0),
 	m_bitLocalFlag (flag),
+	m_reference(refobj),
 	m_active_combined_velocity (false),
 	m_linear_damping_active(false),
 	m_angular_damping_active(false)
@@ -80,8 +82,15 @@ KX_ObjectActuator(
 
 		m_pid = m_torque;
 	}
-
+	if (m_reference)
+		m_reference->RegisterActuator(this);
 	UpdateFuzzyFlags();
+}
+
+KX_ObjectActuator::~KX_ObjectActuator()
+{
+	if (m_reference)
+		m_reference->UnregisterActuator(this);
 }
 
 bool KX_ObjectActuator::Update()
@@ -132,6 +141,18 @@ bool KX_ObjectActuator::Update()
 			if (mass < MT_EPSILON)
 				return false;
 			MT_Vector3 v = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
+			if (m_reference)
+			{
+				const MT_Point3& mypos = parent->NodeGetWorldPosition();
+				const MT_Point3& refpos = m_reference->NodeGetWorldPosition();
+				MT_Point3 relpos;
+				relpos = (mypos-refpos);
+				MT_Vector3 vel= m_reference->GetVelocity(relpos);
+				if (m_bitLocalFlag.LinearVelocity)
+					// must convert in local space
+					vel = parent->NodeGetWorldOrientation().transposed()*vel;
+				v -= vel;
+			}
 			MT_Vector3 e = m_linear_velocity - v;
 			MT_Vector3 dv = e - m_previous_error;
 			MT_Vector3 I = m_error_accumulator + e;
@@ -260,7 +281,34 @@ CValue* KX_ObjectActuator::GetReplica()
 	return replica;
 }
 
+void KX_ObjectActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
+	if (m_reference)
+		m_reference->RegisterActuator(this);
+}
 
+bool KX_ObjectActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == (SCA_IObject*)m_reference)
+	{
+		// this object is being deleted, we cannot continue to use it as reference.
+		m_reference = NULL;
+		return true;
+	}
+	return false;
+}
+
+void KX_ObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_reference];
+	if (h_obj) {
+		if (m_reference)
+			m_reference->UnregisterActuator(this);
+		m_reference = (KX_GameObject*)(*h_obj);
+		m_reference->RegisterActuator(this);
+	}
+}
 
 /* some 'standard' utilities... */
 bool KX_ObjectActuator::isValid(KX_ObjectActuator::KX_OBJECT_ACT_VEC_TYPE type)
@@ -357,6 +405,7 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("forceLimitY", KX_ObjectActuator, pyattr_get_forceLimitY, pyattr_set_forceLimitY),
 	KX_PYATTRIBUTE_RW_FUNCTION("forceLimitZ", KX_ObjectActuator, pyattr_get_forceLimitZ, pyattr_set_forceLimitZ),
 	KX_PYATTRIBUTE_VECTOR_RW_CHECK("pid", -100, 200, true, KX_ObjectActuator, m_pid, PyCheckPid),
+	KX_PYATTRIBUTE_RW_FUNCTION("reference", KX_ObjectActuator,pyattr_get_reference,pyattr_set_reference),
 	{ NULL }	//Sentinel
 };
 
@@ -483,6 +532,38 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 	PyErr_SetString(PyExc_ValueError, "expected a sequence of 2 floats and a bool");
 	return PY_SET_ATTR_FAIL;
 }
+
+PyObject* KX_ObjectActuator::pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
+	if (!actuator->m_reference)
+		Py_RETURN_NONE;
+	
+	return actuator->m_reference->GetProxy();
+}
+
+int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
+	KX_GameObject *refOb;
+	
+	if (!ConvertPythonToGameObject(value, &refOb, true, "actu.reference = value: KX_ObjectActuator"))
+		return PY_SET_ATTR_FAIL;
+	
+	if (actuator->m_reference)
+		actuator->m_reference->UnregisterActuator(actuator);
+	
+	if(refOb==NULL) {
+		actuator->m_reference= NULL;
+	}
+	else {	
+		actuator->m_reference = refOb;
+		actuator->m_reference->RegisterActuator(actuator);
+	}
+	
+	return PY_SET_ATTR_SUCCESS;
+}
+
 
 /* 1. set ------------------------------------------------------------------ */
 /* Removed! */

@@ -35,6 +35,8 @@
 #include "SCA_IActuator.h"
 #include "MT_Vector3.h"
 
+class KX_GameObject;
+
 //
 // Stores the flags for each CValue derived class
 //
@@ -92,7 +94,7 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_previous_error;
 	MT_Vector3		m_error_accumulator;
   	KX_LocalFlags	m_bitLocalFlag;
-
+	KX_GameObject*  m_reference;
 	// A hack bool -- oh no sorry everyone
 	// This bool is used to check if we have informed 
 	// the physics object that we are no longer 
@@ -121,6 +123,7 @@ public:
 
 	KX_ObjectActuator(
 		SCA_IObject* gameobj,
+		KX_GameObject* refobj,
 		const MT_Vector3& force,
 		const MT_Vector3& torque,
 		const MT_Vector3& dloc,
@@ -131,8 +134,11 @@ public:
 		const KX_LocalFlags& flag,
 		PyTypeObject* T=&Type
 	);
-
+	~KX_ObjectActuator();
 	CValue* GetReplica();
+	void ProcessReplica();
+	bool UnlinkObject(SCA_IObject* clientobj);
+	void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
 	void UpdateFuzzyFlags()
@@ -188,6 +194,8 @@ public:
 	static int			pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	// This lets the attribute macros use UpdateFuzzyFlags()
 	static int PyUpdateFuzzyFlags(void *self, const PyAttributeDef *attrdef)

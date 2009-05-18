@@ -2668,6 +2668,8 @@ class KX_ObjectActuator(SCA_IActuator):
 	
 	@ivar pid: The PID coefficients of the servo controller
 	@type pid: list of floats [proportional, integral, derivate]
+	@ivar reference: The object that is used as reference to compute the velocity for the servo controller.
+	@type reference: KX_GameObject or None
 	
 	@group Deprecated: getForce, setForce, getTorque, setTorque, getDLoc, setDLoc, getDRot, setDRot, getLinearVelocity, setLinearVelocity, getAngularVelocity,
 						setAngularVelocity, getDamping, setDamping, getForceLimitX, setForceLimitX, getForceLimitY, setForceLimitY, getForceLimitZ, setForceLimitZ,
