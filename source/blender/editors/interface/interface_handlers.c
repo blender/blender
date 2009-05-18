@@ -651,7 +651,8 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if(mode=='v') {
 		/* extract first line from clipboard in case of multi-line copies */
-		char *p = WM_clipboard_text_get(0);
+		char *p, *pbuf= WM_clipboard_text_get(0);
+		p= pbuf;
 		if(p) {
 			int i = 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
@@ -659,7 +660,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				p++;
 			}
 			buf[i]= 0;
-			MEM_freeN(p);
+			MEM_freeN(pbuf);
 		}
 	}
 	
