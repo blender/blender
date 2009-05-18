@@ -1309,9 +1309,9 @@ void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
 {
 	lamp->la->energy = energy;
-	lamp->la->r = r;
-	lamp->la->g = g;
-	lamp->la->b = b;
+	lamp->la->r = fabs(r);
+	lamp->la->g = fabs(g);
+	lamp->la->b = fabs(b);
 
 	lamp->col[0]= lamp->la->r*lamp->energy;
 	lamp->col[1]= lamp->la->g*lamp->energy;
