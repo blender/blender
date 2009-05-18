@@ -141,7 +141,9 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 		/* Keyframes First */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
 		
-		/* deactivate the F-Curve */
+		/* deactivate the F-Curve, and deselect if deselecting keyframes */
+		if (sel == SELECT_SUBTRACT) 
+			fcu->flag &= ~FCURVE_SELECTED;
 		fcu->flag &= ~FCURVE_ACTIVE;
 	}
 	

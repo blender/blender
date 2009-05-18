@@ -242,14 +242,17 @@ void ipo_rainbow (int cur, int tot, float *out)
 	 * with some other stuff 
 	 */
 	fac = ((float)cur / (float)tot) * 0.7f;
-	val = 1.0f - fac;
 	
 	/* the base color can get offset a bit so that the colors aren't so identical */
 	hue += fac * HSV_BANDWIDTH; 
 	if (hue > 1.0f) hue= fmod(hue, 1.0f);
 	
-	/* saturation fluctuates between 0.5 and 1.0 */
-	sat = ((cur / grouping) % 2) ? 0.61f : 0.96f;
+	/* saturation adjustments for more visible range */
+	if ((hue > 0.5f) && (hue < 0.8f)) sat= 0.5f;
+	else sat= 0.6f;
+	
+	/* value is fixed at 1.0f, otherwise we cannot clearly see the curves... */
+	val= 1.0f;
 	
 	/* finally, conver this to RGB colors */
 	hsv_to_rgb(hue, sat, val, out, out+1, out+2); 
