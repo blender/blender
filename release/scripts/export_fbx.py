@@ -2591,8 +2591,18 @@ Takes:  {''')
 						for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
 							
 							if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
-							elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
-							else:					context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+							elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+							elif	TX_CHAN=='R':
+								# Was....
+								# elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
+								# 
+								# ...but we need to use the previous euler for compatible conversion.
+								context_bone_anim_vecs = []
+								prev_eul = None
+								for mtx in context_bone_anim_mats:
+									if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
+									else:			prev_eul = mtx[1].toEuler()
+									context_bone_anim_vecs.append(prev_eul)
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							

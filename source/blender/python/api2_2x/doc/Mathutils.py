@@ -617,6 +617,12 @@ class Euler:
     @rtype: Quaternion object
     @return: Quaternion representation of the euler.
     """
+  def makeCompatible(eul_compat):
+    """
+    Make this euler compatible with another, so interpolating between them works as expected.
+    @rtype: Euler object
+    @return: an instance of itself
+    """
 
 class Quaternion:
   """
@@ -718,9 +724,11 @@ class Quaternion:
     @return: an instance of itself
     """
 
-  def toEuler():
+  def toEuler(eul_compat):
     """
     Return Euler representation of the quaternion.
+    @type eul_compat: L{Euler}
+    @param eul_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.
     @rtype: Euler object
     @return: Euler representation of the quaternion.
     """
@@ -870,9 +878,11 @@ class Matrix:
     @return: an instance of itself.
     """
   
-  def toEuler():
+  def toEuler(eul_compat):
     """
     Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).
+    @type eul_compat: L{Euler}
+    @param eul_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.
     @rtype: Euler object
     @return: Euler representation of the rotation matrix.
     """

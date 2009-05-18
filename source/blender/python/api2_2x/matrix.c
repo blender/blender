@@ -41,7 +41,7 @@ char Matrix_TranslationPart_doc[] = "() - return a vector encompassing the trans
 char Matrix_RotationPart_doc[] = "() - return a vector encompassing the rotation of the matrix";
 char Matrix_scalePart_doc[] = "() - convert matrix to a 3D vector";
 char Matrix_Resize4x4_doc[] = "() - resize the matrix to a 4x4 square matrix";
-char Matrix_toEuler_doc[] = "() - convert matrix to a euler angle rotation";
+char Matrix_toEuler_doc[] = "(eul_compat) - convert matrix to a euler angle rotation, optional euler argument that the new euler will be made compatible with.";
 char Matrix_toQuat_doc[] = "() - convert matrix to a quaternion rotation";
 char Matrix_copy_doc[] = "() - return a copy of the matrix";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
@@ -55,7 +55,7 @@ struct PyMethodDef Matrix_methods[] = {
 	{"rotationPart", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
 	{"scalePart", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
 	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
-	{"toEuler", (PyCFunction) Matrix_toEuler, METH_NOARGS, Matrix_toEuler_doc},
+	{"toEuler", (PyCFunction) Matrix_toEuler, METH_VARARGS, Matrix_toEuler_doc},
 	{"toQuat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
@@ -81,19 +81,32 @@ PyObject *Matrix_toQuat(MatrixObject * self)
 	return newQuaternionObject(quat, Py_NEW);
 }
 /*---------------------------Matrix.toEuler() --------------------*/
-PyObject *Matrix_toEuler(MatrixObject * self)
+PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
-	float eul[3];
-	
+	float eul[3], eul_compatf[3];
+	EulerObject *eul_compat = NULL;
 	int x;
-
+	
+	if(!PyArg_ParseTuple(args, "|O!:toEuler", &euler_Type, &eul_compat))
+		return NULL;
+	
+	if(eul_compat) {
+		for(x = 0; x < 3; x++) {
+			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
+		}
+	}
+	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize ==3 && self->rowSize ==3) {
-		Mat3ToEul((float (*)[3])*self->matrix, eul);
+		if(eul_compat)	Mat3ToCompatibleEul((float (*)[3])*self->matrix, eul, eul_compatf);
+		else			Mat3ToEul((float (*)[3])*self->matrix, eul);
 	}else if (self->colSize ==4 && self->rowSize ==4) {
 		float tempmat3[3][3];
 		Mat3CpyMat4(tempmat3, (float (*)[4])*self->matrix);
 		Mat3ToEul(tempmat3, eul);
+		if(eul_compat)	Mat3ToCompatibleEul(tempmat3, eul, eul_compatf);
+		else			Mat3ToEul(tempmat3, eul);
+		
 	}else {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.toEuler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
 		return NULL;

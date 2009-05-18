@@ -2603,7 +2603,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										
 										if (!is_ortho) {
 											pixelScreenCo[3] = 1.0f;
-											Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
+											Mat4MulVec4fl((float (*)[4])*ps->projectMat, pixelScreenCo);
 											pixelScreenCo[0] = (float)(curarea->winx/2.0f)+(curarea->winx/2.0f)*pixelScreenCo[0]/pixelScreenCo[3];	
 											pixelScreenCo[1] = (float)(curarea->winy/2.0f)+(curarea->winy/2.0f)*pixelScreenCo[1]/pixelScreenCo[3];
 											pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
@@ -4663,4 +4663,5 @@ void imagepaint_pick(short mousebutton)
 	else if(brush)
 		sample_vpaint();
 }
+
 
