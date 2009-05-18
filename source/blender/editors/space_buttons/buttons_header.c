@@ -172,6 +172,19 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
+	// if object selection changed, validate button selection
+	if(ob && (ob->type == OB_LAMP) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+
+	if(ob && (ob->type == OB_EMPTY) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+		
+	if((ob && ELEM(ob->type, OB_CAMERA, OB_ARMATURE)) && ELEM4(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+		
+	if((ob && (ob->type != OB_ARMATURE)) && (sbuts->mainb == (float)BCONTEXT_BONE))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+	
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
@@ -185,7 +198,10 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 
 	if(ob && ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_EMPTY))
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
+	
+	if(ob && (ob->type == OB_ARMATURE))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
 	
 	xco+= XIC;
 	

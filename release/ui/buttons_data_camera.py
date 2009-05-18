@@ -68,11 +68,11 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		sub.itemR(cam, "show_mist", text="Mist")
 		sub.itemR(cam, "show_title_safe", text="Title Safe")
 		sub.itemR(cam, "show_name", text="Name")
+			
+		sub = split.column()
 		sub.itemR(cam, "show_passepartout", text="Passepartout")
 		if (cam.show_passepartout):
 			sub.itemR(cam, "passepartout_alpha", text="Alpha")
-			
-		sub = split.column()
 		sub.itemR(cam, "draw_size", text="Size")
 		
 bpy.types.register(DATA_PT_cameralens)

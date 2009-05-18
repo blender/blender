@@ -956,7 +956,7 @@ static struct uiWidgetColors wcol_option= {
 	{255, 255, 255, 255},
 	
 	1,
-	25, -20
+	15, -15
 };
 
 /* button that shows popup */
@@ -970,7 +970,7 @@ static struct uiWidgetColors wcol_menu= {
 	{204, 204, 204, 255},
 	
 	1,
-	25, -20
+	15, -15
 };
 
 /* button that starts pulldown */
