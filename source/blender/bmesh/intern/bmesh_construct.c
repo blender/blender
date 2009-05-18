@@ -475,6 +475,11 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			BM_Copy_Attributes(bmold, bm, loops[i], l);
 		}
 	}
+	
+	V_FREE(etable);
+	V_FREE(vtable);
+	V_FREE(loops);
+	V_FREE(edges);
 
 	return bm;
 }

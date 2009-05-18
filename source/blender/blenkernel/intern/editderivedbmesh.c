@@ -171,6 +171,10 @@ void TM_Free(BMEditMesh *em)
 	em->act_face = NULL;
 
 	if (em->looptris) MEM_freeN(em->looptris);
+
+	if (em->vert_index) MEM_freeN(em->vert_index);
+	if (em->edge_index) MEM_freeN(em->edge_index);
+	if (em->face_index) MEM_freeN(em->face_index);
 }
 
 

@@ -231,6 +231,7 @@ void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 	
 	load_editMesh(scene, ob, em);
 	free_editMesh(em);
+	MEM_freeN(em);
 }
 
 void EDBM_FreeEditBMesh(BMEditMesh *tm)
@@ -241,6 +242,8 @@ void EDBM_FreeEditBMesh(BMEditMesh *tm)
 
 void EDBM_init_index_arrays(BMEditMesh *tm, int forvert, int foredge, int forface)
 {
+	EDBM_free_index_arrays(tm);
+
 	if (forvert) {
 		BMIter iter;
 		BMVert *ele;
