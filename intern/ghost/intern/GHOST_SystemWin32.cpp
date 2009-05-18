@@ -537,7 +537,7 @@ GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_Event* event = 0;
-	LRESULT lResult;
+	LRESULT lResult = 0;
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
 
@@ -908,8 +908,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	if (event) {
 		system->pushEvent(event);
-		if(!lResult) //WM_ACTIVATE might have returned something.
-			lResult = 0;
 	}
 	else {
 		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
