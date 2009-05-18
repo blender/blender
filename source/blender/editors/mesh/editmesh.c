@@ -1763,6 +1763,7 @@ static void *editMesh_to_undoMesh(void *emv)
 	
 	return um;
 #endif
+	return NULL;
 }
 
 static void undoMesh_to_editMesh(void *umv, void *emv)
@@ -1891,26 +1892,32 @@ static void *getEditMesh(bContext *C)
 /*undo simply makes copies of a bmesh*/
 static void *editbtMesh_to_undoMesh(void *emv)
 {
+#if 0
 	return TM_Copy(emv);
+#endif
 }
 
 static void undoMesh_to_editbtMesh(void *umv, void *emv)
 {
-	BMTessMesh *bm1 = umv, *bm2 = emv;
+#if 0
+	BMEditMesh *bm1 = umv, *bm2 = emv;
 
 	BM_Free_Mesh_Data(bm2->bm);
 	TM_Free(bm2);
 
 	*bm2 = *TM_Copy(bm1);
+#endif
 }
 
 
 static void free_undo(void *umv)
 {
-	BMTessMesh *em = umv;
+#if 0
+	BMEditMesh *em = umv;
 
 	BM_Free_Mesh_Data(em->bm);
 	TM_Free(em);
+#endif
 }
 
 /* and this is all the undo system needs to know */

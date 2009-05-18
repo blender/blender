@@ -449,7 +449,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
-	BMTessMesh *em;
+	BMEditMesh *em;
 	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a, oblay;
 	
@@ -564,7 +564,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
-	BMTessMesh *em;
+	BMEditMesh *em;
 	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
 	
 	/* simple preventing of too deep nested groups */

@@ -40,6 +40,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"

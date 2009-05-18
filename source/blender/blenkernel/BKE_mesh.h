@@ -131,7 +131,10 @@ int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to 
 void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
 int mesh_layers_menu(struct CustomData *data, int type);
 
-
+/*accessor functions for editmesh, all access to editmesh must
+  go through them!*/
+struct EditMesh *EM_GetEditMesh(struct Mesh *me);
+void EM_EndEditMesh(struct Mesh *me, struct EditMesh *em);
 
 #ifdef __cplusplus
 }

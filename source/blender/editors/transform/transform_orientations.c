@@ -558,7 +558,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 		if(ob->type==OB_MESH)
 		{
 			Mesh *me= ob->data;
-			BMTessMesh *em = me->edit_btmesh;
+			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMEditSelection ese;
 			float vec[3]= {0,0,0};
@@ -567,7 +567,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 			if (activeOnly && EDBM_get_actSelection(em, &ese))
 			{
 				EDBM_editselection_normal(normal, &ese);
-				EDBM_editselection_plane(plane, &ese);
+				EDBM_editselection_plane(em, plane, &ese);
 				
 				switch (ese.type)
 				{

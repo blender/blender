@@ -90,7 +90,7 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
-void EDBM_RecalcNormals(BMTessMesh *em)
+void EDBM_RecalcNormals(BMEditMesh *em)
 {
 }
 
@@ -194,6 +194,7 @@ void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
 	bm = editmesh_to_bmesh(em);
 
 	me->edit_btmesh = TM_Create(bm);
+	me->edit_btmesh->selectmode = scene->selectmode;
 
 	free_editMesh(em);
 }
@@ -207,13 +208,13 @@ void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 	free_editMesh(em);
 }
 
-void EDBM_FreeEditBMesh(BMTessMesh *tm)
+void EDBM_FreeEditBMesh(BMEditMesh *tm)
 {
 	BM_Free_Mesh(tm->bm);
 	TM_Free(tm);
 }
 
-void EDBM_init_index_arrays(BMTessMesh *tm, int forvert, int foredge, int forface)
+void EDBM_init_index_arrays(BMEditMesh *tm, int forvert, int foredge, int forface)
 {
 	if (forvert) {
 		BMIter iter;
@@ -230,7 +231,7 @@ void EDBM_init_index_arrays(BMTessMesh *tm, int forvert, int foredge, int forfac
 
 	if (foredge) {
 		BMIter iter;
-		BMVert *ele;
+		BMEdge *ele;
 		int i=0;
 		
 		tm->edge_index = MEM_mallocN(sizeof(void**)*tm->bm->totedge, "tm->edge_index");
@@ -243,7 +244,7 @@ void EDBM_init_index_arrays(BMTessMesh *tm, int forvert, int foredge, int forfac
 
 	if (forface) {
 		BMIter iter;
-		BMVert *ele;
+		BMFace *ele;
 		int i=0;
 		
 		tm->face_index = MEM_mallocN(sizeof(void**)*tm->bm->totface, "tm->face_index");
@@ -255,7 +256,7 @@ void EDBM_init_index_arrays(BMTessMesh *tm, int forvert, int foredge, int forfac
 	}
 }
 
-void EDBM_free_index_arrays(BMTessMesh *tm)
+void EDBM_free_index_arrays(BMEditMesh *tm)
 {
 	if (tm->vert_index) {
 		MEM_freeN(tm->vert_index);
@@ -273,28 +274,28 @@ void EDBM_free_index_arrays(BMTessMesh *tm)
 	}
 }
 
-BMVert *EDBM_get_vert_for_index(BMTessMesh *tm, int index)
+BMVert *EDBM_get_vert_for_index(BMEditMesh *tm, int index)
 {
 	return tm->vert_index?tm->vert_index[index]:NULL;
 }
 
-BMEdge *EDBM_get_edge_for_index(BMTessMesh *tm, int index)
+BMEdge *EDBM_get_edge_for_index(BMEditMesh *tm, int index)
 {
 	return tm->edge_index?tm->edge_index[index]:NULL;
 }
 
-BMFace *EDBM_get_face_for_index(BMTessMesh *tm, int index)
+BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
 {
 	return tm->face_index?tm->face_index[index]:NULL;
 }
 
 /* this replaces the active flag used in uv/face mode */
-void EDBM_set_actFace(BMTessMesh *em, BMFace *efa)
+void EDBM_set_actFace(BMEditMesh *em, BMFace *efa)
 {
 	em->act_face = efa;
 }
 
-BMFace *EDBM_get_actFace(BMTessMesh *em, int sloppy)
+BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 {
 	if (em->act_face) {
 		return em->act_face;
@@ -325,13 +326,15 @@ BMFace *EDBM_get_actFace(BMTessMesh *em, int sloppy)
 
 }
 
-void EDBM_selectmode_flush(BMTessMesh *em)
+void EDBM_selectmode_flush(BMEditMesh *em)
 {
 }
 
 
-int EDBM_get_actSelection(BMTessMesh *em, BMEditSelection *ese)
+int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {
+	ese->data = NULL;
+	return 0;
 #if 0
 	EditSelection *ese_last = em->selected.last;
 	EditFace *efa = EM_get_actFace(em, 0);
@@ -362,7 +365,7 @@ int EDBM_get_actSelection(BMTessMesh *em, BMEditSelection *ese)
 }
 
 /* ********* Selection History ************ */
-static int EDBM_check_selection(BMTessMesh *em, void *data)
+static int EDBM_check_selection(BMEditMesh *em, void *data)
 {
 #if 0
 	EditSelection *ese;
@@ -375,7 +378,7 @@ static int EDBM_check_selection(BMTessMesh *em, void *data)
 #endif
 }
 
-void EDBM_remove_selection(BMTessMesh *em, void *data, int type)
+void EDBM_remove_selection(BMEditMesh *em, void *data)
 {
 #if 0
 	EditSelection *ese;
@@ -388,7 +391,7 @@ void EDBM_remove_selection(BMTessMesh *em, void *data, int type)
 #endif
 }
 
-void EDBM_store_selection(BMTessMesh *em, void *data, int type)
+void EDBM_store_selection(BMEditMesh *em, void *data)
 {
 #if 0
 	EditSelection *ese;
@@ -401,7 +404,7 @@ void EDBM_store_selection(BMTessMesh *em, void *data, int type)
 #endif
 }
 
-void EDBM_validate_selections(BMTessMesh *em)
+void EDBM_validate_selections(BMEditMesh *em)
 {
 #if 0
 	EditSelection *ese, *nextese;
@@ -418,7 +421,32 @@ void EDBM_validate_selections(BMTessMesh *em)
 #endif
 }
 
-static void EDBM_strip_selections(BMTessMesh *em)
+void EDBM_clear_flag_all(BMEditMesh *em, int flag)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int i, type;
+
+	for (i=0; i<3; i++) {
+		switch (i) {
+			case 0:
+				type = BM_VERTS_OF_MESH;
+				break;
+			case 1:
+				type = BM_EDGES_OF_MESH;
+				break;
+			case 2:
+				type = BM_FACES_OF_MESH;
+				break;
+		}
+		ele = BMIter_New(&iter, em->bm, type, NULL);
+		for ( ; ele; ele=BMIter_Step(&iter)) {
+			BM_ClearHFlag(ele, flag);
+		}
+	}
+}
+
+static void EDBM_strip_selections(BMEditMesh *em)
 {
 #if 0
 	EditSelection *ese, *nextese;
@@ -456,31 +484,28 @@ EM_editselection_center
 EM_editselection_normal
 EM_editselection_plane
 */
-void EDBM_editselection_center(float *center, BMEditSelection *ese)
+void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
 {
-#if 0
 	if (ese->type==EDITVERT) {
-		EditVert *eve= ese->data;
+		BMVert *eve= ese->data;
 		VecCopyf(center, eve->co);
 	} else if (ese->type==EDITEDGE) {
-		EditEdge *eed= ese->data;
+		BMEdge *eed= ese->data;
 		VecAddf(center, eed->v1->co, eed->v2->co);
 		VecMulf(center, 0.5);
 	} else if (ese->type==EDITFACE) {
-		EditFace *efa= ese->data;
-		VecCopyf(center, efa->cent);
+		BMFace *efa= ese->data;
+		BM_Compute_Face_Center(em->bm, efa, center);
 	}
-#endif
 }
 
 void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
 {
-#if 0
 	if (ese->type==EDITVERT) {
-		EditVert *eve= ese->data;
+		BMVert *eve= ese->data;
 		VecCopyf(normal, eve->no);
 	} else if (ese->type==EDITEDGE) {
-		EditEdge *eed= ese->data;
+		BMEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
 		
@@ -496,37 +521,35 @@ void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
 		Normalize(normal);
 		
 	} else if (ese->type==EDITFACE) {
-		EditFace *efa= ese->data;
-		VecCopyf(normal, efa->n);
+		BMFace *efa= ese->data;
+		VecCopyf(normal, efa->no);
 	}
-#endif
 }
 
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
 also make the plane run allong an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
-void EDBM_editselection_plane(float *plane, BMEditSelection *ese)
+void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
 {
-#if 0
 	if (ese->type==EDITVERT) {
-		EditVert *eve= ese->data;
+		BMVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
 		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
-			EM_editselection_center(vec, ese->prev);
+			EDBM_editselection_center(em, vec, ese->prev);
 			VecSubf(plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
 			unlikely but possible, so make sure if the normal is (0,0,1)
 			that vec isnt the same or in the same direction even.*/
-			if (eve->no[0]<0.5)			vec[0]=1;
+			if (eve->no[0]<0.5)		vec[0]=1;
 			else if (eve->no[1]<0.5)	vec[1]=1;
-			else						vec[2]=1;
+			else				vec[2]=1;
 			Crossf(plane, eve->no, vec);
 		}
 	} else if (ese->type==EDITEDGE) {
-		EditEdge *eed= ese->data;
+		BMEdge *eed= ese->data;
 
 		/*the plane is simple, it runs allong the edge
 		however selecting different edges can swap the direction of the y axis.
@@ -539,8 +562,21 @@ void EDBM_editselection_plane(float *plane, BMEditSelection *ese)
 			VecSubf(plane, eed->v1->co, eed->v2->co);
 		
 	} else if (ese->type==EDITFACE) {
-		EditFace *efa= ese->data;
-		float vec[3];
+		BMFace *efa= ese->data;
+		float vec[3] = {0.0f, 0.0f, 0.0f};
+		
+		/*for now, use face normal*/
+
+		/* make a fake  plane thats at rightangles to the normal
+		we cant make a crossvec from a vec thats the same as the vec
+		unlikely but possible, so make sure if the normal is (0,0,1)
+		that vec isnt the same or in the same direction even.*/
+		if (efa->no[0]<0.5)		vec[0]=1.0f;
+		else if (efa->no[1]<0.5)	vec[1]=1.0f;
+		else				vec[2]=1.0f;
+		Crossf(plane, efa->no, vec);
+#if 0
+
 		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
 			float vecA[3], vecB[3];
 			VecSubf(vecA, efa->v4->co, efa->v3->co);
@@ -567,7 +603,7 @@ void EDBM_editselection_plane(float *plane, BMEditSelection *ese)
 			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
 				VecCopyf(plane, vec);
 		}
+#endif
 	}
 	Normalize(plane);
-#endif
 }

@@ -29,7 +29,7 @@
 
 /*
 
-BMTessMesh_mods.c, UI level access, no geometry changes 
+BMEditMesh_mods.c, UI level access, no geometry changes 
 
 */
 
@@ -98,7 +98,7 @@ static int pupmenu() {return 0;}
 
 /* ****************************** MIRROR **************** */
 
-void EDBM_select_mirrored(Object *obedit, BMTessMesh *em)
+void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 {
 #if 0 //BMESH_TODO
 	if(em->selectmode & SCE_SELECT_VERTEX) {
@@ -106,7 +106,7 @@ void EDBM_select_mirrored(Object *obedit, BMTessMesh *em)
 		
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->f & SELECT) {
-				v1= BMTessMesh_get_x_mirror_vert(obedit, em, eve->co);
+				v1= BMEditMesh_get_x_mirror_vert(obedit, em, eve->co);
 				if(v1) {
 					eve->f &= ~SELECT;
 					v1->f |= SELECT;
@@ -363,7 +363,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 
 static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
-	BMTessMesh *em= (BMTessMesh *)handle;
+	BMEditMesh *em= (BMEditMesh *)handle;
 	BMIter iter;
 	BMVert *eve = BMIter_AtIndex(em->bm, BM_VERTS_OF_MESH, NULL, index-1);
 
@@ -613,7 +613,7 @@ static BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 */
 static int unified_findnearest(ViewContext *vc, BMVert **eve, BMEdge **eed, BMFace **efa) 
 {
-	BMTessMesh *em= vc->em;
+	BMEditMesh *em= vc->em;
 	int dist= 75;
 	
 	*eve= NULL;
@@ -673,7 +673,7 @@ static EnumPropertyItem prop_simface_types[] = {
 *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
 #define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-static int similar_face_select__internal(Scene *scene, BMTessMesh *em, int mode)
+static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 {
 #if 0 //BMESH_TODO
 	BMFace *efa, *base_efa=NULL;
@@ -808,7 +808,7 @@ static int similar_face_select__internal(Scene *scene, BMTessMesh *em, int mode)
 
 /* selects quads in loop direction of indicated edge */
 /* only flush over edges with valence <= 2 */
-void faceloop_select(BMTessMesh *em, BMEdge *startedge, int select)
+void faceloop_select(BMEditMesh *em, BMEdge *startedge, int select)
 {
 #if 0 //BMESH_TODO
 	BMEdge *eed;
@@ -890,7 +890,7 @@ void faceloop_select(BMTessMesh *em, BMEdge *startedge, int select)
 - if edge no face:
 	- has vertices with valence 2
 */
-static void edgeloop_select(BMTessMesh *em, BMEdge *starteed, int select)
+static void edgeloop_select(BMEditMesh *em, BMEdge *starteed, int select)
 {
 	BMesh *bm = em->bm;
 	BMEdge *e;
@@ -914,7 +914,7 @@ static void edgeloop_select(BMTessMesh *em, BMEdge *starteed, int select)
 /* 
    Almostly exactly the same code as faceloop select
 */
-static void edgering_select(BMTessMesh *em, BMEdge *startedge, int select)
+static void edgering_select(BMEditMesh *em, BMEdge *startedge, int select)
 {
 #if 0 //BMESH_TODO
 	BMEdge *eed;
@@ -986,7 +986,7 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 {
 #if 0 //BMESH_TODO
 	Object *obedit= CTX_data_edit_object(C);
-	BMTessMesh *em= EM_GetBMTessMesh(((Mesh *)obedit->data));
+	BMEditMesh *em= EM_GetBMEditMesh(((Mesh *)obedit->data));
 	BMEdge *eed;
 	BMEdge **edarray;
 	int edindex, edfirstcount;
@@ -1025,9 +1025,9 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndBMTessMesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
+	EM_EndBMEditMesh(obedit->data, em);
 #endif
+	return OPERATOR_FINISHED;	
 }
 
 void MESH_OT_select_loop_multi(wmOperatorType *ot)
@@ -1057,7 +1057,7 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 {
 #if 0 //BMESH_TODO
 	ViewContext vc;
-	BMTessMesh *em;
+	BMEditMesh *em;
 	BMEdge *eed;
 	int select= 1;
 	int dist= 50;
@@ -1135,7 +1135,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 {
 #if 0 //BMESH_TODO
 	ViewContext vc;
-	BMTessMesh *em;
+	BMEditMesh *em;
 	BMEdge *eed;
 	int dist= 50;
 	
@@ -1236,11 +1236,10 @@ void MESH_OT_select_path_shortest(wmOperatorType *ot)
 /* gets called via generic mouse select operator */
 void mouse_mesh(bContext *C, short mval[2], short extend)
 {
-#if 0 //BMESH_TODO
 	ViewContext vc;
-	BMVert *eve;
-	BMEdge *eed;
-	BMFace *efa;
+	BMVert *eve = NULL;
+	BMEdge *eed = NULL;
+	BMFace *efa = NULL;
 	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
@@ -1249,41 +1248,43 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 	
 	if(unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
-		if(extend==0) EM_clear_flag_all(vc.em, SELECT);
+		if(extend==0) EDBM_clear_flag_all(vc.em, BM_SELECT);
 		
 		if(efa) {
 			/* set the last selected face */
-			EM_set_actFace(vc.em, efa);
+			EDBM_set_actFace(vc.em, efa);
 			
-			if( (efa->f & SELECT)==0 ) {
+			if(!BM_TestHFlag(efa, BM_SELECT)) {
 				EDBM_store_selection(vc.em, efa);
+				BM_Select(vc.em->bm, efa, 1);
 			}
 			else if(extend) {
 				EDBM_remove_selection(vc.em, efa);
+				BM_Select(vc.em->bm, efa, 1);
 			}
 		}
 		else if(eed) {
-			if((eed->f & SELECT)==0) {
+			if(!BM_TestHFlag(efa, BM_SELECT)) {
 				EDBM_store_selection(vc.em, eed);
-				EM_select_edge(eed, 1);
+				BM_Select(vc.em->bm, eed, 1);
 			}
 			else if(extend) {
 				EDBM_remove_selection(vc.em, eed);
-				EM_select_edge(eed, 0);
+				BM_Select(vc.em->bm, eed, 0);
 			}
 		}
 		else if(eve) {
-			if((eve->f & SELECT)==0) {
-				eve->f |= SELECT;
+			if(!BM_TestHFlag(eve, BM_SELECT)) {
 				EDBM_store_selection(vc.em, eve);
+				BM_Select(vc.em->bm, eve, 1);
 			}
 			else if(extend){ 
 				EDBM_remove_selection(vc.em, eve);
-				eve->f &= ~SELECT;
+				BM_Select(vc.em->bm, eve, 0);
 			}
 		}
 		
-		EM_selectmode_flush(vc.em);
+		EDBM_selectmode_flush(vc.em);
 		  
 //		if (EM_texFaceCheck()) {
 
@@ -1295,5 +1296,4 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
-#endif	
 }

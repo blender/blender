@@ -1084,7 +1084,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	}
 }
 
-DerivedMesh *CDDM_from_BMTessMesh(BMTessMesh *em, Mesh *me)
+DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 {
 	DerivedMesh *dm = CDDM_new(em->bm->totvert, em->bm->totedge, em->tottri);
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;

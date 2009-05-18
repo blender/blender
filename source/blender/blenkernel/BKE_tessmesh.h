@@ -20,7 +20,7 @@ typedef struct BMEditSelection
   
   the entire derivedmesh and modifier system works with this structure,
   and not BMesh.  Mesh->editbmesh will store a pointer to this structure.*/
-typedef struct BMTessMesh {
+typedef struct BMEditMesh {
 	struct BMesh *bm;
 	
 	/*we store tesselations as triplets of three loops,
@@ -50,9 +50,11 @@ typedef struct BMTessMesh {
 
 	/*selection mode*/
 	int selectmode, totfacesel, totvertsel, totedgesel;
-} BMTessMesh;
 
-void TM_RecalcTesselation(BMTessMesh *tm);
-BMTessMesh *TM_Create(BMesh *bm);
-BMTessMesh *TM_Copy(BMTessMesh *tm);
-void TM_Free(BMTessMesh *em);
+	int mat_nr;
+} BMEditMesh;
+
+void TM_RecalcTesselation(BMEditMesh *tm);
+BMEditMesh *TM_Create(BMesh *bm);
+BMEditMesh *TM_Copy(BMEditMesh *tm);
+void TM_Free(BMEditMesh *em);

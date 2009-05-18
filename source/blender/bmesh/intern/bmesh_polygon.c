@@ -168,6 +168,26 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 	return 0;
 }
 
+/*
+computes center of face in 3d.  uses center of bounding box.
+*/
+
+int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
+{
+	BMIter iter;
+	BMLoop *l;
+	float min[3], max[3];
+	int i;
+
+	INIT_MINMAX(min, max);
+	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (i=0; l; l=BMIter_Step(&iter), i++) {
+		DO_MINMAX(l->v->co, min, max);
+	}
+
+	VECADD(center, min, max);
+	VECMUL(center, 0.5f);
+}
 
 /*
  * COMPUTE POLY PLANE

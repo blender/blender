@@ -48,6 +48,8 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_subsurf.h"
+#include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
@@ -96,14 +98,13 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = EM_GetEditMesh(me);
+	BMEditMesh *em = me->edit_btmesh;
 
 	if (em)
 	{
 		DerivedMesh *final = NULL;
 		editbmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
 		
-		EM_EndEditMesh(me, em);
 		return final;
 	}
 	else

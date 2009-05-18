@@ -192,7 +192,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		BMTessMesh *em= me->edit_btmesh;
+		BMEditMesh *em= me->edit_btmesh;
 		BMesh *bm = em->bm;
 		int proptrans= 0;
 		
@@ -877,7 +877,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 			BMEditSelection ese;
 			
 			if (EDBM_get_actSelection(me->edit_btmesh, &ese)) {
-				EDBM_editselection_center(curs, &ese);
+				EDBM_editselection_center(me->edit_btmesh, curs, &ese);
 			}
 			
 			Mat4MulVecfl(obedit->obmat, curs);

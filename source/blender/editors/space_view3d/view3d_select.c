@@ -150,7 +150,7 @@ static void BIF_undo_push() {}
 
 /* local prototypes */
 
-void EM_backbuf_checkAndSelectVerts(BMTessMesh *em, int select)
+void EM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 {
 	BMVert *eve;
 	BMIter iter;
@@ -166,7 +166,7 @@ void EM_backbuf_checkAndSelectVerts(BMTessMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectEdges(BMTessMesh *em, int select)
+void EM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 {
 	BMEdge *eed;
 	BMIter iter;
@@ -182,7 +182,7 @@ void EM_backbuf_checkAndSelectEdges(BMTessMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectFaces(BMTessMesh *em, int select)
+void EM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 {
 	BMFace *efa;
 	BMIter iter;

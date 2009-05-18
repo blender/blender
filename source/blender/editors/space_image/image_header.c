@@ -47,6 +47,7 @@
 #include "BKE_image.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

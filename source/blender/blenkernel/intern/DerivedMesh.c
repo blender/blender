@@ -1413,7 +1413,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 	return dm;
 }
 
-static float *get_editbmesh_orco_verts(BMTessMesh *em)
+static float *get_editbmesh_orco_verts(BMEditMesh *em)
 {
 	BMIter iter;
 	BMVert *eve;
@@ -1434,13 +1434,13 @@ static float *get_editbmesh_orco_verts(BMTessMesh *em)
 	return orco;
 }
 
-static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMTessMesh *em)
+static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em)
 {
 	DerivedMesh *dm;
 	float (*orco)[3];
 
 	if(em) {
-		dm= CDDM_from_BMTessMesh(em, me);
+		dm= CDDM_from_BMEditMesh(em, me);
 		orco= (float(*)[3])get_editbmesh_orco_verts(em);
 	}
 	else {
@@ -1455,7 +1455,7 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMTessMesh *em)
 	return dm;
 }
 
-static void add_orco_dm(Object *ob, BMTessMesh *em, DerivedMesh *dm, DerivedMesh *orcodm)
+static void add_orco_dm(Object *ob, BMEditMesh *em, DerivedMesh *dm, DerivedMesh *orcodm)
 {
 	float (*orco)[3], (*layerorco)[3];
 	int totvert;
@@ -1725,7 +1725,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	BLI_linklist_free(datamasks, NULL);
 }
 
-static float (*editbmesh_getVertexCos(BMTessMesh *em, int *numVerts_r))[3]
+static float (*editbmesh_getVertexCos(BMEditMesh *em, int *numVerts_r))[3]
 {
 	int i, numVerts = *numVerts_r = em->bm->totvert;
 	float (*cos)[3];
@@ -1759,7 +1759,7 @@ static int editbmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 	return 1;
 }
 
-static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMTessMesh *em, DerivedMesh **cage_r,
+static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
 {
@@ -1842,7 +1842,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMTessMesh *em, D
 				}
 
 			} else {
-				dm = CDDM_from_BMTessMesh(em, ob->data);
+				dm = CDDM_from_BMEditMesh(em, ob->data);
 
 				if(deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -2107,7 +2107,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 
 }
 
-static void editbmesh_build_data(Scene *scene, Object *obedit, BMTessMesh *em, CustomDataMask dataMask)
+static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
 {
 	float min[3], max[3];
 
@@ -2141,7 +2141,7 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMTessMesh *em, C
 	em->derivedCage->needsFree = 0;
 }
 
-void makeDerivedMesh(Scene *scene, Object *ob, BMTessMesh *em, CustomDataMask dataMask)
+void makeDerivedMesh(Scene *scene, Object *ob, BMEditMesh *em, CustomDataMask dataMask)
 {
 	if (em) {
 		editbmesh_build_data(scene, ob, em, dataMask);
@@ -2224,7 +2224,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 
 /***/
 
-DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, BMTessMesh *em, DerivedMesh **final_r,
+DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, BMEditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
@@ -2238,7 +2238,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, 
 	return em->derivedCage;
 }
 
-DerivedMesh *editbmesh_get_derived_cage(Scene *scene, Object *obedit, BMTessMesh *em, CustomDataMask dataMask)
+DerivedMesh *editbmesh_get_derived_cage(Scene *scene, Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
@@ -2250,7 +2250,7 @@ DerivedMesh *editbmesh_get_derived_cage(Scene *scene, Object *obedit, BMTessMesh
 	return em->derivedCage;
 }
 
-DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMTessMesh *em)
+DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 {
 	return getEditDerivedBMesh(em, obedit, NULL);
 }
@@ -2314,7 +2314,7 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editbmesh_get_first_deform_matrices(Object *ob, BMTessMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
+int editbmesh_get_first_deform_matrices(Object *ob, BMEditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;

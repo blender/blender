@@ -2297,7 +2297,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				BMTessMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+				BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 
 					// here was vieweditdatamask? XXX
 				if(ob==scene->obedit) {

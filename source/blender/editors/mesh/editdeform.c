@@ -114,7 +114,7 @@ void sel_verts_defgroup (Object *obedit, int select)
 		if(select) EM_select_flush(em);	// vertices to edges/faces
 		else EM_deselect_flush(em);
 
-		EM_EndEditMesh(em, me);
+		EM_EndEditMesh(me, em);
 	}
 		break;
 	case OB_LATTICE:

@@ -4759,6 +4759,7 @@ static void mesh_rip_setface(EditMesh *em, EditFace *sefa)
 /* based on mouse cursor position, it defines how is being ripped */
 static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+#if 0 //BMESH_TODO
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= ar->regiondata;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4967,6 +4968,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 // XXX	scene->proportional = prop;
 
 	EM_EndEditMesh(obedit->data, em);
+#endif
 	return OPERATOR_FINISHED;
 }
 
@@ -5034,6 +5036,7 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 
 void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock)
 {
+#if 0 //BMESH_TODO
 	EditVert *ev = NULL;
 	short mval[2], curval[2], event = 0, finished = 0, canceled = 0, fullcopy=0 ;
 	float perc = 0;
@@ -5110,6 +5113,7 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 			}		
 		}
 	return;
+#endif
 }
 
 

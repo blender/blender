@@ -1079,6 +1079,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\bmeshutils_mods.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editdeform.c"
 				>
 			</File>

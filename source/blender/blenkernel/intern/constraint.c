@@ -66,6 +66,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
+#include "BKE_mesh.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"

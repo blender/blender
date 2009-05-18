@@ -2490,7 +2490,7 @@ static void write_videoscape_mesh(Scene *scene, Object *ob, char *str)
 	
 	fclose(fp);
 
-	if (em) EM_EndEditMesh(em);
+	if (em) EM_EndEditMesh(me, em);
 	
 }
 

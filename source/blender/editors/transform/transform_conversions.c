@@ -2014,7 +2014,7 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 }
 #undef TAN_MAKE_VEC
 
-static void set_crazyspace_quats(BMTessMesh *em, float *origcos, float *mappedcos, float *quats)
+static void set_crazyspace_quats(BMEditMesh *em, float *origcos, float *mappedcos, float *quats)
 {
 #if 0
 	BMVert *eve, *prev;
@@ -2115,7 +2115,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 {
 	Scene *scene = CTX_data_scene(C);
 	TransData *tob = NULL;
-	BMTessMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMVert *eve;
 	BMVert **nears = NULL;
@@ -4649,7 +4649,7 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if (t->obedit->type == OB_MESH)
 		{
-			BMTessMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 			/* table needs to be created for each edit command, since vertices can move etc */
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}

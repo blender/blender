@@ -66,6 +66,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_transform.h"

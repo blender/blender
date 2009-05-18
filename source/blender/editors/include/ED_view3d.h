@@ -39,7 +39,7 @@ struct Nurb;
 struct BezTriple;
 struct BMVert;
 struct BMEdge;
-struct BMTessMesh;
+struct BMEditMesh;
 struct BMFace;
 struct ImBuf;
 struct Scene;
@@ -53,7 +53,7 @@ typedef struct ViewContext {
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;
-	struct BMTessMesh *em;
+	struct BMEditMesh *em;
 	short mval[2];
 } ViewContext;
 

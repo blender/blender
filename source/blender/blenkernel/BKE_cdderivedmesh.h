@@ -38,7 +38,7 @@
 #include "BKE_DerivedMesh.h"
 
 struct DerivedMesh;
-struct BMTessMesh;
+struct BMEditMesh;
 struct EditMesh;
 struct Mesh;
 struct Object;
@@ -55,8 +55,8 @@ struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh, struct Object *ob);
 /* creates a CDDerivedMesh from the given EditMesh */
 struct DerivedMesh *CDDM_from_editmesh(struct EditMesh *em, struct Mesh *me);
 
-/* creates a CDDerivedMesh from the given BMTessMesh */
-DerivedMesh *CDDM_from_BMTessMesh(struct BMTessMesh *em, struct Mesh *me);
+/* creates a CDDerivedMesh from the given BMEditMesh */
+DerivedMesh *CDDM_from_BMEditMesh(struct BMEditMesh *em, struct Mesh *me);
 
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data.

@@ -1371,7 +1371,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
 {
 	Scene *scene= ((void **)userData)[0];
-	BMTessMesh *em = ((void **)userData)[1];
+	BMEditMesh *em = ((void **)userData)[1];
 	BMFace *efa = EDBM_get_face_for_index(em, index);
 
 	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
@@ -1381,7 +1381,7 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent
 					cent[2] + no[2]*scene->editbutsize);
 	}
 }
-static void draw_dm_face_normals(BMTessMesh *tm, Scene *scene, DerivedMesh *dm) 
+static void draw_dm_face_normals(BMEditMesh *tm, Scene *scene, DerivedMesh *dm) 
 {
 	void *ptrs[2] = {scene, tm};
 
@@ -1393,14 +1393,14 @@ static void draw_dm_face_normals(BMTessMesh *tm, Scene *scene, DerivedMesh *dm)
 static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent, float *no)
 {
 	BMFace *efa = EDBM_get_face_for_index(((void **)userData)[0], index);
-	BMTessMesh *em = ((void **)userData)[0];
+	BMEditMesh *em = ((void **)userData)[0];
 	int sel = *(((int **)userData)[1]);
 
 	if (!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)==sel) {
 		bglVertex3fv(cent);
 	}
 }
-static void draw_dm_face_centers(BMTessMesh *em, DerivedMesh *dm, int sel)
+static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, int sel)
 {
 	void *ptrs[2] = {em, &sel};
 
@@ -1412,7 +1412,7 @@ static void draw_dm_face_centers(BMTessMesh *em, DerivedMesh *dm, int sel)
 static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	Scene *scene= ((void **)userData)[0];
-	BMTessMesh *em = ((void **)userData)[1];
+	BMEditMesh *em = ((void **)userData)[1];
 	BMVert *eve = EDBM_get_vert_for_index(em, index);
 
 	if (!BM_TestHFlag(eve, BM_HIDDEN)) {
@@ -1429,7 +1429,7 @@ static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, 
 		}
 	}
 }
-static void draw_dm_vert_normals(BMTessMesh *em, Scene *scene, DerivedMesh *dm) 
+static void draw_dm_vert_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm) 
 {
 	void *ptrs[2] = {scene, em};
 
@@ -1441,7 +1441,7 @@ static void draw_dm_vert_normals(BMTessMesh *em, Scene *scene, DerivedMesh *dm)
 	/* Draw verts with color set based on selection */
 static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	struct { BMTessMesh *em; int sel; BMVert *eve_act; } *data = userData;
+	struct { BMEditMesh *em; int sel; BMVert *eve_act; } *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->em, index);
 
 	if (!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)==data->sel) {
@@ -1465,9 +1465,9 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 		}
 	}
 }
-static void draw_dm_verts(BMTessMesh *em, DerivedMesh *dm, int sel, BMVert *eve_act)
+static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_act)
 {
-	struct { BMTessMesh *em; int sel; BMVert *eve_act; } data;
+	struct { BMEditMesh *em; int sel; BMVert *eve_act; } data;
 	data.sel = sel;
 	data.eve_act = eve_act;
 	data.em = em;
@@ -1482,7 +1482,7 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	BMEdge *eed;
 	//unsigned char **cols = userData, *col;
-	struct { BMTessMesh *em; unsigned char *baseCol, *selCol, *actCol; BMEdge *eed_act; } * data = userData;
+	struct { BMEditMesh *em; unsigned char *baseCol, *selCol, *actCol; BMEdge *eed_act; } * data = userData;
 	unsigned char *col;
 
 	eed = EDBM_get_edge_for_index(data->em, index);
@@ -1506,10 +1506,10 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 		return 0;
 	}
 }
-static void draw_dm_edges_sel(BMTessMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
 			      unsigned char *selCol, unsigned char *actCol, BMEdge *eed_act) 
 {
-	struct { BMTessMesh *em; unsigned char *baseCol, *selCol, *actCol; BMEdge *eed_act; } data;
+	struct { BMEditMesh *em; unsigned char *baseCol, *selCol, *actCol; BMEdge *eed_act; } data;
 	
 	data.baseCol = baseCol;
 	data.selCol = selCol;
@@ -1524,7 +1524,7 @@ static int draw_dm_edges__setDrawOptions(void *userData, int index)
 {
 	return !BM_TestHFlag(EDBM_get_edge_for_index(userData, index), BM_HIDDEN);
 }
-static void draw_dm_edges(BMTessMesh *em, DerivedMesh *dm) 
+static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm) 
 {
 	dm->drawMappedEdges(dm, draw_dm_edges__setDrawOptions, em);
 }
@@ -1546,7 +1546,7 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 				col0[2] + (col1[2]-col0[2])*t,
 				col0[3] + (col1[3]-col0[3])*t);
 }
-static void draw_dm_edges_sel_interp(BMTessMesh *em, DerivedMesh *dm, 
+static void draw_dm_edges_sel_interp(BMEditMesh *em, DerivedMesh *dm, 
 				     unsigned char *baseCol, unsigned char *selCol)
 {
 	unsigned char *cols[2];
@@ -1566,7 +1566,7 @@ static int draw_dm_edges_seams__setDrawOptions(void *userData, int index)
 	return !BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SEAM);
 }
 
-static void draw_dm_edges_seams(BMTessMesh *em, DerivedMesh *dm)
+static void draw_dm_edges_seams(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, em);
 }
@@ -1578,7 +1578,7 @@ static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
 
 	return !BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SHARP);
 }
-static void draw_dm_edges_sharp(BMTessMesh *em, DerivedMesh *dm)
+static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, em);
 }
@@ -1588,7 +1588,7 @@ static void draw_dm_edges_sharp(BMTessMesh *em, DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
-	struct { unsigned char *cols[3]; BMTessMesh *em; BMFace *efa_act; } *data = userData;
+	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; } *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 	unsigned char *col;
 	
@@ -1607,10 +1607,10 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 }
 
 /* also draws the active face */
-static void draw_dm_faces_sel(BMTessMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
 			      unsigned char *selCol, unsigned char *actCol, BMFace *efa_act) 
 {
-	struct { unsigned char *cols[3]; BMTessMesh *em; BMFace *efa_act; } data;
+	struct { unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; } data;
 
 	data.cols[0] = baseCol;
 	data.em = em;
@@ -1632,7 +1632,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 		return 0;
 	}
 }
-static void draw_dm_creases(BMTessMesh *em, DerivedMesh *dm)
+static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 {
 	glLineWidth(3.0);
 	dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, em);
@@ -1659,7 +1659,7 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, floa
 		bglVertex3fv(co);
 	}
 }
-static void draw_dm_bweights(BMTessMesh *em, Scene *scene, DerivedMesh *dm)
+static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 {
 	if (scene->selectmode & SCE_SELECT_VERTEX) {
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
@@ -1684,7 +1684,7 @@ static void draw_dm_bweights(BMTessMesh *em, Scene *scene, DerivedMesh *dm)
 /* EditMesh drawing routines*/
 
 static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, 
-				BMTessMesh *em, DerivedMesh *cageDM, BMVert *eve_act)
+				BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act)
 {
 	int sel;
 
@@ -1740,7 +1740,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(BMTessMesh *em, Scene *scene, View3D *v3d, 
+static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d, 
 				Mesh *me, DerivedMesh *cageDM, short sel_only, 
 				BMEdge *eed_act)
 {
@@ -1800,7 +1800,7 @@ static void draw_em_fancy_edges(BMTessMesh *em, Scene *scene, View3D *v3d,
 }	
 
 static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, 
-				  Object *ob, BMTessMesh *em)
+				  Object *ob, BMEditMesh *em)
 {
 #if 0
 	Mesh *me= ob->data;
@@ -1991,7 +1991,7 @@ static int draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 }
 
 static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob,
-			  BMTessMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
+			  BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 
 {
 	Mesh *me = ob->data;
@@ -2400,7 +2400,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	Object *ob= base->object;
 	Object *obedit= scene->obedit;
 	Mesh *me= ob->data;
-	BMTessMesh *em= me->edit_btmesh;
+	BMEditMesh *em= me->edit_btmesh;
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
 	
 	if(obedit && ob!=obedit && ob->data==obedit->data) {
@@ -5291,13 +5291,13 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float 
 		bglVertex3fv(co);
 	}
 }
-static void bbs_mesh_verts(BMTessMesh *em, DerivedMesh *dm, int offset)
+static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	void *ptrs[2] = {(void*)(intptr_t) offset, em};
 
 	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*)(intptr_t) offset);
+	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, ptrs);
 	bglEnd();
 	glPointSize(1.0);
 }		
@@ -5315,7 +5315,7 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 		return 0;
 	}
 }
-static void bbs_mesh_wire(BMTessMesh *em, DerivedMesh *dm, int offset)
+static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	void *ptrs[2] = {(void*)(intptr_t) offset, em};
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
@@ -5345,7 +5345,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, f
 }
 
 /* two options, facecolors or black */
-static void bbs_mesh_solid_EM(BMTessMesh *em, Scene *scene, View3D *v3d,
+static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 			      Object *ob, DerivedMesh *dm, int facecol)
 {
 	void *ptrs[2] = {em, NULL}; //second one being null means to draw black
@@ -5405,7 +5405,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	{
 		if(ob == scene->obedit) {
 			Mesh *me= ob->data;
-			BMTessMesh *em= me->edit_btmesh;
+			BMEditMesh *em= me->edit_btmesh;
 
 			DerivedMesh *dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 

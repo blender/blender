@@ -47,6 +47,11 @@ struct MCol;
 struct UvVertMap;
 struct UvMapVert;
 struct CustomData;
+struct BMEditSelection;
+struct BMesh;
+struct BMVert;
+struct BMEdge;
+struct BMFace;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -73,22 +78,25 @@ struct CustomData;
 /*recalculate tesselations for ngons*/
 void EDBM_Tesselate(struct EditMesh *em);
 void EDBM_MakeEditBMesh(struct Scene *scene, struct Object *ob);
-void EDBM_FreeEditBMesh(struct BMTessMesh *tm);
-void EDBM_LoadEditBMesh(struct Object *ob, struct Mesh *me);
-void EDBM_init_index_arrays(struct BMTessMesh *tm, int forvert, int foredge, int forface);
-void EDBM_free_index_arrays(struct BMTessMesh *tm);
-struct BMVert *EDBM_get_vert_for_index(struct BMTessMesh *tm, int index);
-struct BMEdge *EDBM_get_edge_for_index(struct BMTessMesh *tm, int index);
-struct BMFace *EDBM_get_face_for_index(struct BMTessMesh *tm, int index);
-struct BMFace *EDBM_get_actFace(struct BMTessMesh *em, int sloppy);
-void EDBM_selectmode_flush(struct BMTessMesh *em);
+void EDBM_FreeEditBMesh(struct BMEditMesh *tm);
+void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob);
+void EDBM_init_index_arrays(struct BMEditMesh *tm, int forvert, int foredge, int forface);
+void EDBM_free_index_arrays(struct BMEditMesh *tm);
+struct BMVert *EDBM_get_vert_for_index(struct BMEditMesh *tm, int index);
+struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *tm, int index);
+struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *tm, int index);
+struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
+void EDBM_selectmode_flush(struct BMEditMesh *em);
+int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
+void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
+void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
 
 /* meshtools.c */
 
-intptr_t	mesh_octree_table(struct Object *ob, struct BMTessMesh *em, float *co, char mode);
-struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
+intptr_t	mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
+struct BMVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, float *co);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
-int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
+int			*mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
@@ -96,11 +104,6 @@ void		ED_keymap_mesh(struct wmWindowManager *wm);
 
 
 /* editmesh.c */
-
-/*accessor functions for editmesh, all access to editmesh must
-  go through them!*/
-struct EditMesh *EM_GetEditMesh(struct Mesh *me);
-void EM_EndEditMesh(struct Mesh *me, struct EditMesh *em);
 
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmWindowManager *wm);

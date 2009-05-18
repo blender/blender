@@ -100,6 +100,7 @@ static int pupmenu() {return 0;}
 
 void EM_select_mirrored(Object *obedit, EditMesh *em)
 {
+#if 0
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		EditVert *eve, *v1;
 		
@@ -113,6 +114,7 @@ void EM_select_mirrored(Object *obedit, EditMesh *em)
 			}
 		}
 	}
+#endif
 }
 
 void EM_automerge(int update) 
@@ -1713,254 +1715,9 @@ void MESH_OT_select_loop_multi(wmOperatorType *ot)
 /* ***************** MAIN MOUSE SELECTION ************** */
 
 
-/* ***************** loop select (non modal) ************** */
-
-static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
-{
-	ViewContext vc;
-	EditMesh *em;
-	EditEdge *eed;
-	int select= 1;
-	int dist= 50;
-	
-	em_setup_viewcontext(C, &vc);
-	vc.mval[0]= mval[0];
-	vc.mval[1]= mval[1];
-	em= vc.em;
-	
-	eed= findnearestedge(&vc, &dist);
-	if(eed) {
-		if(extend==0) EM_clear_flag_all(em, SELECT);
-	
-		if((eed->f & SELECT)==0) select=1;
-		else if(extend) select=0;
-
-		if(em->selectmode & SCE_SELECT_FACE) {
-			faceloop_select(em, eed, select);
-		}
-		else if(em->selectmode & SCE_SELECT_EDGE) {
-			if(ring)
-				edgering_select(em, eed, select);
-			else
-				edgeloop_select(em, eed, select);
-		}
-		else if(em->selectmode & SCE_SELECT_VERTEX) {
-			if(ring)
-				edgering_select(em, eed, select);
-			else 
-				edgeloop_select(em, eed, select);
-		}
-
-		EM_selectmode_flush(em);
-//			if (EM_texFaceCheck())
-		
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
-	}
-}
-
-static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	
-	view3d_operator_needs_opengl(C);
-	
-	mouse_mesh_loop(C, event->mval, RNA_boolean_get(op->ptr, "extend"),
-					RNA_boolean_get(op->ptr, "ring"));
-	
-	/* cannot do tweaks for as long this keymap is after transform map */
-	return OPERATOR_FINISHED;
-}
-
-#if 0 //moved to bmeshutils_mods.c
-void MESH_OT_select_loop(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Loop Select";
-	ot->idname= "MESH_OT_select_loop";
-	
-	/* api callbacks */
-	ot->invoke= mesh_select_loop_invoke;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
-	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
-}
-#endif
-
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
-/* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *C, short mval[2])
-{
-	ViewContext vc;
-	EditMesh *em;
-	EditEdge *eed;
-	int dist= 50;
-	
-	em_setup_viewcontext(C, &vc);
-	vc.mval[0]= mval[0];
-	vc.mval[1]= mval[1];
-	em= vc.em;
-	
-	eed= findnearestedge(&vc, &dist);
-	if(eed) {
-		Mesh *me= vc.obedit->data;
-		int path = 0;
-		
-		if (em->selected.last) {
-			EditSelection *ese = em->selected.last;
-			
-			if(ese && ese->type == EDITEDGE) {
-				EditEdge *eed_act;
-				eed_act = (EditEdge*)ese->data;
-				if (eed_act != eed) {
-					if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
-						EM_remove_selection(em, eed_act, EDITEDGE);
-						path = 1;
-					}
-				}
-			}
-		}
-		if (path==0) {
-			int act = (edgetag_context_check(vc.scene, eed)==0);
-			edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
-		}
-		
-		EM_selectmode_flush(em);
-
-		/* even if this is selected it may not be in the selection list */
-		if(edgetag_context_check(vc.scene, eed)==0)
-			EM_remove_selection(em, eed, EDITEDGE);
-		else
-			EM_store_selection(em, eed, EDITEDGE);
-	
-		/* force drawmode for mesh */
-		switch (vc.scene->toolsettings->edge_mode) {
-			
-			case EDGE_MODE_TAG_SEAM:
-				me->drawflag |= ME_DRAWSEAMS;
-				break;
-			case EDGE_MODE_TAG_SHARP:
-				me->drawflag |= ME_DRAWSHARP;
-				break;
-			case EDGE_MODE_TAG_CREASE:	
-				me->drawflag |= ME_DRAWCREASES;
-				break;
-			case EDGE_MODE_TAG_BEVEL:
-				me->drawflag |= ME_DRAWBWEIGHTS;
-				break;
-		}
-		
-		DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
-	
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
-	}
-}
-
-
-static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	
-	view3d_operator_needs_opengl(C);
-
-	mouse_mesh_shortest_path(C, event->mval);
-	
-	return OPERATOR_FINISHED;
-}
-
-#if 0 //moved to bmeshutils_mods.c	
-void MESH_OT_select_path_shortest(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Shortest Path Select";
-	ot->idname= "MESH_OT_select_path_shortest";
-	
-	/* api callbacks */
-	ot->invoke= mesh_shortest_path_select_invoke;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
-}
-#endif
-
 /* ************************************************** */
-
-
-#if 0 //moved to bmeshutils_mods.c
-/* here actual select happens */
-/* gets called via generic mouse select operator */
-void mouse_mesh(bContext *C, short mval[2], short extend)
-{
-	ViewContext vc;
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	
-	/* setup view context for argument to callbacks */
-	em_setup_viewcontext(C, &vc);
-	vc.mval[0]= mval[0];
-	vc.mval[1]= mval[1];
-	
-	if(unified_findnearest(&vc, &eve, &eed, &efa)) {
-		
-		if(extend==0) EM_clear_flag_all(vc.em, SELECT);
-		
-		if(efa) {
-			/* set the last selected face */
-			EM_set_actFace(vc.em, efa);
-			
-			if( (efa->f & SELECT)==0 ) {
-				EM_store_selection(vc.em, efa, EDITFACE);
-				EM_select_face_fgon(vc.em, efa, 1);
-			}
-			else if(extend) {
-				EM_remove_selection(vc.em, efa, EDITFACE);
-				EM_select_face_fgon(vc.em, efa, 0);
-			}
-		}
-		else if(eed) {
-			if((eed->f & SELECT)==0) {
-				EM_store_selection(vc.em, eed, EDITEDGE);
-				EM_select_edge(eed, 1);
-			}
-			else if(extend) {
-				EM_remove_selection(vc.em, eed, EDITEDGE);
-				EM_select_edge(eed, 0);
-			}
-		}
-		else if(eve) {
-			if((eve->f & SELECT)==0) {
-				eve->f |= SELECT;
-				EM_store_selection(vc.em, eve, EDITVERT);
-			}
-			else if(extend){ 
-				EM_remove_selection(vc.em, eve, EDITVERT);
-				eve->f &= ~SELECT;
-			}
-		}
-		
-		EM_selectmode_flush(vc.em);
-		  
-//		if (EM_texFaceCheck()) {
-
-		if (efa && efa->mat_nr != vc.obedit->actcol-1) {
-			vc.obedit->actcol= efa->mat_nr+1;
-			vc.em->mat_nr= efa->mat_nr;
-//			BIF_preview_changed(ID_MA);
-		}
-	}
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
-	
-}
-#endif
 
 /* *********** select linked ************* */
 
@@ -4075,10 +3832,11 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 
 static int smooth_vertex(bContext *C, wmOperator *op)
 {
+#if 0 //BMESH_TODO
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= me; 
+	EditMesh *em= EM_GetEditMesh(me); 
 
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
@@ -4215,6 +3973,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	EM_EndEditMesh(obedit->data, em);
+#endif
 	return OPERATOR_FINISHED;
 }
 

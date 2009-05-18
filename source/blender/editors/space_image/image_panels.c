@@ -59,6 +59,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
 
 #include "RE_pipeline.h"
 

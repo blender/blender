@@ -463,7 +463,7 @@ void recalcData(TransInfo *t)
 	
 				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);
 			} else {
-				BMTessMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					/* TRANSFORM_FIX_ME */

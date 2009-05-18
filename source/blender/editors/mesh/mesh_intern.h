@@ -40,7 +40,10 @@
 struct bContext;
 struct wmOperatorType;
 struct ViewContext;
+struct BMEditMesh;
 struct BMesh;
+struct BMEdge;
+struct BMFace;
 
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
@@ -55,9 +58,14 @@ int EDBM_CallOpfSilent(EditMesh *em, char *fmt, ...);
   if any errors are raised by bmesh, it displays the error to the user and
   returns 0 (and does not convert).  otherwise, it converts the bmesh back
   into the editmesh, and returns 1.*/
-int EDBM_Finish(struct BMesh *bm, EditMesh *em, 
+int EDBM_Finish(struct BMesh *bm, struct EditMesh *em, 
                 struct wmOperator *op, int report);
 
+void EDBM_clear_flag_all(struct BMEditMesh *em, int flag);
+void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
+void EDBM_store_selection(struct BMEditMesh *em, void *data);
+void EDBM_validate_selections(struct BMEditMesh *em);
+void EDBM_remove_selection(struct BMEditMesh *em, void *data);
 
 /* ******************** editface.c */
 
@@ -206,7 +214,7 @@ void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
 void selectconnected_mesh_all(EditMesh *em);
-void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
+void faceloop_select(struct BMEditMesh *em, struct BMEdge *startedge, int select);
 
 /**
  * findnearestvert

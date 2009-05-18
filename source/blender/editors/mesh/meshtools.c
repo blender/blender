@@ -703,7 +703,7 @@ static struct {
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-intptr_t mesh_octree_table(Object *ob, BMTessMesh *em, float *co, char mode)
+intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, float *co, char mode)
 {
 	MocNode **bt;
 	
@@ -777,7 +777,7 @@ intptr_t mesh_octree_table(Object *ob, BMTessMesh *em, float *co, char mode)
 			BMIter iter;
 
 			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step) {
+			for (; eve; eve=BMIter_Step(&iter)) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
@@ -833,7 +833,7 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	return mesh_octree_table(ob, NULL, vec, 'u');
 }
 
-EditVert *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co)
+BMVert *editmesh_get_x_mirror_vert(Object *ob, BMEditMesh *em, float *co)
 {
 	float vec[3];
 	intptr_t poinval;
@@ -901,7 +901,7 @@ static int mirror_facecmp(void *a, void *b)
 	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
 }
 
-int *mesh_get_x_mirror_faces(Object *ob, EditMesh *em)
+int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 {
 	Mesh *me= ob->data;
 	MVert *mv, *mvert= me->mvert;

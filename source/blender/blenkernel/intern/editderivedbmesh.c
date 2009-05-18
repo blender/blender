@@ -89,9 +89,9 @@
 
 #include "bmesh.h"
 
-BMTessMesh *TM_Create(BMesh *bm)
+BMEditMesh *TM_Create(BMesh *bm)
 {
-	BMTessMesh *tm = MEM_callocN(sizeof(BMTessMesh), "tm");
+	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), "tm");
 	
 	tm->bm = bm;
 
@@ -100,9 +100,9 @@ BMTessMesh *TM_Create(BMesh *bm)
 	return tm;
 }
 
-BMTessMesh *TM_Copy(BMTessMesh *tm)
+BMEditMesh *TM_Copy(BMEditMesh *tm)
 {
-	BMTessMesh *tm2 = MEM_mallocN(sizeof(BMTessMesh), "tm2");
+	BMEditMesh *tm2 = MEM_mallocN(sizeof(BMEditMesh), "tm2");
 	*tm2 = *tm;
 
 	tm2->bm = BM_Copy_Mesh(tm->bm);
@@ -110,7 +110,7 @@ BMTessMesh *TM_Copy(BMTessMesh *tm)
 	return tm2;
 }
 
-void TM_RecalcTesselation(BMTessMesh *tm)
+void TM_RecalcTesselation(BMEditMesh *tm)
 {
 	BMesh *bm = tm->bm;
 	BMLoop **looptris = NULL;
@@ -147,8 +147,8 @@ void TM_RecalcTesselation(BMTessMesh *tm)
 	tm->looptris = looptris;
 }
 
-/*does not free the BMTessMesh struct itself*/
-void TM_Free(BMTessMesh *em)
+/*does not free the BMEditMesh struct itself*/
+void TM_Free(BMEditMesh *em)
 {
 	if(em->derivedFinal) {
 		if (em->derivedFinal!=em->derivedCage) {
@@ -188,7 +188,7 @@ typedef struct EditDerivedBMesh {
 	DerivedMesh dm;
 
 	Object *ob;
-	BMTessMesh *tc;
+	BMEditMesh *tc;
 
 	float (*vertexCos)[3];
 	float (*vertexNos)[3];
@@ -1132,7 +1132,7 @@ static void bmDM_release(DerivedMesh *dm)
 	}
 }
 
-DerivedMesh *getEditDerivedBMesh(BMTessMesh *em, Object *ob,
+DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
                                            float (*vertexCos)[3])
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), "bmdm");
