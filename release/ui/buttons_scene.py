@@ -80,17 +80,18 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		row.itemR(rd, "antialiasing", text="Enable")
 
 		if rd.antialiasing:
-			row = layout.row()
-			row.itemL(text="Samples:")
-			row.itemR(rd, "antialiasing_samples", expand=True)
-			row = layout.row(align=True)
-			row.itemR(rd, "pixel_filter")
-			row.itemR(rd, "filter_size", text="Size")
-
-			row = layout.row()
-			row.itemR(rd, "save_buffers")
+			split = layout.split()
+			
+			sub = split.column()
+			sub.itemL(text="Samples:")
+			sub.row().itemR(rd, "antialiasing_samples", expand=True)
+	
+			sub = split.column()
+			sub.itemR(rd, "pixel_filter")
+			sub.itemR(rd, "filter_size", text="Size")
+			sub.itemR(rd, "save_buffers")
 			if rd.save_buffers:
-				row.itemR(rd, "full_sample")
+				sub.itemR(rd, "full_sample")
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
@@ -133,7 +134,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column(align=True)
-		sub.itemR(rd, "threads_mode", expand=True)
+		sub.row().itemR(rd, "threads_mode", expand=True)
 		if rd.threads_mode == 'THREADS_FIXED':
 			sub.itemR(rd, "threads")
 		
@@ -143,7 +144,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 		
 		row = layout.row()
 		row.itemR(rd, "panorama")
-		row.itemR(rd, "dither_intensity")
+		row.itemR(rd, "dither_intensity", text="Dither")
 		#	row.itemR(rd, "backbuf")
 			
 class RENDER_PT_dimensions(RenderButtonsPanel):
