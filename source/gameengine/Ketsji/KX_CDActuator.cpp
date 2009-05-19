@@ -214,7 +214,7 @@ int KX_CDActuator::pyattr_setGain(void *self, const struct KX_PYATTRIBUTE_DEF *a
 {
 	KX_CDActuator* act = static_cast<KX_CDActuator*>(self);
 	SND_CDObject::Instance()->SetGain(act->m_gain);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_CDActuator::py_getattro(PyObject *attr)

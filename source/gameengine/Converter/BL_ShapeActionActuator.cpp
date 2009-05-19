@@ -870,7 +870,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 	if (!PyString_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, expected the string name of the action");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
@@ -882,11 +882,11 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 		if (action==NULL)
 		{
 			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, action not found!");
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 	}
 	
 	self->SetAction(action);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }

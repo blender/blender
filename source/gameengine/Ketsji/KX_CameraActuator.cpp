@@ -597,7 +597,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_GameObject *gameobj;
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 	
 	if (self->m_ob)
 		self->m_ob->UnregisterActuator(self);	
@@ -605,7 +605,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if ((self->m_ob = (SCA_IObject*)gameobj))
 		self->m_ob->RegisterActuator(self);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* eof */

@@ -128,10 +128,10 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 	RAS_MeshObject* new_mesh;
 	
 	if (!ConvertPythonToMesh(value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	actuator->m_mesh = new_mesh;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* 1. setMesh */

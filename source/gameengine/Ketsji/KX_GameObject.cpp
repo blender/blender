@@ -1468,13 +1468,13 @@ int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.mass = float: KX_GameObject, expected a float zero or above");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	if (spc)
 		spc->SetMass(val);
 
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1491,13 +1491,13 @@ int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMin = float: KX_GameObject, expected a float zero or above");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	if (spc)
 		spc->SetLinVelocityMin(val);
 
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1514,13 +1514,13 @@ int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMax = float: KX_GameObject, expected a float zero or above");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	if (spc)
 		spc->SetLinVelocityMax(val);
 
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -1536,12 +1536,12 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "gameOb.visible = bool: KX_GameObject, expected True or False");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	self->SetVisible(param, false);
 	self->UpdateBuckets(false);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1555,11 +1555,11 @@ int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_D
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	MT_Point3 pos;
 	if (!PyVecTo(value, pos))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->NodeSetWorldPosition(pos);
 	self->NodeUpdateGS(0.f);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1576,11 +1576,11 @@ int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_D
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	MT_Point3 pos;
 	if (!PyVecTo(value, pos))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->NodeSetLocalPosition(pos);
 	self->NodeUpdateGS(0.f);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1606,7 +1606,7 @@ int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUT
 	/* if value is not a sequence PyOrientationTo makes an error */
 	MT_Matrix3x3 rot;
 	if (!PyOrientationTo(value, rot, "gameOb.worldOrientation = sequence: KX_GameObject, "))
-		return NULL;
+		return PY_SET_ATTR_FAIL;
 
 	if (self->GetSGNode() && self->GetSGNode()->GetSGParent()) {
 		self->NodeSetLocalOrientation(self->GetSGNode()->GetSGParent()->GetWorldOrientation().inverse()*rot);
@@ -1616,7 +1616,7 @@ int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUT
 	}
 	
 	self->NodeUpdateGS(0.f);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1635,11 +1635,11 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 	/* if value is not a sequence PyOrientationTo makes an error */
 	MT_Matrix3x3 rot;
 	if (!PyOrientationTo(value, rot, "gameOb.localOrientation = sequence: KX_GameObject, "))
-		return NULL;
+		return PY_SET_ATTR_FAIL;
 
 	self->NodeSetLocalOrientation(rot);
 	self->NodeUpdateGS(0.f);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1662,11 +1662,11 @@ int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DE
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	MT_Vector3 scale;
 	if (!PyVecTo(value, scale))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 
 	self->NodeSetLocalScale(scale);
 	self->NodeUpdateGS(0.f);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1688,12 +1688,12 @@ int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF 
 		SG_Node* sg_parent= self->GetSGNode()->GetSGParent();
 		if (val < 0.0f) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "gameOb.timeOffset = float: KX_GameObject, expected a float zero or above");
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 		if (sg_parent && sg_parent->IsSlowParent())
 			static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->SetTimeOffset(val);
 	}
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1712,16 +1712,16 @@ int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 	
 	if (state_i == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "gameOb.state = int: KX_GameObject, expected an int bit field");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	state |= state_i;
 	if ((state & ((1<<30)-1)) == 0) {
 		PyErr_SetString(PyExc_AttributeError, "gameOb.state = int: KX_GameObject, state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	self->SetState(state);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

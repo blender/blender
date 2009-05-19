@@ -563,14 +563,14 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.script = string: Python Controller, expected a string script text");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	/* set scripttext sets m_bModified to true, 
 		so next time the script is needed, a reparse into byte code is done */
 	self->SetScriptText(scriptArg);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 

@@ -1037,7 +1037,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (!PyString_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, expected the string name of the action");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
@@ -1049,11 +1049,11 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 		if (!action)
 		{
 			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, action not found!");
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 	}
 	
 	self->SetAction(action);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }

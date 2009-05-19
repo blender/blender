@@ -261,9 +261,9 @@ int KX_LightObject::pyattr_set_color(void *self_v, const KX_PYATTRIBUTE_DEF *att
 		self->m_lightobj.m_red = color[0];
 		self->m_lightobj.m_green = color[1];
 		self->m_lightobj.m_blue = color[2];
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
-	return 1;
+	return PY_SET_ATTR_FAIL;
 }
 
 PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -293,6 +293,11 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	int val = PyInt_AsLong(value);
+	if((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
+		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
+		return PY_SET_ATTR_FAIL;
+	}
+	
 	switch(val) {
 		case 0:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SPOT;
@@ -300,7 +305,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 		case 1:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SUN;
 			break;
-		default:
+		case 2:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_NORMAL;
 			break;
 	}

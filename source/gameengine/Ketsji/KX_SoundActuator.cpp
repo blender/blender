@@ -450,13 +450,13 @@ int KX_SoundActuator::pyattr_set_filename(void *self, const struct KX_PYATTRIBUT
 	// void *soundPointer = NULL; /*unused*/
 	
 	if (!PyArg_Parse(value, "s", &soundName))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 
 	if (actuator->m_soundObject) {
 		actuator->m_soundObject->SetObjectName(soundName);
 	}
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -465,12 +465,12 @@ int KX_SoundActuator::pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DE
 	float gain = 1.0;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &gain))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetGain(gain);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -478,12 +478,12 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 	float pitch = 1.0;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &pitch))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetPitch(pitch);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -491,12 +491,12 @@ int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATT
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float rollofffactor = 1.0;
 	if (!PyArg_Parse(value, "f", &rollofffactor))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetRollOffFactor(rollofffactor);
 
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_looping(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -504,12 +504,12 @@ int KX_SoundActuator::pyattr_set_looping(void *self, const struct KX_PYATTRIBUTE
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	int looping = 1;
 	if (!PyArg_Parse(value, "i", &looping))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetLoopMode(looping);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_position(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -519,12 +519,12 @@ int KX_SoundActuator::pyattr_set_position(void *self, const struct KX_PYATTRIBUT
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 
 	if (!PyArg_ParseTuple(value, "fff", &pos[0], &pos[1], &pos[2]))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetPosition(MT_Vector3(pos));
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_velocity(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -534,12 +534,12 @@ int KX_SoundActuator::pyattr_set_velocity(void *self, const struct KX_PYATTRIBUT
 
 
 	if (!PyArg_ParseTuple(value, "fff", &vel[0], &vel[1], &vel[2]))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetVelocity(MT_Vector3(vel));
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }         
 
@@ -551,14 +551,15 @@ int KX_SoundActuator::pyattr_set_orientation(void *self, const struct KX_PYATTRI
 
 	/* if value is not a sequence PyOrientationTo makes an error */
 	if (!PyOrientationTo(value, rot, "actuator.orientation = value: KX_SoundActuator"))
-		return NULL;
+		return PY_SET_ATTR_FAIL;
 	
+	/* Since not having m_soundObject didn't do anything in the old version,
+	 * it probably should be kept that way  */
 	if (!actuator->m_soundObject)
-		return 0; /* Since not having m_soundObject didn't do anything in the old version,
-					* it probably should be kept that way  */
+		return PY_SET_ATTR_SUCCESS;
 	
 	actuator->m_soundObject->SetOrientation(rot);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 // Deprecated ----->

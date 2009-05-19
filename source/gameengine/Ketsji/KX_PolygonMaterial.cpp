@@ -386,10 +386,10 @@ int KX_PolygonMaterial::pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DE
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->m_diffuse= vec;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -404,8 +404,8 @@ int KX_PolygonMaterial::pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_D
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->m_specular= vec;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }

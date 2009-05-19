@@ -242,7 +242,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 	KX_GameObject *gameobj;
 		
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_SCA_AddObjectActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_OriginalObject != NULL)
 		actuator->m_OriginalObject->UnregisterActuator(actuator);	
@@ -252,7 +252,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 	if (actuator->m_OriginalObject)
 		actuator->m_OriginalObject->RegisterActuator(actuator);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)

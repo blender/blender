@@ -387,10 +387,10 @@ int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_
 	if (PyInt_Check(value))	{
 		int ival = PyInt_AsLong(value);
 		act->m_base->SetSeed(ival);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	} else {
 		PyErr_SetString(PyExc_TypeError, "actuator.seed = int: Random Actuator, expected an integer");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 }
 
