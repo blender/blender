@@ -38,6 +38,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "PIL_time.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 
@@ -51,6 +53,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
+
 #include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
@@ -66,9 +69,10 @@
 #include "WM_types.h"
 
 #include "wm.h"
-#include "wm_window.h"
-#include "wm_subwindow.h"
+#include "wm_draw.h"
 #include "wm_event_system.h"
+#include "wm_subwindow.h"
+#include "wm_window.h"
 
 
 
@@ -1264,6 +1268,84 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 }
 
+/* ************************** timer for testing ***************** */
+
+/* uses no type defines, fully local testing function anyway... ;) */
+
+static int ten_timer_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	double stime= PIL_check_seconds_timer();
+	int type = RNA_int_get(op->ptr, "type");
+	int a, time;
+	char tmpstr[128];
+	
+	WM_cursor_wait(1);
+	
+	for(a=0; a<10; a++) {
+		if (type==0) {
+			ED_region_do_draw(C, ar);
+		} 
+		else if (type==1) {
+			wmWindow *win= CTX_wm_window(C);
+			
+			ED_region_tag_redraw(ar);
+			wm_draw_update(C);
+			
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+		}
+		else if (type==2) {
+			wmWindow *win= CTX_wm_window(C);
+			ScrArea *sa;
+			
+			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
+				ED_area_tag_redraw(sa);
+			wm_draw_update(C);
+			
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+		}
+		else {
+			ED_undo_pop(C);
+			ED_undo_redo(C);
+		}
+	}
+	
+	time= (int) ((PIL_check_seconds_timer()-stime)*1000);
+	
+	if(type==0) sprintf(tmpstr, "10 x Draw Region: %d ms", time);
+	if(type==1) sprintf(tmpstr, "10 x Draw Region and Swap: %d ms", time);
+	if(type==2) sprintf(tmpstr, "10 x Draw Window and Swap: %d ms", time);
+	if(type==3) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
+	
+	WM_cursor_wait(0);
+	
+	uiPupMenuNotice(C, tmpstr);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_ten_timer(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_type_items[] = {
+	{0, "DRAW", "Draw Region", ""},
+	{1, "DRAWSWAP", "Draw Region + Swap", ""},
+	{2, "DRAWWINSWAP", "Draw Window + Swap", ""},
+	{3, "UNDO", "Undo/Redo", ""},
+	{0, NULL, NULL, NULL}};
+	
+	ot->name= "Ten Timer";
+	ot->idname= "WM_OT_ten_timer";
+	
+	ot->invoke= WM_menu_invoke;
+	ot->exec= ten_timer_exec;
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+
+}
+
+
+
 /* ******************************************************* */
  
 /* called on initialize WM_exit() */
@@ -1285,6 +1367,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
+	WM_operatortype_append(WM_OT_ten_timer);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -1306,5 +1389,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 }
 
