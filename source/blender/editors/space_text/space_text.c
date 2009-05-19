@@ -348,8 +348,7 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-	ar->v2d.flag &= ~(V2D_PIXELOFS_X|V2D_PIXELOFS_Y); // XXX temporary
+	ED_region_header_init(ar);
 }
 
 static void text_header_area_draw(const bContext *C, ARegion *ar)
@@ -362,7 +361,7 @@ static void text_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 }
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)

@@ -222,7 +222,7 @@ struct uiBlock {
 	Panel *panel;
 	uiBlock *oldblock;
 
-	struct uiLayout *layout;
+	ListBase layouts;
 	struct uiLayout *curlayout;
 	
 	char name[UI_MAX_NAME_STR];
@@ -378,6 +378,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rct
 
 /* interface_handlers.c */
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
+extern int ui_button_is_active(struct ARegion *ar);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
@@ -398,6 +399,7 @@ void ui_resources_free(void);
 
 /* interface_layout.c */
 void ui_layout_add_but(struct uiLayout *layout, uiBut *but);
+int ui_but_can_align(uiBut *but);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

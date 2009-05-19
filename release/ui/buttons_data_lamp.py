@@ -15,7 +15,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 	__label__ = "Lamp"
 
 	def draw(self, context):
-		lamp = context.main.lamps[0]
+		lamp = context.active_object.data
 		layout = self.layout
 
 		if not lamp:
@@ -61,11 +61,10 @@ class DATA_PT_sunsky(DataButtonsPanel):
 	
 	def poll(self, context):
 		ob = context.active_object
-		lamp = context.main.lamps[0]
-		return (ob.type == 'LAMP' and lamp.type == 'SUN')
+		return (ob.type == 'LAMP' and ob.data.type == 'SUN')
 
 	def draw(self, context):
-		lamp = context.main.lamps[0].sky
+		lamp = context.active_object.data
 		layout = self.layout
 
 		if not lamp:
@@ -107,11 +106,10 @@ class DATA_PT_shadow(DataButtonsPanel):
 	
 	def poll(self, context):
 		ob = context.active_object
-		lamp = context.main.lamps[0]
-		return (ob.type == 'LAMP' and lamp.type in ('POINT','SUN', 'SPOT', 'AREA'))
+		return (ob.type == 'LAMP' and ob.data.type in ('POINT','SUN', 'SPOT', 'AREA'))
 
 	def draw(self, context):
-		lamp = context.main.lamps[0]
+		lamp = context.active_object.data
 		layout = self.layout
 
 		if not lamp:
@@ -190,11 +188,10 @@ class DATA_PT_spot(DataButtonsPanel):
 	
 	def poll(self, context):
 		ob = context.active_object
-		lamp = context.main.lamps[0]
-		return (ob.type == 'LAMP' and lamp.type == 'SPOT')
+		return (ob.type == 'LAMP' and ob.data.type == 'SPOT')
 
 	def draw(self, context):
-		lamp = context.main.lamps[0]
+		lamp = context.active_object.data
 		layout = self.layout
 
 		if not lamp:

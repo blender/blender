@@ -559,7 +559,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	}
 
 	/* handle pending stuff */
-	if(block->layout) uiBlockLayoutResolve(C, block, NULL, NULL);
+	if(block->layouts.first) uiBlockLayoutResolve(C, block, NULL, NULL);
 	ui_block_do_align(block);
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
@@ -1984,6 +1984,11 @@ void uiBlockEndAlign(uiBlock *block)
 	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
 
+int ui_but_can_align(uiBut *but)
+{
+	return !ELEM(but->type, LABEL, ROUNDBOX);
+}
+
 static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
 {
 	uiBut *prev, *but=NULL, *next;
@@ -2176,7 +2181,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->aspect= 1.0f; //XXX block->aspect;
 	but->block= block;		// pointer back, used for frontbuffer status, and picker
 
-	if(block->flag & UI_BUT_ALIGN)
+	if((block->flag & UI_BUT_ALIGN) && ui_but_can_align(but))
 		but->alignnr= block->alignnr;
 
 	but->func= block->func;

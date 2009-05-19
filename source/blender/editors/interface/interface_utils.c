@@ -315,16 +315,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
+void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout, *split;
+	uiLayout *split;
 	char *name;
-	int x= 0, y= 0;
-
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
 
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
@@ -342,26 +338,19 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		name= (char*)RNA_property_ui_name(prop);
 
 		uiItemL(uiLayoutColumn(split, 0), name, 0);
-		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0);
+		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
-	uiBlockLayoutResolve(C, block, &x, &y);
-
-	return -y;
 }
 
 /* temp call, single collumn, test for toolbar only */
-int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
+void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout;
+	uiLayout *col;
 	char *name;
-	int x= 0, y= 0;
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
 	
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 	
@@ -375,16 +364,13 @@ int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
 			continue;
 		
 		name= (char*)RNA_property_ui_name(prop);
-		uiItemL(layout, name, 0);
-		uiItemFullR(layout, "", 0, ptr, prop, -1, 0, 0);
+		col= uiLayoutColumn(layout, 1);
+		uiItemL(col, name, 0);
+		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0);
 	}
 	
 	RNA_property_collection_end(&iter);
-	uiBlockLayoutResolve(C, block, &x, &y);
-	
-	return -y;
 }
-
 
 /***************************** ID Utilities *******************************/
 

@@ -2767,6 +2767,11 @@ static uiBut *ui_but_find_activated(ARegion *ar)
 	return NULL;
 }
 
+int ui_button_is_active(ARegion *ar)
+{
+	return (ui_but_find_activated(ar) != NULL);
+}
+
 static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 {
 	uiBlock *block;

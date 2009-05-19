@@ -159,6 +159,8 @@ typedef struct PanelType {
 
 	/* verify if the panel should draw or not */
 	int			(*poll)(const struct bContext *, struct PanelType *);
+	/* draw header (optional) */
+	void		(*draw_header)(const struct bContext *, struct Panel *);	
 	/* draw entirely, view changes should be handled here */
 	void		(*draw)(const struct bContext *, struct Panel *);	
 

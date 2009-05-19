@@ -276,7 +276,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	wmOperator *op= arg_op;
 	PointerRNA ptr;
 	uiBlock *block;
-	int height;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
 	
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -289,7 +290,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	}
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	height= uiDefAutoButsRNA(C, block, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
+	uiDefAutoButsRNA(C, layout, &ptr);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);

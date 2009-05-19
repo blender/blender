@@ -89,6 +89,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	RNA_def_boolean(func, "slider", 0, "", "Use slider for numeric values.");
 
 	func= RNA_def_function(srna, "items_enumR", "uiItemsEnumR");
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");

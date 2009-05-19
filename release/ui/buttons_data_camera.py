@@ -15,7 +15,7 @@ class DATA_PT_cameralens(DataButtonsPanel):
 	__label__ = "Lens"
 
 	def draw(self, context):
-		cam = context.main.cameras[0]
+		cam = context.active_object.data
 		layout = self.layout
 
 		if not cam:
@@ -55,7 +55,7 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 	__label__ = "Display"
 	
 	def draw(self, context):
-		cam = context.main.cameras[0]
+		cam = context.active_object.data
 		layout = self.layout
 
 		if not cam:

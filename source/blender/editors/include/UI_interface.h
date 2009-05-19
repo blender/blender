@@ -400,7 +400,7 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-int uiDefAutoButsRNA(const struct bContext *C, uiBlock *block, struct PointerRNA *ptr);
+void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr);
 
 /* Links
  *
@@ -462,15 +462,8 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
 void uiEndPanels(const struct bContext *C, struct ARegion *ar);
 
-struct Panel *uiBeginPanel(struct ARegion *ar, uiBlock *block, struct PanelType *pt);
+struct Panel *uiBeginPanel(struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);
-
-void uiPanelsHome(struct ARegion *ar);
-
-/* deprecated */
-extern int uiNewPanel(const struct bContext *C, struct ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
-extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
-extern void uiNewPanelTitle(struct uiBlock *block, char *str);
 
 /* Handlers
  *
@@ -558,6 +551,8 @@ uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout);
 
+uiBlock *uiLayoutFreeBlock(uiLayout *layout);
+
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
@@ -573,8 +568,8 @@ void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *pr
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
-void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand);
-void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand);
+void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider);
+void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 

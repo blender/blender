@@ -42,6 +42,7 @@ struct bContext;
 struct wmWindowManager;
 struct EditMesh;
 struct ViewContext;
+struct ARegionType;
 
 #define BL_NEAR_CLIP 0.001
 
@@ -131,11 +132,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
-void view3d_buttons_area_defbuts(const struct bContext *C, ARegion *ar);
+void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
-void view3d_tools_area_defbuts(const struct bContext *C, ARegion *ar);
+void view3d_toolbar_register(struct ARegionType *art);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);

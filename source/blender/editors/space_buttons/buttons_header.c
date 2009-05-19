@@ -68,12 +68,10 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 
 	switch(event) {
-		case 0: /* panel alignment */
 		case 1:
 		case 2:
 			sbuts->align= event;
-			if(sbuts->align)
-				sbuts->re_align= 1;
+			sbuts->re_align= 1;
             break;
     }
 
@@ -95,9 +93,6 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	if(sa->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -151,7 +146,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco, xmax-3, 20, "");
 		
-		xco+=XIC+xmax;
+		xco+=xmax;
 	}
 	// DATA Icons
 	if(ob) {

@@ -70,9 +70,11 @@
 #define EM_SEPR_X		6
 #define EM_SEPR_Y		6
 
-/* uiLayoutCommon */
+/* uiLayoutRoot */
 
-typedef struct uiLayoutCommon {
+typedef struct uiLayoutRoot {
+	struct uiLayoutRoot *next, *prev;
+
 	int type;
 	int opcontext;
 
@@ -83,7 +85,8 @@ typedef struct uiLayoutCommon {
 
 	uiStyle *style;
 	uiBlock *block;
-} uiLayoutCommon;
+	uiLayout *layout;
+} uiLayoutRoot;
 
 /* Item */
 
@@ -122,7 +125,7 @@ typedef struct uiButtonItem {
 struct uiLayout {
 	uiItem item;
 
-	uiLayoutCommon *common;
+	uiLayoutRoot *root;
 	ListBase items;
 
 	int x, y, w, h;
@@ -198,7 +201,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int spacing, i
 
 static int ui_layout_vary_direction(uiLayout *layout)
 {
-	return (layout->common->type == UI_LAYOUT_HEADER)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
+	return (layout->root->type == UI_LAYOUT_HEADER)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
 }
 
 /* estimated size of text + icon */
@@ -253,6 +256,8 @@ static void ui_item_position(uiItem *item, int x, int y, int w, int h)
 		bitem->but->y1= y;
 		bitem->but->x2= x+w;
 		bitem->but->y2= y+h;
+		
+		ui_check_but(bitem->but); /* for strlen */
 	}
 	else {
 		uiLayout *litem= (uiLayout*)item;
@@ -296,9 +301,10 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, int a
 }
 
 /* create buttons for an item with an RNA array */
-static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand)
+static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider)
 {
-	uiStyle *style= layout->common->style;
+	uiStyle *style= layout->root->style;
+	uiBut *but;
 	PropertyType type;
 	PropertySubType subtype;
 	uiLayout *sub;
@@ -308,7 +314,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
 
-	sub= ui_item_local_sublayout(layout, layout, 0);
+	sub= ui_item_local_sublayout(layout, layout, 1);
 	uiBlockSetCurLayout(block, sub);
 
 	/* create label */
@@ -358,12 +364,12 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 			col= a%len;
 			row= a/len;
 
-			uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(row-a-1)*UI_UNIT_Y, w, UI_UNIT_Y);
+			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(row-a-1)*UI_UNIT_Y, w, UI_UNIT_Y);
+			if(slider && but->type==NUM)
+				but->type= NUMSLI;
 		}
 	}
 	else if(len <= 4 && ELEM3(subtype, PROP_ROTATION, PROP_VECTOR, PROP_COLOR)) {
-		uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, sub, 1));
-
 		if(subtype == PROP_COLOR)
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
@@ -390,18 +396,23 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					str[2]= '\0';
 				}
 
-				uiDefAutoButR(block, ptr, prop, a, str, 0, 0, 0, w, UI_UNIT_Y);
+				but= uiDefAutoButR(block, ptr, prop, a, str, 0, 0, 0, w, UI_UNIT_Y);
+				if(slider && but->type==NUM)
+					but->type= NUMSLI;
 			}
 		}
-		else if(subtype == PROP_COLOR && len == 4)
-			uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
+		else if(subtype == PROP_COLOR && len == 4) {
+			but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
+			if(slider && but->type==NUM)
+				but->type= NUMSLI;
+		}
 	}
 	else {
-		/* default array layout */
-		uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, sub, 1));
-
-		for(a=0; a<len; a++)
-			uiDefAutoButR(block, ptr, prop, a, "", 0, 0, 0, w, UI_UNIT_Y);
+		for(a=0; a<len; a++) {
+			but= uiDefAutoButR(block, ptr, prop, a, "", 0, 0, 0, w, UI_UNIT_Y);
+			if(slider && but->type==NUM)
+				but->type= NUMSLI;
+		}
 	}
 
 	uiBlockSetCurLayout(block, layout);
@@ -456,7 +467,7 @@ static void ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int
 /* disabled item */
 static void ui_item_disabled(uiLayout *layout, char *name)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 	uiBut *but;
 	int w;
 
@@ -476,7 +487,7 @@ static void ui_item_disabled(uiLayout *layout, char *name)
 /* operator items */
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDProperty *properties, int context)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 	wmOperatorType *ot= WM_operatortype_find(idname);
 	uiBut *but;
 	int w;
@@ -488,7 +499,7 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDPropert
 
 	if(!name)
 		name= ot->name;
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	/* create button */
@@ -547,7 +558,7 @@ void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *pro
 	if(!name)
 		name= ui_menu_enumpropname(opname, propname, value);
 
-	uiItemFullO(layout, name, icon, opname, ptr.data, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
@@ -582,7 +593,7 @@ void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *
 	WM_operator_properties_create(&ptr, opname);
 	RNA_boolean_set(&ptr, propname, value);
 
-	uiItemFullO(layout, name, icon, opname, ptr.data, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value)
@@ -592,7 +603,7 @@ void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *prop
 	WM_operator_properties_create(&ptr, opname);
 	RNA_int_set(&ptr, propname, value);
 
-	uiItemFullO(layout, name, icon, opname, ptr.data, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *propname, float value)
@@ -602,7 +613,7 @@ void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *pr
 	WM_operator_properties_create(&ptr, opname);
 	RNA_float_set(&ptr, propname, value);
 
-	uiItemFullO(layout, name, icon, opname, ptr.data, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value)
@@ -612,12 +623,12 @@ void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *p
 	WM_operator_properties_create(&ptr, opname);
 	RNA_string_set(&ptr, propname, value);
 
-	uiItemFullO(layout, name, icon, opname, ptr.data, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname)
 {
-	uiItemFullO(layout, name, icon, opname, NULL, layout->common->opcontext);
+	uiItemFullO(layout, name, icon, opname, NULL, layout->root->opcontext);
 }
 
 /* RNA property items */
@@ -660,9 +671,10 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	*r_h= h;
 }
 
-void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int value, int expand)
+void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int value, int expand, int slider)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
+	uiBut *but;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
 	int len, w, h;
@@ -685,7 +697,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	if(type == PROP_BOOLEAN && len)
 		name= ui_item_name_add_colon(name, namestr);
 
-	if(layout->common->type == UI_LAYOUT_MENU) {
+	if(layout->root->type == UI_LAYOUT_MENU) {
 		if(type == PROP_BOOLEAN)
 			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE)
@@ -697,7 +709,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
-		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand);
+		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 		char *identifier= (char*)RNA_property_identifier(prop);
@@ -716,11 +728,15 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER)
 		ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h);
 	/* single button */
-	else
-		uiDefAutoButR(block, ptr, prop, index, (char*)name, icon, 0, 0, w, h);
+	else {
+		but= uiDefAutoButR(block, ptr, prop, index, (char*)name, icon, 0, 0, w, h);
+
+		if(slider && but->type==NUM)
+			but->type= NUMSLI;
+	}
 }
 
-void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand)
+void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider)
 {
 	PropertyRNA *prop;
 
@@ -735,7 +751,7 @@ void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *prop
 		return;
 	}
 
-	uiItemFullR(layout, name, icon, ptr, prop, RNA_NO_INDEX, 0, expand);
+	uiItemFullR(layout, name, icon, ptr, prop, RNA_NO_INDEX, 0, expand, slider);
 }
 
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value)
@@ -753,7 +769,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 		return;
 	}
 
-	uiItemFullR(layout, name, icon, ptr, prop, RNA_ENUM_VALUE, value, 0);
+	uiItemFullR(layout, name, icon, ptr, prop, RNA_ENUM_VALUE, value, 0, 0);
 }
 
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
@@ -791,24 +807,24 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 
 static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 	uiBut *but;
 	int w, h;
 
 	uiBlockSetCurLayout(block, layout);
 
-	if(layout->common->type == UI_LAYOUT_HEADER)
+	if(layout->root->type == UI_LAYOUT_HEADER)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 
 	if(!name)
 		name= "";
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	w= ui_text_icon_width(layout, name, icon);
 	h= UI_UNIT_Y;
 
-	if(layout->common->type == UI_LAYOUT_HEADER) /* ugly .. */
+	if(layout->root->type == UI_LAYOUT_HEADER) /* ugly .. */
 		w -= 3;
 
 	if(icon)
@@ -821,7 +837,7 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 		but->func_argN= argN;
 	}
 
-	if(layout->common->type == UI_LAYOUT_HEADER)
+	if(layout->root->type == UI_LAYOUT_HEADER)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 }
 
@@ -837,7 +853,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 		if(strcmp(menuname, mt->idname) == 0) {
 			if(!name)
 				name= mt->label;
-			if(layout->common->type == UI_LAYOUT_MENU && !icon)
+			if(layout->root->type == UI_LAYOUT_MENU && !icon)
 				icon= ICON_BLANK1;
 			ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
 			break;
@@ -848,7 +864,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 /* label item */
 void uiItemL(uiLayout *layout, char *name, int icon)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 	uiBut *but;
 	int w;
 
@@ -856,7 +872,7 @@ void uiItemL(uiLayout *layout, char *name, int icon)
 
 	if(!name)
 		name= "";
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	w= ui_text_icon_width(layout, name, icon);
@@ -873,7 +889,7 @@ void uiItemL(uiLayout *layout, char *name, int icon)
 void uiItemV(uiLayout *layout, char *name, int icon, int argval)
 {
 	/* label */
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 	float *retvalue= (block->handle)? &block->handle->retvalue: NULL;
 	int w;
 
@@ -881,7 +897,7 @@ void uiItemV(uiLayout *layout, char *name, int icon, int argval)
 
 	if(!name)
 		name= "";
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	w= ui_text_icon_width(layout, name, icon);
@@ -897,7 +913,7 @@ void uiItemV(uiLayout *layout, char *name, int icon, int argval)
 /* separator item */
 void uiItemS(uiLayout *layout)
 {
-	uiBlock *block= layout->common->block;
+	uiBlock *block= layout->root->block;
 
 	uiBlockSetCurLayout(block, layout);
 	uiDefBut(block, SEPR, 0, "", 0, 0, EM_SEPR_X, EM_SEPR_Y, NULL, 0.0, 0.0, 0, 0, "");
@@ -939,13 +955,13 @@ void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char 
 
 	if(!name)
 		name= ot->name;
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
 	lvl->opname= opname;
 	lvl->propname= propname;
-	lvl->opcontext= layout->common->opcontext;
+	lvl->opcontext= layout->root->opcontext;
 
 	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl);
 }
@@ -971,13 +987,13 @@ void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *
 
 	if(!name)
 		name= (char*)RNA_property_ui_name(prop);
-	if(layout->common->type == UI_LAYOUT_MENU && !icon)
+	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
 	lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
 	lvl->rnapoin= *ptr;
 	lvl->propname= propname;
-	lvl->opcontext= layout->common->opcontext;
+	lvl->opcontext= layout->root->opcontext;
 
 	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl);
 }
@@ -1117,7 +1133,7 @@ static void ui_litem_estimate_root(uiLayout *litem)
 
 static void ui_litem_layout_root(uiLayout *litem)
 {
-	if(litem->common->type == UI_LAYOUT_HEADER)
+	if(litem->root->type == UI_LAYOUT_HEADER)
 		ui_litem_layout_row(litem);
 	else
 		ui_litem_layout_column(litem);
@@ -1126,7 +1142,7 @@ static void ui_litem_layout_root(uiLayout *litem)
 /* box layout */
 static void ui_litem_estimate_box(uiLayout *litem)
 {
-	uiStyle *style= litem->common->style;
+	uiStyle *style= litem->root->style;
 
 	ui_litem_estimate_column(litem);
 	litem->w += 2*style->boxspace;
@@ -1135,7 +1151,7 @@ static void ui_litem_estimate_box(uiLayout *litem)
 
 static void ui_litem_layout_box(uiLayout *litem)
 {
-	uiStyle *style= litem->common->style;
+	uiStyle *style= litem->root->style;
 	int w, h;
 
 	w= litem->w;
@@ -1156,13 +1172,13 @@ static void ui_litem_layout_box(uiLayout *litem)
 	if(h != 0) litem->h += 2*style->boxspace;
 
 	/* roundbox around the sublayout */
-	uiDefBut(litem->common->block, ROUNDBOX, 0, "", litem->x, litem->y, litem->w, litem->h, NULL, 7.0, 0.0, 3, 20, "");
+	uiDefBut(litem->root->block, ROUNDBOX, 0, "", litem->x, litem->y, litem->w, litem->h, NULL, 7.0, 0.0, 3, 20, "");
 }
 
 /* multi-column layout, automatically flowing to the next */
 static void ui_litem_estimate_column_flow(uiLayout *litem)
 {
-	uiStyle *style= litem->common->style;
+	uiStyle *style= litem->root->style;
 	uiLayoutItemFlow *flow= (uiLayoutItemFlow*)litem;
 	uiItem *item;
 	int col, x, y, emh, emy, miny, itemw, itemh, maxw=0;
@@ -1185,7 +1201,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 			return;
 		}
 
-		flow->totcol= MAX2(litem->common->emw/maxw, 1);
+		flow->totcol= MAX2(litem->root->emw/maxw, 1);
 		flow->totcol= MIN2(flow->totcol, totitem);
 	}
 	else
@@ -1224,7 +1240,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 
 static void ui_litem_layout_column_flow(uiLayout *litem)
 {
-	uiStyle *style= litem->common->style;
+	uiStyle *style= litem->root->style;
 	uiLayoutItemFlow *flow= (uiLayoutItemFlow*)litem;
 	uiItem *item;
 	int col, x, y, w, emh, emy, miny, itemw, itemh;
@@ -1404,10 +1420,12 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 
 	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutRow");
 	litem->item.type= ITEM_LAYOUT_ROW;
-	litem->common= layout->common;
+	litem->root= layout->root;
 	litem->align= align;
-	litem->space= (align)? 0: layout->common->style->buttonspacex;
+	litem->space= (align)? 0: layout->root->style->buttonspacex;
 	BLI_addtail(&layout->items, litem);
+
+	uiBlockSetCurLayout(layout->root->block, litem);
 
 	return litem;
 }
@@ -1418,10 +1436,12 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 
 	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutColumn");
 	litem->item.type= ITEM_LAYOUT_COLUMN;
-	litem->common= layout->common;
+	litem->root= layout->root;
 	litem->align= align;
-	litem->space= (litem->align)? 0: layout->common->style->buttonspacey;
+	litem->space= (litem->align)? 0: layout->root->style->buttonspacey;
 	BLI_addtail(&layout->items, litem);
+
+	uiBlockSetCurLayout(layout->root->block, litem);
 
 	return litem;
 }
@@ -1432,11 +1452,13 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 
 	flow= MEM_callocN(sizeof(uiLayoutItemFlow), "uiLayoutItemFlow");
 	flow->litem.item.type= ITEM_LAYOUT_COLUMN_FLOW;
-	flow->litem.common= layout->common;
+	flow->litem.root= layout->root;
 	flow->litem.align= align;
-	flow->litem.space= (flow->litem.align)? 0: layout->common->style->columnspace;
+	flow->litem.space= (flow->litem.align)? 0: layout->root->style->columnspace;
 	flow->number= number;
 	BLI_addtail(&layout->items, flow);
+
+	uiBlockSetCurLayout(layout->root->block, &flow->litem);
 
 	return &flow->litem;
 }
@@ -1447,9 +1469,11 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 	box= MEM_callocN(sizeof(uiLayoutItemBx), "uiLayoutItemBx");
 	box->litem.item.type= ITEM_LAYOUT_BOX;
-	box->litem.common= layout->common;
-	box->litem.space= layout->common->style->columnspace;
+	box->litem.root= layout->root;
+	box->litem.space= layout->root->style->columnspace;
 	BLI_addtail(&layout->items, box);
+
+	uiBlockSetCurLayout(layout->root->block, &box->litem);
 
 	return &box->litem;
 }
@@ -1460,11 +1484,23 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 
 	litem= MEM_callocN(sizeof(uiLayout), "uiLayoutFree");
 	litem->item.type= ITEM_LAYOUT_FREE;
-	litem->common= layout->common;
+	litem->root= layout->root;
 	litem->align= align;
 	BLI_addtail(&layout->items, litem);
 
+	uiBlockSetCurLayout(layout->root->block, litem);
+
 	return litem;
+}
+
+uiBlock *uiLayoutFreeBlock(uiLayout *layout)
+{
+	uiBlock *block;
+
+	block= uiLayoutBlock(layout);
+	uiLayoutFree(layout, 0);
+
+	return block;
 }
 
 uiLayout *uiLayoutSplit(uiLayout *layout)
@@ -1473,8 +1509,10 @@ uiLayout *uiLayoutSplit(uiLayout *layout)
 
 	litem= uiLayoutRow(layout, 0);
 	litem->item.type = ITEM_LAYOUT_SPLIT;
-	litem->common= layout->common;
-	litem->space= layout->common->style->columnspace;
+	litem->root= layout->root;
+	litem->space= layout->root->style->columnspace;
+
+	uiBlockSetCurLayout(layout->root->block, litem);
 
 	return litem;
 }
@@ -1490,6 +1528,9 @@ static void ui_item_estimate(uiItem *item)
 
 		for(subitem=litem->items.first; subitem; subitem=subitem->next)
 			ui_item_estimate(subitem);
+
+		if(litem->items.first == NULL)
+			return;
 
 		switch(litem->item.type) {
 			case ITEM_LAYOUT_COLUMN:
@@ -1522,10 +1563,14 @@ static void ui_item_estimate(uiItem *item)
 static void ui_item_align(uiLayout *litem, int nr)
 {
 	uiItem *item;
+	uiButtonItem *bitem;
 
 	for(item=litem->items.first; item; item=item->next) {
-		if(item->type == ITEM_BUTTON)
-			((uiButtonItem*)item)->but->alignnr= nr;
+		if(item->type == ITEM_BUTTON) {
+			bitem= (uiButtonItem*)item;
+			if(ui_but_can_align(bitem->but))
+				bitem->but->alignnr= nr;
+		}
 		else
 			ui_item_align((uiLayout*)item, nr);
 	}
@@ -1538,8 +1583,11 @@ static void ui_item_layout(uiItem *item, int align)
 	if(item->type != ITEM_BUTTON) {
 		uiLayout *litem= (uiLayout*)item;
 
+		if(litem->items.first == NULL)
+			return;
+
 		if(litem->align && !align)
-			ui_item_align(litem, ++litem->common->block->alignnr);
+			ui_item_align(litem, ++litem->root->block->alignnr);
 
 		switch(litem->item.type) {
 			case ITEM_LAYOUT_COLUMN:
@@ -1580,8 +1628,8 @@ static void ui_layout_items(const bContext *C, uiBlock *block, uiLayout *layout)
 
 static void ui_layout_end(const bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y)
 {
-	if(layout->common->handlefunc)
-		uiBlockSetButmFunc(block, layout->common->handlefunc, layout->common->argv);
+	if(layout->root->handlefunc)
+		uiBlockSetButmFunc(block, layout->root->handlefunc, layout->root->argv);
 
 	ui_layout_items(C, block, layout);
 
@@ -1608,45 +1656,44 @@ static void ui_layout_free(uiLayout *layout)
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, uiStyle *style)
 {
 	uiLayout *layout;
-	uiLayoutCommon *common;
+	uiLayoutRoot *root;
 
-	if(!block->layout) {
-		common= MEM_callocN(sizeof(uiLayoutCommon), "uiLayoutCommon");
-		common->type= type;
-		common->style= style;
-		common->block= block;
-		common->opcontext= WM_OP_INVOKE_REGION_WIN;
+	root= MEM_callocN(sizeof(uiLayoutRoot), "uiLayoutRoot");
+	root->type= type;
+	root->style= style;
+	root->block= block;
+	root->opcontext= WM_OP_INVOKE_REGION_WIN;
 
-		layout= MEM_callocN(sizeof(uiLayout), "uiLayout");
-		layout->item.type= ITEM_LAYOUT_ROOT;
+	layout= MEM_callocN(sizeof(uiLayout), "uiLayout");
+	layout->item.type= ITEM_LAYOUT_ROOT;
 
-		layout->x= x;
-		layout->y= y;
-		layout->common= common;
-		layout->space= style->templatespace;
+	layout->x= x;
+	layout->y= y;
+	layout->root= root;
+	layout->space= style->templatespace;
 
-		if(type == UI_LAYOUT_MENU)
-			layout->space= 0;
+	if(type == UI_LAYOUT_MENU)
+		layout->space= 0;
 
-		if(dir == UI_LAYOUT_HORIZONTAL) {
-			layout->h= size;
-			layout->common->emh= em*UI_UNIT_Y;
-		}
-		else {
-			layout->w= size;
-			layout->common->emw= em*UI_UNIT_X;
-		}
-
-		block->curlayout= layout;
-		block->layout= layout;
+	if(dir == UI_LAYOUT_HORIZONTAL) {
+		layout->h= size;
+		layout->root->emh= em*UI_UNIT_Y;
 	}
+	else {
+		layout->w= size;
+		layout->root->emw= em*UI_UNIT_X;
+	}
+
+	block->curlayout= layout;
+	root->layout= layout;
+	BLI_addtail(&block->layouts, root);
 	
-	return block->layout;
+	return layout;
 }
 
 uiBlock *uiLayoutBlock(uiLayout *layout)
 {
-	return layout->common->block;
+	return layout->root->block;
 }
 
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout)
@@ -1666,32 +1713,31 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 
 void uiLayoutContext(uiLayout *layout, int opcontext)
 {
-	layout->common->opcontext= opcontext;
+	layout->root->opcontext= opcontext;
 }
 
 void uiLayoutFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
 {
-	layout->common->handlefunc= handlefunc;
-	layout->common->argv= argv;
+	layout->root->handlefunc= handlefunc;
+	layout->root->argv= argv;
 }
 
 void uiBlockLayoutResolve(const bContext *C, uiBlock *block, int *x, int *y)
 {
-	uiLayout *layout= block->layout;
+	uiLayoutRoot *root;
 
-	if(layout) {
+	if(x) *x= 0;
+	if(y) *y= 0;
+
+	block->curlayout= NULL;
+
+	for(root=block->layouts.first; root; root=root->next) {
 		/* NULL in advance so we don't interfere when adding button */
-		block->layout= NULL;
-		block->curlayout= NULL;
+		ui_layout_end(C, block, root->layout, x, y);
+		ui_layout_free(root->layout);
+	}
 
-		ui_layout_end(C, block, layout, x, y);
-		MEM_freeN(layout->common);
-		ui_layout_free(layout);
-	}
-	else {
-		if(x) *x= 0;
-		if(y) *y= 0;
-	}
+	BLI_freelistN(&block->layouts);
 
 	/* XXX silly trick, interface_templates.c doesn't get linked
 	 * because it's not used by other files in this module? */

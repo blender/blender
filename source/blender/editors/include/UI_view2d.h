@@ -54,8 +54,6 @@ enum {
 	V2D_COMMONVIEW_LIST,
 		/* headers (this is basically the same as listview, but no y-panning) */
 	V2D_COMMONVIEW_HEADER,
-		/* ui listviews, tries to wrap tot inside region width */
-	V2D_COMMONVIEW_LIST_UI,
 		/* ui region containing panels */
 	V2D_COMMONVIEW_PANELS_UI,
 } eView2D_CommonViewTypes;

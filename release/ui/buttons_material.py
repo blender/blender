@@ -64,18 +64,20 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raymir"
 	__label__ = "Ray Mirror"
 	
+	def poll(self, context):
+		ob = context.active_object
+		return (ob and ob.active_material)
+	
+	def draw_header(self, context):
+		raym = context.active_object.active_material.raytrace_mirror
+
+		layout = self.layout
+		layout.itemR(raym, "enabled", text=self.__label__)
+	
 	def draw(self, context):
 		layout = self.layout
-		try:		
-			raym = context.active_object.active_material.raytrace_mirror
-		except:	
-			raym = None
-		
-		if not raym:
-			return 
-		
-		layout.itemR(raym, "enabled", text="Enable")
-		
+		raym = context.active_object.active_material.raytrace_mirror
+
 		split = layout.split()
 		
 		sub = split.column()

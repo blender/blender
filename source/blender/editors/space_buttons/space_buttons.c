@@ -132,7 +132,7 @@ static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceButs *sbuts= sa->spacedata.first;
 
 	/* auto-align based on size */
-	if(sbuts->align == BUT_AUTO) {
+	if(sbuts->align == BUT_AUTO || !sbuts->align) {
 		if(sa->winx > sa->winy)
 			sbuts->align= BUT_HORIZONTAL;
 		else
@@ -155,8 +155,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 
-//	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
@@ -280,7 +279,7 @@ void ED_spacetype_buttons(void)
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
 	art->listener= buttons_area_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

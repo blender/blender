@@ -125,6 +125,7 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 	else if(ar->regiontype==RGN_TYPE_UI)
 		return 1;
 
+	/* in case panel is added or disappears */
 	for(pa=ar->panels.first; pa; pa=pa->next) {
 		if((pa->runtime_flag & PNL_WAS_ACTIVE) && !(pa->runtime_flag & PNL_ACTIVE))
 			return 1;
@@ -134,6 +135,7 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 			active= 1;
 	}
 
+	/* in case we need to do an animation (size changes) */
 	for(pa=ar->panels.first; pa; pa=pa->next) {
 		if(pa->runtime_flag & PNL_ANIM_ALIGN) {
 			if(!active)
@@ -155,7 +157,7 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 	pa->ofsy= papar->ofsy + papar->sizey-pa->sizey;
 }
 
-Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
+Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 {
 	uiStyle *style= U.uistyles.first;
 	Panel *pa, *patab, *palast, *panext;
@@ -182,7 +184,7 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 		BLI_strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
 		BLI_strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
 	
-		pa->ofsx= style->panelouter;
+		pa->ofsx= 0;
 		pa->ofsy= style->panelouter;
 		pa->sizex= 0;
 		pa->sizey= 0;
@@ -227,11 +229,13 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 	block->panel= pa;
 	pa->runtime_flag |= PNL_ACTIVE|PNL_LAST_ADDED;
 
-	if(pa->paneltab) return NULL;
-	if(pa->flag & PNL_CLOSED) return NULL;
+	*open= 0;
 
-	/* the 'return 0' above makes this to be in end. otherwise closes panels show wrong title */
-	pa->drawname[0]= 0;
+	if(pa->paneltab) return pa;
+	if(pa->flag & PNL_CLOSED) return pa;
+
+	*open= 1;
+	pa->drawname[0]= 0; /* otherwise closes panels show wrong title */
 	
 	return pa;
 }
@@ -274,93 +278,6 @@ void uiPanelToMouse(const bContext *C, Panel *pa)
 }
 #endif
 
-/* ofsx/ofsy only used for new panel definitions */
-/* return 1 if visible (create buttons!) */
-int uiNewPanel(const bContext *C, ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
-{
-	Panel *pa;
-	
-	/* check if Panel exists, then use that one */
-	for(pa=ar->panels.first; pa; pa=pa->next)
-		if(strncmp(pa->panelname, panelname, UI_MAX_NAME_STR)==0)
-			if(strncmp(pa->tabname, tabname, UI_MAX_NAME_STR)==0)
-				break;
-	
-	if(pa) {
-		/* scale correction */
-		if(pa->control & UI_PNL_SCALE);
-		else {
-			pa->sizex= sizex;
-			if(pa->sizey != sizey) {
-				pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
-				pa->sizey= sizey; 
-			}
-		}
-	}
-	else {
-		/* new panel */
-		pa= MEM_callocN(sizeof(Panel), "new panel");
-		BLI_addtail(&ar->panels, pa);
-		strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
-		strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
-	
-		pa->ofsx= ofsx & ~(PNL_GRID-1);
-		pa->ofsy= ofsy & ~(PNL_GRID-1);
-		pa->sizex= sizex;
-		pa->sizey= sizey;
-		
-#if 0
-		/* make new Panel tabbed? */
-		if(panel_tabbed && group_tabbed) {
-			Panel *papar;
-			for(papar= ar->panels.first; papar; papar= papar->next) {
-				if(papar->active && papar->paneltab==NULL) {
-					if( strncmp(panel_tabbed, papar->panelname, UI_MAX_NAME_STR)==0) {
-						if( strncmp(group_tabbed, papar->tabname, UI_MAX_NAME_STR)==0) {
-							pa->paneltab= papar;
-							copy_panel_offset(pa, papar);
-							break;
-						}
-					}
-				}
-			} 
-		}
-#endif
-	}
-
-	block->panel= pa;
-	pa->runtime_flag |= PNL_ACTIVE;
-
-	/* clear ugly globals */
-	// XXX pa->control= pnl_control;
-	// XXX panel_tabbed= group_tabbed= NULL;
-	// XXX pa->control= UI_PNL_TRANSP; // back to default
-	
-	if(pa->paneltab) return 0;
-	if(pa->flag & PNL_CLOSED) return 0;
-
-	/* the 'return 0' above makes this to be in end. otherwise closes panels show wrong title */
-	pa->drawname[0]= 0;
-	
-	return 1;
-}
-
-void uiNewPanelHeight(uiBlock *block, int sizey)
-{
-	if(sizey<0) sizey= 0;
-	
-	if(block->panel) {
-		block->panel->ofsy+= (block->panel->sizey - sizey);
-		block->panel->sizey= sizey;
-	}
-}
-
-void uiNewPanelTitle(uiBlock *block, char *str)
-{
-	if(block->panel)
-		BLI_strncpy(block->panel->drawname, str, UI_MAX_NAME_STR);
-}
-
 static int panel_has_tabs(ARegion *ar, Panel *panel)
 {
 	Panel *pa= ar->panels.first;
@@ -376,144 +293,25 @@ static int panel_has_tabs(ARegion *ar, Panel *panel)
 	return 0;
 }
 
-static void ui_scale_panel_block(uiBlock *block)
+static void ui_offset_panel_block(uiBlock *block)
 {
 	uiStyle *style= U.uistyles.first;
 	uiBut *but;
-	float facx= 1.0, facy= 1.0;
-	int centerx= 0, topy=0, tabsy=0, space= style->panelspace;
-	
-	if(block->panel==NULL) return;
+	int space= style->panelspace;
 
 	/* buttons min/max centered, offset calculated */
 	ui_bounds_block(block);
 
-	if((!block->panel->type) && block->maxx-block->minx > block->panel->sizex - 2*space)
-		facx= (block->panel->sizex - (2*space))/(block->maxx-block->minx);
-	else
-		centerx= (block->panel->sizex-(block->maxx-block->minx) - 2*space)/2;
-	
-	// tabsy= PNL_HEADER*panel_has_tabs(block->panel);
-	if((!block->panel->type) && (block->maxy-block->miny) > block->panel->sizey - 2*space - tabsy)
-		facy= (block->panel->sizey - (2*space) - tabsy)/(block->maxy-block->miny);
-	else
-		topy= (block->panel->sizey- 2*space - tabsy) - (block->maxy-block->miny) ;
-
 	for(but= block->buttons.first; but; but=but->next) {
-		but->x1= space+centerx+ facx*(but->x1-block->minx);
-		but->y1= space+topy   + facy*(but->y1-block->miny);
-		but->x2= space+centerx+ facx*(but->x2-block->minx);
-		but->y2= space+topy   + facy*(but->y2-block->miny);
-		if(facx!=1.0) ui_check_but(but);	/* for strlen */
+		but->x1= space + (but->x1-block->minx);
+		but->y1= space + (but->y1-block->miny);
+		but->x2= space + (but->x2-block->minx);
+		but->y2= space + (but->y2-block->miny);
 	}
 
 	block->maxx= block->panel->sizex;
 	block->maxy= block->panel->sizey;
 	block->minx= block->miny= 0.0;
-}
-
-// for 'home' key
-void uiPanelsHome(ARegion *ar)
-{
-	uiStyle *style= U.uistyles.first;
-	Panel *pa;
-	uiBlock *block;
-	View2D *v2d;
-	float minx=10000, maxx= -10000, miny=10000, maxy= -10000;
-	int done=0;
-
-	v2d= &ar->v2d;
-	
-	for(pa= ar->panels.first; pa; pa=pa->next) {
-		if((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL) {
-			done= 1;
-			if(pa->ofsx < minx) minx= pa->ofsx;
-			if(pa->ofsx+pa->sizex > maxx) maxx= pa->ofsx+pa->sizex;
-			if(pa->ofsy < miny) miny= pa->ofsy;
-			if(pa->ofsy+pa->sizey+PNL_HEADER > maxy) maxy= pa->ofsy+pa->sizey+PNL_HEADER;
-		}
-	}
-
-	if(done) {
-		v2d->tot.xmin= minx-style->panelouter;
-		v2d->tot.xmax= maxx+style->panelouter;
-		v2d->tot.ymin= miny-style->panelouter;
-		v2d->tot.ymax= maxy+style->panelouter;
-	}
-	else {
-		v2d->tot.xmin= 0;
-		v2d->tot.xmax= 1280;
-		v2d->tot.ymin= 0;
-		v2d->tot.ymax= 228;
-
-		/* no panels, but old 'loose' buttons, as in old logic editor */
-		for(block= ar->uiblocks.first; block; block= block->next) {
-			if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
-			if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
-			if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
-			if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
-		}
-	}
-}
-
-// make sure the panels are not outside 'tot' area
-static void ui_panels_update_totrct(ARegion *ar)
-{
-	Panel *pa;
-	uiBlock *block;
-	View2D *v2d;
-	int done=0;
-	
-	v2d= &ar->v2d;
-
-	v2d->tot.xmin= 0.0f;
-	v2d->tot.xmax= ar->winx;
-	v2d->tot.ymax= 0.0f;
-	v2d->tot.ymin= -ar->winy;
-	
-	for(pa= ar->panels.first; pa; pa=pa->next) {
-		if((pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL) {
-			done= 1;
-
-			if(pa->ofsx < v2d->tot.xmin)
-				v2d->tot.xmin= pa->ofsx;
-			if(pa->ofsx+pa->sizex > v2d->tot.xmax)
-				v2d->tot.xmax= pa->ofsx+pa->sizex;
-			if(pa->ofsy < v2d->tot.ymin)
-				v2d->tot.ymin= pa->ofsy;
-			if(pa->ofsy+pa->sizey+PNL_HEADER > v2d->tot.ymax) 
-				v2d->tot.ymax= pa->ofsy+pa->sizey+PNL_HEADER;
-		}
-	}
-
-	if(done==0) {
-		/* no panels, but old 'loose' buttons, as in old logic editor */
-		for(block= ar->uiblocks.first; block; block= block->next) {
-			if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
-			if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
-			if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
-			if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
-		}
-	}	
-
-	UI_view2d_totRect_set(v2d, v2d->tot.xmax, v2d->tot.ymin);
-}
-
-uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
-{
-	uiBlock *block;
-	Panel *pa;
-	
-	for(block= lb->first; block; block= block->next) {
-		pa= block->panel;
-
-		if(pa && (pa->runtime_flag & PNL_ACTIVE) && pa->paneltab==NULL) {
-			if(pa->flag & PNL_CLOSED);
-			else if(strncmp(name, pa->panelname, UI_MAX_NAME_STR)==0) break;
-		}
-	}
-
-	return block;
 }
 
 /**************************** drawing *******************************/
@@ -652,8 +450,9 @@ static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *b
 			if(pa->paneltab==panel)
 				nr++;
 	
-	if(panel->control & UI_PNL_CLOSE) pnl_icons=(2*PNL_ICON+10)/block->aspect;
-	else pnl_icons= (PNL_ICON+10)/block->aspect;
+	/* + 0.001f to avoid flirting with float inaccuracy */
+	if(panel->control & UI_PNL_CLOSE) pnl_icons=(2*PNL_ICON+5)/block->aspect + 0.001f;
+	else pnl_icons= (PNL_ICON+5)/block->aspect + 0.001f;
 	
 	if(nr==1) {
 		
@@ -718,9 +517,10 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	if(panel->paneltab) return;
 
 	/* calculate header rect */
+	/* + 0.001f to prevent flicker due to float inaccuracy */
 	headrect= *rect;
 	headrect.ymin= headrect.ymax;
-	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect);
+	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	/* divider only when there's a previous panel */
 	prev= panel->prev;
@@ -729,8 +529,8 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 		prev= prev->prev;
 	}
 	
-	if(prev) {
-		float minx= rect->xmin+10.0f/block->aspect;
+	if(panel->sortorder != 0) {
+		float minx= rect->xmin+5.0f/block->aspect;
 		float maxx= rect->xmax-5.0f/block->aspect;
 		float y= headrect.ymax;
 		
@@ -747,7 +547,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 		ui_draw_aligned_panel_header(ar, style, block, &headrect);
 		
 		/* itemrect smaller */	
-		itemrect.xmax= headrect.xmax - 10.0f/block->aspect;
+		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
 		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
 		itemrect.ymin= headrect.ymin;
 		itemrect.ymax= headrect.ymax;
@@ -808,12 +608,12 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	UI_ThemeColor(TH_TEXT);
 	
 	/* itemrect smaller */	
-	itemrect.xmin= headrect.xmin + 10.0f/block->aspect;
+	itemrect.xmin= headrect.xmin + 5.0f/block->aspect;
 	itemrect.xmax= itemrect.xmin + (headrect.ymax-headrect.ymin);
 	itemrect.ymin= headrect.ymin;
 	itemrect.ymax= headrect.ymax;
 	
-	rectf_scale(&itemrect, 0.7f);
+	rectf_scale(&itemrect, 0.5f);
 	
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_rect(&itemrect, 'h');
@@ -944,7 +744,7 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
-	ps->pa->ofsx= style->panelouter;
+	ps->pa->ofsx= 0;
 	ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-style->panelouter;
 
 	for(a=0; a<tot-1; a++, ps++) {
@@ -955,7 +755,7 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-style->panelouter;
 		}
 		else {
-			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa)+style->panelouter;
+			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
 			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey - psnext->pa->sizey;
 		}
 	}
@@ -1034,7 +834,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	/* scaling contents */
 	for(block= ar->uiblocks.first; block; block= block->next)
 		if(block->active && block->panel)
-			ui_scale_panel_block(block);
+			ui_offset_panel_block(block);
 
 	/* consistancy; are panels not made, whilst they have tabs */
 	for(panot= ar->panels.first; panot; panot= panot->next) {
@@ -1068,93 +868,6 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 		else
 			uiAlignPanelStep(sa, ar, 1.0, 0);
 	}
-	
-	if(sa->spacetype!=SPACE_BUTS) {
-#if 0 // XXX make float panel exception
-		SpaceLink *sl= sa->spacedata.first;
-		for(block= ar->uiblocks.first; block; block= block->next) {
-			if(block->active && block->panel && block->panel->active && block->panel->paneltab == NULL) {
-				float dx=0.0, dy=0.0, minx, miny, maxx, maxy, miny_panel;
-				
-				minx= sl->blockscale*block->panel->ofsx;
-				maxx= sl->blockscale*(block->panel->ofsx+block->panel->sizex);
-				miny= sl->blockscale*(block->panel->ofsy+block->panel->sizey);
-				maxy= sl->blockscale*(block->panel->ofsy+block->panel->sizey+PNL_HEADER);
-				miny_panel= sl->blockscale*(block->panel->ofsy);
-				
-				/* check to see if snapped panels have been left out in the open by resizing a window
-				 * and if so, offset them back to where they belong */
-				if (block->panel->snap) {
-					if (((block->panel->snap) & PNL_SNAP_RIGHT) &&
-						(maxx < (float)sa->winx)) {
-						
-						dx = sa->winx-maxx;
-						block->panel->ofsx+= dx/sl->blockscale;
-					}
-					if (((block->panel->snap) & PNL_SNAP_TOP) &&
-						(maxy < (float)sa->winy)) {
-						
-						dy = sa->winy-maxy;
-						block->panel->ofsy+= dy/sl->blockscale;
-					}
-					
-					/* reset these vars with updated panel offset distances */
-					minx= sl->blockscale*block->panel->ofsx;
-					maxx= sl->blockscale*(block->panel->ofsx+block->panel->sizex);
-					miny= sl->blockscale*(block->panel->ofsy+block->panel->sizey);
-					maxy= sl->blockscale*(block->panel->ofsy+block->panel->sizey+PNL_HEADER);
-					miny_panel= sl->blockscale*(block->panel->ofsy);
-				} else
-					/* reset to no snapping */
-					block->panel->snap = PNL_SNAP_NONE;
-	
-
-				/* clip panels (headers) for non-butspace situations (maybe make optimized event later) */
-				
-				/* check left and right edges */
-				if (minx < PNL_SNAP_DIST) {
-					dx = -minx;
-					block->panel->snap |= PNL_SNAP_LEFT;
-				}
-				else if (maxx > ((float)sa->winx - PNL_SNAP_DIST)) {
-					dx= sa->winx-maxx;
-					block->panel->snap |= PNL_SNAP_RIGHT;
-				}				
-				if(minx + dx < 0.0) dx= -minx; // when panel cant fit, put it fixed here
-				
-				/* check top and bottom edges */
-				if ((miny_panel < PNL_SNAP_DIST) && (miny_panel > -PNL_SNAP_DIST)) {
-					dy= -miny_panel;
-					block->panel->snap |= PNL_SNAP_BOTTOM;
-				}
-				if(miny < PNL_SNAP_DIST)  {
-					dy= -miny;
-					block->panel->snap |= PNL_SNAP_BOTTOM;
-				}
-				else if(maxy > ((float)sa->winy - PNL_SNAP_DIST)) {
-					dy= sa->winy-maxy;
-					block->panel->snap |= PNL_SNAP_TOP;
-				}
-				if(miny + dy < 0.0) dy= -miny; // when panel cant fit, put it fixed here
-
-				
-				block->panel->ofsx+= dx/sl->blockscale;
-				block->panel->ofsy+= dy/sl->blockscale;
-
-				/* copy locations */
-				for(patest= ar->panels.first; patest; patest= patest->next) {
-					if(patest->paneltab==block->panel) ui_panel_copy_offset(patest, block->panel);
-				}
-				
-			}
-		}
-#endif
-	}
-
-	/* update v2d->totrct and update view */
-	ui_panels_update_totrct(ar);
-	UI_view2d_view_restore(C);
-	UI_view2d_view_ortho(C, &ar->v2d);
 
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {
@@ -1463,6 +1176,10 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
 
 	retval= WM_UI_HANDLER_CONTINUE;
+
+	/* buttons get priority */
+	if(ui_button_is_active(ar))
+		return retval;
 
 	for(block=ar->uiblocks.last; block; block=block->prev) {
 		mx= event->x;

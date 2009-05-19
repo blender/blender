@@ -32,7 +32,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
 			
 			sub.itemL(text="Textures:")
 			sub.itemR(curve, "uv_orco")
-			sub.itemR(curve, "autotexspace")
+			sub.itemR(curve, "auto_texspace")
 			
 			sub = split.column()	
 			sub.itemL(text="Resolution:")

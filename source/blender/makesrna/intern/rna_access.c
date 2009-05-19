@@ -63,15 +63,21 @@ void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 {
 	PointerRNA tmp;
-	StructRNA *idtype= NULL;
+	StructRNA *type, *idtype= NULL;
 
 	if(id) {
 		memset(&tmp, 0, sizeof(tmp));
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 		
-		if(idtype->refine)
-			idtype= idtype->refine(&tmp);
+		while(idtype->refine) {
+			type= idtype->refine(&tmp);
+
+			if(type == idtype)
+				break;
+			else
+				idtype= type;
+		}
 	}
 	
 	r_ptr->id.data= id;
@@ -121,8 +127,14 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 		result.type= type;
 		rna_pointer_inherit_id(type, ptr, &result);
 
-		if(type->refine)
-			result.type= type->refine(&result);
+		while(result.type->refine) {
+			type= result.type->refine(&result);
+
+			if(type == result.type)
+				break;
+			else
+				result.type= type;
+		}
 	}
 	else
 		memset(&result, 0, sizeof(result));

@@ -966,23 +966,28 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	uiBlock *block;
 	PanelType *pt;
 	Panel *panel;
+	View2D *v2d= &ar->v2d;
 	float col[3];
-	int xco, yco, x, y, w, em, header;
+	int xco, yco, x, y, miny=0, w, em, header, open;
+
+	if(vertical) {
+		w= v2d->cur.xmax - v2d->cur.xmin;
+		em= (ar->type->minsizex)? 10: 20;
+	}
+	else {
+		w= UI_PANEL_WIDTH;
+		em= (ar->type->minsizex)? 10: 20;
+	}
 
 	header= 20; // XXX
-	x= style->panelouter;
-	y= -(header + style->panelouter);
+	x= 0;
+	y= -style->panelouter;
 
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
 	/* create panels */
 	uiBeginPanels(C, ar);
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, v2d);
 
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
@@ -993,18 +998,25 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* draw panel */
 		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel= uiBeginPanel(ar, block, pt);
+			panel= uiBeginPanel(ar, block, pt, &open);
 
-			if(panel) {
-				if(vertical) {
-					w= (ar->type->minsizex)? ar->type->minsizex-12: uiBlockAspect(block)*ar->winx-12;
-					em= (ar->type->minsizex)? 10: 20;
-				}
-				else {
-					w= (ar->type->minsizex)? ar->type->minsizex-12: UI_PANEL_WIDTH-12;
-					em= (ar->type->minsizex)? 10: 20;
-				}
+			if(vertical)
+				y -= header;
 
+			/* XXX enable buttons test */
+#if 0
+			panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+				header+style->panelspace, header+style->panelspace, header, 1, style);
+
+			if(pt->draw_header)
+				pt->draw_header(C, panel);
+			else
+				uiItemL(panel->layout, pt->label, 0);
+
+			panel->layout= NULL;
+#endif
+
+			if(open) {
 				panel->type= pt;
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
@@ -1012,27 +1024,72 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 				pt->draw(C, panel);
 
 				uiBlockLayoutResolve(C, block, &xco, &yco);
-				uiEndPanel(block, w, -yco + 12);
 				panel->layout= NULL;
+
+				yco -= 2*style->panelspace;
+				uiEndPanel(block, w, -yco);
 			}
-			else {
-				w= header;
-				yco= header;
-			}
+			else
+				yco= 0;
 
 			uiEndBlock(C, block);
 
-			if(vertical)
-				y += yco+style->panelouter;
-			else
-				x += w+style->panelouter;
+			if(vertical) {
+				y += yco-style->panelouter;
+			}
+			else {
+				x += w;
+				miny= MIN2(y, yco-style->panelouter-header);
+			}
 		}
 	}
 
+	if(vertical)
+		x += w;
+	else
+		y= miny;
+	
+	/* in case there are no panels */
+	if(x == 0 || y == 0) {
+		x= UI_PANEL_WIDTH;
+		y= UI_PANEL_WIDTH;
+	}
+
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* before setting the view */
+	if(vertical) {
+		v2d->keepofs |= V2D_LOCKOFS_X;
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+	}
+	else {
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+	}
+
+	UI_view2d_totRect_set(v2d, x, -y);
+
+	/* set the view */
+	UI_view2d_view_ortho(C, v2d);
+
+	/* this does the actual drawing! */
 	uiEndPanels(C, ar);
 	
-	/* restore view matrix? */
+	/* restore view matrix */
 	UI_view2d_view_restore(C);
+}
+
+void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 void ED_region_header(const bContext *C, ARegion *ar)
@@ -1081,5 +1138,11 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
+}
+
+void ED_region_header_init(ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ar->v2d.flag &= ~(V2D_PIXELOFS_X|V2D_PIXELOFS_Y); // XXX temporary
 }
 

@@ -91,8 +91,8 @@ typedef struct ScrEdge {
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
 
-	struct PanelType *type;		/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
+	struct PanelType *type;			/* runtime */
+	struct uiLayout *layout;		/* runtime for drawing */
 
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */

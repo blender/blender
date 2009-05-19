@@ -42,16 +42,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static uiBlock *block_free_layout(uiLayout *layout)
-{
-	uiBlock *block;
-
-	block= uiLayoutBlock(layout);
-	uiBlockSetCurLayout(block, uiLayoutFree(layout, 0));
-
-	return block;
-}
-
 void ui_template_fix_linking()
 {
 }
@@ -62,7 +52,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C)
 {
 	uiBlock *block;
 	
-	block= block_free_layout(layout);
+	block= uiLayoutFreeBlock(layout);
 	ED_area_header_standardbuttons(C, block, 0);
 }
 
@@ -240,7 +230,7 @@ void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		BLI_strncpy(template->unlinkop, unlinkop, sizeof(template->unlinkop));
 	}
 
-	block= block_free_layout(layout);
+	block= uiLayoutFreeBlock(layout);
 	template_header_ID(C, block, template);
 
 	MEM_freeN(template);
