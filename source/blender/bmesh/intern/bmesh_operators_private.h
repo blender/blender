@@ -20,5 +20,6 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op);
 void extrude_edge_context_exec(BMesh *bm, BMOperator *op);
 void connectverts_exec(BMesh *bm, BMOperator *op);
 void makeprim_exec(BMesh *bm, BMOperator *op);
+void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op);
 
 #endif

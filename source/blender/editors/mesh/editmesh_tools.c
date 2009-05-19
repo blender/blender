@@ -1002,31 +1002,44 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-static int delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
+static int delete_mesh(Object *obedit, wmOperator *op, int event)
 {
+	BMEditMesh *bem = ((Mesh*)obedit->data)->edit_btmesh;
+	EditMesh *em = NULL;
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 	int count;
 	char *str="Erase";
-
+	
 	if(event<1) return;
+
+	if (event != 7 && event !=  5) 
+		em= EM_GetEditMesh((Mesh *)obedit->data);
 
 	if(event==10 ) {
 		str= "Erase Vertices";
 		erase_edges(em, &em->edges);
 		erase_faces(em, &em->faces);
 		erase_vertices(em, &em->verts);
+
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	} 
 	else if(event==7) {
-		if (!EDBM_CallOpf(em, op, "dissolveverts verts=%hv",BM_SELECT))
+		if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv",BM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 	else if(event==6) {
-		if(!EdgeLoopDelete(em, op))
+		if(!EdgeLoopDelete(em, op)) {
+			EM_EndEditMesh(obedit->data, em);
 			return;
+		}
 
 		str= "Erase Edge Loop";
+
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	}
 	else if(event==4) {
 		str= "Erase Edges & Faces";
@@ -1068,7 +1081,10 @@ static int delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 				free_editface(em, efa);
 			}
 			efa= nextvl;
+
 		}
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	} 
 	else if(event==1) {
 		str= "Erase Edges";
@@ -1114,10 +1130,15 @@ static int delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 			eve= nextve;
 		}
 
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	}
 	else if(event==2) {
 		str="Erase Faces";
 		delfaceflag(em, SELECT);
+
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	}
 	else if(event==3) {
 		str= "Erase All";
@@ -1125,15 +1146,16 @@ static int delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 		if(em->edges.first) free_edgelist(em, &em->edges);
 		if(em->faces.first) free_facelist(em, &em->faces);
 		if(em->selected.first) BLI_freelistN(&(em->selected));
+
+		EM_fgon_flags(em);	// redo flags and indices for fgons
+		EM_EndEditMesh(obedit->data, em);
 	}
 	else if(event==5) {
-		if (!EDBM_CallOpf(em, op, "del geom=%hf context=%d",
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%d",
 		                  BM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
 		str= "Erase Only Faces";
 	}
-
-	EM_fgon_flags(em);	// redo flags and indices for fgons
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
@@ -1154,13 +1176,11 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
 	
-	delete_mesh(obedit, em, op, RNA_enum_get(op->ptr, "type"));
+	delete_mesh(obedit, op, RNA_enum_get(op->ptr, "type"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -6666,7 +6686,7 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	
 	//convert_to_triface(em,0);
 	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_SELECT))
@@ -6674,7 +6694,6 @@ static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

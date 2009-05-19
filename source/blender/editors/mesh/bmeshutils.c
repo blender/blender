@@ -146,9 +146,9 @@ void EDBM_Tesselate(EditMesh *em)
 	}
 }
 
-int EDBM_CallOpf(EditMesh *em, wmOperator *op, char *fmt, ...)
+int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 {
-	BMesh *bm = editmesh_to_bmesh(em);
+	BMesh *bm = em->bm;
 	BMOperator bmop;
 	va_list list;
 
@@ -169,9 +169,9 @@ int EDBM_CallOpf(EditMesh *em, wmOperator *op, char *fmt, ...)
 	return EDBM_Finish(bm, em, op, 1);
 }
 
-int EDBM_CallOpfSilent(EditMesh *em, char *fmt, ...)
+int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 {
-	BMesh *bm = editmesh_to_bmesh(em);
+	BMesh *bm = em->bm;
 	BMOperator bmop;
 	va_list list;
 
@@ -192,19 +192,14 @@ int EDBM_CallOpfSilent(EditMesh *em, char *fmt, ...)
 
 /*returns 0 on error, 1 on success*/
 int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op, int report) {
-	EditMesh *em2;
 	char *errmsg;
 
 	if (BMO_GetError(bm, &errmsg, NULL)) {
 		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
-		BM_Free_Mesh(bm);
+		/*BMESH_TODOwe should really undo here or something, back 
+		  out of the failed op :/*/
 		return 0;
 	}
-
-	em2 = bmesh_to_editmesh(bm);
-	set_editMesh(em, em2);
-	MEM_freeN(em2);
-	BM_Free_Mesh(bm);
 
 	return 1;
 }

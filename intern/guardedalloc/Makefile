@@ -1,5 +1,3 @@
-# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
-# vim: tabstop=8
 #
 # $Id$
 #
@@ -24,7 +22,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont, GSR
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL LICENSE BLOCK *****
 # decimation main makefile.
@@ -40,13 +38,16 @@ TESTDIRS = test
 
 include nan_subdirs.mk
 
-install: $(ALL_OR_DEBUG)
+install: all debug
 	@[ -d $(NAN_GUARDEDALLOC) ] || mkdir $(NAN_GUARDEDALLOC)
 	@[ -d $(NAN_GUARDEDALLOC)/include ] || mkdir $(NAN_GUARDEDALLOC)/include
-	@[ -d $(NAN_GUARDEDALLOC)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_GUARDEDALLOC)/lib/$(DEBUG_DIR)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libguardedalloc.a $(NAN_GUARDEDALLOC)/lib/$(DEBUG_DIR)
+	@[ -d $(NAN_GUARDEDALLOC)/lib ] || mkdir $(NAN_GUARDEDALLOC)/lib
+	@[ -d $(NAN_GUARDEDALLOC)/lib/debug ] || mkdir $(NAN_GUARDEDALLOC)/lib/debug
+	@../tools/cpifdiff.sh $(DIR)/libguardedalloc.a $(NAN_GUARDEDALLOC)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libguardedalloc.a $(NAN_GUARDEDALLOC)/lib/debug/
 ifeq ($(OS),darwin)
-	ranlib $(NAN_GUARDEDALLOC)/lib/$(DEBUG_DIR)libguardedalloc.a
+	ranlib $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+	ranlib $(NAN_GUARDEDALLOC)/lib/debug/libguardedalloc.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_GUARDEDALLOC)/include/
 

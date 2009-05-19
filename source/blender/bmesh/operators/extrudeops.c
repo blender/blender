@@ -14,6 +14,28 @@
 #define EXT_KEEP	2
 #define EXT_DEL		4
 
+void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMVert *v, *dupev;
+	BMEdge *e;
+
+	v = BMO_IterNew(&siter, bm, op, "verts");
+	for (; v; v=BMO_IterStep(&siter)) {
+		dupev = BM_Make_Vert(bm, v->co, NULL);
+		VECCOPY(dupev->no, v->no);
+		BM_Copy_Attributes(bm, bm, v, dupev);
+
+		e = BM_Make_Edge(bm, v, dupev, NULL, 0);
+
+		BMO_SetFlag(bm, e, EXT_KEEP);
+		BMO_SetFlag(bm, dupev, EXT_KEEP);
+	}
+
+	BMO_Flag_To_Slot(bm, op, "vertout", EXT_KEEP, BM_VERT);
+	BMO_Flag_To_Slot(bm, op, "edgeout", EXT_KEEP, BM_EDGE);
+}
+
 void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator dupeop, delop;

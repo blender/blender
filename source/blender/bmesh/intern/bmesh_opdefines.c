@@ -3,6 +3,16 @@
 
 #include <stdio.h>
 
+BMOpDefine def_extrudeverts_indiv = {
+	"extrude_vert_indiv",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"},
+	{0} /*null-terminating sentinel*/},
+	extrude_vert_indiv_exec,
+	0
+};
+
 #if 0
 BMOpDefine def_makeprim = {
 	"makeprim",
@@ -156,6 +166,7 @@ BMOpDefine *opdefines[] = {
 	&def_extrudefaceregion,
 	&def_connectverts,
 	//&def_makeprim,
+	&def_extrudeverts_indiv,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

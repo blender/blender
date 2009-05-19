@@ -50,15 +50,16 @@ struct BMFace;
 /* ******************** bmeshutils.c */
 /*calls a bmesh op, reporting errors to the user, doing conversions,
   etc.*/
-int EDBM_CallOpf(EditMesh *em, struct wmOperator *op, char *fmt, ...);
+int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
+
 /*same as above, but doesn't report errors.*/
-int EDBM_CallOpfSilent(EditMesh *em, char *fmt, ...);
+int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);
 
 /*called after bmesh tool exec.  checks for errors and does conversions.
   if any errors are raised by bmesh, it displays the error to the user and
   returns 0 (and does not convert).  otherwise, it converts the bmesh back
   into the editmesh, and returns 1.*/
-int EDBM_Finish(struct BMesh *bm, struct EditMesh *em, 
+int EDBM_Finish(struct BMesh *bm, struct BMEditMesh *em, 
                 struct wmOperator *op, int report);
 
 void EDBM_clear_flag_all(struct BMEditMesh *em, int flag);

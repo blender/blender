@@ -107,9 +107,12 @@ BMEditMesh *TM_Copy(BMEditMesh *tm)
 	
 	tm2->derivedCage = tm2->derivedFinal = NULL;
 	tm2->act_face = NULL;
-
+	
+	tm2->looptris = NULL;
 	tm2->bm = BM_Copy_Mesh(tm->bm);
 	TM_RecalcTesselation(tm2);
+
+	tm2->vert_index = tm2->edge_index = tm2->face_index = NULL;
 
 	return tm2;
 }
@@ -123,6 +126,8 @@ void TM_RecalcTesselation(BMEditMesh *tm)
 	BMFace *f;
 	BMLoop *l;
 	int i = 0;
+	
+	if (tm->looptris) MEM_freeN(tm->looptris);
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {

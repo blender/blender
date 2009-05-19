@@ -441,28 +441,33 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 }
 
 /* extrudes individual vertices */
-short EDBM_Extrude_verts_indiv(BMEditMesh *em, short flag, float *nor) 
+short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 {
-#if 0
-	EditVert *eve;
-	
-	/* make the edges */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & flag) {
-			eve->tmp.v = addvertlist(em, eve->co, eve);
-			addedgelist(em, eve, eve->tmp.v, NULL);
+	BMIter iter;
+	BMVert *v, **verts = NULL;
+	V_DECLARE(verts);
+	int i=0;
+
+	/*kindof hackish way of deselecting the original vertices, but
+	  oh well.*/
+	v = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	for ( ; v; v=BMIter_Step(&iter)) {
+		if (BM_TestHFlag(v, BM_SELECT)) {
+			V_GROW(verts);
+			verts[i++] = v;
 		}
-		else eve->tmp.v = NULL;
 	}
+
+	EDBM_CallOpf(em, op, "extrude_vert_indiv verts=%hv", flag);
 	
-	/* set correct selection */
-	EM_clear_flag_all(em, SELECT);
+	i--;
+	while (i >= 0) {
+		BM_Select(em->bm, verts[i], 0);
+		i--;
+	}
 
-	for(eve= em->verts.last; eve; eve= eve->prev) 
-		if (eve->tmp.v) 
-			eve->tmp.v->f |= flag;
+	V_FREE(verts);
 
-#endif
 	return 'g';	// g is grab
 }
 
@@ -600,11 +605,19 @@ short EDBM_Extrude(Object *obedit, BMEditMesh *em, short flag, float *nor)
 		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for ( ; eed; eed=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(eed, flag)) {
-				BM_SetHFlag(eed->v1, flag);
-				BM_SetHFlag(eed->v2, flag);
+				if (flag != BM_SELECT) {
+					BM_SetHFlag(eed->v1, flag);
+					BM_SetHFlag(eed->v2, flag);
+				} else {
+					BM_Select(em->bm, eed->v1, 1);
+					BM_Select(em->bm, eed->v2, 1);
+				}
 			} else {
-				if (BM_TestHFlag(eed->v1, flag) && BM_TestHFlag(eed->v2, flag))
-					BM_SetHFlag(eed, flag);
+				if (BM_TestHFlag(eed->v1, flag) && BM_TestHFlag(eed->v2, flag)) {
+					if (flag != BM_SELECT)
+						BM_SetHFlag(eed, flag);
+					else BM_Select(em->bm, eed, 1);
+				}
 			}
 		}
 
@@ -719,7 +732,7 @@ void EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 	if(nr<1) return;
 
 	if(nr==1)  transmode= EDBM_Extrude(obedit, em, SELECT, nor);
-	else if(nr==4) transmode= EDBM_Extrude_verts_indiv(em, SELECT, nor);
+	else if(nr==4) transmode= EDBM_Extrude_verts_indiv(em, op, SELECT, nor);
 	else if(nr==3) transmode= EDBM_Extrude_edges_indiv(em, SELECT, nor);
 	else transmode= EDBM_Extrude_face_indiv(em, SELECT, nor);
 	

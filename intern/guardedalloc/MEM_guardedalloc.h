@@ -74,7 +74,11 @@ extern "C" {
 	 * Release memory previously allocatred by this module. 
 	 */
 	short MEM_freeN(void *vmemh);
-
+	short WMEM_freeN(void *vmemh);
+	
+	short _MEM_freeN(void *vmemh, char *file, int line);
+	#define MEM_freeN(vmemh)	_MEM_freeN(vmemh, __FILE__, __LINE__)
+	
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
@@ -129,6 +133,44 @@ extern "C" {
 	uintptr_t MEM_get_memory_in_use(void);
 	uintptr_t MEM_get_mapped_memory_in_use(void);
 	int MEM_get_memory_blocks_in_use(void);
+
+/********* Internal structs.   They're only here for the MEM_OVERHEAD macro.*********/
+
+/* --------------------------------------------------------------------- */
+/* Data definition                                                       */
+/* --------------------------------------------------------------------- */
+/* all memory chunks are put in linked lists */
+typedef struct localLink
+{
+	struct localLink *next,*prev;
+} localLink;
+
+typedef struct localListBase 
+{
+	void *first, *last;
+} localListBase;
+
+	/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
+typedef struct MemHead {
+	int tag1;
+	int len;
+	struct MemHead *next,*prev;
+	const char * name;
+	const char * nextname;
+	int tag2;
+	int mmap;	/* if true, memory was mmapped */
+} MemHead;
+
+typedef struct MemTail {
+	int tag3, pad;
+} MemTail;
+
+/*memory bias to hopefully account 
+  for allocation overhead from
+  the system allocator.*/
+#define MEM_OVERHEADBIAS	32
+
+#define MEM_OVERHEAD	(sizeof(MemHead) + sizeof(MemTail) + MEM_OVERHEADBIAS)
 
 #ifdef __cplusplus
 }
