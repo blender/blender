@@ -4760,7 +4760,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if(ob)
 		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
 	else
-		str += sprintf(str, formatstr, " ", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
+		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
 	
 	if(ob==NULL) return string;
 	

@@ -4,7 +4,7 @@ import bpy
 class DataButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
-	__context__ = "data"
+	__context__ = "modifier"
 
 	def poll(self, context):
 		ob = context.active_object
