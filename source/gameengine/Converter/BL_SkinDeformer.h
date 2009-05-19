@@ -90,6 +90,10 @@ public:
 	{
 		m_lastArmaUpdate = -1.0;
 	};
+	virtual bool ShareVertexArray()
+	{
+		return false;
+	}
 
 protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object

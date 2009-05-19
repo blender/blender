@@ -284,35 +284,55 @@ void RAS_MeshSlot::AddPolygonVertex(int offset)
 void RAS_MeshSlot::SetDeformer(RAS_Deformer* deformer)
 {
 	if (deformer && m_pDeformer != deformer) {
-		// we create local copy of RAS_DisplayArray when we have a deformer:
-		// this way we can avoid conflict between the vertex cache of duplicates
 		RAS_DisplayArrayList::iterator it;
-		for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
-			if (deformer->UseVertexArray()) {
-				// the deformer makes use of vertex array, make sure we have our local copy
-				if ((*it)->m_users > 1) {
-					// only need to copy if there are other users
-					// note that this is the usual case as vertex arrays are held by the material base slot
-					RAS_DisplayArray *newarray = new RAS_DisplayArray(*(*it));
-					newarray->m_users = 1;
-					(*it)->m_users--;
-					*it = newarray;
-				}
-			} else {
-				// the deformer is not using vertex array (Modifier), release them
+		if (deformer->ShareVertexArray()) {
+			// this deformer uses the base vertex array, first release the current ones
+			for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 				(*it)->m_users--;
 				if((*it)->m_users == 0)
 					delete *it;
 			}
-		}
-		if (!deformer->UseVertexArray()) {
 			m_displayArrays.clear();
-			m_startarray = 0;
-			m_startvertex = 0;
-			m_startindex = 0;
-			m_endarray = 0;
-			m_endvertex = 0;
-			m_endindex = 0;
+			// then hook to the base ones
+			RAS_MeshMaterial *mmat = m_mesh->GetMeshMaterial(m_bucket->GetPolyMaterial());
+			if (mmat && mmat->m_baseslot) {
+				m_displayArrays = mmat->m_baseslot->m_displayArrays;
+				for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
+					(*it)->m_users++;
+				}
+			}
+		}
+		else {
+			// no sharing
+			// we create local copy of RAS_DisplayArray when we have a deformer:
+			// this way we can avoid conflict between the vertex cache of duplicates
+			for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
+				if (deformer->UseVertexArray()) {
+					// the deformer makes use of vertex array, make sure we have our local copy
+					if ((*it)->m_users > 1) {
+						// only need to copy if there are other users
+						// note that this is the usual case as vertex arrays are held by the material base slot
+						RAS_DisplayArray *newarray = new RAS_DisplayArray(*(*it));
+						newarray->m_users = 1;
+						(*it)->m_users--;
+						*it = newarray;
+					}
+				} else {
+					// the deformer is not using vertex array (Modifier), release them
+					(*it)->m_users--;
+					if((*it)->m_users == 0)
+						delete *it;
+				}
+			}
+			if (!deformer->UseVertexArray()) {
+				m_displayArrays.clear();
+				m_startarray = 0;
+				m_startvertex = 0;
+				m_startindex = 0;
+				m_endarray = 0;
+				m_endvertex = 0;
+				m_endindex = 0;
+			}
 		}
 	}
 	m_pDeformer = deformer;
