@@ -33,6 +33,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -49,6 +50,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -1304,6 +1306,13 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 			
 			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
 		}
+		else if (type==3) {
+			Scene *scene= CTX_data_scene(C);
+			
+			if(a & 1) scene->r.cfra--;
+			else scene->r.cfra++;
+			scene_update_for_newframe(scene, scene->lay);
+		}
 		else {
 			ED_undo_pop(C);
 			ED_undo_redo(C);
@@ -1315,7 +1324,8 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 	if(type==0) sprintf(tmpstr, "10 x Draw Region: %d ms", time);
 	if(type==1) sprintf(tmpstr, "10 x Draw Region and Swap: %d ms", time);
 	if(type==2) sprintf(tmpstr, "10 x Draw Window and Swap: %d ms", time);
-	if(type==3) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
+	if(type==3) sprintf(tmpstr, "Anim Step: %d ms", time);
+	if(type==4) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
 	
 	WM_cursor_wait(0);
 	
@@ -1330,7 +1340,8 @@ static void WM_OT_ten_timer(wmOperatorType *ot)
 	{0, "DRAW", "Draw Region", ""},
 	{1, "DRAWSWAP", "Draw Region + Swap", ""},
 	{2, "DRAWWINSWAP", "Draw Window + Swap", ""},
-	{3, "UNDO", "Undo/Redo", ""},
+	{3, "ANIMSTEP", "Anim Step", ""},
+	{4, "UNDO", "Undo/Redo", ""},
 	{0, NULL, NULL, NULL}};
 	
 	ot->name= "Ten Timer";
