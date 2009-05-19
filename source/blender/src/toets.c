@@ -901,7 +901,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) {
 			int a;
-			int event= pupmenu("10 Timer%t|draw|draw+swap|undo");
+			int event= pupmenu("10 Timer%t|Draw Area|Draw Area and Swap|Draw Window and Swap|Anim Steps|Undo/Redo");
 			if(event>0) {
 				double stime= PIL_check_seconds_timer();
 				char tmpstr[128];
@@ -912,11 +912,20 @@ int blenderqread(unsigned short event, short val)
 				for(a=0; a<10; a++) {
 					if (event==1) {
 						scrarea_do_windraw(curarea);
-					} else if (event==2) {
+					} 
+					else if (event==2) {
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
 					}
-					else if(event==3) {
+					else if (event==3) {
+						force_draw_all(1);
+					}
+					else if(event==4) {
+						if(a & 1) G.scene->r.cfra--;
+						else G.scene->r.cfra++;
+						scene_update_for_newframe(G.scene, G.scene->lay);
+					}
+					else if(event==5) {
 						BIF_undo();
 						BIF_redo();
 					}
@@ -924,9 +933,11 @@ int blenderqread(unsigned short event, short val)
 			
 				time= (int) ((PIL_check_seconds_timer()-stime)*1000);
 				
-				if(event==1) sprintf(tmpstr, "draw %%t|%d ms", time);
-				if(event==2) sprintf(tmpstr, "d+sw %%t|%d ms", time);
-				if(event==3) sprintf(tmpstr, "undo %%t|%d ms", time);
+				if(event==1) sprintf(tmpstr, "Draw %%t|%d ms", time);
+				if(event==2) sprintf(tmpstr, "Draw+swap %%t|%d ms", time);
+				if(event==3) sprintf(tmpstr, "Window+sw %%t|%d ms", time);
+				if(event==4) sprintf(tmpstr, "Anim %%t|%d ms", time);
+				if(event==5) sprintf(tmpstr, "Undo %%t|%d ms", time);
 			
 				waitcursor(0);
 				pupmenu(tmpstr);
