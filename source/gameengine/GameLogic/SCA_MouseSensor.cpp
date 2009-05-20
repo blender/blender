@@ -144,7 +144,7 @@ SCA_IInputDevice::KX_EnumInputs SCA_MouseSensor::GetHotKey()
 
 
 
-bool SCA_MouseSensor::Evaluate(CValue* event)
+bool SCA_MouseSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
@@ -296,8 +296,13 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_MouseSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_MouseSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,

@@ -318,9 +318,9 @@ typedef struct RenderData {
 
 	/* Dome variables */
 	short domeres, domemode;
-	short domeangle, pad9;
-	float domesize;
+	short domeangle, dometilt;
 	float domeresbuf;
+	float pad2;
 	struct Text *dometext;
 
 } RenderData;
@@ -788,6 +788,7 @@ typedef struct Scene {
 #define PROP_RANDOM		6
 
 	/* return flag next_object function */
+#define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1
 #define F_SET			2

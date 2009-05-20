@@ -47,6 +47,7 @@
 
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
+#include "BLI_arithb.h"
 
 bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 {
@@ -90,6 +91,15 @@ BL_MeshDeformer::~BL_MeshDeformer()
 		delete [] m_transnors;
 }
  
+void BL_MeshDeformer::ProcessReplica()
+{
+	m_transverts = NULL;
+	m_transnors = NULL;
+	m_tvtot = 0;
+	m_bDynamic=false;
+	m_lastDeformUpdate = -1;
+}
+
 void BL_MeshDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 {
 	void **h_obj = (*map)[m_gameobj];
@@ -166,6 +176,7 @@ void BL_MeshDeformer::RecalcNormals()
 				fnor[0]= n1[1]*n2[2] - n1[2]*n2[1];
 				fnor[1]= n1[2]*n2[0] - n1[0]*n2[2];
 				fnor[2]= n1[0]*n2[1] - n1[1]*n2[0];
+				Normalize(fnor);
 
 				/* add to vertices for smooth normals */
 				float *vn1 = m_transnors[v1.getOrigIndex()];

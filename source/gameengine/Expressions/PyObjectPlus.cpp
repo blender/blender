@@ -50,14 +50,20 @@
 #include "stdlib.h"
 #include "PyObjectPlus.h"
 #include "STR_String.h"
+#include "MT_Vector3.h"
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/
 
 
 PyTypeObject PyObjectPlus::Type = {
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,				/*ob_size*/
+#endif
 	"PyObjectPlus",			/*tp_name*/
 	sizeof(PyObjectPlus_Proxy),		/*tp_basicsize*/
 	0,				/*tp_itemsize*/
@@ -90,6 +96,7 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus) {
 		if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+			self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
 			delete self_plus;
 		}
 		
@@ -98,7 +105,7 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 	PyObject_DEL( self );
 };
 
-PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
+PyObjectPlus::PyObjectPlus(PyTypeObject *T) : SG_QList()				// constructor
 {
 	MT_assert(T != NULL);
 	m_proxy= NULL;
@@ -322,6 +329,16 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 				float *val = reinterpret_cast<float*>(ptr);
 				return PyFloat_FromDouble(*val);
 			}
+		case KX_PYATTRIBUTE_TYPE_VECTOR:
+			{
+				PyObject* resultlist = PyList_New(3);
+				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
+				for (unsigned int i=0; i<3; i++)
+				{
+					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
+				}
+				return resultlist;
+			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
@@ -514,6 +531,10 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		{
 			if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
 			{
+				// if the checing function didnt set an error then set a generic one here so we dont set an error with no exception
+				if (PyErr_Occurred()==0)
+					PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", reasion unknown", attrdef->m_name);
+				
 				// post check returned an error, restore values
 			UNDO_AND_ERROR:
 				if (undoBuffer)
@@ -539,7 +560,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
 		}
-		if (attrdef->m_checkFunction != NULL)
+		if (attrdef->m_checkFunction != NULL || attrdef->m_type == KX_PYATTRIBUTE_TYPE_VECTOR)
 		{
 			// post check function is provided, prepare undo buffer
 			sourceBuffer = ptr;
@@ -562,6 +583,9 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				sourceBuffer = reinterpret_cast<STR_String*>(ptr)->Ptr();
 				if (sourceBuffer)
 					bufferSize = strlen(reinterpret_cast<char*>(sourceBuffer))+1;
+				break;
+			case KX_PYATTRIBUTE_TYPE_VECTOR:
+				bufferSize = sizeof(MT_Vector3);
 				break;
 			default:
 				PyErr_Format(PyExc_AttributeError, "unknown type for attribute \"%s\", report to blender.org", attrdef->m_name);
@@ -681,6 +705,42 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					goto FREE_AND_ERROR;
 				}
 				*var = (float)val;
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_VECTOR:
+			{
+				if (!PySequence_Check(value) || PySequence_Size(value) != 3) 
+				{
+					PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
+					return 1;
+				}
+				MT_Vector3 *var = reinterpret_cast<MT_Vector3*>(ptr);
+				for (int i=0; i<3; i++)
+				{
+					PyObject *item = PySequence_GetItem(value, i); /* new ref */
+					// we can decrement the reference immediately, the reference count
+					// is at least 1 because the item is part of an array
+					Py_DECREF(item);
+					double val = PyFloat_AsDouble(item);
+					if (val == -1.0 && PyErr_Occurred())
+					{
+						PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
+						goto RESTORE_AND_ERROR;
+					}
+					else if (attrdef->m_clamp)
+					{
+						if (val < attrdef->m_fmin)
+							val = attrdef->m_fmin;
+						else if (val > attrdef->m_fmax)
+							val = attrdef->m_fmax;
+					}
+					else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+					{
+						PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
+						goto RESTORE_AND_ERROR;
+					}
+					(*var)[i] = (MT_Scalar)val;
+				}
 				break;
 			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
@@ -899,15 +959,16 @@ PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 /* deprecation warning management */
+
 bool PyObjectPlus::m_ignore_deprecation_warnings(false);
 void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 {
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyObjectPlus::ShowDeprecationWarning(const char* old_way,const char* new_way)
+void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
 {
-	if (!m_ignore_deprecation_warnings) {
+	{
 		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
 		
 		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
@@ -946,6 +1007,29 @@ void PyObjectPlus::ShowDeprecationWarning(const char* old_way,const char* new_wa
 	}
 }
 
+void PyObjectPlus::ClearDeprecationWarning()
+{
+	WarnLink *wlink_next;
+	WarnLink *wlink = GetDeprecationWarningLinkFirst();
+	
+	while(wlink)
+	{
+		wlink->warn_done= false; /* no need to NULL the link, its cleared before adding to the list next time round */
+		wlink_next= reinterpret_cast<WarnLink *>(wlink->link);
+		wlink->link= NULL;
+		wlink= wlink_next;
+	}
+	NullDeprecationWarning();
+}
+
+WarnLink*		m_base_wlink_first= NULL;
+WarnLink*		m_base_wlink_last= NULL;
+
+WarnLink*		PyObjectPlus::GetDeprecationWarningLinkFirst(void) {return m_base_wlink_first;}
+WarnLink*		PyObjectPlus::GetDeprecationWarningLinkLast(void) {return m_base_wlink_last;}
+void			PyObjectPlus::SetDeprecationWarningFirst(WarnLink* wlink) {m_base_wlink_first= wlink;}
+void			PyObjectPlus::SetDeprecationWarningLinkLast(WarnLink* wlink) {m_base_wlink_last= wlink;}
+void			PyObjectPlus::NullDeprecationWarning() {m_base_wlink_first= m_base_wlink_last= NULL;}
 
 #endif //NO_EXP_PYTHON_EMBEDDING
 

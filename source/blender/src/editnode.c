@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
@@ -179,7 +180,7 @@ static void snode_handle_recalc(SpaceNode *snode)
 		allqueue(REDRAWNODE, 1);
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
-		ntreeTexUpdatePreviews(snode->nodetree);
+		ntreeTexUpdatePreviews(snode->nodetree);/* XXX texture nodes should follow shader node methods (ton) */
 		BIF_preview_changed(ID_TE);
 	}
 }
@@ -549,7 +550,7 @@ void node_texture_default(Tex *tx)
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
-	ntreeTexUpdatePreviews(tx->nodetree);
+	ntreeTexUpdatePreviews(tx->nodetree);/* XXX texture nodes should follow shader node methods (ton) */
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
@@ -583,13 +584,41 @@ void snode_set_context(SpaceNode *snode)
 		snode->nodetree= G.scene->nodetree;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
-		if(ob) {
-			Tex *tx= give_current_texture(ob, ob->actcol);
-			if(tx) {
-				snode->from= (ID*)ob; /* please check this; i have no idea what 'from' is. */
-				snode->id= &tx->id;
-				snode->nodetree= tx->nodetree;
+		Tex *tx= NULL;
+
+		if(snode->texfrom==SNODE_TEX_OBJECT) {
+			if(ob) {
+				tx= give_current_texture(ob, ob->actcol);
+				snode->from= (ID *)ob;
 			}
+		}
+		else if(snode->texfrom==SNODE_TEX_WORLD) {
+			tx= give_current_world_texture();
+			snode->from= (ID *)G.scene->world;
+		}
+		else {
+			MTex *mtex= NULL;
+			
+			if(G.f & G_SCULPTMODE) {
+				SculptData *sd= &G.scene->sculptdata;
+				if(sd->texact != -1)
+					mtex= sd->mtex[sd->texact];
+			}
+			else {
+				Brush *br= G.scene->toolsettings->imapaint.brush;
+				if(br) 
+					mtex= br->mtex[br->texact];
+			}
+			
+			if(mtex) {
+				snode->from= (ID *)G.scene;
+				tx= mtex->tex;
+			}
+		}
+		
+		if(tx) {
+			snode->id= &tx->id;
+			snode->nodetree= tx->nodetree;
 		}
 	}
 	
@@ -1272,7 +1301,7 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	allqueue(REDRAWNODE, 1);
 	
 	if(snode->nodetree->type == NTREE_TEXTURE)
-		ntreeTexUpdatePreviews(snode->nodetree);
+		ntreeTexUpdatePreviews(snode->nodetree);/* XXX texture nodes should follow shader node methods (ton) */
 }
 
 /* ******************** rename ******************* */
@@ -1790,7 +1819,7 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	if(snode->nodetree->type==NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(snode->edittree);
-		ntreeTexUpdatePreviews(snode->edittree);
+		ntreeTexUpdatePreviews(snode->edittree);/* XXX texture nodes should follow shader node methods (ton) */
 	}
 	
 	return node;
@@ -2579,6 +2608,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RENDERPREVIEW:
 			if(snode->treetype==NTREE_SHADER)
 				shader_node_previewrender(sa, snode);
+			else if(snode->nodetree->type==NTREE_TEXTURE)
+				ntreeTexUpdatePreviews(snode->edittree); /* XXX texture nodes should follow shader node methods (ton) */
+				
 			break;
 			
 		case PADPLUSKEY:

@@ -39,13 +39,13 @@
 #endif
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
+SG_QList SCA_IObject::m_activeBookmarkedControllers;
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0)
+SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0), m_firstState(NULL)
+
 {
 	m_suspended = false;
 }
-	
-
 
 SCA_IObject::~SCA_IObject()
 {
@@ -70,7 +70,7 @@ SCA_IObject::~SCA_IObject()
 	}
 	for (ita = m_actuators.begin(); !(ita==m_actuators.end()); ++ita)
 	{
-		((CValue*)(*ita))->Release();
+		(*ita)->Delete();
 	}
 
 	//T_InterpolatorList::iterator i;
@@ -78,29 +78,6 @@ SCA_IObject::~SCA_IObject()
 	//	delete *i;
 	//}
 }
-
-
-
-SCA_ControllerList& SCA_IObject::GetControllers()
-{
-	return m_controllers;
-}
-
-
-
-SCA_SensorList& SCA_IObject::GetSensors()
-{
-	return m_sensors;
-}
-
-
-
-SCA_ActuatorList& SCA_IObject::GetActuators()
-{
-	return m_actuators;
-}
-
-
 
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
@@ -133,7 +110,7 @@ void SCA_IObject::RegisterActuator(SCA_IActuator* act)
 void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 {
 	SCA_ActuatorList::iterator ita;
-	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ita++)
+	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ++ita)
 	{
 		if ((*ita) == act) {
 			(*ita) = m_registeredActuators.back();
@@ -142,20 +119,6 @@ void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
 		}
 	}
 }
-
-void SCA_IObject::SetIgnoreActivityCulling(bool b)
-{
-	m_ignore_activity_culling = b;
-}
-
-
-
-bool SCA_IObject::GetIgnoreActivityCulling()
-{
-	return m_ignore_activity_culling;
-}
-
-
 
 void SCA_IObject::ReParentLogic()
 {
@@ -208,7 +171,7 @@ SCA_ISensor* SCA_IObject::FindSensor(const STR_String& sensorname)
 {
 	SCA_ISensor* foundsensor = NULL;
 
-	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());its++)
+	for (SCA_SensorList::iterator its = m_sensors.begin();!(its==m_sensors.end());++its)
 	{
 		if ((*its)->GetName() == sensorname)
 		{
@@ -225,7 +188,7 @@ SCA_IController* SCA_IObject::FindController(const STR_String& controllername)
 {
 	SCA_IController* foundcontroller = NULL;
 
-	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());itc++)
+	for (SCA_ControllerList::iterator itc = m_controllers.begin();!(itc==m_controllers.end());++itc)
 	{
 		if ((*itc)->GetName() == controllername)
 		{
@@ -242,7 +205,7 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 {
 	SCA_IActuator* foundactuator = NULL;
 
-	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());ita++)
+	for (SCA_ActuatorList::iterator ita = m_actuators.begin();!(ita==m_actuators.end());++ita)
 	{
 		if ((*ita)->GetName() == actuatorname)
 		{
@@ -255,14 +218,6 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 }
 
 
-
-void SCA_IObject::SetCurrentTime(float currentTime) {
-	//T_InterpolatorList::iterator i;
-	//for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
-	//	(*i)->Execute(currentTime);
-	//}
-}
-	
 
 #if 0
 const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
@@ -317,7 +272,7 @@ void SCA_IObject::Suspend()
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Suspend();
-			i++;
+			++i;
 		}
 	}
 }
@@ -332,7 +287,7 @@ void SCA_IObject::Resume(void)
 		SCA_SensorList::iterator i = m_sensors.begin();
 		while (i != m_sensors.end()) {
 			(*i)->Resume();
-			i++;
+			++i;
 		}
 	}
 }
@@ -352,7 +307,7 @@ void SCA_IObject::SetState(unsigned int state)
 	if (tmpstate != m_state)
 	{
 		// update the status of the controllers
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(tmpstate);
 		}
@@ -360,7 +315,7 @@ void SCA_IObject::SetState(unsigned int state)
 	m_state = state;
 	if (m_state != tmpstate)
 	{
-		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); ++contit)
 		{
 			(*contit)->ApplyState(m_state);
 		}
@@ -375,8 +330,13 @@ void SCA_IObject::SetState(unsigned int state)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_IObject::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_IObject",
 	sizeof(PyObjectPlus_Proxy),
 	0,

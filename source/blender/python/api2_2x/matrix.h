@@ -69,7 +69,7 @@ PyObject *Matrix_TranslationPart( MatrixObject * self );
 PyObject *Matrix_RotationPart( MatrixObject * self );
 PyObject *Matrix_scalePart( MatrixObject * self );
 PyObject *Matrix_Resize4x4( MatrixObject * self );
-PyObject *Matrix_toEuler( MatrixObject * self );
+PyObject *Matrix_toEuler( MatrixObject * self, PyObject *args );
 PyObject *Matrix_toQuat( MatrixObject * self );
 PyObject *Matrix_copy( MatrixObject * self );
 PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type);

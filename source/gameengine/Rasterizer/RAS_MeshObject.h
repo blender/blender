@@ -97,8 +97,8 @@ public:
 	unsigned int		GetLightLayer();
 
 	/* name */
-	void				SetName(STR_String name);
-	const STR_String&	GetName();
+	void				SetName(const char *name);
+	STR_String&			GetName();
 
 	/* modification state */
 	bool				MeshModified();
@@ -130,7 +130,7 @@ public:
 	RAS_Polygon*		GetPolygon(int num) const;
 	
 	/* buckets */
-	virtual void		AddMeshUser(void *clientobj);
+	virtual void		AddMeshUser(void *clientobj, SG_QList *head);
 	virtual void		UpdateBuckets(
 							void* clientobj,
 							double* oglmatrix,

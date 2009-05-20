@@ -36,8 +36,13 @@ http://www.gnu.org/copyleft/lesser.txt.
 // define python type
 PyTypeObject FilterRGB24Type =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.FilterRGB24",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -82,8 +87,13 @@ PyTypeObject FilterRGB24Type =
 // define python type
 PyTypeObject FilterRGBA32Type =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.FilterRGBA32",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -128,8 +138,13 @@ PyTypeObject FilterRGBA32Type =
 // define python type
 PyTypeObject FilterBGR24Type =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.FilterBGR24",   /*tp_name*/
 	sizeof(PyFilter),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

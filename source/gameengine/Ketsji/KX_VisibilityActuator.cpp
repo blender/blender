@@ -92,8 +92,13 @@ KX_VisibilityActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_VisibilityActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_VisibilityActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -131,8 +136,8 @@ KX_VisibilityActuator::Methods[] = {
 
 PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("visibility", KX_VisibilityActuator, m_visible),
-	KX_PYATTRIBUTE_BOOL_RW("occlusion", KX_VisibilityActuator, m_occlusion),
-	KX_PYATTRIBUTE_BOOL_RW("recursion", KX_VisibilityActuator, m_recursive),
+	KX_PYATTRIBUTE_BOOL_RW("useOcclusion", KX_VisibilityActuator, m_occlusion),
+	KX_PYATTRIBUTE_BOOL_RW("useRecursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
 

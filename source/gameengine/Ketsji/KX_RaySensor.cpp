@@ -178,7 +178,7 @@ bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo* client)
 	return true;
 }
 
-bool KX_RaySensor::Evaluate(CValue* event)
+bool KX_RaySensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
@@ -320,8 +320,13 @@ bool KX_RaySensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_RaySensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_RaySensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -361,7 +366,7 @@ PyAttributeDef KX_RaySensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useMaterial", KX_RaySensor, m_bFindMaterial),
 	KX_PYATTRIBUTE_BOOL_RW("useXRay", KX_RaySensor, m_bXRay),
 	KX_PYATTRIBUTE_FLOAT_RW("range", 0, 10000, KX_RaySensor, m_distance),
-	KX_PYATTRIBUTE_STRING_RW("property", 0, 100, false, KX_RaySensor, m_propertyname),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, 100, false, KX_RaySensor, m_propertyname),
 	KX_PYATTRIBUTE_INT_RW("axis", 0, 5, true, KX_RaySensor, m_axis),
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("hitPosition", KX_RaySensor, m_hitPosition, 3),
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("rayDirection", KX_RaySensor, m_rayDirection, 3),

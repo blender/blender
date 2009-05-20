@@ -28,6 +28,7 @@
  * Camera in the gameengine. Cameras are also used for views.
  */
  
+#include "GL/glew.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
@@ -476,13 +477,16 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_Camera, pointInsideFrustum),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getCameraToWorld),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getWorldToCamera),
-	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, setOnTop),
-	
+	KX_PYMETHODTABLE_O(KX_Camera, getScreenPosition),
+	KX_PYMETHODTABLE(KX_Camera, getScreenVect),
+	KX_PYMETHODTABLE(KX_Camera, getScreenRay),
+
 	// DEPRECATED
 	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
+	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
+	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -496,9 +500,9 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("near",	KX_Camera,	pyattr_get_near, pyattr_set_near),
 	KX_PYATTRIBUTE_RW_FUNCTION("far",	KX_Camera,	pyattr_get_far,  pyattr_set_far),
 	
-	KX_PYATTRIBUTE_RW_FUNCTION("isViewport",	KX_Camera,	pyattr_get_is_viewport,  pyattr_set_is_viewport),
+	KX_PYATTRIBUTE_RW_FUNCTION("useViewport",	KX_Camera,	pyattr_get_use_viewport,  pyattr_set_use_viewport),
 	
-	KX_PYATTRIBUTE_RO_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix),
+	KX_PYATTRIBUTE_RW_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix, pyattr_set_projection_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("modelview_matrix",	KX_Camera,	pyattr_get_modelview_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("camera_to_world",	KX_Camera,	pyattr_get_camera_to_world),
 	KX_PYATTRIBUTE_RO_FUNCTION("world_to_camera",	KX_Camera,	pyattr_get_world_to_camera),
@@ -512,8 +516,13 @@ PyAttributeDef KX_Camera::Attributes[] = {
 };
 
 PyTypeObject KX_Camera::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_Camera",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -688,6 +697,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getProjectionMatrix,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
+	ShowDeprecationWarning("getProjectionMatrix()", "the projection_matrix property");
 	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 }
 
@@ -733,6 +743,8 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
 "\tcam = co.getOwner()\n"
 "\tcam.setProjectionMatrix(Perspective(-1.0, 1.0, -1.0, 1.0, 0.1, 1))\n")
 {
+	ShowDeprecationWarning("setProjectionMatrix(mat)", "the projection_matrix property");
+	
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat))
 	{
@@ -749,7 +761,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
 "Sets this camera's viewport status\n"
 )
 {
-	ShowDeprecationWarning("enableViewport(bool)", "the isViewport property");
+	ShowDeprecationWarning("enableViewport(bool)", "the useViewport property");
 	
 	int viewport = PyObject_IsTrue(value);
 	if (viewport == -1) {
@@ -798,11 +810,11 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.perspective = bool: KX_Camera, expected True/False or 0/1");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_perspective= param;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -817,12 +829,12 @@ int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.lens = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_lens= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -837,12 +849,12 @@ int KX_Camera::pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.near = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_clipstart= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -857,31 +869,31 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.far = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_clipend= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
-PyObject* KX_Camera::pyattr_get_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* KX_Camera::pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	return PyBool_FromLong(self->GetViewport());
 }
 
-int KX_Camera::pyattr_set_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+int KX_Camera::pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "camera.isViewport = bool: KX_Camera, expected True or False");
-		return 1;
+		PyErr_SetString(PyExc_AttributeError, "camera.useViewport = bool: KX_Camera, expected True or False");
+		return PY_SET_ATTR_FAIL;
 	}
 	self->EnableViewport((bool)param);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -896,10 +908,10 @@ int KX_Camera::pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_D
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat)) 
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->SetProjectionMatrix(mat);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -927,4 +939,194 @@ PyObject* KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *
 {	return PyInt_FromLong(OUTSIDE); }
 PyObject* KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {	return PyInt_FromLong(INTERSECT); }
+
+
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix)
+{
+	if (value==NULL) {
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
+		*object = NULL;
+		return false;
+	}
+		
+	if (value==Py_None) {
+		*object = NULL;
+		
+		if (py_none_ok) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_Camera or a KX_Camera name, None is invalid", error_prefix);
+			return false;
+		}
+	}
+	
+	if (PyString_Check(value)) {
+		STR_String value_str = PyString_AsString(value);
+		*object = KX_GetActiveScene()->FindCamera(value_str);
+		
+		if (*object) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, PyString_AsString(value));
+			return false;
+		}
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_Camera::Type)) {
+		*object = static_cast<KX_Camera*>BGE_PROXY_REF(value);
+		
+		/* sets the error */
+		if (*object==NULL) {
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	*object = NULL;
+	
+	if (py_none_ok) {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera, a string or None", error_prefix);
+	} else {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera or a string", error_prefix);
+	}
+	
+	return false;
+}
+
+KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
+"getScreenPosition()\n"
+)
+
+{
+	MT_Vector3 vect;
+	KX_GameObject *obj = NULL;
+
+	if (!PyVecTo(value, vect))
+	{
+		if(ConvertPythonToGameObject(value, &obj, true, ""))
+		{
+			PyErr_Clear();
+			vect = MT_Vector3(obj->NodeGetWorldPosition());
+		}
+		else
+		{
+			PyErr_SetString(PyExc_TypeError, "Error in getScreenPosition. Expected a Vector3 or a KX_GameObject or a string for a name of a KX_GameObject");
+			return NULL;
+		}
+	}
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	vect[0] =  win[0] / (viewport[0] + viewport[2]);
+	vect[1] =  win[1] / (viewport[1] + viewport[3]);
+
+	PyObject* ret = PyTuple_New(2);
+	if(ret){
+		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
+		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
+		return ret;
+	}
+
+	return NULL;
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
+"getScreenVect()\n"
+)
+{
+	double x,y;
+	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
+		return NULL;
+
+	MT_Vector3 vect;
+	MT_Point3 campos, screenpos;
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	vect[0] = x * viewport[2];
+	vect[1] = y * viewport[3];
+
+	vect[0] += viewport[0];
+	vect[1] += viewport[1];
+
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
+	gluUnProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	campos = this->GetCameraLocation();
+	screenpos = MT_Point3(win[0], win[1], win[2]);
+	vect = campos-screenpos;
+
+	vect.normalize();
+	return PyObjectFrom(vect);
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
+"getScreenRay()\n"
+)
+{
+	KX_Camera* cam;
+	MT_Vector3 vect;
+	double x,y,dist;
+	char *propName = NULL;
+
+	if (!PyArg_ParseTuple(args,"ddd|s:getScreenRay",&x,&y,&dist,&propName))
+		return NULL;
+
+	PyObject* argValue = PyTuple_New(2);
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
+	}
+
+	if(!PyVecTo(PygetScreenVect(argValue), vect))
+	{
+		Py_DECREF(argValue);
+		PyErr_SetString(PyExc_TypeError,
+			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate, a distance and an optional property argument");
+		return NULL;
+	}
+	Py_DECREF(argValue);
+
+	dist *= -1.0;
+
+	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
+		if (propName)
+			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+
+		PyObject* ret= this->PyrayCastTo(argValue,NULL);
+		Py_DECREF(argValue);
+		return ret;
+	}
+
+	return NULL;
+}
 

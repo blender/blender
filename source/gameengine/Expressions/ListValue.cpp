@@ -18,6 +18,7 @@
 #include "StringValue.h"
 #include "VoidValue.h"
 #include <algorithm>
+#include "BoolValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -75,16 +76,18 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	
 	if (PyString_Check(pyindex))
 	{
-		STR_String  index(PyString_AsString(pyindex));
+		const char *index = PyString_AsString(pyindex);
 		CValue *item = ((CListValue*) list)->FindValue(index);
 		if (item)
+		{
+			item->Release(); /* FindValue() AddRef's */ 
 			return item->GetProxy();
-			
+		}
 	}
-	if (PyInt_Check(pyindex))
+	else if (PyInt_Check(pyindex))
 	{
 		int index = PyInt_AsLong(pyindex);
-		return listvalue_buffer_item(self, index);
+		return listvalue_buffer_item(self, index); /* wont add a ref */
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
@@ -212,9 +215,15 @@ static  PySequenceMethods listvalue_as_sequence = {
 	listvalue_buffer_concat, /*sq_concat*/
  	NULL, /*sq_repeat*/
 	listvalue_buffer_item, /*sq_item*/
+#if (PY_VERSION_HEX >= 0x03000000) // TODO, slicing in py3?
+	NULL,
+	NULL,
+	NULL,
+#else
 	listvalue_buffer_slice, /*sq_slice*/
  	NULL, /*sq_ass_item*/
- 	NULL /*sq_ass_slice*/
+ 	NULL, /*sq_ass_slice*/
+#endif
 };
 
 
@@ -229,8 +238,13 @@ static  PyMappingMethods instance_as_mapping = {
 
 
 PyTypeObject CListValue::Type = {
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,				/*ob_size*/
+#endif
 	"CListValue",			/*tp_name*/
 	sizeof(PyObjectPlus_Proxy), /*tp_basicsize*/
 	0,				/*tp_itemsize*/
@@ -381,7 +395,7 @@ void CListValue::ReleaseAndRemoveAll()
 
 
 
-CValue* CListValue::FindValue(const STR_String & name)
+CValue* CListValue::FindValue(const char * name)
 {
 	CValue* resultval = NULL;
 	int i=0;
@@ -484,13 +498,12 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 	
 	if (eqval==NULL)
 		return false;
-		
-	STR_String txt = eqval->GetText();
-	eqval->Release();
-	if (txt=="TRUE")
+	const STR_String& text = eqval->GetText();
+	if (&text==&CBoolValue::sTrueString)
 	{
 		result = true;
 	}
+	eqval->Release();
 	return result;
 
 }

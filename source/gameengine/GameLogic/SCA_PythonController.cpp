@@ -48,12 +48,18 @@ SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 
 SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
+										   int mode,
 										   PyTypeObject* T)
 	: SCA_IController(gameobj, T),
 	m_bytecode(NULL),
+	m_function(NULL),
+	m_function_argc(0),
 	m_bModified(true),
+	m_debug(false),
+	m_mode(mode),
 	m_pythondictionary(NULL)
 {
+	
 }
 
 /*
@@ -74,15 +80,12 @@ int			SCA_PythonController::Release()
 
 SCA_PythonController::~SCA_PythonController()
 {
-	if (m_bytecode)
-	{
-		//
-		//printf("released python byte script\n");
-		Py_DECREF(m_bytecode);
-	}
+	//printf("released python byte script\n");
 	
-	if (m_pythondictionary)
-	{
+	Py_XDECREF(m_bytecode);
+	Py_XDECREF(m_function);
+	
+	if (m_pythondictionary) {
 		// break any circular references in the dictionary
 		PyDict_Clear(m_pythondictionary);
 		Py_DECREF(m_pythondictionary);
@@ -94,8 +97,12 @@ SCA_PythonController::~SCA_PythonController()
 CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
-	// Copy the compiled bytecode if possible.
+	
+	/* why is this needed at all??? - m_bytecode is NULL'd below so this doesnt make sense
+	 * but removing it crashes blender (with YoFrankie). so leave in for now - Campbell */
 	Py_XINCREF(replica->m_bytecode);
+	
+	Py_XINCREF(replica->m_function); // this is ok since its not set to NULL
 	replica->m_bModified = replica->m_bytecode == NULL;
 	
 	// The replica->m_pythondictionary is stolen - replace with a copy.
@@ -150,13 +157,14 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 	return 0;
 }
 
-#if 0
-static const char* sPyGetCurrentController__doc__;
-#endif
-
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
+	if(m_sCurrentController==NULL)
+	{
+		PyErr_SetString(PyExc_SystemError, "GameLogic.getCurrentController(), this function is being run outside the python controllers context, or blenders internal state is corrupt.");
+		return NULL;
+	}
 	return m_sCurrentController->GetProxy();
 }
 
@@ -170,15 +178,15 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	if (PyString_Check(value)) {
 		/* get the actuator from the name */
 		char *name= PyString_AsString(value);
-		for(it = lacts.begin(); it!= lacts.end(); it++) {
+		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( name == (*it)->GetName() ) {
 				return *it;
 			}
 		}
 	}
 	else if (BGE_PROXY_CHECK_TYPE(value)) {
-		PyObjectPlus *value_plus= BGE_PROXY_REF(value); /* Expecting an actuator type */ // XXX TODO - CHECK TYPE
-		for(it = lacts.begin(); it!= lacts.end(); it++) {
+		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
+		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
 				return *it;
 			}
@@ -193,13 +201,11 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	return false;
 }
 
-#if 0
-static const char* sPyAddActiveActuator__doc__;
-#endif
-
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
 PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* args)
 {
+	ShowDeprecationWarning("GameLogic.addActiveActuator(act, bool)", "controller.activate(act) or controller.deactivate(act)");
+	
 	PyObject* ob1;
 	int activate;
 	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
@@ -209,20 +215,22 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* a
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(activate!=0);
+	bool boolval = (activate!=0);
 	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu,boolval);
-	boolval->Release();
 	Py_RETURN_NONE;
 }
 
-
 const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
 const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
-const char SCA_PythonController::GetActuators_doc[] = "getActuator";
 
 PyTypeObject SCA_PythonController::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"SCA_PythonController",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -249,59 +257,128 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
 	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
 	
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
 	//Deprecated functions ------>
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
 	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
-	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef SCA_PythonController::Attributes[] = {
-	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_PythonController, pyattr_get_state),
 	KX_PYATTRIBUTE_RW_FUNCTION("script", SCA_PythonController, pyattr_get_script, pyattr_set_script),
 	{ NULL }	//Sentinel
 };
 
-bool SCA_PythonController::Compile()
+void SCA_PythonController::ErrorPrint(const char *error_msg)
 {
+	// didn't compile, so instead of compile, complain
+	// something is wrong, tell the user what went wrong
+	printf("%s - controller \"%s\":\n", error_msg, GetName().Ptr());
+	//PyRun_SimpleString(m_scriptText.Ptr());
+	PyErr_Print();
+	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( (char *)"last_traceback", NULL);
+	PyErr_Clear(); /* just to be sure */
+}
+
+bool SCA_PythonController::Compile()
+{	
 	//printf("py script modified '%s'\n", m_scriptName.Ptr());
+	m_bModified= false;
 	
 	// if a script already exists, decref it before replace the pointer to a new script
-	if (m_bytecode)
-	{
+	if (m_bytecode) {
 		Py_DECREF(m_bytecode);
 		m_bytecode=NULL;
 	}
+	
 	// recompile the scripttext into bytecode
 	m_bytecode = Py_CompileString(m_scriptText.Ptr(), m_scriptName.Ptr(), Py_file_input);
-	m_bModified=false;
 	
-	if (m_bytecode)
-	{
-		
+	if (m_bytecode) {
 		return true;
-	}
-	else {
-		// didn't compile, so instead of compile, complain
-		// something is wrong, tell the user what went wrong
-		printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
-		//PyRun_SimpleString(m_scriptText.Ptr());
-		PyErr_Print();
-		
-		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
-		 * their user count. Not to mention holding references to wrapped data.
-		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-		 * has alredy dealocated the pointer */
-		PySys_SetObject( (char *)"last_traceback", NULL);
-		PyErr_Clear(); /* just to be sure */
-		
+	} else {
+		ErrorPrint("Python error compiling script");
 		return false;
 	}
+}
+
+bool SCA_PythonController::Import()
+{
+	//printf("py module modified '%s'\n", m_scriptName.Ptr());
+	m_bModified= false;
+	
+	/* incase we re-import */
+	Py_XDECREF(m_function);
+	m_function= NULL;
+	
+	vector<STR_String> py_function_path = m_scriptText.Explode('.');
+	
+	if(py_function_path.size() < 2) {
+		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"\n", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	PyObject *mod = PyImport_ImportModule((char *)py_function_path[0].Ptr());
+	if(mod && m_debug) {
+		Py_DECREF(mod); /* getting a new one so dont hold a ref to the old one */
+		mod= PyImport_ReloadModule(mod);
+	}
+	
+	if(mod==NULL) {
+		ErrorPrint("Python module not found");
+		return false;
+	}
+	/* 'mod' will be DECREF'd as 'base' 
+	 * 'm_function' will be left holding a reference that the controller owns */
+	
+	PyObject *base= mod;
+	
+	for(unsigned int i=1; i < py_function_path.size(); i++) {
+		m_function = PyObject_GetAttrString(base, py_function_path[i].Ptr());
+		Py_DECREF(base);
+		base = m_function; /* for the next loop if there is on */
+		
+		if(m_function==NULL) {
+			PyErr_Clear(); /* print our own error below */
+			break;
+		}
+	}
+	
+	if(m_function==NULL) {
+		printf("Python module error \"%s\":\n \"%s\" module found but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	if(!PyCallable_Check(m_function)) {
+		Py_DECREF(m_function);
+		printf("Python module function error \"%s\":\n \"%s\" not callable\n", GetName().Ptr(), m_scriptText.Ptr());
+		return false;
+	}
+	
+	m_function_argc = 0; /* rare cases this could be a function that isnt defined in python, assume zero args */
+	if (PyFunction_Check(m_function)) {
+		PyObject *py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(m_function), "co_argcount");
+		if(py_arg_count) {
+			m_function_argc = PyLong_AsLong(py_arg_count);
+			Py_DECREF(py_arg_count);
+		}
+		else {
+			PyErr_Clear(); /* unlikely to fail but just incase */
+		}
+	}
+	
+	if(m_function_argc > 1) {
+		Py_DECREF(m_function);
+		printf("Python module function has \"%s\":\n \"%s\" takes %d args, should be zero or 1 controller arg\n", GetName().Ptr(), m_scriptText.Ptr(), m_function_argc);
+		return false;
+	}
+	
+	return true;
 }
 
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
@@ -309,16 +386,18 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentController = this;
 	m_sCurrentLogicManager = logicmgr;
 	
-	if (m_bModified)
-	{
-		if (Compile()==false) // sets m_bModified to false
-			return;
-	}
-	if (!m_bytecode) {
-		return;
-	}
-		
+	PyObject *excdict=		NULL;
+	PyObject* resultobj=	NULL;
 	
+	switch(m_mode) {
+	case SCA_PYEXEC_SCRIPT:
+	{
+		if (m_bModified)
+			if (Compile()==false) // sets m_bModified to false
+				return;
+		if (!m_bytecode)
+			return;
+		
 		/*
 		 * This part here with excdict is a temporary patch
 		 * to avoid python/gameengine crashes when python
@@ -337,10 +416,36 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * should always ensure excdict is cleared).
 		 */
 
-	PyObject *excdict= PyDict_Copy(m_pythondictionary);
-	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, excdict);
-
+		excdict= PyDict_Copy(m_pythondictionary);
+		resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode, excdict, excdict);
+		/* PyRun_SimpleString(m_scriptText.Ptr()); */
+		break;
+	}
+	case SCA_PYEXEC_MODULE:
+	{
+		if (m_bModified || m_debug)
+			if (Import()==false) // sets m_bModified to false
+				return;
+		if (!m_function)
+			return;
+		
+		PyObject *args= NULL;
+		
+		if(m_function_argc==1) {
+			args = PyTuple_New(1);
+			PyTuple_SET_ITEM(args, 0, GetProxy());
+		}
+		
+		resultobj = PyObject_CallObject(m_function, args);
+		Py_XDECREF(args);
+		break;
+	}
+	
+	} /* end switch */
+	
+	
+	
+	/* Free the return value and print the error */
 	if (resultobj)
 	{
 		Py_DECREF(resultobj);
@@ -348,7 +453,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	else
 	{
 		// something is wrong, tell the user what went wrong
-		printf("Python script error from controller \"%s\": \n", GetName().Ptr());
+		printf("Python script error from controller \"%s\":\n", GetName().Ptr());
 		PyErr_Print();
 		
 		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
@@ -357,15 +462,17 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * has alredy dealocated the pointer */
 		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
-		
-		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
-
-	// clear after PyErrPrint - seems it can be using
-	// something in this dictionary and crash?
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);
-	m_triggeredSensors.erase(m_triggeredSensors.begin(), m_triggeredSensors.end());
+	
+	if(excdict) /* Only for SCA_PYEXEC_SCRIPT types */
+	{
+		/* clear after PyErrPrint - seems it can be using
+		 * something in this dictionary and crash? */
+		PyDict_Clear(excdict);
+		Py_DECREF(excdict);
+	}	
+	
+	m_triggeredSensors.clear();
 	m_sCurrentController = NULL;
 }
 
@@ -376,6 +483,10 @@ PyObject* SCA_PythonController::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IController);
 }
 
+PyObject* SCA_PythonController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
+}
+
 int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 {
 	py_setattro_up(SCA_IController);
@@ -383,104 +494,32 @@ int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 
 PyObject* SCA_PythonController::PyActivate(PyObject *value)
 {
+	if(m_sCurrentController != this) {
+		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
+		return NULL;
+	}
+	
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(true);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
-	boolval->Release();
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, true);
 	Py_RETURN_NONE;
 }
 
 PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 {
+	if(m_sCurrentController != this) {
+		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
+		return NULL;
+	}
+	
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
 		return NULL;
 	
-	CValue* boolval = new CBoolValue(false);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
-	boolval->Release();
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, false);
 	Py_RETURN_NONE;
-}
-
-PyObject* SCA_PythonController::PyGetActuators()
-{
-	PyObject* resultlist = PyList_New(m_linkedactuators.size());
-	for (unsigned int index=0;index<m_linkedactuators.size();index++)
-	{
-		PyList_SET_ITEM(resultlist,index, m_linkedactuators[index]->GetProxy());
-	}
-
-	return resultlist;
-}
-
-const char SCA_PythonController::GetSensor_doc[] = 
-"getSensor (char sensorname) return linked sensor that is named [sensorname]\n";
-PyObject*
-SCA_PythonController::PyGetSensor(PyObject* value)
-{
-
-	char *scriptArg = PyString_AsString(value);
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
-		return NULL;
-	}
-	
-	for (unsigned int index=0;index<m_linkedsensors.size();index++)
-	{
-		SCA_ISensor* sensor = m_linkedsensors[index];
-		STR_String realname = sensor->GetName();
-		if (realname == scriptArg)
-		{
-			return sensor->GetProxy();
-		}
-	}
-	
-	PyErr_Format(PyExc_AttributeError, "controller.getSensor(string): Python Controller, unable to find requested sensor \"%s\"", scriptArg);
-	return NULL;
-}
-
-
-
-const char SCA_PythonController::GetActuator_doc[] = 
-"getActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
-PyObject*
-SCA_PythonController::PyGetActuator(PyObject* value)
-{
-
-	char *scriptArg = PyString_AsString(value);
-	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
-		return NULL;
-	}
-	
-	for (unsigned int index=0;index<m_linkedactuators.size();index++)
-	{
-		SCA_IActuator* actua = m_linkedactuators[index];
-		if (actua->GetName() == scriptArg)
-		{
-			return actua->GetProxy();
-		}
-	}
-	
-	PyErr_Format(PyExc_AttributeError, "controller.getActuator(string): Python Controller, unable to find requested actuator \"%s\"", scriptArg);
-	return NULL;
-}
-
-
-const char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
-PyObject*
-SCA_PythonController::PyGetSensors()
-{
-	PyObject* resultlist = PyList_New(m_linkedsensors.size());
-	for (unsigned int index=0;index<m_linkedsensors.size();index++)
-	{
-		PyList_SET_ITEM(resultlist,index, m_linkedsensors[index]->GetProxy());
-	}
-	
-	return resultlist;
 }
 
 /* 1. getScript */
@@ -510,19 +549,6 @@ PyObject* SCA_PythonController::PySetScript(PyObject* value)
 	Py_RETURN_NONE;
 }
 
-/* 1. getScript */
-PyObject* SCA_PythonController::PyGetState()
-{
-	ShowDeprecationWarning("getState()", "the state property");
-	return PyInt_FromLong(m_statemask);
-}
-
-PyObject* SCA_PythonController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
-	return PyInt_FromLong(self->m_statemask);
-}
-
 PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
@@ -537,14 +563,14 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.script = string: Python Controller, expected a string script text");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	/* set scripttext sets m_bModified to true, 
 		so next time the script is needed, a reparse into byte code is done */
 	self->SetScriptText(scriptArg);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 

@@ -50,7 +50,7 @@ effect: constructs a new CFloatValue containing value fl
 
 
 
-CFloatValue::CFloatValue(float fl,STR_String name,AllocationTYPE alloctype)
+CFloatValue::CFloatValue(float fl,const char *name,AllocationTYPE alloctype)
 /*
 pre:
 effect: constructs a new CFloatValue containing value fl

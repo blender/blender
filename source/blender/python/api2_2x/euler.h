@@ -58,6 +58,7 @@ PyObject *Euler_Unique( EulerObject * self );
 PyObject *Euler_ToMatrix( EulerObject * self );
 PyObject *Euler_ToQuat( EulerObject * self );
 PyObject *Euler_Rotate( EulerObject * self, PyObject *args );
+PyObject *Euler_MakeCompatible( EulerObject * self, EulerObject *value );
 PyObject *Euler_copy( EulerObject * self, PyObject *args );
 PyObject *newEulerObject( float *eul, int type );
 

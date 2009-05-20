@@ -120,6 +120,7 @@
 
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
+#include "BSE_drawnla.h"		// nla_filter()
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
@@ -3132,6 +3133,10 @@ static void createTransNlaData(TransInfo *t)
 	
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* only consider if visible */
+		if (nla_filter(base) == 0)
+			continue;
+		
 		/* Check object ipos */
 		i= count_ipo_keys(base->object->ipo, side, (float)CFRA);
 		if (i) base->flag |= BA_HAS_RECALC_OB;
@@ -3197,6 +3202,10 @@ static void createTransNlaData(TransInfo *t)
 	/* build the transdata structure */
 	td= t->data;
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* only consider if visible */
+		if (nla_filter(base) == 0)
+			continue;
+		
 		/* Manipulate object ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
 		td= IpoToTransData(td, base->object->ipo, NULL, side, (float)CFRA);

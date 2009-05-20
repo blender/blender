@@ -7,9 +7,9 @@ Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
-__author__ = "Campbell Barton, Jiri Hnidek"
+__author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
 __url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
-__version__ = "1.2"
+__version__ = "1.21"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -185,7 +185,8 @@ def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
 EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
-EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False):
+EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False,\
+EXPORT_POLYGROUPS=False):
 	'''
 	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
@@ -199,6 +200,29 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 	def veckey2d(v):
 		return round(v.x, 6), round(v.y, 6)
 	
+	def findVertexGroupName(face, vWeightMap):
+		"""
+		Searches the vertexDict to see what groups is assigned to a given face.
+		We use a frequency system in order to sort out the name because a given vetex can
+		belong to two or more groups at the same time. To find the right name for the face
+		we list all the possible vertex group names with their frequency and then sort by
+		frequency in descend order. The top element is the one shared by the highest number
+		of vertices is the face's group 
+		"""
+		weightDict = {}
+		for vert in face:
+			vWeights = vWeightMap[vert.index]
+			for vGroupName, weight in vWeights:
+				weightDict[vGroupName] = weightDict.get(vGroupName, 0) + weight
+		
+		if weightDict:
+			alist = [(weight,vGroupName) for vGroupName, weight in weightDict.iteritems()] # sort least to greatest amount of weight
+			alist.sort()
+			return(alist[-1][1]) # highest value last
+		else:
+			return '(null)'
+
+
 	print 'OBJ Export path: "%s"' % filename
 	temp_mesh_name = '~tmp-mesh'
 
@@ -239,12 +263,12 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 	
 	globalNormals = {}
 	
-	# Get all meshs
+	# Get all meshes
 	for ob_main in objects:
 		for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
 			# Will work for non meshes now! :)
 			# getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None)
-			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scn)
+			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
 			if not me:
 				continue
 			
@@ -397,6 +421,17 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 			if not faceuv:
 				f_image = None
 			
+			if EXPORT_POLYGROUPS:
+				# Retrieve the list of vertex groups
+				vertGroupNames = me.getVertGroupNames()
+
+				currentVGroup = ''
+				# Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
+				vgroupsMap = [[] for _i in xrange(len(me.verts))]
+				for vertexGroupName in vertGroupNames:
+					for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
+						vgroupsMap[vIdx].append((vertexGroupName, vWeight))
+
 			for f_index, f in enumerate(faces):
 				f_v= f.v
 				f_smooth= f.smooth
@@ -411,9 +446,18 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 				else:
 					key = materialNames[f_mat],  None # No image, use None instead.
 				
+				# Write the vertex group
+				if EXPORT_POLYGROUPS:
+					if vertGroupNames:
+						# find what vertext group the face belongs to
+						theVGroup = findVertexGroupName(f,vgroupsMap)
+						if	theVGroup != currentVGroup:
+							currentVGroup = theVGroup
+							file.write('g %s\n' % theVGroup)
+
 				# CHECK FOR CONTEXT SWITCH
 				if key == contextMat:
-					pass # Context alredy switched, dont do anythoing
+					pass # Context alredy switched, dont do anything
 				else:
 					if key[0] == None and key[1] == None:
 						# Write a null material, since we know the context has changed.
@@ -438,6 +482,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 						
 						if EXPORT_GROUP_BY_MAT:
 							file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.getData(1)), mat_data[0]) ) # can be mat_image or (null)
+
 						file.write('usemtl %s\n' % mat_data[0]) # can be mat_image or (null)
 					
 				contextMat = key
@@ -539,7 +584,8 @@ def write_ui(filename):
 		EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
 		EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
 		EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
-		EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+		EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
+		EXPORT_POLYGROUPS
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(0)
 	EXPORT_ROTX90 = Draw.Create(1)
@@ -557,6 +603,8 @@ def write_ui(filename):
 	EXPORT_GROUP_BY_OB = Draw.Create(0)
 	EXPORT_GROUP_BY_MAT = Draw.Create(0)
 	EXPORT_KEEP_VERT_ORDER = Draw.Create(1)
+	EXPORT_POLYGROUPS = Draw.Create(0)
+	
 	
 	# Old UI
 	'''
@@ -607,7 +655,7 @@ def write_ui(filename):
 			GLOBALS['EVENT'] = e
 		
 		def do_split(e,v):
-			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER
+			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER, EXPORT_POLYGROUPS
 			if EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val:
 				EXPORT_KEEP_VERT_ORDER.val = 0
 			else:
@@ -620,6 +668,7 @@ def write_ui(filename):
 			else:
 				if not (EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val):
 					EXPORT_KEEP_VERT_ORDER.val = 1
+			
 			
 		def do_help(e,v):
 			url = __url__[0]
@@ -637,43 +686,45 @@ def write_ui(filename):
 			
 			# Center based on overall pup size
 			ui_x -= 165
-			ui_y -= 110
+			ui_y -= 140
 			
 			global EXPORT_APPLY_MODIFIERS, EXPORT_ROTX90, EXPORT_TRI, EXPORT_EDGES,\
 				EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
 				EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
 				EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
-				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
+				EXPORT_POLYGROUPS
 
-			Draw.Label('Context...', ui_x+9, ui_y+209, 220, 20)
+			Draw.Label('Context...', ui_x+9, ui_y+239, 220, 20)
 			Draw.BeginAlign()
-			EXPORT_SEL_ONLY = Draw.Toggle('Selection Only', EVENT_NONE, ui_x+9, ui_y+189, 110, 20, EXPORT_SEL_ONLY.val, 'Only export objects in visible selection. Else export whole scene.')
-			EXPORT_ALL_SCENES = Draw.Toggle('All Scenes', EVENT_NONE, ui_x+119, ui_y+189, 110, 20, EXPORT_ALL_SCENES.val, 'Each scene as a separate OBJ file.')
-			EXPORT_ANIMATION = Draw.Toggle('Animation', EVENT_NONE, ui_x+229, ui_y+189, 110, 20, EXPORT_ANIMATION.val, 'Each frame as a numbered OBJ file.')
+			EXPORT_SEL_ONLY = Draw.Toggle('Selection Only', EVENT_NONE, ui_x+9, ui_y+219, 110, 20, EXPORT_SEL_ONLY.val, 'Only export objects in visible selection. Else export whole scene.')
+			EXPORT_ALL_SCENES = Draw.Toggle('All Scenes', EVENT_NONE, ui_x+119, ui_y+219, 110, 20, EXPORT_ALL_SCENES.val, 'Each scene as a separate OBJ file.')
+			EXPORT_ANIMATION = Draw.Toggle('Animation', EVENT_NONE, ui_x+229, ui_y+219, 110, 20, EXPORT_ANIMATION.val, 'Each frame as a numbered OBJ file.')
 			Draw.EndAlign()
 			
 			
-			Draw.Label('Output Options...', ui_x+9, ui_y+159, 220, 20)
+			Draw.Label('Output Options...', ui_x+9, ui_y+189, 220, 20)
 			Draw.BeginAlign()
-			EXPORT_APPLY_MODIFIERS = Draw.Toggle('Apply Modifiers', EVENT_REDRAW, ui_x+9, ui_y+140, 110, 20, EXPORT_APPLY_MODIFIERS.val, 'Use transformed mesh data from each object. May break vert order for morph targets.', do_split)
-			EXPORT_ROTX90 = Draw.Toggle('Rotate X90', EVENT_NONE, ui_x+119, ui_y+140, 110, 20, EXPORT_ROTX90.val, 'Rotate on export so Blenders UP is translated into OBJs UP')
-			EXPORT_COPY_IMAGES = Draw.Toggle('Copy Images', EVENT_NONE, ui_x+229, ui_y+140, 110, 20, EXPORT_COPY_IMAGES.val, 'Copy image files to the export directory, never overwrite.')
+			EXPORT_APPLY_MODIFIERS = Draw.Toggle('Apply Modifiers', EVENT_REDRAW, ui_x+9, ui_y+170, 110, 20, EXPORT_APPLY_MODIFIERS.val, 'Use transformed mesh data from each object. May break vert order for morph targets.', do_split)
+			EXPORT_ROTX90 = Draw.Toggle('Rotate X90', EVENT_NONE, ui_x+119, ui_y+170, 110, 20, EXPORT_ROTX90.val, 'Rotate on export so Blenders UP is translated into OBJs UP')
+			EXPORT_COPY_IMAGES = Draw.Toggle('Copy Images', EVENT_NONE, ui_x+229, ui_y+170, 110, 20, EXPORT_COPY_IMAGES.val, 'Copy image files to the export directory, never overwrite.')
 			Draw.EndAlign()
 			
 			
-			Draw.Label('Export...', ui_x+9, ui_y+109, 220, 20)
+			Draw.Label('Export...', ui_x+9, ui_y+139, 220, 20)
 			Draw.BeginAlign()
-			EXPORT_EDGES = Draw.Toggle('Edges', EVENT_NONE, ui_x+9, ui_y+90, 50, 20, EXPORT_EDGES.val, 'Edges not connected to faces.')
-			EXPORT_TRI = Draw.Toggle('Triangulate', EVENT_NONE, ui_x+59, ui_y+90, 70, 20, EXPORT_TRI.val, 'Triangulate quads.')
+			EXPORT_EDGES = Draw.Toggle('Edges', EVENT_NONE, ui_x+9, ui_y+120, 50, 20, EXPORT_EDGES.val, 'Edges not connected to faces.')
+			EXPORT_TRI = Draw.Toggle('Triangulate', EVENT_NONE, ui_x+59, ui_y+120, 70, 20, EXPORT_TRI.val, 'Triangulate quads.')
 			Draw.EndAlign()
 			Draw.BeginAlign()
-			EXPORT_MTL = Draw.Toggle('Materials', EVENT_NONE, ui_x+139, ui_y+90, 70, 20, EXPORT_MTL.val, 'Write a separate MTL file with the OBJ.')
-			EXPORT_UV = Draw.Toggle('UVs', EVENT_NONE, ui_x+209, ui_y+90, 31, 20, EXPORT_UV.val, 'Export texface UV coords.')
+			EXPORT_MTL = Draw.Toggle('Materials', EVENT_NONE, ui_x+139, ui_y+120, 70, 20, EXPORT_MTL.val, 'Write a separate MTL file with the OBJ.')
+			EXPORT_UV = Draw.Toggle('UVs', EVENT_NONE, ui_x+209, ui_y+120, 31, 20, EXPORT_UV.val, 'Export texface UV coords.')
 			Draw.EndAlign()
 			Draw.BeginAlign()
-			EXPORT_NORMALS = Draw.Toggle('Normals', EVENT_NONE, ui_x+250, ui_y+90, 59, 20, EXPORT_NORMALS.val, 'Export vertex normal data (Ignored on import).')
-			EXPORT_NORMALS_HQ = Draw.Toggle('HQ', EVENT_NONE, ui_x+309, ui_y+90, 31, 20, EXPORT_NORMALS_HQ.val, 'Calculate high quality normals for rendering.')
+			EXPORT_NORMALS = Draw.Toggle('Normals', EVENT_NONE, ui_x+250, ui_y+120, 59, 20, EXPORT_NORMALS.val, 'Export vertex normal data (Ignored on import).')
+			EXPORT_NORMALS_HQ = Draw.Toggle('HQ', EVENT_NONE, ui_x+309, ui_y+120, 31, 20, EXPORT_NORMALS_HQ.val, 'Calculate high quality normals for rendering.')
 			Draw.EndAlign()
+			EXPORT_POLYGROUPS = Draw.Toggle('Polygroups', EVENT_REDRAW, ui_x+9, ui_y+95, 120, 20, EXPORT_POLYGROUPS.val, 'Export vertex groups as OBJ groups (one group per face approximation).')
 			
 			
 			Draw.Label('Blender Objects as OBJ:', ui_x+9, ui_y+59, 220, 20)
@@ -727,7 +778,7 @@ def write_ui(filename):
 	EXPORT_GROUP_BY_OB = EXPORT_GROUP_BY_OB.val
 	EXPORT_GROUP_BY_MAT = EXPORT_GROUP_BY_MAT.val
 	EXPORT_KEEP_VERT_ORDER = EXPORT_KEEP_VERT_ORDER.val
-	
+	EXPORT_POLYGROUPS = EXPORT_POLYGROUPS.val
 	
 	
 	base_name, ext = splitExt(filename)
@@ -776,7 +827,8 @@ def write_ui(filename):
 			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
 			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
 			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER)
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
+			EXPORT_POLYGROUPS)
 		
 		Blender.Set('curframe', orig_frame)
 	

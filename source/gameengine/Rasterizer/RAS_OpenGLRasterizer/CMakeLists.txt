@@ -32,6 +32,7 @@ SET(INC
   ../../../../intern/moto/include
   ../../../../source/gameengine/Rasterizer
   ../../../../source/gameengine/Ketsji
+  ../../../../source/gameengine/SceneGraph
   ../../../../extern/glew/include
   ../../../../source/blender/gpu
   ../../../../source/blender/makesdna

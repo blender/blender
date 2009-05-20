@@ -41,6 +41,9 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+/* utility conversion function */
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+
 class KX_Camera : public KX_GameObject
 {
 	Py_Header;
@@ -270,6 +273,10 @@ public:
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
+	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
+
 	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
 	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
@@ -284,8 +291,8 @@ public:
 	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-	static PyObject*	pyattr_get_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static int			pyattr_set_is_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

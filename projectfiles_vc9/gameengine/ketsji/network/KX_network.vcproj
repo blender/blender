@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="KX_network"
 	ProjectGUID="{6E24BF09-9653-4166-A871-F65CC9E98A9B}"
+	RootNamespace="KX_network"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -42,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -117,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -192,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -267,7 +268,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -342,7 +343,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -417,7 +418,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"

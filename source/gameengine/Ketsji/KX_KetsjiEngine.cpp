@@ -97,6 +97,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+int	   KX_KetsjiEngine::m_maxLogicFrame = 5;
 double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
@@ -261,9 +262,9 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
 	m_sceneconverter = sceneconverter;
 }
 
-void KX_KetsjiEngine::InitDome(float size, short res, short mode, short angle, float resbuf, struct Text* text)
+void KX_KetsjiEngine::InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text)
 {
-	m_dome = new KX_Dome(m_canvas, m_rasterizer, m_rendertools,this, size, res, mode, angle, resbuf, text);
+	m_dome = new KX_Dome(m_canvas, m_rasterizer, m_rendertools,this, res, mode, angle, resbuf, tilt, text);
 	m_usedome = true;
 }
 
@@ -271,7 +272,6 @@ void KX_KetsjiEngine::RenderDome()
 {
 	GLuint	viewport[4]={0};
 	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
-//	unsigned int m_viewport[4] = {viewport[0], viewport[1], viewport[2], viewport[3]};
 	
 	m_dome->SetViewPort(viewport);
 
@@ -295,11 +295,6 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
-	for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
-	{
-		// do this only once per scene
-		(*sceneit)->UpdateMeshTransformations();
-	}
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){
@@ -399,6 +394,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	m_firstframe = true;
 	m_bInitialized = true;
 	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+	m_maxLogicFrame = 5;
 	
 	if (m_game2ipo)
 	{
@@ -511,7 +507,8 @@ void KX_KetsjiEngine::EndFrame()
 
 bool KX_KetsjiEngine::NextFrame()
 {
-
+	double timestep = 1.0/m_ticrate;
+	double framestep = timestep;
 //	static hidden::Clock sClock;
 
 m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
@@ -520,7 +517,7 @@ m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
 //sClock.reset();
 
 if (m_bFixedTime)
-	m_clockTime += 1./m_ticrate;
+	m_clockTime += timestep;
 else
 {
 
@@ -554,18 +551,24 @@ else
 	{
 	
 	//	printf("framedOut: %d\n",frames);
-		m_frameTime+=(frames-frameOut)*(1.0/m_ticrate);
+		m_frameTime+=(frames-frameOut)*timestep;
 		frames = frameOut;
 	}
 	
 
 	bool doRender = frames>0;
 
+	if (frames > m_maxLogicFrame)
+	{
+		framestep = (frames*timestep)/m_maxLogicFrame;
+		frames = m_maxLogicFrame;
+	}
+		
 	while (frames)
 	{
 	
 
-		m_frameTime += 1.0/m_ticrate;
+		m_frameTime += framestep;
 		
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
@@ -644,7 +647,7 @@ else
 		
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_frameTime,1.0/m_ticrate);//m_deltatimerealDeltaTime);
+				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_frameTime,timestep,framestep);//m_deltatimerealDeltaTime);
 
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2_UPDATE);
@@ -717,7 +720,7 @@ else
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_clockTime,0.f);
+				scene->GetPhysicsEnvironment()->proceedDeltaTime(m_clockTime,timestep,timestep);
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.		
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -817,8 +820,8 @@ void KX_KetsjiEngine::Render()
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
 
-		// do this only once per scene
-		scene->UpdateMeshTransformations();
+		// this is now done incrementatlly in KX_Scene::CalculateVisibleMeshes
+		//scene->UpdateMeshTransformations();
 
 		// shadow buffers
 		RenderShadowBuffers(scene);
@@ -905,9 +908,6 @@ void KX_KetsjiEngine::Render()
 			}
 		}
 	} // if(m_rasterizer->Stereo())
-
-	// run the 2dfilters and motion blur once for all the scenes
-	PostRenderFrame();
 
 	EndFrame();
 }
@@ -1113,16 +1113,13 @@ void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect
 
 void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 {
-	CListValue *objectlist = scene->GetObjectList();
+	CListValue *lightlist = scene->GetLightList();
 	int i, drawmode;
 
 	m_rendertools->SetAuxilaryClientInfo(scene);
 
-	for(i=0; i<objectlist->GetCount(); i++) {
-		KX_GameObject *gameobj = (KX_GameObject*)objectlist->GetValue(i);
-
-		if(!gameobj->IsLight())
-			continue;
+	for(i=0; i<lightlist->GetCount(); i++) {
+		KX_GameObject *gameobj = (KX_GameObject*)lightlist->GetValue(i);
 
 		KX_LightObject *light = (KX_LightObject*)gameobj;
 
@@ -1262,9 +1259,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
 	cam->SetModelviewMatrix(viewmat);
 
-	//redundant, already done in Render()
-	//scene->UpdateMeshTransformations();
-
 	// The following actually reschedules all vertices to be
 	// redrawn. There is a cache between the actual rescheduling
 	// and this call though. Visibility is imparted when this call
@@ -1284,6 +1278,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
 	
 	m_rasterizer->FlushDebugLines();
+
+	//it's running once for every scene (i.e. overlay scenes have  it running twice). That's not the ideal.
+	PostRenderFrame();
 }
 
 void KX_KetsjiEngine::PostRenderFrame()
@@ -1727,6 +1724,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+int KX_KetsjiEngine::GetMaxLogicFrame()
+{
+	return m_maxLogicFrame;
+}
+
+void KX_KetsjiEngine::SetMaxLogicFrame(int frame)
+{
+	m_maxLogicFrame = frame;
 }
 
 double KX_KetsjiEngine::GetAnimFrameRate()

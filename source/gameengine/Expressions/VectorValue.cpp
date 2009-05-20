@@ -48,7 +48,7 @@ CVectorValue::CVectorValue(float x,float y,float z, AllocationTYPE alloctype)
 	m_vec[KX_Z] = m_transformedvec[KX_Z] = z;
 	
 }
-CVectorValue::CVectorValue(double vec[],STR_String name,AllocationTYPE alloctype) {
+CVectorValue::CVectorValue(double vec[],const char *name,AllocationTYPE alloctype) {
 	
 	SetCustomFlag1(false);//FancyOutput=false;
 	

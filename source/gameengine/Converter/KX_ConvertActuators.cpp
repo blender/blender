@@ -105,7 +105,6 @@ void BL_ConvertActuators(char* maggiename,
 						 SCA_LogicManager* logicmgr,
 						 KX_Scene* scene,
 						 KX_KetsjiEngine* ketsjiEngine,
-						 int & executePriority, 
 						 int activeLayerBitInfo,
 						 bool isInActiveLayer,
 						 RAS_IRenderTools* rendertools,
@@ -114,11 +113,20 @@ void BL_ConvertActuators(char* maggiename,
 {
 	
 	int uniqueint = 0;
+	int actcount = 0;
+	int executePriority = 0;
 	bActuator* bact = (bActuator*) blenderobject->actuators.first;
+	while (bact)
+	{
+		actcount++;
+		bact = bact->next;
+	}
+	gameobj->ReserveActuator(actcount);
+	bact = (bActuator*) blenderobject->actuators.first;
 	while(bact)
 	{
 		STR_String uniquename = bact->name;
-		STR_String objectname = gameobj->GetName();
+		STR_String& objectname = gameobj->GetName();
 		
 		SCA_IActuator* baseact = NULL;
 		switch (bact->type)
@@ -126,6 +134,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_OBJECT:
 			{
 				bObjectActuator* obact = (bObjectActuator*) bact->data;
+				KX_GameObject* obref = NULL;
 				MT_Vector3 forcevec(KX_BLENDERTRUNC(obact->forceloc[0]),
 					KX_BLENDERTRUNC(obact->forceloc[1]),
 					KX_BLENDERTRUNC(obact->forceloc[2]));
@@ -163,9 +172,13 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
 				bitLocalFlag.ServoControl = bool(obact->type == ACT_OBJECT_SERVO);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
-				
+				if (obact->reference && bitLocalFlag.ServoControl)
+				{
+					obref = converter->FindGameObject(obact->reference);
+				}
 				
 				KX_ObjectActuator* tmpbaseact = new KX_ObjectActuator(gameobj,
+					obref,
 					forcevec.getValue(),
 					torquevec.getValue(),
 					dlocvec.getValue(),
@@ -1097,7 +1110,7 @@ void BL_ConvertActuators(char* maggiename,
 				buf = txt_to_buf(_2dfilter->text);
 				if (buf)
 				{
-					tmp->SetShaderText(STR_String(buf));
+					tmp->SetShaderText(buf);
 					MEM_freeN(buf);
 				}
 			}
@@ -1144,7 +1157,7 @@ void BL_ConvertActuators(char* maggiename,
 			CIntValue* uniqueval = new CIntValue(uniqueint);
 			uniquename += uniqueval->GetText();
 			uniqueval->Release();
-			baseact->SetName(STR_String(bact->name));
+			baseact->SetName(bact->name);
 			//gameobj->SetProperty(uniquename,baseact);
 			gameobj->AddActuator(baseact);
 			

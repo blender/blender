@@ -36,6 +36,7 @@ extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
 class RAS_MeshObject;
+struct DerivedMesh;
 class btCollisionShape;
 
 
@@ -59,7 +60,7 @@ class CcdShapeConstructionInfo
 public:
 	
 
-	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
@@ -139,7 +140,7 @@ public:
 		return true;
 	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
+	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
@@ -151,7 +152,7 @@ public:
 		return m_shapeProxy;
 	}
 
-	btCollisionShape* CreateBulletShape();
+	btCollisionShape* CreateBulletShape(btScalar margin);
 
 	// member variables
 	PHY_ShapeType			m_shapeType;
@@ -221,6 +222,7 @@ struct CcdConstructionInfo
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_bSoft(false),
+		m_bSensor(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -287,6 +289,7 @@ struct CcdConstructionInfo
 	int			m_collisionFlags;
 	bool		m_bRigid;
 	bool		m_bSoft;
+	bool		m_bSensor;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
@@ -325,7 +328,7 @@ class btSoftBody;
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-
+protected:
 	btCollisionObject* m_object;
 	
 
@@ -360,8 +363,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		return (--m_registerCount == 0) ? true : false;
 	}
 
-	protected:
-		void setWorldOrientation(const btMatrix3x3& mat);
+	void setWorldOrientation(const btMatrix3x3& mat);
+	void forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
 
 	public:
 	
@@ -406,6 +409,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly);
 		virtual	void		WriteDynamicsToMotionState();
+
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
 
@@ -504,7 +508,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		void	SetCenterOfMassTransform(btTransform& xform);
 
-		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
+		static btTransform&	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
 		void	setAabb(const btVector3& aabbMin,const btVector3& aabbMax);
 
@@ -562,6 +566,7 @@ class	DefaultMotionState : public PHY_IMotionState
 		virtual void	setWorldPosition(float posX,float posY,float posZ);
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
 		virtual void	getWorldOrientation(float* ori);
+		virtual void	setWorldOrientation(const float* ori);
 		
 		virtual	void	calculateWorldTransformations();
 		

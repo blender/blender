@@ -52,7 +52,7 @@ public:
   					PyTypeObject* T=&Type);
 	virtual ~SCA_RandomSensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 

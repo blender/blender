@@ -203,8 +203,11 @@ static void realloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 		if(psys->particles->keys)
 			MEM_freeN(psys->particles->keys);
 
-		for(i=0, pa=psys->particles; i<totsaved; i++, pa++)
-			if(pa->keys) pa->keys= NULL;
+		for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
+			if(pa->keys) {
+				pa->keys= NULL;
+				pa->totkey= 0;
+			}
 
 		for(i=totsaved, pa=psys->particles+totsaved; i<psys->totpart; i++, pa++)
 			if(pa->hair) MEM_freeN(pa->hair);
@@ -2007,7 +2010,6 @@ static void set_keyed_keys(Object *ob, ParticleSystem *psys)
 	Object *kob = ob;
 	ParticleSystem *kpsys = psys;
 	ParticleData *pa;
-	ParticleKey state;
 	int totpart = psys->totpart, i, k, totkeys = psys->totkeyed + 1;
 	float prevtime, nexttime, keyedtime;
 
@@ -2031,10 +2033,11 @@ static void set_keyed_keys(Object *ob, ParticleSystem *psys)
 	}
 	
 	psys->flag &= ~PSYS_KEYED;
-	state.time=-1.0;
 
 	for(k=0; k<totkeys; k++) {
 		for(i=0,pa=psys->particles; i<totpart; i++, pa++) {
+			(pa->keys + k)->time = -1.0; /* use current time */
+
 			if(kpsys->totpart > 0)
 				psys_get_particle_state(kob, kpsys, i%kpsys->totpart, pa->keys + k, 1);
 

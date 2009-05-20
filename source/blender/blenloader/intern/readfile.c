@@ -133,6 +133,7 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_multires.h" // for multires_free
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -616,10 +617,16 @@ static BHeadN *get_bhead(FileData *fd)
 	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
-
+	
 	if (fd) {
 		if ( ! fd->eof) {
 
+			/* not strictly needed but shuts valgrind up
+			 * since uninitialized memory gets compared */
+			memset(&bhead8, 0, sizeof(BHead8));
+			memset(&bhead4, 0, sizeof(BHead4));
+			memset(&bhead,  0, sizeof(BHead));
+			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can
 			// be a big or little endian BHead4 or BHead8 structure.
@@ -3071,6 +3078,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bAddObjectActuator *eoa= act->data;
 					if(eoa) eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
 					if(eoa==NULL) {
@@ -3079,6 +3090,15 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					}
+				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -8076,9 +8096,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->r.domeangle = 180;
 			sce->r.domemode = 1;
-			sce->r.domesize = 1.0f;
 			sce->r.domeres = 4;
 			sce->r.domeresbuf = 1.0f;
+			sce->r.dometilt = 0;
 		}
 		/* DBVT culling by default */
 		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
@@ -8086,6 +8106,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->occlusionRes = 128;
 		}
 	}
+		
+	if (main->versionfile < 249) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next)
+			sce->r.renderer= 0;
+		
+	}
+	
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -8848,6 +8876,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 				expand_doit(fd, mainvar, eoa->me);
 			}
 		}
+		else if(act->type==ACT_OBJECT) {
+			bObjectActuator *oa= act->data;
+			expand_doit(fd, mainvar, oa->reference);
+		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;
 			expand_doit(fd, mainvar, sa->camera);
@@ -9234,6 +9266,8 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, dir, sfile->file, sfile->flag, idcode);
+	BLO_blendhandle_close(sfile->libfiledata);
+	sfile->libfiledata= NULL;
 }
 
 void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)

@@ -34,7 +34,7 @@
 /* utility conversion function */
 bool ConvertPythonToMesh(PyObject * value, class RAS_MeshObject **object, bool py_none_ok, const char *error_prefix);
 
-class KX_MeshProxy	: public SCA_IObject
+class KX_MeshProxy	: public CValue
 {
 	Py_Header;
 
@@ -51,8 +51,8 @@ public:
 	virtual const STR_String &	GetText();
 	virtual double		GetNumber();
 	virtual RAS_MeshObject* GetMesh() { return m_meshobj; }
-	virtual STR_String	GetName();
-	virtual void		SetName(STR_String name);								// Set the name of the value
+	virtual STR_String&	GetName();
+	virtual void		SetName(const char *name);								// Set the name of the value
 	virtual CValue*		GetReplica();
 
 // stuff for python integration

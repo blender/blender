@@ -236,6 +236,8 @@ public:
 	virtual int				py_delattro(PyObject *attr);
 	virtual int				py_setattro(PyObject *attr, PyObject* value);
 	
+	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	
 	virtual PyObject* ConvertKeysToPython( void );
 	
 	KX_PYMETHOD_NOARGS(CValue,GetName);
@@ -259,17 +261,56 @@ public:
 	};
 
 	/// Reference Counting
-	int					GetRefCount()											{ return m_refcount; }
-	virtual	CValue*		AddRef();												// Add a reference to this value
-	virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
-	
+	int					GetRefCount()											
+	{ 
+		return m_refcount; 
+	}
+
+	// Add a reference to this value
+	CValue*				AddRef()												
+	{
+		// Increase global reference count, used to see at the end of the program
+		// if all CValue-derived classes have been dereferenced to 0
+		//debug(gRefCountValue++);
+	#ifdef _DEBUG
+		//gRefCountValue++;
+	#endif
+		m_refcount++; 
+		return this;
+	}
+
+	// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
+	int			Release()								
+	{
+		// Decrease global reference count, used to see at the end of the program
+		// if all CValue-derived classes have been dereferenced to 0
+		//debug(gRefCountValue--);
+	#ifdef _DEBUG
+		//gRefCountValue--;
+	#endif
+		// Decrease local reference count, if it reaches 0 the object should be freed
+		if (--m_refcount > 0)
+		{
+			// Reference count normal, return new reference count
+			return m_refcount;
+		}
+		else
+		{
+			// Reference count reached 0, delete ourselves and return 0
+	//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
+			
+			delete this;
+			return 0;
+		}
+	}
+
 
 	/// Property Management
 	virtual void		SetProperty(const STR_String& name,CValue* ioProperty);						// Set property <ioProperty>, overwrites and releases a previous property with the same name if needed
 	virtual void		SetProperty(const char* name,CValue* ioProperty);
 	virtual CValue*		GetProperty(const char* inName);							// Get pointer to a property with name <inName>, returns NULL if there is no property named <inName>
 	virtual CValue*		GetProperty(const STR_String & inName);
-	STR_String			GetPropertyText(const STR_String & inName,const STR_String& deftext="");						// Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
+	const STR_String&	GetPropertyText(const STR_String & inName,const char *deftext=NULL);						// Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 	float				GetPropertyNumber(const STR_String& inName,float defnumber);
 	virtual bool		RemoveProperty(const char *inName);						// Remove the property named <inName>, returns true if the property was succesfully removed, false if property was not found or could not be removed
 	virtual vector<STR_String>	GetPropertyNames();
@@ -292,8 +333,8 @@ public:
 	double*				ZeroVector() { return m_sZeroVec; };
 	virtual double*		GetVector3(bool bGetTransformedVec = false);
 
-	virtual STR_String	GetName() = 0;											// Retrieve the name of the value
-	virtual void		SetName(STR_String name) = 0;								// Set the name of the value
+	virtual STR_String&	GetName() = 0;											// Retrieve the name of the value
+	virtual void		SetName(const char *name) = 0;								// Set the name of the value
 	/** Sets the value to this cvalue.
 	 * @attention this particular function should never be called. Why not abstract? */
 	virtual void		SetValue(CValue* newval);
@@ -381,49 +422,28 @@ public:
 #else
 	CPropValue() :
 #endif //NO_EXP_PYTHON_EMBEDDING
-		m_pstrNewName(NULL)
+		m_strNewName()
 
 	{
 	}
 	
 	virtual ~CPropValue()
 	{
-		if (m_pstrNewName)
-		{
-			delete m_pstrNewName;
-			m_pstrNewName = NULL;
-		}
 	}
 	
-	virtual void			SetName(STR_String name) {
-		if (m_pstrNewName)
-		{
-			delete m_pstrNewName;
-			m_pstrNewName = NULL;	
-		}
-		if (name.Length())
-			m_pstrNewName = new STR_String(name);
-	}
-	virtual void			ProcessReplica() {
-		CValue::ProcessReplica();
-		if (m_pstrNewName)
-			m_pstrNewName = new STR_String(*m_pstrNewName);
+	virtual void			SetName(const char *name) {
+		m_strNewName = name;
 	}
 	
-	virtual STR_String			GetName() {
+	virtual STR_String&			GetName() {
 		//STR_String namefromprop = GetPropertyText("Name");
 		//if (namefromprop.Length() > 0)
 		//	return namefromprop;
-		
-		if (m_pstrNewName)
-		{
-			return *m_pstrNewName;
-		}
-		return STR_String("");
+		return m_strNewName;
 	};						// name of Value
 	
 protected:
-	STR_String*					m_pstrNewName;				    // Identification
+	STR_String					m_strNewName;				    // Identification
 };
 
 #endif // !defined _VALUEBASECLASS_H

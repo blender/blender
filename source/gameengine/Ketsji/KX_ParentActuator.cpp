@@ -137,8 +137,13 @@ bool KX_ParentActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ParentActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_ParentActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -173,7 +178,7 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 
 PyAttributeDef KX_ParentActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
-	//KX_PYATTRIBUTE_TODO("mode"),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_PARENT_NODEF+1, KX_PARENT_MAX-1, true, KX_ParentActuator, m_mode),
 	{ NULL }	//Sentinel
 };
 
@@ -192,7 +197,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 	KX_GameObject *gameobj;
 		
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_ob != NULL)
 		actuator->m_ob->UnregisterActuator(actuator);	
@@ -202,7 +207,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 	if (actuator->m_ob)
 		actuator->m_ob->RegisterActuator(actuator);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -262,7 +267,7 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_ob->GetName());
+		return PyString_FromString(m_ob->GetName().ReadPtr());
 	else
 		return m_ob->GetProxy();
 }

@@ -285,7 +285,7 @@ void BPY_end_python( void )
 		next_script = script->id.next;
 		free_libblock( &G.main->script, script );
 	}
-
+	
 	Py_Finalize(  );
 
 	BPyMenu_RemoveAllEntries(  );	/* freeing bpymenu mem */

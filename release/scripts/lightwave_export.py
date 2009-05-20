@@ -68,8 +68,13 @@ v5.5 format.
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender
-import struct, cStringIO, operator
 import BPyMesh
+try: import struct
+except: struct = None
+try: import cStringIO
+except: cStringIO = None
+try: import operator
+except: operator = None
 
 VCOL_NAME = "\251 Per-Face Vertex Colors"
 DEFAULT_NAME = "\251 Blender Default"
@@ -696,4 +701,7 @@ def fs_callback(filename):
 	if not filename.lower().endswith('.lwo'): filename += '.lwo'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export LWO", Blender.sys.makename(ext='.lwo'))
+if struct and cStringIO and operator:
+    Blender.Window.FileSelector(fs_callback, "Export LWO", Blender.sys.makename(ext='.lwo'))
+else:
+    Blender.Draw.PupMenu("Error%t|This script requires a full python installation")

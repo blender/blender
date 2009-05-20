@@ -63,11 +63,9 @@ numberoffilters(0), need_tex_update(true)
 	isshadersupported = GLEW_ARB_shader_objects &&
 		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;
 
+	/* used to return before 2.49 but need to initialize values so dont */
 	if(!isshadersupported)
-	{
 		std::cout<<"shaders not supported!" << std::endl;
-		return;
-	}
 
 	int passindex;
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)

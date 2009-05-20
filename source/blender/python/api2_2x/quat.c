@@ -39,7 +39,7 @@ char Quaternion_Negate_doc[] = "() - set all values in the quaternion to their n
 char Quaternion_Conjugate_doc[] = "() - set the quaternion to it's conjugate";
 char Quaternion_Inverse_doc[] = "() - set the quaternion to it's inverse";
 char Quaternion_Normalize_doc[] = "() - normalize the vector portion of the quaternion";
-char Quaternion_ToEuler_doc[] = "() - return a euler rotation representing the quaternion";
+char Quaternion_ToEuler_doc[] = "(eul_compat) - return a euler rotation representing the quaternion, optional euler argument that the new euler will be made compatible with.";
 char Quaternion_ToMatrix_doc[] = "() - return a rotation matrix representing the quaternion";
 char Quaternion_copy_doc[] = "() - return a copy of the quat";
 //-----------------------METHOD DEFINITIONS ----------------------
@@ -49,7 +49,7 @@ struct PyMethodDef Quaternion_methods[] = {
 	{"conjugate", (PyCFunction) Quaternion_Conjugate, METH_NOARGS, Quaternion_Conjugate_doc},
 	{"inverse", (PyCFunction) Quaternion_Inverse, METH_NOARGS, Quaternion_Inverse_doc},
 	{"normalize", (PyCFunction) Quaternion_Normalize, METH_NOARGS, Quaternion_Normalize_doc},
-	{"toEuler", (PyCFunction) Quaternion_ToEuler, METH_NOARGS, Quaternion_ToEuler_doc},
+	{"toEuler", (PyCFunction) Quaternion_ToEuler, METH_VARARGS, Quaternion_ToEuler_doc},
 	{"toMatrix", (PyCFunction) Quaternion_ToMatrix, METH_NOARGS, Quaternion_ToMatrix_doc},
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
@@ -58,12 +58,30 @@ struct PyMethodDef Quaternion_methods[] = {
 //-----------------------------METHODS------------------------------
 //----------------------------Quaternion.toEuler()------------------
 //return the quat as a euler
-PyObject *Quaternion_ToEuler(QuaternionObject * self)
+PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
 	float eul[3];
+	EulerObject *eul_compat = NULL;
 	int x;
-
-	QuatToEul(self->quat, eul);
+	
+	if(!PyArg_ParseTuple(args, "|O!:toEuler", &euler_Type, &eul_compat))
+		return NULL;
+	
+	if(eul_compat) {
+		float mat[3][3], eul_compatf[3];
+		
+		for(x = 0; x < 3; x++) {
+			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
+		}
+		
+		QuatToMat3(self->quat, mat);
+		Mat3ToCompatibleEul(mat, eul, eul_compatf);
+	}
+	else {
+		QuatToEul(self->quat, eul);
+	}
+	
+	
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (180 / (float)Py_PI);
 	}

@@ -51,23 +51,36 @@
 
 #include "KX_PyMath.h"
 
-KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
-											   Material *material,
-											   int materialindex,
-											   int tile,
-											   int tilexrep,
-											   int tileyrep,
-											   int mode,
-											   int transp,
-											   bool alpha,
-											   bool zsort,
-											   int lightlayer,
-											   struct MTFace* tface,
-											   unsigned int* mcol,
-											   PyTypeObject *T)
+KX_PolygonMaterial::KX_PolygonMaterial(PyTypeObject *T) 
 		: PyObjectPlus(T),
-		  RAS_IPolyMaterial(texname,
-							STR_String(material?material->id.name:""),
+		  RAS_IPolyMaterial(),
+
+	m_tface(NULL),
+	m_mcol(NULL),
+	m_material(NULL),
+	m_pymaterial(NULL),
+	m_pass(0)
+{
+}
+
+void KX_PolygonMaterial::Initialize(
+		const STR_String &texname,
+		Material* ma,
+		int materialindex,
+		int tile,
+		int tilexrep,
+		int tileyrep,
+		int mode,
+		int transp,
+		bool alpha,
+		bool zsort,
+		int lightlayer,
+		struct MTFace* tface,
+		unsigned int* mcol)
+{
+	RAS_IPolyMaterial::Initialize(
+							texname,
+							ma?ma->id.name:"",
 							materialindex,
 							tile,
 							tilexrep,
@@ -76,13 +89,12 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 							transp,
 							alpha,
 							zsort,
-							lightlayer),
-		m_tface(tface),
-		m_mcol(mcol),
-		m_material(material),
-		m_pymaterial(0),
-		m_pass(0)
-{
+							lightlayer);
+	m_tface = tface;
+	m_mcol = mcol;
+	m_material = ma;
+	m_pymaterial = 0;
+	m_pass = 0;
 }
 
 KX_PolygonMaterial::~KX_PolygonMaterial()
@@ -160,13 +172,18 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 			rasty->SetLines(true);
 		else
 			rasty->SetLines(false);
+		rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
+		rasty->SetShinyness(m_shininess);
+		rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
+		if (m_material)
+			rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
 	}
 
-	rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
-	rasty->SetShinyness(m_shininess);
-	rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
-	if (m_material)
-		rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
+	//rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
+	//rasty->SetShinyness(m_shininess);
+	//rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
+	//if (m_material)
+	//	rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
 }
 
 void KX_PolygonMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
@@ -222,8 +239,13 @@ PyAttributeDef KX_PolygonMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_PolygonMaterial::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_PolygonMaterial",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -364,10 +386,10 @@ int KX_PolygonMaterial::pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DE
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->m_diffuse= vec;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -382,8 +404,8 @@ int KX_PolygonMaterial::pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_D
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->m_specular= vec;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }

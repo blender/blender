@@ -94,37 +94,40 @@ ______________________________________________________________
 import Blender
 from Blender import Mathutils, Window, Scene, sys, Draw, Mesh
 import BPyMessages
-import os
-import subprocess
+try: import os
+except: os = None
+try: import subprocess
+except: subprocess = None
+try: import copy
+except: copy = None
 
 #print os.sys.platform
 #print dir(os.sys.version)
 
 #import dxfLibrary
 #reload(dxfLibrary)
-from  dxfLibrary import *
-
-
-#-------- DWG support ------------------------------------------
-extCONV_OK = True
-extCONV = 'DConvertCon.exe'
-extCONV_PATH = os.path.join(Blender.Get('scriptsdir'),extCONV)
-if not os.path.isfile(extCONV_PATH):
-	extCONV_OK = False
-	extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
-Copy first %s into Blender script directory.|\
-More details in online Help.' %extCONV
-else:
-	if not os.sys.platform.startswith('win'):
-		# check if Wine installed:   
-		if subprocess.Popen(('which', 'winepath'), stdout=subprocess.PIPE).stdout.read().strip():
-			extCONV_PATH    = 'wine %s'%extCONV_PATH
-		else: 
-			extCONV_OK = False
-			extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
-The external DWG-converter (%s) needs Wine installed on your system.|\
-More details in online Help.' %extCONV
-#print 'extCONV_PATH = ', extCONV_PATH
+if copy and os:
+    from  dxfLibrary import *
+    #-------- DWG support ------------------------------------------
+    extCONV_OK = True
+    extCONV = 'DConvertCon.exe'
+    extCONV_PATH = os.path.join(Blender.Get('scriptsdir'),extCONV)
+    if not os.path.isfile(extCONV_PATH):
+        extCONV_OK = False
+        extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
+    Copy first %s into Blender script directory.|\
+    More details in online Help.' %extCONV
+    else:
+        if not os.sys.platform.startswith('win'):
+            # check if Wine installed:   
+            if subprocess.Popen(('which', 'winepath'), stdout=subprocess.PIPE).stdout.read().strip():
+                extCONV_PATH    = 'wine %s'%extCONV_PATH
+            else: 
+                extCONV_OK = False
+                extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
+    The external DWG-converter (%s) needs Wine installed on your system.|\
+    More details in online Help.' %extCONV
+    #print 'extCONV_PATH = ', extCONV_PATH
 
 
 
@@ -526,7 +529,8 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 
 #-----------------------------------------------------
 if __name__=='__main__':
-	#main()
-	if not copy:
-		Draw.PupMenu('Error%t|This script requires a full python install')
-	else: Window.FileSelector(dxf_export_ui, 'EXPORT DXF', sys.makename(ext='.dxf'))
+    #main()
+    if copy and os and subprocess:
+        Window.FileSelector(dxf_export_ui, 'EXPORT DXF', sys.makename(ext='.dxf'))
+    else:
+        Draw.PupMenu('Error%t|This script requires a full python install')

@@ -220,12 +220,17 @@ int SCA_Joystick::GetNumberOfHats()
 bool SCA_Joystick::CreateJoystickDevice(void)
 {
 #ifdef DISABLE_SDL
+	m_isinit = true;
+	m_axismax = m_buttonmax = m_hatmax = 0;
 	return false;
 #else
 	if(m_isinit == false){
 		if (m_joyindex>=SDL_NumJoysticks()) {
 			// don't print a message, because this is done anyway
 			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
+			
+			// Need this so python args can return empty lists
+			m_axismax = m_buttonmax = m_hatmax = 0;
 			return false;
 		}
 
@@ -237,12 +242,14 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		
 		/* must run after being initialized */
 		m_axismax =		SDL_JoystickNumAxes(m_private->m_joystick);
-		if (m_axismax > JOYAXIS_MAX) m_axismax= JOYAXIS_MAX;		/* very unlikely */
-		
 		m_buttonmax =	SDL_JoystickNumButtons(m_private->m_joystick);
 		m_hatmax =		SDL_JoystickNumHats(m_private->m_joystick);
 		
+		if (m_axismax > JOYAXIS_MAX) m_axismax= JOYAXIS_MAX;		/* very unlikely */
+		else if (m_axismax < 0) m_axismax = 0;
 		
+		if(m_buttonmax<0) m_buttonmax= 0;
+		if(m_hatmax<0) m_hatmax= 0;
 	}
 	return true;
 #endif

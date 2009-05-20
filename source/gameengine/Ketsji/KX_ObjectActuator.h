@@ -35,8 +35,10 @@
 #include "SCA_IActuator.h"
 #include "MT_Vector3.h"
 
+class KX_GameObject;
+
 //
-// Bitfield that stores the flags for each CValue derived class
+// Stores the flags for each CValue derived class
 //
 struct KX_LocalFlags {
 	KX_LocalFlags() :
@@ -55,20 +57,20 @@ struct KX_LocalFlags {
 	{
 	}
 
-	unsigned short Force : 1;
-	unsigned short Torque : 1;
-	unsigned short DRot : 1;
-	unsigned short DLoc : 1;
-	unsigned short LinearVelocity : 1;
-	unsigned short AngularVelocity : 1;
-	unsigned short AddOrSetLinV : 1;
-	unsigned short ServoControl : 1;
-	unsigned short ZeroForce : 1;
-	unsigned short ZeroTorque : 1;
-	unsigned short ZeroDRot : 1;
-	unsigned short ZeroDLoc : 1;
-	unsigned short ZeroLinearVelocity : 1;
-	unsigned short ZeroAngularVelocity : 1;
+	bool Force;
+	bool Torque;
+	bool DRot;
+	bool DLoc;
+	bool LinearVelocity;
+	bool AngularVelocity;
+	bool AddOrSetLinV;
+	bool ServoControl;
+	bool ZeroForce;
+	bool ZeroTorque;
+	bool ZeroDRot;
+	bool ZeroDLoc;
+	bool ZeroLinearVelocity;
+	bool ZeroAngularVelocity;
 };
 
 class KX_ObjectActuator : public SCA_IActuator
@@ -80,7 +82,8 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_dloc;
 	MT_Vector3		m_drot;
 	MT_Vector3		m_linear_velocity;
-	MT_Vector3		m_angular_velocity;	
+	MT_Vector3		m_angular_velocity;
+	MT_Vector3		m_pid;
 	MT_Scalar		m_linear_length2;
 	MT_Scalar		m_angular_length2;
 	// used in damping
@@ -91,7 +94,7 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_previous_error;
 	MT_Vector3		m_error_accumulator;
   	KX_LocalFlags	m_bitLocalFlag;
-
+	KX_GameObject*  m_reference;
 	// A hack bool -- oh no sorry everyone
 	// This bool is used to check if we have informed 
 	// the physics object that we are no longer 
@@ -120,6 +123,7 @@ public:
 
 	KX_ObjectActuator(
 		SCA_IObject* gameobj,
+		KX_GameObject* refobj,
 		const MT_Vector3& force,
 		const MT_Vector3& torque,
 		const MT_Vector3& dloc,
@@ -130,8 +134,11 @@ public:
 		const KX_LocalFlags& flag,
 		PyTypeObject* T=&Type
 	);
-
+	~KX_ObjectActuator();
 	CValue* GetReplica();
+	void ProcessReplica();
+	bool UnlinkObject(SCA_IObject* clientobj);
+	void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
 	void UpdateFuzzyFlags()
@@ -155,6 +162,7 @@ public:
 	
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual PyObject* py_getattro_dict();
+	virtual int	py_setattro(PyObject *attr, PyObject *value);
 
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForce);
@@ -178,6 +186,53 @@ public:
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForceLimitZ);
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetPID);
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetPID);
+
+	/* Attributes */
+	static PyObject*	pyattr_get_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_forceLimitY(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+	// This lets the attribute macros use UpdateFuzzyFlags()
+	static int PyUpdateFuzzyFlags(void *self, const PyAttributeDef *attrdef)
+	{
+		KX_ObjectActuator* act = reinterpret_cast<KX_ObjectActuator*>(self);
+		act->UpdateFuzzyFlags();
+		return 0;
+	}
+
+	// This is the keep the PID values in check after they are assigned with Python
+	static int PyCheckPid(void *self, const PyAttributeDef *attrdef)
+	{
+		KX_ObjectActuator* act = reinterpret_cast<KX_ObjectActuator*>(self);
+
+		//P 0 to 200
+		if (act->m_pid[0] < 0) {
+			act->m_pid[0] = 0;
+		} else if (act->m_pid[0] > 200) {
+			act->m_pid[0] = 200;
+		}
+
+		//I 0 to 3
+		if (act->m_pid[1] < 0) {
+			act->m_pid[1] = 0;
+		} else if (act->m_pid[1] > 3) {
+			act->m_pid[1] = 3;
+		}
+
+		//D -100 to 100
+		if (act->m_pid[2] < -100) {
+			act->m_pid[2] = -100;
+		} else if (act->m_pid[2] > 100) {
+			act->m_pid[2] = 100;
+		}
+
+		return 0;
+	}
 };
 
 #endif //__KX_OBJECTACTUATOR

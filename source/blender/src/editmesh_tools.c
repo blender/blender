@@ -5624,6 +5624,8 @@ void mesh_rip(void)
 	float projectMat[4][4], viewMat[4][4], vec[3], dist, mindist;
 	short doit= 1, mval[2],propmode,prop;
 	
+	if(multires_test()) return;
+	
 	propmode = G.scene->prop_mode;
 	G.scene->prop_mode = 0;
 	prop = G.scene->proportional;

@@ -30,6 +30,8 @@
 #include "BL_DeformableGameObject.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_ShapeActionActuator.h"
+#include "RAS_MaterialBucket.h"
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -99,5 +101,16 @@ bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 		}
 	}
 	return !shape.empty();
+}
+
+void BL_DeformableGameObject::SetDeformer(class RAS_Deformer* deformer)
+{
+	m_pDeformer = deformer;
+
+	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+	for(mit.begin(); !mit.end(); ++mit)
+	{
+		(*mit)->SetDeformer(deformer);
+	}
 }
 

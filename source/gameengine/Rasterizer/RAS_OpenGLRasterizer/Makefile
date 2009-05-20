@@ -47,6 +47,7 @@ CPPFLAGS += -I../../../blender/blenlib
 CPPFLAGS += -I../../../blender/blenkernel
 CPPFLAGS += -I../../BlenderRoutines
 CPPFLAGS += -I../../Ketsji
+CPPFLAGS += -I../../SceneGraph
 CPPFLAGS += -I..
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 

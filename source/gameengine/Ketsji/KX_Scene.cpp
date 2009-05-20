@@ -111,7 +111,22 @@ void* KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
 	return NULL;
 };
 
-SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(KX_SceneReplicationFunc,KX_SceneDestructionFunc,KX_GameObject::UpdateTransformFunc);
+bool KX_Scene::KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene)
+{
+	return ((SG_Node*)node)->Schedule(((KX_Scene*)scene)->m_sghead);
+}
+
+bool KX_Scene::KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene)
+{
+	return ((SG_Node*)node)->Reschedule(((KX_Scene*)scene)->m_sghead);
+}
+
+SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(
+	KX_SceneReplicationFunc,
+	KX_SceneDestructionFunc,
+	KX_GameObject::UpdateTransformFunc,
+	KX_Scene::KX_ScenegraphUpdateFunc,
+	KX_Scene::KX_ScenegraphRescheduleFunc);
 
 // temporarily var until there is a button in the userinterface
 // (defined in KX_PythonInit.cpp)
@@ -149,7 +164,6 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_lightlist= new CListValue();
 	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
-	m_delayReleaseObjects = new CListValue();
 
 	m_logicmgr = new SCA_LogicManager();
 	
@@ -232,8 +246,6 @@ KX_Scene::~KX_Scene()
 
 	if (m_euthanasyobjects)
 		m_euthanasyobjects->Release();
-	if (m_delayReleaseObjects)
-		m_delayReleaseObjects->Release();
 
 	if (m_logicmgr)
 		delete m_logicmgr;
@@ -402,11 +414,11 @@ void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gam
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
 	if (NewRemoveObject(orgobj) != 0)
 	{
-		// object is not yet deleted (this can happen when it hangs in an add object actuator
-		// last object created reference. It's a bad situation, don't know how to fix it exactly
-		// The least I can do, is remove the reference to the node in the object as the node
-		// will in any case be deleted. This ensures that the object will not try to use the node
-		// when it is finally deleted (see KX_GameObject destructor)
+		// object is not yet deleted because a reference is hanging somewhere.
+		// This should not happen anymore since we use proxy object for Python
+		// confident enough to put an assert?
+		//assert(false);
+		printf("Zombie object! name=%s\n", orgobj->GetName().ReadPtr());
 		orgobj->SetSGNode(NULL);
 		PHY_IGraphicController* ctrl = orgobj->GetGraphicController();
 		if (ctrl)
@@ -471,6 +483,8 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
+	if (newobj->IsLight())
+		m_lightlist->Add(newobj->AddRef());
 	newobj->AddMeshUser();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
@@ -531,8 +545,9 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		vector<SCA_IActuator*> linkedactuators = cont->GetLinkedActuators();
 
 		// disconnect the sensors and actuators
-		cont->UnlinkAllSensors();
-		cont->UnlinkAllActuators();
+		// do it directly on the list at this controller is not connected to anything at this stage
+		cont->GetLinkedSensors().clear();
+		cont->GetLinkedActuators().clear();
 		
 		// now relink each sensor
 		for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());its++)
@@ -717,10 +732,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// set the orientation after position for softbody!
 		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
 		replica->NodeSetLocalOrientation(newori);
-
+		// update scenegraph for entire tree of children
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
 		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
+		// we can now add the graphic controller to the physic engine
+		replica->ActivateGraphicController(true);
+
 		// done with replica
 		replica->Release();
 	}
@@ -831,6 +849,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+	// the size is correct, we can add the graphic controller to the physic engine
+	replica->ActivateGraphicController(true);
 
 	// now replicate logic
 	vector<KX_GameObject*>::iterator git;
@@ -884,14 +904,6 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
-	/* Invalidate the python reference, since the object may exist in script lists
-	 * its possible that it wont be automatically invalidated, so do it manually here,
-	 * 
-	 * if for some reason the object is added back into the scene python can always get a new Proxy
-	 */
-	gameobj->InvalidateProxy();
-	
-	
 	// disconnect child from parent
 	SG_Node* node = newobj->GetSGNode();
 
@@ -905,12 +917,6 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 	//no need to do that: the object is destroyed and memory released 
 	//newobj->SetSGNode(0);
 }
-
-void KX_Scene::DelayedReleaseObject(CValue* gameobj)
-{
-	m_delayReleaseObjects->Add(gameobj->AddRef());
-}
-
 
 void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 {
@@ -927,6 +933,13 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	/* Invalidate the python reference, since the object may exist in script lists
+	 * its possible that it wont be automatically invalidated, so do it manually here,
+	 * 
+	 * if for some reason the object is added back into the scene python can always get a new Proxy
+	 */
+	newobj->InvalidateProxy();
 
 	// keep the blender->game object association up to date
 	// note that all the replicas of an object will have the same
@@ -957,7 +970,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ActuatorList::iterator ita = actuators.begin();
 		 !(ita==actuators.end());ita++)
 	{
-		m_logicmgr->RemoveDestroyedActuator(*ita);
+		m_logicmgr->RemoveActuator(*ita);
 	}
 	// the sensors/controllers/actuators must also be released, this is done in ~SCA_IObject
 
@@ -1440,23 +1453,16 @@ void KX_Scene::LogicEndFrame()
 	m_logicmgr->EndFrame();
 	int numobj = m_euthanasyobjects->GetCount();
 	int i;
-	for (i = numobj - 1; i >= 0; i--)
-	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
-		// KX_Scene::RemoveObject will also remove the object from this list
-		// that's why we start from the end
-		this->RemoveObject(gameobj);
-	}
+	KX_GameObject* obj;
 
-	numobj=	m_delayReleaseObjects->GetCount();
-	for (i = numobj-1;i>=0;i--)
+	while ((numobj = m_euthanasyobjects->GetCount()) > 0)
 	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
-		// This list is not for object removal, but just object release
-		gameobj->Release();
+		// remove the object from this list to make sure we will not hit it again
+		obj = (KX_GameObject*)m_euthanasyobjects->GetValue(numobj-1);
+		m_euthanasyobjects->Remove(numobj-1);
+		obj->Release();
+		RemoveObject(obj);
 	}
-	// empty the list as we have removed all references
-	m_delayReleaseObjects->Resize(0);	
 }
 
 
@@ -1466,15 +1472,28 @@ void KX_Scene::LogicEndFrame()
   */
 void KX_Scene::UpdateParents(double curtime)
 {
-//	int numrootobjects = GetRootParentList()->GetCount();
+	// we use the SG dynamic list
+	SG_Node* node;
 
-	for (int i=0; i<GetRootParentList()->GetCount(); i++)
+	while ((node = SG_Node::GetNextScheduled(m_sghead)) != NULL)
 	{
-		KX_GameObject* parentobj = (KX_GameObject*)GetRootParentList()->GetValue(i);
-		parentobj->NodeUpdateGS(curtime);
+		node->UpdateWorldData(curtime);
+	}
+
+	//for (int i=0; i<GetRootParentList()->GetCount(); i++)
+	//{
+	//	KX_GameObject* parentobj = (KX_GameObject*)GetRootParentList()->GetValue(i);
+	//	parentobj->NodeUpdateGS(curtime);
+	//}
+
+	// the list must be empty here
+	assert(m_sghead.Empty());
+	// some nodes may be ready for reschedule, move them to schedule list for next time
+	while ((node = SG_Node::GetNextRescheduled(m_sghead)) != NULL)
+	{
+		node->Schedule(m_sghead);
 	}
 }
-
 
 
 RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool &bucketCreated)
@@ -1595,8 +1614,13 @@ double KX_Scene::getSuspendedDelta()
 //Python
 
 PyTypeObject KX_Scene::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_Scene",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -1679,13 +1703,27 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 	return self->GetActiveCamera()->GetProxy();
 }
 
+
+int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Camera *camOb;
+	
+	if (!ConvertPythonToCamera(value, &camOb, false, "scene.active_camera = value: KX_Scene"))
+		return PY_SET_ATTR_FAIL;
+	
+	self->SetActiveCamera(camOb);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",			KX_Scene, pyattr_get_objects),
-	KX_PYATTRIBUTE_RO_FUNCTION("objects_inactive",	KX_Scene, pyattr_get_objects_inactive),	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
+	KX_PYATTRIBUTE_RO_FUNCTION("objectsInactive",	KX_Scene, pyattr_get_objects_inactive),	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
 	KX_PYATTRIBUTE_RO_FUNCTION("cameras",			KX_Scene, pyattr_get_cameras),
 	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
-	KX_PYATTRIBUTE_RO_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera),
+	KX_PYATTRIBUTE_RW_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera, pyattr_set_active_camera),
 	KX_PYATTRIBUTE_BOOL_RO("suspended",				KX_Scene, m_suspend),
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",		KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
@@ -1693,15 +1731,14 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-
 PyObject* KX_Scene::py_getattro__internal(PyObject *attr)
 {	
 	py_getattro_up(PyObjectPlus);
 }
 
-int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *pyvalue)
+int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *value)
 {
-	return PyObjectPlus::py_setattro(attr, pyvalue);
+	py_setattro_up(PyObjectPlus);
 }
 
 PyObject* KX_Scene::py_getattro(PyObject *attr)
@@ -1805,5 +1842,9 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 
 
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
+	
+	// release here because AddReplicaObject AddRef's
+	// the object is added to the scene so we dont want python to own a reference
+	replica->Release();
 	return replica->GetProxy();
 }

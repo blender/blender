@@ -36,8 +36,13 @@ double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
 PyTypeObject CValue::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"CValue",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -61,13 +66,14 @@ PyParentObject CValue::Parents[] = {
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
 	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* CValue::PyGetName()
 {
+	ShowDeprecationWarning("getName()", "the name property");
+	
 	return PyString_FromString(this->GetName());
 }
 
@@ -286,13 +292,17 @@ CValue* CValue::GetProperty(const char *inName)
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-STR_String CValue::GetPropertyText(const STR_String & inName,const STR_String& deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName,const char *deftext)
 {
+	const static STR_String sEmpty("");
+
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
+	else if (deftext)
+		return STR_String(deftext);
 	else
-		return deftext;//String::sEmpty;
+		return sEmpty;
 }
 
 float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
@@ -448,50 +458,12 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
-//
-// Add a reference to this value
-//
-CValue *CValue::AddRef()
-{
-	// Increase global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue++);
-#ifdef _DEBUG
-	//gRefCountValue++;
-#endif
-	m_refcount++; 
-	return this;
-}
 
 
 
 //
 // Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 //
-int	CValue::Release()
-{
-	// Decrease global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue--);
-#ifdef _DEBUG
-	//gRefCountValue--;
-#endif
-	// Decrease local reference count, if it reaches 0 the object should be freed
-	if (--m_refcount > 0)
-	{
-		// Reference count normal, return new reference count
-		return m_refcount;
-	}
-	else
-	{
-		// Reference count reached 0, delete ourselves and return 0
-//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
-		
-		delete this;
-		return 0;
-	}
-
-}
 
 
 
@@ -579,6 +551,7 @@ static PyMethodDef	CValueMethods[] =
 };
 
 PyAttributeDef CValue::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
 	{ NULL }	//Sentinel
 };
 
@@ -601,6 +574,11 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 
 PyObject* CValue::py_getattro_dict() {
 	py_getattro_dict_up(PyObjectPlus);
+}
+
+PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
+	CValue * self = static_cast<CValue *> (self_v);
+	return PyString_FromString(self->GetName());
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
@@ -680,7 +658,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 int	CValue::py_delattro(PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr);
-	if (RemoveProperty(STR_String(attr_str)))
+	if (RemoveProperty(attr_str))
 		return 0;
 	
 	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
@@ -751,10 +729,40 @@ PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 }
 */
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef CValue_module_def = {
+	{}, /* m_base */
+	"CValue",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	CValueMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 extern "C" {
 	void initCValue(void)
 	{
-		Py_InitModule("CValue",CValueMethods);
+		PyObject *m;
+		/* Use existing module where possible
+		 * be careful not to init any runtime vars after this */
+		m = PyImport_ImportModule( "CValue" );
+		if(m) {
+			Py_DECREF(m);
+			//return m;
+		}
+		else {
+			PyErr_Clear();
+		
+#if (PY_VERSION_HEX >= 0x03000000)
+			PyModule_Create(&CValue_module_def);
+#else
+			Py_InitModule("CValue",CValueMethods);
+#endif
+		}
 	}
 }
 

@@ -937,7 +937,7 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 	DispList *dlnew=0, *dl;
 	float *f1;
 	int colnr=0, charidx=0, cont=1, tot, a, *index;
-	long totvert;
+	intptr_t totvert;
 	
 	if(dispbase==0) return;
 	if(dispbase->first==0) return;

@@ -909,7 +909,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	glShadeModel(GL_SMOOTH);
 
 	for (i=0,eve=em->verts.first; eve; eve= eve->next)
-		eve->tmp.l = (long) i++;
+		eve->tmp.l = (intptr_t) i++;
 
 #define PASSATTRIB(efa, eve, vert) {											\
 	if(attribs.totorco) {														\

@@ -168,7 +168,7 @@ void Texture_dealloc (Texture * self)
 	// release scaled image buffer
 	delete [] self->m_scaledImg;
 	// release object
-	self->ob_type->tp_free((PyObject*)self);
+	((PyObject *)self)->ob_type->tp_free((PyObject*)self);
 }
 
 
@@ -435,8 +435,13 @@ static PyGetSetDef textureGetSets[] =
 // class Texture declaration
 PyTypeObject TextureType =
 {
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.Texture",   /*tp_name*/
 	sizeof(Texture),           /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

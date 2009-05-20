@@ -86,7 +86,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
 	virtual void SynchronizeTransform();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 	virtual void ReParent(SCA_IObject* parent);
 	
@@ -103,7 +103,8 @@ public:
 	// obj1 = sensor physical controller, obj2 = physical controller of second object
 	// return value = true if collision should be checked on pair of object
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
-
+	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2);
+	virtual sensortype GetSensorType() { return TOUCH; }
   
 
 	virtual bool IsPositiveTrigger() {

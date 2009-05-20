@@ -81,7 +81,7 @@ public:
 	void	PrecalculateRangeExpression();
 	bool	CheckPropertyCondition();
 
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool	IsPositiveTrigger();
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 

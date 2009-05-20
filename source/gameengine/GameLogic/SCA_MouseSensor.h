@@ -97,7 +97,7 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	virtual ~SCA_MouseSensor();
 	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual void Init();
 	virtual bool IsPositiveTrigger();
 	short int GetModeKey();

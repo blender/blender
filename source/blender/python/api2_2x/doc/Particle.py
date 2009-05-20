@@ -42,8 +42,35 @@ This module provides access to the B{Particle} in Blender.
 		- OBJECT: Draw object
 		- GROUP: Draw group
 		- BILLBOARD: Draw as billboard 
+@type PHYSICS: readonly dictionary
+@var PHYSICS: Constant dict used for with L{Particle.PHYSICS}
+		- NONE: No physics
+		- NEWTONIAN: Use newtonian physics
+		- KEYED: Use keyed physics
+		- BOIDS: Use Boids physics
+@type INTEGRATOR: readonly dictionary
+@var INTEGRATOR: Constant dict used for with L{Particle.INTEGRATOR}
+		- EULER: Use Euler integrator
+		- MIDPOINT: Use Midpoint integrator
+		- RK4: Use RK4 integrator
+@type ROTATION: readonly dictionary
+@var ROTATION: Constant dict used for with L{Particle.ROTATION}
+		- NONE: No particle initial rotation
+		- NOR: Rotate along the normal
+		- VEL: Rotate affect to velocity
+		- GLX: Rotate along global X-Axis
+		- GLY: Rotate along global Y-Axis
+		- GLZ: Rotate along global Z-Axis
+		- OBX: Rotate along local X-Axis
+		- OBY: Rotate along local Y-Axis
+		- OBZ: Rotate along local Z-Axis
+@type ANGULARV: readonly dictionary
+@var ANGULARV: Constant dict used for with L{Particle.ANGULARV}
+		- NONE: No particle angular velocity
+		- SPIN: Spin particle angular velocity
+		- RANDOM: Random particle angular velocity
 @type CHILDTYPE: readonly dictionary
-@var CHILDTYPE: Constant dict used for whith L{Particle.CHILDTYPE}
+@var CHILDTYPE: Constant dict used for with L{Particle.CHILDTYPE}
 		- NONE: set no children
 		- PARTICLES: set children born from particles
 		- FACES: set children born from faces
@@ -125,6 +152,16 @@ class Particle:
 	@type object: Blender Object
 	@ivar renderEmitter: Render emitter object.
 	@type renderEmitter: int
+	@ivar renderMatCol: Draw particles using material's diffuse color.
+	@type renderMatCol: int
+	@ivar renderParents: Render parent particles.
+	@type renderParents: int
+	@ivar renderUnborn: Show particles before they are emitted.
+	@type renderUnborn: int
+	@ivar renderDied: Show particles after they have died.
+	@type renderDied: int
+	@ivar renderMaterial: Specify material used for the particles.
+	@type renderMaterial: int
 	@ivar displayPercentage: Particle display percentage.
 	@type displayPercentage: int
 	@ivar hairDisplayStep: How many steps paths are drawn with (power of 2) in visu mode.
@@ -135,6 +172,50 @@ class Particle:
 	@type duplicateObject: Blender Object
 	@ivar drawAs: Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ]).
 	@type drawAs: int
+	@ivar physics: Select particle physics type Particle.PHYSICS([ 'BOIDS' | 'KEYED' | 'NEWTONIAN' | 'NONE' ])
+	@type physics: int
+	@ivar integration: Select physics integrator type Particle.INTEGRATOR([ 'RK4' | 'MIDPOINT' | 'EULER' ])
+	@type integration: int
+	@ivar inVelObj: Let the object give the particle a starting speed
+	@type inVelObj: float
+	@ivar inVelNor: Let the surface normal give the particle a starting speed
+	@type inVelNor: float
+	@ivar inVelRan: Give the starting speed a random variation
+	@type inVelRan: float
+	@ivar inVelTan: Let the surface tangent give the particle a starting speed
+	@type inVelTan: float
+	@ivar inVelRot: Rotate the surface tangent
+	@type inVelRot: float
+	@ivar inVelPart: Let the target particle give the particle a starting speed
+	@type inVelPart: float
+	@ivar inVelReact: Let the vector away from the target particles location give the particle a starting speed
+	@type inVelReact: float
+	@ivar rotation: Particles initial rotation Particle.ROTATION([ 'OBZ' | 'OBY' | 'OBX' | 'GLZ' | 'GLY' | 'GLX' | 'VEL' | 'NOR' | 'NONE' ])
+	@type rotation: int
+	@ivar rotDyn: Sets rotation to dynamic/constant
+	@type rotDyn: int
+	@ivar rotRand: Randomize rotation
+	@type rotRand: float
+	@ivar rotPhase: Initial rotation phase
+	@type rotPhase: float
+	@ivar rotPhaseR: Randomize rotation phase
+	@type rotPhaseR: float
+	@ivar rotAnV: Select particle angular velocity mode Particle.ANGULARV([ 'RANDOM' | 'SPIN' | 'NONE' ])
+	@type rotAnV: int
+	@ivar rotAnVAm: Angular velocity amount
+	@type rotAnVAm: float
+	@ivar glAccX: Specify a constant acceleration along the X-axis
+	@type glAccX: float
+	@ivar glAccY: Specify a constant acceleration along the Y-axis
+	@type glAccY: float
+	@ivar glAccZ: Specify a constant acceleration along the Z-axis
+	@type glAccZ: float
+	@ivar glDrag: Specify the amount of air-drag
+	@type glDrag: float
+	@ivar glBrown: Specify the amount of brownian motion
+	@type glBrown: float
+	@ivar glDamp: Specify the amount of damping
+	@type glDamp: float
 	@ivar childAmount: The total number of children
 	@type childAmount: int
 	@ivar childType: Type of childrens ( Particle.CHILDTYPE[ 'FACES' | 'PARTICLES' | 'NONE' ] )
@@ -220,6 +301,15 @@ class Particle:
 		@return: list of 4-tuples or None if system is disabled
 		"""
 		
+	def setMat(mat):
+		"""
+		Set the particles' material. This method checks if the argument
+		given is really a material, imposes a limit of 16 materials and adds
+		the material if it wasn't already in the list of the object.
+		@type mat: Blender Material
+		@param mat: The material to be assigned to particles
+		"""
+		
 	def getMat():
 		"""
 		Get the particles' material.
@@ -249,4 +339,25 @@ class Particle:
 		@param id: add the particle id in the return tuple
 		@rtype: list of floats
 		@return: list of floats or list of tuples if id is not zero (size,id) or None if system is disabled.
+		"""
+	
+	def getVertGroup(attribute):
+		"""
+		Get vertex group name and negation bit assigned to affect parameter attribute.
+		A list of string and integer (vertex group name, negation bit).
+		@type attribute: int
+		@param attribute: Particle.VERTEXGROUPS([ 'DENSITY' | 'VELOCITY' | ... ])
+		@rtype: list of objects
+		@return: first element is the vg name and second the negation bit
+		"""
+	def setVertGroup(name,attribute,negated):
+		"""
+		Set vertex group and negation bit to affect particles system attribute.
+		@type name: string
+		@param name: Name of the vertex group
+		@type attribute: int
+		@param attribute: Particle.VERTEXGROUPS([ 'DENSITY' | 'VELOCITY' | ... ])
+		@type negated: int
+		@param negated: Negate the effect of the vertex group
+		@return: None
 		"""

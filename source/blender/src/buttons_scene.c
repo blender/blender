@@ -1832,11 +1832,11 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	xco = 8;
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, 0, "Dome",	xco, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 8.0, 0, 0, "Enables dome camera");
-	uiDefButS(block, NUM, 0, "Ang:",	xco+90, yco, 88, 19, &G.scene->r.domeangle, 90.0, 250.0, 0, 0, "Angle (Aperture) of the Dome - it only works in mode 1");
-	uiDefButS(block, NUM, 0, "Mode:",	xco+180, yco, 88, 19, &G.scene->r.domemode, 1.0, 3.0, 0, 0, "1 fisheye, 2 environment map, 3 spherical panoramic");
+	uiDefButS(block, NUM, 0, "Ang:",	xco+90, yco, 88, 19, &G.scene->r.domeangle, 90.0, 250.0, 0, 0, "Angle (Aperture) of the Dome - it only works in mode 1 to 3");
+	uiDefButS(block, NUM, 0, "Mode:",	xco+180, yco, 88, 19, &G.scene->r.domemode, 1.0, 5.0, 0, 0, "1 fulldome, 2 front-truncated, 3 rear-truncated, 4 environment map, 5 spherical panoramic");
 
-	uiDefButF(block, NUM, 0, "Size:",	xco, yco-=21, 88, 19, &G.scene->r.domesize, 0.5, 3.5, 0, 0, "Size adjustments");
-	uiDefButS(block, NUM, 0, "Tes:",	xco+90, yco, 88, 19, &G.scene->r.domeres, 1.0, 8.0, 0, 0, "Tesselation level - 1 to 8");
+	uiDefButS(block, NUM, 0, "Tilt:",	xco, yco-=21, 88, 19, &G.scene->r.dometilt, -180.0, 180.0, 0, 0, "Dome tilt - camera rotation in horizontal axis");
+	uiDefButS(block, NUM, 0, "Tes:",	xco+90, yco, 88, 19, &G.scene->r.domeres, 0.0, 8.0, 0, 0, "Tesselation level - check the generated mesh in wireframe mode");
 	uiDefButF(block, NUM, 0, "Res:",	xco+180, yco, 88, 19, &G.scene->r.domeresbuf, 0.1, 1.0, 0, 0, "Buffer Resolution - decrease it to increase speed");
 
 	uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Warp Data: ", xco,yco-=21,268, 19, &G.scene->r.dometext, "Custom Warp Mesh data file");
@@ -2277,15 +2277,7 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
-#ifndef DISABLE_YAFRAY
-	/* yafray: on request, render engine menu is back again, and moved to Render panel */
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
-												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
-#else
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0", 
-												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
-#endif /* disable yafray */
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 142, 191,59, 0, 0, 0, 0, 0, "Render the current frame (F12)");
 
 	uiBlockBeginAlign(block);
 	if((G.scene->r.scemode & R_FULL_SAMPLE) && (G.scene->r.scemode & R_EXR_TILE_FILE))

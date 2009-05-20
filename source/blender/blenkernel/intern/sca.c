@@ -134,7 +134,7 @@ void init_sensor(bSensor *sens)
 	
 	switch(sens->type) {
 	case SENS_ALWAYS:
-		sens->pulse = 1;
+		sens->pulse = 0;
 		break;
 	case SENS_TOUCH:
 		sens->data= MEM_callocN(sizeof(bTouchSensor), "touchsens");
@@ -579,6 +579,10 @@ void set_sca_new_poins_ob(Object *ob)
 				bCameraActuator *ca= act->data;
 				ID_NEW(ca->ob);
 			}
+			else if(act->type==ACT_OBJECT) {
+				bObjectActuator *oa= act->data;
+				ID_NEW(oa->reference);
+			}
 			else if(act->type==ACT_SCENE) {
 				bSceneActuator *sca= act->data;
 				ID_NEW(sca->camera);
@@ -606,6 +610,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 	bMessageSensor *ms;
 	bActuator *act;
 	bCameraActuator *ca;
+	bObjectActuator *oa;
 	bSceneActuator *sa;
 	bEditObjectActuator *eoa;
 	bPropertyActuator *pa;
@@ -627,6 +632,10 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 		case ACT_CAMERA:
 			ca= act->data;
 			if(ca->ob==ob) ca->ob= NULL;
+			break;
+		case ACT_OBJECT:
+			oa= act->data;
+			if(oa->reference==ob) oa->reference= NULL;
 			break;
 		case ACT_PROPERTY:
 			pa= act->data;

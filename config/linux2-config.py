@@ -4,8 +4,16 @@ LIBDIR = "${LCGDIR}"
 WITH_BF_VERSE = False
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
+def py_version_string():
+	'''
+	returns py version - "2.5", "2.6" etc
+	'''
+	import platform
+	ver = platform.python_version_tuple()
+	return '%d.%d' % (int(ver[0]), int(ver[1])) # py2.5 uses strings, 2.6 ints
+
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = py_version_string()
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -19,11 +27,6 @@ BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
-
-# some distros have a separate libalut
-# if you get linker complaints, you need to uncomment the line below
-# BF_OPENAL_LIB = 'openal alut'  
-# BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
 
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
@@ -78,7 +81,8 @@ BF_FTGL = '#extern/bFTGL'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE=False
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = True
 
 WITH_BF_ODE = False
 BF_ODE = LIBDIR + '/ode'

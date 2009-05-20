@@ -387,6 +387,7 @@ void BLI_setInterruptCallBack(int (*f)(void));
 char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
+int BLI_natstrcmp(const char *s1, const char *s2);
 void BLI_timestr(double _time, char *str); /* time var is global */
 
 /** 

@@ -47,6 +47,7 @@
 
 class RAS_MeshObject;
 class KX_Scene;
+struct DerivedMesh;
 
 typedef enum {
 	KX_BOUNDBOX,
@@ -82,6 +83,7 @@ struct KX_ObjectProperties
 	bool	m_ghost;
 	class KX_GameObject*	m_dynamic_parent;
 	bool	m_isactor;
+	bool	m_sensor;
 	bool	m_concave;
 	bool	m_isdeformable;
 	bool	m_disableSleeping;
@@ -183,6 +185,7 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
+	struct  DerivedMesh* dm,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,

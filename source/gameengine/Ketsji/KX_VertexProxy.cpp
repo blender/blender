@@ -37,8 +37,13 @@
 #include "KX_PyMath.h"
 
 PyTypeObject KX_VertexProxy::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_VertexProxy",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -57,8 +62,8 @@ PyTypeObject KX_VertexProxy::Type = {
 
 PyParentObject KX_VertexProxy::Parents[] = {
 	&KX_VertexProxy::Type,
-	&SCA_IObject::Type,
 	&CValue::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
@@ -157,11 +162,11 @@ KX_VertexProxy::py_getattro(PyObject *attr)
 	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
   }
   
-  py_getattro_up(SCA_IObject);
+  py_getattro_up(CValue);
 }
 
 PyObject* KX_VertexProxy::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IObject);
+	py_getattro_dict_up(CValue);
 }
 
 int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
@@ -317,7 +322,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 	}
   }
   
-  return SCA_IObject::py_setattro(attr, pyvalue);
+  return CValue::py_setattro(attr, pyvalue);
 }
 
 KX_VertexProxy::KX_VertexProxy(KX_MeshProxy*mesh, RAS_TexVert* vertex)
@@ -338,8 +343,8 @@ CValue*		KX_VertexProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { 
 STR_String	sVertexName="vertex";
 const STR_String &	KX_VertexProxy::GetText() {return sVertexName;};
 double		KX_VertexProxy::GetNumber() { return -1;}
-STR_String	KX_VertexProxy::GetName() { return sVertexName;}
-void		KX_VertexProxy::SetName(STR_String) { };
+STR_String&	KX_VertexProxy::GetName() { return sVertexName;}
+void		KX_VertexProxy::SetName(const char *) { };
 CValue*		KX_VertexProxy::GetReplica() { return NULL;}
 
 // stuff for python integration
@@ -430,9 +435,10 @@ PyObject* KX_VertexProxy::PyGetUV2()
 PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 {
 	MT_Point2 vec;
-	unsigned int unit=0;
+	unsigned int unit= RAS_TexVert::SECOND_UV;
+	
 	PyObject* list= NULL;
-	if(!PyArg_ParseTuple(args, "Oi:setUV2", &list, &unit))
+	if(!PyArg_ParseTuple(args, "O|i:setUV2", &list, &unit))
 		return NULL;
 	
 	if (!PyVecTo(list, vec))

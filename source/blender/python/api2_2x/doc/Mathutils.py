@@ -400,6 +400,7 @@ class Vector:
   The Vector object
   =================
     This object gives access to Vectors in Blender.
+  @group Axises: x, y, z, w
   @ivar x: The x value.
   @ivar y: The y value.
   @ivar z: The z value (if any).
@@ -420,6 +421,16 @@ class Vector:
       - -vec
   @note: You can access a vector object like a sequence
       - x = vector[0]
+      - vec_a[:] vec_b
+      - vec2d[:] vec3d[:2]
+  @note: Vectors support 'swizzle' operations
+      - vec.xyz = vec.zyx
+      - vec.xy = vec.zw
+      - vec.xxy = vec.wzz
+      - vec.yzyz = vec.yxyx
+
+      See U{http://en.wikipedia.org/wiki/Swizzling_(computer_graphics)}
+  
   @attention: Vector data can be wrapped or non-wrapped. When a object is wrapped it
   means that the object will give you direct access to the data inside of blender. Modification
   of this object will directly change the data inside of blender. To copy a wrapped object
@@ -429,7 +440,7 @@ class Vector:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -535,6 +546,7 @@ class Euler:
   The Euler object
   ================
     This object gives access to Eulers in Blender.
+  @group Axises: x, y, z
   @ivar x: The heading value in degrees.
   @ivar y: The pitch value in degrees.
   @ivar z: The roll value in degrees.
@@ -552,7 +564,7 @@ class Euler:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -596,7 +608,7 @@ class Euler:
     """
     Return a matrix representation of the euler.
     @rtype: Matrix object
-    @return: A roation matrix representation of the euler.
+    @return: A 3x3 roation matrix representation of the euler.
     """
 
   def toQuat():
@@ -605,12 +617,19 @@ class Euler:
     @rtype: Quaternion object
     @return: Quaternion representation of the euler.
     """
+  def makeCompatible(eul_compat):
+    """
+    Make this euler compatible with another, so interpolating between them works as expected.
+    @rtype: Euler object
+    @return: an instance of itself
+    """
 
 class Quaternion:
   """
   The Quaternion object
   =====================
     This object gives access to Quaternions in Blender.
+  @group Axises: x, y, z, w
   @ivar w: The w value.
   @ivar x: The x value.
   @ivar y: The y value.
@@ -639,7 +658,7 @@ class Quaternion:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -705,9 +724,11 @@ class Quaternion:
     @return: an instance of itself
     """
 
-  def toEuler():
+  def toEuler(eul_compat):
     """
     Return Euler representation of the quaternion.
+    @type eul_compat: L{Euler}
+    @param eul_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.
     @rtype: Euler object
     @return: Euler representation of the quaternion.
     """
@@ -716,7 +737,7 @@ class Quaternion:
     """
     Return a matrix representation of the quaternion.
     @rtype: Matrix object
-    @return: A rotation matrix representation of the quaternion.
+    @return: A 3x3 rotation matrix representation of the quaternion.
     """
 
 class Matrix:
@@ -747,7 +768,7 @@ class Matrix:
   Example::
       wrappedObject = Object.getAttribute() #this is wrapped data
       print wrappedObject.wrapped #prints 'True'
-      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      copyOfObject = wrappedObject.copy() #creates a copy of the object
       secondPointer = wrappedObject #creates a second pointer to the same data
       print wrappedObject.attribute #prints '5'
       secondPointer.attribute = 10
@@ -857,9 +878,11 @@ class Matrix:
     @return: an instance of itself.
     """
   
-  def toEuler():
+  def toEuler(eul_compat):
     """
     Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).
+    @type eul_compat: L{Euler}
+    @param eul_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.
     @rtype: Euler object
     @return: Euler representation of the rotation matrix.
     """

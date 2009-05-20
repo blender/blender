@@ -72,8 +72,11 @@ extern "C"{
 BL_ModifierDeformer::~BL_ModifierDeformer()
 {
 	if (m_dm) {
-		m_dm->needsFree = 1;
-		m_dm->release(m_dm);
+		// deformedOnly is used as a user counter
+		if (--m_dm->deformedOnly == 0) {
+			m_dm->needsFree = 1;
+			m_dm->release(m_dm);
+		}
 	}
 };
 
@@ -90,7 +93,10 @@ void BL_ModifierDeformer::ProcessReplica()
 {
 	/* Note! - This is not inherited from PyObjectPlus */
 	BL_ShapeDeformer::ProcessReplica();
-	m_dm = NULL;
+	if (m_dm)
+		// by default try to reuse mesh, deformedOnly is used as a user count
+		m_dm->deformedOnly++;
+	// this will force an update and if the mesh cannot be reused, a new one will be created
 	m_lastModifierUpdate = -1;
 }
 
@@ -117,29 +123,40 @@ bool BL_ModifierDeformer::Update(void)
 	bool bShapeUpdate = BL_ShapeDeformer::Update();
 
 	if (bShapeUpdate || m_lastModifierUpdate != m_gameobj->GetLastFrame()) {
-		/* execute the modifiers */
-		Object* blendobj = m_gameobj->GetBlendObject();
-		/* hack: the modifiers require that the mesh is attached to the object
-		   It may not be the case here because of replace mesh actuator */
-		Mesh *oldmesh = (Mesh*)blendobj->data;
-		blendobj->data = m_bmesh;
-		/* execute the modifiers */		
-		DerivedMesh *dm = mesh_create_derived_no_virtual(blendobj, m_transverts, CD_MASK_MESH);
-		/* restore object data */
-		blendobj->data = oldmesh;
-		/* free the current derived mesh and replace, (dm should never be NULL) */
-		if (m_dm != NULL) {
-			m_dm->needsFree = 1;
+		// static derived mesh are not updated
+		if (m_dm == NULL || m_bDynamic) {
+			/* execute the modifiers */
+			Object* blendobj = m_gameobj->GetBlendObject();
+			/* hack: the modifiers require that the mesh is attached to the object
+			   It may not be the case here because of replace mesh actuator */
+			Mesh *oldmesh = (Mesh*)blendobj->data;
+			blendobj->data = m_bmesh;
+			/* execute the modifiers */		
+			DerivedMesh *dm = mesh_create_derived_no_virtual(blendobj, m_transverts, CD_MASK_MESH);
+			/* restore object data */
+			blendobj->data = oldmesh;
+			/* free the current derived mesh and replace, (dm should never be NULL) */
+			if (m_dm != NULL) {
+				// HACK! use deformedOnly as a user counter
+				if (--m_dm->deformedOnly == 0) {
+					m_dm->needsFree = 1;
+					m_dm->release(m_dm);
+				}
+			}
+			m_dm = dm;
+			// get rid of temporary data
+			m_dm->needsFree = 0;
 			m_dm->release(m_dm);
-		}
-		m_dm = dm;
-		/* update the graphic controller */
-		PHY_IGraphicController *ctrl = m_gameobj->GetGraphicController();
-		if (ctrl) {
-			float min_r[3], max_r[3];
-			INIT_MINMAX(min_r, max_r);
-			m_dm->getMinMax(m_dm, min_r, max_r);
-			ctrl->setLocalAabb(min_r, max_r);
+			// HACK! use deformedOnly as a user counter
+			m_dm->deformedOnly = 1;
+			/* update the graphic controller */
+			PHY_IGraphicController *ctrl = m_gameobj->GetGraphicController();
+			if (ctrl) {
+				float min_r[3], max_r[3];
+				INIT_MINMAX(min_r, max_r);
+				m_dm->getMinMax(m_dm, min_r, max_r);
+				ctrl->setLocalAabb(min_r, max_r);
+			}
 		}
 		m_lastModifierUpdate=m_gameobj->GetLastFrame();
 		bShapeUpdate = true;
@@ -156,10 +173,10 @@ bool BL_ModifierDeformer::Apply(RAS_IPolyMaterial *mat)
 	int nmat = m_pMeshObject->NumMaterials();
 	for (int imat=0; imat<nmat; imat++) {
 		RAS_MeshMaterial *mmat = m_pMeshObject->GetMeshMaterial(imat);
-		RAS_MeshSlot *slot = *mmat->m_slots[(void*)m_gameobj];
-		if(!slot)
+		RAS_MeshSlot **slot = mmat->m_slots[(void*)m_gameobj];
+		if(!slot || !*slot)
 			continue;
-		slot->m_pDerivedMesh = m_dm;
+		(*slot)->m_pDerivedMesh = m_dm;
 	}
 	return true;
 }

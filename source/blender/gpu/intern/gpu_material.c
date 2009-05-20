@@ -1306,6 +1306,18 @@ void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 	Mat4Invert(lamp->imat, mat);
 }
 
+void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
+{
+	lamp->la->energy = energy;
+	lamp->la->r = fabs(r);
+	lamp->la->g = fabs(g);
+	lamp->la->b = fabs(b);
+
+	lamp->col[0]= lamp->la->r*lamp->energy;
+	lamp->col[1]= lamp->la->g*lamp->energy;
+	lamp->col[2]= lamp->la->b*lamp->energy;
+}
+
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)
 {
 	float temp, angle, pixsize, wsize;

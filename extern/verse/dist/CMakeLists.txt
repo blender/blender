@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(mkprot_cmd)
+ADD_SUBDIRECTORY(mkprot_cmd)
 
 SET(SRC_MKPROT_OUT
   v_gen_pack_init.c

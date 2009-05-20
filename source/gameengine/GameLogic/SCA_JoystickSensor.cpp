@@ -102,7 +102,7 @@ bool SCA_JoystickSensor::IsPositiveTrigger()
 }
 
 
-bool SCA_JoystickSensor::Evaluate(CValue* event)
+bool SCA_JoystickSensor::Evaluate()
 {
 	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	bool result = false;
@@ -266,8 +266,13 @@ bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_JoystickSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"SCA_JoystickSensor",
 		sizeof(PyObjectPlus_Proxy),
 		0,

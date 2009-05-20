@@ -294,10 +294,12 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		b= v-floor(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
-		outI[0]= ma_mb*row1I[0] + a_mb*row3I[0] + ma_b*row2I[0]+ a_b*row4I[0];
-		outI[1]= ma_mb*row1I[1] + a_mb*row3I[1] + ma_b*row2I[1]+ a_b*row4I[1];
-		outI[2]= ma_mb*row1I[2] + a_mb*row3I[2] + ma_b*row2I[2]+ a_b*row4I[2];
-		outI[3]= ma_mb*row1I[3] + a_mb*row3I[3] + ma_b*row2I[3]+ a_b*row4I[3];
+		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
+		 * tested with white images and this should not wrap back to zero */
+		outI[0]= (ma_mb*row1I[0] + a_mb*row3I[0] + ma_b*row2I[0]+ a_b*row4I[0]) + 0.5f;
+		outI[1]= (ma_mb*row1I[1] + a_mb*row3I[1] + ma_b*row2I[1]+ a_b*row4I[1]) + 0.5f;
+		outI[2]= (ma_mb*row1I[2] + a_mb*row3I[2] + ma_b*row2I[2]+ a_b*row4I[2]) + 0.5f;
+		outI[3]= (ma_mb*row1I[3] + a_mb*row3I[3] + ma_b*row2I[3]+ a_b*row4I[3]) + 0.5f;
 	}
 }
 

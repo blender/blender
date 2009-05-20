@@ -61,6 +61,11 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_rendertools->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
+
+	m_initialvalues[0] = lightobj.m_red;
+	m_initialvalues[1] = lightobj.m_green;
+	m_initialvalues[2] = lightobj.m_blue;
+	m_initialvalues[3] = lightobj.m_energy;
 };
 
 
@@ -71,6 +76,8 @@ KX_LightObject::~KX_LightObject()
 	if((lamp = GetGPULamp())) {
 		float obmat[4][4] = {{0}};
 		GPU_lamp_update(lamp, 0, obmat);
+		GPU_lamp_update_colors(lamp, m_initialvalues[0], m_initialvalues[1],
+		m_initialvalues[2], m_initialvalues[3]);
 	}
 
 	m_rendertools->RemoveLight(&m_lightobj);
@@ -102,8 +109,11 @@ void KX_LightObject::Update()
 {
 	GPULamp *lamp;
 
-	if((lamp = GetGPULamp())) {
+	if((lamp = GetGPULamp()) != NULL && GetSGNode()) {
 		float obmat[4][4];
+		// lights don't get their openGL matrix updated, do it now
+		if (GetSGNode()->IsDirty())
+			GetOpenGLMatrix();
 		double *dobmat = GetOpenGLMatrixPtr()->getPointer();
 
 		for(int i=0; i<4; i++)
@@ -111,6 +121,8 @@ void KX_LightObject::Update()
 				obmat[i][j] = (float)*dobmat;
 
 		GPU_lamp_update(lamp, m_lightobj.m_layer, obmat);
+		GPU_lamp_update_colors(lamp, m_lightobj.m_red, m_lightobj.m_green, 
+			m_lightobj.m_blue, m_lightobj.m_energy);
 	}
 }
 
@@ -179,8 +191,13 @@ PyObject* KX_LightObject::py_getattro_dict() {
 
 
 PyTypeObject KX_LightObject::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_LightObject",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -218,7 +235,7 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("color", KX_LightObject, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_RW_FUNCTION("colour", KX_LightObject, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_FLOAT_RW("lin_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att1),
-	KX_PYATTRIBUTE_FLOAT_RW("quat_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att2),
+	KX_PYATTRIBUTE_FLOAT_RW("quad_attenuation", 0, 1, KX_LightObject, m_lightobj.m_att2),
 	KX_PYATTRIBUTE_FLOAT_RW("spotsize", 1, 180, KX_LightObject, m_lightobj.m_spotsize),
 	KX_PYATTRIBUTE_FLOAT_RW("spotblend", 0, 1, KX_LightObject, m_lightobj.m_spotblend),
 	KX_PYATTRIBUTE_RO_FUNCTION("SPOT", KX_LightObject, pyattr_get_typeconst),
@@ -244,9 +261,9 @@ int KX_LightObject::pyattr_set_color(void *self_v, const KX_PYATTRIBUTE_DEF *att
 		self->m_lightobj.m_red = color[0];
 		self->m_lightobj.m_green = color[1];
 		self->m_lightobj.m_blue = color[2];
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
-	return 1;
+	return PY_SET_ATTR_FAIL;
 }
 
 PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -276,6 +293,11 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	int val = PyInt_AsLong(value);
+	if((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
+		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
+		return PY_SET_ATTR_FAIL;
+	}
+	
 	switch(val) {
 		case 0:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SPOT;
@@ -283,7 +305,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 		case 1:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SUN;
 			break;
-		default:
+		case 2:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_NORMAL;
 			break;
 	}

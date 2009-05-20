@@ -76,21 +76,16 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 	while ( (!sensorresult) && (!(is==m_linkedsensors.end())) )
 	{
 		sensor = *is;
-		if (sensor->IsPositiveTrigger()) sensorresult = true;
+		if (sensor->GetState()) sensorresult = true;
 		is++;
 	}
 	
-	CValue* newevent = new CBoolValue(sensorresult);
-
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		logicmgr->AddActiveActuator(actua,newevent);
+		SCA_IActuator* actua = *i;
+		logicmgr->AddActiveActuator(actua,sensorresult);
 	}
-
-
-	newevent->Release();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -99,8 +94,13 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ORController::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_ORController",
 	sizeof(PyObjectPlus_Proxy),
 	0,

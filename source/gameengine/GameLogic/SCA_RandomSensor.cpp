@@ -89,7 +89,7 @@ bool SCA_RandomSensor::IsPositiveTrigger()
 }
 
 
-bool SCA_RandomSensor::Evaluate(CValue* event)
+bool SCA_RandomSensor::Evaluate()
 {
     /* Random generator is the generator from Line 25 of Table 1 in          */
     /* [KNUTH 1981, The Art of Computer Programming Vol. 2                   */
@@ -127,8 +127,13 @@ bool SCA_RandomSensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_RandomSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_RandomSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -231,10 +236,10 @@ int SCA_RandomSensor::pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	SCA_RandomSensor* self= static_cast<SCA_RandomSensor*>(self_v);
 	if (!PyInt_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "sensor.seed = int: Random Sensor, expected an integer");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	self->m_basegenerator->SetSeed(PyInt_AsLong(value));
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* eof */

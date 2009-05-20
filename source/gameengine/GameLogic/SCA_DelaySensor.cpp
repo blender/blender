@@ -89,7 +89,7 @@ bool SCA_DelaySensor::IsPositiveTrigger()
 	return (m_invert ? !m_lastResult : m_lastResult);
 }
 
-bool SCA_DelaySensor::Evaluate(CValue* event)
+bool SCA_DelaySensor::Evaluate()
 {
 	bool trigger = false;
 	bool result;
@@ -131,8 +131,13 @@ bool SCA_DelaySensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_DelaySensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_DelaySensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,

@@ -45,9 +45,11 @@ class	PHY_IMotionState
 		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)=0;
 		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second colum, [8..11] = third column
 		virtual void	getWorldOrientation(float* ori)=0;
+		virtual	void	setWorldOrientation(const float* ori)=0;
 		
 		virtual void	setWorldPosition(float posX,float posY,float posZ)=0;
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
+
 
 		virtual	void	calculateWorldTransformations()=0;
 };

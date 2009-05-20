@@ -66,7 +66,7 @@ IF(WITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 IF(WITH_PLAYER)
-  SUBDIRS(bad_level_call_stubs)
+  ADD_SUBDIRECTORY(bad_level_call_stubs)
 ENDIF(WITH_PLAYER)
 
 BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")

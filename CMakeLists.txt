@@ -99,20 +99,6 @@ IF(UNIX)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
 
-  FIND_LIBRARY(ALUT_LIBRARY
-    NAMES alut
-    PATHS
-    /usr/local/lib
-    /usr/lib
-    /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
-  )
-  IF(ALUT_LIBRARY)
-    SET(OPENAL_LIB ${OPENAL_LIB} ${ALUT_LIBRARY})
-  ENDIF(ALUT_LIBRARY)
-
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
     PATHS
@@ -464,20 +450,18 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 #-----------------------------------------------------------------------------
 # Libraries
 FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
-SUBDIRS(
-  intern
-  extern
-  source
-)
+ADD_SUBDIRECTORY(intern)
+ADD_SUBDIRECTORY(extern)
+ADD_SUBDIRECTORY(source)
 
 
 #-----------------------------------------------------------------------------
 # Blender Application
-SUBDIRS(source/creator)
+ADD_SUBDIRECTORY(source/creator)
 
 
 #-----------------------------------------------------------------------------
 # Blender Player
 IF(WITH_PLAYER)
-  SUBDIRS(blenderplayer)
+  ADD_SUBDIRECTORY(blenderplayer)
 ENDIF(WITH_PLAYER)

@@ -2447,7 +2447,8 @@ void do_lampbuts(unsigned short event)
 		break;
 	case B_SBUFF:
 		la= G.buts->lockpoin;
-		la->bufsize = la->bufsize&=(~15); 
+		la->bufsize = la->bufsize&=(~15);
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0); 
 		allqueue(REDRAWOOPS, 0); 
 		break; 

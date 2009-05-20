@@ -77,6 +77,12 @@ RAS_Deformer *BL_ShapeDeformer::GetReplica()
 	return result;
 }
 
+void BL_ShapeDeformer::ProcessReplica()
+{
+	BL_SkinDeformer::ProcessReplica();
+	m_lastShapeUpdate = -1;
+}
+
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 {
 	IpoCurve *icu;
@@ -121,7 +127,7 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 
 		ForceUpdate();
 		m_armobj->RestorePose();
-
+		m_bDynamic = true;
 		return true;
 	}
 	return false;
@@ -144,8 +150,10 @@ bool BL_ShapeDeformer::Update(void)
 
 		/* we will blend the key directly in mvert array: it is used by armature as the start position */
 		/* m_bmesh->key can be NULL in case of Modifier deformer */
-		if (m_bmesh->key)
+		if (m_bmesh->key) {
 			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
+			m_bDynamic = true;
+		}
 
 		// Don't release the weight array as in Blender, it will most likely be reusable on next frame 
 		// The weight array are ultimately deleted when the skin mesh is destroyed
@@ -161,7 +169,8 @@ bool BL_ShapeDeformer::Update(void)
 	// check for armature deform
 	bSkinUpdate = BL_SkinDeformer::Update();
 
-	if (!bSkinUpdate && bShapeUpdate) {
+	// non dynamic deformer = Modifer without armature and shape keys, no need to create storage
+	if (!bSkinUpdate && bShapeUpdate && m_bDynamic) {
 		// this means that there is no armature, we still need to copy the vertex to m_transverts
 		// and update the normal (was not done after shape key calculation)
 

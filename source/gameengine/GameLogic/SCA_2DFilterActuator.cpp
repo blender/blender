@@ -95,7 +95,7 @@ bool SCA_2DFilterActuator::Update()
 }
 
 
-void SCA_2DFilterActuator::SetShaderText(STR_String text)
+void SCA_2DFilterActuator::SetShaderText(const char *text)
 {
 	m_shaderText = text;
 }
@@ -108,8 +108,13 @@ void SCA_2DFilterActuator::SetShaderText(STR_String text)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_2DFilterActuator::Type = {
-        PyObject_HEAD_INIT(NULL)
-        0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
         "SCA_2DFilterActuator",
         sizeof(PyObjectPlus_Proxy),
         0,
@@ -144,8 +149,8 @@ PyMethodDef SCA_2DFilterActuator::Methods[] = {
 PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("shaderText", 0, 64000, false, SCA_2DFilterActuator, m_shaderText),
 	KX_PYATTRIBUTE_SHORT_RW("disableMotionBlur", 0, 1, true, SCA_2DFilterActuator, m_disableMotionBlur),
-	KX_PYATTRIBUTE_ENUM_RW("type",RAS_2DFilterManager::RAS_2DFILTER_ENABLED,RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS,false,SCA_2DFilterActuator,m_type),
-	KX_PYATTRIBUTE_INT_RW("passNb", 0, 100, true, SCA_2DFilterActuator, m_int_arg),
+	KX_PYATTRIBUTE_ENUM_RW("mode",RAS_2DFilterManager::RAS_2DFILTER_ENABLED,RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS,false,SCA_2DFilterActuator,m_type),
+	KX_PYATTRIBUTE_INT_RW("passNumber", 0, 100, true, SCA_2DFilterActuator, m_int_arg),
 	KX_PYATTRIBUTE_FLOAT_RW("value", 0.0, 100.0, SCA_2DFilterActuator, m_float_arg),
 	{ NULL }	//Sentinel
 };

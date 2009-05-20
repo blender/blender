@@ -36,6 +36,61 @@
 #include <config.h>
 #endif
 
+void  RAS_IPolyMaterial::Initialize( 
+				const STR_String& texname,
+				const STR_String& matname,
+				int materialindex,
+				int tile,
+				int tilexrep,
+				int tileyrep,
+				int mode,
+				int transp,
+				bool alpha,
+				bool zsort,
+				int lightlayer)
+{
+	m_texturename = texname;
+	m_materialname = matname;
+	m_materialindex = materialindex;
+	m_tile = tile;
+	m_tilexrep = tilexrep;
+	m_tileyrep = tileyrep;
+	m_drawingmode = mode;
+	m_transp = transp;
+	m_alpha = alpha;
+	m_zsort = zsort;
+	m_lightlayer = lightlayer;
+	m_polymatid = m_newpolymatid++;
+	m_flag = 0;
+	m_multimode = 0;
+	m_shininess = 35.0;
+	m_specular.setValue(0.5,0.5,0.5);
+	m_specularity = 1.0;
+	m_diffuse.setValue(0.5,0.5,0.5);
+}
+
+RAS_IPolyMaterial::RAS_IPolyMaterial() 
+		: m_texturename("__Dummy_Texture_Name__"),
+		m_materialname("__Dummy_Material_Name__"),
+		m_materialindex(0),
+		m_tile(0),
+		m_tilexrep(0),
+		m_tileyrep(0),
+		m_drawingmode (0),
+		m_transp(0),
+		m_alpha(false),
+		m_zsort(false),
+		m_lightlayer(0),
+		m_polymatid(0),
+		m_flag(0),
+		m_multimode(0)
+{
+	m_shininess = 35.0;
+	m_specular = MT_Vector3(0.5,0.5,0.5);
+	m_specularity = 1.0;
+	m_diffuse = MT_Vector3(0.5,0.5,0.5);
+}
+
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 const STR_String& matname,
 									 int materialindex,
@@ -172,6 +227,9 @@ Scene* RAS_IPolyMaterial::GetBlenderScene() const
 	return NULL;
 }
 
+void RAS_IPolyMaterial::ReleaseMaterial()
+{
+}
 
 unsigned int	RAS_IPolyMaterial::GetFlag() const
 {

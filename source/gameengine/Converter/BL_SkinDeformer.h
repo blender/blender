@@ -68,6 +68,8 @@ public:
 					BL_ArmatureObject* arma = NULL);
 
 	virtual RAS_Deformer *GetReplica();
+	virtual void ProcessReplica();
+
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
@@ -88,6 +90,10 @@ public:
 	{
 		m_lastArmaUpdate = -1.0;
 	};
+	virtual bool ShareVertexArray()
+	{
+		return false;
+	}
 
 protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object

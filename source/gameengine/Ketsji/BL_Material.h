@@ -44,6 +44,7 @@ private:
 public:
 	// -----------------------------------
 	BL_Material();
+	void Initialize();
 
 	int IdMode;
 	unsigned int ras_mode;

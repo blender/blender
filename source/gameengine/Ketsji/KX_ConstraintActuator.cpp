@@ -566,8 +566,13 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ConstraintActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_ConstraintActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -626,7 +631,7 @@ PyAttributeDef KX_ConstraintActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RW_CHECK("direction",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_refDirection,3,pyattr_check_direction),
 	KX_PYATTRIBUTE_INT_RW("option",0,0xFFFF,false,KX_ConstraintActuator,m_option),
 	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_ConstraintActuator,m_activeTime),
-	KX_PYATTRIBUTE_STRING_RW("property",0,32,true,KX_ConstraintActuator,m_property),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,32,true,KX_ConstraintActuator,m_property),
 	KX_PYATTRIBUTE_FLOAT_RW("min",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("distance",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_ConstraintActuator,m_maximumBound),

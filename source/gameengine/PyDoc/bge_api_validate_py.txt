@@ -50,13 +50,12 @@ if doc_dir not in sys.path:
 	sys.path.append(doc_dir)
 
 
-def check_attribute(type_mame, member):
-	filename = 	os.path.join(doc_dir, type_mame + '.py')
-	# print filename
+def check_attribute(class_ob, member):
+	doc = class_ob.__doc__
+	if not doc:
+		return False
 	
-	file = open(filename, 'rU')
-	
-	for l in file:
+	for l in doc.split('\n'):
 		l = l.strip()
 		
 		'''
@@ -70,10 +69,8 @@ def check_attribute(type_mame, member):
 			var = l.split()[1].split(':')[0]
 			
 			if var == member:
-				file.close()
 				return True
 	
-	file.close()
 	return False
 	
 	
@@ -85,18 +82,14 @@ print '\n\n\nChecking Docs'
 
 PRINT_OK = False
 
+pymod = sys.modules['GameTypes']
+del sys.modules['GameTypes'] # temp remove
+mod = __import__('GameTypes') # get the python module
+reload(mod) # incase were editing it
+sys.modules['GameTypes'] = pymod
+
 for type_name in sorted(type_members.keys()):
 	members = type_members[type_name]
-	
-	try:
-		mod = __import__(type_name)
-		if PRINT_OK:
-			print "type: %s" % type_name
-	except:
-		print "missing: %s - %s" % (type_name, str(sorted(members)))
-		continue
-	
-	reload(mod) # incase were editing it
 	
 	try:
 		type_class = getattr(mod, type_name)
@@ -110,7 +103,7 @@ for type_name in sorted(type_members.keys()):
 			if PRINT_OK:
 				print "\tfound: %s.%s" % (type_name, member)
 		except:
-			if check_attribute(type_name, member):
+			if check_attribute(type_class, member):
 				if PRINT_OK:
 					print "\tfound attr: %s.%s" % (type_name, member)
 			else:
@@ -128,7 +121,7 @@ for mod_name, pymod in mods_dict.iteritems():
 	print pydoc.__file__
 	
 	for member in sorted(dir(pymod)):
-		if hasattr(pydoc, member) or check_attribute(mod_name, member):
+		if hasattr(pydoc, member) or check_attribute(pydoc, member):
 			if PRINT_OK:
 				print "\tfound module attr: %s.%s" % (mod_name, member)
 		else:
@@ -139,7 +132,5 @@ for mod_name, pymod in mods_dict.iteritems():
 
 
 sys.path.pop() # remove the pydoc dir from our import paths
-
-
 
 

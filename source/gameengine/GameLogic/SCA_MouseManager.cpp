@@ -75,8 +75,8 @@ void SCA_MouseManager::NextFrame()
 {
 	if (m_mousedevice)
 	{
-		set<SCA_ISensor*>::iterator it;
-		for (it=m_sensors.begin(); it!=m_sensors.end(); it++)
+		SG_DList::iterator<SCA_ISensor> it(m_sensors);
+		for (it.begin();!it.end();++it)
 		{
 			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*)(*it);
 			// (0,0) is the Upper Left corner in our local window
@@ -93,7 +93,7 @@ void SCA_MouseManager::NextFrame()
 				mousesensor->setX(mx);
 				mousesensor->setY(my);
 				
-				mousesensor->Activate(m_logicmanager,NULL);
+				mousesensor->Activate(m_logicmanager);
 			}
 		}
 	}

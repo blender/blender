@@ -83,17 +83,19 @@ CValue* KX_SoundActuator::GetReplica()
 {
 	KX_SoundActuator* replica = new KX_SoundActuator(*this);
 	replica->ProcessReplica();
-	if (m_soundObject)
-	{
-	    SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
-		replica->setSoundObject(soundobj);
-		m_soundScene->AddObject(soundobj);
-	}
-	
 	return replica;
 };
 
-
+void KX_SoundActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
+	if (m_soundObject)
+	{
+	    SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
+		setSoundObject(soundobj);
+		m_soundScene->AddObject(soundobj);
+	}
+}	
 
 bool KX_SoundActuator::Update(double curtime, bool frame)
 {
@@ -232,8 +234,13 @@ void KX_SoundActuator::setSoundObject(class SND_SoundObject* soundobject)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SoundActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_SoundActuator",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -288,7 +295,7 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 };
 
 PyAttributeDef KX_SoundActuator::Attributes[] = {
-	KX_PYATTRIBUTE_RW_FUNCTION("filename", KX_SoundActuator, pyattr_get_filename, pyattr_set_filename),
+	KX_PYATTRIBUTE_RW_FUNCTION("fileName", KX_SoundActuator, pyattr_get_filename, pyattr_set_filename),
 	KX_PYATTRIBUTE_RW_FUNCTION("volume", KX_SoundActuator, pyattr_get_gain, pyattr_set_gain),
 	KX_PYATTRIBUTE_RW_FUNCTION("pitch", KX_SoundActuator, pyattr_get_pitch, pyattr_set_pitch),
 	KX_PYATTRIBUTE_RW_FUNCTION("rollOffFactor", KX_SoundActuator, pyattr_get_rollOffFactor, pyattr_set_rollOffFactor),
@@ -296,7 +303,7 @@ PyAttributeDef KX_SoundActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("position", KX_SoundActuator, pyattr_get_position, pyattr_set_position),
 	KX_PYATTRIBUTE_RW_FUNCTION("velocity", KX_SoundActuator, pyattr_get_velocity, pyattr_set_velocity),
 	KX_PYATTRIBUTE_RW_FUNCTION("orientation", KX_SoundActuator, pyattr_get_orientation, pyattr_set_orientation),
-	KX_PYATTRIBUTE_ENUM_RW("type",KX_SoundActuator::KX_SOUNDACT_NODEF+1,KX_SoundActuator::KX_SOUNDACT_MAX-1,false,KX_SoundActuator,m_type),
+	KX_PYATTRIBUTE_ENUM_RW("mode",KX_SoundActuator::KX_SOUNDACT_NODEF+1,KX_SoundActuator::KX_SOUNDACT_MAX-1,false,KX_SoundActuator,m_type),
 	{ NULL }	//Sentinel
 };
 
@@ -357,7 +364,7 @@ PyObject* KX_SoundActuator::pyattr_get_filename(void *self, const struct KX_PYAT
 	char* name = objectname.Ptr();
 	
 	if (!name) {
-		PyErr_SetString(PyExc_RuntimeError, "value = actuator.filename: KX_SoundActuator, unable to get sound filename");
+		PyErr_SetString(PyExc_RuntimeError, "value = actuator.fileName: KX_SoundActuator, unable to get sound fileName");
 		return NULL;
 	} else
 		return PyString_FromString(name);
@@ -443,13 +450,13 @@ int KX_SoundActuator::pyattr_set_filename(void *self, const struct KX_PYATTRIBUT
 	// void *soundPointer = NULL; /*unused*/
 	
 	if (!PyArg_Parse(value, "s", &soundName))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 
 	if (actuator->m_soundObject) {
 		actuator->m_soundObject->SetObjectName(soundName);
 	}
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -458,12 +465,12 @@ int KX_SoundActuator::pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DE
 	float gain = 1.0;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &gain))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetGain(gain);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -471,12 +478,12 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 	float pitch = 1.0;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &pitch))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetPitch(pitch);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -484,12 +491,12 @@ int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATT
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float rollofffactor = 1.0;
 	if (!PyArg_Parse(value, "f", &rollofffactor))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetRollOffFactor(rollofffactor);
 
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_looping(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -497,12 +504,12 @@ int KX_SoundActuator::pyattr_set_looping(void *self, const struct KX_PYATTRIBUTE
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	int looping = 1;
 	if (!PyArg_Parse(value, "i", &looping))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetLoopMode(looping);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_position(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -512,12 +519,12 @@ int KX_SoundActuator::pyattr_set_position(void *self, const struct KX_PYATTRIBUT
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 
 	if (!PyArg_ParseTuple(value, "fff", &pos[0], &pos[1], &pos[2]))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetPosition(MT_Vector3(pos));
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }         
 
 int KX_SoundActuator::pyattr_set_velocity(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -527,12 +534,12 @@ int KX_SoundActuator::pyattr_set_velocity(void *self, const struct KX_PYATTRIBUT
 
 
 	if (!PyArg_ParseTuple(value, "fff", &vel[0], &vel[1], &vel[2]))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_soundObject)
 		actuator->m_soundObject->SetVelocity(MT_Vector3(vel));
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }         
 
@@ -544,21 +551,22 @@ int KX_SoundActuator::pyattr_set_orientation(void *self, const struct KX_PYATTRI
 
 	/* if value is not a sequence PyOrientationTo makes an error */
 	if (!PyOrientationTo(value, rot, "actuator.orientation = value: KX_SoundActuator"))
-		return NULL;
+		return PY_SET_ATTR_FAIL;
 	
+	/* Since not having m_soundObject didn't do anything in the old version,
+	 * it probably should be kept that way  */
 	if (!actuator->m_soundObject)
-		return 0; /* Since not having m_soundObject didn't do anything in the old version,
-					* it probably should be kept that way  */
+		return PY_SET_ATTR_SUCCESS;
 	
 	actuator->m_soundObject->SetOrientation(rot);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 // Deprecated ----->
 PyObject* KX_SoundActuator::PySetFilename(PyObject* args)
 {
 	char *soundName = NULL;
-	ShowDeprecationWarning("setFilename()", "the filename property");
+	ShowDeprecationWarning("setFilename()", "the fileName property");
 	// void *soundPointer = NULL; /*unused*/
 	
 	if (!PyArg_ParseTuple(args, "s", &soundName))
@@ -569,7 +577,7 @@ PyObject* KX_SoundActuator::PySetFilename(PyObject* args)
 
 PyObject* KX_SoundActuator::PyGetFilename()
 {
-	ShowDeprecationWarning("getFilename()", "the filename property");
+	ShowDeprecationWarning("getFilename()", "the fileName property");
 	if (!m_soundObject)
 	{
 		return PyString_FromString("");
@@ -578,7 +586,7 @@ PyObject* KX_SoundActuator::PyGetFilename()
 	char* name = objectname.Ptr();
 	
 	if (!name) {
-		PyErr_SetString(PyExc_RuntimeError, "Unable to get sound filename");
+		PyErr_SetString(PyExc_RuntimeError, "Unable to get sound fileName");
 		return NULL;
 	} else
 		return PyString_FromString(name);
@@ -752,7 +760,7 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* args)
 PyObject* KX_SoundActuator::PySetType(PyObject* args)
 {
 	int typeArg;
-	ShowDeprecationWarning("setType()", "the type property");
+	ShowDeprecationWarning("setType()", "the mode property");
 
 	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
 		return NULL;
@@ -768,7 +776,7 @@ PyObject* KX_SoundActuator::PySetType(PyObject* args)
 
 PyObject* KX_SoundActuator::PyGetType()
 {
-	ShowDeprecationWarning("getType()", "the type property");
+	ShowDeprecationWarning("getType()", "the mode property");
 	return PyInt_FromLong(m_type);
 }
 // <-----

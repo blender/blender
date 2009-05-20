@@ -1131,7 +1131,7 @@ static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 	float *fp;
 	int len, stackcount, skipdata=0;
 	char *cpa, terminator, str[64];
-	long i;
+	intptr_t i;
 	
 	len= strlen(field);
 
@@ -2592,7 +2592,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 	unsigned int kleur[32];
 	float co[3];
 	int a;
-	long tot;
+	intptr_t tot;
 	char *cp;
 	
 	if(ob && ob->type==OB_MESH);
@@ -2642,17 +2642,17 @@ static void write_videoscape_mesh(Object *ob, char *str)
 
 			if(evl->v4==0) {
 				fprintf(fp, "3 %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l,
-						(long int) evl->v2->tmp.l,
-						(long int) evl->v3->tmp.l, 
+						(intptr_t) evl->v1->tmp.l,
+						(intptr_t) evl->v2->tmp.l,
+						(intptr_t) evl->v3->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			else {
 				fprintf(fp, "4 %ld %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l, 
-						(long int) evl->v2->tmp.l, 
-						(long int) evl->v3->tmp.l, 
-						(long int) evl->v4->tmp.l, 
+						(intptr_t) evl->v1->tmp.l, 
+						(intptr_t) evl->v2->tmp.l, 
+						(intptr_t) evl->v3->tmp.l, 
+						(intptr_t) evl->v4->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			evl= evl->next;

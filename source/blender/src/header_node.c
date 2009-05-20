@@ -756,7 +756,25 @@ void node_buttons(ScrArea *sa)
 	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,2,XIC,YIC-2,
 				  &(snode->treetype), 2, 2, 0, 0, "Texture Nodes");
 	xco+= 2*XIC;
+	
 	uiBlockEndAlign(block);
+	
+	if(snode->treetype==NTREE_TEXTURE) {
+		
+		uiBlockBeginAlign(block);
+		uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,2,XIC,YIC-2,
+					  &(snode->texfrom), 3, SNODE_TEX_OBJECT, 0, 0, "Texture Nodes from Object");
+		xco+= XIC;
+		uiDefIconButS(block, ROW, B_REDR, ICON_WORLD_DEHLT, xco,2,XIC,YIC-2,
+					  &(snode->texfrom), 3, SNODE_TEX_WORLD, 0, 0, "Texture Nodes from World");
+		xco+= XIC;
+		uiDefIconButS(block, ROW, B_REDR, ICON_TPAINT_DEHLT, xco,2,XIC,YIC-2,
+					  &(snode->texfrom), 3, SNODE_TEX_BRUSH, 0, 0, "Texture Nodes from Active Brush or Sculpt Data");
+		xco+= 2*XIC;
+		
+		uiBlockEndAlign(block);
+		
+	}
 	
 	/* find and set the context */
 	snode_set_context(snode);
@@ -785,8 +803,9 @@ void node_buttons(ScrArea *sa)
 	else if(snode->treetype==NTREE_TEXTURE) {
 		if(snode->from) {
 			
+			/* can't use unlink etc here, code requires buttons context */
 			xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
-					   B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+					   0, 0, 0, B_AUTOTEXNAME, B_KEEPDATA);
 			
 			if(snode->id) {
 				Tex *tx= (Tex *)snode->id;

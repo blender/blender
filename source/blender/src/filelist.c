@@ -913,6 +913,8 @@ void BIF_filelist_from_library(struct FileList* filelist)
 void BIF_filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode)
 {
 	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode);
+	BLO_blendhandle_close(filelist->libfiledata);
+	filelist->libfiledata= NULL;
 }
 
 void BIF_filelist_from_main(struct FileList *filelist)

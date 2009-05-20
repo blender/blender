@@ -55,6 +55,10 @@ public:
 	 * Updates the Aabb based on the motion state
 	 */
 	virtual bool SetGraphicTransform();
+	/**
+	 * Add/remove to environment
+	 */
+	virtual void Activate(bool active);
 
 	// client info for culling
 	virtual	void* getNewClientInfo() { return m_newClientInfo; }

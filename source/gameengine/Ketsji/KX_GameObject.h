@@ -77,6 +77,7 @@ protected:
 	STR_String							m_text;
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
+	SG_QList							m_meshSlots;	// head of mesh slots of this 
 	struct Object*						m_pBlenderObject;
 	struct Object*						m_pBlenderGroupObject;
 	
@@ -192,11 +193,6 @@ public:
 	~KX_GameObject(
 	);
 
-		CValue*				
-	AddRef() { 
-		/* temporarily to find memleaks */ return CValue::AddRef(); 
-	}
-
 	/** 
 	 * @section Stuff which is here due to poor design.
 	 * Inherited from CValue and needs an implementation. 
@@ -245,7 +241,7 @@ public:
 	/**
 	 * Inherited from CValue -- returns the name of this object.
 	 */
-		STR_String			
+		STR_String&			
 	GetName(
 	);
 
@@ -254,7 +250,7 @@ public:
 	 */
 		void				
 	SetName(
-		STR_String name
+		const char *name
 	);
 
 	/** 
@@ -385,6 +381,10 @@ public:
 	{ 
 		m_pGraphicController = graphiccontroller;
 	}
+	/*
+	 * @add/remove the graphic controller to the physic system
+	 */
+	void ActivateGraphicController(bool recurse);
 
 	/**
 	 * @section Coordinate system manipulation functions
@@ -558,6 +558,13 @@ public:
 	);
 
 	static void UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene);
+
+	/**
+	 * only used for sensor objects
+	 */
+	void SynchronizeTransform();
+
+	static void SynchronizeTransformFunc(SG_IObject* node, void* gameobj, void* scene);
 
 	/**
 	 * Function to set IPO option at start of IPO
@@ -895,6 +902,9 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_meshes(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_children_recursive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* Experemental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

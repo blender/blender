@@ -28,6 +28,7 @@ FILE(GLOB SRC *.cpp)
 SET(SRC 
   ${SRC}
   ../../../source/blender/python/api2_2x/Mathutils.c
+  ../../../source/blender/python/api2_2x/Geometry.c
   ../../../source/blender/python/api2_2x/constant.c
   ../../../source/blender/python/api2_2x/euler.c
   ../../../source/blender/python/api2_2x/matrix.c

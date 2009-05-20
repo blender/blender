@@ -206,8 +206,13 @@ bool KX_GameActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_GameActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_GameActuator",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -247,8 +252,8 @@ PyMethodDef KX_GameActuator::Methods[] =
 };
 
 PyAttributeDef KX_GameActuator::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("file",0,100,false,KX_GameActuator,m_filename),
-	//KX_PYATTRIBUTE_TODO("mode"),
+	KX_PYATTRIBUTE_STRING_RW("fileName",0,100,false,KX_GameActuator,m_filename),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_GAME_NODEF+1, KX_GAME_MAX-1, true, KX_GameActuator, m_mode),
 	{ NULL }	//Sentinel
 };
 
@@ -274,7 +279,7 @@ const char KX_GameActuator::GetFile_doc[] =
 "get the name of the file to start.\n";
 PyObject* KX_GameActuator::PyGetFile(PyObject* args, PyObject* kwds)
 {	
-	ShowDeprecationWarning("getFile()", "the file property");
+	ShowDeprecationWarning("getFile()", "the fileName property");
 	return PyString_FromString(m_filename);
 }
 
@@ -286,7 +291,7 @@ PyObject* KX_GameActuator::PySetFile(PyObject* args, PyObject* kwds)
 {
 	char* new_file;
 
-	ShowDeprecationWarning("setFile()", "the file property");
+	ShowDeprecationWarning("setFile()", "the fileName property");
 	
 	if (!PyArg_ParseTuple(args, "s:setFile", &new_file))
 	{

@@ -4,7 +4,7 @@
 Name: 'Envelope Symmetry'
 Blender: 234
 Group: 'Animation'
-Tooltip: 'Make envelope symetrical'
+Tooltip: 'Make envelope symmetrical'
 """
 
 __author__ = "Jonas Petersen"

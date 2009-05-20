@@ -64,8 +64,11 @@ static PyObject *M_ParticleSys_Get( PyObject * self, PyObject * args );
 static PyObject *Part_freeEdit( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_SetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_GetVertGroup( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args );
 static int Part_setSeed( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getSeed( BPy_PartSys * self );
 static int Part_setType( BPy_PartSys * self, PyObject * args );
@@ -127,12 +130,66 @@ static int Part_setTargetPsys( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getTargetPsys( BPy_PartSys * self );
 static int Part_setRenderObject( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderObject( BPy_PartSys * self );
+static int Part_setRenderMaterialColor( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderMaterialColor( BPy_PartSys * self );
+static int Part_setRenderParents( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderParents( BPy_PartSys * self );
+static int Part_setRenderUnborn( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderUnborn( BPy_PartSys * self );
+static int Part_setRenderDied( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderDied( BPy_PartSys * self );
+static int Part_setRenderMaterialIndex( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRenderMaterialIndex( BPy_PartSys * self );
 static int Part_setStep( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getStep( BPy_PartSys * self );
 static int Part_setRenderStep( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderStep( BPy_PartSys * self );
 static PyObject *Part_getDupOb( BPy_PartSys * self );
 static PyObject *Part_getDrawAs( BPy_PartSys * self );
+static int Part_setPhysType( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getPhysType( BPy_PartSys * self );
+static int Part_setIntegrator( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIntegrator( BPy_PartSys * self );
+static int Part_setIniVelObject( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelObject( BPy_PartSys * self );
+static int Part_setIniVelNormal( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelNormal( BPy_PartSys * self );
+static int Part_setIniVelRandom( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelRandom( BPy_PartSys * self );
+static int Part_setIniVelTan( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelTan( BPy_PartSys * self );
+static int Part_setIniVelRot( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelRot( BPy_PartSys * self );
+static int Part_setIniVelPart( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelPart( BPy_PartSys * self );
+static int Part_setIniVelReact( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getIniVelReact( BPy_PartSys * self );
+static int Part_setRotDynamic( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotDynamic( BPy_PartSys * self );
+static int Part_setRotation( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotation( BPy_PartSys * self );
+static int Part_setRotRandom( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotRandom( BPy_PartSys * self );
+static int Part_setRotPhase( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotPhase( BPy_PartSys * self );
+static int Part_setRotPhaseR( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotPhaseR( BPy_PartSys * self );
+static int Part_setRotAngularV( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotAngularV( BPy_PartSys * self );
+static int Part_setRotAngularVAm( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getRotAngularVAm( BPy_PartSys * self );
+static int Part_setGlobAccX( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobAccX( BPy_PartSys * self );
+static int Part_setGlobAccY( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobAccY( BPy_PartSys * self );
+static int Part_setGlobAccZ( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobAccZ( BPy_PartSys * self );
+static int Part_setGlobDrag( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobDrag( BPy_PartSys * self );
+static int Part_setGlobBrown( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobBrown( BPy_PartSys * self );
+static int Part_setGlobDamp( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getGlobDamp( BPy_PartSys * self );
 static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args );
 static int Part_setChildAmount( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getChildAmount( BPy_PartSys * self );
@@ -213,12 +270,18 @@ static PyMethodDef BPy_ParticleSys_methods[] = {
 	 METH_VARARGS, "() - Get particles location"},
    	{"getRot", ( PyCFunction ) Part_GetRot,
 	 METH_VARARGS, "() - Get particles rotations (list of 4 floats quaternion)"},
+    {"setMat", ( PyCFunction ) Part_SetMat,
+	 METH_VARARGS, "() - Set particles material"},
    	{"getMat", ( PyCFunction ) Part_GetMat,
 	 METH_NOARGS, "() - Get particles material"},
    	{"getSize", ( PyCFunction ) Part_GetSize,
 	 METH_VARARGS, "() - Get particles size in a list"},
     	{"getAge", ( PyCFunction ) Part_GetAge,
 	 METH_VARARGS, "() - Get particles life in a list"},
+	{"getVertGroup", ( PyCFunction ) Part_GetVertGroup,
+	 METH_VARARGS, "() - Get the vertex group which affects a particles attribute"},
+	{"setVertGroup", ( PyCFunction ) Part_SetVertGroup,
+	 METH_VARARGS, "() - Set the vertex group to affect a particles attribute"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -346,6 +409,26 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
 	 (getter)Part_getRenderObject, (setter)Part_setRenderObject,
 	 "Render emitter object",
 	 NULL},
+	 {"renderMatCol",
+	 (getter)Part_getRenderMaterialColor, (setter)Part_setRenderMaterialColor,
+	 "Draw particles using material's diffuse color",
+	 NULL},
+	 {"renderParents",
+	 (getter)Part_getRenderParents, (setter)Part_setRenderParents,
+	 "Render parent particles",
+	 NULL},
+	 {"renderUnborn",
+	 (getter)Part_getRenderUnborn, (setter)Part_setRenderUnborn,
+	 "Show particles before they are emitted",
+	 NULL},
+	 {"renderDied",
+	 (getter)Part_getRenderDied, (setter)Part_setRenderDied,
+	 "Show particles after they have died",
+	 NULL},
+	 {"renderMaterial",
+	 (getter)Part_getRenderMaterialIndex, (setter)Part_setRenderMaterialIndex,
+	 "Specify material index used for the particles",
+	 NULL},
      {"displayPercentage",
 	 (getter)Part_getParticleDisp, (setter)Part_setParticleDisp,
 	 "Particle display percentage",
@@ -365,6 +448,95 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
      {"drawAs",
 	 (getter)Part_getDrawAs, NULL,
 	 "Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ] )",
+	 NULL},
+/* Newtonian Physics */
+	{"physics",
+	 (getter)Part_getPhysType, (setter)Part_setPhysType,
+	 "Select particle physics type Particle.PHYSICS([ 'BOIDS' | 'KEYED' | 'NEWTONIAN' | 'NONE' ])",
+	 NULL},
+	{"integration",
+	 (getter)Part_getIntegrator, (setter)Part_setIntegrator,
+	 "Select physics integrator type Particle.INTEGRATOR([ 'RK4' | 'MIDPOINT' | 'EULER' ])",
+	 NULL},
+	 {"inVelObj",
+	 (getter)Part_getIniVelObject, (setter)Part_setIniVelObject,
+	 "Let the object give the particle a starting speed",
+	 NULL},
+	 {"inVelNor",
+	 (getter)Part_getIniVelNormal, (setter)Part_setIniVelNormal,
+	 "Let the surface normal give the particle a starting speed",
+	 NULL},
+	 {"inVelRan",
+	 (getter)Part_getIniVelRandom, (setter)Part_setIniVelRandom,
+	 "Give the starting speed a random variation",
+	 NULL},
+	 {"inVelTan",
+	 (getter)Part_getIniVelTan, (setter)Part_setIniVelTan,
+	 "Let the surface tangent give the particle a starting speed",
+	 NULL},
+	 {"inVelRot",
+	 (getter)Part_getIniVelRot, (setter)Part_setIniVelRot,
+	 "Rotate the surface tangent",
+	 NULL},
+	 {"inVelPart",
+	 (getter)Part_getIniVelPart, (setter)Part_setIniVelPart,
+	 "Let the target particle give the particle a starting speed",
+	 NULL},
+	 {"inVelReact",
+	 (getter)Part_getIniVelReact, (setter)Part_setIniVelReact,
+	 "Let the vector away from the target particles location give the particle a starting speed",
+	 NULL},
+	 {"rotation",
+	 (getter)Part_getRotation, (setter)Part_setRotation,
+	 "Particles initial rotation Particle.ROTATION([ 'OBZ' | 'OBY' | 'OBX' | 'GLZ' | 'GLY' | 'GLX' | 'VEL' | 'NOR' | 'NONE' ])",
+	 NULL},
+	 {"rotDyn",
+	 (getter)Part_getRotDynamic, (setter)Part_setRotDynamic,
+	 "Sets rotation to dynamic/constant",
+	 NULL},
+	 {"rotRand",
+	 (getter)Part_getRotRandom, (setter)Part_setRotRandom,
+	 "Randomize rotation",
+	 NULL},
+	 {"rotPhase",
+	 (getter)Part_getRotPhase, (setter)Part_setRotPhase,
+	 "Initial rotation phase",
+	 NULL},
+	 {"rotPhaseR",
+	 (getter)Part_getRotPhaseR, (setter)Part_setRotPhaseR,
+	 "Randomize rotation phase",
+	 NULL},
+	 {"rotAnV",
+	 (getter)Part_getRotAngularV, (setter)Part_setRotAngularV,
+	 "Select particle angular velocity mode Particle.ANGULARV([ 'RANDOM' | 'SPIN' | 'NONE' ])",
+	 NULL},
+	 {"rotAnVAm",
+	 (getter)Part_getRotAngularVAm, (setter)Part_setRotAngularVAm,
+	 "Angular velocity amount",
+	 NULL},
+	 {"glAccX",
+	 (getter)Part_getGlobAccX, (setter)Part_setGlobAccX,
+	 "Specify a constant acceleration along the X-axis",
+	 NULL},
+	 {"glAccY",
+	 (getter)Part_getGlobAccY, (setter)Part_setGlobAccY,
+	 "Specify a constant acceleration along the Y-axis",
+	 NULL},
+	 {"glAccZ",
+	 (getter)Part_getGlobAccZ, (setter)Part_setGlobAccZ,
+	 "Specify a constant acceleration along the Z-axis",
+	 NULL},
+	 {"glDrag",
+	 (getter)Part_getGlobDrag, (setter)Part_setGlobDrag,
+	 "Specify the amount of air-drag",
+	 NULL},
+	 {"glBrown",
+	 (getter)Part_getGlobBrown, (setter)Part_setGlobBrown,
+	 "Specify the amount of brownian motion",
+	 NULL},
+	 {"glDamp",
+	 (getter)Part_getGlobDamp, (setter)Part_setGlobDamp,
+	 "Specify the amount of damping",
 	 NULL},
 /* Children */
 	{"childAmount",
@@ -859,6 +1031,95 @@ static PyObject *Particle_ReactOnDict( void )
 	return ReactOn;
 }
 
+/* create the Blender.Particle.Physics constant dict */
+
+static PyObject *Particle_PhysicsDict( void )
+{
+	PyObject *Physics = PyConstant_New(  );
+
+	if( Physics ) {
+		BPy_constant *c = ( BPy_constant * ) Physics;
+
+		PyConstant_Insert( c, "BOIDS",
+				 PyInt_FromLong( 3 ) );
+		PyConstant_Insert( c, "KEYED",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "NEWTONIAN",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NONE",
+				 PyInt_FromLong( 0 ) );
+	}
+	return Physics;
+}
+
+/* create the Blender.Particle.Integrator constant dict */
+
+static PyObject *Particle_IntegratorDict( void )
+{
+	PyObject *Integrator = PyConstant_New(  );
+
+	if( Integrator ) {
+		BPy_constant *c = ( BPy_constant * ) Integrator;
+
+		PyConstant_Insert( c, "EULER",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "MIDPOINT",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "EULER",
+				 PyInt_FromLong( 0 ) );
+	}
+	return Integrator;
+}
+
+/* create the Blender.Particle.Rotation constant dict */
+
+static PyObject *Particle_RotationDict( void )
+{
+	PyObject *Rotation = PyConstant_New(  );
+
+	if( Rotation ) {
+		BPy_constant *c = ( BPy_constant * ) Rotation;
+
+		PyConstant_Insert( c, "OBZ",
+				 PyInt_FromLong( 8 ) );
+		PyConstant_Insert( c, "OBY",
+				 PyInt_FromLong( 7 ) );
+		PyConstant_Insert( c, "OBX",
+				 PyInt_FromLong( 6 ) );
+		PyConstant_Insert( c, "GLZ",
+				 PyInt_FromLong( 5 ) );
+		PyConstant_Insert( c, "GLY",
+				 PyInt_FromLong( 4 ) );
+		PyConstant_Insert( c, "GLX",
+				 PyInt_FromLong( 3 ) );
+		PyConstant_Insert( c, "VEL",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "NOR",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NONE",
+				 PyInt_FromLong( 0 ) );
+	}
+	return Rotation;
+}
+
+/* create the Blender.Particle.AngularV constant dict */
+
+static PyObject *Particle_AngularVDict( void )
+{
+	PyObject *AngularV = PyConstant_New(  );
+
+	if( AngularV ) {
+		BPy_constant *c = ( BPy_constant * ) AngularV;
+
+		PyConstant_Insert( c, "RANDOM",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "SPIN",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NONE",
+				 PyInt_FromLong( 0 ) );
+	}
+	return AngularV;
+}
 
 /* create the Blender.Particle.ChildType constant dict */
 
@@ -878,6 +1139,44 @@ static PyObject *Particle_ChildTypeDict( void )
 	}
 	return ChildTypes;
 }
+
+/* create the Blender.Particle.VertexGroups constant dict */
+
+static PyObject *Particle_VertexGroupsDict( void )
+{
+	PyObject *VertexGroups = PyConstant_New(  );
+
+	if( VertexGroups ) {
+		BPy_constant *c = ( BPy_constant * ) VertexGroups;
+
+		PyConstant_Insert( c, "EFFECTOR",
+				 PyInt_FromLong( 11 ) );
+		PyConstant_Insert( c, "TANROT",
+				 PyInt_FromLong( 10 ) );
+		PyConstant_Insert( c, "TANVEL",
+				 PyInt_FromLong( 9 ) );
+		PyConstant_Insert( c, "SIZE",
+				 PyInt_FromLong( 8 ) );
+		PyConstant_Insert( c, "ROUGHE",
+				 PyInt_FromLong( 7 ) );
+		PyConstant_Insert( c, "ROUGH2",
+				 PyInt_FromLong( 6 ) );
+		PyConstant_Insert( c, "ROUGH1",
+				 PyInt_FromLong( 5 ) );
+		PyConstant_Insert( c, "KINK",
+				 PyInt_FromLong( 4 ) );
+		PyConstant_Insert( c, "CLUMP",
+				 PyInt_FromLong( 3 ) );
+		PyConstant_Insert( c, "LENGHT",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "VELOCITY",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "DENSITY",
+				 PyInt_FromLong( 0 ) );
+	}
+	return VertexGroups;
+}
+
 
 /* create the Blender.Particle.ChildKink constant dict */
 
@@ -967,7 +1266,12 @@ PyObject *ParticleSys_Init( void ){
 	PyObject *EmitFrom;
 	PyObject *Dist;
 	PyObject *DrawAs;
+	PyObject *Physics;
+	PyObject *Integrator;
+	PyObject *Rotation;
+	PyObject *AngularV;
 	PyObject *ChildTypes;
+	PyObject *VertexGroups;
 	PyObject *ChildKinks;
 	PyObject *ChildKinkAxes;
 
@@ -980,6 +1284,11 @@ PyObject *ParticleSys_Init( void ){
 	EmitFrom = Particle_EmitFrom();
 	DrawAs = Particle_DrawAs();
 	Dist = Particle_DistrDict();
+	Physics = Particle_PhysicsDict();
+	Integrator = Particle_IntegratorDict();
+	Rotation = Particle_RotationDict();
+	AngularV = Particle_AngularVDict();
+	VertexGroups = Particle_VertexGroupsDict();
 	ChildTypes = Particle_ChildTypeDict();
 	ChildKinks = Particle_ChildKinkDict();
 	ChildKinkAxes = Particle_ChildKinkAxisDict();
@@ -997,6 +1306,16 @@ PyObject *ParticleSys_Init( void ){
 		PyModule_AddObject( submodule, "DISTRIBUTION", Dist );
 	if( DrawAs )
 		PyModule_AddObject( submodule, "DRAWAS", DrawAs );
+	if( Physics )
+		PyModule_AddObject( submodule, "PHYSICS", Physics );
+	if( Integrator )
+		PyModule_AddObject( submodule, "INTEGRATOR", Integrator );
+	if( Rotation )
+		PyModule_AddObject( submodule, "ROTATION", Rotation );
+	if( AngularV )
+		PyModule_AddObject( submodule, "ANGULARV", AngularV );
+	if( VertexGroups )
+		PyModule_AddObject( submodule, "VERTEXGROUPS", VertexGroups );
 	if( ChildTypes )
 		PyModule_AddObject( submodule, "CHILDTYPE", ChildTypes );
 	if( ChildKinks )
@@ -1540,6 +1859,37 @@ error:
 	return NULL;
 }
 
+static PyObject *Part_SetMat( BPy_PartSys * self, PyObject * args )
+{
+	Object *ob = self->object;
+	BPy_Material *pymat;
+	Material *mat;
+	short index;
+
+	if( !PyArg_ParseTuple( args, "O!", &Material_Type, &pymat ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected Blender Material PyObject" );
+
+	mat = pymat->material;
+
+	if( ob->totcol >= MAXMAT )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "object data material lists can't have more than 16 materials" );
+
+	index = find_material_index(ob,mat);
+	if (index == 0){	/*Not found*/
+		assign_material(ob,mat,ob->totcol+1);
+		index = find_material_index(ob,mat);
+	}
+
+	if (index>0 && index<MAXMAT)
+		self->psys->part->omat = index;
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;
+
+	Py_RETURN_NONE;
+}
 
 static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args ){
 	Material *ma;
@@ -1550,6 +1900,111 @@ static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args ){
 
 	mat = Material_CreatePyObject(ma);
 	return mat;
+}
+
+static PyObject *Part_GetVertGroup( BPy_PartSys * self, PyObject * args ){
+	PyObject *list;
+	char errstr[128];
+	bDeformGroup *defGroup = NULL;
+	Object *obj = self->object;
+	int vg_attribute = 0;
+	int vg_number = 0;
+	int count;
+	PyObject *vg_neg;
+	PyObject *vg_name;
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "particle system must be linked to an object first" );
+	
+	if( obj->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "linked object is not a mesh" );
+	
+	if( !PyArg_ParseTuple( args, "i", &vg_attribute ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected integer argument" );
+	
+	if( vg_attribute < 0 || vg_attribute > PSYS_TOT_VG-1 ){
+		sprintf ( errstr, "expected int argument in [0,%d]", PSYS_TOT_VG-1 );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
+
+	/*search*/
+	vg_number = self->psys->vgroup[vg_attribute];
+	count = 1;
+	defGroup = obj->defbase.first;
+	while(count<vg_number && defGroup){
+		defGroup = defGroup->next;
+		count++;
+	}
+
+	/*vg_name*/
+	if (defGroup && vg_number>0)
+		vg_name = PyString_FromString( defGroup->name );
+	else
+		vg_name = PyString_FromString( "" );
+	
+	/*vg_neg*/
+	vg_neg = PyInt_FromLong( ((long)( self->psys->vg_neg & (1<<vg_attribute) )) > 0 );
+
+	list = PyList_New( 2 );
+	PyList_SET_ITEM( list, 0, vg_name );
+	PyList_SET_ITEM( list, 1, vg_neg );
+
+	return list;
+}
+
+static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args ){
+	char errstr[128];
+	bDeformGroup *defGroup;
+	Object *obj = self->object;
+	char *vg_name = NULL;
+	int vg_attribute = 0;
+	int vg_neg = 0;
+	int vg_number = 0;
+	int count;
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "particle system must be linked to an object first" );
+	
+	if( obj->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "linked object is not a mesh" );
+	
+	if( !PyArg_ParseTuple( args, "sii", &vg_name, &vg_attribute, &vg_neg ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected one string and two integers arguments" );
+	
+	if( vg_attribute < 0 || vg_attribute > PSYS_TOT_VG-1 ){
+		sprintf ( errstr, "expected int argument in [0,%d]", PSYS_TOT_VG-1 );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
+
+	/*search*/
+	count = 1;
+	defGroup = obj->defbase.first;
+	while (defGroup){
+		if (strcmp(vg_name,defGroup->name)==0)
+			vg_number = count;
+		defGroup = defGroup->next;
+		count++;
+	}
+
+	/*vgroup*/
+	self->psys->vgroup[vg_attribute] = vg_number;
+
+	/*vg_neg*/
+	if (vg_neg){
+		self->psys->vg_neg |= (1<<vg_attribute);
+	}else{
+		self->psys->vg_neg &= ~(1<<vg_attribute);
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	Py_RETURN_NONE;
 }
 
 
@@ -2149,6 +2604,115 @@ static PyObject *Part_getRenderObject( BPy_PartSys * self )
 	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_EMITTER )) > 0 );
 }
 
+static int Part_setRenderMaterialColor( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->draw |= PART_DRAW_MAT_COL;
+	}else{
+		self->psys->part->draw &= ~PART_DRAW_MAT_COL;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getRenderMaterialColor( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_MAT_COL )) > 0 );
+}
+
+static int Part_setRenderParents( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->draw |= PART_DRAW_PARENT;
+	}else{
+		self->psys->part->draw &= ~PART_DRAW_PARENT;
+	}
+
+	return 0;
+}
+
+static PyObject *Part_getRenderParents( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_PARENT )) > 0 );
+}
+
+static int Part_setRenderUnborn( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_UNBORN;
+	}else{
+		self->psys->part->flag &= ~PART_UNBORN;
+	}
+
+	return 0;
+}
+
+static PyObject *Part_getRenderUnborn( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_UNBORN )) > 0 );
+}
+
+static int Part_setRenderDied( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_DIED;
+	}else{
+		self->psys->part->flag &= ~PART_DIED;
+	}
+
+	return 0;
+}
+
+static int Part_setRenderMaterialIndex( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->omat,
+			1, 16, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRenderMaterialIndex( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->omat )) );
+}
+
+static PyObject *Part_getRenderDied( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_DIED )) > 0 );
+}
+
 static int Part_setParticleDisp( BPy_PartSys * self, PyObject * args )
 {
 	int res = EXPP_setIValueRange( args, &self->psys->part->disp,
@@ -2200,6 +2764,346 @@ static PyObject *Part_getRenderStep( BPy_PartSys * self )
 static PyObject *Part_getDrawAs( BPy_PartSys * self )
 {
 	return PyInt_FromLong( (long)( self->psys->part->draw_as ) );
+}
+
+static int Part_setPhysType( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->phystype,
+			0, 3, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getPhysType( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->phystype ) );
+}
+
+static int Part_setIntegrator( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->integrator,
+			0, 2, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIntegrator( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->integrator ) );
+}
+
+static int Part_setIniVelObject( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->obfac,
+			-1.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelObject( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->obfac )) );
+}
+
+static int Part_setIniVelNormal( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->normfac,
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelNormal( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->normfac )) );
+}
+
+static int Part_setIniVelRandom( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->randfac,
+			0.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelRandom( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->randfac )) );
+}
+
+static int Part_setIniVelTan( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->tanfac,
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelTan( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->tanfac )) );
+}
+
+static int Part_setIniVelRot( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->tanphase,
+			-1.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelRot( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->tanphase )) );
+}
+
+static int Part_setIniVelPart( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->partfac,
+			-10.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelPart( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->partfac )) );
+}
+
+static int Part_setIniVelReact( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->reactfac,
+			-10.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getIniVelReact( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->reactfac )) );
+}
+
+static int Part_setRotation( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->rotmode,
+			0, 8, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotation( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->rotmode ) );
+}
+
+static int Part_setRotDynamic( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_ROT_DYN;
+	}else{
+		self->psys->part->flag &= ~PART_ROT_DYN;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getRotDynamic( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_ROT_DYN )) > 0 );
+}
+
+static int Part_setRotRandom( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->randrotfac,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotRandom( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->randrotfac )) );
+}
+
+static int Part_setRotPhase( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->phasefac,
+			-1.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotPhase( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->phasefac )) );
+}
+
+static int Part_setRotPhaseR( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->randphasefac,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotPhaseR( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->randphasefac )) );
+}
+
+static int Part_setRotAngularV( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->avemode,
+			0, 2, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotAngularV( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->avemode )) );
+}
+
+static int Part_setRotAngularVAm( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->avefac,
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getRotAngularVAm( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->avefac )) );
+}
+
+static int Part_setGlobAccX( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->acc[0],
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobAccX( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->acc[0] )) );
+}
+
+static int Part_setGlobAccY( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->acc[1],
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobAccY( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->acc[1] )) );
+}
+
+static int Part_setGlobAccZ( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->acc[2],
+			-200.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobAccZ( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->acc[2] )) );
+}
+
+static int Part_setGlobDrag( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->dragfac,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobDrag( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->dragfac )) );
+}
+
+static int Part_setGlobBrown( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->brownfac,
+			0.0, 200.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobBrown( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->brownfac )) );
+}
+
+static int Part_setGlobDamp( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->dampfac,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getGlobDamp( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->dampfac )) );
 }
 
 static int Part_setChildAmount( BPy_PartSys * self, PyObject * args )

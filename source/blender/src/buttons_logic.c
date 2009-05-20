@@ -1026,6 +1026,19 @@ static void set_col_sensor(int type, int medium)
 	BIF_ThemeColorShade(col, medium?30:0);
 }
 
+
+static void verify_logicbutton_func(void *data1, void *data2)
+{
+	bSensor *sens= (bSensor*)data1;
+	
+	if(sens->level && sens->tap) {
+		if(data2 == &(sens->level))	sens->tap= 0;
+		else							sens->level= 0;
+		allqueue(REDRAWBUTSLOGIC, 0);
+	}
+}
+
+
 /**
  * Draws a toggle for pulse mode, a frequency field and a toggle to invert
  * the value of this sensor. Operates on the shared data block of sensors.
@@ -1036,30 +1049,39 @@ static void draw_default_sensor_header(bSensor *sens,
 								short y,
 								short w) 
 {
+	uiBut *but;
+	
 	/* Pulsing and frequency */
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
-			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate TRUE level triggering (pulse mode)");
 
 	uiDefIconButBitS(block, TOG, SENS_NEG_PULSE_MODE, 1, ICON_DOTSDOWN,
-			 (short)(x + 10 + 0.15 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0.1 * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate FALSE level triggering (pulse mode)");
 	uiDefButS(block, NUM, 1, "f:",
-			 (short)(x + 10 + 0.3 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
+			 (short)(x + 10 + 0.2 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
 			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
 	
 	/* value or shift? */
+	but= uiDefButS(block, TOG, 1, "Level",
+			 (short)(x + 10 + 0.5 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
+			 &sens->level, 0.0, 0.0, 0, 0,
+			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
+	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->level));
+	but= uiDefButS(block, TOG, 1, "Tap",
+			 (short)(x + 10 + 0.702 * (w-20)), (short)(y - 21), (short)(0.12 * (w-20)), 19,
+			 &sens->tap, 0.0, 0.0, 0, 0,
+			 "Trigger controllers only for an instant, even while the sensor remains true");
+	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->tap));
+	
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
-	uiDefButS(block, TOG, 1, "Level",
-			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
-			 &sens->level, 0.0, 0.0, 0, 0,
-			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
@@ -1578,7 +1600,16 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 
-		uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+45,yco-24,width-90, 19, &pc->text, "");
+	
+		uiBlockBeginAlign(block);
+		uiDefButI(block, MENU, B_REDR, "Execution Method%t|Script%x0|Module%x1", xco+24,yco-24, 66, 19, &pc->mode, 0, 0, 0, 0, "Python script type (textblock or module - faster)");
+		if(pc->mode==0)
+			uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "", xco+90,yco-24,width-90, 19, &pc->text, "Blender textblock to run as a script");
+		else {
+			uiDefBut(block, TEX, 1, "", xco+90,yco-24,(width-90)-25, 19, pc->module, 0, 63, 0, 0, "Module name and function to run eg \"someModule.main\", internal texts external python files can be used");
+			uiDefButBitI(block, TOG, CONT_PY_DEBUG, B_REDR, "D", (xco+width)-25, yco-24, 19, 19, &pc->flag, 0, 0, 0, 0, "Continuously reload the module from disk for editing external modules without restrting");
+		}
+		uiBlockEndAlign(block);
 		
 		yco-= ysize;
 		break;
@@ -1799,42 +1830,44 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				}				
 			} else if (oa->type == ACT_OBJECT_SERVO)
 			{
-				ysize= 172;
+				ysize= 195;
 				
 				glRects(xco, yco-ysize, xco+width, yco);
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 				
-				uiDefBut(block, LABEL, 0, "linV",	xco, yco-45, 45, 19, NULL, 0, 0, 0, 0, "Sets the target linear velocity, it will be achieve by automatic application of force. Null velocity is a valid target");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-45, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-45, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-45, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
-				uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Velocity is defined in local coordinates");
+				uiDefBut(block, LABEL, 0, "Ref",	xco, yco-45, 45, 19, NULL, 0, 0, 0, 0, "");
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+45, yco-45, wval*3, 19, &(oa->reference), "Reference object for velocity calculation, leave empty for world reference");
+				uiDefBut(block, LABEL, 0, "linV",	xco, yco-68, 45, 19, NULL, 0, 0, 0, 0, "Sets the target relative linear velocity, it will be achieve by automatic application of force. Null velocity is a valid target");
+				uiDefButF(block, NUM, 0, "",		xco+45, yco-68, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-68, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
+				uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-68, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Velocity is defined in local coordinates");
 
-				uiDefBut(block, LABEL, 0, "Limit",	xco, yco-68, 45, 19, NULL, 0, 0, 0, 0, "Select if the force need to be limited along certain axis (local or global depending on LinV Local flag)");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_X, B_REDR, "X",		xco+45, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the X axis");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Y, B_REDR, "Y",		xco+45+wval, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Y axis");
-				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Z, B_REDR, "Z",		xco+45+2*wval, yco-68, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Z axis");
-				uiDefBut(block, LABEL, 0, "Max",	xco, yco-87, 45, 19, NULL, 0, 0, 0, 0, "Set the upper limit for force");
-				uiDefBut(block, LABEL, 0, "Min",	xco, yco-106, 45, 19, NULL, 0, 0, 0, 0, "Set the lower limit for force");
+				uiDefBut(block, LABEL, 0, "Limit",	xco, yco-91, 45, 19, NULL, 0, 0, 0, 0, "Select if the force need to be limited along certain axis (local or global depending on LinV Local flag)");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_X, B_REDR, "X",		xco+45, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the X axis");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Y, B_REDR, "Y",		xco+45+wval, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Y axis");
+				uiDefButBitS(block, TOG, ACT_SERVO_LIMIT_Z, B_REDR, "Z",		xco+45+2*wval, yco-91, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Set limit to force along the Z axis");
+				uiDefBut(block, LABEL, 0, "Max",	xco, yco-110, 45, 19, NULL, 0, 0, 0, 0, "Set the upper limit for force");
+				uiDefBut(block, LABEL, 0, "Min",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Set the lower limit for force");
 				if (oa->flag & ACT_SERVO_LIMIT_X) {
-					uiDefButF(block, NUM, 0, "",		xco+45, yco-87, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-110, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-129, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
 				}
 				if (oa->flag & ACT_SERVO_LIMIT_Y) {
-					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-87, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-110, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-129, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
 				}
 				if (oa->flag & ACT_SERVO_LIMIT_Z) {
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-87, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-110, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-129, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
 				}
-				uiDefBut(block, LABEL, 0, "Servo",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Coefficients of the PID servo controller");
-				uiDefButF(block, NUMSLI, B_REDR, "P: ",		xco+45, yco-129, wval*3, 19, oa->forcerot, 0.00, 200.0, 100, 0, "Proportional coefficient, typical value is 60x Integral coefficient");
-				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-148, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
-				but = uiDefButF(block, NUMSLI, B_REDR, " I : ",		xco+45, yco-148, wval*3, 19, oa->forcerot+1, 0.0, 3.0, 1, 0, "Integral coefficient, low value (0.01) for slow response, high value (0.5) for fast response");
+				uiDefBut(block, LABEL, 0, "Servo",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Coefficients of the PID servo controller");
+				uiDefButF(block, NUMSLI, B_REDR, "P: ",		xco+45, yco-152, wval*3, 19, oa->forcerot, 0.00, 200.0, 100, 0, "Proportional coefficient, typical value is 60x Integral coefficient");
+				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
+				but = uiDefButF(block, NUMSLI, B_REDR, " I : ",		xco+45, yco-171, wval*3, 19, oa->forcerot+1, 0.0, 3.0, 1, 0, "Integral coefficient, low value (0.01) for slow response, high value (0.5) for fast response");
 				uiButSetFunc(but, update_object_actuator_PID, oa, NULL);
-				uiDefBut(block, LABEL, 0, "Fast",	xco+45+3*wval, yco-148, 45, 19, NULL, 0, 0, 0, 0, "High value of I coefficient correspond to fast response");
-				uiDefButF(block, NUMSLI, B_REDR, "D: ",		xco+45, yco-167, wval*3, 19, oa->forcerot+2, -100.0, 100.0, 100, 0, "Derivate coefficient, not required, high values can cause instability");
+				uiDefBut(block, LABEL, 0, "Fast",	xco+45+3*wval, yco-171, 45, 19, NULL, 0, 0, 0, 0, "High value of I coefficient correspond to fast response");
+				uiDefButF(block, NUMSLI, B_REDR, "D: ",		xco+45, yco-190, wval*3, 19, oa->forcerot+2, -100.0, 100.0, 100, 0, "Derivate coefficient, not required, high values can cause instability");
 			}
 			str= "Motion Type %t|Simple motion %x0|Servo Control %x1";
 			but = uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-23, (width-80), 19, &oa->type, 0.0, 0.0, 0, 0, "");
@@ -3033,29 +3066,33 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	Object *ob = arg2_object;
 
 	switch (ob->body_type) {
+	case OB_BODY_TYPE_SENSOR:
+		ob->gameflag |= OB_SENSOR|OB_COLLISION|OB_GHOST;
+		ob->gameflag &= ~(OB_OCCLUDER|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_ACTOR|OB_ANISOTROPIC_FRICTION|OB_DO_FH|OB_ROT_FH|OB_COLLISION_RESPONSE);
+		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
-		ob->gameflag &= ~(OB_COLLISION|OB_DYNAMIC);
+		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~(OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
+		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;
-		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	case OB_BODY_TYPE_DYNAMIC:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	case OB_BODY_TYPE_RIGID:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER|OB_SENSOR);
 		break;
 	default:
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER|OB_SENSOR);
 		
 		/* assume triangle mesh, if no bounds chosen for soft body */
 		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
@@ -3104,8 +3141,14 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiBlockEndAlign(block);
 			yco -= 20;
 			xco = 0;
-			uiDefButF(block, NUMSLI, 0, "Welding ", 
-				xco, yco, 360, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
+			if (ob->bsoft->margin < 0.001f)
+				ob->bsoft->margin = 0.25f;
+			uiDefButF(block, NUM, 0, "Margin", 
+					xco, yco, 180, 19, &ob->bsoft->margin, 0.001, 1.0, 1, 0, 
+					"Collision margin for soft body. Small value makes the algorithm unstable");
+
+			uiDefButF(block, NUM, 0, "Welding ", 
+				xco+=180, yco, 180, 19, &ob->bsoft->welding, 0.f, 0.01f, 10, 4, 
 				"Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
 
 			/*
@@ -3240,17 +3283,31 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 static void buttons_bullet(uiBlock *block, Object *ob)
 {
 	uiBut *but;
+	char *tip;
 
 	/* determine the body_type setting based on flags */
-	if (!(ob->gameflag & OB_COLLISION))
-		ob->body_type = (ob->gameflag & OB_OCCLUDER) ? OB_BODY_TYPE_OCCLUDER : OB_BODY_TYPE_NO_COLLISION;
-	else if (!(ob->gameflag & OB_DYNAMIC))
+	if (!(ob->gameflag & OB_COLLISION)) {
+		if (ob->gameflag & OB_OCCLUDER) {
+			tip = "Occluder";
+			ob->body_type = OB_BODY_TYPE_OCCLUDER;
+		} else {
+			tip = "Disable colision for this object";
+			ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+		}
+	} else if (ob->gameflag & OB_SENSOR) {
+		tip = "Collision Sensor, detects static and dynamic objects but not the other collision sensor objects";
+		ob->body_type = OB_BODY_TYPE_SENSOR;
+	} else if (!(ob->gameflag & OB_DYNAMIC)) {
+		tip = "Static";
 		ob->body_type = OB_BODY_TYPE_STATIC;
-	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY)))
+	} else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY))) {
+		tip = "Dynamic";
 		ob->body_type = OB_BODY_TYPE_DYNAMIC;
-	else if (ob->gameflag & OB_RIGID_BODY)
+	} else if (ob->gameflag & OB_RIGID_BODY) {
+		tip = "Rigid body";
 		ob->body_type = OB_BODY_TYPE_RIGID;
-	else {
+	} else {
+		tip = "Soft body";
 		ob->body_type = OB_BODY_TYPE_SOFT;
 		/* create the structure here because we display soft body buttons in the main panel */
 		if (!ob->bsoft)
@@ -3261,28 +3318,43 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-			"Object type%t|Occluder%x5|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
-			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+			"Object type%t|Occluder%x5|No collision%x0|Sensor%x6|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, tip);
 	uiButSetFunc(but, check_body_type, but, ob);
-
+	
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, OB_RESTRICT_RENDER, B_NOP, "Invisible", 
+				210, 205, 60, 19,
+				&ob->restrictflag, 0, 0, 0, 0, 
+				"Initializes objects as invisible, this can be toggled by the visibility actuator (uses outliner render option)");
+	
 	if (ob->gameflag & OB_COLLISION) {
 
-		uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
-					110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
-					"Objects that are detected by the Near and Radar sensor");
+		if (ob->gameflag & OB_SENSOR) {
+			uiBlockEndAlign(block);
+			uiDefBlockBut(block, advanced_bullet_menu, ob, 
+						  "Advanced", 
+						  270, 205, 80, 19, "Display collision advanced settings");
+			uiBlockBeginAlign(block);
+		} else {
+			uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
+						110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
+						"Objects that are detected by the Near and Radar sensor and the collision sensor objects");
 
-			
+				
 
-		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
-					160,205,50,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Objects that don't restitute collisions (like a ghost)");
+			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
+						160,205,50,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Objects that don't restitute collisions (like a ghost)");
 
-		//uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefBlockBut(block, advanced_bullet_menu, ob, 
-					  "Advanced Settings", 
-					  210, 205, 140, 19, "Display collision advanced settings");
-		//uiBlockSetCol(block, TH_BUT_SETTING2);
+			//uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefBlockBut(block, advanced_bullet_menu, ob, 
+						  "Advanced", 
+						  270, 205, 80, 19, "Display collision advanced settings");
+			//uiBlockSetCol(block, TH_BUT_SETTING2);
+		}
 
 
 		if(ob->gameflag & OB_DYNAMIC) {
@@ -3363,7 +3435,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 		/* In Bullet, anisotripic friction can be applied to static objects as well, just not soft bodies */
 
-		if (!(ob->gameflag & OB_SOFT_BODY))
+		if (!(ob->gameflag & (OB_SOFT_BODY|OB_SENSOR)))
 		{
 			uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
 				230, 145, 120, 19,
@@ -3731,6 +3803,7 @@ void logic_buts(void)
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
+						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Bookmarl controller to run before all other non-bookmarked controllers");
 						uiBlockSetEmboss(block, UI_EMBOSSP);
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
 						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");
@@ -3739,7 +3812,7 @@ void logic_buts(void)
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
 							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, 19, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-136), 19, cont->name, 0, 31, 0, 0, "Controller name");
+							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), 19, cont->name, 0, 31, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -3751,7 +3824,7 @@ void logic_buts(void)
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, 19, cont, 0, 0, 0, 0, "Controller type");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-136), 19, cont, 0, 0, 0, 0, "Controller name");
+							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), 19, cont, 0, 0, 0, 0, "Controller name");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
 							ycoo= yco;
 						}

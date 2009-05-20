@@ -43,16 +43,30 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 //static PyObject *gTextureDict = 0;
 
 KX_BlenderMaterial::KX_BlenderMaterial(
-    KX_Scene *scene,
-	BL_Material *data,
-	bool skin,
-	int lightlayer,
 	PyTypeObject *T
 	)
 :	PyObjectPlus(T),
-	RAS_IPolyMaterial(
-		STR_String( data->texname[0] ),
-		STR_String( data->matname ), // needed for physics!
+	RAS_IPolyMaterial(),
+	mMaterial(NULL),
+	mShader(0),
+	mBlenderShader(0),
+	mScene(NULL),
+	mUserDefBlend(0),
+	mModified(0),
+	mConstructed(false),
+	mPass(0)
+{
+}
+
+void KX_BlenderMaterial::Initialize(
+    KX_Scene *scene,
+	BL_Material *data,
+	bool skin,
+	int lightlayer)
+{
+	RAS_IPolyMaterial::Initialize(
+		data->texname[0],
+		data->matname,
 		data->materialindex,
 		data->tile,
 		data->tilexrep[0],
@@ -62,17 +76,15 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 		((data->ras_mode &ALPHA)!=0),
 		((data->ras_mode &ZSORT)!=0),
 		lightlayer
-	),
-	mMaterial(data),
-	mShader(0),
-	mBlenderShader(0),
-	mScene(scene),
-	mUserDefBlend(0),
-	mModified(0),
-	mConstructed(false),
-	mPass(0)
-
-{
+	);
+	mMaterial = data;
+	mShader = 0;
+	mBlenderShader = 0;
+	mScene = scene;
+	mUserDefBlend = 0;
+	mModified = 0;
+	mConstructed = false;
+	mPass = 0;
 	// --------------------------------
 	// RAS_IPolyMaterial variables... 
 	m_flag |= RAS_BLENDERMAT;
@@ -96,7 +108,6 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 			 );
 	}
 	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
-
 }
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
@@ -106,7 +117,6 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		// clean only if material was actually used
 		OnExit();
 }
-
 
 MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {
@@ -140,6 +150,12 @@ Material *KX_BlenderMaterial::GetBlenderMaterial() const
 Scene* KX_BlenderMaterial::GetBlenderScene() const
 {
 	return mScene->GetBlenderScene();
+}
+
+void KX_BlenderMaterial::ReleaseMaterial()
+{
+	if (mBlenderShader)
+		mBlenderShader->ReloadMaterial();
 }
 
 void KX_BlenderMaterial::OnConstruction()
@@ -399,10 +415,12 @@ KX_BlenderMaterial::ActivatShaders(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 void
@@ -491,10 +509,12 @@ KX_BlenderMaterial::ActivateMat(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 bool 
@@ -623,8 +643,7 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 
 			if (mode &USECUSTOMUV)
 			{
-				STR_String str = mMaterial->mapping[i].uvCoName;
-				if (!str.IsEmpty())
+				if (!mMaterial->mapping[i].uvCoName.IsEmpty())
 					ras->SetTexCoord(RAS_IRasterizer::RAS_TEXCO_UV2, i);
 				continue;
 			}
@@ -695,6 +714,9 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 		mScene->GetObjectList()->FindValue(mMaterial->mapping[i].objconame);
 
 	if(!obj) return;
+	obj->Release(); /* FindValue() AddRef's */
+
+	obj->Release();
 
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
@@ -778,8 +800,13 @@ PyAttributeDef KX_BlenderMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_BlenderMaterial::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_BlenderMaterial",
 		sizeof(PyObjectPlus_Proxy),
 		0,

@@ -66,7 +66,7 @@ void SCA_XNORController::Trigger(SCA_LogicManager* logicmgr)
 	!(is==m_linkedsensors.end());is++)
 	{
 		SCA_ISensor* sensor = *is;
-		if (sensor->IsPositiveTrigger())
+		if (sensor->GetState())
 		{
 			if (sensorresult == false)
 			{
@@ -77,19 +77,12 @@ void SCA_XNORController::Trigger(SCA_LogicManager* logicmgr)
 		}
 	}
 
-	CValue* newevent = new CBoolValue(sensorresult);
-
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
-		SCA_IActuator* actua = *i;//m_linkedactuators.at(i);
-		logicmgr->AddActiveActuator(actua,newevent);
+		SCA_IActuator* actua = *i;
+		logicmgr->AddActiveActuator(actua,sensorresult);
 	}
-
-	// every actuator that needs the event, has a it's own reference to it now so
-	// release it (so to be clear: if there is no actuator, it's deleted right now)
-	newevent->Release();
-
 }
 
 
@@ -111,8 +104,13 @@ CValue* SCA_XNORController::GetReplica()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_XNORController::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_XNORController",
 	sizeof(PyObjectPlus_Proxy),
 	0,

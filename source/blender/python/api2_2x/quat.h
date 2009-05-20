@@ -62,7 +62,7 @@ PyObject *Quaternion_Negate( QuaternionObject * self );
 PyObject *Quaternion_Conjugate( QuaternionObject * self );
 PyObject *Quaternion_Inverse( QuaternionObject * self );
 PyObject *Quaternion_Normalize( QuaternionObject * self );
-PyObject *Quaternion_ToEuler( QuaternionObject * self );
+PyObject *Quaternion_ToEuler( QuaternionObject * self, PyObject *args );
 PyObject *Quaternion_ToMatrix( QuaternionObject * self );
 PyObject *Quaternion_copy( QuaternionObject * self );
 PyObject *newQuaternionObject( float *quat, int type );

@@ -31,6 +31,7 @@ SET(INC
   ../../../source/kernel/gen_system 
   ../../../intern/string
   ../../../source/gameengine/Expressions 
+  ../../../source/gameengine/Scenegraph
   ../../../intern/moto/include
   ../../../source/gameengine/Rasterizer
   ${PYTHON_INC}

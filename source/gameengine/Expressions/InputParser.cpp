@@ -66,7 +66,7 @@ CParser::~CParser()
 
 
 
-void CParser::ScanError(STR_String str)
+void CParser::ScanError(const char *str)
 {
 	// sets the global variable errmsg to an errormessage with
 	// contents str, appending if it already exists
@@ -81,7 +81,7 @@ void CParser::ScanError(STR_String str)
 
 
 
-CExpression* CParser::Error(STR_String str)
+CExpression* CParser::Error(const char *str)
 {
 	// makes and returns a new CConstExpr filled with an CErrorValue
 	// with string str
@@ -537,7 +537,7 @@ CExpression *CParser::Expr() {
 }
 
 CExpression* CParser::ProcessText
-(STR_String intext) {
+(const char *intext) {
 	
 	// and parses the string in intext and returns it.
 	
@@ -574,7 +574,7 @@ CExpression* CParser::ProcessText
 
 
 
-float CParser::GetFloat(STR_String txt)
+float CParser::GetFloat(STR_String& txt)
 {
 	// returns parsed text into a float
 	// empty string returns -1
@@ -599,7 +599,7 @@ float CParser::GetFloat(STR_String txt)
 	return result;
 }
 
-CValue* CParser::GetValue(STR_String txt, bool bFallbackToText)
+CValue* CParser::GetValue(STR_String& txt, bool bFallbackToText)
 {
 	// returns parsed text into a value, 
 	// empty string returns NULL value !
@@ -658,10 +658,41 @@ static PyMethodDef	CParserMethods[] =
 	{ NULL,NULL}	// Sentinel
 };
 
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef Expression_module_def = {
+	{}, /* m_base */
+	"Expression",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	CParserMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 extern "C" {
 	void initExpressionModule(void)
 	{
-		Py_InitModule("Expression",CParserMethods);
+		PyObject *m;
+		/* Use existing module where possible
+		 * be careful not to init any runtime vars after this */
+		m = PyImport_ImportModule( "Expression" );
+		if(m) {
+			Py_DECREF(m);
+			//return m;
+		}
+		else {
+			PyErr_Clear();
+		
+#if (PY_VERSION_HEX >= 0x03000000)
+			PyModule_Create(&Expression_module_def);
+#else
+			Py_InitModule("Expression",CParserMethods);
+#endif
+		}
 	}
 }
 

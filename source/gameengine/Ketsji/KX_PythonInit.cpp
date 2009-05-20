@@ -49,6 +49,9 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_RadarSensor.h"
 #include "KX_RaySensor.h"
+#include "KX_SceneActuator.h"
+#include "KX_GameActuator.h"
+#include "KX_ParentActuator.h"
 #include "KX_SCA_DynamicActuator.h"
 
 #include "SCA_IInputDevice.h"
@@ -80,10 +83,17 @@
 
 #include "KX_PythonInitTypes.h" 
 
+/* we only need this to get a list of libraries from the main struct */
+#include "DNA_ID.h"
+#include "BKE_main.h"
+
 extern "C" {
-	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+#if PY_VERSION_HEX < 0x03000000
+	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "BGL.h"
+#endif
 }
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -110,6 +120,7 @@ static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
+static PyObject *gp_OrigPythonSysPath= NULL;
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
@@ -280,6 +291,21 @@ static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 static PyObject* gPyGetLogicTicRate(PyObject*)
 {
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
+}
+
+static PyObject* gPySetMaxLogicFrame(PyObject*, PyObject* args)
+{
+	int frame;
+	if (!PyArg_ParseTuple(args, "i:setMaxLogicFrame", &frame))
+		return NULL;
+	
+	KX_KetsjiEngine::SetMaxLogicFrame(frame);
+	Py_RETURN_NONE;
+}
+
+static PyObject* gPyGetMaxLogicFrame(PyObject*)
+{
+	return PyInt_FromLong(KX_KetsjiEngine::GetMaxLogicFrame());
 }
 
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
@@ -473,6 +499,8 @@ static struct PyMethodDef game_methods[] = {
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (PY_METHODCHAR)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (PY_METHODCHAR)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (PY_METHODCHAR)"stop using the audio dsp (for performance reasons)"},
+	{"getMaxLogicFrame", (PyCFunction) gPyGetMaxLogicFrame, METH_NOARGS, (PY_METHODCHAR)"Gets the max number of logic frame per render frame"},
+	{"setMaxLogicFrame", (PyCFunction) gPySetMaxLogicFrame, METH_VARARGS, (PY_METHODCHAR)"Sets the max number of logic frame per render frame"},
 	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the logic tic rate"},
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the physics tic rate"},
@@ -482,128 +510,6 @@ static struct PyMethodDef game_methods[] = {
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (PY_METHODCHAR)"Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
-
-
-static PyObject* gPyGetScreenPosition(PyObject*, PyObject* value)
-{
-	MT_Vector3 vect;
-	KX_GameObject *obj = NULL;
-
-	if (!PyVecTo(value, vect))
-	{
-		if(ConvertPythonToGameObject(value, &obj, true, ""))
-		{
-			PyErr_Clear();
-			vect = MT_Vector3(obj->NodeGetWorldPosition());
-		}
-		else
-		{
-			PyErr_SetString(PyExc_TypeError, "Error in getScreenPosition. Expected a Vector3 or a KX_GameObject or a string for a name of a KX_GameObject");
-			return NULL;
-		}
-	}
-
-	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
-	GLint	viewport[4];
-	GLdouble win[3];
-
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-
-	gluProject(vect[0], vect[1], vect[2], modelMatrix, projMatrix, viewport, &win[0], &win[1], &win[2]);
-
-	vect[0] =  win[0] / (viewport[0] + viewport[2]);
-	vect[1] =  win[1] / (viewport[1] + viewport[3]);
-
-	PyObject* ret = PyTuple_New(2);
-	if(ret){
-		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
-		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
-		return ret;
-	}
-
-	return NULL;
-}
-
-static PyObject* gPyGetScreenVect(PyObject*, PyObject* args)
-{
-	double x,y;
-	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
-		return NULL;
-
-	MT_Vector3 vect;
-	MT_Point3 campos, screenpos;
-
-	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
-	GLint	viewport[4];
-	GLdouble win[3];
-
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-
-	vect[0] = x * viewport[2];
-	vect[1] = y * viewport[3];
-
-	vect[0] += viewport[0];
-	vect[1] += viewport[1];
-
-	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
-	gluUnProject(vect[0], vect[1], vect[2], modelMatrix, projMatrix, viewport, &win[0], &win[1], &win[2]);
-
-	campos    = gp_Rasterizer->GetCameraPosition();
-	screenpos = MT_Point3(win[0], win[1], win[2]);
-	vect = campos-screenpos;
-
-	vect.normalize();
-	return PyObjectFrom(vect);
-}
-
-static PyObject* gPyGetScreenRay(PyObject* self, PyObject* args)
-{
-	KX_Camera* cam;
-	MT_Vector3 vect;
-	double x,y,dist;
-	char *propName = NULL;
-
-	if (!PyArg_ParseTuple(args,"ddd|s:getScreenRay",&x,&y,&dist,&propName))
-		return NULL;
-
-	PyObject* argValue = PyTuple_New(2);
-	if (argValue) {
-		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
-		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
-	}
-
-	if(!PyVecTo(gPyGetScreenVect(self,argValue), vect))
-	{
-		Py_DECREF(argValue);
-		PyErr_SetString(PyExc_TypeError,
-			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate and an optional property argument");
-		return NULL;
-	}
-	Py_DECREF(argValue);
-
-	cam = gp_KetsjiScene->GetActiveCamera();
-	dist *= -1.0;
-
-	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
-	if (argValue) {
-		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
-		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
-		if (propName)
-			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
-
-		PyObject* ret= cam->PyrayCastTo(argValue,NULL);
-		Py_DECREF(argValue);
-		return ret;
-	}
-
-	return NULL;
-}
 
 static PyObject* gPyGetWindowHeight(PyObject*, PyObject* args)
 {
@@ -908,16 +814,17 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 
 	/* display lists and GLSL materials need to be remade */
 	if(G.fileflags != fileflags) {
+		GPU_materials_free();
 		if(gp_KetsjiEngine) {
 			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
 			KX_SceneList::iterator it;
 
 			for(it=scenes->begin(); it!=scenes->end(); it++)
-				if((*it)->GetBucketManager())
+				if((*it)->GetBucketManager()) {
 					(*it)->GetBucketManager()->ReleaseDisplayLists();
+					(*it)->GetBucketManager()->ReleaseMaterials();
+				}
 		}
-
-		GPU_materials_free();
 	}
 
 	Py_RETURN_NONE;
@@ -978,7 +885,7 @@ static PyObject* gPyGetMaterialType(PyObject*)
 {
 	int flag;
 
-	if(G.fileflags & (G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL))
+	if(G.fileflags & G_FILE_GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
 	else if(G.fileflags & G_FILE_GAME_MAT)
 		flag = KX_BLENDER_MULTITEX_MATERIAL;
@@ -1018,12 +925,6 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 }
 
 static struct PyMethodDef rasterizer_methods[] = {
-  {"getScreenPosition",(PyCFunction) gPyGetScreenPosition,
-   METH_O, "getScreenPosition doc"},
-  {"getScreenVect",(PyCFunction) gPyGetScreenVect,
-   METH_VARARGS, "getScreenVect doc"},
-  {"getScreenRay",(PyCFunction) gPyGetScreenRay,
-   METH_VARARGS, "getScreenRay doc"},
   {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
    METH_VARARGS, "getWindowWidth doc"},
    {"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
@@ -1073,7 +974,19 @@ static char Rasterizer_module_documentation[] =
 "This is the Python API for the game engine of Rasterizer"
 ;
 
-
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef GameLogic_module_def = {
+	{}, /* m_base */
+	"GameLogic",  /* m_name */
+	GameLogic_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	game_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack to get gravity hook
 {
@@ -1085,12 +998,29 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gp_KetsjiScene = scene;
 
 	gUseVisibilityTemp=false;
-
-	// Create the module and add the functions
-	m = Py_InitModule4("GameLogic", game_methods,
-					   GameLogic_module_documentation,
-					   (PyObject*)NULL,PYTHON_API_VERSION);
-
+	
+	PyObjectPlus::ClearDeprecationWarning(); /* Not that nice to call here but makes sure warnings are reset between loading scenes */
+	
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "GameLogic" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+		
+		// Create the module and add the functions	
+#if (PY_VERSION_HEX >= 0x03000000)
+		m = PyModule_Create(&GameLogic_module_def);
+#else
+		m = Py_InitModule4("GameLogic", game_methods,
+						   GameLogic_module_documentation,
+						   (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	}
+	
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
 	
@@ -1307,6 +1237,28 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_LOCAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCAL);
 	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DOROTFH, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DOROTFH);
 
+	/* Game Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_GAME_LOAD, KX_GameActuator::KX_GAME_LOAD);
+	KX_MACRO_addTypesToDict(d, KX_GAME_START, KX_GameActuator::KX_GAME_START);
+	KX_MACRO_addTypesToDict(d, KX_GAME_RESTART, KX_GameActuator::KX_GAME_RESTART);
+	KX_MACRO_addTypesToDict(d, KX_GAME_QUIT, KX_GameActuator::KX_GAME_QUIT);
+	KX_MACRO_addTypesToDict(d, KX_GAME_SAVECFG, KX_GameActuator::KX_GAME_SAVECFG);
+	KX_MACRO_addTypesToDict(d, KX_GAME_LOADCFG, KX_GameActuator::KX_GAME_LOADCFG);
+
+	/* Scene Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_SCENE_RESTART, KX_SceneActuator::KX_SCENE_RESTART);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SET_SCENE, KX_SceneActuator::KX_SCENE_SET_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SET_CAMERA, KX_SceneActuator::KX_SCENE_SET_CAMERA);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_ADD_FRONT_SCENE, KX_SceneActuator::KX_SCENE_ADD_FRONT_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_ADD_BACK_SCENE, KX_SceneActuator::KX_SCENE_ADD_BACK_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_REMOVE_SCENE, KX_SceneActuator::KX_SCENE_REMOVE_SCENE);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_SUSPEND, KX_SceneActuator::KX_SCENE_SUSPEND);
+	KX_MACRO_addTypesToDict(d, KX_SCENE_RESUME, KX_SceneActuator::KX_SCENE_RESUME);
+
+	/* Parent Actuator Modes */
+	KX_MACRO_addTypesToDict(d, KX_PARENT_SET, KX_ParentActuator::KX_PARENT_SET);
+	KX_MACRO_addTypesToDict(d, KX_PARENT_REMOVE, KX_ParentActuator::KX_PARENT_REMOVE);
+
 	// Check for errors
 	if (PyErr_Occurred())
     {
@@ -1373,7 +1325,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL") || !strcmp(name, "Geometry")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 	
@@ -1493,26 +1445,136 @@ void setSandbox(TPythonSecurityLevel level)
 	}
 }
 
+/* Explanation of 
+ * 
+ * - backupPySysPath()		: stores sys.path in gp_OrigPythonSysPath
+ * - initPySysPath(main)	: initializes the blendfile and library paths
+ * - restorePySysPath()		: restores sys.path from gp_OrigPythonSysPath
+ * 
+ * These exist so the current blend dir "//" can always be used to import modules from.
+ * the reason we need a few functions for this is that python is not only used by the game engine
+ * so we cant just add to sys.path all the time, it would leave pythons state in a mess.
+ * It would also be incorrect since loading blend files for new levels etc would alwasy add to sys.path
+ * 
+ * To play nice with blenders python, the sys.path is backed up and the current blendfile along
+ * with all its lib paths are added to the sys path.
+ * When loading a new blendfile, the original sys.path is restored and the new paths are added over the top.
+ */
+
+/**
+ * So we can have external modules mixed with our blend files.
+ */
+static void backupPySysPath(void)
+{
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	/* just incase its set */
+	Py_XDECREF(gp_OrigPythonSysPath);
+	gp_OrigPythonSysPath= NULL;
+	
+	gp_OrigPythonSysPath = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
+}
+
+/* for initPySysPath only,
+ * takes a blend path and adds a scripts dir from it
+ *
+ * "/home/me/foo.blend" -> "/home/me/scripts"
+ */
+static void initPySysPath__append(PyObject *sys_path, char *filename)
+{
+	PyObject *item;
+	char expanded[FILE_MAXDIR + FILE_MAXFILE];
+	
+	BLI_split_dirfile_basic(filename, expanded, NULL); /* get the dir part of filename only */
+	BLI_convertstringcode(expanded, gp_GamePythonPath);
+	
+	item= PyString_FromString(expanded);
+	
+	if(PySequence_Index(sys_path, item) == -1) {
+		PyErr_Clear(); /* PySequence_Index sets a ValueError */
+		PyList_Insert(sys_path, 0, item);
+	}
+	
+	Py_DECREF(item);
+}
+static void initPySysPath(Main *maggie)
+{
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	if (gp_OrigPythonSysPath==NULL) {
+		/* backup */
+		backupPySysPath();
+	}
+	else {
+		/* get the original sys path when the BGE started */
+		PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
+	}
+	
+	Library *lib= (Library *)maggie->library.first;
+	
+	while(lib) {
+		initPySysPath__append(sys_path, lib->name);
+		lib= (Library *)lib->id.next;
+	}
+	
+	initPySysPath__append(sys_path, gp_GamePythonPath);
+	
+//	fprintf(stderr, "\nNew Path: %d ", PyList_Size(sys_path));
+//	PyObject_Print(sys_path, stderr, 0);
+}
+
+static void restorePySysPath(void)
+{
+	if (gp_OrigPythonSysPath==NULL)
+		return;
+	
+	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	
+	PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
+	Py_DECREF(gp_OrigPythonSysPath);
+	gp_OrigPythonSysPath= NULL;
+	
+//	fprintf(stderr, "\nRestore Path: %d ", PyList_Size(sys_path));
+//	PyObject_Print(sys_path, stderr, 0);
+}
+
 /**
  * Python is not initialised.
  */
 PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
+	/* Yet another gotcha in the py api
+	 * Cant run PySys_SetArgv more then once because this adds the
+	 * binary dir to the sys.path each time.
+	 * Id have thaught python being totally restarted would make this ok but
+	 * somehow it remembers the sys.path - Campbell
+	 */
+	static bool first_time = true;
+	
+#if (PY_VERSION_HEX < 0x03000000)
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
+#endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 	Py_Initialize();
 	
-	if(argv) /* browser plugins dont currently set this */
+#if (PY_VERSION_HEX < 0x03000000)	
+	if(argv && first_time) /* browser plugins dont currently set this */
 		PySys_SetArgv(argc, argv);
-	
+#endif
 	//importBlenderModules()
 	
 	setSandbox(level);
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
+	
+	initPySysPath(maggie);
+	
+	first_time = false;
+	
+	PyObjectPlus::ClearDeprecationWarning();
 	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
@@ -1521,17 +1583,26 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 void exitGamePlayerPythonScripting()
 {
 	//clearGameModules(); // were closing python anyway
+	
+	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
+	restorePySysPath(); /* get back the original sys.path and clear the backup */
+	
 	Py_Finalize();
 	bpy_import_main_set(NULL);
+	PyObjectPlus::ClearDeprecationWarning();
 }
+
+
 
 /**
  * Python is already initialized.
  */
 PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
+#if (PY_VERSION_HEX < 0x03000000)
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
+#endif
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 
@@ -1540,10 +1611,13 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	
 	bpy_import_main_set(maggie);
 	
-	/* run this to clear game modules and user modules which
-	 * may contain references to in game data */
+	initPySysPath(maggie);
+	
+	/* clear user defined modules that may contain data from the last run */
 	clearGameModules();
 
+	PyObjectPlus::NullDeprecationWarning();
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
@@ -1561,6 +1635,8 @@ static void clearModule(PyObject *modules, const char *name)
 
 static void clearGameModules()
 {
+	/* references to invalid BGE data is better supported in 2.49+ so dont clear dicts */
+#if 0
 	/* Note, user modules could still reference these modules
 	 * but since the dict's are cleared their members wont be accessible */
 	
@@ -1571,22 +1647,39 @@ static void clearGameModules()
 	clearModule(modules, "GameLogic");	
 	clearModule(modules, "Rasterizer");	
 	clearModule(modules, "GameKeys");	
-	clearModule(modules, "VideoTexture");	
+	clearModule(modules, "VideoTexture");
 	clearModule(modules, "Mathutils");	
+	clearModule(modules, "Geometry");	
 	clearModule(modules, "BGL");	
 	PyErr_Clear(); // incase some of these were alredy removed.
+#endif
 	
-	/* clear user defined modules */
-	bpy_text_clear_modules();
+	/* clear user defined modules, arg '1' for clear external py modules too */
+	bpy_text_clear_modules(1);
 }
 
 void exitGamePythonScripting()
 {
 	clearGameModules();
+	restorePySysPath(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);
+	PyObjectPlus::ClearDeprecationWarning();
 }
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef Rasterizer_module_def = {
+	{}, /* m_base */
+	"Rasterizer",  /* m_name */
+	Rasterizer_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	rasterizer_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 {
@@ -1598,10 +1691,25 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   PyObject* d;
   PyObject* item;
 
-  // Create the module and add the functions
-  m = Py_InitModule4("Rasterizer", rasterizer_methods,
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "Rasterizer" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
+		// Create the module and add the functions
+#if (PY_VERSION_HEX >= 0x03000000)
+		m = PyModule_Create(&Rasterizer_module_def);
+#else
+		m = Py_InitModule4("Rasterizer", rasterizer_methods,
 		     Rasterizer_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	}
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);
@@ -1651,7 +1759,12 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 	dict = PyModule_GetDict(mod);
 	
 	while (PyDict_Next(dict, &pos, &key, &val)) {
+#if (PY_VERSION_HEX >= 0x03000000)
+		if (PyObject_RichCompareBool(value, val, Py_EQ)) {
+#else
 		if (PyObject_Compare(value, val)==0) {
+#endif
+			
 			ret = key;
 			break;
 		}
@@ -1693,17 +1806,44 @@ static struct PyMethodDef gamekeys_methods[] = {
 };
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef GameKeys_module_def = {
+	{}, /* m_base */
+	"GameKeys",  /* m_name */
+	GameKeys_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	gamekeys_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject* initGameKeys()
 {
 	PyObject* m;
 	PyObject* d;
 	PyObject* item;
-
-	// Create the module and add the functions
-	m = Py_InitModule4("GameKeys", gamekeys_methods,
+	
+	/* Use existing module where possible */
+	m = PyImport_ImportModule( "GameKeys" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
+		// Create the module and add the functions
+#if (PY_VERSION_HEX >= 0x03000000)
+		m = PyModule_Create(&GameKeys_module_def);
+#else
+		m = Py_InitModule4("GameKeys", gamekeys_methods,
 					   GameKeys_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	}
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
@@ -1832,15 +1972,26 @@ PyObject* initGameKeys()
 	return d;
 }
 
+#if PY_VERSION_HEX < 0x03000000
 PyObject* initMathutils()
 {
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+}
+
+PyObject* initGeometry()
+{
+	return Geometry_Init("Geometry"); // Use as a top level module in BGE
 }
 
 PyObject* initBGL()
 {
 	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
+#else // TODO Py3k conversion
+PyObject* initMathutils() {Py_INCREF(Py_None);return Py_None;}
+PyObject* initGeometry() {Py_INCREF(Py_None);return Py_None;}
+PyObject* initBGL() {Py_INCREF(Py_None);return Py_None;}
+#endif
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {

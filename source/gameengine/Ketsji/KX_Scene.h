@@ -108,16 +108,16 @@ protected:
 	 * LogicEndFrame() via a call to RemoveObject().
 	 */
 	CListValue*	m_euthanasyobjects;
-	/**
-	* The list of objects that couldn't be released during logic update.
-	* for example, AddObject actuator sometimes releases an object that was cached from previous frame
-	*/
-	CListValue*	m_delayReleaseObjects;
 
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	
+	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
+										// the Dlist is not object that must be updated
+										// the Qlist is for objects that needs to be rescheduled
+										// for updates after udpate is over (slow parent, bone parent)
 
 	/**
 	 *  The tree of objects in the scene.
@@ -307,6 +307,8 @@ public:
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
+	static bool KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene);
+	static bool KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene);
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
 	bool IsObjectInGroup(CValue* gameobj)
@@ -324,8 +326,6 @@ public:
 	void RemoveObject(CValue* gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
-	void DelayedReleaseObject(CValue* gameobj);
-
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
@@ -566,11 +566,12 @@ public:
 	static PyObject*	pyattr_get_lights(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual PyObject* py_getattro_dict();
 	
-	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 	virtual int py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 

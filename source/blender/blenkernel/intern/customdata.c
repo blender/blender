@@ -626,7 +626,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			number++;
 
 		if(layer->flag & CD_FLAG_NOCOPY) continue;
-		else if(!(mask & (1 << type))) continue;
+		else if(!((int)mask & (int)(1 << (int)type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
@@ -1144,7 +1144,7 @@ void CustomData_set_only_copy(const struct CustomData *data,
 	int i;
 
 	for(i = 0; i < data->totlayer; ++i)
-		if(!(mask & (1 << data->layers[i].type)))
+		if(!((int)mask & (int)(1 << (int)data->layers[i].type)))
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 

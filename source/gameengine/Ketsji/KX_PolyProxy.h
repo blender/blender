@@ -31,7 +31,7 @@
 
 #include "SCA_IObject.h"
 
-class KX_PolyProxy	: public SCA_IObject
+class KX_PolyProxy	: public CValue
 {
 	Py_Header;
 protected:
@@ -46,8 +46,8 @@ public:
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	const STR_String &	GetText();
 	double		GetNumber();
-	STR_String	GetName();
-	void		SetName(STR_String name);								// Set the name of the value
+	STR_String&	GetName();
+	void		SetName(const char *name);								// Set the name of the value
 	CValue*		GetReplica();
 
 

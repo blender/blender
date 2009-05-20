@@ -40,6 +40,7 @@ char Euler_ToMatrix_doc[] =	"() - returns a rotation matrix representing the eul
 char Euler_ToQuat_doc[] = "() - returns a quaternion representing the euler rotation";
 char Euler_Rotate_doc[] = "() - rotate a euler by certain amount around an axis of rotation";
 char Euler_copy_doc[] = "() - returns a copy of the euler.";
+char Euler_MakeCompatible_doc[] = "(euler) - Make this user compatible with another (no axis flipping).";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Euler_methods[] = {
 	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
@@ -47,6 +48,7 @@ struct PyMethodDef Euler_methods[] = {
 	{"toMatrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
 	{"toQuat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
 	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, Euler_Rotate_doc},
+	{"makeCompatible", (PyCFunction) Euler_MakeCompatible, METH_O, Euler_MakeCompatible_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
 	{NULL, NULL, 0, NULL}
@@ -173,6 +175,32 @@ PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
+
+PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
+{
+	float eul_from_rad[3];
+	int x;
+	
+	if(!EulerObject_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "euler.makeCompatible(euler):expected a single euler argument.");
+		return NULL;
+	}
+	
+	//covert to radians
+	for(x = 0; x < 3; x++) {
+		self->eul[x] = self->eul[x] * ((float)Py_PI / 180);
+		eul_from_rad[x] = value->eul[x] * ((float)Py_PI / 180);
+	}
+	compatible_eul(self->eul, eul_from_rad);
+	//convert back from radians
+	for(x = 0; x < 3; x++) {
+		self->eul[x] *= (180 / (float)Py_PI);
+	}
+	
+	Py_INCREF(self);
+	return (PyObject *)self;
+}
+
 //----------------------------Euler.rotate()-----------------------
 // return a copy of the euler
 PyObject *Euler_copy(EulerObject * self, PyObject *args)
@@ -528,4 +556,3 @@ PyObject *newEulerObject(float *eul, int type)
 	}
 	return (PyObject *)self;
 }
-

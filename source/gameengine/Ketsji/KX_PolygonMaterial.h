@@ -57,8 +57,8 @@ private:
 
 	mutable int		m_pass;
 public:
-	
-	KX_PolygonMaterial(const STR_String &texname,
+	KX_PolygonMaterial(PyTypeObject *T = &Type);
+	void Initialize(const STR_String &texname,
 		Material* ma,
 		int materialindex,
 		int tile,
@@ -70,8 +70,8 @@ public:
 		bool zsort,
 		int lightlayer,
 		struct MTFace* tface,
-		unsigned int* mcol,
-		PyTypeObject *T = &Type);
+		unsigned int* mcol);
+
 	virtual ~KX_PolygonMaterial();
 	
 	/**

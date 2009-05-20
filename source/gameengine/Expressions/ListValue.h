@@ -45,7 +45,7 @@ public:
 	void SetReleaseOnDestruct(bool bReleaseContents);
 	bool SearchValue(CValue* val);
 	
-	CValue* FindValue(const STR_String & name);
+	CValue* FindValue(const char *name);
 
 	void ReleaseAndRemoveAll();
 	virtual void SetModified(bool bModified);

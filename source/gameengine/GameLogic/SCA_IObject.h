@@ -52,10 +52,30 @@ class SCA_IObject :	public CValue
 	Py_Header;
 	
 protected:
+	friend class KX_StateActuator;
+	friend class SCA_IActuator;
+	friend class SCA_IController;
 	SCA_SensorList         m_sensors;
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
 	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
+
+	// SG_Dlist: element of objects with active actuators
+	//           Head: SCA_LogicManager::m_activeActuators
+	// SG_QList: Head of active actuators list on this object
+	//           Elements: SCA_IActuator
+	SG_QList			   m_activeActuators;
+	// SG_Dlist: element of list os lists with active controllers
+	//           Head: SCA_LogicManager::m_activeControllers
+	// SG_QList: Head of active controller list on this object
+	//           Elements: SCA_IController
+	SG_QList			   m_activeControllers;
+	// SG_Dlist: element of list of lists of active controllers
+	//           Head: SCA_LogicManager::m_activeControllers
+	// SG_QList: Head of active bookmarked controller list globally
+	//           Elements: SCA_IController with bookmark option
+	static SG_QList		   m_activeBookmarkedControllers;
+
 	static class MT_Point3 m_sDummy;
 
 	/**
@@ -78,18 +98,48 @@ protected:
 	 */
 	unsigned int			m_state;
 
+	/**
+	 * pointer inside state actuator list for sorting
+	 */
+	SG_QList*				m_firstState;
+
 public:
 	
 	SCA_IObject(PyTypeObject* T=&Type);
 	virtual ~SCA_IObject();
 
-	SCA_ControllerList& GetControllers();
-	SCA_SensorList& GetSensors();
-	SCA_ActuatorList& GetActuators();
+	SCA_ControllerList& GetControllers()
+	{
+		return m_controllers;
+	}
+	SCA_SensorList& GetSensors()
+	{
+		return m_sensors;
+	}
+	SCA_ActuatorList& GetActuators()
+	{
+		return m_actuators;
+	}
+	SG_QList& GetActiveActuators()
+	{
+		return m_activeActuators;
+	}
 
 	void AddSensor(SCA_ISensor* act);
+	void ReserveSensor(int num)
+	{
+		m_sensors.reserve(num);
+	}
 	void AddController(SCA_IController* act);
+	void ReserveController(int num)
+	{
+		m_controllers.reserve(num);
+	}
 	void AddActuator(SCA_IActuator* act);
+	void ReserveActuator(int num)
+	{
+		m_actuators.reserve(num);
+	}
 	void RegisterActuator(SCA_IActuator* act);
 	void UnregisterActuator(SCA_IActuator* act);
 	
@@ -97,20 +147,26 @@ public:
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);
 	SCA_IController* FindController(const STR_String& controllername);
 
-	void SetCurrentTime(float currentTime);
+	void SetCurrentTime(float currentTime) {}
 
 	void ReParentLogic();
 	
 	/**
 	 * Set whether or not to ignore activity culling requests
 	 */
-	void SetIgnoreActivityCulling(bool b);
+	void SetIgnoreActivityCulling(bool b)
+	{
+		m_ignore_activity_culling = b;
+	}
 
 	/**
 	 * Set whether or not this object wants to ignore activity culling
 	 * requests
 	 */
-	bool GetIgnoreActivityCulling();
+	bool GetIgnoreActivityCulling()
+	{
+		return m_ignore_activity_culling;
+	}
 
 	/**
 	 * Suspend all progress.

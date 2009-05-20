@@ -89,7 +89,7 @@ class PHY_IPhysicsEnvironment
 		virtual	void		beginFrame() = 0;
 		virtual void		endFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.
-		virtual	bool		proceedDeltaTime(double curTime,float timeStep)=0;
+		virtual	bool		proceedDeltaTime(double curTime,float timeStep,float interval)=0;
 		///draw debug lines (make sure to call this during the render phase, otherwise lines are not drawn properly)
 		virtual void		debugDrawWorld(){}
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)=0;
@@ -152,8 +152,8 @@ class PHY_IPhysicsEnvironment
 		virtual void addSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void removeSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)=0;
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
-		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
 		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;

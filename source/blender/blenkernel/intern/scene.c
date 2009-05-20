@@ -232,9 +232,9 @@ Scene *add_scene(char *name)
 	sce->r.stereomode = 1;  // no stereo
 	sce->r.domeangle = 180;
 	sce->r.domemode = 1;
-	sce->r.domesize = 1.0f;
 	sce->r.domeres = 4;
 	sce->r.domeresbuf = 1.0f;
+	sce->r.dometilt = 0;
 
 	sce->r.simplify_subsurf= 6;
 	sce->r.simplify_particles= 1.0f;
@@ -402,16 +402,25 @@ int next_object(int val, Base **base, Object **ob)
 {
 	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
-	static int fase;
+	static int fase= F_START, in_next_object= 0;
 	int run_again=1;
 	
 	/* init */
 	if(val==0) {
 		fase= F_START;
 		dupob= NULL;
+		
+		/* XXX particle systems with metas+dupligroups call this recursively */
+		/* see bug #18725 */
+		if(in_next_object) {
+			printf("ERROR: MetaBall generation called recursively, not supported\n");
+			
+			return F_ERROR;
+		}
 	}
 	else {
-
+		in_next_object= 1;
+		
 		/* run_again is set when a duplilist has been ended */
 		while(run_again) {
 			run_again= 0;
@@ -492,6 +501,9 @@ int next_object(int val, Base **base, Object **ob)
 			}
 		}
 	}
+	
+	/* reset recursion test */
+	in_next_object= 0;
 	
 	return fase;
 }

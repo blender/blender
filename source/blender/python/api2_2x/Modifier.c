@@ -64,17 +64,19 @@ enum mod_constants {
 	EXPP_MOD_ONCAGE,
 	
 	/*GENERIC*/
-	EXPP_MOD_OBJECT, /*ARMATURE, LATTICE, CURVE, BOOLEAN, ARRAY*/
-	EXPP_MOD_VERTGROUP, /*ARMATURE, LATTICE, CURVE, SMOOTH, CAST*/
+	EXPP_MOD_OBJECT, /*ARMATURE, LATTICE, CURVE, BOOLEAN, ARRAY,
+						SHRINKWRAP, SIMPLEDEFORM*/
+	EXPP_MOD_VERTGROUP, /*ARMATURE, LATTICE, CURVE, SMOOTH, CAST,
+						SHRINKWRAP, SIMPLEDEFORM */
 	EXPP_MOD_LIMIT, /*ARRAY, MIRROR*/
 	EXPP_MOD_FLAG, /*MIRROR, WAVE*/
 	EXPP_MOD_COUNT, /*DECIMATOR, ARRAY*/
 	EXPP_MOD_LENGTH, /*BUILD, ARRAY*/
-	EXPP_MOD_FACTOR, /*SMOOTH, CAST*/
+	EXPP_MOD_FACTOR, /*SMOOTH, CAST, SIMPLEDEFORM*/
 	EXPP_MOD_ENABLE_X, /*SMOOTH, CAST*/
 	EXPP_MOD_ENABLE_Y, /*SMOOTH, CAST*/
 	EXPP_MOD_ENABLE_Z, /*SMOOTH, CAST*/
-	EXPP_MOD_TYPES, /*SUBSURF, CAST*/
+	EXPP_MOD_TYPES, /*SUBSURF, CAST, SHRINKWRAP, SIMPLEDEFORM*/
 	
 	/*SUBSURF SPECIFIC*/
 	EXPP_MOD_LEVELS,
@@ -144,8 +146,29 @@ enum mod_constants {
 	EXPP_MOD_RADIUS,
 	EXPP_MOD_SIZE,
 	EXPP_MOD_USE_OB_TRANSFORM,
-	EXPP_MOD_SIZE_FROM_RADIUS
-	
+	EXPP_MOD_SIZE_FROM_RADIUS,
+
+	/* SHRINKWRAP*/
+	EXPP_MOD_OBJECT_AUX,
+	EXPP_MOD_KEEPDIST,
+	EXPP_MOD_PROJECT_OVER_X_AXIS,
+	EXPP_MOD_PROJECT_OVER_Y_AXIS,
+	EXPP_MOD_PROJECT_OVER_Z_AXIS,
+	EXPP_MOD_PROJECT_OVER_NORMAL,
+	EXPP_MOD_SUBSURFLEVELS,
+	EXPP_MOD_ALLOW_POS_DIR,
+	EXPP_MOD_ALLOW_NEG_DIR,
+	EXPP_MOD_CULL_TARGET_FRONTFACE,
+	EXPP_MOD_CULL_TARGET_BACKFACE,
+	EXPP_MOD_KEEP_ABOVE_SURFACE,
+
+	/* SIMPLEDEFORM*/
+	EXPP_MOD_RELATIVE,
+	EXPP_MOD_LOWER_LIMIT,
+	EXPP_MOD_UPPER_LIMIT,
+	EXPP_MOD_LOCK_AXIS_X,
+	EXPP_MOD_LOCK_AXIS_Y
+
 	/* yet to be implemented */
 	/* EXPP_MOD_HOOK_,*/
 	/* , */
@@ -989,6 +1012,43 @@ static PyObject *shrinkwrap_getter( BPy_Modifier * self, int type )
 	switch( type ) {
 	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->target );
+	case EXPP_MOD_OBJECT_AUX:
+		return Object_CreatePyObject( md->auxTarget );
+	case EXPP_MOD_VERTGROUP:
+		return PyString_FromString( md->vgroup_name ) ;
+	case EXPP_MOD_TYPES:
+		return PyInt_FromLong( (long)md->shrinkType );
+	case EXPP_MOD_ALLOW_POS_DIR:
+		return PyBool_FromLong( ( long ) 
+				( md->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) ) ;	
+	case EXPP_MOD_ALLOW_NEG_DIR:
+		return PyBool_FromLong( ( long ) 
+				( md->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) ) ;	
+	case EXPP_MOD_CULL_TARGET_FRONTFACE:
+		return PyBool_FromLong( ( long ) 
+				( md->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) ) ;	
+	case EXPP_MOD_CULL_TARGET_BACKFACE:
+		return PyBool_FromLong( ( long ) 
+				( md->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) ) ;	
+	case EXPP_MOD_KEEP_ABOVE_SURFACE:
+		return PyBool_FromLong( ( long ) 
+				( md->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) ) ;		
+	case EXPP_MOD_KEEPDIST:
+		return PyFloat_FromDouble( (double)md->keepDist );	
+	case EXPP_MOD_PROJECT_OVER_X_AXIS:
+		return PyBool_FromLong( ( long ) 
+				( md->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) ) ;	
+	case EXPP_MOD_PROJECT_OVER_Y_AXIS:
+		return PyBool_FromLong( ( long ) 
+				( md->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) ) ;	
+	case EXPP_MOD_PROJECT_OVER_Z_AXIS:
+		return PyBool_FromLong( ( long ) 
+				( md->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) ) ;	
+	case EXPP_MOD_PROJECT_OVER_NORMAL:
+		return PyBool_FromLong( ( long ) 
+				( md->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) ) ;
+	case EXPP_MOD_SUBSURFLEVELS:
+		return PyInt_FromLong( ( long )md->subsurfLevels );	
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -1012,11 +1072,144 @@ static int shrinkwrap_setter( BPy_Modifier *self, int type, PyObject *value )
 		}
 		return 0;
 	}
+	case EXPP_MOD_OBJECT_AUX: { 
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->auxTarget = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			md->auxTarget = ob_new;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Expected an Object or None value" );
+		}
+		return 0;
+	}
+	case EXPP_MOD_VERTGROUP:{
+		char *defgrp_name = PyString_AsString( value );
+		if( !defgrp_name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+		BLI_strncpy( md->vgroup_name, defgrp_name, sizeof( md->vgroup_name ) );
+		return 0;		
+		}
+	case EXPP_MOD_TYPES:
+		return EXPP_setIValueRange( value, &md->shrinkType, 0,
+				MOD_SHRINKWRAP_NEAREST_VERTEX, 'h' );
+	case EXPP_MOD_KEEPDIST:		
+		return EXPP_setFloatClamped( value, &md->keepDist, -1000.0, +1000.0 );
+	case EXPP_MOD_PROJECT_OVER_X_AXIS:
+		return EXPP_setBitfield( value, &md->projAxis,
+					MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, 'h' );
+	case EXPP_MOD_PROJECT_OVER_Y_AXIS:
+		return EXPP_setBitfield( value, &md->projAxis,
+					MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, 'h' );
+	case EXPP_MOD_PROJECT_OVER_Z_AXIS:
+		return EXPP_setBitfield( value, &md->projAxis,
+					MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, 'h' );
+	case EXPP_MOD_PROJECT_OVER_NORMAL:{
+					md->projAxis = MOD_SHRINKWRAP_PROJECT_OVER_NORMAL; 
+		return 0;
+	} 					
+	case EXPP_MOD_ALLOW_POS_DIR:
+				return EXPP_setBitfield( value, &md->shrinkOpts,
+					MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, 'h' );
+	case EXPP_MOD_ALLOW_NEG_DIR:
+				return EXPP_setBitfield( value, &md->shrinkOpts,
+					MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR, 'h' );			
+	case EXPP_MOD_CULL_TARGET_FRONTFACE:
+				return EXPP_setBitfield( value, &md->shrinkOpts,
+					MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, 'h' );			
+	case EXPP_MOD_CULL_TARGET_BACKFACE:
+				return EXPP_setBitfield( value, &md->shrinkOpts,
+					MOD_SHRINKWRAP_CULL_TARGET_BACKFACE, 'h' );			
+	case EXPP_MOD_KEEP_ABOVE_SURFACE:
+				return EXPP_setBitfield( value, &md->shrinkOpts,
+					MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE, 'h' );					
+	case EXPP_MOD_SUBSURFLEVELS:
+		return EXPP_setIValueClamped( value, &md->subsurfLevels, 1, 6, 'h' );
+	
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
 }
 
+static PyObject *simpledeform_getter( BPy_Modifier * self, int type )
+{
+	SimpleDeformModifierData *md = (SimpleDeformModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_OBJECT:
+		return Object_CreatePyObject( md->origin );
+	case EXPP_MOD_TYPES:
+		return PyInt_FromLong( (long)md->mode );
+	case EXPP_MOD_FACTOR:
+		return PyFloat_FromDouble( (double)md->factor );
+	case EXPP_MOD_UPPER_LIMIT:
+		return PyFloat_FromDouble( (double)md->limit[1] );	
+	case EXPP_MOD_LOWER_LIMIT:
+		return PyFloat_FromDouble( (double)md->limit[0] );	
+	case EXPP_MOD_VERTGROUP:
+		return PyString_FromString( md->vgroup_name ) ;
+	case EXPP_MOD_RELATIVE:
+		return PyBool_FromLong( (long) md->originOpts ) ;	
+	case EXPP_MOD_LOCK_AXIS_X:
+		return PyBool_FromLong( (long) 
+				( md->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) ) ;	
+	case EXPP_MOD_LOCK_AXIS_Y:
+		return PyBool_FromLong( (long) 
+				( md->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) ) ;	
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int simpledeform_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	SimpleDeformModifierData *md = (SimpleDeformModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_OBJECT: { /* Only object for now */
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->origin = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			md->origin = ob_new;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Expected an Object or None value" );
+		}
+		return 0;
+	}
+	case EXPP_MOD_TYPES:
+		return EXPP_setIValueRange( value, &md->mode, 1, MOD_SIMPLEDEFORM_MODE_STRETCH, 'h' );
+	case EXPP_MOD_FACTOR:
+		return EXPP_setFloatClamped( value, &md->factor, -10.0, 10.0 );
+	case EXPP_MOD_LOWER_LIMIT:
+		return EXPP_setFloatClamped( value, &md->limit[0], 0.0, md->limit[1] );
+	case EXPP_MOD_UPPER_LIMIT:
+		return EXPP_setFloatClamped( value, &md->limit[1], md->limit[0], 1.0 );
+	case EXPP_MOD_VERTGROUP:{
+		char *defgrp_name = PyString_AsString( value );
+		if( !defgrp_name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+		BLI_strncpy( md->vgroup_name, defgrp_name, sizeof( md->vgroup_name ) );
+		return 0;		
+		}
+	case EXPP_MOD_RELATIVE:
+				return EXPP_setBitfield( value, &md->originOpts,	1, 'h' );
+	case EXPP_MOD_LOCK_AXIS_X:
+				return EXPP_setBitfield( value, &md->axis,
+					MOD_SIMPLEDEFORM_LOCK_AXIS_X, 'h' );
+	case EXPP_MOD_LOCK_AXIS_Y:
+				return EXPP_setBitfield( value, &md->axis,
+					MOD_SIMPLEDEFORM_LOCK_AXIS_Y, 'h' );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}	
+}
 
 /* static PyObject *uvproject_getter( BPy_Modifier * self, int type )
 {
@@ -1100,7 +1293,9 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 			case eModifierType_Shrinkwrap:
 				return shrinkwrap_getter( self, setting );
 			/*case eModifierType_UVProject:
-				return uvproject_getter( self, setting );*/
+				return uvproject_getter( self, setting );*/			
+			case eModifierType_SimpleDeform:
+				return simpledeform_getter( self, setting );
 			case eModifierType_Hook:
 			case eModifierType_Softbody:
 			case eModifierType_None:
@@ -1171,6 +1366,8 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return displace_setter( self, key_int, arg );
 		case eModifierType_Shrinkwrap:
 			return shrinkwrap_setter( self, key_int, arg );
+		case eModifierType_SimpleDeform:
+			return simpledeform_setter( self, key_int, arg );
 		/*case eModifierType_UVProject:
 			return uvproject_setter( self, key_int, arg );*/
 		case eModifierType_Hook:
@@ -1603,8 +1800,8 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Bevel ) );
 		PyConstant_Insert( d, "SHRINKWRAP",
 				PyInt_FromLong( eModifierType_Shrinkwrap ) );
-		PyConstant_Insert( d, "SHRINKWRAP",
-				PyInt_FromLong( eModifierType_Shrinkwrap ) );
+		PyConstant_Insert( d, "SIMPLEDEFORM",
+				PyInt_FromLong( eModifierType_SimpleDeform ) );
 	}
 	return S;
 }
@@ -1768,6 +1965,40 @@ for var in st.replace(',','').split('\n'):
 			PyConstant_Insert( d, "SIZE_FROM_RADIUS", 
 				PyInt_FromLong( EXPP_MOD_SIZE_FROM_RADIUS ) );
 			/*End Auto generated code*/
+			PyConstant_Insert( d, "RELATIVE", 
+				PyInt_FromLong( EXPP_MOD_RELATIVE ) );
+			PyConstant_Insert( d, "UPPER_LIMIT", 
+				PyInt_FromLong( EXPP_MOD_UPPER_LIMIT ) );
+			PyConstant_Insert( d, "LOWER_LIMIT", 
+				PyInt_FromLong( EXPP_MOD_LOWER_LIMIT ) );
+			PyConstant_Insert( d, "LOCK_AXIS_X", 
+				PyInt_FromLong( EXPP_MOD_LOCK_AXIS_X ) );
+			PyConstant_Insert( d, "LOCK_AXIS_Y", 
+				PyInt_FromLong( EXPP_MOD_LOCK_AXIS_Y ) );		
+			PyConstant_Insert( d, "OBJECT_AUX", 
+				PyInt_FromLong( EXPP_MOD_OBJECT_AUX ) );
+			PyConstant_Insert( d, "KEEPDIST", 
+				PyInt_FromLong(	EXPP_MOD_KEEPDIST ) );
+			PyConstant_Insert( d, "PROJECT_OVER_X_AXIS", 
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_X_AXIS ) );					
+			PyConstant_Insert( d, "PROJECT_OVER_Y_AXIS", 
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_Y_AXIS ) );					
+			PyConstant_Insert( d, "PROJECT_OVER_Z_AXIS", 
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_Z_AXIS ) );
+			PyConstant_Insert( d, "PROJECT_OVER_NORMAL", 
+				PyInt_FromLong( EXPP_MOD_PROJECT_OVER_NORMAL ) );
+			PyConstant_Insert( d, "SUBSURFLEVELS", 
+				PyInt_FromLong( EXPP_MOD_SUBSURFLEVELS ) );					
+			PyConstant_Insert( d, "ALLOW_POS_DIR", 
+				PyInt_FromLong( EXPP_MOD_ALLOW_POS_DIR ) );					
+			PyConstant_Insert( d, "ALLOW_NEG_DIR", 
+				PyInt_FromLong( EXPP_MOD_ALLOW_NEG_DIR ) );					
+			PyConstant_Insert( d, "CULL_TARGET_FRONTFACE", 
+				PyInt_FromLong( EXPP_MOD_CULL_TARGET_FRONTFACE ) );					
+			PyConstant_Insert( d, "CULL_TARGET_BACKFACE", 
+				PyInt_FromLong( EXPP_MOD_CULL_TARGET_BACKFACE ) );					
+			PyConstant_Insert( d, "KEEP_ABOVE_SURFACE", 
+				PyInt_FromLong( EXPP_MOD_KEEP_ABOVE_SURFACE ) );					
 	}
 	return S;
 }

@@ -102,6 +102,7 @@ public:
 
 	virtual	void		WriteDynamicsToMotionState() {};
 	virtual void	WriteMotionStateToDynamics(bool nondynaonly);
+	virtual class PHY_IMotionState* GetMotionState();
 
 	/** 
 		call from Scene Graph Node to 'update'.

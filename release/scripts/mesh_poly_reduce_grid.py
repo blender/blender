@@ -3,7 +3,7 @@
 Name: 'Poly Reduce Selection (Unsubsurf)'
 Blender: 245
 Group: 'Mesh'
-Tooltip: 'pradictable mesh simplifaction maintaining face loops'
+Tooltip: 'predictable mesh simplifaction maintaining face loops'
 """
 
 from Blender import Scene, Mesh, Window, sys
@@ -50,7 +50,7 @@ def my_mesh_util(me):
 				
 	for edkey, count in edge_count.iteritems():
 		
-		# Ignore verts that connect to edges with more then 2 faces.
+		# Ignore verts that connect to edges with more than 2 faces.
 		if count != 2:
 			vert_faces[edkey[0]] = None
 			vert_faces[edkey[1]] = None

@@ -156,16 +156,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	// maybe there are events for us in the queue !
 	if (frame)
 	{
-		for (vector<CValue*>::iterator i=m_events.begin(); !(i==m_events.end());i++)
-		{
-			if ((*i)->GetNumber() == 0.0f)
-				bNegativeEvent = true;
-			else
-				bPositiveEvent= true;
-			(*i)->Release();
-		
-		}
-		m_events.clear();
+		bNegativeEvent = m_negevent;
+		bPositiveEvent = m_posevent;
+		RemoveAllEvents();
 		
 		if (bPositiveEvent)
 			m_flag |= ACT_FLAG_ACTIVE;
@@ -942,8 +935,13 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject BL_ActionActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"BL_ActionActuator",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -999,18 +997,17 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 };
 
 PyAttributeDef BL_ActionActuator::Attributes[] = {
-	KX_PYATTRIBUTE_FLOAT_RW("start", 0, MAXFRAMEF, BL_ActionActuator, m_startframe),
-	KX_PYATTRIBUTE_FLOAT_RW("end", 0, MAXFRAMEF, BL_ActionActuator, m_endframe),
-	KX_PYATTRIBUTE_FLOAT_RW("blendin", 0, MAXFRAMEF, BL_ActionActuator, m_blendin),
+	KX_PYATTRIBUTE_FLOAT_RW("frameStart", 0, MAXFRAMEF, BL_ActionActuator, m_startframe),
+	KX_PYATTRIBUTE_FLOAT_RW("frameEnd", 0, MAXFRAMEF, BL_ActionActuator, m_endframe),
+	KX_PYATTRIBUTE_FLOAT_RW("blendIn", 0, MAXFRAMEF, BL_ActionActuator, m_blendin),
 	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ActionActuator, pyattr_get_action, pyattr_set_action),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ActionActuator, m_priority),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ActionActuator, m_localtime, CheckFrame),
-	KX_PYATTRIBUTE_STRING_RW("property", 0, 31, false, BL_ActionActuator, m_propname),
-	KX_PYATTRIBUTE_STRING_RW("frameProperty", 0, 31, false, BL_ActionActuator, m_framepropname),
-	KX_PYATTRIBUTE_BOOL_RW("continue", BL_ActionActuator, m_end_reset),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, 31, false, BL_ActionActuator, m_propname),
+	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 31, false, BL_ActionActuator, m_framepropname),
+	KX_PYATTRIBUTE_BOOL_RW("useContinue", BL_ActionActuator, m_end_reset),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ActionActuator, m_blendframe, CheckBlendTime),
-	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ActionActuator,m_playtype,CheckType),
-	//KX_PYATTRIBUTE_TODO("channel"),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",0,100,false,BL_ActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel
 };
 
@@ -1040,7 +1037,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (!PyString_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, expected the string name of the action");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
@@ -1052,11 +1049,11 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 		if (!action)
 		{
 			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, action not found!");
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 	}
 	
 	self->SetAction(action);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }

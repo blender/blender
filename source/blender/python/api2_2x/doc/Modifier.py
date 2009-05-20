@@ -50,18 +50,23 @@ Example::
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - ARRAY - type value for Array modifiers
-    - BOOLEAN - type value for Boolean modifiers
+    - BEVEL - type value for Bevel modifiers    
+    - BOOLEAN - type value for Boolean modifiers    
     - BUILD - type value for Build modifiers
-    - CURVE - type value for Curve modifiers
-    - MIRROR - type value for Mirror modifiers
-    - DECIMATE - type value for Decimate modifiers
-    - LATTICE - type value for Lattice modifiers
-    - SUBSURF - type value for Subsurf modifiers
-    - WAVE - type value for Wave modifiers
-    - EDGESPLIT - type value for Edge Split modifiers
-    - DISPLACE - type value for Displace modifiers
-    - SMOOTH - type value for Smooth modifiers
     - CAST - type value for Cast modifiers
+    - CURVE - type value for Curve modifiers
+    - DECIMATE - type value for Decimate modifiers
+    - DISPLACE - type value for Displace modifiers
+    - EDGESPLIT - type value for Edge Split modifiers
+    - LATTICE - type value for Lattice modifiers
+    - MESHDEFORM - type value for MeshDeform modifiers
+    - MASK - type value for Mask modifiers    
+    - MIRROR - type value for Mirror modifiers
+    - SHRINKWRAP - type value for Shrinkwrap modifiers
+    - SIMPLEDEFORM - type value for SimpleDeform modifiers
+    - SMOOTH - type value for Smooth modifiers
+    - SUBSURF - type value for Subsurf modifiers 
+    - WAVE - type value for Wave modifiers
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
@@ -70,17 +75,17 @@ Example::
 	- EDITMODE - Used for all modifiers (bool) If both REALTIME and EDITMODE are true, the modifier is enabled for interactive display while the object is in edit mode.
 	- ONCAGE - Used for all modifiers (bool) If true, the modifier is enabled for the editing cage during edit mode.
 
-	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array (Object)
-	- VERTGROUP - Used for Armature, Lattice, Curve, Smooth and Cast (String)
-	- LIMIT - Array and Mirror (float [0.0 - 1.0])
+	- OBJECT - Used for Armature, Lattice, Curve, Boolean, Array, Shrinkwrap and SimpleDeform (Object)
+	- VERTGROUP - Used for Armature, Lattice, Curve, Smooth, Cast, Shrinkwrap and SimpleDeform (String)
+	- LIMIT - Array, Mirror (float [0.0 - 1.0])
 	- FLAG - Mirror and Wave (int)
 	- COUNT - Decimator Polycount (readonly) and Array (int)
 	- LENGTH - Build [1.0-300000.0] and Array [0.0 - 10000.0] (float)
-	- FACTOR - Smooth [-10.0, 10.0] and Cast [-10.0, 10.0] (float)
+	- FACTOR - Smooth [-10.0, 10.0], Cast [-10.0, 10.0] and SimpleDeform [-10.0, 10.0] (float)
 	- ENABLE_X = Smooth and Cast (bool, default: True)
 	- ENABLE_Y = Smooth and Cast (bool, default: True)
 	- ENABLE_Z = Smooth and Cast (bool, default: True)
-	- TYPES - Subsurf and Cast. For Subsurf it determines the subdivision algorithm - (int): 0 = Catmull-Clark; 1 = simple subdivision. For Cast it determines the shape to deform to = (int): 0 = Sphere; 1 = Cylinder; 2 = Cuboid
+	- TYPES - Subsurf, Cast, Shrinkwrap and SimpleDeform. For Subsurf it determines the subdivision algorithm - (int): 0 = Catmull-Clark; 1 = simple subdivision. For Cast it determines the shape to deform to = (int): 0 = Sphere; 1 = Cylinder; 2 = Cuboid. For Shrinkwrap it determines where it has to project = (int): 0 = Nearest surface; 1 = Project; 2 = Nearest vertex. For DeformMesh it determines the function to apply = (int): 1 = Twist; 2 = Bend; 3 = Taper; 4 = Stretch.
 
 	- LEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for interactive display.
 	- RENDLEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for rendering.
@@ -139,6 +144,26 @@ Example::
 	- SIZE - Used for Cast only (float [0.0, 100.0], default: 0.0)
 	- SIZE_FROM_RADIUS - Used for Cast only (bool, default: True)
 	- USE_OB_TRANSFORM - Used for Cast only (bool, default: False)
+
+	- OBJECT_AUX - Used for Shrinkwrap only,  (Object)
+	- KEEPDIST - Used for Shrinkwrap only (float [-1000.0, 1000.0, default: 0.0)
+	- PROJECT_OVER_X_AXIS - Used for Shrinkwrap only, should the modifier not project over normal (bool)
+	- PROJECT_OVER_Y_AXIS - Used for Shrinkwrap only, should the modifier not project over normal (bool)
+	- PROJECT_OVER_Z_AXIS - Used for Shrinkwrap only, should the modifier not project over normal (bool)
+	- PROJECT_OVER_NORMAL - Used for Shrinkwrap only (bool)
+	- ALLOW_POS_DIR - Used for Shrinkwrap only, should the modifier use Project TYPES (bool) 
+	- ALLOW_NEG_DIR - Used for Shrinkwrap only, should the modifier use Project TYPES (bool)
+	- CULL_TARGET_FRONTFACE - Used for Shrinkwrap only, should the modifier use Project TYPES (bool)
+	- CULL_TARGET_BACKFACE - Used for Shrinkwrap only, should the modifier use Project TYPES (bool)
+	- KEEP_ABOVE_SURFACE - Used for Shrinkwrap only , should the modifier use Nearest Surface TYPES(bool)
+	- SUBSURFLEVELS - Used for Shrinkwrap only (int [0 - 6]). The number of subdivision levels used.
+
+	- RELATIVE - Used for Simpledeform only (bool, default: False) 
+	- LOWER_LIMIT - Used for Simpledeform only (float [0.0, UPPER_LIMIT], default: 0.0))
+	- UPPER_LIMIT - Used for Simpledeform only (float [LOWER_LIMIT,1.0], default: 1.0))
+	- LOCK_AXIS_X - Used for Simpledeform only (bool, default: False)
+	- LOCK_AXIS_Y - Used for Simpledeform only (bool, default: False)
+
 """
 
 class ModSeq:
