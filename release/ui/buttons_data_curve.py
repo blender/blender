@@ -69,7 +69,7 @@ class DATA_PT_geometry(DataButtonsPanel):
 			sub.itemR(curve, "taper_object")
 			sub = split.column()
 			sub.itemL(text="Bevel:")
-			sub.itemR(curve, "bevel_depth", text="Depth")
+			sub.itemR(curve, "bevel_depth", text="Depth", slider=True)
 			sub.itemR(curve, "bevel_resolution", text="Resolution")
 			sub.itemR(curve, "bevel_object")
 

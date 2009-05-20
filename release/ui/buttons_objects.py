@@ -78,7 +78,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.itemR(ob, "dupli_type", text="", expand=True)
+		row.itemR(ob, "dupli_type", expand=True)
 
 		if ob.dupli_type == "FRAMES":
 			split = layout.split()
@@ -90,6 +90,30 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 			sub = split.column(align=True)
 			sub.itemR(ob, "dupli_frames_on", text="On")
 			sub.itemR(ob, "dupli_frames_off", text="Off")
+			
+			split = layout.split()
+			sub = split.column()
+			sub.itemR(ob, "dupli_frames_no_speed", text="No Speed")
+
+		elif ob.dupli_type == "VERTS":
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_verts_rotation", text="Rotation")
+
+		elif ob.dupli_type == "FACES":
+			split = layout.split()
+			
+			sub = split.column()
+			sub.itemR(ob, "dupli_faces_scale", text="Scale")
+			sub = split.column()
+			sub.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+
+		elif ob.dupli_type == "GROUP":
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_group", text="Group")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_animation"

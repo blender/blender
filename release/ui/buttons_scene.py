@@ -19,8 +19,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(rd, "render_shadows", text="Shadows")
-		sub.itemR(rd, "render_sss", text="SSS")
-		sub.itemR(rd, "render_envmaps", text="EnvMap")
+		sub.itemR(rd, "render_sss", text="Subsurface Scattering")
+		sub.itemR(rd, "render_envmaps", text="Environment Map")
 		#	sub.itemR(rd, "render_radiosity", text="Radio")
 		
 		sub = split.column()
@@ -45,7 +45,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 		sub = split.column()
 		sub.itemR(rd, "image_type")
 		if rd.image_type in ("AVIJPEG", "JPEG"):
-			sub.itemR(rd, "quality")
+			sub.itemR(rd, "quality", slider=True)
 		
 		sub = split.column()
 		sub.itemR(rd, "color_mode")
@@ -90,7 +90,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 		sub = split.column()
 		sub.itemR(rd, "pixel_filter")
-		sub.itemR(rd, "filter_size", text="Size")
+		sub.itemR(rd, "filter_size", text="Size", slider=True)
 		sub.itemR(rd, "save_buffers")
 		if rd.save_buffers:
 			sub.itemR(rd, "full_sample")
@@ -132,7 +132,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 		
 		row = layout.row()
 		row.itemR(rd, "panorama")
-		row.itemR(rd, "dither_intensity", text="Dither")
+		row.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		#	row.itemR(rd, "backbuf")
 			
 class RENDER_PT_dimensions(RenderButtonsPanel):

@@ -27,7 +27,7 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		row.column().itemR(mat, "mirror_color")
 		
 		row = layout.row()
-		row.itemR(mat, "alpha")
+		row.itemR(mat, "alpha", slider=True)
 			
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
@@ -50,17 +50,17 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		flow = layout.column_flow()
 		flow.itemR(sss, "error_tolerance")
 		flow.itemR(sss, "ior")
-		flow.itemR(sss, "scale")
+		flow.itemR(sss, "scale", slider=True)
 		
 		row = layout.row()
 		row.column().itemR(sss, "color")
 		row.column().itemR(sss, "radius")
 		
 		flow = layout.column_flow()
-		flow.itemR(sss, "color_factor")
-		flow.itemR(sss, "texture_factor")
-		flow.itemR(sss, "front")
-		flow.itemR(sss, "back")
+		flow.itemR(sss, "color_factor", slider=True)
+		flow.itemR(sss, "texture_factor", slider=True)
+		flow.itemR(sss, "front", slider=True)
+		flow.itemR(sss, "back", slider=True)
 		
 class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raymir"
@@ -83,15 +83,15 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
-		sub.itemR(raym, "reflect", text="RayMir")
-		sub.itemR(raym, "fresnel")
-		sub.itemR(raym, "fresnel_fac", text="Fac")
+		sub.itemR(raym, "reflect", text="RayMir", slider=True)
+		sub.itemR(raym, "fresnel", slider=True)
+		sub.itemR(raym, "fresnel_fac", text="Fac", slider=True)
 		
 		sub = split.column()
-		sub.itemR(raym, "gloss")
-		sub.itemR(raym, "gloss_threshold")
+		sub.itemR(raym, "gloss", slider=True)
+		sub.itemR(raym, "gloss_threshold", slider=True)
 		sub.itemR(raym, "gloss_samples")
-		sub.itemR(raym, "gloss_anisotropic")
+		sub.itemR(raym, "gloss_anisotropic", slider=True)
 		
 		flow = layout.column_flow()
 		flow.itemR(raym, "distance", text="Max Dist")
@@ -120,19 +120,19 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(rayt, "ior")
-		sub.itemR(rayt, "fresnel")
-		sub.itemR(rayt, "fresnel_fac", text="Fac")
+		sub.itemR(rayt, "fresnel", slider=True)
+		sub.itemR(rayt, "fresnel_fac", text="Fac", slider=True)
 		
 		sub = split.column()
-		sub.itemR(rayt, "gloss")
-		sub.itemR(rayt, "gloss_threshold")
+		sub.itemR(rayt, "gloss", slider=True)
+		sub.itemR(rayt, "gloss_threshold", slider=True)
 		sub.itemR(rayt, "gloss_samples")
 		
 		flow = layout.column_flow()
-		flow.itemR(rayt, "filter")
+		flow.itemR(rayt, "filter", slider=True)
 		flow.itemR(rayt, "limit")
-		flow.itemR(rayt, "falloff")
-		flow.itemR(rayt, "specular_opacity")
+		flow.itemR(rayt, "falloff", slider=True)
+		flow.itemR(rayt, "specular_opacity", slider=True)
 		flow.itemR(rayt, "depth")
 		
 class MATERIAL_PT_halo(MaterialButtonsPanel):
@@ -152,9 +152,9 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemL(text="General Settings:")
-		sub.itemR(halo, "size")
-		sub.itemR(halo, "hardness")
-		sub.itemR(halo, "add")
+		sub.itemR(halo, "size", slider=True)
+		sub.itemR(halo, "hardness", slider=True)
+		sub.itemR(halo, "add", slider=True)
 		
 		sub = split.column()
 		sub.itemL(text="Elements:")
@@ -175,20 +175,20 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 	
 		sub = row.column()
 		if (halo.ring):
-			sub.itemR(halo, "rings")
+			sub.itemR(halo, "rings", slider=True)
 		if (halo.lines):
-			sub.itemR(halo, "line_number")
+			sub.itemR(halo, "line_number", slider=True)
 		if (halo.ring or halo.lines):
 			sub.itemR(halo, "seed")
 		if (halo.star):
-			sub.itemR(halo, "star_tips")
+			sub.itemR(halo, "star_tips", slider=True)
 		if (halo.flare_mode):
 			sub.itemL(text="Flare:")
-			sub.itemR(halo, "flare_size", text="Size")
-			sub.itemR(halo, "flare_subsize", text="Subsize")
-			sub.itemR(halo, "flare_boost", text="Boost")
+			sub.itemR(halo, "flare_size", text="Size", slider=True)
+			sub.itemR(halo, "flare_subsize", text="Subsize", slider=True)
+			sub.itemR(halo, "flare_boost", text="Boost", slider=True)
 			sub.itemR(halo, "flare_seed", text="Seed")
-			sub.itemR(halo, "flares_sub", text="Sub")
+			sub.itemR(halo, "flares_sub", text="Sub", slider=True)
 				
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_raymir)
