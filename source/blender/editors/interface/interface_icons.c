@@ -813,7 +813,7 @@ static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int mipl
 		} 
 		else if (GS(id->name) == ID_MA) {
 			Material* mat = (Material*)id;
-			if (mat->mode & MA_HALO) {
+			if (mat->material_type == MA_TYPE_HALO) {
 				set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
 			}
 		}

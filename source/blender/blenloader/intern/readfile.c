@@ -8912,6 +8912,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	   bump the version (or sub-version.) */
 	{
 		Object *ob;
+		Material *ma;
 		int i;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -8975,6 +8976,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 
 				ob->data = olddata;
+			}
+		}
+
+		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			if(ma->mode & MA_HALO) {
+				ma->material_type= MA_TYPE_HALO;
+				ma->mode &= ~MA_HALO;
 			}
 		}
 	}

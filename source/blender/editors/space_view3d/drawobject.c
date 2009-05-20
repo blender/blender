@@ -2281,7 +2281,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
-	int hasHaloMat = (ma && (ma->mode&MA_HALO));
+	int hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
