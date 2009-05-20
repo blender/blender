@@ -2,24 +2,24 @@
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-        __space_type__ = "BUTTONS_WINDOW"
-        __region_type__ = "WINDOW"
-        __context__ = "bone"
-       
-        def poll(self, context):
-                ob = context.active_object
-                return (ob and ob.type == 'ARMATURE')
-       
+	__space_type__ = "BUTTONS_WINDOW"
+	__region_type__ = "WINDOW"
+	__context__ = "bone"
+	
+	def poll(self, context):
+		ob = context.active_object
+		return (ob and ob.type == 'ARMATURE')
+
 class DATA_PT_bone(DataButtonsPanel):
-        __idname__ = "DATA_PT_bone"
-        __label__ = "Bone"
- 
-        def draw(self, context):
-                bone = context.main.armatures[0].bones[0]
-                layout = self.layout
- 
- 		split = layout.split()
-		
+	__idname__ = "DATA_PT_bone"
+	__label__ = "Bone"
+
+	def draw(self, context):
+		bone = context.main.armatures[0].bones[0]
+		layout = self.layout
+
+		split = layout.split()
+
 		sub = split.column()
 		sub.itemR(bone, "name")
 		sub.itemR(bone, "parent")
@@ -53,23 +53,15 @@ class DATA_PT_bone(DataButtonsPanel):
 
 
 class DATA_PT_constraints(DataButtonsPanel):
-        __idname__ = "DATA_PT_constraints"
-        __label__ = "Constraints"
- 
-        def draw(self, context):
-                bone = context.main.armatures[0].bones[0]
-                layout = self.layout
- 
- 		split = layout.split()
+	__idname__ = "DATA_PT_constraints"
+	__label__ = "Constraints"
+	
+	def draw(self, context):
+		bone = context.main.armatures[0].bones[0]
+		layout = self.layout
+		split = layout.split()
 		
 		sub = split.column()
 
-
-
-
- 
 bpy.types.register(DATA_PT_bone)
 bpy.types.register(DATA_PT_constraints)
-
-
-

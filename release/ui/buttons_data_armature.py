@@ -1,28 +1,27 @@
-
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-        __space_type__ = "BUTTONS_WINDOW"
-        __region_type__ = "WINDOW"
-        __context__ = "data"
-       
-        def poll(self, context):
-                ob = context.active_object
-                return (ob and ob.type == 'ARMATURE')
-       
+	__space_type__ = "BUTTONS_WINDOW"
+	__region_type__ = "WINDOW"
+	__context__ = "data"
+	
+	def poll(self, context):
+		ob = context.active_object
+		return (ob and ob.type == 'ARMATURE')
+
 class DATA_PT_skeleton(DataButtonsPanel):
-        __idname__ = "DATA_PT_skeleton"
-        __label__ = "Skeleton"
- 
-        def draw(self, context):
-                arm = context.main.armatures[0]
-                layout = self.layout
-                
- 		row = layout.row()
- 		row.itemR(arm, "rest_position")
- 
- 		split = layout.split()
+	__idname__ = "DATA_PT_skeleton"
+	__label__ = "Skeleton"
+
+	def draw(self, context):
+		arm = context.main.armatures[0]
+		layout = self.layout
 		
+		row = layout.row()
+		row.itemR(arm, "rest_position")
+
+		split = layout.split()
+
 		sub = split.column()
 
 		sub.itemL(text="Deform:")
@@ -41,15 +40,15 @@ class DATA_PT_skeleton(DataButtonsPanel):
 
 
 class DATA_PT_display(DataButtonsPanel):
-        __idname__ = "DATA_PT_display"
-        __label__ = "Display"
- 
-        def draw(self, context):
-                arm = context.main.armatures[0]
-                layout = self.layout
- 
- 		split = layout.split()
-		
+	__idname__ = "DATA_PT_display"
+	__label__ = "Display"
+	
+	def draw(self, context):
+		arm = context.main.armatures[0]
+		layout = self.layout
+
+		split = layout.split()
+
 		sub = split.column()
 		sub.itemR(arm, "drawtype", text="Style")
 		sub.itemR(arm, "delay_deform", text="Delay Refresh")
@@ -62,14 +61,14 @@ class DATA_PT_display(DataButtonsPanel):
 
 
 class DATA_PT_paths(DataButtonsPanel):
-        __idname__ = "DATA_PT_paths"
-        __label__ = "Paths"
- 
-        def draw(self, context):
-                arm = context.main.armatures[0]
-                layout = self.layout
- 
- 		split = layout.split()
+	__idname__ = "DATA_PT_paths"
+	__label__ = "Paths"
+
+	def draw(self, context):
+		arm = context.main.armatures[0]
+		layout = self.layout
+
+		split = layout.split()
 		
 		sub = split.column()
 
@@ -92,15 +91,15 @@ class DATA_PT_paths(DataButtonsPanel):
 
 		
 class DATA_PT_ghost(DataButtonsPanel):
-        __idname__ = "DATA_PT_ghost"
-        __label__ = "Ghost"
- 
-        def draw(self, context):
-                arm = context.main.armatures[0]
-                layout = self.layout
- 
- 		split = layout.split()
-		
+	__idname__ = "DATA_PT_ghost"
+	__label__ = "Ghost"
+
+	def draw(self, context):
+		arm = context.main.armatures[0]
+		layout = self.layout
+
+		split = layout.split()
+
 		sub = split.column()
 
 		sub.itemR(arm, "ghost_type", text="Scope")
