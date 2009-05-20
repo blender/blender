@@ -2858,7 +2858,7 @@ static void check_solver_type(void *arg1_but, void *arg2_arm)
 {
 	bArmature* arm = arg2_arm;
 	uiBut *but = arg1_but;
-	
+	but->retval -= 1;
 	/* a controller is always in a single state */
 	if (arm->iksolver != but->retval) {
 		// the solver has changed, inform the solver, but first restore the previous solver
@@ -2866,11 +2866,9 @@ static void check_solver_type(void *arg1_but, void *arg2_arm)
 		arm->iksolver = but->retval;
 		BIK_remove_armature(arm);
 		arm->iksolver = newsolver;
-		but->retval = B_CONSTRAINT_CHANGEIKSOLVER;
+		do_constraintbuts(B_CONSTRAINT_CHANGEIKSOLVER);
 	}
-	else
-		but->retval = B_REDR;
-
+	but->retval = B_REDR;
 }
 
 void object_panel_constraint(char *context)
@@ -2903,7 +2901,7 @@ void object_panel_constraint(char *context)
 		bArmature *arm = get_armature(ob);
 		if (arm) {
 			uiDefBut(block, LABEL, 0, "Armature IK solver:",	0, yco, 130, 20, NULL, 0.0, 0.0, 0, 0, "Choose the IK solver for IK constraints");
-			but = uiDefButI(block, MENU, arm->iksolver, 
+			but = uiDefButI(block, MENU, arm->iksolver+1, 
 				  "IK Solver%t|Legacy%x0|iTaSc%x1", 
 				  150, yco, 120, 19, &arm->iksolver, 0, 0, 0, 0, "Choose the IK solver for IK constraints");
 			yco -= 30;

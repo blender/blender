@@ -32,6 +32,8 @@ public:
     bool initialize();
     bool update(double timestamp, double timestep, unsigned int numsubstep=1, bool reiterate=false);
 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 private:
     e_matrix m_A,m_B,m_Atemp,m_Wq,m_Jf,m_Jq,m_Ju,m_Cf,m_Cq,m_Jf_inv;
 	e_matrix6 m_Vf,m_Uf;

@@ -84,6 +84,8 @@ public:
     ConstraintSet();
     virtual ~ConstraintSet();
 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 	virtual bool registerCallback(ConstraintCallback _function, void* _param)
 	{
 		m_constraintCallback = _function;
