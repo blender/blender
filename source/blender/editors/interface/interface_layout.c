@@ -1346,7 +1346,7 @@ static void ui_litem_layout_free(uiLayout *litem)
 		scaley= (float)litem->h/(float)toth;
 	
 	x= litem->x;
-	y= litem->y - scalex*toth;
+	y= litem->y - scaley*toth;
 
 	for(item=litem->items.first; item; item=item->next) {
 		ui_item_offset(item, &itemx, &itemy);

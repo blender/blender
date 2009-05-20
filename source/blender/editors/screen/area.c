@@ -1004,7 +1004,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			if(vertical)
 				y -= header;
 
-			if(pt->draw_header) {
+			if(pt->draw_header && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
 					triangle, header+style->panelspace, header, 1, style);

@@ -451,10 +451,8 @@ static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *b
 				nr++;
 	
 	/* + 0.001f to avoid flirting with float inaccuracy */
-	if(panel->control & UI_PNL_CLOSE) pnl_icons=(2*PNL_ICON+5)/block->aspect + 0.001f;
-	else pnl_icons= (PNL_ICON+5)/block->aspect + 0.001f;
-
-	pnl_icons += panel->labelofs;
+	if(panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;
+	else pnl_icons= (panel->labelofs+PNL_ICON+5)/block->aspect + 0.001f;
 	
 	if(nr==1) {
 		
