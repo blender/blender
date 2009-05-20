@@ -591,8 +591,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 
 void glaDefine2DArea(rcti *screen_rect)
 {
-	int sc_w= screen_rect->xmax - screen_rect->xmin;
-	int sc_h= screen_rect->ymax - screen_rect->ymin;
+	int sc_w= screen_rect->xmax - screen_rect->xmin + 1;
+	int sc_h= screen_rect->ymax - screen_rect->ymin + 1;
 
 	glViewport(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 	glScissor(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);

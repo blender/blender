@@ -2440,6 +2440,9 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
 			float x, y; 
+			
+			wmPushMatrix();
+			
 			/* somehow the offset has to be calculated inverse */
 			
 			glaDefine2DArea(&ar->winrct);
@@ -2454,9 +2457,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 			else if(ibuf->channels==4)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
-			/* sort this out, this should not be needed */
-			wmOrtho2(ar->v2d.cur.xmin, ar->v2d.cur.xmax, ar->v2d.cur.ymin, ar->v2d.cur.ymax);
-			glLoadIdentity();
+			wmPopMatrix();
 		}
 	}
 }
