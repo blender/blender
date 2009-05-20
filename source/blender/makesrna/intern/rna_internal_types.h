@@ -36,6 +36,7 @@ struct FunctionRNA;
 struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
+struct IDProperty;
 
 #define RNA_MAX_ARRAY 32
 
@@ -43,6 +44,7 @@ struct bContext;
 
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
+typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int create);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
@@ -286,6 +288,9 @@ struct StructRNA {
 	/* function to register/unregister subclasses */
 	StructRegisterFunc reg; 
 	StructUnregisterFunc unreg; 
+
+	/* callback to get id properties */
+	IDPropertiesFunc idproperties;
 
 	/* functions of this struct */
 	ListBase functions; 

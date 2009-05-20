@@ -53,6 +53,7 @@ void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
+void RNA_def_struct_idproperties_func(StructRNA *srna, const char *refine);
 void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg);
 void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);

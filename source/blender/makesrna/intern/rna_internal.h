@@ -173,7 +173,9 @@ void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
+struct IDProperty *rna_ID_idproperties(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
+struct IDProperty *rna_IDPropertyGroup_idproperties(struct PointerRNA *ptr, int create);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
@@ -201,7 +203,6 @@ extern FloatPropertyRNA rna_IDProperty_double_array;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 
-struct IDProperty *rna_idproperties_get(struct PointerRNA *ptr, int create);
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
 
 /* Builtin Property Callbacks */

@@ -144,28 +144,19 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 
 /* ID Properties */
 
-IDProperty *rna_idproperties_get(PointerRNA *ptr, int create)
+IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create)
 {
-	if(ptr->type->flag & STRUCT_ID)
-		return IDP_GetProperties(ptr->data, create);
-	else if(ptr->type == &RNA_IDPropertyGroup || ptr->type->base == &RNA_IDPropertyGroup)
-		return ptr->data;
-	else if(ptr->type->base == &RNA_OperatorProperties) {
-		if(create && !ptr->data) {
-			IDPropertyTemplate val;
-			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-			ptr->data= IDP_New(IDP_GROUP, val, "RNA_OperatorProperties group");
-		}
+	StructRNA *type= ptr->type;
 
-		return ptr->data;
-	}
-	else
-		return NULL;
+	if(type->idproperties)
+		return type->idproperties(ptr, create);
+	
+	return NULL;
 }
 
 static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
 {
-	IDProperty *group= rna_idproperties_get(ptr, 0);
+	IDProperty *group= RNA_struct_idproperties(ptr, 0);
 	IDProperty *idprop;
 
 	if(group) {
@@ -252,7 +243,7 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			IDProperty *idprop= rna_idproperty_find(ptr, (*prop)->identifier);
 
 			if(idprop && !rna_idproperty_verify_valid(*prop, idprop)) {
-				IDProperty *group= rna_idproperties_get(ptr, 0);
+				IDProperty *group= RNA_struct_idproperties(ptr, 0);
 
 				IDP_RemFromGroup(group, idprop);
 				IDP_FreeProperty(idprop);
@@ -730,12 +721,12 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	else if(bprop->set)
 		bprop->set(ptr, value);
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.i= value;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
 	}
@@ -786,13 +777,13 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 	else if(bprop->setarray)
 		bprop->setarray(ptr, values);
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.array.len= prop->arraylength;
 		val.array.type= IDP_INT;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
@@ -833,12 +824,12 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	else if(iprop->set)
 		iprop->set(ptr, value);
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.i= value;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
 	}
@@ -889,13 +880,13 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 	else if(iprop->setarray)
 		iprop->setarray(ptr, values);
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.array.len= prop->arraylength;
 		val.array.type= IDP_INT;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
@@ -945,12 +936,12 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 		fprop->set(ptr, value);
 	}
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.f= value;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_FLOAT, val, (char*)prop->identifier));
 	}
@@ -1014,13 +1005,13 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 		fprop->setarray(ptr, values);
 	}
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.array.len= prop->arraylength;
 		val.array.type= IDP_FLOAT;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
@@ -1091,12 +1082,12 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	else if(sprop->set)
 		sprop->set(ptr, value);
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.str= (char*)value;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_STRING, val, (char*)prop->identifier));
 	}
@@ -1127,12 +1118,12 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		eprop->set(ptr, value);
 	}
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.i= value;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
 	}
@@ -1175,12 +1166,12 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 		/* already exists */
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
 		val.i= 0;
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
 			IDP_AddToGroup(group, IDP_New(IDP_GROUP, val, (char*)prop->identifier));
 	}
@@ -1276,9 +1267,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	IDProperty *idprop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
-		IDPropertyTemplate val;
+		IDPropertyTemplate val = {0};
 		IDProperty *item;
-		val.i= 0;
 
 		item= IDP_New(IDP_GROUP, val, "");
 		IDP_AppendArray(idprop, item);
@@ -1287,10 +1277,9 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
 		IDProperty *group, *item;
-		IDPropertyTemplate val;
-		val.i= 0;
+		IDPropertyTemplate val = {0};
 
-		group= rna_idproperties_get(ptr, 1);
+		group= RNA_struct_idproperties(ptr, 1);
 		if(group) {
 			idprop= IDP_NewIDPArray(prop->identifier);
 			IDP_AddToGroup(group, idprop);
