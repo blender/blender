@@ -28,6 +28,7 @@
  * Camera in the gameengine. Cameras are also used for views.
  */
  
+#include "GL/glew.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
@@ -478,7 +479,10 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getWorldToCamera),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, setOnTop),
-	
+	KX_PYMETHODTABLE_O(KX_Camera, getScreenPosition),
+	KX_PYMETHODTABLE(KX_Camera, getScreenVect),
+	KX_PYMETHODTABLE(KX_Camera, getScreenRay),
+
 	// DEPRECATED
 	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
@@ -990,3 +994,139 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 	
 	return false;
 }
+
+KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
+"getScreenPosition()\n"
+)
+
+{
+	MT_Vector3 vect;
+	KX_GameObject *obj = NULL;
+
+	if (!PyVecTo(value, vect))
+	{
+		if(ConvertPythonToGameObject(value, &obj, true, ""))
+		{
+			PyErr_Clear();
+			vect = MT_Vector3(obj->NodeGetWorldPosition());
+		}
+		else
+		{
+			PyErr_SetString(PyExc_TypeError, "Error in getScreenPosition. Expected a Vector3 or a KX_GameObject or a string for a name of a KX_GameObject");
+			return NULL;
+		}
+	}
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	vect[0] =  win[0] / (viewport[0] + viewport[2]);
+	vect[1] =  win[1] / (viewport[1] + viewport[3]);
+
+	PyObject* ret = PyTuple_New(2);
+	if(ret){
+		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
+		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
+		return ret;
+	}
+
+	return NULL;
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
+"getScreenVect()\n"
+)
+{
+	double x,y;
+	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
+		return NULL;
+
+	MT_Vector3 vect;
+	MT_Point3 campos, screenpos;
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	vect[0] = x * viewport[2];
+	vect[1] = y * viewport[3];
+
+	vect[0] += viewport[0];
+	vect[1] += viewport[1];
+
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
+	gluUnProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	campos = this->GetCameraLocation();
+	screenpos = MT_Point3(win[0], win[1], win[2]);
+	vect = campos-screenpos;
+
+	vect.normalize();
+	return PyObjectFrom(vect);
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
+"getScreenRay()\n"
+)
+{
+	KX_Camera* cam;
+	MT_Vector3 vect;
+	double x,y,dist;
+	char *propName = NULL;
+
+	if (!PyArg_ParseTuple(args,"ddd|s:getScreenRay",&x,&y,&dist,&propName))
+		return NULL;
+
+	PyObject* argValue = PyTuple_New(2);
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
+	}
+
+	if(!PyVecTo(PygetScreenVect(argValue), vect))
+	{
+		Py_DECREF(argValue);
+		PyErr_SetString(PyExc_TypeError,
+			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate, a distance and an optional property argument");
+		return NULL;
+	}
+	Py_DECREF(argValue);
+
+	dist *= -1.0;
+
+	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
+		if (propName)
+			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+
+		PyObject* ret= this->PyrayCastTo(argValue,NULL);
+		Py_DECREF(argValue);
+		return ret;
+	}
+
+	return NULL;
+}
+

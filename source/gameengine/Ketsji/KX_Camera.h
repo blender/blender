@@ -273,6 +273,10 @@ public:
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
+	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
+
 	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
 	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
