@@ -146,13 +146,11 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 
 IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create)
 {
-	StructRNA *type;
+	StructRNA *type= ptr->type;
 
-	if (ptr->data) {
-		type= ptr->type;
-		if(type->idproperties)
-			return type->idproperties(ptr, create);
-	}
+	if(type && type->idproperties)
+		return type->idproperties(ptr, create);
+	
 	return NULL;
 }
 
