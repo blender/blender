@@ -70,28 +70,30 @@ class RENDER_PT_output(RenderButtonsPanel):
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
+	def draw_header(self, context):
+		rd = context.scene.render_data
+
+		layout = self.layout
+		layout.itemR(rd, "antialiasing", text="")
+
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
 
 		rd = scene.render_data
 
-		row = layout.row()
-		row.itemR(rd, "antialiasing", text="Enable")
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemL(text="Samples:")
+		sub.row().itemR(rd, "antialiasing_samples", expand=True)
 
-		if rd.antialiasing:
-			split = layout.split()
-			
-			sub = split.column()
-			sub.itemL(text="Samples:")
-			sub.row().itemR(rd, "antialiasing_samples", expand=True)
-	
-			sub = split.column()
-			sub.itemR(rd, "pixel_filter")
-			sub.itemR(rd, "filter_size", text="Size")
-			sub.itemR(rd, "save_buffers")
-			if rd.save_buffers:
-				sub.itemR(rd, "full_sample")
+		sub = split.column()
+		sub.itemR(rd, "pixel_filter")
+		sub.itemR(rd, "filter_size", text="Size")
+		sub.itemR(rd, "save_buffers")
+		if rd.save_buffers:
+			sub.itemR(rd, "full_sample")
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"

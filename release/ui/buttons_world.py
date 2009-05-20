@@ -40,12 +40,15 @@ class WORLD_PT_color_correction(WorldButtonsPanel):
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
 
+	def draw_header(self, context):
+		world = context.scene.world
+
+		layout = self.layout
+		layout.itemR(world.mist, "enabled", text="")
+
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
-
-		row = layout.row()
-		row.itemR(world.mist, "enabled", text="Enable")
 
 		flow = layout.column_flow()
 		flow.itemR(world.mist, "start")
@@ -59,12 +62,15 @@ class WORLD_PT_mist(WorldButtonsPanel):
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
 
+	def draw_header(self, context):
+		world = context.scene.world
+
+		layout = self.layout
+		layout.itemR(world.stars, "enabled", text="")
+
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
-
-		row = layout.row()
-		row.itemR(world.stars, "enabled", text="Enable")
 
 		flow = layout.column_flow()
 		flow.itemR(world.stars, "size")
@@ -75,14 +81,18 @@ class WORLD_PT_stars(WorldButtonsPanel):
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
 
+	def draw_header(self, context):
+		world = context.scene.world
+
+		layout = self.layout
+		layout.itemR(world.ambient_occlusion, "enabled", text="")
+
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
 
 		ao = world.ambient_occlusion
 		
-		row = layout.row()
-		row.itemR(ao, "enabled", text="Enable")
 		row = layout.row()
 		row.itemR(ao, "gather_method", expand=True)
 		

@@ -36,15 +36,16 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	def poll(self, context):
 		ob = context.active_object
 		return (ob and ob.active_material and ob.active_material.type == "SURFACE")
+
+	def draw_header(self, context):
+		sss = context.active_object.active_material.subsurface_scattering
+
+		layout = self.layout
+		layout.itemR(sss, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
 		sss = context.active_object.active_material.subsurface_scattering
-		
-		if not sss:
-			return
-		
-		layout.itemR(sss, "enabled", text="Enable")
 		
 		flow = layout.column_flow()
 		flow.itemR(sss, "error_tolerance")
@@ -73,7 +74,7 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 		raym = context.active_object.active_material.raytrace_mirror
 
 		layout = self.layout
-		layout.itemR(raym, "enabled", text=self.__label__)
+		layout.itemR(raym, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -105,11 +106,15 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		ob = context.active_object
 		return (ob and ob.active_material and ob.active_material.type == "SURFACE")
 
+	def draw_header(self, context):
+		rayt = context.active_object.active_material.raytrace_transparency
+
+		layout = self.layout
+		layout.itemR(rayt, "enabled", text="")
+
 	def draw(self, context):
 		layout = self.layout
 		rayt = context.active_object.active_material.raytrace_transparency
-
-		layout.itemR(rayt, "enabled", text="Enable")
 		
 		split = layout.split()
 		

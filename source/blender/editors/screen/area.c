@@ -968,7 +968,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
 	float col[3];
-	int xco, yco, x, y, miny=0, w, em, header, open;
+	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
 
 	if(vertical) {
 		w= v2d->cur.xmax - v2d->cur.xmin;
@@ -980,6 +980,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	header= 20; // XXX
+	triangle= 22;
 	x= 0;
 	y= -style->panelouter;
 
@@ -1003,18 +1004,17 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			if(vertical)
 				y -= header;
 
-			/* XXX enable buttons test */
-#if 0
-			panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-				header+style->panelspace, header+style->panelspace, header, 1, style);
+			if(pt->draw_header) {
+				/* for enabled buttons */
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+					triangle, header+style->panelspace, header, 1, style);
 
-			if(pt->draw_header)
 				pt->draw_header(C, panel);
-			else
-				uiItemL(panel->layout, pt->label, 0);
 
-			panel->layout= NULL;
-#endif
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				panel->labelofs= xco - triangle;
+				panel->layout= NULL;
+			}
 
 			if(open) {
 				panel->type= pt;
@@ -1143,6 +1143,5 @@ void ED_region_header(const bContext *C, ARegion *ar)
 void ED_region_header_init(ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-	ar->v2d.flag &= ~(V2D_PIXELOFS_X|V2D_PIXELOFS_Y); // XXX temporary
 }
 

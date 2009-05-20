@@ -297,16 +297,16 @@ static void ui_offset_panel_block(uiBlock *block)
 {
 	uiStyle *style= U.uistyles.first;
 	uiBut *but;
-	int space= style->panelspace;
+	int ofsy;
 
-	/* buttons min/max centered, offset calculated */
+	/* compute bounds and offset */
 	ui_bounds_block(block);
 
+	ofsy= block->panel->sizey - style->panelspace;
+
 	for(but= block->buttons.first; but; but=but->next) {
-		but->x1= space + (but->x1-block->minx);
-		but->y1= space + (but->y1-block->miny);
-		but->x2= space + (but->x2-block->minx);
-		but->y2= space + (but->y2-block->miny);
+		but->y1 += ofsy;
+		but->y2 += ofsy;
 	}
 
 	block->maxx= block->panel->sizex;
@@ -453,6 +453,8 @@ static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *b
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if(panel->control & UI_PNL_CLOSE) pnl_icons=(2*PNL_ICON+5)/block->aspect + 0.001f;
 	else pnl_icons= (PNL_ICON+5)/block->aspect + 0.001f;
+
+	pnl_icons += panel->labelofs;
 	
 	if(nr==1) {
 		
@@ -831,7 +833,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	Panel *panot, *panew, *patest, *pa;
 	
-	/* scaling contents */
+	/* offset contents */
 	for(block= ar->uiblocks.first; block; block= block->next)
 		if(block->active && block->panel)
 			ui_offset_panel_block(block);
