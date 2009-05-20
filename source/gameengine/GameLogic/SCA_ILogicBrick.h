@@ -92,6 +92,34 @@ public:
 		it.add_back(this);
 	}
 
+	// insert in a QList at position corresponding to m_Execute_Priority
+	// inside a longer list that contains elements of other objects. 
+	// Sorting is done only between the elements of the same object.
+	// head is the head of the combined list
+	// current points to the first element of the object in the list, NULL if none yet
+	void			    InsertSelfActiveQList(SG_QList& head, SG_QList** current)
+	{
+		if (!*current)
+		{
+			// first element can be put anywhere
+			head.QAddBack(this);
+			*current = this;
+			return;
+		}
+		// note: we assume current points actually to one o our element, skip the tests
+		SG_QList::iterator<SCA_ILogicBrick> it(head,*current);
+		if (m_Execute_Priority <= (*it)->m_Execute_Priority)
+		{
+			// this element comes before the first
+			*current = this;
+		}
+		else
+		{
+			for(++it; !it.end() && (*it)->m_gameobj == m_gameobj &&  m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
+		}
+		it.add_back(this);
+	}
+
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	
 	virtual PyObject* py_getattro(PyObject *attr);

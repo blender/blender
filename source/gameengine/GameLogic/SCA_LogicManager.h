@@ -87,9 +87,6 @@ class SCA_LogicManager
 
 	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
 	GEN_Map<CHashedPtr,void*>			m_map_blendobj_to_gameobj;
-
-	// head of actuators being deactivated during the logic update
-	SG_DList							m_removedActuators;
 public:
 	SCA_LogicManager();
 	virtual ~SCA_LogicManager();

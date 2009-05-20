@@ -49,7 +49,7 @@ public:
 		T*			m_current;
 	public:
 		typedef iterator<T> _myT;
-		iterator(SG_QList& head) : m_head(head), m_current(NULL) {}
+		iterator(SG_QList& head, SG_QList* current=NULL) : m_head(head) { m_current = (T*)current; }
 		~iterator() {}
 
 		void begin()

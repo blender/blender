@@ -52,6 +52,7 @@ class SCA_IObject :	public CValue
 	Py_Header;
 	
 protected:
+	friend class KX_StateActuator;
 	friend class SCA_IActuator;
 	friend class SCA_IController;
 	SCA_SensorList         m_sensors;
@@ -96,6 +97,11 @@ protected:
 	 * current state = bit mask of state that are active
 	 */
 	unsigned int			m_state;
+
+	/**
+	 * pointer inside state actuator list for sorting
+	 */
+	SG_QList*				m_firstState;
 
 public:
 	

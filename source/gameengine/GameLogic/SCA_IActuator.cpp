@@ -67,6 +67,8 @@ void SCA_IActuator::Activate(SG_DList& head)
 	}
 }
 
+// this function is only used to deactivate actuators outside the logic loop
+// e.g. when an object is deleted.
 void SCA_IActuator::Deactivate()
 {
 	if (QDelink())

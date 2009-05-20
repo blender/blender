@@ -73,7 +73,10 @@ KX_StateActuator::Update()
 {
 	bool bNegativeEvent = IsNegativeEvent();
 	unsigned int objMask;
-	
+
+	// execution of state actuator means that we are in the execution phase, reset this pointer
+	// because all the active actuator of this object will be removed for sure.
+	m_gameobj->m_firstState = NULL;
 	RemoveAllEvents();
 	if (bNegativeEvent) return false;
 
@@ -102,6 +105,8 @@ KX_StateActuator::Update()
 	return false;
 }
 
+// this function is only used to deactivate actuators outside the logic loop
+// e.g. when an object is deleted.
 void KX_StateActuator::Deactivate()
 {
 	if (QDelink())
@@ -115,9 +120,10 @@ void KX_StateActuator::Deactivate()
 
 void KX_StateActuator::Activate(SG_DList& head)
 {
-	// no need to sort the state actuators
-	if (m_stateActuatorHead.QAddBack(this))
+	// sort the state actuators per object on the global list
+	if (QEmpty())
 	{
+		InsertSelfActiveQList(m_stateActuatorHead, &m_gameobj->m_firstState);
 		// add front to make sure it runs before other actuators
 		head.AddFront(&m_stateActuatorHead);
 	}

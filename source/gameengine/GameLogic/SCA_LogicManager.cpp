@@ -212,17 +212,22 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 		(*ie)->UpdateFrame();
 
 	SG_DList::iterator<SG_QList> io(m_activeActuators);
-	for (io.begin(); !io.end(); ++io)
+	for (io.begin(); !io.end(); )
 	{
-		SG_QList::iterator<SCA_IActuator> ia(*(*io));
-		for (ia.begin(); !ia.end(); ++ia)
+		SG_QList* ahead = *io;
+		// increment now so that we can remove the current element
+		++io;
+		SG_QList::iterator<SCA_IActuator> ia(*ahead);
+		for (ia.begin(); !ia.end();  )
 		{
 			SCA_IActuator* actua = *ia;
+			// increment first to allow removal of inactive actuators.
+			++ia;
 			if (!actua->Update(curtime, frame))
 			{
-				// cannot deactive the actuator now as it will disturb the list
-				m_removedActuators.AddBack(actua);
-				actua->SetActive(false);
+				// this actuator is not active anymore, remove
+				actua->QDelink(); 
+				actua->SetActive(false); 
 			} else if (actua->IsNoLink())
 			{
 				// This actuator has no more links but it still active
@@ -235,14 +240,11 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 				actua->AddEvent(event);
 			}
 		}
-	}
-
-	for (SCA_IActuator* act = (SCA_IActuator*)m_removedActuators.Remove();
-		act != NULL;
-		act = (SCA_IActuator*)m_removedActuators.Remove())
-	{
-		act->Deactivate();
-		act->SetActive(false);
+		if (ahead->QEmpty())
+		{
+			// no more active controller, remove from main list
+			ahead->Delink();
+		}
 	}
 }
 

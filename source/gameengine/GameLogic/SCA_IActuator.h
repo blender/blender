@@ -33,8 +33,7 @@
 #include <vector>
 
 /*
- * Use of SG_DList : element of actuator being deactivated
- *                   Head: SCA_LogicManager::m_removedActuators
+ * Use of SG_DList : None
  * Use of SG_QList : element of activated actuator list of their owner
  *                   Head: SCA_IObject::m_activeActuators
  */
