@@ -1571,8 +1571,8 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
-		
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
+		// parented object cannot be dynamic
 		KX_GameObject *parentgameobject = converter->FindGameObject(parent);
 		objprop.m_dynamic_parent = parentgameobject;
 		//cannot be dynamic:
