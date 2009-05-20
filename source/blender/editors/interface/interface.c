@@ -1986,7 +1986,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return !ELEM(but->type, LABEL, ROUNDBOX);
+	return !ELEM3(but->type, LABEL, ROUNDBOX, TOG);
 }
 
 static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)

@@ -1378,6 +1378,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	double value;
 	float offs, fac;
 	char outline[3];
+	int slideralign;
 	
 	widget_init(&wtb);
 	widget_init(&wtb1);
@@ -1395,10 +1396,12 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	rect1= *rect;
 	
 	value= ui_get_but_val(but);
-	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - 2.0f*offs)/(but->softmax - but->softmin);
+	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
 	
-	rect1.xmax= rect1.xmin + fac + 2.0f*offs;
-	round_box_edges(&wtb1, roundboxalign, &rect1, offs);
+	rect1.xmax= rect1.xmin + fac + offs;
+	slideralign = roundboxalign;
+	slideralign &= ~(2|4);
+	round_box_edges(&wtb1, slideralign, &rect1, offs);
 	
 	VECCOPY(outline, wcol->outline);
 	VECCOPY(wcol->outline, wcol->item);

@@ -103,23 +103,9 @@ class RENDER_PT_render(RenderButtonsPanel):
 		rd = scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="RENDER", icon=0) # ICON_SCENE
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="ANIM", icon=0)
+		row.itemO("SCREEN_OT_render", text="Render Still")
+		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation")
 		
-		split = layout.split()
-		
-		sub = split.column(align=True)
-		sub.itemR(scene, "start_frame", text="Start")
-		sub.itemR(scene, "end_frame", text="End")
-		
-		sub = split.column(align=True)
-		sub.itemR(rd, "fps")
-		sub.itemR(rd, "fps_base",text="/")
-		
-		sub = split.column(align=True)
-		sub.itemR(scene, "current_frame", text="Frame")
-		sub.itemR(scene, "frame_step", text="Step")
-
 		row = layout.row()
 		row.itemR(rd, "do_composite")
 		row.itemR(rd, "do_sequence")
@@ -156,27 +142,32 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
 		rd = scene.render_data
 		
-		row = layout.row()
-		row.itemL(text="Resolution:")
-		row.itemL(text="Aspect Ratio:")
-		
 		split = layout.split()
-
+		
 		col = split.column(align=True)
+		col.itemL(text="Resolution:")
 		col.itemR(rd, "resolution_x", text="X")
 		col.itemR(rd, "resolution_y", text="Y")
 		col.itemR(rd, "resolution_percentage", text="")
 		
-		col = split.column()
-		sub = col.column(align=True)
-		sub.itemR(rd, "pixel_aspect_x", text="X")
-		sub.itemR(rd, "pixel_aspect_y", text="Y")
+		col.itemL(text="Aspect Ratio:")
+		col.itemR(rd, "pixel_aspect_x", text="X")
+		col.itemR(rd, "pixel_aspect_y", text="Y")
 		
-		sub = col.column()
-		sub.itemR(rd, "border", text="Border")
+		col.itemR(rd, "border", text="Border")
 		if rd.border:
-			sub.itemR(rd, "crop_to_border")
+			col.itemR(rd, "crop_to_border")
 
+		col = split.column(align=True)
+		col.itemL(text="Frame Range:")
+		col.itemR(scene, "start_frame", text="Start")
+		col.itemR(scene, "end_frame", text="End")
+		col.itemR(scene, "frame_step", text="Step")
+		
+		col.itemL(text="Frame Rate:")
+		col.itemR(rd, "fps")
+		col.itemR(rd, "fps_base",text="/")
+		
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)

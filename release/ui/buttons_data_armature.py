@@ -14,7 +14,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
 	__label__ = "Skeleton"
 
 	def draw(self, context):
-		arm = context.main.armatures[0]
+		arm = context.active_object.data
 		layout = self.layout
 		
 		row = layout.row()
@@ -44,7 +44,7 @@ class DATA_PT_display(DataButtonsPanel):
 	__label__ = "Display"
 	
 	def draw(self, context):
-		arm = context.main.armatures[0]
+		arm = context.active_object.data
 		layout = self.layout
 
 		split = layout.split()
@@ -65,7 +65,7 @@ class DATA_PT_paths(DataButtonsPanel):
 	__label__ = "Paths"
 
 	def draw(self, context):
-		arm = context.main.armatures[0]
+		arm = context.active_object.data
 		layout = self.layout
 
 		split = layout.split()
@@ -95,7 +95,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
 
 	def draw(self, context):
-		arm = context.main.armatures[0]
+		arm = context.active_object.data
 		layout = self.layout
 
 		split = layout.split()

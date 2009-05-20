@@ -156,17 +156,15 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
-	RNA_def_property_range(prop, 0.001, 5000);
 	RNA_def_property_ui_text(prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect.");
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
-	RNA_def_property_range(prop, 0.00001, 10);
 	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows.");
 
 	prop= RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aoenergy");
-	RNA_def_property_range(prop, 0.01, 3);
+	RNA_def_property_ui_range(prop, 0, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Energy", "Global energy scale for ambient occlusion.");
 
 	prop= RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
@@ -192,6 +190,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_correction");
 	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation (for Approximate).");
 
 	prop= RNA_def_property(srna, "falloff", PROP_BOOLEAN, PROP_NONE);
