@@ -2,29 +2,15 @@
 """
 Documentation for the GameLogic Module.
 =======================================
-
-	Modules available in the game engine:
-		- GameLogic
-		- L{GameKeys}
-		- L{Rasterizer}
-		- L{GameTypes}
 	
-	Undocumented modules:
-		- VideoTexture
-		- CValue
-		- Expression
-		- PhysicsConstraints
-	
-	All the other modules are accessible through the methods in GameLogic.
-	
-	See U{release notes<http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.49/Game_Engine>} for updates, changes and new functionality in the Game Engine Python API.
+	Module to access logic functions, imported automatically into the python controllers namespace.
 	
 	Examples::
 		# To get the controller thats running this python script:
-		co = GameLogic.getCurrentController() # GameLogic is automatically imported
+		cont = GameLogic.getCurrentController() # GameLogic is automatically imported
 		
 		# To get the game object this controller is on:
-		obj = co.getOwner()
+		obj = cont.owner
 	L{KX_GameObject} and L{KX_Camera} or L{KX_LightObject} methods are
 	available depending on the type of object::
 		# To get a sensor linked to this controller.
@@ -32,10 +18,10 @@ Documentation for the GameLogic Module.
 		# +---------------------+  +--------+
 		# | Sensor "sensorname" +--+ Python +
 		# +---------------------+  +--------+
-		sens = co.getSensor("sensorname")
+		sens = cont.sensors["sensorname"]
 	
-		# To get a list of all sensors:
-		sensors = co.getSensors()
+		# To get a sequence of all sensors:
+		sensors = co.sensors
 
 	See the sensor's reference for available methods:
 		- L{DelaySensor<GameTypes.SCA_DelaySensor>}
@@ -56,7 +42,7 @@ Documentation for the GameLogic Module.
 		#                          +--------+  +-------------------------+
 		#                          + Python +--+ Actuator "actuatorname" |
 		#                          +--------+  +-------------------------+
-		actuator = co.getActuator("actuatorname")
+		actuator = co.actuators["actuatorname"]
 		
 		# Activate an actuator
 		controller.activate(actuator)
@@ -96,7 +82,7 @@ Documentation for the GameLogic Module.
 		cam = scene.active_camera
 
 	Matricies as used by the game engine are B{row major}::
-		matrix[row][col] = blah
+		matrix[row][col] = float
 	L{KX_Camera} has some examples using matricies.
 
 
