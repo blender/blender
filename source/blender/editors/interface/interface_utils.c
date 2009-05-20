@@ -404,11 +404,11 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 			else return;
 			break;
 		case UI_ID_BROWSE: {
-			if(id==0) id= lb->first;
-			if(id==0) return;
+			/* ID can be NULL, if nothing was assigned yet */
+			if(lb->first==NULL) return;
 
 			if(params->browsenr== -2) {
-				/* XXX implement or find a replacement
+				/* XXX implement or find a replacement (ID can be NULL!)
 				 * activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_MESHBROWSE, &params->browsenr, do_global_buttons); */
 				return;
 			}

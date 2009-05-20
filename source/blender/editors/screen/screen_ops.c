@@ -1979,7 +1979,7 @@ static ScrArea *biggest_non_image_area(bContext *C)
 	short foundwin= 0;
 	
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->winx > 10 && sa->winy > 10) {
+		if(sa->winx > 30 && sa->winy > 30) {
 			size= sa->winx*sa->winy;
 			if(sa->spacetype == SPACE_BUTS) {
 				if(foundwin == 0 && size > bwmaxsize) {
