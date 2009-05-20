@@ -2843,6 +2843,8 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		for(but=block->buttons.first; but; but= but->next) {
 			if(but->flag & UI_NO_HILITE)
 				continue;
+			if(but->type==LABEL)
+				continue;
 
 			if(ui_but_contains_pt(but, mx, my))
 				/* give precedence to already activated buttons */
