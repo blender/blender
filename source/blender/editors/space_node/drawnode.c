@@ -291,7 +291,7 @@ static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 {
 	if(block) {
 		if(node->storage) {
-			; // XXX draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
+			uiBlockColorbandButtons(block, node->storage, butr, B_NODE_EXEC);
 		}
 	}
 	return 40;
