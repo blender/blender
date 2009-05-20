@@ -1149,8 +1149,8 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 	uiBlockBeginAlign(block);
 
 	uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx,cy,w/3,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
-	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
-	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
 	cy-= 20;
 	uiDefButBitS(block, TOG, BRUSH_SPACE, B_NOP, "Space", cx,cy,w/3,19, &br->flag,0,0,0,0, "");
 	uiDefButF(block,NUMSLI,B_NOP,"Spacing: ",cx+w/3,cy,w*2.0/3,19,&br->spacing,1.0,500,0,0,"");
