@@ -612,6 +612,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	
 	rect->xmax= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
 	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+
 }
 
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
@@ -2041,6 +2042,7 @@ static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
 		else if(buts_are_horiz(but, next)) {
 			/* check if this is already second row */
 			if( prev && buts_are_horiz(prev, but)==0) {
+				flag &= ~UI_BUT_ALIGN_LEFT;
 				flag |= UI_BUT_ALIGN_TOP;
 				/* exception case: bottom row */
 				if(rows>0) {
@@ -2059,6 +2061,10 @@ static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
 				flag |= UI_BUT_ALIGN_TOP;
 			}
 			else {	/* next button switches to new row */
+				
+				if(prev && buts_are_horiz(prev, but))
+				   flag |= UI_BUT_ALIGN_LEFT;
+				
 				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
 					if(prev)
 						flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;

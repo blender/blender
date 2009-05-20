@@ -1054,18 +1054,17 @@ static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
 /* callback to copy from/to palette */
 static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
+	wmWindow *win= CTX_wm_window(C);
 	uiBut *but1= (uiBut *)bt1;
 	float *col= (float *)col1;
 	float *fp, hsv[3];
 	
 	fp= (float *)but1->poin;
 	
-	/* XXX 2.50 bad access, how to solve?
-	 *
-	if( (get_qual() & LR_CTRLKEY) ) {
+	if(win->eventstate->ctrl) {
 		VECCOPY(fp, col);
 	}
-	else*/ {
+	else {
 		VECCOPY(col, fp);
 	}
 	
@@ -1205,8 +1204,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	// palette
 	
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
 	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, col);
 	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
@@ -1221,8 +1218,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	}
 	uiBlockEndAlign(block);
 	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	

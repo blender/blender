@@ -311,8 +311,10 @@ static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	if(but->type == COL)
-		ui_set_but_vectorf(but, data->vec);
+	if(but->type == COL) {
+		if(but->a1 != -1) // this is not a color picker (weak!)
+			ui_set_but_vectorf(but, data->vec);
+	}
 	else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 		ui_set_but_val(but, data->value);
 
