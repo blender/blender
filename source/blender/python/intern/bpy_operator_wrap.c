@@ -187,7 +187,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 {
 	PyObject *py_class = op->type->pyop_data;
 	PyObject *args;
-	PyObject *ret= NULL, *py_class_instance, *item;
+	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();

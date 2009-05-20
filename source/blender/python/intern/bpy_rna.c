@@ -1092,6 +1092,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		case PROP_COLLECTION:
 			/* XXX not supported yet
 			 * ret = pyrna_prop_CreatePyObject(ptr, prop); */
+			ret = NULL;
 			break;
 		default:
 			PyErr_Format(PyExc_AttributeError, "RNA Error: unknown type \"%d\" (pyrna_param_to_py)", type);
