@@ -151,16 +151,22 @@ class SCA_ISensor(SCA_ILogicBrick):
 	def isPositive():
 		"""
 		True if this sensor brick is in a positive state.
+		
+		@deprecated: use L{positive}
 		"""
 	
 	def isTriggered():
 		"""
 		True if this sensor brick has triggered the current controller.
+		
+		@deprecated: use L{triggered}
 		"""
 	
 	def getUsePosPulseMode():
 		"""
 		True if the sensor is in positive pulse mode.
+		
+		@deprecated: use L{usePosPulseMode}
 		"""
 	def setUsePosPulseMode(pulse):
 		"""
@@ -168,6 +174,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@type pulse: boolean
 		@param pulse: If True, will activate positive pulse mode for this sensor.
+		@deprecated: use L{usePosPulseMode}
 		"""
 	def getFrequency():
 		"""
@@ -175,6 +182,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@rtype: integer
 		@return: the pulse frequency in 1/50 sec.
+		@deprecated: use L{frequency}
 		"""
 	def setFrequency(freq):
 		"""
@@ -182,10 +190,13 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@type freq: integer
 		@return: the pulse frequency in 1/50 sec.
+		@deprecated: use L{frequency}
 		"""
 	def getUseNegPulseMode():
 		"""
 		True if the sensor is in negative pulse mode.
+		
+		@deprecated: use L{useNegPulseMode}
 		"""
 	def setUseNegPulseMode(pulse):
 		"""
@@ -193,10 +204,13 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@type pulse: boolean
 		@param pulse: If True, will activate negative pulse mode for this sensor.
+		@deprecated: use L{useNegPulseMode}
 		"""
 	def getInvert():
 		"""
 		True if this sensor activates on negative events.
+		
+		@deprecated: use L{invert}
 		"""
 	def setInvert(invert):
 		"""
@@ -204,6 +218,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@type invert: boolean
 		@param invert: true if activates on negative events; false if activates on positive events.
+		@deprecated: use L{invert}
 		"""
 	def getLevel():
 		"""
@@ -215,6 +230,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@rtype: boolean
 		@return: true if sensor is level sensitive, false if it is edge sensitive
+		@deprecated: use L{level}
 		"""
 	def setLevel(level):
 		"""
@@ -222,6 +238,7 @@ class SCA_ISensor(SCA_ILogicBrick):
 		
 		@param level: Detect level instead of edge? (KX_TRUE, KX_FALSE)
 		@type level: boolean
+		@deprecated: use L{level}
 		"""
 #}
 
@@ -315,7 +332,7 @@ class BL_ActionActuator(SCA_IActuator):
 	@ivar useContinue: The actions continue option, True or False.
 					When True, the action will always play from where last left off,
 					otherwise negative events to this actuator will reset it to its start frame.
-	@type: boolean
+	@type useContinue: boolean
 	@ivar framePropName: The name of the property that is set to the current frame number.
 	@type framePropName: string
 	"""
@@ -2575,7 +2592,7 @@ class KX_NetworkMessageSensor(SCA_ISensor):
 	@type subject: string
 	@ivar frameMessageCount: The number of messages received since the last frame.
 								(Read-only)
-	@type framemessageCount: int
+	@type frameMessageCount: int
 	@ivar subjects: The list of message subjects received. (Read-only)
 	@type subjects: list of strings
 	@ivar bodies: The list of message bodies received. (Read-only)
@@ -5613,4 +5630,68 @@ for name, val in locals().items():
 
 for a in attrs:
 	print a
+"""
+
+
+# Util func to construct a mapping from deprecated attrs to new ones.
+"""
+import types
+import re
+import pprint
+depAttrs = {}
+for name, val in locals().items():
+	if name.startswith('__'):
+		continue
+	if type(val) == types.ClassType:
+		print "\t# %s" % name
+		
+		# Inspect each attribute.
+		for attrName in dir(val):
+			if attrName.startswith('__'):
+				continue
+			attr = getattr(val, attrName)
+			
+			# Check whether this attribute is deprecated by searching each line.
+			newAttrName = None
+			for line in attr.__doc__.split('\n'):
+				match = re.search(r'@deprecated.*L{(\w+)}', line)
+				if match:
+					newAttrName = match.group(1)
+					break
+			if not newAttrName:
+				continue
+			
+			# Store the mappings to new attributes in a list (because there
+			# could be collisions).
+			if not depAttrs.has_key(attrName):
+				depAttrs[attrName] = {}
+			mapping = depAttrs[attrName]
+			
+			for line in val.__doc__.split('\n'):
+				if ("@type %s:" % newAttrName) in line:
+					# The attribute is being replaced in this class (i.e. the
+					# deprecated attribute wasn't inherited from a parent). We
+					# have a winner!
+					funcType = None
+					if 'sequence' in line:
+						funcType = 'Keyed'
+					else:
+						funcType = 'Simple'
+					
+					if attrName.startswith('get') or attrName.startswith('is'):
+						func = "replace%sGetter" % funcType
+					elif attrName.startswith('set') or attrName.startswith('enable'):
+						func = "replace%sSetter" % funcType
+					else:
+						func = 'UNKNOWN'
+					
+					# Another mapping, from a conversion tuple to lists of class
+					# names.
+					conversion = (func, newAttrName)
+					if not mapping.has_key(conversion):
+						mapping[conversion] = []
+					mapping[conversion].append(name)
+					break
+
+pprint.pprint(depAttrs, width = 100)
 """
