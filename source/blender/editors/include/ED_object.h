@@ -40,6 +40,7 @@ struct Lattice;
 struct Mesh;
 struct Curve;
 struct ReportList;
+struct ModifierData;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);

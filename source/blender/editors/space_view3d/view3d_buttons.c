@@ -1502,6 +1502,7 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
+#if 0
 static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -1526,6 +1527,7 @@ static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
 }
+#endif
 
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
