@@ -104,6 +104,7 @@ private:
 	double				m_remainingTime;
 
 	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
+	static int				m_maxPhysicsFrame;	/* maximum number of consecutive physics frame */
 	static double			m_ticrate;
 	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
@@ -292,6 +293,14 @@ public:
 	 * Sets the maximum number of logic frame before render frame
 	 */
 	static void SetMaxLogicFrame(int frame);
+	/**
+	 * Gets the maximum number of physics frame before render frame
+	 */
+	static int GetMaxPhysicsFrame();
+	/**
+	 * Sets the maximum number of physics frame before render frame
+	 */
+	static void SetMaxPhysicsFrame(int frame);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)

@@ -8108,6 +8108,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
 		Object *ob;
+		World *wrld;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
@@ -8119,6 +8120,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (parent->gameflag & OB_CHILD)
 					ob->gameflag |= OB_CHILD;
 			}
+		}
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->ticrate = 60;
+			wrld->maxlogicstep = 5;
+			wrld->physubstep = 1;
+			wrld->maxphystep = 5;
 		}
 	}
 

@@ -2198,16 +2198,25 @@ static void world_panel_mistaph(World *wrld)
 	
 	/* Gravitation for the game worlds */
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Sets the gravitation constant of the game world");
+	uiDefButS(block, NUM, B_REDR, "fps:",
+				10,  160, 70, 19, &wrld->ticrate, 1.0, 120.0, 0, 0, "Sets the nominal number of game frames per second. Physics fixed timestep = 1/fps, independently of actual frame rate");
+	uiDefButS(block, NUM, B_REDR, "log:",
+				80,  160, 70, 19, &wrld->maxlogicstep, 1.0, 5.0, 0, 0, "Sets the maxmimum number of logic frame per game frame if graphics slows down the game, higher value allows better synchronization with physics");
+	uiDefButS(block, NUM, B_REDR, "phys:",
+				150, 160, 75, 19, &wrld->maxphystep, 1.0, 5.0, 0, 0, "Sets the maximum number of physics step per game frame if graphics slows down the game, higher value allows physics to keep up with realtime");
+	uiDefButS(block, NUM, B_REDR, "sub:",
+				225, 160, 75, 19, &wrld->physubstep, 1.0, 5.0, 0, 0, "Sets the number of simulation substep per physic timestep, higher value give better physics precision");
+
 	if (wrld->physicsEngine == WOPHY_BULLET) {
-		uiDefButBitS(block, TOG, WO_DBVT_CULLING, B_REDR, "DBVT culling",	10,160,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles use of optimized Bullet DBVT tree for view frustrum and occlusion culling");
+		uiDefButBitS(block, TOG, WO_DBVT_CULLING, B_REDR, "DBVT culling",	10,140,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles use of optimized Bullet DBVT tree for view frustrum and occlusion culling");
 		if (wrld->mode & WO_DBVT_CULLING)
 			uiDefButS(block, NUM, B_REDR, "Occlu Res:",
-				150, 160, 150, 19, &wrld->occlusionRes, 128.0, 1024.0, 0, 0, "Sets the size of the occlusion buffer in pixel, use higher value for better precsion (slower)");
+				150, 140, 150, 19, &wrld->occlusionRes, 128.0, 1024.0, 0, 0, "Sets the size of the occlusion buffer in pixel, use higher value for better precsion (slower)");
 	}
 #endif
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_MIST, B_WORLDPRV2,"Mist",	10,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
+	uiDefButBitS(block, TOG, WO_MIST, B_WORLDPRV2,"Mist",	10,115,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
 	uiBlockSetCol(block, TH_AUTO);
 
 	uiBlockBeginAlign(block);
@@ -2222,7 +2231,7 @@ static void world_panel_mistaph(World *wrld)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_STARS, B_WORLDPRV2,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
+	uiDefButBitS(block, TOG, WO_STARS, B_WORLDPRV2,	"Stars",160,115,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
 	uiBlockSetCol(block, TH_AUTO);
 	
 	uiBlockBeginAlign(block);

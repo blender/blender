@@ -387,6 +387,23 @@ def setMaxLogicFrame(maxlogic):
 	@param maxlogic: The new maximum number of logic frame per render frame. Valid values: 1..5
 	@type maxlogic: integer
 	"""
+def getMaxPhysicsFrame():
+	"""
+	Gets the maximum number of physics frame per render frame.
+	
+	@return: The maximum number of physics frame per render frame
+	@rtype: interger
+	"""
+def setMaxPhysicsFrame(maxphysics):
+	"""
+	Sets the maximum number of physics timestep that are executed per render frame.
+	Higher value allows physics to keep up with realtime even if graphics slows down the game.
+	Physics timestep is fixed and equal to 1/tickrate (see setLogicTicRate)
+	maxphysics/ticrate is the maximum delay of the renderer that physics can compensate.
+	 
+	@param maxphysics: The new maximum number of physics timestep per render frame. Valid values: 1..5.
+	@type maxphysics: integer
+	"""
 def getLogicTicRate():
 	"""
 	Gets the logic update frequency.
@@ -406,6 +423,7 @@ def setLogicTicRate(ticrate):
 	"""
 def getPhysicsTicRate():
 	"""
+	NOT IMPLEMENTED
 	Gets the physics update frequency
 	
 	@return: The physics update frequency in Hz
@@ -413,6 +431,7 @@ def getPhysicsTicRate():
 	"""
 def setPhysicsTicRate(ticrate):
 	"""
+	NOT IMPLEMENTED
 	Sets the physics update frequency
 	
 	The physics update frequency is the number of times the physics system is executed every second.

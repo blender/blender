@@ -2499,6 +2499,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (occlusion)
 			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
 	}
+	if (blenderscene->world)
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->world->physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes
