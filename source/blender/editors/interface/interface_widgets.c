@@ -732,12 +732,69 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	}
 }
 
-static void widget_draw_text(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 //	int transopts;
 	char *cpoin = NULL;
 	
-//	ui_rasterpos_safe(x, y, but->aspect);
+	uiStyleFontSet(fstyle);
+	
+	if(but->editstr || (but->flag & UI_TEXT_LEFT))
+		fstyle->align= UI_STYLE_TEXT_LEFT;
+	else
+		fstyle->align= UI_STYLE_TEXT_CENTER;			
+		
+	/* text button selection and cursor */
+	if(but->editstr && but->pos != -1) {
+		short t, pos, ch;
+		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
+		
+		if ((but->selend - but->selsta) > 0) {
+			/* XXX weak, why is this? (ton) */
+			t= but->str[0]?1:-2;
+			
+			/* text button selection */
+			selsta_tmp = but->selsta + strlen(but->str);
+			selend_tmp = but->selend + strlen(but->str);
+			
+			if(but->drawstr[0]!=0) {
+				ch= but->drawstr[selsta_tmp];
+				but->drawstr[selsta_tmp]= 0;
+				
+				selsta_draw = BLF_width(but->drawstr+but->ofs) + t;
+				
+				but->drawstr[selsta_tmp]= ch;
+				
+				ch= but->drawstr[selend_tmp];
+				but->drawstr[selend_tmp]= 0;
+				
+				selwidth_draw = BLF_width(but->drawstr+but->ofs) + t;
+				
+				but->drawstr[selend_tmp]= ch;
+				
+				glColor3ubv(wcol->item);
+				glRects(rect->xmin+selsta_draw+1, rect->ymin+2, rect->xmin+selwidth_draw+1, rect->ymax-2);
+			}
+		} else {
+			/* text cursor */
+			pos= but->pos+strlen(but->str);
+			if(pos >= but->ofs) {
+				if(but->drawstr[0]!=0) {
+					ch= but->drawstr[pos];
+					but->drawstr[pos]= 0;
+					
+					t= BLF_width(but->drawstr+but->ofs) + 1;
+					
+					but->drawstr[pos]= ch;
+				}
+				else t= 1;
+				
+				glColor3ub(255,0,0);
+				glRects(rect->xmin+t, rect->ymin+2, rect->xmin+t+2, rect->ymax-2);
+			}
+		}
+	}
+	//	ui_rasterpos_safe(x, y, but->aspect);
 //	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 //	else transopts= ui_translate_buttons();
 	
@@ -747,11 +804,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		if(cpoin) *cpoin= 0;		
 	}
 	
-	if(but->editstr || (but->flag & UI_TEXT_LEFT))
-		fstyle->align= UI_STYLE_TEXT_LEFT;
-	else
-		fstyle->align= UI_STYLE_TEXT_CENTER;			
-	
+	glColor3ubv(wcol->text);
 	uiStyleFontDraw(fstyle, rect, but->drawstr+but->ofs);
 
 	/* part text right aligned */
@@ -766,8 +819,6 @@ static void widget_draw_text(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
-	short t, pos, ch;
-	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 	
 	if(but==NULL) return;
 	
@@ -782,58 +833,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
 	}
 	else {
-		
-		/* text button selection and cursor */
-		if(but->editstr && but->pos != -1) {
-			
-			if ((but->selend - but->selsta) > 0) {
-				/* text button selection */
-				selsta_tmp = but->selsta + strlen(but->str);
-				selend_tmp = but->selend + strlen(but->str);
 				
-				if(but->drawstr[0]!=0) {
-					ch= but->drawstr[selsta_tmp];
-					but->drawstr[selsta_tmp]= 0;
-					
-					uiStyleFontSet(fstyle);
-
-					selsta_draw = BLF_width(but->drawstr+but->ofs) + 3;
-					
-					but->drawstr[selsta_tmp]= ch;
-					
-					
-					ch= but->drawstr[selend_tmp];
-					but->drawstr[selend_tmp]= 0;
-					
-					selwidth_draw = BLF_width(but->drawstr+but->ofs) + 3;
-					
-					but->drawstr[selend_tmp]= ch;
-					
-					glColor3ubv(wcol->item);
-					glRects(rect->xmin+selsta_draw+1, rect->ymin+2, rect->xmin+selwidth_draw+1, rect->ymax-2);
-				}
-			} else {
-				/* text cursor */
-				pos= but->pos+strlen(but->str);
-				if(pos >= but->ofs) {
-					if(but->drawstr[0]!=0) {
-						ch= but->drawstr[pos];
-						but->drawstr[pos]= 0;
-						
-						uiStyleFontSet(fstyle);
-
-						t= BLF_width(but->drawstr+but->ofs) + 3;
-						
-						but->drawstr[pos]= ch;
-					}
-					else t= 3;
-					
-					glColor3ub(255,0,0);
-					glRects(rect->xmin+t, rect->ymin+2, rect->xmin+t+2, rect->ymax-2);
-				}
-			}
-		}
-		
 		if(but->type==BUT_TOGDUAL) {
 			int dualset= 0;
 			if(but->pointype==SHO)
@@ -860,8 +860,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			else if(but->flag & UI_TEXT_LEFT)
 				rect->xmin += 5;
 			
-			glColor3ubv(wcol->text);
-			widget_draw_text(fstyle, but, rect);
+			widget_draw_text(fstyle, wcol, but, rect);
 			
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
@@ -1378,7 +1377,6 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	double value;
 	float offs, fac;
 	char outline[3];
-	int slideralign;
 	
 	widget_init(&wtb);
 	widget_init(&wtb1);
@@ -1399,9 +1397,11 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
 	
 	rect1.xmax= rect1.xmin + fac + offs;
-	slideralign = roundboxalign;
-	slideralign &= ~(2|4);
-	round_box_edges(&wtb1, slideralign, &rect1, offs);
+	if(rect1.xmax + offs > rect->xmax)
+		offs*= (rect1.xmax + offs - rect->xmax)/offs;
+	else 
+		offs= 0.0f;
+	round_box_edges(&wtb1, roundboxalign, &rect1, offs);
 	
 	VECCOPY(outline, wcol->outline);
 	VECCOPY(wcol->outline, wcol->item);
@@ -1416,6 +1416,10 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	wtb.outline= 1;
 	wtb.inner= 0;
 	widgetbase_draw(&wtb, wcol);
+	
+	/* text space */
+	rect->xmin += (rect->ymax-rect->ymin);
+	rect->xmax -= (rect->ymax-rect->ymin);
 	
 }
 

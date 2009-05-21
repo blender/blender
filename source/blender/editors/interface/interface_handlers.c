@@ -804,6 +804,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	int startx= but->x1;
 	char *origstr;
 
 	uiStyleFontSet(&style->widget);
@@ -813,7 +814,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	BLI_strncpy(origstr, but->drawstr, data->maxlen+1);
 	but->pos= strlen(origstr)-but->ofs;
 	
-	while((BLF_width(origstr+but->ofs) + but->x1) > x) {
+	/* XXX solve generic */
+	if(but->type==NUM || but->type==NUMSLI)
+		startx += 20;
+	
+	while((BLF_width(origstr+but->ofs) + startx) > x) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		origstr[but->pos+but->ofs] = 0;
