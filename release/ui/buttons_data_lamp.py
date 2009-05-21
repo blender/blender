@@ -200,16 +200,16 @@ class DATA_PT_spot(DataButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
+		sub.itemR(lamp, "spot_size", text="Size")
+		sub.itemR(lamp, "spot_blend", text="Blend")
 		sub.itemR(lamp, "square")
-		sub.itemR(lamp, "spot_size")
-		sub.itemR(lamp, "spot_blend")
 		
 		sub = split.column()
 		sub.itemR(lamp, "halo")
 		if lamp.halo:
-			sub.itemR(lamp, "halo_intensity")
+			sub.itemR(lamp, "halo_intensity", text="Intensity")
 			if lamp.shadow_method == 'BUFFER_SHADOW':
-				sub.itemR(lamp, "halo_step")
+				sub.itemR(lamp, "halo_step", text="Step")
 
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)

@@ -150,30 +150,28 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 
 		split = layout.split()
 		
-		sub = split.column()
-		sub.itemL(text="General Settings:")
-		sub.itemR(halo, "size")
-		sub.itemR(halo, "hardness")
-		sub.itemR(halo, "add", slider=True)
+		col = split.column(align=True)
+		col.itemL(text="General Settings:")
+		col.itemR(halo, "size")
+		col.itemR(halo, "hardness")
+		col.itemR(halo, "add", slider=True)
 		
-		sub = split.column()
+		col.itemL(text="Options:")
+		col.itemR(halo, "use_texture", text="Texture")
+		col.itemR(halo, "use_vertex_normal", text="Vertex Normal")
+		col.itemR(halo, "xalpha")
+		col.itemR(halo, "shaded")
+		col.itemR(halo, "soft")
+
+		col = split.column()
+		sub = col.column(align=True)
 		sub.itemL(text="Elements:")
 		sub.itemR(halo, "ring")
 		sub.itemR(halo, "lines")
 		sub.itemR(halo, "star")
 		sub.itemR(halo, "flare_mode")
-
-		row = layout.row()
 		
-		sub = row.column()
-		sub.itemL(text="Options:")
-		sub.itemR(halo, "use_texture", text="Texture")
-		sub.itemR(halo, "use_vertex_normal", text="Vertex Normal")
-		sub.itemR(halo, "xalpha")
-		sub.itemR(halo, "shaded")
-		sub.itemR(halo, "soft")
-	
-		sub = row.column()
+		sub = col.column()
 		if (halo.ring):
 			sub.itemR(halo, "rings")
 		if (halo.lines):
@@ -183,6 +181,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		if (halo.star):
 			sub.itemR(halo, "star_tips")
 		if (halo.flare_mode):
+			sub = col.column(align=True)
 			sub.itemL(text="Flare:")
 			sub.itemR(halo, "flare_size", text="Size")
 			sub.itemR(halo, "flare_subsize", text="Subsize")

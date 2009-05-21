@@ -114,19 +114,17 @@ class RENDER_PT_render(RenderButtonsPanel):
 		if rd.do_composite:
 			row = layout.row()
 			row.itemR(rd, "free_image_textures")
-		
-		row = layout.row()
-		row.itemL(text="Threads:")
-		row.itemL(text="Tiles:")
-		
+
 		split = layout.split()
 		
 		sub = split.column(align=True)
+		sub.itemL(text="Threads:")
 		sub.row().itemR(rd, "threads_mode", expand=True)
 		if rd.threads_mode == 'THREADS_FIXED':
 			sub.itemR(rd, "threads")
 		
 		sub = split.column(align=True)
+		sub.itemL(text="Tiles:")
 		sub.itemR(rd, "parts_x", text="X")
 		sub.itemR(rd, "parts_y", text="Y")
 		
@@ -146,19 +144,21 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 		
 		split = layout.split()
 		
-		col = split.column(align=True)
-		col.itemL(text="Resolution:")
-		col.itemR(rd, "resolution_x", text="X")
-		col.itemR(rd, "resolution_y", text="Y")
-		col.itemR(rd, "resolution_percentage", text="")
+		col = split.column()
+		sub = col.column(align=True)
+		sub.itemL(text="Resolution:")
+		sub.itemR(rd, "resolution_x", text="X")
+		sub.itemR(rd, "resolution_y", text="Y")
+		sub.itemR(rd, "resolution_percentage", text="")
 		
-		col.itemL(text="Aspect Ratio:")
-		col.itemR(rd, "pixel_aspect_x", text="X")
-		col.itemR(rd, "pixel_aspect_y", text="Y")
+		sub.itemL(text="Aspect Ratio:")
+		sub.itemR(rd, "pixel_aspect_x", text="X")
+		sub.itemR(rd, "pixel_aspect_y", text="Y")
 		
-		col.itemR(rd, "border", text="Border")
+		sub = col.column()
+		sub.itemR(rd, "border", text="Border")
 		if rd.border:
-			col.itemR(rd, "crop_to_border")
+			sub.itemR(rd, "crop_to_border")
 
 		col = split.column(align=True)
 		col.itemL(text="Frame Range:")
