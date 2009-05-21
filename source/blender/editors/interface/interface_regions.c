@@ -654,7 +654,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	/* if this is being created from a button */
 	if(but) {
-		if(ELEM3(but->type, BLOCK, PULLDOWN, HMENU))
+		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
 		/* only used for automatic toolbox, so can set the shift flag */

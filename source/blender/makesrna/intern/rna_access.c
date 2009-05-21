@@ -650,6 +650,7 @@ const char *RNA_property_ui_description(PropertyRNA *prop)
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
+	ID *id;
 	int flag;
 
 	prop= rna_ensure_property(prop);
@@ -658,8 +659,10 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 		flag= prop->editable(ptr);
 	else
 		flag= prop->flag;
+	
+	id= ptr->id.data;
 
-	return (flag & PROP_EDITABLE);
+	return (flag & PROP_EDITABLE) && (!id || !id->lib);
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)

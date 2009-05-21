@@ -21,26 +21,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if not ob:
 			return
 
-		layout.row()
-		layout.item_menu_enumO("OBJECT_OT_modifier_add", "type")
+		row = layout.row()
+		row.item_menu_enumO("OBJECT_OT_modifier_add", "type")
+		row.itemL();
 
 		for md in ob.modifiers:
-			sub = layout.box()
-
-			row = sub.row()
-			row.itemR(md, "expanded", text="")
-			row.itemR(md, "name", text="")
-
-			row.itemR(md, "render", text="")
-			row.itemR(md, "realtime", text="")
-			row.itemR(md, "editmode", text="")
-			row.itemR(md, "on_cage", text="")
+			box = layout.template_modifier(context, md)
 
 			if md.expanded:
-				sub.itemS()
-
-				if (md.type == 'ARMATURE'):
-					self.armature(sub, md)
+				if md.type == 'ARMATURE':
+					self.armature(box, md)
 
 	def armature(self, layout, md):
 		layout.itemR(md, "object")
@@ -51,9 +41,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		flow.itemR(md, "use_vertex_groups")
 		flow.itemR(md, "use_bone_envelopes")
 		flow.itemR(md, "quaternion")
-		flow.itemR(md, "b_bone_rest")
 		flow.itemR(md, "multi_modifier")
 		
 bpy.types.register(DATA_PT_modifiers)
-
 

@@ -1987,7 +1987,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return !ELEM(but->type, LABEL, ROUNDBOX);
+	return (but->type != LABEL);
 }
 
 static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
@@ -2221,8 +2221,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
-	if(block->flag & UI_BLOCK_NO_HILITE)
-		but->flag |= UI_NO_HILITE;
 
 	if (but->lock) {
 		if (but->lockstr) {
@@ -2230,12 +2228,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if(but->type == ROUNDBOX) {
-		but->flag |= UI_NO_HILITE;
-		BLI_addhead(&block->buttons, but);
-	}
-	else
-		BLI_addtail(&block->buttons, but);
+	BLI_addtail(&block->buttons, but);
 	
 	if(block->curlayout)
 		ui_layout_add_but(block->curlayout, but);
@@ -2999,7 +2992,7 @@ uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char 
 
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
-	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	but->menu_create_func= func;
 	ui_check_but(but);
 	return but;
@@ -3007,7 +3000,7 @@ uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str,
 
 uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
-	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 
 	but->icon= (BIFIconID) icon;
 	but->flag|= UI_HAS_ICON;

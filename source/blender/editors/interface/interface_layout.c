@@ -147,6 +147,7 @@ typedef struct uiLayoutItemSplt {
 
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
+	uiBut *roundbox;
 } uiLayoutItemBx;
 
 typedef struct uiLayoutItemRoot {
@@ -839,6 +840,8 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 
 	if(layout->root->type == UI_LAYOUT_HEADER)
 		uiBlockSetEmboss(block, UI_EMBOSS);
+	else if(layout->root->type == UI_LAYOUT_PANEL)
+		but->type= MENU;
 }
 
 void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname)
@@ -1146,12 +1149,14 @@ static void ui_litem_estimate_box(uiLayout *litem)
 
 	ui_litem_estimate_column(litem);
 	litem->w += 2*style->boxspace;
-	litem->h += 2*style->boxspace;
+	litem->h += style->boxspace;
 }
 
 static void ui_litem_layout_box(uiLayout *litem)
 {
+	uiLayoutItemBx *box= (uiLayoutItemBx*)litem;
 	uiStyle *style= litem->root->style;
+	uiBut *but;
 	int w, h;
 
 	w= litem->w;
@@ -1169,10 +1174,14 @@ static void ui_litem_layout_box(uiLayout *litem)
 	litem->y -= style->boxspace;
 
 	if(w != 0) litem->w += 2*style->boxspace;
-	if(h != 0) litem->h += 2*style->boxspace;
+	if(h != 0) litem->h += style->boxspace;
 
 	/* roundbox around the sublayout */
-	uiDefBut(litem->root->block, ROUNDBOX, 0, "", litem->x, litem->y, litem->w, litem->h, NULL, 7.0, 0.0, 3, 20, "");
+	but= box->roundbox;
+	but->x1= litem->x;
+	but->y1= litem->y;
+	but->x2= litem->x+litem->w;
+	but->y2= litem->y+litem->h;
 }
 
 /* multi-column layout, automatically flowing to the next */
@@ -1475,6 +1484,8 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 	uiBlockSetCurLayout(layout->root->block, &box->litem);
 
+	box->roundbox= uiDefBut(layout->root->block, ROUNDBOX, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
+
 	return &box->litem;
 }
 
@@ -1564,12 +1575,20 @@ static void ui_item_align(uiLayout *litem, int nr)
 {
 	uiItem *item;
 	uiButtonItem *bitem;
+	uiLayoutItemBx *box;
 
-	for(item=litem->items.first; item; item=item->next) {
+	for(item=litem->items.last; item; item=item->prev) {
 		if(item->type == ITEM_BUTTON) {
 			bitem= (uiButtonItem*)item;
 			if(ui_but_can_align(bitem->but))
 				bitem->but->alignnr= nr;
+		}
+		else if(item->type == ITEM_LAYOUT_FREE);
+		else if(item->type == ITEM_LAYOUT_BOX) {
+			box= (uiLayoutItemBx*)item;
+			box->roundbox->alignnr= nr;
+			BLI_remlink(&litem->root->block->buttons, box->roundbox);
+			BLI_addhead(&litem->root->block->buttons, box->roundbox);
 		}
 		else
 			ui_item_align((uiLayout*)item, nr);

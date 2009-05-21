@@ -1818,7 +1818,6 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				break;
 				
 			case PULLDOWN:
-			case HMENU:
 				wt= widget_type(UI_WTYPE_PULLDOWN);
 				break;
 			

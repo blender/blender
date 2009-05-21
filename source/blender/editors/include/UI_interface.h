@@ -86,7 +86,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_NUMSELECT		8
 #define UI_BLOCK_ENTER_OK		16
 #define UI_BLOCK_NOSHADOW		32
-#define UI_BLOCK_NO_HILITE		64		/* XXX 2.5 not implemented */
+#define UI_BLOCK_UNUSED			64
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
@@ -127,8 +127,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ALIGN_DOWN	(1<<17)
 
 #define UI_BUT_DISABLED		(1<<18)
-	/* dont draw hilite on mouse over */
-#define UI_NO_HILITE		(1<<19)
+#define UI_BUT_UNUSED		(1<<19)
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)
@@ -188,8 +187,7 @@ typedef struct uiLayout uiLayout;
 #define ICONTOGN (34<<9)
 #define FTPREVIEW (35<<9)
 #define NUMABS	(36<<9)
-#define HMENU	(37<<9)
-#define TOGBUT  (38<<9)
+#define TOGBUT  (37<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
@@ -560,6 +558,7 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
+uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

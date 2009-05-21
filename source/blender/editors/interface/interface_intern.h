@@ -188,7 +188,7 @@ struct uiBut {
 	/* BLOCK data */
 	uiBlockCreateFunc block_create_func;
 
-	/* HMENU data */
+	/* PULLDOWN/MENU data */
 	uiMenuCreateFunc menu_create_func;
 
 	/* RNA data */

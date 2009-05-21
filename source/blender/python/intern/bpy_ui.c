@@ -406,7 +406,6 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( mod, "BLOCK_NUMSELECT", PyLong_FromSsize_t(UI_BLOCK_NUMSELECT) );
 	PyModule_AddObject( mod, "BLOCK_ENTER_OK", PyLong_FromSsize_t(UI_BLOCK_ENTER_OK) );
 	PyModule_AddObject( mod, "BLOCK_NOSHADOW", PyLong_FromSsize_t(UI_BLOCK_NOSHADOW) );
-	PyModule_AddObject( mod, "BLOCK_NO_HILITE", PyLong_FromSsize_t(UI_BLOCK_NO_HILITE) );
 	PyModule_AddObject( mod, "BLOCK_MOVEMOUSE_QUIT", PyLong_FromSsize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
 	PyModule_AddObject( mod, "BLOCK_KEEP_OPEN", PyLong_FromSsize_t(UI_BLOCK_KEEP_OPEN) );
 	PyModule_AddObject( mod, "BLOCK_POPUP", PyLong_FromSsize_t(UI_BLOCK_POPUP) );
