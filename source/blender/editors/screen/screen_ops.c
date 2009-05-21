@@ -1859,17 +1859,65 @@ void SCREEN_OT_region_flip(wmOperatorType *ot)
 
 }
 
-/* ****************** anim player, typically with timer ***************** */
+/* ****************** anim player, with timer ***************** */
 
-static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
+static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
+{
+	if(regiontype==RGN_TYPE_WINDOW) {
+
+		switch (spacetype) {
+			case SPACE_VIEW3D:
+				if(redraws & TIME_ALL_3D_WIN)
+					return 1;
+				break;
+			case SPACE_IPO:
+			case SPACE_ACTION:
+			case SPACE_NLA:
+				if(redraws & TIME_ALL_ANIM_WIN)
+					return 1;
+				break;
+			case SPACE_TIME:
+				/* if only 1 window or 3d windows, we do timeline too */
+				if(redraws & (TIME_ALL_ANIM_WIN|TIME_REGION|TIME_ALL_3D_WIN))
+					return 1;
+				break;
+			case SPACE_BUTS:
+				if(redraws & TIME_ALL_BUTS_WIN)
+					return 1;
+				break;
+			case SPACE_SEQ:
+				if(redraws & (TIME_SEQ|TIME_ALL_ANIM_WIN))
+					return 1;
+				break;
+			case SPACE_IMAGE:
+				if(redraws & TIME_ALL_IMAGE_WIN)
+					return 1;
+				break;
+				
+		}
+	}
+	else if(regiontype==RGN_TYPE_UI) {
+		if(redraws & TIME_ALL_BUTS_WIN)
+			return 1;
+	}
+	else if(regiontype==RGN_TYPE_HEADER) {
+		if(spacetype==SPACE_TIME)
+			return 1;
+	}
+	return 0;
+}
+
+static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
+		wmTimer *wt= screen->animtimer;
+		ScreenAnimData *sad= wt->customdata;
+		ScrArea *sa;
 		
 		if(scene->audio.flag & AUDIO_SYNC) {
-			wmTimer *wt= screen->animtimer;
 			int step = floor(wt->duration * FPS);
 			scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
@@ -1886,11 +1934,63 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 				scene->r.cfra= scene->r.sfra;
 		}
 
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
+		ED_update_for_newframe(C, 1);
+		
+		for(sa= screen->areabase.first; sa; sa= sa->next) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(ar==sad->ar)
+					ED_region_tag_redraw(ar);
+				else
+					if(match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+						ED_region_tag_redraw(ar);
+			}
+		}
+		
+		//WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_PASS_THROUGH;
+}
+
+static void SCREEN_OT_animation_step(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Animation Step";
+	ot->idname= "SCREEN_OT_animation_step";
+	
+	/* api callbacks */
+	ot->invoke= screen_animation_step;
+	
+	ot->poll= ED_operator_screenactive;
+	
+}
+
+/* ****************** anim player, starts or ends timer ***************** */
+
+/* toggle operator */
+static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	
+	if(screen->animtimer) {
+		ED_screen_animation_timer(C, 0, 0);
+	}
+	else {
+		/* todo: RNA properties to define play types */
+		ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, 1);
+		
+		if(screen->animtimer) {
+			wmTimer *wt= screen->animtimer;
+			ScreenAnimData *sad= wt->customdata;
+			
+			sad->ar= CTX_wm_region(C);
+		}
+	}
+	
+	return OPERATOR_FINISHED;
 }
 
 void SCREEN_OT_animation_play(wmOperatorType *ot)
@@ -1903,6 +2003,7 @@ void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->invoke= screen_animation_play;
 	
 	ot->poll= ED_operator_screenactive;
+	
 	
 }
 
@@ -2400,6 +2501,7 @@ void ED_operatortypes_screen(void)
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
 	
 	/* render */
@@ -2418,7 +2520,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
 	/* standard timers */
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
@@ -2464,12 +2566,13 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
-	/* frame offsets */
+	/* frame offsets & play */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	
 }
 

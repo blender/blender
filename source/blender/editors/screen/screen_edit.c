@@ -1430,7 +1430,8 @@ void ED_screen_full_prevspace(bContext *C)
 		ed_screen_fullarea(C, sa);
 }
 
-void ED_screen_animation_timer(bContext *C, int enable)
+/* redraws: uses defines from stime->redraws */
+void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmWindow *win= CTX_wm_window(C);
@@ -1440,8 +1441,17 @@ void ED_screen_animation_timer(bContext *C, int enable)
 		WM_event_remove_window_timer(win, screen->animtimer);
 	screen->animtimer= NULL;
 	
-	if(enable)
+	if(enable) {
+		struct ScreenAnimData *sad= MEM_mallocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
+		sad->ar= CTX_wm_region(C);
+		sad->redraws= redraws;
+		screen->animtimer->customdata= sad;
+		
+	}
+	/* notifier catched by top header, for button */
+	WM_event_add_notifier(C, NC_SCREEN|ND_ANIMPLAY, screen);
 }
 
 unsigned int ED_screen_view3d_layers(bScreen *screen)

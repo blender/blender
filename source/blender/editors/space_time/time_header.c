@@ -46,6 +46,7 @@
 
 #include "ED_keyframing.h"
 #include "ED_screen.h"
+#include "ED_screen_types.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -66,17 +67,46 @@
 
 /* ************************ header time area region *********************** */
 
+static ARegion *time_top_left_3dwindow(bScreen *screen)
+{
+	ARegion *aret= NULL;
+	ScrArea *sa;
+	int min= 10000;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype==RGN_TYPE_WINDOW) {
+					if(ar->winrct.xmin - ar->winrct.ymin < min) {
+						aret= ar;
+						min= ar->winrct.xmin - ar->winrct.ymin;
+					}
+				}
+			}
+		}
+	}
+	return aret;
+}
 
 static void do_time_redrawmenu(bContext *C, void *arg, int event)
 {
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	
 	if(event < 1001) {
+		bScreen *screen= CTX_wm_screen(C);
+		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 		
 		stime->redraws ^= event;
-		/* update handler when it's running */
-//		if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
-//			start_animated_screen(stime);
+		
+		if(screen->animtimer) {
+			wmTimer *wt= screen->animtimer;
+			ScreenAnimData *sad= wt->customdata;
+			
+			sad->redraws= stime->redraws;
+			sad->ar= NULL;
+			if(stime->redraws & TIME_REGION)
+				sad->ar= time_top_left_3dwindow(screen);
+		}
 	}
 	else {
 		if(event==1001) {
@@ -98,9 +128,9 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
 	
-	if(stime->redraws & TIME_LEFTMOST_3D_WIN) icon= ICON_CHECKBOX_HLT;
+	if(stime->redraws & TIME_REGION) icon= ICON_CHECKBOX_HLT;
 	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Top-Left 3D Window",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_LEFTMOST_3D_WIN, "");
+	uiDefIconTextBut(block, BUTM, 1, icon, "Top-Left 3D Window",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_REGION, "");
 	
 	if(stime->redraws & TIME_ALL_3D_WIN) icon= ICON_CHECKBOX_HLT;
 	else icon= ICON_CHECKBOX_DEHLT;
@@ -358,7 +388,8 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 void do_time_buttons(bContext *C, void *arg, int event)
 {
-//	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	bScreen *screen= CTX_wm_screen(C);
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
@@ -374,10 +405,19 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
-			ED_screen_animation_timer(C, 1);
+			ED_screen_animation_timer(C, stime->redraws, 1);
+			
+			/* update region if TIME_REGION was set, to leftmost 3d window */
+			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
+				wmTimer *wt= screen->animtimer;
+				ScreenAnimData *sad= wt->customdata;
+				
+				sad->ar= time_top_left_3dwindow(screen);
+			}
+			
 			break;
 		case B_TL_STOP:
-			ED_screen_animation_timer(C, 0);
+			ED_screen_animation_timer(C, 0, 0);
 			break;
 		case B_TL_FF:
 			/* end frame */
