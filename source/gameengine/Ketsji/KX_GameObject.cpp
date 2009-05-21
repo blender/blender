@@ -312,6 +312,18 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 				rootobj->m_pPhysicsController1->RemoveCompoundChild(m_pPhysicsController1);
 			}
 			m_pPhysicsController1->RestoreDynamics();
+			if (m_pPhysicsController1->IsDyna() && rootobj->m_pPhysicsController1)
+			{
+				// dynamic object should remember the velocity they had while being parented
+				MT_Point3 childPoint = GetSGNode()->GetWorldPosition();
+				MT_Point3 rootPoint = rootobj->GetSGNode()->GetWorldPosition();
+				MT_Point3 relPoint;
+				relPoint = (childPoint-rootPoint);
+				MT_Vector3 linVel = rootobj->m_pPhysicsController1->GetVelocity(relPoint);
+				MT_Vector3 angVel = rootobj->m_pPhysicsController1->GetAngularVelocity();
+				m_pPhysicsController1->SetLinearVelocity(linVel, false);
+				m_pPhysicsController1->SetAngularVelocity(angVel, false);
+			}
 		}
 		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
