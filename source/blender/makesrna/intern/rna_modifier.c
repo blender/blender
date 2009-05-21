@@ -455,7 +455,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_CLIPPING);
-	RNA_def_property_ui_text(prop, "clip", "Prevents vertices from going through the mirror during transform.");
+	RNA_def_property_ui_text(prop, "Clip", "Prevents vertices from going through the mirror during transform.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);
@@ -1159,7 +1159,7 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "dynamic", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_INVERT_VGROUP);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_DYNAMIC_BIND);
 	RNA_def_property_ui_text(prop, "Dynamic", "Recompute binding dynamically on top of other deformers (slower and more memory consuming.)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
