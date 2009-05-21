@@ -33,7 +33,7 @@
 */ 
 
 #include "BKE_customdata.h"
-
+#include "BKE_utildefines.h" // CLAMP
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_mempool.h"
@@ -421,6 +421,14 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 			col.b += src->b * weight;
 		}
 	}
+	
+	/* Subdivide smooth or fractal can cause problems without clamping
+	 * although weights should also not cause this situation */
+	CLAMP(col.a, 0.0f, 255.0f);
+	CLAMP(col.r, 0.0f, 255.0f);
+	CLAMP(col.g, 0.0f, 255.0f);
+	CLAMP(col.b, 0.0f, 255.0f);
+	
 	mc->a = (int)col.a;
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
@@ -496,6 +504,14 @@ static void layerInterp_mcol(void **sources, float *weights,
 	}
 
 	for(j = 0; j < 4; ++j) {
+		
+		/* Subdivide smooth or fractal can cause problems without clamping
+		 * although weights should also not cause this situation */
+		CLAMP(col[j].a, 0.0f, 255.0f);
+		CLAMP(col[j].r, 0.0f, 255.0f);
+		CLAMP(col[j].g, 0.0f, 255.0f);
+		CLAMP(col[j].b, 0.0f, 255.0f);
+		
 		mc[j].a = (int)col[j].a;
 		mc[j].r = (int)col[j].r;
 		mc[j].g = (int)col[j].g;
