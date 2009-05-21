@@ -155,7 +155,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 		sub.itemR(rd, "pixel_aspect_x", text="X")
 		sub.itemR(rd, "pixel_aspect_y", text="Y")
 		
-		sub = col.column()
+		sub = col.column(align=False)
 		sub.itemR(rd, "border", text="Border")
 		if rd.border:
 			sub.itemR(rd, "crop_to_border")
