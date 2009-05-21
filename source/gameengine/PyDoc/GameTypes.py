@@ -1896,12 +1896,23 @@ class KX_GameObject(SCA_IObject):
 		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.
 		"""
-	def setParent(parent):
+	def setParent(parent,compound,ghost):
 		"""
-		Sets this object's parent.
+		Sets this object's parent. 
+		Control the shape status with the optional compound and ghost parameters:
+		compound=1: the object shape should be added to the parent compound shape (default)
+		compound=0: the object should keep its individual shape. 
+		In that case you can control if it should be ghost or not:
+		ghost=1 if the object should be made ghost while parented (default)
+		ghost=0 if the object should be solid while parented 
+		Note: if the object type is sensor, it stays ghost regardless of ghost parameter
 		
 		@type parent: L{KX_GameObject}
 		@param parent: new parent object.
+		@type compound: int
+		@param compound: whether the shape should be added to the parent compound shape
+		@type ghost: int
+		@param ghost: whether the object should be ghost while parented
 		"""
 	def removeParent():
 		"""
@@ -2937,6 +2948,13 @@ class KX_ParentActuator(SCA_IActuator):
 	@type object: KX_GameObject or None
 	@ivar mode: The mode of this actuator
 	@type mode: int from 0 to 1 L{GameLogic.Parent Actuator}
+	@ivar compound: Whether the object shape should be added to the parent compound shape when parenting
+	                Effective only if the parent is already a compound shape
+	@type compound: bool
+	@ivar ghost: whether the object should be made ghost when parenting
+	             Effective only if the shape is not added to the parent compound shape
+	@type ghost: bool
+	
 	"""
 	def setObject(object):
 		"""

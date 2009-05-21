@@ -48,10 +48,14 @@
 
 KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj, 
 									 int mode,
+									 bool addToCompound,
+									 bool ghost,
 									 SCA_IObject *ob,
 									 PyTypeObject* T)
 	: SCA_IActuator(gameobj, T),
 	  m_mode(mode),
+	  m_addToCompound(addToCompound),
+	  m_ghost(ghost),
 	  m_ob(ob)
 {
 	if (m_ob)
@@ -121,7 +125,7 @@ bool KX_ParentActuator::Update()
 	switch (m_mode) {
 		case KX_PARENT_SET:
 			if (m_ob)
-				obj->SetParent(scene, (KX_GameObject*)m_ob);
+				obj->SetParent(scene, (KX_GameObject*)m_ob, m_addToCompound, m_ghost);
 			break;
 		case KX_PARENT_REMOVE:
 			obj->RemoveParent(scene);
@@ -179,6 +183,8 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 PyAttributeDef KX_ParentActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
 	KX_PYATTRIBUTE_INT_RW("mode", KX_PARENT_NODEF+1, KX_PARENT_MAX-1, true, KX_ParentActuator, m_mode),
+	KX_PYATTRIBUTE_BOOL_RW("compound", KX_ParentActuator, m_addToCompound),
+	KX_PYATTRIBUTE_BOOL_RW("ghost", KX_ParentActuator, m_ghost),
 	{ NULL }	//Sentinel
 };
 

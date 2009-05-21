@@ -8106,6 +8106,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 		
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->parent) {
+				/* check if top parent has compound shape set and if yes, set this object
+				   to compound shaper as well (was the behaviour before, now it's optional) */
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				while (parent->parent != NULL) {
+					parent = newlibadr(fd, lib, parent->parent);
+				}
+				if (parent->gameflag & OB_CHILD)
+					ob->gameflag |= OB_CHILD;
+			}
+		}
+	}
+
 	if (main->versionfile < 249) {
 		Scene *sce;
 		for (sce= main->scene.first; sce; sce= sce->id.next)

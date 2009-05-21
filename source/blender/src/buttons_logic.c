@@ -2747,11 +2747,22 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
   		if(parAct->type==ACT_PARENT_SET) { 
 			
-  			ysize= 48; 
+  			ysize= 68; 
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-	 
   			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(parAct->ob), "Set this object as parent"); 
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOGN, ACT_PARENT_COMPOUND, B_REDR,
+				  "Compound",
+				  xco + 40, yco - 64, (width - 80)/2, 19, &parAct->flag,
+				  0.0, 0.0, 0, 0,
+				  "Add this object shape to the parent shape (only if the parent shape is already compound)");
+			uiDefButBitI(block, TOGN, ACT_PARENT_GHOST, B_REDR,
+				  "Ghost",
+				  xco + 40 + ((width - 80)/2), yco - 64, (width - 80)/2, 19, &parAct->flag,
+				  0.0, 0.0, 0, 0,
+				  "Make this object ghost while parented (only if not compound)");
+			uiBlockEndAlign(block);
   		}
   		else if(parAct->type==ACT_PARENT_REMOVE) { 
 			
@@ -3480,9 +3491,14 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 			}
 			if (ob->body_type!=OB_BODY_TYPE_SOFT)
 			{
-				uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Add Children");
+				if (ob->parent)
+					uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Add to parent", 240,105,110,19, 
+							&ob->gameflag, 0, 0, 0, 0, 
+							"Add this shape to the parent compound shape");
+				else
+					uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
+							&ob->gameflag, 0, 0, 0, 0, 
+							"Create a compound shape with the children's shape that are tagged for addition");
 			}
 		}
 		uiBlockEndAlign(block);

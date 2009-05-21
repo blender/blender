@@ -224,7 +224,7 @@ KX_GameObject* KX_GameObject::GetParent()
 	
 }
 
-void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
+void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCompound, bool ghost)
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (obj && GetSGNode() && obj->GetSGNode() && GetSGNode()->GetSGParent() != obj->GetSGNode())
@@ -245,7 +245,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 
 		if (m_pPhysicsController1) 
 		{
-			m_pPhysicsController1->SuspendDynamics(true);
+			m_pPhysicsController1->SuspendDynamics(ghost);
 		}
 		// Set us to our new scale, position, and orientation
 		scale2[0] = 1.0/scale2[0];
@@ -266,7 +266,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 			Release();
 		// if the new parent is a compound object, add this object shape to the compound shape.
 		// step 0: verify this object has physical controller
-		if (m_pPhysicsController1)
+		if (m_pPhysicsController1 && addToCompound)
 		{
 			// step 1: find the top parent (not necessarily obj)
 			KX_GameObject* rootobj = (KX_GameObject*)obj->GetSGNode()->GetRootSGParent()->GetSGClientObject();
@@ -1160,7 +1160,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_NOARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
 	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_O},
-	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
+	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_VARARGS},
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
 	{"setOcclusion",(PyCFunction) KX_GameObject::sPySetOcclusion, METH_VARARGS},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
@@ -2147,15 +2147,20 @@ PyObject* KX_GameObject::PyGetParent()
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PySetParent(PyObject* value)
+PyObject* KX_GameObject::PySetParent(PyObject* args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
+	PyObject* pyobj;
 	KX_GameObject *obj;
+	int addToCompound=1, ghost=1;
 	
-	if (!ConvertPythonToGameObject(value, &obj, false, "gameOb.setParent(value): KX_GameObject"))
+	if (!PyArg_ParseTuple(args,"O|ii:setParent", &pyobj, &addToCompound, &ghost)) {
+		return NULL; // Python sets a simple error
+	}
+	if (!ConvertPythonToGameObject(pyobj, &obj, true, "gameOb.setParent(obj): KX_GameObject"))
 		return NULL;
-	
-	this->SetParent(scene, obj);
+	if (obj)
+		this->SetParent(scene, obj, addToCompound, ghost);
 	Py_RETURN_NONE;
 }
 

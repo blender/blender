@@ -1123,6 +1123,8 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bParentActuator *parAct = (bParentActuator *) bact->data;
 				int mode = KX_ParentActuator::KX_PARENT_NODEF;
+				bool addToCompound = true;
+				bool ghost = true;
 				KX_GameObject *tmpgob = NULL;
 
 				switch(parAct->type)
@@ -1130,6 +1132,8 @@ void BL_ConvertActuators(char* maggiename,
 					case ACT_PARENT_SET:
 						mode = KX_ParentActuator::KX_PARENT_SET;
 						tmpgob = converter->FindGameObject(parAct->ob);
+						addToCompound = !(parAct->flag & ACT_PARENT_COMPOUND);
+						ghost = !(parAct->flag & ACT_PARENT_GHOST);
 						break;
 					case ACT_PARENT_REMOVE:
 						mode = KX_ParentActuator::KX_PARENT_REMOVE;
@@ -1140,6 +1144,8 @@ void BL_ConvertActuators(char* maggiename,
 				KX_ParentActuator *tmpparact
 					= new KX_ParentActuator(gameobj,
 					mode,
+					addToCompound,
+					ghost,
 					tmpgob);
 				baseact = tmpparact;
 				break;

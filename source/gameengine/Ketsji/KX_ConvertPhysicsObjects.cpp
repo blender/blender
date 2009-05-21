@@ -949,39 +949,27 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			assert(colShape->isCompound());
 			btCompoundShape* compoundShape = (btCompoundShape*)colShape;
 
-			// compute the local transform from parent, this may include a parent inverse node
+			// compute the local transform from parent, this may include several node in the chain
 			SG_Node* gameNode = gameobj->GetSGNode();
-			SG_Node* parentInverseNode = gameNode->GetSGParent();
-			if (parentInverseNode && parentInverseNode->GetSGClientObject() != NULL)
-				// this is not a parent inverse node, cancel it
-				parentInverseNode = NULL;
-			// now combine the parent inverse node and the game node
-			MT_Point3 childPos = gameNode->GetLocalPosition();
-			MT_Matrix3x3 childRot = gameNode->GetLocalOrientation();
-			MT_Vector3 childScale = gameNode->GetLocalScale();
-			if (parentInverseNode)
-			{
-				const MT_Point3& parentInversePos = parentInverseNode->GetLocalPosition();
-				const MT_Matrix3x3& parentInverseRot = parentInverseNode->GetLocalOrientation();
-				const MT_Vector3& parentInverseScale = parentInverseNode->GetLocalScale();
-				childRot =  parentInverseRot * childRot;
-				childScale = parentInverseScale * childScale;
-				childPos = parentInversePos+parentInverseScale*(parentInverseRot*childPos);
-			}
+			SG_Node* parentNode = objprop->m_dynamic_parent->GetSGNode();
+			// relative transform
+			MT_Vector3 parentScale = parentNode->GetWorldScaling();
+			parentScale[0] = MT_Scalar(1.0)/parentScale[0];
+			parentScale[1] = MT_Scalar(1.0)/parentScale[1];
+			parentScale[2] = MT_Scalar(1.0)/parentScale[2];
+			MT_Vector3 relativeScale = gameNode->GetWorldScaling() * parentScale;
+			MT_Matrix3x3 parentInvRot = parentNode->GetWorldOrientation().transposed();
+			MT_Vector3 relativePos = parentInvRot*((gameNode->GetWorldPosition()-parentNode->GetWorldPosition())*parentScale);
+			MT_Matrix3x3 relativeRot = parentInvRot*gameNode->GetWorldOrientation();
 
-			shapeInfo->m_childScale.setValue(childScale.x(),childScale.y(),childScale.z());
+			shapeInfo->m_childScale.setValue(relativeScale[0],relativeScale[1],relativeScale[2]);
 			bm->setLocalScaling(shapeInfo->m_childScale);
-			
-			shapeInfo->m_childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
-			float rotval[12];
-			childRot.getValue(rotval);
-			btMatrix3x3 newRot;
-			newRot.setValue(rotval[0],rotval[1],rotval[2],rotval[4],rotval[5],rotval[6],rotval[8],rotval[9],rotval[10]);
-			newRot = newRot.transpose();
+			shapeInfo->m_childTrans.getOrigin().setValue(relativePos[0],relativePos[1],relativePos[2]);
+			float rot[12];
+			relativeRot.getValue(rot);
+			shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
 
-			shapeInfo->m_childTrans.setBasis(newRot);
 			parentShapeInfo->AddShape(shapeInfo);	
-			
 			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
 			//do some recalc?
 			//recalc inertia for rigidbody

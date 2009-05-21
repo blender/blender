@@ -1377,10 +1377,11 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	bool isCompoundChild = false;
+	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
 
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
 		
-		if ((parent->gameflag & OB_CHILD) != 0)
+		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
 		{
 			isCompoundChild = true;
 		} 
@@ -1406,7 +1407,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_lockZRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_ROT_AXIS) !=0;
 
 	objprop.m_isCompoundChild = isCompoundChild;
-	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+	objprop.m_hasCompoundChildren = hasCompoundChildren;
 	objprop.m_margin = blenderobject->margin;
 	// ACTOR is now a separate feature
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
