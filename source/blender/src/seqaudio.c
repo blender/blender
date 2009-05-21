@@ -95,6 +95,12 @@ static int audio_playing=0;
 static int audio_initialised=0;
 static int audio_startframe=0;
 static double audio_starttime = 0.0;
+static Scene * audio_scene = 0; /* we can't use G.scene, since
+				   Sequence Scene strips can change G.scene
+				   (and SDL-audio-fill callback can be
+				   called while we have G.scene changed!)
+				*/
+
 /////
 //
 /* local protos ------------------- */
@@ -217,7 +223,7 @@ void audiostream_fill(uint8_t *mixdown, int len)
 #ifndef DISABLE_SDL
 	for (i = 0; i < len; i += 64) {
 		CFRA = (int) ( ((float)(audio_pos-64)
-				/( G.scene->audio.mixrate*4 ))
+				/( audio_scene->audio.mixrate*4 ))
 			       * FPS );
 
 		audio_fill(mixdown + i, NULL, 
@@ -238,7 +244,7 @@ static void audio_levels(uint8_t *buf, int len, float db, float facf, float pan)
 	if (pan>=0) { facr = 1.0; facl = 1.0-pan; }
 	       else { facr = pan+1.0; facl = 1.0; }
 	
-	fac = pow(10.0, ((-(db+G.scene->audio.main))/20.0)) / facf;
+	fac = pow(10.0, ((-(db+audio_scene->audio.main))/20.0)) / facf;
 	facl /= fac;
 	facr /= fac;
 	
@@ -294,7 +300,8 @@ void audio_makestream(bSound *sound)
 
 #ifndef DISABLE_SDL
 static void audio_fill_ram_sound(Sequence *seq, void * mixdown, 
-				 uint8_t * sstream, int len)
+				 uint8_t * sstream, int len,
+				 int cfra)
 {
 	uint8_t* cvtbuf;
 	bSound* sound;
@@ -303,10 +310,10 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	sound = seq->sound;
 	audio_makestream(sound);
 	if ((seq->curpos<sound->streamlen -len) && (seq->curpos>=0) &&
-	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
+	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq, CFRA);
+			do_seq_ipo(seq, cfra);
 			facf = seq->facf0;
 		} else {
 			facf = 1.0;
@@ -328,16 +335,16 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 #ifndef DISABLE_SDL
 static void audio_fill_hd_sound(Sequence *seq, 
 				void * mixdown, uint8_t * sstream, 
-				int len)
+				int len, int cfra)
 {
 	uint8_t* cvtbuf;
 	float facf;
 
 	if ((seq->curpos >= 0) &&
-	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
+	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq, CFRA);
+			do_seq_ipo(seq, cfra);
 			facf = seq->facf0; 
 		} else {
 			facf = 1.0;
@@ -346,7 +353,7 @@ static void audio_fill_hd_sound(Sequence *seq,
 		
 		sound_hdaudio_extract(seq->hdaudio, (short*) cvtbuf,
 				      seq->curpos / 4,
-				      G.scene->audio.mixrate,
+				      audio_scene->audio.mixrate,
 				      2,
 				      len / 4);
 		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
@@ -365,19 +372,66 @@ static void audio_fill_hd_sound(Sequence *seq,
 
 #ifndef DISABLE_SDL
 static void audio_fill_seq(Sequence * seq, void * mixdown,
-			   uint8_t *sstream, int len, int advance_only)
+			   uint8_t *sstream, int len, int cfra,
+			   int advance_only);
+
+static void audio_fill_scene_strip(Sequence * seq, void * mixdown,
+				   uint8_t *sstream, int len, int cfra,
+				   int advance_only)
+{
+	Editing *ed;
+
+	/* prevent eternal loop */
+	seq->scene->r.scemode |= R_RECURS_PROTECTION;
+
+	ed = seq->scene->ed;
+
+	if (ed) {
+		int sce_cfra = seq->sfra + seq->anim_startofs
+			+ cfra - seq->startdisp;
+
+		audio_fill_seq(ed->seqbasep->first,
+			       mixdown,
+			       sstream, len, sce_cfra,
+			       advance_only);
+	}
+	
+	/* restore */
+	seq->scene->r.scemode &= ~R_RECURS_PROTECTION;
+}
+#endif
+
+#ifndef DISABLE_SDL
+static void audio_fill_seq(Sequence * seq, void * mixdown,
+			   uint8_t *sstream, int len, int cfra,
+			   int advance_only)
 {
 	while(seq) {
 		if (seq->type == SEQ_META &&
 		    (!(seq->flag & SEQ_MUTE))) {
-			if (seq->startdisp <= CFRA && seq->enddisp > CFRA) {
+			if (seq->startdisp <= cfra && seq->enddisp > cfra) {
 				audio_fill_seq(seq->seqbase.first,
 					       mixdown, sstream, len, 
-					       advance_only);
+					       cfra, advance_only);
 			} else {
 				audio_fill_seq(seq->seqbase.first,
 					       mixdown, sstream, len, 
-					       1);
+					       cfra, 1);
+			}
+		}
+		if (seq->type == SEQ_SCENE 
+		    && (!(seq->flag & SEQ_MUTE))
+		    && seq->scene
+		    && (seq->scene->r.scemode & R_DOSEQ)
+		    && !(seq->scene->r.scemode & R_RECURS_PROTECTION)) {
+			if (seq->startdisp <= cfra && seq->enddisp > cfra) {
+				audio_fill_scene_strip(
+					seq, mixdown, sstream, len,
+					cfra, advance_only);
+			} else {
+				audio_fill_scene_strip(
+					seq, mixdown, sstream, len,
+					cfra, 1);
 			}
 		}
 		if ( (seq->type == SEQ_RAM_SOUND) &&
@@ -387,7 +441,8 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 				seq->curpos += len;
 			} else {
 				audio_fill_ram_sound(
-					seq, mixdown, sstream, len);
+					seq, mixdown, sstream, len,
+					cfra);
 			}
 		}
 		if ( (seq->type == SEQ_HD_SOUND) &&
@@ -405,7 +460,8 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 				}
 				if (seq->hdaudio) {
 					audio_fill_hd_sound(seq, mixdown, 
-							    sstream, len);
+							    sstream, len,
+							    cfra);
 				}
 			}
 		}
@@ -420,10 +476,15 @@ static void audio_fill(void *mixdown, uint8_t *sstream, int len)
 	Editing *ed;
 	Sequence *seq;
 
-	ed = G.scene->ed;
-	if((ed) && (!(G.scene->audio.flag & AUDIO_MUTE))) {
+	if (!audio_scene) {
+		return;
+	}
+
+	ed = audio_scene->ed;
+	if((ed) && (!(audio_scene->audio.flag & AUDIO_MUTE))) {
 		seq = ed->seqbasep->first;
-		audio_fill_seq(seq, mixdown, sstream, len, 0);
+		audio_fill_seq(seq, mixdown, sstream, len, 
+			       audio_scene->r.cfra, 0);
 	}
        
 	audio_pos += len;    
@@ -463,7 +524,7 @@ static int audio_init(SDL_AudioSpec *desired)
 }
 #endif
 
-static int audiostream_play_seq(Sequence * seq, uint32_t startframe)
+static int audiostream_play_seq(Sequence * seq, int startframe)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int have_sound = 0;
@@ -475,14 +536,38 @@ static int audiostream_play_seq(Sequence * seq, uint32_t startframe)
 				have_sound = 1;
 			}
 		}
+		if (seq->type == SEQ_SCENE
+		    && seq->scene
+		    && (seq->scene->r.scemode & R_DOSEQ)
+		    && !(seq->scene->r.scemode & R_RECURS_PROTECTION)) {
+			Editing *ed;
+
+			/* prevent eternal loop */
+			seq->scene->r.scemode |= R_RECURS_PROTECTION;
+
+			ed = seq->scene->ed;
+
+			if (ed) {
+				int sce_cfra = seq->sfra + seq->anim_startofs
+					+ startframe - seq->startdisp;
+
+				if (audiostream_play_seq(ed->seqbasep->first,
+							 sce_cfra)) {
+					have_sound = 1;
+				}
+			}
+	
+			/* restore */
+			seq->scene->r.scemode &= ~R_RECURS_PROTECTION;
+		}
 		if ((seq->type == SEQ_RAM_SOUND) && (seq->sound)) {
 			have_sound = 1;
-			seq->curpos = (int)( (FRA2TIME(
-						      (double) startframe -
-						      (double) seq->start +
-						      (double) 
-						      seq->anim_startofs)
-					      * ((float)G.scene->audio.mixrate)
+			seq->curpos = (int)( (FRA2TIME(((double) startframe) -
+						       ((double) seq->start) +
+						       ((double) 
+						      seq->anim_startofs))
+					      * ((float)audio_scene
+						 ->audio.mixrate)
 					      * 4 ));
 		}
 		if ((seq->type == SEQ_HD_SOUND)) {
@@ -494,11 +579,13 @@ static int audiostream_play_seq(Sequence * seq, uint32_t startframe)
 				
 				seq->hdaudio = sound_open_hdaudio(name);
 			}
-			seq->curpos = (int)( (FRA2TIME((double) startframe - 
-						       (double) seq->start +
-						       (double)
-						       seq->anim_startofs)
-					      * ((float)G.scene->audio.mixrate)
+
+			seq->curpos = (int)( (FRA2TIME(((double) startframe) - 
+						       ((double) seq->start) +
+						       ((double)
+						       seq->anim_startofs))
+					      * ((float)audio_scene
+						 ->audio.mixrate)
 					      * 4 ));
 		}
 		seq= seq->next;
@@ -506,14 +593,16 @@ static int audiostream_play_seq(Sequence * seq, uint32_t startframe)
 	return have_sound;
 }
 
-void audiostream_play(uint32_t startframe, uint32_t duration, int mixdown)
+void audiostream_play(int startframe, uint32_t duration, int mixdown)
 {
 #ifndef DISABLE_SDL
 	static SDL_AudioSpec desired;
 	Editing *ed;
 	int have_sound = 0;
 
-	ed= G.scene->ed;
+	audio_scene = G.scene;
+
+	ed= audio_scene->ed;
 	if(ed) {
 		have_sound = 
 			audiostream_play_seq(ed->seqbasep->first, startframe);
@@ -525,7 +614,7 @@ void audiostream_play(uint32_t startframe, uint32_t duration, int mixdown)
 	}
 
    	if (U.mixbufsize && !audio_initialised && !mixdown) {
-   		desired.freq=G.scene->audio.mixrate;
+   		desired.freq=audio_scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
    		desired.samples=U.mixbufsize;
@@ -538,7 +627,7 @@ void audiostream_play(uint32_t startframe, uint32_t duration, int mixdown)
 
 	audio_startframe = startframe;
 	audio_pos = ( ((int)( FRA2TIME(startframe)
-			      *(G.scene->audio.mixrate)*4 )) & (~3) );
+			      *(audio_scene->audio.mixrate)*4 )) & (~3) );
 	audio_starttime = PIL_check_seconds_timer();
 
 	/* if audio already is playing, just reseek, otherwise
@@ -553,12 +642,12 @@ void audiostream_play(uint32_t startframe, uint32_t duration, int mixdown)
 #endif
 }
 
-void audiostream_start(uint32_t frame)
+void audiostream_start(int frame)
 {
 	audiostream_play(frame, 0, 0);
 }
 
-void audiostream_scrub(uint32_t frame)
+void audiostream_scrub(int frame)
 {
 	if (U.mixbufsize) audiostream_play(frame, 4096/U.mixbufsize, 0);
 }
@@ -568,6 +657,7 @@ void audiostream_stop(void)
 #ifndef DISABLE_SDL
 	SDL_PauseAudio(1);
 	audio_playing=0;
+	audio_scene=0;
 #endif
 }
 
@@ -575,9 +665,9 @@ int audiostream_pos(void)
 {
 	int pos;
 
-	if (U.mixbufsize) {
+	if (U.mixbufsize && audio_scene) {
 		pos = (int) (((double)(audio_pos-U.mixbufsize)
-			      / ( G.scene->audio.mixrate*4 ))
+			      / ( audio_scene->audio.mixrate*4 ))
 			     * FPS );
 	} else { /* fallback to seconds_timer when no audio available */
 		pos = (int) ((PIL_check_seconds_timer() - audio_starttime) 

@@ -1884,7 +1884,10 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
 		} else if (se->ibuf==NULL && sce_valid) {
-			waitcursor(1);
+			/* no need to display a waitcursor on sequencer
+			   scene strips */
+			if (!(sce->r.scemode & R_DOSEQ)) 
+				waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
 			   the seq->scene can already have a Render initialized with same name, 
@@ -1935,7 +1938,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			/* restore */
 			G.scene->r.scemode |= doseq;
 			
-			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
+			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
+			   && !(sce->r.scemode & R_DOSEQ)) 
+             
 				waitcursor(0);
 			CFRA = oldcfra;
 			set_last_seq(oldseq);
