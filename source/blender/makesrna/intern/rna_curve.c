@@ -479,41 +479,42 @@ void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bevresol");
 	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_range(prop, 0, 32, 1.0, 0);
 	RNA_def_property_ui_text(prop, "Bevel Resolution", "Bevel resolution when depth is non-zero and no specific bevel object has been defined.");
 	
 	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor.");
 	
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
 	
 	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext2");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object.");
 	
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	/* pointers */

@@ -28,7 +28,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(lamp, "color")
-		sub.itemR(lamp, "energy", slider=True)
+		sub.itemR(lamp, "energy")
 		sub.itemR(lamp, "distance")
 		sub.itemR(lamp, "negative")
 	
