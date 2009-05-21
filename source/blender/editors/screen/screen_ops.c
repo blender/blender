@@ -1023,6 +1023,10 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		}
 		
+		/* no full window splitting allowed */
+		if(CTX_wm_area(C)->full)
+			return OPERATOR_PASS_THROUGH;
+		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
 			return OPERATOR_PASS_THROUGH;
