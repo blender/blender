@@ -286,6 +286,7 @@ static void rna_def_property_subdivision_common(StructRNA *srna, const char type
 	RNA_def_property_enum_sdna(prop, NULL, type);
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
