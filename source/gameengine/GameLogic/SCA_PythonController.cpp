@@ -324,10 +324,7 @@ bool SCA_PythonController::Import()
 	}
 	
 	PyObject *mod = PyImport_ImportModule((char *)py_function_path[0].Ptr());
-	if(mod && m_debug) {
-		Py_DECREF(mod); /* getting a new one so dont hold a ref to the old one */
-		mod= PyImport_ReloadModule(mod);
-	}
+	/* Dont reload yet, do this within the loop so packages reload too */
 	
 	if(mod==NULL) {
 		ErrorPrint("Python module not found");
@@ -339,18 +336,29 @@ bool SCA_PythonController::Import()
 	PyObject *base= mod;
 	
 	for(unsigned int i=1; i < py_function_path.size(); i++) {
+		if(m_debug) {
+			Py_DECREF(base); /* getting a new one so dont hold a ref to the old one */
+			base= PyImport_ReloadModule(base);
+			if (base==NULL) {
+				m_function= NULL;
+				break;
+			}
+		}
+		
 		m_function = PyObject_GetAttrString(base, py_function_path[i].Ptr());
 		Py_DECREF(base);
 		base = m_function; /* for the next loop if there is on */
 		
 		if(m_function==NULL) {
-			PyErr_Clear(); /* print our own error below */
 			break;
 		}
 	}
 	
 	if(m_function==NULL) {
-		printf("Python module error \"%s\":\n \"%s\" module found but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
+		if(PyErr_Occurred())
+			ErrorPrint("Python controller found the module but could not access the function");
+		else
+			printf("Python module error \"%s\":\n \"%s\" module found but function missing\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
 	
