@@ -6,7 +6,7 @@ import BPyWindow
 
 mouseViewRay= BPyWindow.mouseViewRay
 from Blender import Mathutils, Window, Scene, Draw, sys
-from Blender.Mathutils import CrossVecs, Vector, Intersect, LineIntersect, AngleBetweenVecs
+from Blender.Mathutils import Vector, Intersect, LineIntersect, AngleBetweenVecs
 LMB= Window.MButs['L']
 
 def mouseup():
@@ -101,11 +101,11 @@ def vertexGradientPick(ob, MODE):
 	
 	# make a line 90d to the grad in screenspace.
 	if (OriginA-OriginB).length <= eps: # Persp view. same origin different direction
-		cross_grad= CrossVecs(DirectionA, DirectionB)
+		cross_grad= DirectionA.cross(DirectionB)
 		ORTHO= False
 		
 	else: # Ortho - Same direction, different origin
-		cross_grad= CrossVecs(DirectionA, OriginA-OriginB)
+		cross_grad= DirectionA.cross(OriginA-OriginB)
 		ORTHO= True
 	
 	cross_grad.normalize()

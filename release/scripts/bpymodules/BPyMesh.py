@@ -569,12 +569,11 @@ def face_edges(me):
 	
 
 def facesPlanerIslands(me):
-	DotVecs= Blender.Mathutils.DotVecs
 	
 	def roundvec(v):
 		return round(v[0], 4), round(v[1], 4), round(v[2], 4)
 	
-	face_props= [(cent, no, roundvec(no), DotVecs(cent, no)) for f in me.faces    for no, cent in ((f.no, f.cent),)]
+	face_props= [(cent, no, roundvec(no), cent.dot(no)) for f in me.faces    for no, cent in ((f.no, f.cent),)]
 	
 	face_edge_users= face_edges(me)
 	islands= []
@@ -607,7 +606,7 @@ def facesPlanerIslands(me):
 								face_prop2= face_props[fidx2]
 								# normals are the same?
 								if face_prop1[2]==face_prop2[2]:
-									if abs(face_prop1[3] - DotVecs(face_prop1[1], face_prop2[0])) < 0.000001:
+									if abs(face_prop1[3] - face_prop1[1].dot(face_prop2[0])) < 0.000001:
 										used_faces[fidx2]= 1
 										island.append(fidx2)
 		islands.append([me.faces[i] for i in island])
@@ -616,7 +615,6 @@ def facesPlanerIslands(me):
 
 
 def facesUvIslands(me, PREF_IMAGE_DELIMIT=True):
-	DotVecs= Blender.Mathutils.DotVecs
 	def roundvec(v):
 		return round(v[0], 4), round(v[1], 4)
 	
