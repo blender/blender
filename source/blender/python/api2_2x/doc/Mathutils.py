@@ -26,6 +26,8 @@ Example::
 
   angle = DifferenceQuats(quat1, quat2)
   print angle  
+  
+@group Deprecated: CopyMat, CopyVec, CopyQuat, CopyEuler, RotateEuler, MatMultVec, VecMultMat, CrossVecs, DotVecs, CrossQuats, DotQuats
 """
 
 def Rand (low=0.0, high = 1.0):
@@ -129,6 +131,7 @@ def CopyVec(vector):
 def CrossVecs(vec1, vec2):
   """
   Return the cross product of two vectors.
+  @attention: B{DEPRECATED} use vector.cross(other) instead.
   @type vec1: Vector object.
   @param vec1: A 3d vector.
   @type vec2: Vector object.
@@ -141,6 +144,7 @@ def CrossVecs(vec1, vec2):
 def DotVecs(vec1, vec2):
   """
   Return the dot product of two vectors.
+  @attention: B{DEPRECATED} use vector.dot(other) instead.
   @type vec1: Vector object.
   @param vec1: A 2d,3d or 4d vector.
   @type vec2: Vector object.
@@ -323,6 +327,7 @@ def CopyQuat(quaternion):
 def CrossQuats(quat1, quat2):
   """
   Return the cross product of two quaternions.
+  @attention: B{DEPRECATED} use quat.cross(other) instead.
   @type quat1: Quaternion object.
   @param quat1: Quaternion.
   @type quat2: Quaternion object.
@@ -335,6 +340,7 @@ def CrossQuats(quat1, quat2):
 def DotQuats(quat1, quat2):
   """
   Return the dot product of two quaternions.
+  @attention: B{DEPRECATED} use quat.dot(other) instead.
   @type quat1: Quaternion object.
   @param quat1: Quaternion.
   @type quat2: Quaternion object.
@@ -541,6 +547,26 @@ class Vector:
     @return: The reflected vector.
     """
 
+  def cross(other):
+    """
+    Return the cross product of this vector and another.
+    @note: both vectors must be 3D.
+    @type other: Vector object
+    @param other: The other vector to perform the cross product with.
+    @rtype: Vector
+    @return: The cross product.
+    """
+
+  def dot(other):
+    """
+    Return the dot product of this vector and another.
+    @note: both vectors must be the same size.
+    @type other: Vector object
+    @param other: The other vector to perform the dot product with.
+    @rtype: float
+    @return: The dot product.
+    """
+
 class Euler:
   """
   The Euler object
@@ -738,6 +764,24 @@ class Quaternion:
     Return a matrix representation of the quaternion.
     @rtype: Matrix object
     @return: A 3x3 rotation matrix representation of the quaternion.
+    """
+
+  def cross(other):
+    """
+    Return the cross product of this quaternion and another.
+    @type other: Quaterion object
+    @param other: The other quaternion to perform the cross product with.
+    @rtype: Vector
+    @return: The cross product.
+    """
+
+  def dot(other):
+    """
+    Return the dot product of this quaternion and another.
+    @type other: Quaterion object
+    @param other: The other quaternion to perform the dot product with.
+    @rtype: float
+    @return: The dot product.
     """
 
 class Matrix:

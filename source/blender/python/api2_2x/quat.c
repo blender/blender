@@ -41,6 +41,8 @@ char Quaternion_Inverse_doc[] = "() - set the quaternion to it's inverse";
 char Quaternion_Normalize_doc[] = "() - normalize the vector portion of the quaternion";
 char Quaternion_ToEuler_doc[] = "(eul_compat) - return a euler rotation representing the quaternion, optional euler argument that the new euler will be made compatible with.";
 char Quaternion_ToMatrix_doc[] = "() - return a rotation matrix representing the quaternion";
+char Quaternion_Cross_doc[] = "(other) - return the cross product between this quaternion and another";
+char Quaternion_Dot_doc[] = "(other) - return the dot product between this quaternion and another";
 char Quaternion_copy_doc[] = "() - return a copy of the quat";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Quaternion_methods[] = {
@@ -51,6 +53,8 @@ struct PyMethodDef Quaternion_methods[] = {
 	{"normalize", (PyCFunction) Quaternion_Normalize, METH_NOARGS, Quaternion_Normalize_doc},
 	{"toEuler", (PyCFunction) Quaternion_ToEuler, METH_VARARGS, Quaternion_ToEuler_doc},
 	{"toMatrix", (PyCFunction) Quaternion_ToMatrix, METH_NOARGS, Quaternion_ToMatrix_doc},
+	{"cross", (PyCFunction) Quaternion_Cross, METH_O, Quaternion_Cross_doc},
+	{"dot", (PyCFunction) Quaternion_Dot, METH_O, Quaternion_Dot_doc},
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{NULL, NULL, 0, NULL}
@@ -96,6 +100,40 @@ PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 
 	return newMatrixObject(mat, 3, 3, Py_NEW);
 }
+
+//----------------------------Quaternion.cross(other)------------------
+//return the cross quat
+PyObject *Quaternion_Cross(QuaternionObject * self, QuaternionObject * value)
+{
+	float quat[4];
+	
+	if (!QuaternionObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "quat.cross(value): expected a quaternion argument" );
+		return NULL;
+	}
+	
+	QuatMul(quat, self->quat, value->quat);
+	return newQuaternionObject(quat, Py_NEW);
+}
+
+//----------------------------Quaternion.dot(other)------------------
+//return the dot quat
+PyObject *Quaternion_Dot(QuaternionObject * self, QuaternionObject * value)
+{
+	int x;
+	double dot = 0.0;
+	
+	if (!QuaternionObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "quat.dot(value): expected a quaternion argument" );
+		return NULL;
+	}
+	
+	for(x = 0; x < 4; x++) {
+		dot += self->quat[x] * value->quat[x];
+	}
+	return PyFloat_FromDouble(dot);
+}
+
 //----------------------------Quaternion.normalize()----------------
 //normalize the axis of rotation of [theta,vector]
 PyObject *Quaternion_Normalize(QuaternionObject * self)

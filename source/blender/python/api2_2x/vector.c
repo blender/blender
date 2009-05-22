@@ -47,7 +47,9 @@ char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
 char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
 char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
 char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
-char Vector_reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
+char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
+char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
+char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
 char Vector_copy_doc[] = "() - return a copy of the vector";
 char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
@@ -59,7 +61,9 @@ struct PyMethodDef Vector_methods[] = {
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
 	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
-	{"reflect", ( PyCFunction ) Vector_reflect, METH_O, Vector_reflect_doc},
+	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, Vector_Reflect_doc},
+	{"cross", ( PyCFunction ) Vector_Cross, METH_O, Vector_Dot_doc},
+	{"dot", ( PyCFunction ) Vector_Dot, METH_O, Vector_Cross_doc},
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{NULL, NULL, 0, NULL}
@@ -275,7 +279,7 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
   return a reflected vector on the mirror normal
   ((2 * DotVecs(vec, mirror)) * mirror) - vec
   using arithb.c would be nice here */
-PyObject *Vector_reflect( VectorObject * self, PyObject * value )
+PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 {
 	VectorObject *mirrvec;
 	float mirror[3];
@@ -288,7 +292,7 @@ PyObject *Vector_reflect( VectorObject * self, PyObject * value )
 	float norm = 0.0f;
 	
 	if (!VectorObject_Check(value)) {
-		PyErr_SetString( PyExc_TypeError, "expected a vector argument" );
+		PyErr_SetString( PyExc_TypeError, "vec.reflect(value): expected a vector argument" );
 		return NULL;
 	}
 	mirrvec = (VectorObject *)value;
@@ -320,6 +324,46 @@ PyObject *Vector_reflect( VectorObject * self, PyObject * value )
 	reflect[2] = (dot2 * mirror[2]) - vec[2];
 	
 	return newVectorObject(reflect, self->size, Py_NEW);
+}
+
+PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
+{
+	VectorObject *vecCross = NULL;
+
+	if (!VectorObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "vec.cross(value): expected a vector argument" );
+		return NULL;
+	}
+	
+	if(self->size != 3 || value->size != 3) {
+		PyErr_SetString(PyExc_AttributeError, "vec.cross(value): expects both vectors to be 3D\n");
+		return NULL;
+	}
+	
+	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW);
+	Crossf(vecCross->vec, self->vec, value->vec);
+	return (PyObject *)vecCross;
+}
+
+PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
+{
+	double dot = 0.0;
+	int x;
+	
+	if (!VectorObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "vec.cross(value): expected a vector argument" );
+		return NULL;
+	}
+	
+	if(self->size != value->size) {
+		PyErr_SetString(PyExc_AttributeError, "vec.dot(value): expects both vectors to have the same size\n");
+		return NULL;
+	}
+	
+	for(x = 0; x < self->size; x++) {
+		dot += self->vec[x] * value->vec[x];
+	}
+	return PyFloat_FromDouble(dot);
 }
 
 /*----------------------------Vector.copy() --------------------------------------

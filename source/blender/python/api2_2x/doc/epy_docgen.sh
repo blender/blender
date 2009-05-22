@@ -8,4 +8,4 @@
 LC_ALL=POSIX
 
 epydoc --debug -v  -o BPY_API --url "http://www.blender.org" --top API_intro \
- --name "Blender" --no-private --no-frames [A-Z]*.py 
+ --name "Blender" --no-private --no-sourcecode [A-Z]*.py 
