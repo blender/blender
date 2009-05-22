@@ -1,40 +1,51 @@
 #!BPY
-
+# -*- coding: latin-1 -*-
 """
 Name: 'Bolt Factory'
-Blender: 249
+Blender: 248
 Group: 'Wizards'
-Tooltip: 'Create models of various types to screw fasteners.'
+Tooltip: 'Create models of various types of screw fasteners.'
 """
 
 __author__ = " Aaron Keith (Spudmn) "
-__version__ = "1.50 "
-__url__ = ["blender", "http://wiki.blender.org/index.php/Extensions:Py/Scripts/Manual/Misc/Bolt_Factory"]
-__email__= [""]
+__version__ = "2.00 2009/05/22"
+__url__ = ["Author's site,http://sourceforge.net/projects/boltfactory/", "Blender,http://wiki.blender.org/index.php/Extensions:Py/Scripts/Manual/Misc/Bolt_Factory"]
 __bpydoc__ = """\
 Bolt_Factory.py 
 
 Bolt Factory is a Python script for Blender 3D.
 
-The script allows the user to create models of various types to screw fasteners.
-
-This version is very much a work in progress.
-
-This is my first attempt to program in Python.  This version is unpolished and
-doesn't do much error checking.  Therefore if the user sets strange
-variable the model created will be as equally strange.
+The script allows the user to create models of various types of screw fasteners.
 
 For best results set the material to smooth and apply a Edge Split modifier
 with default settings.
 
-To Do:
-Better error checking.
-Nuts to go with the bolts.
-Pre-sets for common bolts.
-Improved GUI.
-More Head and Bit types. 
-Better documentation.
-Fix error with mesh when using crest and root percent other than 10.
+
+History:
+
+V2.00 22/05/09 by Aaron Keith
+
+- Better error checking.
+- Lock Nut and Hex Nut meshes added.
+- Pre-sets for common metric bolts and nuts.
+- Improved GUI.
+- Meshes scaled to a smaller size
+- Fixed bug when using crest and root percent other than 10%
+- Can now create meshes in Edit Mode.  This will add to the 
+  current mesh and align with the current view.
+
+V1.00 01/04/08 by Aaron Keith
+
+- This version is very much a work in progress.
+- This is my first attempt to program in Python.  This version is
+  unpolished and doesn't do much error checking.  Therefore 
+  if the user sets strange variable the model created will be 
+  as equally strange.
+
+- To Do:
+- Better error checking.
+- More Head and Bit types. 
+- Better documentation.
 
 
 """
@@ -44,7 +55,7 @@ Fix error with mesh when using crest and root percent other than 10.
 # -------------------------------------------------------------------------- 
 # ***** BEGIN GPL LICENSE BLOCK ***** 
 # 
-# Copyright (C) 2008: Aaron Keith
+# Copyright (C) 2009: Aaron Keith
 # 
 # This program is free software; you can redistribute it and/or 
 # modify it under the terms of the GNU General Public License 
@@ -74,62 +85,62 @@ from Blender import Mathutils
 from Blender.Mathutils import *
 
 
+#Global_Scale = 0.001    #1 blender unit = X mm
+Global_Scale = 0.1    #1 blender unit = X mm
+#Global_Scale = 1.0    #1 blender unit = X mm
 Global_NutRad = 0.0
 MAX_INPUT_NUMBER = 50
 
 No_Event,On_Preset_Click,On_Apply_Click,On_Create_Click,On_Hex_Click, On_Cap_Click,On_Dome_Click,On_Pan_Click,On_Bit_None_Click,On_Bit_Allen_Click,On_Bit_Philips_Click,On_Exit_Click,On_Model_Bolt_Click,On_Model_Nut_Click,On_Hex_Nut_Click,On_Lock_Nut_Click,On_Test_Click = range(17)  # this is like a ENUM
 
 
-Head_Type={'HEX' : [Draw.Create(1),On_Hex_Click],
-           'CAP' : [Draw.Create(0),On_Cap_Click],
-           'DOME': [Draw.Create(0),On_Dome_Click],
-           'PAN' : [Draw.Create(0),On_Pan_Click]}
+Head_Type={'HEX' : [Draw.Create(1),On_Hex_Click,""],
+           'CAP' : [Draw.Create(0),On_Cap_Click,""],
+           'DOME': [Draw.Create(0),On_Dome_Click,""],
+           'PAN' : [Draw.Create(0),On_Pan_Click,""]}
 
 
-Bit_Type={'NONE' : [Draw.Create(1),On_Bit_None_Click],
-           'ALLEN' : [Draw.Create(0),On_Bit_Allen_Click],
-           'PHILLIPS': [Draw.Create(0),On_Bit_Philips_Click]}
+Bit_Type={'NONE' : [Draw.Create(1),On_Bit_None_Click,""],
+           'ALLEN' : [Draw.Create(0),On_Bit_Allen_Click,""],
+           'PHILLIPS': [Draw.Create(0),On_Bit_Philips_Click,""]}
 
-Model_Type={'BOLT' : [Draw.Create(1),On_Model_Bolt_Click],
-           'NUT' : [Draw.Create(0),On_Model_Nut_Click]}
+Model_Type={'BOLT' : [Draw.Create(1),On_Model_Bolt_Click,"Bolt Settings"],
+           'NUT' : [Draw.Create(0),On_Model_Nut_Click,"Nut Settings"]}
 
-Nut_Type={'HEX' : [Draw.Create(1),On_Hex_Nut_Click],
-           'LOCK' : [Draw.Create(0),On_Lock_Nut_Click]}
+Nut_Type={'HEX' : [Draw.Create(1),On_Hex_Nut_Click,""],
+           'LOCK' : [Draw.Create(0),On_Lock_Nut_Click,""]}
 
 
+Phillips_Bit_Depth = Draw.Create(3.27)
+Philips_Bit_Dia = Draw.Create(5.20)
 
-Phillips_Bit_Depth = Draw.Create(1.0)
-Philips_Bit_Dia = Draw.Create(1.75)
+Allen_Bit_Depth = Draw.Create(4.0)
+Allen_Bit_Flat_Distance = Draw.Create(6.0)
 
-Allen_Bit_Depth = Draw.Create(1.0)
-Allen_Bit_Flat_Distance = Draw.Create(1.25)
+Hex_Head_Height = Draw.Create(5.3)
+Hex_Head_Flat_Distance = Draw.Create(13.0)
 
-Hex_Head_Height = Draw.Create(1.0)
-Hex_Head_Flat_Distance = Draw.Create(2.25)
+Cap_Head_Dia = Draw.Create(13.5)
+Cap_Head_Height = Draw.Create(8.0)
 
-Cap_Head_Dia = Draw.Create(2.25)
-Cap_Head_Height = Draw.Create(1.5)
-Cap_Head_Inside_Rad = 0.0
+Dome_Head_Dia = Draw.Create(16.0)
 
-Dome_Head_Dia = Draw.Create(3.75)
+Pan_Head_Dia = Draw.Create(16.0)
 
-Pan_Head_Dia = Draw.Create(5.375)
+Shank_Dia = Draw.Create(8.0)
+Shank_Length = Draw.Create(0.0)
 
-Shank_Dia = Draw.Create(1.5)
-Shank_Length = Draw.Create(0.125)
+Thread_Length = Draw.Create(16.0)
+Major_Dia = Draw.Create(8.0)
+Minor_Dia = Draw.Create(6.917)
+Pitch = Draw.Create(1.0)
+Crest_Percent = Draw.Create(10)
+Root_Percent = Draw.Create(10)
 
-Thread_Length = Draw.Create(2.5)
-Major_Dia = Draw.Create(1.5)
-Minor_Dia = Draw.Create(1.25)
-Pitch = Draw.Create(0.125)
-Crest_Percent = Draw.Create(1.25)
-Root_Percent = Draw.Create(1.25)
+Hex_Nut_Height = Draw.Create(8.0)
+Hex_Nut_Flat_Distance = Draw.Create(13.0)
 
-Hex_Nut_Height = Draw.Create(1.0)
-Hex_Nut_Flat_Distance = Draw.Create(2.25)
-
-Preset_Menu = Draw.Create(0.25)
-Preset_Length = Draw.Create(1.5)
+Preset_Menu = Draw.Create(5)
 
 
 ##########################################################################################
@@ -138,14 +149,11 @@ Preset_Length = Draw.Create(1.5)
 ##########################################################################################
 ##########################################################################################
 
-
+# Returns a list of verts rotated by the given matrix. Used by SpinDup
 def Rot_Mesh(verts,matrix):
-        ret = []
-        for v in verts:
-            vec = Vector(v) * matrix
-            ret.append([vec.x,vec.y,vec.z])
-        return ret
+    return [list(Vector(v) * matrix) for v in verts]
 
+# Returns a list of faces that has there index incremented by offset 
 def Copy_Faces(faces,offset):        
     ret = []
     for f in faces:
@@ -155,13 +163,8 @@ def Copy_Faces(faces,offset):
         ret.append(fsub)
     return ret
 
-def Move_Verts_Up_Z(VERTS,DISTANCE):        
-    ret = []
-    for v in VERTS:
-        ret.append([v[0],v[1],v[2]+DISTANCE])
-    return ret
 
-
+# Much like Blenders built in SpinDup.
 def SpinDup(VERTS,FACES,DEGREE,DIVISIONS,AXIS):
     verts=[]
     faces=[]
@@ -171,22 +174,20 @@ def SpinDup(VERTS,FACES,DEGREE,DIVISIONS,AXIS):
   
     step = DEGREE/DIVISIONS # set step so pieces * step = degrees in arc
     
-    for i in range(int(DIVISIONS)):
+    for i in xrange(int(DIVISIONS)):
         rotmat = Mathutils.RotationMatrix(step*i, 4, AXIS) # 4x4 rotation matrix, 30d about the x axis.
         Rot = Rot_Mesh(VERTS,rotmat)
         faces.extend(Copy_Faces(FACES,len(verts)))    
-        #print faces
         verts.extend(Rot)
     return verts,faces
 
 
-def Mirror_Verts(VERTS,AXIS):
-    ret = []
-    for v in VERTS:
-        ret.append([0-v[0],v[1],v[2]]) 
-    return ret
+# Returns a list of verts that have been moved up the z axis by DISTANCE
+def Move_Verts_Up_Z(VERTS,DISTANCE):
+    return [[v[0],v[1],v[2]+DISTANCE] for v in VERTS]
 
 
+# Returns a list of verts and faces that has been mirrored in the AXIS 
 def Mirror_Verts_Faces(VERTS,FACES,AXIS,FLIP_POINT =0):
     ret_vert = []
     ret_face = []
@@ -208,42 +209,15 @@ def Mirror_Verts_Faces(VERTS,FACES,AXIS,FLIP_POINT =0):
         fsub = []
         for i in range(len(f)):
             fsub.append(f[i]+ offset)
-        fsub.reverse() # filp the order to make norm point out
+        fsub.reverse() # flip the order to make norm point out
         ret_face.append(fsub)
             
     return ret_vert,ret_face
 
-def Lath(tool_V1,tool_V2,verts,faces):
-    
-    #verts = []
-    #faces = []f
-       
-    #verts.append([7.0,6.0,0.0])
-    #verts.append([7.0+10,6.0-10,0.0])
-    #faces.append([3,4])
-        
-    vec1 = Vector(verts[-1])
-    vec2 = Vector(verts[-2])
-    
-    VecOut1,VecR2 = LineIntersect(vec1, vec2,Vector(tool_V1), Vector(tool_V2))
-    
-    vec1 = Vector(verts[-2])
-    vec2 = Vector(verts[-3])
-    
-    VecOut2,VecR2 = LineIntersect(vec1, vec2,Vector(tool_V1), Vector(tool_V2))
-    
-    if VecOut1 != None:
-        if VecOut1 == VecOut2:
-            #print "got it"
-            faces.append([len(verts),len(verts)+1])
-            verts.append([VecOut1.x,VecOut1.y,VecOut1.z])
-            verts.append([VecOut2.x,VecOut2.y,VecOut2.z])
-            #print verts[-1]
-            #print verts[-2]
-    
-    return verts,faces
 
 
+# Returns a list of faces that 
+# make up an array of 4 point polygon. 
 def Build_Face_List_Quads(OFFSET,COLUM,ROW,FLIP = 0):
     Ret =[]
     RowStart = 0;
@@ -261,7 +235,8 @@ def Build_Face_List_Quads(OFFSET,COLUM,ROW,FLIP = 0):
     return Ret
 
 
-
+# Returns a list of faces that makes up a fill pattern for a 
+# circle
 def Fill_Ring_Face(OFFSET,NUM,FACE_DOWN = 0):
     Ret =[]
     Face = [1,2,0]
@@ -298,12 +273,23 @@ def Fill_Ring_Face(OFFSET,NUM,FACE_DOWN = 0):
     return Ret
     
 
+##########################################################################################
+##########################################################################################
+##                    Converter Functions For Bolt Factory 
+##########################################################################################
+##########################################################################################
+
+
 def Flat_To_Radius(FLAT):
     h = (float(FLAT)/2)/cos(radians(30))
-    #print h
     return h
 
-
+def Get_Phillips_Bit_Height(Bit_Dia):
+    Flat_Width_half = (Bit_Dia*(0.5/1.82))/2.0
+    Bit_Rad = Bit_Dia / 2.0
+    x = Bit_Rad - Flat_Width_half
+    y = tan(radians(60))*x
+    return y 
 
 ##########################################################################################
 ##########################################################################################
@@ -338,6 +324,8 @@ def Error_Check():
     global Major_Dia 
     global Minor_Dia 
     global Pitch 
+    global Hex_Nut_Flat_Distance
+    global Model_Type
     #global Crest_Percent 
     #global Root_Percent 
 
@@ -349,19 +337,45 @@ def Error_Check():
         print error_txt
         Error_Result = TRUE  
 
-    elif (Pitch.val*7.0) > Thread_Length.val:
-        error_txt =  "Error%t|Thread length must be at least 7 times the pitch"
+    elif (Model_Type['BOLT'][0].val) and ((Pitch.val*7.0) > Thread_Length.val):
+        error_txt =  "Error%t|Thread length must be at least 7 times the Pitch"
         Blender.Draw.PupMenu(error_txt)
         print error_txt
         Error_Result = TRUE  
+    
+    elif (Model_Type['NUT'][0].val) and (Hex_Nut_Flat_Distance.val < Major_Dia.val):
+        error_txt =  "Error%t|Nut Flat Distance must be greater than Major Dia"
+        Blender.Draw.PupMenu(error_txt)
+        print error_txt
+        Error_Result = TRUE  
+    
+    elif (Model_Type['NUT'][0].val) and ((Pitch.val * 2.5 )> Hex_Nut_Height.val):
+        error_txt =  "Error%t|Nut Height must be greater than 2.5 * Pitch"
+        Blender.Draw.PupMenu(error_txt)
+        print error_txt
+        Error_Result = TRUE  
+
+    elif (Model_Type['BOLT'][0].val):
+        Check_Head_Height = None
+        Check_Bit_Height = None
+        if (Bit_Type['ALLEN'][0].val):
+            Check_Bit_Height = Allen_Bit_Depth.val
+        if (Bit_Type['PHILLIPS'][0].val):
+            Check_Bit_Height = Phillips_Bit_Depth.val
+        if (Head_Type['HEX'][0].val):
+            Check_Head_Height = Hex_Head_Height.val
+        if (Head_Type['CAP'][0].val):
+            Check_Head_Height = Cap_Head_Height.val
+        
+        if Check_Head_Height != None and Check_Bit_Height != None :
+            if Check_Bit_Height  > Check_Head_Height:
+                error_txt =  "Error%t|Bit Depth must not be greater that Head Height"
+                Blender.Draw.PupMenu(error_txt)
+                print error_txt
+                Error_Result = TRUE
+    
+    
     return Error_Result 
-
-
-
-
-
-
-
 
 
 
@@ -370,7 +384,6 @@ def Error_Check():
 ##                    Create Allen Bit
 ##########################################################################################
 ##########################################################################################
-
 
 
 def Allen_Fill(OFFSET,FLIP= 0):
@@ -408,14 +421,22 @@ def Allen_Fill(OFFSET,FLIP= 0):
             
     return faces
 
-
+def Allen_Bit_Dia(FLAT_DISTANCE):
+    Flat_Radius = (float(FLAT_DISTANCE)/2.0)/cos(radians(30))
+    return (Flat_Radius * 1.05) * 2.0
+    
+def Allen_Bit_Dia_To_Flat(DIA):
+    Flat_Radius = (DIA/2.0)/1.05
+    return (Flat_Radius * cos (radians(30)))* 2.0
+    
+    
 
 def Create_Allen_Bit(FLAT_DISTANCE,HEIGHT):
     Div = 36
     verts = []
     faces = []
     
-    Flat_Radius = (float(FLAT_DISTANCE)/2)/cos(radians(30))
+    Flat_Radius = (float(FLAT_DISTANCE)/2.0)/cos(radians(30))
     OUTTER_RADIUS = Flat_Radius * 1.05
     Outter_Radius_Height = Flat_Radius * (0.1/5.77)
     FaceStart_Outside = len(verts)
@@ -453,7 +474,7 @@ def Create_Allen_Bit(FLAT_DISTANCE,HEIGHT):
     verts.extend(M_Verts)
     faces.extend(M_Faces)
     
-    return verts,faces,OUTTER_RADIUS * 2
+    return verts,faces,OUTTER_RADIUS * 2.0
 
 
 ##########################################################################################
@@ -550,6 +571,10 @@ def Create_Phillips_Bit(FLAT_DIA,FLAT_WIDTH,HEIGHT):
 ##########################################################################################
 ##########################################################################################
 
+def Max_Pan_Bit_Dia(HEAD_DIA):
+    HEAD_RADIUS = HEAD_DIA * 0.5
+    XRad = HEAD_RADIUS * 1.976
+    return (sin(radians(10))*XRad) * 2.0
 
 
 def Create_Pan_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
@@ -558,14 +583,12 @@ def Create_Pan_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     HOLE_RADIUS = HOLE_DIA * 0.5
     HEAD_RADIUS = HEAD_DIA * 0.5
     SHANK_RADIUS = SHANK_DIA * 0.5
-    
-    print "hole dia", HOLE_DIA
+
     verts = []
     faces = []
     Row = 0
     BEVEL = HEIGHT * 0.01
     #Dome_Rad =  HEAD_RADIUS * (1.0/1.75)
-    
     
     Dome_Rad = HEAD_RADIUS * 1.12
     RAD_Offset = HEAD_RADIUS * 0.96
@@ -600,7 +623,6 @@ def Create_Pan_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     for i in range(10,30,10):
         x = sin(radians(i))*XRad
         z = cos(radians(i))*ZRad
-        print x
         verts.append([x,0.0,(0.0-ZRad)+z])
         Row += 1
 
@@ -662,12 +684,6 @@ def Create_Dome_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
 #    OtherRad_Z_Offset = 2.52
 #    
     
-    
-    #averts, afaces = Create_Allen_Bit(8.5,5,5)
-    #verts.extend(averts)
-    #faces.extend(afaces)
-    
-    #FaceStart = len(verts)
     FaceStart = FACE_OFFSET
     
     verts.append([HOLE_RADIUS,0.0,0.0])
@@ -677,7 +693,6 @@ def Create_Dome_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     for i in range(0,60,10):
         x = sin(radians(i))*Dome_Rad
         z = cos(radians(i))*Dome_Rad
-        #verts.append([x,0.0,(0.0-RAD_Offset)+z])
         if ((0.0-RAD_Offset)+z) <= 0:
             verts.append([x,0.0,(0.0-RAD_Offset)+z])
             Row += 1
@@ -696,26 +711,12 @@ def Create_Dome_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     Row += 1
 
 
-
-    #for i in range(0,18,1):
-    #    x = i
-    #    verts.append([x,0.0,(0.0-Dome_Height)])
-    #    Row += 1
-
-    
-    #verts.append([SHANK_RADIUS,0.0,(0.0-Dome_Height)-Dome_Height])
-    #Row += 1
-
-
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
     faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
- 
 
-    #Global_Head_Height = Dome_Height	   
     return sVerts,faces,Dome_Height
-    #return verts,faces
 
 
 
@@ -725,11 +726,6 @@ def Create_Cap_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2):
     HOLE_RADIUS = HOLE_DIA * 0.5
     HEAD_RADIUS = HEAD_DIA * 0.5
     SHANK_RADIUS = SHANK_DIA * 0.5
-    
-    
-    print "Head dia" , HEAD_DIA
-    print "Rad1" , RAD1
-    print "Rad2" , RAD2
     
     verts = []
     faces = []
@@ -742,21 +738,14 @@ def Create_Cap_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2):
     verts.append([HOLE_RADIUS,0.0,0.0])
     Row += 1
 
-    #verts.append([HEAD_RADIUS-RAD1,0.0,0.0])
-    #Row += 1  Done in for loop below
-
     #rad
     
     for i in range(0,100,10):
-        #print i
         x = sin(radians(i))*RAD1
         z = cos(radians(i))*RAD1
         verts.append([(HEAD_RADIUS-RAD1)+x,0.0,(0.0-RAD1)+z])
         Row += 1
     
-    
-    #verts.append([HEAD_RADIUS,0.0,0.0-RAD1])
-    #Row += 1  Done in for loop above
     
     verts.append([HEAD_RADIUS,0.0,0.0-HEIGHT+BEVEL])
     Row += 1
@@ -765,34 +754,21 @@ def Create_Cap_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2):
     Row += 1
 
     #rad2
-
-
-#    verts.append([SHANK_RADIUS+RAD2,0.0,0.0-HEIGHT])
-#    Row += 1 Done by rad2 below
-    
+   
     for i in range(0,100,10):
         x = sin(radians(i))*RAD2
         z = cos(radians(i))*RAD2
         verts.append([(SHANK_RADIUS+RAD2)-x,0.0,(0.0-HEIGHT-RAD2)+z])
         Row += 1
     
-#    verts.append([SHANK_RADIUS,0.0,0.0-HEIGHT-RAD2])
-#    Row += 1 done by rad2 above
-
-
-#    verts.append([SHANK_RADIUS,0.0,0.0-HEIGHT-RAD2-RAD2])
-#    Row += 1
 
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
-    #Global_Head_Height = HEIGHT+RAD2
-	    
 
     faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
     
     return sVerts,faces,HEIGHT+RAD2
-    #return verts,faces
 
 
 
@@ -866,7 +842,6 @@ def Create_Hex_Head(FLAT,HOLE_DIA,SHANK_DIA,HEIGHT):
     
     x = tan(radians(0))*Half_Flat
     dvec = vec1 - Mathutils.Vector([x,Half_Flat,0.0])
-    #print dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     
     
@@ -1007,27 +982,6 @@ def Create_Hex_Head(FLAT,HOLE_DIA,SHANK_DIA,HEIGHT):
     Row += 1
     
     
-    #Shank
-#    x = sin(radians(0))*SHANK_RADIUS
-#    y = cos(radians(0))*SHANK_RADIUS
-#    vec1 = Mathutils.Vector([x,y,0.0])
-#    verts.append([x,y,-HEIGHT-0.5])
-#    
-#    x = sin(radians(60/6))*SHANK_RADIUS
-#    y = cos(radians(60/6))*SHANK_RADIUS
-#    vec2 = Mathutils.Vector([x,y,0.0])
-#    verts.append([x,y,-HEIGHT-0.5])
-#    
-#    x = sin(radians(60/3))*SHANK_RADIUS
-#    y = cos(radians(60/3))*SHANK_RADIUS
-#    vec3 = Mathutils.Vector([x,y,0.0])
-#    verts.append([x,y,-HEIGHT-0.5])
-#    
-#    x = sin(radians(60/2))*SHANK_RADIUS
-#    y = cos(radians(60/2))*SHANK_RADIUS
-#    vec3 = Mathutils.Vector([x,y,0.0])
-#    verts.append([x,y,-HEIGHT-0.5])
-    
     #Global_Head_Height = 0 - (-HEIGHT-0.1)
     faces.extend(Build_Face_List_Quads(FaceStart,3,Row - 1))
        
@@ -1085,48 +1039,38 @@ def MakeBolt():
     Head_Verts = []
     Head_Faces= []
     Head_Height = 0.0
-
-
-    
+    ReSized_Allen_Bit_Flat_Distance = Allen_Bit_Flat_Distance.val  # set default  
+   
     
     Head_Height = Hex_Head_Height.val # will be changed by the Head Functions
-
+    
+    if Bit_Type['ALLEN'][0].val and Head_Type['PAN'][0].val:
+        #need to size Allen bit if it is too big.
+        if  Allen_Bit_Dia(Allen_Bit_Flat_Distance.val) > Max_Pan_Bit_Dia(Pan_Head_Dia.val):
+            ReSized_Allen_Bit_Flat_Distance = Allen_Bit_Dia_To_Flat(Max_Pan_Bit_Dia(Pan_Head_Dia.val)) * 1.05
+            print "Resized Allen Bit Flat Distance to ",ReSized_Allen_Bit_Flat_Distance 
+ 
     #bit Mesh
     if Bit_Type['ALLEN'][0].val:
-        #Create_Allen_Bit(FLAT_DISTANCE,OUTTER_RADIUS,HEIGHT):
-        Bit_Verts,Bit_Faces,Bit_Dia = Create_Allen_Bit(Allen_Bit_Flat_Distance.val,Allen_Bit_Depth.val)
+        Bit_Verts,Bit_Faces,Bit_Dia = Create_Allen_Bit(ReSized_Allen_Bit_Flat_Distance,Allen_Bit_Depth.val)
     
     if Bit_Type['PHILLIPS'][0].val:
-        #Create_Phillips_Bit(FLAT_RADIUS, FLAT_WIDTH, HEIGHT)
-        #Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(Philips_Bit_Dia.val,3,Phillips_Bit_Depth.val)
-        #Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(3.00,0.4856,1.98)
-        #Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(4,1,2)
-        #Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(3.8,0.9,2.0)
-        #Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(3.0,0.9,2.0)
         Bit_Verts,Bit_Faces,Bit_Dia = Create_Phillips_Bit(Philips_Bit_Dia.val,Philips_Bit_Dia.val*(0.5/1.82),Phillips_Bit_Depth.val)
    
         
     #Head Mesh
     if Head_Type['HEX'][0].val:  
-        #add_Hex_Head(FLAT, HOLE_DIA, SHANK_DIA, HEIGHT)
         Head_Verts,Head_Faces,Head_Height = Create_Hex_Head(Hex_Head_Flat_Distance.val,Bit_Dia,Shank_Dia.val,Hex_Head_Height.val)
 
     elif Head_Type['CAP'][0].val:  
-        #add_Cap_Head(HOLE_RADIUS,HEAD_RADIUS,SHANK_RADIUS,HEIGHT,RAD1,RAD2)
-        #add_Cap_Head(2,5,3,6,1,1)
         Head_Verts,Head_Faces,Head_Height = Create_Cap_Head(Bit_Dia,Cap_Head_Dia.val,Shank_Dia.val,Cap_Head_Height.val,Cap_Head_Dia.val*(1.0/19.0),Cap_Head_Dia.val*(1.0/19.0))
         
     elif Head_Type['DOME'][0].val:  
-        #add_Dome_Head(HOLE_RADIUS,HEAD_RADIUS,SHANK_RADIUS,HEIGHT,RAD1,RAD2,FACE_OFFSET):
         Head_Verts,Head_Faces,Head_Height = Create_Dome_Head(Bit_Dia,Dome_Head_Dia.val,Shank_Dia.val,Hex_Head_Height.val,1,1,0)
     
     elif Head_Type['PAN'][0].val:  
-        #add_Pan_Head(HOLE_RADIUS,HEAD_RADIUS,SHANK_RADIUS,HEIGHT,RAD1,RAD2,FACE_OFFSET):
-        #verts, faces = add_Pan_Head(2.6,5,2,6,3.2,1,0)
-        #Head_Verts,Head_Faces = add_Pan_Head(2.6*2,5*2,2*2,6,3.2,1,0)
         Head_Verts,Head_Faces,Head_Height = Create_Pan_Head(Bit_Dia,Pan_Head_Dia.val,Shank_Dia.val,Hex_Head_Height.val,1,1,0)
 
-    print 'got here'
 
     Face_Start = len(verts)
     verts.extend(Move_Verts_Up_Z(Bit_Verts,Head_Height))
@@ -1143,44 +1087,9 @@ def MakeBolt():
     faces.extend(Copy_Faces(Thread_Faces,Face_Start))
     
     return Move_Verts_Up_Z(verts,Thread_Height),faces
-    #return Move_Verts_Up_Z(verts,0),faces
 
 
 
-
-
-def Create_Bolt():
-    verts = []
-    faces = []
-
-  
-    if Error_Check() :
-        return
-
-
-    me = Mesh.New('Bolt')          # create a new mesh
-    
-    verts, faces = MakeBolt()
-    
-    me.verts.extend(verts)          # add vertices to mesh
-    me.faces.extend(faces)           # add faces to the mesh (also adds edges)
-
-    
-    
-    is_editmode = Window.EditMode() # Store edit mode state
-    if is_editmode: Window.EditMode(0) # Python must get a mesh in object mode.
-
-
-    scn = Scene.GetCurrent()          # link object to current scene
-    scn.objects.selected = []
-    
-    ob = scn.objects.active = scn.objects.new(me, 'Bolt')
-    ob.loc = Window.GetCursorPos()
-    me.remDoubles(0.010)    
-
-    if is_editmode: Window.EditMode(1)
-    
-    Blender.Redraw()
 
 
 
@@ -1198,8 +1107,7 @@ def Create_Internal_Thread_Start_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DI
     Ret_Row = 0;
     
     Height_Offset = Height_Offset + PITCH  #Move the offset up so that the verts start at 
-                                           #at the corect place  (Height_Start)
-    
+                                           #at the correct place  (Height_Start)
     
     Half_Pitch = float(PITCH)/2
     Height_Start = Height_Offset - PITCH 
@@ -1210,10 +1118,6 @@ def Create_Internal_Thread_Start_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DI
     Root_Height = float(PITCH) * float(ROOT_PERCENT)/float(100)
     Root_to_Crest_Height = Crest_to_Root_Height = (float(PITCH) - (Crest_Height + Root_Height))/2.0
     
-    
-#theard start
-    #print Height_Start
-    #print "Height_Offset" , Height_Offset
 
     Rank = float(OUTTER_RADIUS - INNER_RADIUS)/float(DIV)
     for j in range(1):
@@ -1289,7 +1193,6 @@ def Create_Internal_Thread_End_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,
     Root_to_Crest_Height = Crest_to_Root_Height = (float(PITCH) - (Crest_Height + Root_Height))/2.0
    
     
-#theard start
 
     Rank = float(OUTTER_RADIUS - INNER_RADIUS)/float(DIV)
     
@@ -1358,8 +1261,6 @@ def Create_Internal_Thread_End_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,
         Height_Offset -= Root_to_Crest_Height
         Ret_Row += 1
 
-        
-        
        
     return Ret_Row,Height_End  # send back Height End as this is the lowest point
 
@@ -1376,18 +1277,12 @@ def Create_Internal_Thread(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_
     Half_Pitch = float(PITCH)/2
     Deg_Step = 360.0 /float(DIV)
     Height_Step = float(PITCH)/float(DIV)
-
-    #print "HEIGHT" , HEIGHT
             
     Num = int(round((HEIGHT- PITCH)/PITCH))  # less one pitch for the start and end that is 1/2 pitch high    
-    
-    #print "Num" ,Num
     
     Col = 0
     Row = 0
     
-    #CREST_PERCENT = 10
-    #ROOT_PERCENT = 10
     
     Crest_Height = float(PITCH) * float(CREST_PERCENT)/float(100)
     Root_Height = float(PITCH) * float(ROOT_PERCENT)/float(100)
@@ -1397,18 +1292,10 @@ def Create_Internal_Thread(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_
     FaceStart = len(verts)
     
     Row_Inc,Height_Offset = Create_Internal_Thread_Start_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,CREST_PERCENT,ROOT_PERCENT,Height_Offset)
-    #Row_Inc,Height_Offset = Thread_Start3(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,CREST_PERCENT,ROOT_PERCENT,Height_Offset)
     Row += Row_Inc
-    
-    print "start Height_Offset ", Height_Offset
-    #Global_Thread_Height = 0 - Height_Offset
-    #faces.extend(Build_Face_List_Quads(FaceStart,DIV,Row -1))
-    #return verts,faces
-
     
     for j in range(Num):
         
-        print j
         for i in range(DIV+1):
             x = sin(radians(i*Deg_Step))*OUTTER_RADIUS
             y = cos(radians(i*Deg_Step))*OUTTER_RADIUS
@@ -1438,23 +1325,12 @@ def Create_Internal_Thread(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_
         Height_Offset -= Root_to_Crest_Height
         Row += 1
     
-    print "thread Height_Offset ", Height_Offset      
-   # Row_Inc,Height_Offset = Thread_Start3(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,CREST_PERCENT,ROOT_PERCENT,Height_Offset)
-    
-   # Row += Row_Inc
+
     Row_Inc,Height_Offset = Create_Internal_Thread_End_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,CREST_PERCENT,ROOT_PERCENT,Height_Offset)
     Row += Row_Inc
     
-    
-    print "End Height_Offset ", Height_Offset      
-    
-    
     faces.extend(Build_Face_List_Quads(FaceStart,DIV,Row -1,INTERNAL))
     
-    #faces.extend(Fill_Ring_Face(len(verts)-DIV,DIV,1))
-
-    #Global_Thread_Height = 0 - Height_Offset
-    #print "Global_Thread_Height" ,Global_Thread_Height 
     return verts,faces,0 - Height_Offset
 
 
@@ -1464,8 +1340,6 @@ def Create_Internal_Thread(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_
 ##                    Create External Thread
 ##########################################################################################
 ##########################################################################################
-
-
 
 
 
@@ -1542,19 +1416,6 @@ def Thread_Start3(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DIV,CREST_PERCENT,ROOT_
     return Ret_Row,Height_Offset
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 def Create_Shank_Verts(START_DIA,OUTTER_DIA,LENGTH,Z_LOCATION = 0):
 
     verts = []
@@ -1570,11 +1431,6 @@ def Create_Shank_Verts(START_DIA,OUTTER_DIA,LENGTH,Z_LOCATION = 0):
         Taper_Lentgh = 0
     
     Stright_Length = LENGTH - Taper_Lentgh
-    
-    print "opp " , Opp
-    print "Taper_Lentgh " , Taper_Lentgh
-    print "Stright_Length " , Stright_Length
-
     
     Deg_Step = 360.0 /float(DIV)
     
@@ -1600,24 +1456,11 @@ def Create_Shank_Verts(START_DIA,OUTTER_DIA,LENGTH,Z_LOCATION = 0):
         y = cos(radians(i*Deg_Step))*START_RADIUS
         z =  Height_Offset - 0
         verts.append([x,y,z])
-        if i == DIV:
-            print "ring", x,y,z
         Lowest_Z_Vert = min(Lowest_Z_Vert,z)
     Height_Offset -= Taper_Lentgh
     Row += 1
 
-    
-#    for i in range(DIV+1): 
-#        x = sin(radians(i*Deg_Step))*OUTTER_RADIUS
-#        y = cos(radians(i*Deg_Step))*OUTTER_RADIUS
-#        z =  Height_Offset - 0
-#        verts.append([x,y,z])
-#        Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-#    Height_Offset -= 1
-#    Row += 1
 
-
-    
     return verts,Row,Height_Offset
 
 
@@ -1639,7 +1482,6 @@ def Create_Thread_Start_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERC
     
     Height_Offset = Z_LOCATION
         
-    #Height_Start = Height_Offset - PITCH
     Height_Start = Height_Offset 
     
     Crest_Height = float(PITCH) * float(CREST_PERCENT)/float(100)
@@ -1658,7 +1500,6 @@ def Create_Thread_Start_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERC
             x = sin(radians(i*Deg_Step))*OUTTER_RADIUS
             y = cos(radians(i*Deg_Step))*OUTTER_RADIUS
             z = Height_Offset - (Height_Step*i)
-            print "z", z
             if z > Cut_off : z = Cut_off
             verts.append([x,y,z])
             Lowest_Z_Vert = min(Lowest_Z_Vert,z)
@@ -1694,8 +1535,6 @@ def Create_Thread_Start_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERC
             Lowest_Z_Vert = min(Lowest_Z_Vert,z)
         Height_Offset -= Root_to_Crest_Height
         Row += 1
-    
-##    return verts,Row,Height_Offset
     
     
     for j in range(2):
@@ -1759,12 +1598,6 @@ def Create_Thread_Start_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERC
 
 
 
-
-
-
-
-
-
 def Create_Thread_Verts(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_PERCENT,Z_LOCATION = 0):
     verts = []
         
@@ -1788,22 +1621,10 @@ def Create_Thread_Verts(INNER_DIA,OUTTER_DIA,PITCH,HEIGHT,CREST_PERCENT,ROOT_PER
     Root_to_Crest_Height = Crest_to_Root_Height = (float(PITCH) - (Crest_Height + Root_Height))/2.0
 
 
-      
-    #print "Crest_Height" ,Crest_Height
-    #print "Crest_to_Root_Height"  ,Crest_to_Root_Height 
-    #print "Root_Height"   ,Root_Height 
-    #print "Root_to_Crest_Height" ,Root_to_Crest_Height 
-       
-
-
-    #Height_Offset = Half_Pitch
     Height_Offset = Z_LOCATION
     
     Lowest_Z_Vert = 0;
     FaceStart = len(verts)
-    
-    
-    
     
     
     for j in range(Num):
@@ -1870,12 +1691,9 @@ def Create_Thread_End_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERCEN
     
     Height_Offset = Z_LOCATION 
     
-    
     Tapper_Height_Start = Height_Offset - PITCH - PITCH 
-    #Tapper_Height_Start = Height_Offset
     
     Max_Height = Tapper_Height_Start - PITCH 
-    #Max_Height = Tapper_Height_Start - PITCH - PITCH - PITCH - PITCH - PITCH 
     
     Lowest_Z_Vert = 0;
     
@@ -1960,24 +1778,17 @@ def Create_External_Thread(SHANK_DIA,SHANK_LENGTH,INNER_DIA,OUTTER_DIA,PITCH,LEN
                                              
     Shank_Verts,Shank_Row,Offset = Create_Shank_Verts(SHANK_DIA,OUTTER_DIA,SHANK_LENGTH,Offset)
     Total_Row += Shank_Row
-    print "Shank offset " , Offset
-    
 
     Thread_Start_Verts,Thread_Start_Row,Offset = Create_Thread_Start_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERCENT,Offset)
     Total_Row += Thread_Start_Row
-    print "Start offset " , Offset
     
     
     Thread_Verts,Thread_Row,Offset = Create_Thread_Verts(INNER_DIA,OUTTER_DIA,PITCH,LENGTH,CREST_PERCENT,ROOT_PERCENT,Offset)
     Total_Row += Thread_Row
-    print "Thread offset " , Offset
     
     
     Thread_End_Verts,Thread_End_Row,Offset,Lowest_Z_Vert = Create_Thread_End_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERCENT,Offset )
     Total_Row += Thread_End_Row       
-    print "End offset " , Offset
-    print "Lowest_Z_Vert " , Lowest_Z_Vert
-    
     
     
     verts.extend(Shank_Verts)
@@ -2070,7 +1881,6 @@ def add_Hex_Nut(FLAT,HOLE_DIA,HEIGHT):
     
     x = tan(radians(0))*Half_Flat
     dvec = vec1 - Mathutils.Vector([x,Half_Flat,0.0])
-    #print dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     Lowest_Z_Vert = min(Lowest_Z_Vert,-dvec.length)
     
@@ -2147,80 +1957,17 @@ def add_Hex_Nut(FLAT,HOLE_DIA,HEIGHT):
     return S_verts,S_faces,TopBevelRadius
 
 
-
-
-
-def add_Nylon_Head_Top(OUTSIDE_RADIUS):
-    DIV = 36
-    verts = []
-    faces = []
-    Row = 0
-
-    print "outside" , OUTSIDE_RADIUS
-    
-    INNER_HOLE = OUTSIDE_RADIUS - (OUTSIDE_RADIUS * (1.5/4.75))
-    EDGE_THICKNESS = (OUTSIDE_RADIUS * (0.4/4.75))
-    RAD1 = (OUTSIDE_RADIUS * (0.5/4.75))
-    OVER_ALL_HEIGTH = (OUTSIDE_RADIUS * (2.0/4.75))
-    
-    FaceStart = len(verts)
-
-    Start_Height = 0 - 3
-    Height_Offset = 0
-    Lowest_Z_Vert = 0
-    
-
-    x = INNER_HOLE
-    z = Height_Offset - EDGE_THICKNESS
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-    
-    x = INNER_HOLE
-    z = Height_Offset - 0
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-    
-    
-    for i in range(0,100,10):
-        #print i
-        x = sin(radians(i))*RAD1
-        z = cos(radians(i))*RAD1
-        verts.append([(OUTSIDE_RADIUS-RAD1)+x,0.0,(Height_Offset-RAD1)+z])
-        Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-        Row += 1
-    
-    
-    x = OUTSIDE_RADIUS - 0
-    z = Height_Offset - OVER_ALL_HEIGTH
-    print "ada" , z , OVER_ALL_HEIGTH
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-
-    sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
-    sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
-    
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
-
-    #return Move_Verts_Up_Z(verts,Start_Height),faces
-    return Move_Verts_Up_Z(sVerts,0 - Lowest_Z_Vert),faces,0 - Lowest_Z_Vert
-
-
-
 def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     DIV = 36
     verts = []
     faces = []
     Row = 0
 
-    print "outside" , OUTSIDE_RADIUS
-    
-    INNER_HOLE = OUTSIDE_RADIUS - (OUTSIDE_RADIUS * (1.5/4.75))
+    INNER_HOLE = OUTSIDE_RADIUS - (OUTSIDE_RADIUS * (1.25/4.75))
     EDGE_THICKNESS = (OUTSIDE_RADIUS * (0.4/4.75))
     RAD1 = (OUTSIDE_RADIUS * (0.5/4.75))
     OVER_ALL_HEIGTH = (OUTSIDE_RADIUS * (2.0/4.75))
+    
     
     FaceStart = len(verts)
 
@@ -2228,7 +1975,6 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     Height_Offset = Z_LOCATION
     Lowest_Z_Vert = 0
     
-
     x = INNER_HOLE
     z = (Height_Offset - OVER_ALL_HEIGTH) + EDGE_THICKNESS
     verts.append([x,0.0,z])
@@ -2243,7 +1989,6 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     
     
     for i in range(180,80,-10):
-        print i
         x = sin(radians(i))*RAD1
         z = cos(radians(i))*RAD1
         verts.append([(OUTSIDE_RADIUS-RAD1)+x,0.0,((Height_Offset - OVER_ALL_HEIGTH)+RAD1)+z])
@@ -2253,7 +1998,6 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     
     x = OUTSIDE_RADIUS - 0
     z = Height_Offset 
-    print "ada" , z , OVER_ALL_HEIGTH
     verts.append([x,0.0,z])
     Lowest_Z_Vert = min(Lowest_Z_Vert,z)
     Row += 1
@@ -2264,65 +2008,6 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
 
     return Move_Verts_Up_Z(sVerts,0),faces,Lowest_Z_Vert
-    #return Move_Verts_Up_Z(sVerts,0 - Lowest_Z_Vert),faces,0 - Lowest_Z_Vert
-
-
-
-def add_Nylon_Part_top(OUTSIDE_RADIUS,Z_LOCATION = 0):
-    DIV = 36
-    verts = []
-    faces = []
-    Row = 0
-
-    print "outside" , OUTSIDE_RADIUS
-     
-    
-    INNER_HOLE = OUTSIDE_RADIUS - (OUTSIDE_RADIUS * (1.5/4.75))
-    EDGE_THICKNESS = (OUTSIDE_RADIUS * (0.4/4.75))
-    RAD1 = (OUTSIDE_RADIUS * (0.5/4.75))
-    OVER_ALL_HEIGTH = (OUTSIDE_RADIUS * (2.0/4.75))
-    PART_THICKNESS = OVER_ALL_HEIGTH - EDGE_THICKNESS
-    PART_INNER_HOLE = (OUTSIDE_RADIUS * (2.5/4.75))
-    
-    FaceStart = len(verts)
-
-    Start_Height = 0 - 3
-    Height_Offset = 0
-    Lowest_Z_Vert = 0
-    
-
-    x = INNER_HOLE + EDGE_THICKNESS
-    z = Height_Offset - OVER_ALL_HEIGTH
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-    
-    x = PART_INNER_HOLE
-    z = Height_Offset - OVER_ALL_HEIGTH
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-    
-    x = PART_INNER_HOLE
-    z = Height_Offset - EDGE_THICKNESS
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-    
-    x = INNER_HOLE + EDGE_THICKNESS
-    z = Height_Offset - EDGE_THICKNESS
-    verts.append([x,0.0,z])
-    Lowest_Z_Vert = min(Lowest_Z_Vert,z)
-    Row += 1
-
-
-    sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
-    sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
-    
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
-
-    return sVerts,faces,0 - Lowest_Z_Vert
-    #return Move_Verts_Up_Z(sVerts,0 - Lowest_Z_Vert),faces,0 - Lowest_Z_Vert
 
 
 
@@ -2332,9 +2017,6 @@ def add_Nylon_Part(OUTSIDE_RADIUS,Z_LOCATION = 0):
     faces = []
     Row = 0
 
-    print "outside" , OUTSIDE_RADIUS
-     
-    
     INNER_HOLE = OUTSIDE_RADIUS - (OUTSIDE_RADIUS * (1.5/4.75))
     EDGE_THICKNESS = (OUTSIDE_RADIUS * (0.4/4.75))
     RAD1 = (OUTSIDE_RADIUS * (0.5/4.75))
@@ -2380,7 +2062,6 @@ def add_Nylon_Part(OUTSIDE_RADIUS,Z_LOCATION = 0):
     faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
 
     return sVerts,faces,0 - Lowest_Z_Vert
-    #return Move_Verts_Up_Z(sVerts,0 - Lowest_Z_Vert),faces,0 - Lowest_Z_Vert
 
 
 
@@ -2415,16 +2096,15 @@ def Nut_Mesh():
         faces.extend(Copy_Faces(Nylon_faces,Face_Start))
     
 
-    #verts.extend(Move_Verts_Up_Z(Thread_Verts,Global_Thread_Height))
-    #verts.extend(Thread_Verts)
-    #faces.extend(Copy_Faces(Thread_Faces,Face_Start))
-    print "low z" , LowZ
-    #return Move_Verts_Up_Z(verts,0),faces
     return Move_Verts_Up_Z(verts,0 - LowZ),faces
 
 
 
+##################################################################################################
+
+
 def Create_Nut():
+
     verts = []
     faces = []
     
@@ -2432,44 +2112,162 @@ def Create_Nut():
     if Error_Check() :
         return
 
-    me = Mesh.New('Nut')          # create a new mesh
     
     verts, faces = Nut_Mesh()
+    Add_Mesh_To_Scene('Nut', verts, faces)
     
-    me.verts.extend(verts)          # add vertices to mesh
-    me.faces.extend(faces)           # add faces to the mesh (also adds edges)
-    
-    is_editmode = Window.EditMode() # Store edit mode state
-    if is_editmode: Window.EditMode(0) # Python must get a mesh in object mode.
-
-
-    scn = Scene.GetCurrent()          # link object to current scene
-    scn.objects.selected = []
-    ob = scn.objects.active = scn.objects.new(me, 'Nut')
-    ob.loc = Window.GetCursorPos()
-    
-    me.remDoubles(0.010)    
-    
-    if is_editmode: Window.EditMode(1)
-    
-    Blender.Redraw()
-
 
 ##################################################################################################
 
-def Get_Phillips_Bit_Height(Bit_Dia):
-    Flat_Width_half = (Bit_Dia*(0.5/1.82))/2.0
-    Bit_Rad = Bit_Dia / 2.0
-    x = Bit_Rad - Flat_Width_half
-    y = tan(radians(60))*x
-    return y 
+
+def Create_Bolt():
+    verts = []
+    faces = []
+    
+  
+    if Error_Check() :
+        return
+    
+    verts, faces = MakeBolt()
+    Add_Mesh_To_Scene('Bolt', verts, faces)
+
+
+
+def Remove_Doubles_From_Mesh(verts,faces):
+    Ret_verts = []
+    Ret_faces = []
+    
+    is_editmode = Window.EditMode() # Store edit mode state
+    if is_editmode: Window.EditMode(0) # Python must get a mesh in object mode.
+    
+    Temp_mesh = Mesh.New('MeshTemp')          # create a new mesh
+
+    Temp_mesh.verts.extend(verts)          # add vertices to mesh
+    Temp_mesh.faces.extend(faces)           # add faces to the mesh (also adds edges)
+    
+    scn = Scene.GetCurrent()          # link object to current scene
+    Temp_Object = scn.objects.new(Temp_mesh, 'ObjectTemp')
+
+    Temp_mesh.remDoubles(0.010)
+    Temp_mesh.transform(Mathutils.Matrix([Global_Scale,0,0,0], [0,Global_Scale,0,0], [0,0,Global_Scale,0], [0,0,0, Global_Scale]))
+    Ret_verts[:] = [v.co for v in Temp_mesh.verts]
+    Ret_faces[:] = [ [v.index for v in f] for f in Temp_mesh.faces]
+
+    #delete temp mesh
+    scn.objects.unlink(Temp_Object)
+    scn.update(0)
+    
+    if is_editmode: Window.EditMode(1)
+    return Ret_verts,Ret_faces
+
+
+
+def Add_Mesh_To_Scene(name, verts, faces):
+ 
+    scn = Scene.GetCurrent()
+    if scn.lib: return
+    ob_act = scn.objects.active
+
+    is_editmode = Window.EditMode()
+
+    cursor = Window.GetCursorPos()
+    quat = None
+    
+    if is_editmode or Blender.Get('add_view_align'): # Aligning seems odd for editmode, but blender does it, oh well
+        try:    quat = Blender.Mathutils.Quaternion(Window.GetViewQuat())
+        except:    pass
+    
+
+    # Exist editmode for non mesh types
+    if ob_act and ob_act.type != 'Mesh' and is_editmode:
+        EditMode(0)
+   
+    # We are in mesh editmode
+    if Window.EditMode():
+        me = ob_act.getData(mesh=1)
+        
+        if me.multires:
+            error_txt = 'Error%t|Unable to complete action with multires enabled'
+            Blender.Draw.PupMenu(error_txt)
+            print error_txt
+            return
+        
+        #Don't want to remove doubles and scale the existing
+        # mesh so we need to get the verts and the faces from
+        # a mesh that has been scaled. 
+        verts,faces = Remove_Doubles_From_Mesh(verts, faces)
+                
+        # Add to existing mesh
+        # must exit editmode to modify mesh
+        Window.EditMode(0)
+        
+        me.sel = False
+        
+        vert_offset = len(me.verts)
+        face_offset = len(me.faces)
+        
+        
+        # transform the verts
+        txmat = Blender.Mathutils.TranslationMatrix(Blender.Mathutils.Vector(cursor))
+        if quat:
+            mat = quat.toMatrix()
+            mat.invert()
+            mat.resize4x4()
+            txmat = mat * txmat
+        
+        txmat = txmat * ob_act.matrixWorld.copy().invert()
+        
+        
+        me.verts.extend(verts)
+        # Transform the verts by the cursor and view rotation
+        me.transform(txmat, selected_only=True)
+        
+        if vert_offset:
+            me.faces.extend([[i+vert_offset for i in f] for f in faces])
+        else:
+            # Mesh with no data, unlikely
+            me.faces.extend(faces)        
+    else:
+        
+        # Object mode add new
+        me = Mesh.New(name)
+        me.verts.extend(verts)
+        me.faces.extend(faces)
+        
+        
+        me.sel = True
+        
+        # Object creation and location
+        scn.objects.selected = []
+        ob_act = scn.objects.new(me, name)
+        
+        me.remDoubles(0.010)
+        me.transform(Mathutils.Matrix([Global_Scale,0,0,0], [0,Global_Scale,0,0], [0,0,Global_Scale,0], [0,0,0, Global_Scale]))
+
+        scn.objects.active = ob_act
+        
+        if quat:
+            mat = quat.toMatrix()
+            mat.invert()
+            mat.resize4x4()
+            ob_act.setMatrix(mat)
+        
+        ob_act.loc = cursor
+    
+    me.calcNormals()
+    
+    if is_editmode or Blender.Get('add_editmode'):
+        Window.EditMode(1)
+        
+    Blender.Redraw(-1)#Redraw all
+
+##################################################################################################
     
     
 
 def Load_Preset():
 
     global Preset_Menu
-    global Preset_Length
     global Shank_Dia
     global Shank_Length
     global Thread_Length
@@ -2487,39 +2285,18 @@ def Load_Preset():
     global Pan_Head_Dia 
     global Philips_Bit_Dia 
     global Phillips_Bit_Depth 
-    global Cap_Head_Inside_Rad
     global Cap_Head_Height
 
     global Hex_Nut_Height
     global Hex_Nut_Flat_Distance
 
 
-  
-#    Crest_Percent.val = 13
-#    Root_Percent.val = 24
-#    Thread_Length.val = 8
-#        
-#    
-#    if Preset_Menu.val == 4 : #M4
-#        Major_Dia.val = 4.0
-#        Pitch.val = 0.7
-#    
-#    Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
-#    Hex_Head_Flat_Distance.val = 1.75 * Major_Dia.val
-#        
-#    Shank_Dia.val = Major_Dia.val
-#    Shank_Length.val = 0.0
-#    Hex_Head_Height.val = 2.8
-#        
-#    Cap_Head_Dia.val = 7.0
-#    Allen_Bit_Flat_Distance.val = 3.0
-#    Phillips_Bit_Depth.val = 1.5 
-
-
     if Preset_Menu.val == 1 : #M3
         Shank_Dia.val = 3.0
         #Pitch.val = 0.5    #Coarse
         Pitch.val = 0.35  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10 
         Major_Dia.val = 3.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 5.5
@@ -2542,6 +2319,8 @@ def Load_Preset():
         Shank_Dia.val = 4.0
         #Pitch.val = 0.7    #Coarse
         Pitch.val = 0.5  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10 
         Major_Dia.val = 4.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 7.0
@@ -2564,6 +2343,8 @@ def Load_Preset():
         Shank_Dia.val = 5.0
         #Pitch.val = 0.8 #Coarse
         Pitch.val = 0.5  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10 
         Major_Dia.val = 5.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 8.0
@@ -2586,6 +2367,8 @@ def Load_Preset():
         Shank_Dia.val = 6.0
         #Pitch.val = 1.0 #Coarse
         Pitch.val = 0.75  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10
         Major_Dia.val = 6.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 10.0
@@ -2608,6 +2391,8 @@ def Load_Preset():
         Shank_Dia.val = 8.0
         #Pitch.val = 1.25 #Coarse
         Pitch.val = 1.00  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10
         Major_Dia.val = 8.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 13.0
@@ -2629,6 +2414,8 @@ def Load_Preset():
         Shank_Dia.val = 10.0
         #Pitch.val = 1.5 #Coarse
         Pitch.val = 1.25  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10
         Major_Dia.val = 10.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 17.0
@@ -2650,6 +2437,8 @@ def Load_Preset():
     if Preset_Menu.val == 7 : #M12
         #Pitch.val = 1.75 #Coarse
         Pitch.val = 1.50  #Fine
+        Crest_Percent.val = 10
+        Root_Percent.val = 10
         Major_Dia.val = 12.0
         Minor_Dia.val = Major_Dia.val - (1.082532 * Pitch.val)
         Hex_Head_Flat_Distance.val = 19.0
@@ -2668,46 +2457,23 @@ def Load_Preset():
         Shank_Length.val = 33.0
         Thread_Length.val = 32.0
         
-
-
-def get_selected_edges(edge_lst):
-    ret = []
-    for i in range(0, len(edge_lst)):
-        if edge_lst[i].sel == 1:
-            ret.append(edge_lst[i])
-    return ret
+##############################################################################################
 
 def Test():
-    
-    
-    print "Test"
-    scn = Scene.GetCurrent()
-    ob = scn.getActiveObject() # Gets the current active object (If Any)
-        
-    if ob == None or ob.getType() != 'Mesh': # Checks the active objects a mesh
-        Draw.PupMenu('ERROR%t|Select a mesh object.')
+    verts = []
+    faces = []
+   
+    if Error_Check() :
         return
+    
+    verts, faces = MakeBolt()
+    
+    Add_Mesh_To_Scene("TestBolt", verts,faces)
 
-    is_editmode = Window.EditMode() # Store edit mode state
-    if is_editmode: Window.EditMode(0) # Python must get a mesh in object mode.
-    
-    me = ob.getData(False, True)
-    Sel_Edges = get_selected_edges(me.faces)
-    print Sel_Edges
-    print Sel_Edges[0].index
-    mystr = 'Face Number ' + str(Sel_Edges)
-    #mystr = 'Face Number ' + str(Sel_Edges[0].index)  
-    Draw.PupMenu(mystr)
-        
-    
-    if is_editmode: Window.EditMode(1)
-    
-    
+    Window.Redraw(-1)
 
-        
-        
 
-##############################################################################################
+
 
 def event(evt, val):    # the function to handle input events
 
@@ -2821,14 +2587,14 @@ def Create_Tab(X1,Y1,X2,Y2,Title,Buttons): # X1,Y1 = Top Left X2,Y2 = Bottom Rig
     if (Buttons != 0):
         key= Buttons.keys()
         for k in key:
-            Buttons[k][0]= Draw.Toggle(k,Buttons[k][1],Button_X,Button_Y, BIT_BUTTON_WIDTH,BIT_BUTTON_HEIGHT,Buttons[k][0].val)
+            Buttons[k][0]= Draw.Toggle(k,Buttons[k][1],Button_X,Button_Y, BIT_BUTTON_WIDTH,BIT_BUTTON_HEIGHT,Buttons[k][0].val,Buttons[k][2])
             Button_X += BIT_BUTTON_WIDTH + BUTTON_GAP    
     
     
     
 def Dispaly_Title_Bar(Y_POS,CONTROL_HEIGHT):
     CONTROL_WIDTH = 250
-    Create_Tab(3,Y_POS,CONTROL_WIDTH,Y_POS -CONTROL_HEIGHT,"Bolt Factory V1.50_249",Model_Type)
+    Create_Tab(3,Y_POS,CONTROL_WIDTH,Y_POS -CONTROL_HEIGHT,"Bolt Factory V2.00",Model_Type)
     
     
       
@@ -2841,8 +2607,8 @@ def Dispaly_Preset_Tab(Y_POS,CONTROL_HEIGHT):
     name = "M3%x1|M4%x2|M5%x3|M6%x4|M8%x5|M10%x6|M12%x7"
     
     global Preset_Menu
-    Preset_Menu = Draw.Menu(name,No_Event,9,Y_POS-BUTTON_Y_OFFSET,50,18, Preset_Menu.val, "Just a test menu.")
-    Draw.Button("Apply",On_Preset_Click,150,Y_POS-BUTTON_Y_OFFSET,55,18)
+    Preset_Menu = Draw.Menu(name,No_Event,9,Y_POS-BUTTON_Y_OFFSET,50,18, Preset_Menu.val, "Predefined metric screw sizes.")
+    Draw.Button("Apply",On_Preset_Click,150,Y_POS-BUTTON_Y_OFFSET,55,18,"Apply the preset screw sizes.")
     
 
 def Dispaly_Bit_Tab(Y_POS,CONTROL_HEIGHT):  
@@ -2924,7 +2690,7 @@ def Dispaly_Thread_Tab(Y_POS,CONTROL_HEIGHT):
     Number_Y_Pos -= NUMBER_HEIGHT
   
     global Pitch
-    Pitch = Draw.Number('Pitch: ',No_Event,Number_X,Number_Y_Pos,NUMBER_WIDTH,NUMBER_HEIGHT, Pitch.val, 0.01,50.0, '')
+    Pitch = Draw.Number('Pitch: ',No_Event,Number_X,Number_Y_Pos,NUMBER_WIDTH,NUMBER_HEIGHT, Pitch.val, 0.1,7.0, '')
     Number_Y_Pos -= NUMBER_HEIGHT
     
     global Crest_Percent
@@ -3031,11 +2797,8 @@ def gui():              # the function to draw the screen
     
     Draw.PushButton("Create",On_Create_Click,6,8,55,18,"Create Bolt")
     Draw.Button("Exit",On_Exit_Click,6+55+4,8,55,18)
-    
-    #Draw.Button("Test",On_Test_Click,150,10,55,20)
-    #Draw.Button("Nut2",On_Nut2_Click,150,32,55,20)  
    
-      #key.sort()
-   
+#    Draw.Button("Test",On_Test_Click,150,10,55,20)
 
+Load_Preset()
 Draw.Register(gui, event, button_event)  # registering the 3 callbacks
