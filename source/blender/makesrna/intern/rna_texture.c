@@ -266,8 +266,7 @@ static void rna_def_environment_map_common(StructRNA *srna)
 		{ENV_STATIC, "STATIC", "Static", "Calculates environment map only once"},
 		{ENV_ANIM, "ANIMATED", "Animated", "Calculates environment map at each rendering"},
 		{ENV_LOAD, "LOADED", "Loaded", "Loads saved environment map from disk"},
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
@@ -348,8 +347,7 @@ static EnumPropertyItem prop_noise_basis_items[] = {
 static EnumPropertyItem prop_noise_type[] = {
 	{TEX_NOISESOFT, "SOFT_NOISE", "Soft Noise", ""},
 	{TEX_NOISEPERL, "HARD_NOISE", "Hard Noise", ""},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 
 static void rna_def_texture_clouds(BlenderRNA *brna)
@@ -360,8 +358,7 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	static EnumPropertyItem prop_clouds_stype[] = {
 	{TEX_DEFAULT, "DEFAULT", "Default", ""},
 	{TEX_COLOR, "COLOR", "Color", ""},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CloudsTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Clouds Texture", "Procedural noise texture.");
@@ -411,15 +408,13 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	{TEX_RING, "RINGS", "Rings", "Uses wood texture in rings"},
 	{TEX_BANDNOISE, "BANDNOISE", "BandNoise", "Adds noise to standard wood"},
 	{TEX_RINGNOISE, "RINGNOISE", "RingNoise", "Adds noise to rings"},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem prop_wood_noisebasis2[] = {
 	{TEX_SIN, "SIN", "Sin", "Uses a sine wave to produce bands"},
 	{TEX_SAW, "SAW", "Saw", "Uses a saw wave to produce bands"},
 	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WoodTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Wood Texture", "Procedural noise texture.");
@@ -473,15 +468,13 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	{TEX_SOFT, "SOFT", "Soft", "Uses soft marble"},
 	{TEX_SHARP, "SHARP", "Sharp", "Uses more clearly defined marble"},
 	{TEX_SHARPER, "SHARPER", "Sharper", "Uses very clearly defined marble"},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem prop_marble_noisebasis2[] = {
 	{TEX_SIN, "SIN", "Sin", "Uses a sine wave to produce bands"},
 	{TEX_SAW, "SAW", "Saw", "Uses a saw wave to produce bands"},
 	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MarbleTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Marble Texture", "Procedural noise texture.");
@@ -514,6 +507,11 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_marble_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
+	
+	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
+	RNA_def_property_enum_items(prop, prop_noise_basis_items);
+	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
 
 	prop= RNA_def_property(srna, "noisebasis2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
@@ -562,8 +560,7 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 		{TEX_SPHERE, "SPHERICAL", "Spherical", "Creates a spherical progression"},
 		{TEX_HALO, "QUADRATIC_SPHERE", "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
 		{TEX_RAD, "RADIAL", "Radial", "Creates a radial progression"},
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BlendTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Blend Texture", "Procedural color blending texture.");
@@ -588,8 +585,7 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 	{TEX_PLASTIC, "PLASTIC", "Plastic", "Uses standard stucci"},
 	{TEX_WALLIN, "WALL_IN", "Wall in", "Creates Dimples"},
 	{TEX_WALLOUT, "WALL_OUT", "Wall out", "Creates Ridges"},
-	{0, NULL, NULL, NULL}
-	};
+	{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "StucciTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Stucci Texture", "Procedural noise texture.");
@@ -600,6 +596,11 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0001, 200, 10, 2);
 	RNA_def_property_ui_text(prop, "Turbulence", "Sets the turbulence of the bandnoise and ringnoise types");
+	
+	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
+	RNA_def_property_enum_items(prop, prop_noise_basis_items);
+	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
@@ -638,8 +639,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 		{4, "CLIP_CUBE", "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
 		{3, "REPEAT", "Repeat", "Causes the image to repeat horizontally and vertically"},
 		{5, "CHECKER", "Checker", "Causes the image to repeat in checker board pattern"},
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ImageTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Image Texture", "");
@@ -804,14 +804,13 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", "Hybrid Multifractal", ""},
 		{TEX_FBM, "FBM", "fBM", ""},
 		{TEX_HTERRAIN, "HETERO_TERRAIN", "Hetero Terrain", ""},
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MusgraveTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Musgrave", "Procedural musgrave texture.");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_musgrave_type);
 	RNA_def_property_ui_text(prop, "Type", "");
