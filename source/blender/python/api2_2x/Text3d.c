@@ -1116,7 +1116,7 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 	VFont *vf; //, *vfont;
 	if( !PyArg_ParseTuple( args, "|O!",&Font_Type, &pyobj) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string" );
+					      "expected a font object" );
 	if( !pyobj ) {
 	//	pyobj= M_Text3d_LoadFont (self, Py_BuildValue("(s)", "<builtin>"));
 		self->curve->vfont= get_builtin_font ();
