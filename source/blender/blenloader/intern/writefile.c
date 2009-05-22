@@ -760,10 +760,59 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	}
 }
 
+static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
+{
+	FModifier *fcm;
+	
+	/* Modifiers */
+	for (fcm= fmodifiers->first; fcm; fcm= fcm->next) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* Write the specific data */
+		if (fmi && fcm->data) {
+			/* firstly, just write the plain fmi->data struct */
+			writestruct(wd, DATA, fmi->structName, 1, fcm->data);
+			
+			/* do any modifier specific stuff */
+			switch (fcm->type) {
+				case FMODIFIER_TYPE_GENERATOR:
+				{
+					FMod_Generator *data= (FMod_Generator *)fcm->data;
+					
+					/* write coefficients array */
+					if (data->coefficients)
+						writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
+				}
+					break;
+				case FMODIFIER_TYPE_ENVELOPE:
+				{
+					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+					
+					/* write envelope data */
+					if (data->data)
+						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+				}
+					break;
+				case FMODIFIER_TYPE_PYTHON:
+				{
+					FMod_Python *data = (FMod_Python *)fcm->data;
+					
+					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+					 of library blocks that implement this.*/
+					IDP_WriteProperty(data->prop, wd);
+				}
+					break;
+			}
+		}
+		
+		/* Write the modifier */
+		writestruct(wd, DATA, "FModifier", 1, fcm);
+	}
+}
+
 static void write_fcurves(WriteData *wd, ListBase *fcurves)
 {
 	FCurve *fcu;
-	FModifier *fcm;
 	
 	for (fcu=fcurves->first; fcu; fcu=fcu->next) {
 		/* F-Curve */
@@ -794,50 +843,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			}
 		}
 		
-		/* Modifiers */
-		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-			FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-			
-			/* Write the specific data */
-			if (fmi && fcm->data) {
-				/* firstly, just write the plain fmi->data struct */
-				writestruct(wd, DATA, fmi->structName, 1, fcm->data);
-				
-				/* do any modifier specific stuff */
-				switch (fcm->type) {
-					case FMODIFIER_TYPE_GENERATOR:
-					{
-						FMod_Generator *data= (FMod_Generator *)fcm->data;
-						
-						/* write coefficients array */
-						if (data->coefficients)
-							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
-					}
-						break;
-					case FMODIFIER_TYPE_ENVELOPE:
-					{
-						FMod_Envelope *data= (FMod_Envelope *)fcm->data;
-						
-						/* write envelope data */
-						if (data->data)
-							writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
-					}
-						break;
-					case FMODIFIER_TYPE_PYTHON:
-					{
-						FMod_Python *data = (FMod_Python *)fcm->data;
-						
-						/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-						 of library blocks that implement this.*/
-						IDP_WriteProperty(data->prop, wd);
-					}
-						break;
-				}
-			}
-			
-			/* Write the modifier */
-			writestruct(wd, DATA, "FModifier", 1, fcm);
-		}
+		/* write F-Modifiers */
+		write_fmodifiers(wd, &fcu->modifiers);
 	}
 }
 
@@ -888,6 +895,29 @@ static void write_keyingsets(WriteData *wd, ListBase *list)
 	}
 }
 
+static void write_nladata(WriteData *wd, ListBase *nlabase)
+{
+	NlaTrack *nlt;
+	NlaStrip *strip;
+	
+	/* write all the tracks */
+	for (nlt= nlabase->first; nlt; nlt= nlt->next) {
+		/* write the track first */
+		writestruct(wd, DATA, "NlaTrack", 1, nlt);
+		
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* write the strip first */
+			writestruct(wd, DATA, "NlaStrip", 1, strip);
+			
+			/* write the strip's F-Curves and modifiers */
+			write_fcurves(wd, &strip->fcurves);
+			write_fmodifiers(wd, &strip->modifiers);
+			
+			// TODO write the remaps
+		}
+	}
+}
+
 static void write_animdata(WriteData *wd, AnimData *adt)
 {
 	AnimOverride *aor;
@@ -899,14 +929,17 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_fcurves(wd, &adt->drivers);
 	
 	/* write overrides */
+	// FIXME: are these needed?
 	for (aor= adt->overrides.first; aor; aor= aor->next) {
 		/* overrides consist of base data + rna_path */
 		writestruct(wd, DATA, "AnimOverride", 1, aor);
 		writedata(wd, DATA, strlen(aor->rna_path)+1, aor->rna_path);
 	}
 	
+	// TODO write the remaps (if they are needed)
+	
 	/* write NLA data */
-	// XXX todo...
+	write_nladata(wd, &adt->nla_tracks);
 }
 
 static void write_constraints(WriteData *wd, ListBase *conlist)

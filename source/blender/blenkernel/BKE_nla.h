@@ -33,6 +33,7 @@
 struct AnimData;
 struct NlaStrip;
 struct NlaTrack;
+struct bAction;
 
 /* ----------------------------- */
 /* Data Management */
@@ -41,6 +42,7 @@ void free_nlastrip(ListBase *strips, struct NlaStrip *strip);
 void free_nlatrack(ListBase *tracks, struct NlaTrack *nlt);
 void free_nladata(ListBase *tracks);
 
+struct NlaStrip *add_nlastrip(struct NlaTrack *nlt, struct bAction *act);
 struct NlaTrack *add_nlatrack(struct AnimData *adt);
 
 /* ----------------------------- */
