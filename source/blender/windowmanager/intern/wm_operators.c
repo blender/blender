@@ -319,6 +319,61 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+/* ***************** Debug menu ************************* */
+
+static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
+{
+	wmOperator *op= arg_op;
+	uiBlock *block;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
+	uiDefAutoButsRNA(C, layout, op->ptr);
+	
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+	
+	return block;
+}
+
+static int wm_debug_menu_exec(bContext *C, wmOperator *op)
+{
+	G.rt= RNA_int_get(op->ptr, "debugval");
+	ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	RNA_int_set(op->ptr, "debugval", G.rt);
+	
+	/* pass on operator, so return modal */
+	uiPupBlockOperator(C, wm_block_create_menu, op, WM_OP_EXEC_DEFAULT);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void WM_OT_debug_menu(wmOperatorType *ot)
+{
+	ot->name= "Debug Menu";
+	ot->idname= "WM_OT_debug_menu";
+	
+	ot->invoke= wm_debug_menu_invoke;
+	ot->exec= wm_debug_menu_exec;
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
+}
+
+
 /* ************ window / screen operator definitions ************** */
 
 static void WM_OT_window_duplicate(wmOperatorType *ot)
@@ -1381,6 +1436,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_ten_timer);
+	WM_operatortype_append(WM_OT_debug_menu);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -1402,6 +1458,9 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	
 }
 

@@ -545,15 +545,16 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	
-	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1;
+	short rt= CLAMPIS(G.rt, 0, 16);
+
+	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1+rt;
 	else sa->totrct.xmin= sa->v1->vec.x;
-	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax= sa->v4->vec.x-1;
+	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax= sa->v4->vec.x-1-rt;
 	else sa->totrct.xmax= sa->v4->vec.x;
 	
-	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1;
+	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1+rt;
 	else sa->totrct.ymin= sa->v1->vec.y;
-	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax= sa->v2->vec.y-1;
+	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax= sa->v2->vec.y-1-rt;
 	else sa->totrct.ymax= sa->v2->vec.y;
 	
 	/* for speedup */
@@ -582,16 +583,16 @@ void area_azone_initialize(ScrArea *sa)
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(az->pos==AZONE_SW) {
-			az->x1= sa->v1->vec.x+1;
-			az->y1= sa->v1->vec.y+1;
-			az->x2= sa->v1->vec.x+AZONESPOT;
-			az->y2= sa->v1->vec.y+AZONESPOT;
+			az->x1= sa->totrct.xmin;
+			az->y1= sa->totrct.ymin;
+			az->x2= sa->totrct.xmin + AZONESPOT-1;
+			az->y2= sa->totrct.ymin + AZONESPOT-1;
 		} 
 		else if (az->pos==AZONE_NE) {
-			az->x1= sa->v3->vec.x;
-			az->y1= sa->v3->vec.y;
-			az->x2= sa->v3->vec.x-AZONESPOT;
-			az->y2= sa->v3->vec.y-AZONESPOT;
+			az->x1= sa->totrct.xmax+1;
+			az->y1= sa->totrct.ymax+1;
+			az->x2= sa->totrct.xmax-AZONESPOT+1;
+			az->y2= sa->totrct.ymax-AZONESPOT+1;
 		}
 	}
 }

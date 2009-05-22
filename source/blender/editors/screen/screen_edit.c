@@ -868,30 +868,47 @@ static void scrarea_draw_shape_light(ScrArea *sa, char dir)
 	glDisable(GL_BLEND);
 }
 
+static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2, short a) 
+{
+	/* right border area */
+	if(x2<sizex-1)
+		sdrawline(x2+a, y1, x2+a, y2);
+	
+	/* left border area */
+	if(x1>0)  /* otherwise it draws the emboss of window over */
+		sdrawline(x1+a, y1, x1+a, y2);
+	
+	/* top border area */
+	if(y2<sizey-1)
+		sdrawline(x1, y2+a, x2, y2+a);
+	
+	/* bottom border area */
+	if(y1>0)
+		sdrawline(x1, y1+a, x2, y1+a);
+	
+}
+
 /** screen edges drawing **/
-static void drawscredge_area(ScrArea *sa)
+static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 {
 	short x1= sa->v1->vec.x;
 	short y1= sa->v1->vec.y;
 	short x2= sa->v3->vec.x;
 	short y2= sa->v3->vec.y;
+	short a, rt;
 	
-	cpack(0x0);
+	rt= CLAMPIS(G.rt, 0, 16);
 	
-	/* right border area */
-	sdrawline(x2, y1, x2, y2);
-	
-	/* left border area */
-	if(x1>0) { /* otherwise it draws the emboss of window over */
-		sdrawline(x1, y1, x1, y2);
+	if(center==0) {
+		cpack(0x505050);
+		for(a=-rt; a<=rt; a++)
+			if(a!=0)
+				drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, a);
 	}
-	
-	/* top border area */
-	sdrawline(x1, y2, x2, y2);
-	
-	/* bottom border area */
-	sdrawline(x1, y1, x2, y1);
-	
+	else {
+		cpack(0x0);
+		drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
+	}
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
@@ -971,9 +988,11 @@ void ED_screen_draw(wmWindow *win)
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
-		drawscredge_area(sa);
+		drawscredge_area(sa, win->sizex, win->sizey, 0);
 	}
-
+	for(sa= win->screen->areabase.first; sa; sa= sa->next)
+		drawscredge_area(sa, win->sizex, win->sizey, 1);
+	
 	/* blended join arrow */
 	if (sa1 && sa2) {
 		dir = area_getorientation(win->screen, sa1, sa2);

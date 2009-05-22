@@ -2080,3 +2080,20 @@ void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 	uiPupBlockO(C, func, arg, NULL, 0);
 }
 
+void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int opcontext)
+{
+	wmWindow *window= CTX_wm_window(C);
+	uiPopupBlockHandle *handle;
+	
+	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, op);
+	handle->popup= 1;
+	handle->retvalue= 1;
+
+	handle->popup_arg= op;
+	handle->popup_func= operator_cb;
+	handle->cancel_func= confirm_cancel_operator;
+	handle->opcontext= opcontext;
+	
+	UI_add_popup_handlers(C, &window->handlers, handle);
+	WM_event_add_mousemove(C);
+}

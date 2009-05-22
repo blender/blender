@@ -238,6 +238,7 @@ typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, vo
 
 void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext);
+void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext);
 
 /* Blocks
  *
