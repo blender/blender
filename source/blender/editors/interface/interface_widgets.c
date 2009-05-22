@@ -1391,22 +1391,30 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* slider part */
+	VECCOPY(outline, wcol->outline);
+	VECCOPY(wcol->outline, wcol->item);
+	VECCOPY(wcol->inner, wcol->item);
+	SWAP(short, wcol->shadetop, wcol->shadedown);
+	
 	rect1= *rect;
 	
 	value= ui_get_but_val(but);
 	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
 	
+	/* left part of slider, always rounded */
+	rect1.xmax= rect1.xmin + ceil(offs+1.0f);
+	round_box_edges(&wtb1, roundboxalign & ~6, &rect1, offs);
+	wtb1.outline= 0;
+	widgetbase_draw(&wtb1, wcol);
+	
+	/* right part of slider, interpolate roundness */
 	rect1.xmax= rect1.xmin + fac + offs;
+	rect1.xmin+=  floor(offs-1.0f);
 	if(rect1.xmax + offs > rect->xmax)
 		offs*= (rect1.xmax + offs - rect->xmax)/offs;
 	else 
 		offs= 0.0f;
-	round_box_edges(&wtb1, roundboxalign, &rect1, offs);
-	
-	VECCOPY(outline, wcol->outline);
-	VECCOPY(wcol->outline, wcol->item);
-	VECCOPY(wcol->inner, wcol->item);
-	SWAP(short, wcol->shadetop, wcol->shadedown);
+	round_box_edges(&wtb1, roundboxalign & ~9, &rect1, offs);
 	
 	widgetbase_draw(&wtb1, wcol);
 	VECCOPY(wcol->outline, outline);
