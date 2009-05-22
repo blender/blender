@@ -17,6 +17,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
@@ -118,6 +119,9 @@ void BKE_free_animdata (ID *id)
 			if (adt->action)
 				adt->action->id.us--;
 				
+			/* free nla data */
+			free_nladata(&adt->nla_tracks);
+			
 			/* free drivers - stored as a list of F-Curves */
 			free_fcurves(&adt->drivers);
 			
@@ -981,6 +985,9 @@ static void nladata_flush_channels (ListBase *channels)
 				break;
 			case PROP_ENUM:
 				RNA_property_enum_set(ptr, prop, (int)value);
+				break;
+			default:
+				// can't do anything with other types of property....
 				break;
 		}
 	}

@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung (full recode)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -30,15 +30,26 @@
 #ifndef BKE_NLA_H
 #define BKE_NLA_H
 
-struct bActionStrip;
-struct ListBase;
-struct Object;
+struct AnimData;
+struct NlaStrip;
+struct NlaTrack;
 
-void free_actionstrip (struct bActionStrip* strip);
-void free_nlastrips (struct ListBase *nlalist);
-void copy_nlastrips (struct ListBase *dst, struct ListBase *src);
-void copy_actionstrip (struct bActionStrip **dst, struct bActionStrip **src);
-void find_stridechannel(struct Object *ob, struct bActionStrip *strip);
-struct bActionStrip *convert_action_to_strip (struct Object *ob);
+/* ----------------------------- */
+/* Data Management */
+
+void free_nlastrip(ListBase *strips, struct NlaStrip *strip);
+void free_nlatrack(ListBase *tracks, struct NlaTrack *nlt);
+void free_nladata(ListBase *tracks);
+
+struct NlaTrack *add_nlatrack(struct AnimData *adt);
+
+/* ----------------------------- */
+/* API */
+
+struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
+void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt_a);
+
+void BKE_nla_action_pushdown(struct AnimData *adt);
+
 #endif
 

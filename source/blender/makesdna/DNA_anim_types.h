@@ -395,7 +395,7 @@ typedef struct AnimMapper {
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
 	
-	bAction *act;				/* Action that is referenced by this strip */
+	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
 	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
 	
 	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
@@ -458,6 +458,8 @@ enum {
 		/* NLA strip is muted (i.e. doesn't contribute in any way) */
 		// TODO: this overlaps a lot with the functionality in track
 	NLASTRIP_FLAG_MUTED			= (1<<12),
+		/* NLA strip length is synced to the length of the referenced action */
+	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<13),
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */

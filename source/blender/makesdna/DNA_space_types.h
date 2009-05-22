@@ -244,7 +244,7 @@ typedef struct SpaceNla {
 
 	short blockhandler[8];
 
-	short menunr, lock;
+	int filterflag;			/* filtering flags (similar to the ones used for Keyframe Editors) */
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
 	

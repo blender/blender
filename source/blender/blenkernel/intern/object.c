@@ -1193,18 +1193,12 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
-#if 0 // XXX old animation system
-	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
-#endif // XXX old animation system
 	copy_constraints(&obn->constraints, &ob->constraints);
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
-#if 0 // XXX old animation system
-	id_us_plus((ID *)obn->ipo);
-	id_us_plus((ID *)obn->action);
-#endif // XXX old animation system
 	id_us_plus((ID *)obn->dup_group);
+	// FIXME: add this for animdata too...
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
