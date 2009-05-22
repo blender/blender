@@ -55,6 +55,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
 					self.edgesplit(box, md)
 				if md.type == 'EXPLODE':
 					self.explode(box, md)
+				if md.type == 'FLUID_SIMULATION':
+					self.fluid(box, md)
 				if md.type == 'HOOK':
 					self.hook(box, md)
 				if md.type == 'LATTICE':
