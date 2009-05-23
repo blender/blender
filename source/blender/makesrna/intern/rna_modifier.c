@@ -335,9 +335,9 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "simple");
 
-	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");
-	RNA_def_property_ui_text(prop, "Levels", "");
+	RNA_def_property_ui_text(prop, "Level", "");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }

@@ -46,6 +46,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -365,6 +366,32 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	
 	/* XXX only some types should be here */
 	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
+}
+
+static int multires_subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	MultiresModifierData *mmd = find_multires_modifier(ob);
+
+	if(mmd) {
+		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
+{
+	ot->name= "Multires Subdivide";
+	ot->description= "Add a new level of subdivision.";
+	ot->idname= "OBJECT_OT_multires_subdivide";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= multires_subdivide_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 #if 0

@@ -256,7 +256,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "mirror_object")
 		
 	def multires(self, layout, md):
-		layout.itemR(md, "levels")
+		layout.itemR(md, "subdivision_type")
+		layout.itemO("OBJECT_OT_multires_subdivide", text="Subdivide")
+		layout.itemR(md, "level")
 	
 	def particleinstance(self, layout, md):
 		layout.itemR(md, "object")
