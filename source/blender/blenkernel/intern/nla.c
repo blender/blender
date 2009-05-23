@@ -145,7 +145,73 @@ void free_nladata (ListBase *tracks)
 
 /* Copying ------------------------------------------- */
 
-// TODO...
+/* Copy NLA strip */
+NlaStrip *copy_nlastrip (NlaStrip *strip)
+{
+	NlaStrip *strip_d;
+	
+	/* sanity check */
+	if (strip == NULL)
+		return NULL;
+		
+	/* make a copy */
+	strip_d= MEM_dupallocN(strip);
+	strip_d->next= strip_d->prev= NULL;
+	
+	/* increase user-count of action */
+	if (strip_d->act)
+		strip_d->act->id.us++;
+		
+	/* copy F-Curves and modifiers */
+	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
+	fcurve_copy_modifiers(&strip_d->modifiers, &strip->modifiers);
+	
+	/* return the strip */
+	return strip_d;
+}
+
+/* Copy NLA Track */
+NlaTrack *copy_nlatrack (NlaTrack *nlt)
+{
+	NlaStrip *strip, *strip_d;
+	NlaTrack *nlt_d;
+	
+	/* sanity check */
+	if (nlt == NULL)
+		return NULL;
+		
+	/* make a copy */
+	nlt_d= MEM_dupallocN(nlt);
+	nlt_d->next= nlt_d->prev= NULL;
+	
+	/* make a copy of all the strips, one at a time */
+	nlt_d->strips.first= nlt_d->strips.last= NULL;
+	
+	for (strip= nlt->strips.first; strip; strip= strip->next) {
+		strip_d= copy_nlastrip(strip);
+		BLI_addtail(&nlt_d->strips, strip_d);
+	}
+	
+	/* return the copy */
+	return nlt_d;
+}
+
+/* Copy all NLA data */
+void copy_nladata (ListBase *dst, ListBase *src)
+{
+	NlaTrack *nlt, *nlt_d;
+	
+	/* sanity checks */
+	if ELEM(NULL, dst, src)
+		return;
+		
+	/* copy each NLA-track, one at a time */
+	for (nlt= src->first; nlt; nlt= nlt->next) {
+		/* make a copy, and add the copy to the destination list */
+		nlt_d= copy_nlatrack(nlt);
+		BLI_addtail(dst, nlt_d);
+	}
+}
 
 /* Adding ------------------------------------------- */
 
@@ -224,7 +290,7 @@ NlaTrack *add_nlatrack (AnimData *adt)
 /* *************************************************** */
 /* Basic Utilities */
 
-/* States ------------------------------------------- */
+/* NLA-Tracks ---------------------------------------- */
 
 /* Find the active NLA-track for the given stack */
 NlaTrack *BKE_nlatrack_find_active (ListBase *tracks)
@@ -265,6 +331,80 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 		nlt_a->flag |= NLATRACK_ACTIVE;
 }
 
+/* Check if there is any space in the last track to add the given strip */
+short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
+{
+	NlaStrip *strip;
+	
+	/* sanity checks */
+	if ((nlt == NULL) || IS_EQ(start, end))
+		return 0;
+	if (start > end) {
+		puts("BKE_nlatrack_has_space error... start and end arguments swapped");
+		SWAP(float, start, end);
+	}
+	
+	/* loop over NLA strips checking for any overlaps with this area... */
+	for (strip= nlt->strips.first; strip; strip= strip->next) {
+		/* if start frame of strip is past the target end-frame, that means that
+		 * we've gone past the window we need to check for, so things are fine
+		 */
+		if (strip->start > end)
+			return 1;
+		
+		/* if the end of the strip is greater than either of the boundaries, the range
+		 * must fall within the extents of the strip
+		 */
+		if ((strip->end > start) || (strip->end > end))
+			return 0;
+	}
+	
+	/* if we are still here, we haven't encountered any overlapping strips */
+	return 1;
+}
+
+/* Rearrange the strips in the track so that they are always in order 
+ * (usually only needed after a strip has been moved) 
+ */
+void BKE_nlatrack_sort_strips (NlaTrack *nlt)
+{
+	ListBase tmp = {NULL, NULL};
+	NlaStrip *strip, *sstrip;
+	
+	/* sanity checks */
+	if ELEM(NULL, nlt, nlt->strips.first)
+		return;
+		
+	/* we simply perform insertion sort on this list, since it is assumed that per track,
+	 * there are only likely to be at most 5-10 strips
+	 */
+	for (strip= nlt->strips.first; strip; strip= strip->next) {
+		short not_added = 1;
+		
+		/* remove this strip from the list, and add it to the new list, searching from the end of 
+		 * the list, assuming that the lists are in order 
+		 */
+		BLI_remlink(&nlt->strips, strip);
+		
+		for (sstrip= tmp.last; not_added && sstrip; sstrip= sstrip->prev) {
+			/* check if add after */
+			if (sstrip->end < strip->start) {
+				BLI_insertlinkafter(&tmp, sstrip, strip);
+				not_added= 0;
+				break;
+			}
+		}
+		
+		/* add before first? */
+		if (not_added)
+			BLI_addhead(&tmp, strip);
+	}
+	
+	/* reassign the start and end points of the strips */
+	nlt->strips.first= tmp.first;
+	nlt->strips.last= tmp.last;
+}
+ 
 /* Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA
@@ -286,7 +426,9 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	/* if the action is empty, we also shouldn't try to add to stack, 
 	 * as that will cause us grief down the track
 	 */
-	// TODO: code a method for this, and report errors after...
+	// TODO: what about modifiers?
+	if (action_has_motion(adt->action) == 0)
+		return;
 		
 	/* add a new NLA track to house this action 
 	 *	- we could investigate trying to fit the action into an appropriately

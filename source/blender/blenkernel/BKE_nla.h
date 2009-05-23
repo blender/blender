@@ -42,6 +42,10 @@ void free_nlastrip(ListBase *strips, struct NlaStrip *strip);
 void free_nlatrack(ListBase *tracks, struct NlaTrack *nlt);
 void free_nladata(ListBase *tracks);
 
+struct NlaStrip *copy_nlastrip(struct NlaStrip *strip);
+struct NlaTrack *copy_nlatrack(struct NlaTrack *nlt);
+void copy_nladata(ListBase *dst, ListBase *src);
+
 struct NlaStrip *add_nlastrip(struct NlaTrack *nlt, struct bAction *act);
 struct NlaTrack *add_nlatrack(struct AnimData *adt);
 
@@ -49,7 +53,10 @@ struct NlaTrack *add_nlatrack(struct AnimData *adt);
 /* API */
 
 struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
-void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt_a);
+void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
+
+short BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
+void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
 void BKE_nla_action_pushdown(struct AnimData *adt);
 

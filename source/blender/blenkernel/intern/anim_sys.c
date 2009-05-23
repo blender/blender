@@ -153,7 +153,7 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	dadt->action= copy_action(adt->action);
 	
 	/* duplicate NLA data */
-	// XXX todo...
+	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);
 	
 	/* duplicate drivers (F-Curves) */
 	copy_fcurves(&dadt->drivers, &adt->drivers);

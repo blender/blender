@@ -740,7 +740,22 @@ float get_action_frame_inv(Object *ob, float cframe)
 }
 
 
-
+/* Check if the given action has any keyframes */
+short action_has_motion(const bAction *act)
+{
+	FCurve *fcu;
+	
+	/* return on the first F-Curve that has some keyframes/samples defined */
+	if (act) {
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			if (fcu->totvert)
+				return 1;
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
 
 /* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
