@@ -1412,11 +1412,22 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = hasCompoundChildren;
 	objprop.m_margin = blenderobject->margin;
+	
 	// ACTOR is now a separate feature
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	
+	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
+	if (objprop.m_angular_rigidbody || !objprop.m_dyna )
+	{
+		objprop.m_contactProcessingThreshold = blenderobject->pad3;
+	} else
+	{
+		objprop.m_contactProcessingThreshold = 0.f;
+	}
+
 	objprop.m_sensor = (blenderobject->gameflag & OB_SENSOR) != 0;
 	
 	if (objprop.m_softbody)
@@ -1461,6 +1472,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 			objprop.m_margin = blenderobject->bsoft->margin;
+			objprop.m_contactProcessingThreshold = 0.f;
 		} else
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
@@ -1501,6 +1513,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= 16;
 			objprop.m_soft_welding = 0.f;
 			objprop.m_margin = 0.f;
+			objprop.m_contactProcessingThreshold = 0.f;
 		}
 	}
 

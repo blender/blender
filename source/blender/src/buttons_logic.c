@@ -3198,11 +3198,17 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiDefButF(block, NUM, 0, "Margin", 
 					xco, yco, 180, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
+
 			
-			yco -= 20;
 
 			if (ob->gameflag & OB_RIGID_BODY)
 			{
+				uiDefButF(block, NUM, 0, "CPT",
+					xco+180, yco, 180, 19, &ob->pad3, 0.00, 1., 1, 0, 
+					"Contact Processing Threshold");
+			
+				yco -= 20;
+
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
 					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of linear motion along the X axis");
@@ -3226,8 +3232,9 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
 					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of angular motion along the Z axis");
-				yco -= 20;
 			}
+
+			yco -= 20;
 			xco = 0;
 			
 			uiBlockEndAlign(block);
@@ -3279,6 +3286,10 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiDefButF(block, NUM, 0, "Margin", 
 					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
+			uiDefButF(block, NUM, 0, "CPT",
+				xco+180, yco, 180, 19, &ob->pad3, 0.00, 1., 1, 0, 
+				"Contact Processing Threshold");
+
 		}
 		yco -= 20;
 		xco = 0;

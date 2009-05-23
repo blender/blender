@@ -139,6 +139,8 @@ struct KX_ObjectProperties
 
 	/////////////////////////
 	double  m_margin;
+	float	m_contactProcessingThreshold;
+
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;

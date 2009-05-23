@@ -1103,6 +1103,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		(isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : 
 		short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
+	
+	ci.m_contactProcessingThreshold = objprop->m_contactProcessingThreshold;//todo: expose this in advanced settings, just like margin, default to 10000 or so
 	ci.m_bSoft = objprop->m_softbody;
 	ci.m_bSensor = isbulletsensor;
 	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();

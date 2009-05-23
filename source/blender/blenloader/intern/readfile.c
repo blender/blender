@@ -8083,7 +8083,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Adjustments needed after Bullets update */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->damping *= 0.635f;
-			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+			ob->rdamping = 0.1 + (0.8f * ob->rdamping);
 		}
 	}
 	
@@ -8105,11 +8105,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->occlusionRes = 128;
 		}
 	}
-		
+
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
 		Object *ob;
 		World *wrld;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->pad3 = 1.; //pad3 is used for m_contactProcessingThreshold
 			if(ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
 				   to compound shaper as well (was the behaviour before, now it's optional) */

@@ -231,7 +231,8 @@ struct CcdConstructionInfo
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f),
 		m_do_anisotropic(false),
-		m_anisotropicFriction(1.f,1.f,1.f)
+		m_anisotropicFriction(1.f,1.f,1.f),
+		m_contactProcessingThreshold(1e10)
 	{
 	}
 
@@ -317,6 +318,13 @@ struct CcdConstructionInfo
 	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
 	bool		m_fh_normal;             ///< Should the object slide off slopes?
 	float		m_radius;//for fh backwards compatibility
+	
+	///m_contactProcessingThreshold allows to process contact points with positive distance
+	///normally only contacts with negative distance (penetration) are solved
+	///however, rigid body stacking is more stable when positive contacts are still passed into the constraint solver
+	///this might sometimes lead to collisions with 'internal edges' such as a sliding character controller
+	///so disable/set m_contactProcessingThreshold to zero for sliding characters etc.
+	float		m_contactProcessingThreshold;///< Process contacts with positive distance in range [0..INF]
 
 };
 

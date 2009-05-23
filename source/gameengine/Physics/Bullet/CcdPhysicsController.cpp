@@ -519,6 +519,8 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			body->setAngularFactor(0.f);
 		}
+		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
+
 	}
 	if (m_object && m_cci.m_do_anisotropic)
 	{
