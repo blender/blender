@@ -1257,12 +1257,12 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Alive);
-	RNA_def_property_ui_text(prop, "alive", "Show mesh when particles are alive.");
+	RNA_def_property_ui_text(prop, "Alive", "Show mesh when particles are alive.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Dead);
-	RNA_def_property_ui_text(prop, "dead", "Show mesh when particles are dead.");
+	RNA_def_property_ui_text(prop, "Dead", "Show mesh when particles are dead.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 

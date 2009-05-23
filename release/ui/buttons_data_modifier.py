@@ -94,8 +94,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		row.itemR(md, "vertex_group")
 		row.itemR(md, "invert")
 		flow = layout.column_flow()
-		flow.itemR(md, "use_vertex_groups")
-		flow.itemR(md, "use_bone_envelopes")
+		flow.itemR(md, "use_vertex_groups", text="Vertex Groups")
+		flow.itemR(md, "use_bone_envelopes", text="Bone Envelopes")
 		flow.itemR(md, "quaternion")
 		flow.itemR(md, "multi_modifier")
 		
@@ -159,12 +159,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			
 	def cast(self, layout, md):
 		layout.itemR(md, "cast_type")
-		layout.itemR(md, "x")
-		layout.itemR(md, "y")
-		layout.itemR(md, "z")
-		layout.itemR(md, "factor")
-		layout.itemR(md, "radius")
-		layout.itemR(md, "size")
+		col = layout.column_flow()
+		col.itemR(md, "x")
+		col.itemR(md, "y")
+		col.itemR(md, "z")
+		col.itemR(md, "factor")
+		col.itemR(md, "radius")
+		col.itemR(md, "size")
 		layout.itemR(md, "vertex_group")
 		#Missing: "OB" and "From Radius"
 		
@@ -195,10 +196,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "uv_layer")
 	
 	def edgesplit(self, layout, md):
-		layout.itemR(md, "use_edge_angle")
+		layout.itemR(md, "use_edge_angle", text="Edge Angle")
 		if (md.use_edge_angle):
 			layout.itemR(md, "split_angle")
-		layout.itemR(md, "use_sharp")
+		layout.itemR(md, "use_sharp", text="Sharp Edges")
 		
 	def explode(self, layout, md):
 		layout.itemR(md, "vertex_group")
@@ -208,7 +209,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "alive")
 		layout.itemR(md, "dead")
 		# Missing: "Refresh" and "Clear Vertex Group" ?
-		# Couldn't test due to crash. 
 		
 	def fluid(self, layout, md):
 		layout.itemL(text="See Fluidsim panel.")
@@ -242,16 +242,18 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 	def mirror(self, layout, md):
 		layout.itemR(md, "merge_limit")
-		row = layout.row()
-		row.itemR(md, "x")
-		row.itemR(md, "y")
-		row.itemR(md, "z")
+		split = layout.split()
 		
-		col = layout.column_flow()
-		col.itemR(md, "clip", text="Do Clipping")
-		col.itemR(md, "mirror_vertex_groups")
-		col.itemR(md, "mirror_u")
-		col.itemR(md, "mirror_v")
+		sub = split.column()
+		sub.itemR(md, "x")
+		sub.itemR(md, "y")
+		sub.itemR(md, "z")
+		sub = split.column()
+		sub.itemR(md, "mirror_u")
+		sub.itemR(md, "mirror_v")
+		sub = split.column()
+		sub.itemR(md, "clip", text="Do Clipping")
+		sub.itemR(md, "mirror_vertex_groups", text="Vertex Group")
 		
 		layout.itemR(md, "mirror_object")
 		
@@ -311,13 +313,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "lock_y_axis")
 	
 	def smooth(self, layout, md):
-		row = layout.row()
-		row.itemR(md, "x")
-		row.itemR(md, "y")
-		row.itemR(md, "z")
+		split = layout.split()
+		sub = split.column()
+		sub.itemR(md, "x")
+		sub.itemR(md, "y")
+		sub.itemR(md, "z")
+		sub = split.column()
+		sub.itemR(md, "factor")
+		sub.itemR(md, "repeat")
 		
-		layout.itemR(md, "factor")
-		layout.itemR(md, "repeat")
 		layout.itemR(md, "vertex_group")
 		
 	def softbody(self, layout, md):
@@ -325,10 +329,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	
 	def subsurf(self, layout, md):
 		layout.itemR(md, "subdivision_type")
-		layout.itemR(md, "levels")
-		layout.itemR(md, "render_levels")
-		layout.itemR(md, "optimal_draw")
-		layout.itemR(md, "subsurf_uv")
+		col = layout.column_flow()
+		col.itemR(md, "levels")
+		col.itemR(md, "render_levels")
+		col.itemR(md, "optimal_draw")
+		col.itemR(md, "subsurf_uv")
 	
 	def uvproject(self, layout, md):
 		layout.itemR(md, "uv_layer")
@@ -340,15 +345,20 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		#"Projectors" don't work.
 		
 	def wave(self, layout, md):
-		row = layout.row()
-		row.itemR(md, "x")
-		row.itemR(md, "y")
-		row.itemR(md, "cyclic")
-		row = layout.row()
-		row.itemR(md, "normals")
-		row.itemR(md, "x_normal")
-		row.itemR(md, "y_normal")
-		row.itemR(md, "z_normal")
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemL(text="Motion:")
+		sub.itemR(md, "x")
+		sub.itemR(md, "y")
+		sub.itemR(md, "cyclic")
+		
+		sub = split.column()
+		sub.itemR(md, "normals")
+		if md.normals:
+			sub.itemR(md, "x_normal", text="X")
+			sub.itemR(md, "y_normal", text="Y")
+			sub.itemR(md, "z_normal", text="Z")
 		
 		col = layout.column_flow()
 		col.itemR(md, "time_offset")
@@ -362,8 +372,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "texture")
 		layout.itemR(md, "texture_coordinates")
-		layout.itemR(md, "uv_layer")
-		layout.itemR(md, "texture_coordinates_object")
+		if md.texture_coordinates == 'MAP_UV':
+			layout.itemR(md, "uv_layer")
+		if md.texture_coordinates == 'OBJECT':
+			layout.itemR(md, "texture_coordinates_object")
 		
 		col = layout.column_flow()
 		col.itemR(md, "speed", slider=True)
