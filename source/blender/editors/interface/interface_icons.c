@@ -65,10 +65,10 @@
 #include "ED_datafiles.h"
 
 #define ICON_IMAGE_W		600
-#define ICON_IMAGE_H		512
+#define ICON_IMAGE_H		640
 
 #define ICON_GRID_COLS		26
-#define ICON_GRID_ROWS		24
+#define ICON_GRID_ROWS		30
 
 #define ICON_GRID_MARGIN	5
 #define ICON_GRID_W		16

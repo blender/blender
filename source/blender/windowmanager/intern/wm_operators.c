@@ -232,7 +232,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin(C, "OK?", ICON_HELP);
+	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
 	uiItemO(layout, NULL, 0, op->type->idname);
 	uiPupMenuEnd(C, pup);

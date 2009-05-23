@@ -3524,7 +3524,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
-				UI_icon_draw(x, y, ICON_VGROUP); break;
+				UI_icon_draw(x, y, ICON_GROUP_VERTEX); break;
 			case TSE_BONE:
 			case TSE_EBONE:
 				UI_icon_draw(x, y, ICON_BONE_DATA); break;
@@ -3688,7 +3688,25 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_LT:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LATTICE); break;
 			case ID_LA:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
+			{
+				Lamp *la= (Lamp *)tselem->id;
+				
+				switch(la->type) {
+					case LA_LOCAL:
+						UI_icon_draw(x, y, ICON_LAMP_POINT); break;
+					case LA_SUN:
+						UI_icon_draw(x, y, ICON_LAMP_SUN); break;
+					case LA_SPOT:
+						UI_icon_draw(x, y, ICON_LAMP_SPOT); break;
+					case LA_HEMI:
+						UI_icon_draw(x, y, ICON_LAMP_HEMI); break;
+					case LA_AREA:
+						UI_icon_draw(x, y, ICON_LAMP_AREA); break;
+					default:
+						UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
+				}
+				break;
+			}
 			case ID_MA:
 				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
 			case ID_TE:

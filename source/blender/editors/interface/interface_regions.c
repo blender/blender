@@ -1982,7 +1982,7 @@ void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 	va_list ap;
 	char titlestr[256];
 
-	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
+	sprintf(titlestr, "OK? %%i%d", ICON_QUESTION);
 
 	va_start(ap, str);
 	vconfirm_opname(C, opname, titlestr, str, ap);

@@ -84,9 +84,9 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_MeshTextureFace)
 		return ICON_FACESEL_HLT;
 	else if(rnatype == &RNA_VertexGroup)
-		return ICON_VGROUP;
+		return ICON_GROUP_VERTEX;
 	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_VGROUP;
+		return ICON_GROUP_VERTEX;
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE_DATA;
 	else if(rnatype == &RNA_MetaBall)
