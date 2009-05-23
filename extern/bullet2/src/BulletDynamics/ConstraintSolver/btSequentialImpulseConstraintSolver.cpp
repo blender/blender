@@ -490,7 +490,7 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 
 
 				///warm starting (or zero if disabled)
-				if (0)//infoGlobal.m_solverMode & SOLVER_USE_WARMSTARTING)
+				if (infoGlobal.m_solverMode & SOLVER_USE_WARMSTARTING)
 				{
 					solverConstraint.m_appliedImpulse = cp.m_appliedImpulse * infoGlobal.m_warmstartingFactor;
 					if (rb0)
