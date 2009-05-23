@@ -24,6 +24,53 @@ Tooltip: 'Attemps to update deprecated usage of game engine API.'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
+# This script updates game engine scripts that were designed for pre-2.49
+# versions of Blender to run with the new API. Deprecated function calls are
+# listed in attributeRenameDict. This script searches for instances of the keys
+# in a target script and re-writes them.
+#
+# Some deprecated functions are complicated to re-write. The most common
+# conversions have been implemented, but some have not. Running this will reduce
+# the number of deprecation warnings in your scripts, but may not eliminate them
+# entirely.
+#
+# NOTE: The conversion is not guaranteed to be perfect. It is strongly
+# recommended that you review all changes after running this script.
+#
+# TODO: The following attributes are either ambiguous or need special processing
+# to handle parameters.
+#
+# getLinearVelocity  (KX_SCA_AddObjectActuator)
+#                    Conflicts with KX_GameObject.
+# setLinearVelocity  (KX_SCA_AddObjectActuator)
+#                    Conflicts with KX_GameObject.
+# getAngularVelocity (KX_SCA_AddObjectActuator)
+#                    Conflicts with KX_GameObject.
+# setAngularVelocity (KX_SCA_AddObjectActuator)
+#                    Conflicts with KX_GameObject.
+# setAction          (BL_ShapeActionActuator, BL_ActionActuator)
+#                    `reset' argument has no conversion target.
+# set                (KX_VisibilityActuator, KX_IpoActuator)
+#                    Different numbers of arguments.
+#                    Arguments map to multiple attributes.
+# getIndex           (SCA_JoystickSensor)
+#                    Incompatible values: Old = 1-based index; new = 0-based.
+# getMesh            (KX_SCA_ReplaceMeshActuator)
+#                    Return types differ. Need to call object.name.
+# getObject          (KX_SCA_AddObjectActuator, KX_CameraActuator,
+#                     KX_TrackToActuator, KX_ParentActuator)
+#                    Default return type differs between classes.
+# setIndex           (SCA_JoystickSensor)
+#                    Incompatible values: Old = 1-based index; new = 0-based.
+# setObject          (KX_SCA_AddObjectActuator, KX_CameraActuator,
+#                     KX_TrackToActuator, KX_ParentActuator)
+#                    Incompatible types: Old = KX_GameObject or String; new =
+#                    KX_GameObject.
+# setOperation       (KX_SCA_DynamicActuator, KX_StateActuator)
+#                    Ambiguous: different target names.
+#
+
 import string
 import re
 
@@ -36,7 +83,7 @@ def findBalancedParens(lines, row, col, openChar = '(', closeChar = ')'):
 	"""Finds a balanced pair of parentheses, searching from lines[row][col].
 	The opening parenthesis must be on the starting line.
 	
-	Returns a 4-tuple containing the row and column of the opening paren, and
+	Returns two tuples containing the row and column of the opening paren, and
 	the row and column of the matching paren.
 	
 	Throws a ParseError if the first character is not openChar, or if a matching
@@ -163,6 +210,25 @@ def replaceSimpleSetter(lines, row, colStart, colEnd, newName):
 	
 	lines[row] = replaceSubstr(lines[row], colStart, colEnd, newName + ' = ')
 
+def replaceArgsWithListSetter(lines, row, colStart, colEnd, newName):
+	"""Replace a call to a multi-agument setter function with a reference to a
+	list property, e.g. foo.setBar(baz, bazZ) -> foo.bar = [baz, bazZ]
+	
+	The function identifier being replaced must be on line `row' and
+	between `colStart' and `colEnd'. The opening parenthesis must follow
+	immediately (whitespace is allowed). The closing parenthesis may be on the
+	same or following lines.
+	
+	Throws a ConversionError if the parentheses can't be found. In this case
+	the content of `lines' will be untouched."""
+	try:
+		replaceNextParens(lines, row, colEnd, newOpenChar = '[', newCloseChar = ']')
+	except ParseError:
+		raise ConversionError, ("Deprecated function reference.")
+	
+	lines[row] = replaceSubstr(lines[row], colStart, colEnd, newName + ' = ')
+	
+
 def replaceKeyedGetter(lines, row, colStart, colEnd, newName):
 	"""Replace a call to a keyed getter function with a reference to a
 	property, e.g. foo.getBar(baz) -> foo.bar[baz]
@@ -261,6 +327,10 @@ def replaceAddActiveActuator(lines, row, colStart, colEnd, closure):
 	lines[row] = replaceSubstr(lines[row], gameLogicStart, closeCol + 1, newExpr)
 
 def getObject(line, attributeStart):
+	'''Get the object that an attribute belongs to. `attributeStart' is the
+	index of the first character of the attribute name in the string `line'.
+	Returns: the identifier preceding `attributeStart', or None if one can't be
+	found.'''
 	match = re.search(r'([a-zA-Z_]\w*)\s*\.\s*$', line[0:attributeStart])
 	if not match:
 		return None
@@ -268,7 +338,7 @@ def getObject(line, attributeStart):
 
 def replaceGetActuator(lines, row, colStart, colEnd, closure):
 	'''getActuator is ambiguous: it could belong to SCA_IController or 
-	SCA_ActuatorSensor. Try to resolve.
+	SCA_ActuatorSensor. Try to resolve and then convert.
 	
 	Raises a ConversionError if the parentheses can't be found, or if the
 	ambiguity can't be resolved.'''
@@ -284,6 +354,54 @@ def replaceGetActuator(lines, row, colStart, colEnd, closure):
 	
 	raise ConversionError, "Ambiguous: addActiveActuator -> actuators[key] (SCA_IController) or actuator (SCA_ActuatorSensor)."
 
+def replaceSetOrientation(lines, row, colStart, colEnd, closure):
+	'''setOrientation is ambiguous: it could belong to KX_SoundActuator or 
+	KX_GameObject. Try to resolve and then convert. If the type can't be
+	determined, it is assumed to be a KX_GameObject. Currently, only the
+	conversion for KX_GameObject is implemented.
+	
+	Raises a ConversionError if the parentheses can't be found, or if the
+	object is found to be a KX_SoundActuator.'''
+	# Get the name of the object this attribute is attached to.
+	obName = getObject(lines[row], colStart)
+	if obName:
+		# Try to find out whether the object is an actuator.
+		assn = findLastAssignment(lines, row, obName)
+		if assn:
+			match = re.search(r'([a-zA-Z_]\w*)'           # Controller identifier
+							r'\s*\.\s*'                 # Dot
+							r'(actuators\s*\[|getActuator\s*\()', # Dictionary/getter identifier
+							assn)
+			if match:
+				# It's probably a KX_SoundActuator.
+				raise ConversionError, "Not implemented: Can't convert arguments to matrix."
+	
+	# It's probably a KX_GameObject.
+	replaceSimpleSetter(lines, row, colStart, colEnd, 'localOrientation')
+
+def replaceSetPosition(lines, row, colStart, colEnd, closure):
+	'''setPosition is ambiguous: it could belong to KX_SoundActuator or 
+	KX_GameObject. Try to resolve and then convert. If the type can't be
+	determined, it is assumed to be a KX_GameObject.
+	
+	Raises a ConversionError if the parentheses can't be found.'''
+	# Get the name of the object this attribute is attached to.
+	obName = getObject(lines[row], colStart)
+	if obName:
+		# Try to find out whether the object is an actuator.
+		assn = findLastAssignment(lines, row, obName)
+		if assn:
+			match = re.search(r'([a-zA-Z_]\w*)'           # Controller identifier
+							r'\s*\.\s*'                 # Dot
+							r'(actuators\s*\[|getActuator\s*\()', # Dictionary/getter identifier
+							assn)
+			if match:
+				# It's probably a KX_SoundActuator.
+				replaceSimpleSetter(lines, row, colStart, colEnd, 'position')
+	
+	# It's probably a KX_GameObject.
+	replaceSimpleSetter(lines, row, colStart, colEnd, 'localPosition')
+
 #
 # Deprecated attribute information. The format is:
 # deprecatedAttributeName: {(conversionFunction, closure): classList}
@@ -298,24 +416,31 @@ attributeRenameDict = {
  'getActuator': {(replaceGetActuator, None): ['SCA_IController', 'SCA_ActuatorSensor']},
  'getXPosition': {(replaceGetXYPosition, '0'): ['SCA_MouseSensor']},
  'getYPosition': {(replaceGetXYPosition, '1'): ['SCA_MouseSensor']},
+ 'setOrientation': {(replaceSetOrientation, None): ['KX_GameObject', 'KX_SoundActuator']},
+ 'setPosition': {(replaceSetPosition, None): ['KX_GameObject', 'KX_SoundActuator']},
 
- # Unimplemented! There are probably more of these below that would cause errors.
- #'getLinearVelocity': {(replaceSimpleGetter, 'linearVelocity'): ['KX_SCA_AddObjectActuator']},
- #'setLinearVelocity': {(replaceSimpleSetter, 'linearVelocity'): ['KX_SCA_AddObjectActuator']},
- #'getAngularVelocity': {(replaceSimpleGetter, 'angularVelocity'): ['KX_SCA_AddObjectActuator']},
- #'setAngularVelocity': {(replaceSimpleSetter, 'angularVelocity'): ['KX_SCA_AddObjectActuator']},
+ # Keyed getters/setters
+ 'getSensor': {(replaceKeyedGetter, 'sensors'): ['SCA_IController']},
 
- # Generic converters
+ # Multi-arg -> List setter
+ 'setAxis': {(replaceArgsWithListSetter, 'axis'): ['SCA_JoystickSensor']},
+ 'setHat': {(replaceArgsWithListSetter, 'hat'): ['SCA_JoystickSensor']},
+ 'setVelocity': {(replaceArgsWithListSetter, 'velocity'): ['KX_SoundActuator']},
+
+ # Straight rename
+ 'getButtonValue': {(replaceRename, 'getButtonActiveList'): ['SCA_JoystickSensor']},
+
+ # Simple getters/setters
+ 'getSensors': {(replaceSimpleGetter, 'sensors'): ['SCA_IController']},
+ 'getActuators': {(replaceSimpleGetter, 'actuators'): ['SCA_IController']},
  'enableViewport': {(replaceSimpleSetter, 'useViewport'): ['KX_Camera']},
  'getAction': {(replaceSimpleGetter, 'action'): ['BL_ShapeActionActuator', 'BL_ActionActuator']},
- 'getActuators': {(replaceKeyedGetter, 'actuators'): ['SCA_IController']},
  'getAxis': {(replaceSimpleGetter, 'axis'): ['SCA_JoystickSensor']},
- 'getAxisValue': {(replaceSimpleGetter, 'axisSingle'): ['SCA_JoystickSensor']},
+ 'getAxisValue': {(replaceSimpleGetter, 'axisValues'): ['SCA_JoystickSensor']},
  'getBlendin': {(replaceSimpleGetter, 'blendIn'): ['BL_ShapeActionActuator',
-                                                     'BL_ActionActuator']},
+                                                   'BL_ActionActuator']},
  'getBodies': {(replaceSimpleGetter, 'bodies'): ['KX_NetworkMessageSensor']},
  'getButton': {(replaceSimpleGetter, 'button'): ['SCA_JoystickSensor']},
- 'getButtonValue': {(replaceRename, 'getButtonActiveList'): ['SCA_JoystickSensor']},
  'getCamera': {(replaceSimpleGetter, 'camera'): ['KX_SceneActuator']},
  'getConeOrigin': {(replaceSimpleGetter, 'coneOrigin'): ['KX_RadarSensor']},
  'getConeTarget': {(replaceSimpleGetter, 'coneTarget'): ['KX_RadarSensor']},
@@ -325,8 +450,8 @@ attributeRenameDict = {
  'getDistribution': {(replaceSimpleGetter, 'distribution'): ['SCA_RandomActuator']},
  'getDuration': {(replaceSimpleGetter, 'duration'): ['SCA_DelaySensor']},
  'getEnd': {(replaceSimpleGetter, 'frameEnd'): ['BL_ShapeActionActuator',
-                                                  'KX_IpoActuator',
-                                                  'BL_ActionActuator']},
+                                                'KX_IpoActuator',
+                                                'BL_ActionActuator']},
  'getExecutePriority': {(replaceSimpleGetter, 'executePriority'): ['SCA_ILogicBrick']},
  'getFile': {(replaceSimpleGetter, 'fileName'): ['KX_GameActuator']},
  'getFilename': {(replaceSimpleGetter, 'fileName'): ['KX_SoundActuator']},
@@ -334,21 +459,20 @@ attributeRenameDict = {
  'getFrame': {(replaceSimpleGetter, 'frame'): ['BL_ShapeActionActuator', 'BL_ActionActuator']},
  'getFrameMessageCount': {(replaceSimpleGetter, 'frameMessageCount'): ['KX_NetworkMessageSensor']},
  'getFrameProperty': {(replaceSimpleGetter, 'framePropName'): ['BL_ShapeActionActuator',
-                                                                 'BL_ActionActuator']},
+                                                               'BL_ActionActuator']},
  'getFrequency': {(replaceSimpleGetter, 'frequency'): ['SCA_ISensor']},
  'getGain': {(replaceSimpleGetter, 'volume'): ['KX_SoundActuator', 'KX_CDActuator']},
  'getHat': {(replaceSimpleGetter, 'hat'): ['SCA_JoystickSensor']},
  'getHeight': {(replaceSimpleGetter, 'height'): ['KX_CameraActuator']},
  'getHitNormal': {(replaceSimpleGetter, 'hitNormal'): ['KX_MouseFocusSensor', 'KX_RaySensor']},
  'getHitObject': {(replaceSimpleGetter, 'hitObject'): ['KX_MouseFocusSensor',
-                                                         'KX_RaySensor',
-                                                         'KX_TouchSensor']},
+                                                       'KX_RaySensor',
+                                                       'KX_TouchSensor']},
  'getHitObjectList': {(replaceSimpleGetter, 'hitObjectList'): ['KX_TouchSensor']},
  'getHitPosition': {(replaceSimpleGetter, 'hitPosition'): ['KX_MouseFocusSensor',
-                                                             'KX_RaySensor']},
+                                                           'KX_RaySensor']},
  'getHold1': {(replaceSimpleGetter, 'hold1'): ['SCA_KeyboardSensor']},
  'getHold2': {(replaceSimpleGetter, 'hold2'): ['SCA_KeyboardSensor']},
- 'getIndex': {(replaceSimpleGetter, 'index'): ['SCA_JoystickSensor']},
  'getInvert': {(replaceSimpleGetter, 'invert'): ['SCA_ISensor']},
  'getIpoAdd': {(replaceSimpleGetter, 'useIpoAdd'): ['KX_IpoActuator']},
  'getIpoAsForce': {(replaceSimpleGetter, 'useIpoAsForce'): ['KX_IpoActuator']},
@@ -359,16 +483,11 @@ attributeRenameDict = {
  'getLooping': {(replaceSimpleGetter, 'looping'): ['KX_SoundActuator']},
  'getMass': {(replaceSimpleGetter, 'mass'): ['KX_GameObject']},
  'getMax': {(replaceSimpleGetter, 'max'): ['KX_CameraActuator']},
- 'getMesh': {(replaceSimpleGetter, 'mesh'): ['KX_SCA_ReplaceMeshActuator']},
  'getMin': {(replaceSimpleGetter, 'min'): ['KX_CameraActuator']},
  'getName': {(replaceSimpleGetter, 'name'): ['KX_Scene']},
  'getNumAxes': {(replaceSimpleGetter, 'numAxis'): ['SCA_JoystickSensor']},
  'getNumButtons': {(replaceSimpleGetter, 'numButtons'): ['SCA_JoystickSensor']},
  'getNumHats': {(replaceSimpleGetter, 'numHats'): ['SCA_JoystickSensor']},
- 'getObject': {(replaceSimpleGetter, 'object'): ['KX_SCA_AddObjectActuator',
-                                                   'KX_CameraActuator',
-                                                   'KX_TrackToActuator',
-                                                   'KX_ParentActuator']},
  'getObjectList': {(replaceSimpleGetter, 'objects'): ['KX_Scene']},
  'getOperation': {(replaceSimpleGetter, 'mode'): ['KX_SCA_DynamicActuator']},
  'getOrientation': {(replaceSimpleGetter, 'worldOrientation'): ['KX_GameObject']},
@@ -380,12 +499,13 @@ attributeRenameDict = {
  'getPosition': {(replaceSimpleGetter, 'worldPosition'): ['KX_GameObject']},
  'getPressedKeys': {(replaceSimpleGetter, 'events'): ['SCA_KeyboardSensor']},
  'getPriority': {(replaceSimpleGetter, 'priority'): ['BL_ShapeActionActuator',
-                                                       'BL_ActionActuator']},
+                                                     'BL_ActionActuator']},
  'getProjectionMatrix': {(replaceSimpleGetter, 'projection_matrix'): ['KX_Camera']},
  'getProperty': {(replaceSimpleGetter, 'propName'): ['SCA_PropertySensor',
-                                                       'SCA_RandomActuator']},
+                                                     'SCA_RandomActuator',
+                                                     'SCA_PropertyActuator']},
  'getRayDirection': {(replaceSimpleGetter, 'rayDirection'): ['KX_MouseFocusSensor',
-                                                               'KX_RaySensor']},
+                                                             'KX_RaySensor']},
  'getRaySource': {(replaceSimpleGetter, 'raySource'): ['KX_MouseFocusSensor']},
  'getRayTarget': {(replaceSimpleGetter, 'rayTarget'): ['KX_MouseFocusSensor']},
  'getRepeat': {(replaceSimpleGetter, 'repeat'): ['SCA_DelaySensor']},
@@ -393,11 +513,9 @@ attributeRenameDict = {
  'getScene': {(replaceSimpleGetter, 'scene'): ['KX_SceneActuator']},
  'getScript': {(replaceSimpleGetter, 'script'): ['SCA_PythonController']},
  'getSeed': {(replaceSimpleGetter, 'seed'): ['SCA_RandomActuator']},
- 'getSensor': {(replaceKeyedGetter, 'sensors'): ['SCA_IController']},
- 'getSensors': {(replaceKeyedGetter, 'sensors'): ['SCA_IController']},
  'getStart': {(replaceSimpleGetter, 'frameStart'): ['BL_ShapeActionActuator',
-                                                      'KX_IpoActuator',
-                                                      'BL_ActionActuator']},
+                                                    'KX_IpoActuator',
+                                                    'BL_ActionActuator']},
  'getState': {(replaceSimpleGetter, 'state'): ['SCA_IController', 'KX_GameObject']},
  'getSubject': {(replaceSimpleGetter, 'subject'): ['KX_NetworkMessageSensor']},
  'getSubjects': {(replaceSimpleGetter, 'subjects'): ['KX_NetworkMessageSensor']},
@@ -415,14 +533,11 @@ attributeRenameDict = {
  'isConnected': {(replaceSimpleGetter, 'connected'): ['SCA_JoystickSensor']},
  'isPositive': {(replaceSimpleGetter, 'positive'): ['SCA_ISensor']},
  'isTriggered': {(replaceSimpleGetter, 'triggered'): ['SCA_ISensor']},
- 'set': {(replaceSimpleSetter, 'visibility'): ['KX_VisibilityActuator']},
- 'setAction': {(replaceSimpleSetter, 'action'): ['BL_ShapeActionActuator', 'BL_ActionActuator']},
  'setActuator': {(replaceSimpleSetter, 'actuator'): ['SCA_ActuatorSensor']},
- 'setAxis': {(replaceSimpleSetter, 'axis'): ['SCA_JoystickSensor']},
  'setBlendin': {(replaceSimpleSetter, 'blendIn'): ['BL_ShapeActionActuator',
-                                                     'BL_ActionActuator']},
+                                                   'BL_ActionActuator']},
  'setBlendtime': {(replaceSimpleSetter, 'blendTime'): ['BL_ShapeActionActuator',
-                                                         'BL_ActionActuator']},
+                                                       'BL_ActionActuator']},
  'setBodyType': {(replaceSimpleSetter, 'usePropBody'): ['KX_NetworkMessageActuator']},
  'setButton': {(replaceSimpleSetter, 'button'): ['SCA_JoystickSensor']},
  'setCamera': {(replaceSimpleSetter, 'camera'): ['KX_SceneActuator']},
@@ -430,22 +545,20 @@ attributeRenameDict = {
  'setDelay': {(replaceSimpleSetter, 'delay'): ['SCA_DelaySensor']},
  'setDuration': {(replaceSimpleSetter, 'duration'): ['SCA_DelaySensor']},
  'setEnd': {(replaceSimpleSetter, 'frameEnd'): ['BL_ShapeActionActuator',
-                                                  'KX_IpoActuator',
-                                                  'BL_ActionActuator']},
+                                                'KX_IpoActuator',
+                                                'BL_ActionActuator']},
  'setExecutePriority': {(replaceSimpleSetter, 'executePriority'): ['SCA_ILogicBrick']},
  'setFile': {(replaceSimpleSetter, 'fileName'): ['KX_GameActuator']},
  'setFilename': {(replaceSimpleSetter, 'fileName'): ['KX_SoundActuator']},
  'setForceIpoActsLocal': {(replaceSimpleSetter, 'useIpoLocal'): ['KX_IpoActuator']},
  'setFrame': {(replaceSimpleSetter, 'frame'): ['BL_ShapeActionActuator', 'BL_ActionActuator']},
  'setFrameProperty': {(replaceSimpleSetter, 'framePropName'): ['BL_ShapeActionActuator',
-                                                                 'BL_ActionActuator']},
+                                                               'BL_ActionActuator']},
  'setFrequency': {(replaceSimpleSetter, 'frequency'): ['SCA_ISensor']},
  'setGain': {(replaceSimpleSetter, 'volume'): ['KX_SoundActuator', 'KX_CDActuator']},
- 'setHat': {(replaceSimpleSetter, 'hat'): ['SCA_JoystickSensor']},
  'setHeight': {(replaceSimpleSetter, 'height'): ['KX_CameraActuator']},
  'setHold1': {(replaceSimpleSetter, 'hold1'): ['SCA_KeyboardSensor']},
  'setHold2': {(replaceSimpleSetter, 'hold2'): ['SCA_KeyboardSensor']},
- 'setIndex': {(replaceSimpleSetter, 'index'): ['SCA_JoystickSensor']},
  'setInvert': {(replaceSimpleSetter, 'invert'): ['SCA_ISensor']},
  'setIpoAdd': {(replaceSimpleSetter, 'useIpoAdd'): ['KX_IpoActuator']},
  'setIpoAsForce': {(replaceSimpleSetter, 'useIpoAsForce'): ['KX_IpoActuator']},
@@ -456,31 +569,22 @@ attributeRenameDict = {
  'setMax': {(replaceSimpleSetter, 'max'): ['KX_CameraActuator']},
  'setMesh': {(replaceSimpleSetter, 'mesh'): ['KX_SCA_ReplaceMeshActuator']},
  'setMin': {(replaceSimpleSetter, 'min'): ['KX_CameraActuator']},
- 'setObject': {(replaceSimpleSetter, 'object'): ['KX_SCA_AddObjectActuator',
-                                                   'KX_CameraActuator',
-                                                   'KX_TrackToActuator',
-                                                   'KX_ParentActuator']},
- 'setOperation': {(replaceSimpleSetter, 'mode'): ['KX_SCA_DynamicActuator'],
-                  (replaceSimpleSetter, 'operation'): ['KX_StateActuator']},
- 'setOrientation': {(replaceSimpleSetter, 'localOrientation'): ['KX_GameObject'],
-                    (replaceSimpleSetter, 'orientation'): ['KX_SoundActuator']},
  'setPitch': {(replaceSimpleSetter, 'pitch'): ['KX_SoundActuator']},
- 'setPosition': {(replaceSimpleSetter, 'localPosition'): ['KX_GameObject'],
-                 (replaceSimpleSetter, 'position'): ['KX_SoundActuator']},
  'setPriority': {(replaceSimpleSetter, 'priority'): ['BL_ShapeActionActuator',
-                                                       'BL_ActionActuator']},
+                                                     'BL_ActionActuator']},
  'setProjectionMatrix': {(replaceSimpleSetter, 'projection_matrix'): ['KX_Camera']},
  'setProperty': {(replaceSimpleSetter, 'propName'): ['KX_IpoActuator',
-                                                       'SCA_PropertySensor',
-                                                       'SCA_RandomActuator']},
+                                                     'SCA_PropertySensor',
+                                                     'SCA_RandomActuator',
+                                                     'SCA_PropertyActuator']},
  'setRepeat': {(replaceSimpleSetter, 'repeat'): ['SCA_DelaySensor']},
  'setRollOffFactor': {(replaceSimpleSetter, 'rollOffFactor'): ['KX_SoundActuator']},
  'setScene': {(replaceSimpleSetter, 'scene'): ['KX_SceneActuator']},
  'setScript': {(replaceSimpleSetter, 'script'): ['SCA_PythonController']},
  'setSeed': {(replaceSimpleSetter, 'seed'): ['SCA_RandomActuator']},
  'setStart': {(replaceSimpleSetter, 'frameStart'): ['BL_ShapeActionActuator',
-                                                      'KX_IpoActuator',
-                                                      'BL_ActionActuator']},
+                                                    'KX_IpoActuator',
+                                                    'BL_ActionActuator']},
  'setState': {(replaceSimpleSetter, 'state'): ['KX_GameObject']},
  'setSubject': {(replaceSimpleSetter, 'subject'): ['KX_NetworkMessageActuator']},
  'setSubjectFilterText': {(replaceSimpleSetter, 'subject'): ['KX_NetworkMessageSensor']},
@@ -493,8 +597,28 @@ attributeRenameDict = {
  'setUsePosPulseMode': {(replaceSimpleSetter, 'usePosPulseMode'): ['SCA_ISensor']},
  'setUseRestart': {(replaceSimpleSetter, 'useRestart'): ['KX_SceneActuator']},
  'setValue': {(replaceSimpleSetter, 'value'): ['SCA_PropertySensor', 'SCA_PropertyActuator']},
- 'setVelocity': {(replaceSimpleSetter, 'velocity'): ['KX_SoundActuator']},
  'setXY': {(replaceSimpleSetter, 'useXY'): ['KX_CameraActuator']}
+
+ # Unimplemented!
+ #'getLinearVelocity': {(replaceSimpleGetter, 'linearVelocity'): ['KX_SCA_AddObjectActuator']},
+ #'setLinearVelocity': {(replaceSimpleSetter, 'linearVelocity'): ['KX_SCA_AddObjectActuator']},
+ #'getAngularVelocity': {(replaceSimpleGetter, 'angularVelocity'): ['KX_SCA_AddObjectActuator']},
+ #'setAngularVelocity': {(replaceSimpleSetter, 'angularVelocity'): ['KX_SCA_AddObjectActuator']},
+ #'setAction': {(replaceSimpleSetter, 'action'): ['BL_ShapeActionActuator', 'BL_ActionActuator']},
+ #'set': {(replaceSimpleSetter, 'visibility'): ['KX_VisibilityActuator']},
+ #'getIndex': {(replaceSimpleGetter, 'index'): ['SCA_JoystickSensor']},
+ #'getMesh': {(replaceSimpleGetter, 'mesh'): ['KX_SCA_ReplaceMeshActuator']},
+ #'getObject': {(replaceSimpleGetter, 'object'): ['KX_SCA_AddObjectActuator',
+ #                                                  'KX_CameraActuator',
+ #                                                  'KX_TrackToActuator',
+ #                                                  'KX_ParentActuator']},
+ #'setIndex': {(replaceSimpleSetter, 'index'): ['SCA_JoystickSensor']},
+ #'setObject': {(replaceSimpleSetter, 'object'): ['KX_SCA_AddObjectActuator',
+ #                                                  'KX_CameraActuator',
+ #                                                  'KX_TrackToActuator',
+ #                                                  'KX_ParentActuator']},
+ #'setOperation': {(replaceSimpleSetter, 'mode'): ['KX_SCA_DynamicActuator'],
+ #                 (replaceSimpleSetter, 'operation'): ['KX_StateActuator']},
 }
 
 def convert248to249(lines, log = True, logErrors = True):
@@ -629,26 +753,41 @@ def runAsTextPlugin():
 	from Blender import Window, sys, Draw
 	import BPyTextPlugin, bpy
 	
-	# Gets the active text object, there can be many in one blend file.
-	txt = bpy.data.texts.active
-	
-	# Silently return if the script has been run with no active text
-	if not txt:
-		return 
+	message = ("Convert Game Engine script from 4.48 API to 2.49 API%t|"
+	           "Run on active script only%x1|"
+	           "Run on ALL text buffers%x2")
+	convertAllBuffers = Draw.PupMenu(message) == 2
 	
 	Window.WaitCursor(1)
 	try:
-		lines = txt.asLines()
-		for i in range(0, len(lines)):
-			if not lines[i].endswith('\n'):
-				lines[i] = lines[i] + '\n'
+		nconverted = 0
+		nerrors = 0
 		
-		nconverted, nerrors = convert248to249(lines)
+		if convertAllBuffers:
+			texts = bpy.data.texts
+		else:
+			if not bpy.data.texts.active:
+				Draw.PupMenu("No active buffer.")
+				return
+			texts = [bpy.data.texts.active]
 		
-		Blender.SaveUndoState('Convert GE 249')
-		txt.clear()
-		for line in lines:
-			txt.write(line)
+		Blender.SaveUndoState('Convert BGE 2.49')
+
+		for txt in texts:
+			lines = txt.asLines()
+			for i in range(0, len(lines)):
+				if not lines[i].endswith('\n'):
+					lines[i] = lines[i] + '\n'
+			
+			nc, ne = convert248to249(lines)
+			nconverted = nconverted + nc
+			nerrors = nerrors + ne
+			txt.clear()
+			for line in lines:
+				txt.write(line)
+	
+	finally:
+		Window.WaitCursor(0)
 		
 		message = "Converted %d attributes." % nconverted
 		if nerrors == 1:
@@ -657,9 +796,6 @@ def runAsTextPlugin():
 			message = message + " There were %d errors (see console)." % nerrors
 		message = message + "|Please review all the changes."
 		Draw.PupMenu(message)
-	
-	finally:
-		Window.WaitCursor(0)
 
 def main():
 	try:

@@ -2561,6 +2561,7 @@ class KX_NetworkMessageActuator(SCA_IActuator):
 	@ivar usePropBody: Send a property instead of a regular body message.
 	@type usePropBody: boolean
 	"""
+#{Deprecated
 	def setToPropName(name):
 		"""
 		Messages will only be sent to objects with the given property name.
@@ -2592,6 +2593,7 @@ class KX_NetworkMessageActuator(SCA_IActuator):
 		@param body: if the body type is True, this is the name of the property to send.
 		             if the body type is False, this is the text to send.
 		"""
+#}
 
 class KX_NetworkMessageSensor(SCA_ISensor):
 	"""
@@ -2609,8 +2611,7 @@ class KX_NetworkMessageSensor(SCA_ISensor):
 	@ivar bodies: The list of message bodies received. (Read-only)
 	@type bodies: list of strings
 	"""
-	
-	
+#{ Deprecated
 	def setSubjectFilterText(subject):
 		"""
 		Change the message subject text that this sensor is listening to.
@@ -2648,6 +2649,7 @@ class KX_NetworkMessageSensor(SCA_ISensor):
 		@deprecated: Use the L{subjects} attribute instead.
 		@rtype: list
 		"""
+#}
 
 class KX_ObjectActuator(SCA_IActuator):
 	"""
@@ -3431,8 +3433,7 @@ class KX_RadarSensor(KX_NearSensor):
 		KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z,
 		KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
 	"""
-	
-	
+#{Deprecated
 	#--The following methods are deprecated, please use properties instead.
 	def getConeOrigin():
 		"""
@@ -3450,6 +3451,7 @@ class KX_RadarSensor(KX_NearSensor):
 		@deprecated: Use the L{coneTarget} property.
 		@rtype: list [x, y, z]
 		"""
+#}
 	
 	def getConeHeight():
 		"""
@@ -3521,7 +3523,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 	@type object: KX_GameObject or None
 	@ivar objectLastCreated: the last added object from this actuator (read-only).
 	@type objectLastCreated: KX_GameObject or None
-	@ivar time: the lifetime of added objects, in frames.
+	@ivar time: the lifetime of added objects, in frames. Set to 0 to disable automatic deletion.
 	@type time: integer
 	@ivar linearVelocity: the initial linear velocity of added objects.
 	@type linearVelocity: list [vx, vy, vz]
@@ -3535,6 +3537,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		  
 		  C{ERROR: GameObject I{OBName} has a AddObjectActuator I{ActuatorName} without object (in 'nonactive' layer)}
 	"""
+#{Deprecated
 	def setObject(object):
 		"""
 		Sets the game object to add.
@@ -3622,6 +3625,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		@rtype: L{KX_GameObject}
 		@return: A L{KX_GameObject} or None if no object has been created.
 		"""
+#}
 	def instantAddObject():
 		"""
 		Returns the last object created by this actuator. The object can then be accessed from L{objectLastCreated}.
@@ -3920,32 +3924,31 @@ class KX_SoundActuator(SCA_IActuator):
 	the actuator to be activated - they act instantly provided that the actuator has
 	been activated once at least.
 
-	@ivar fileName: Sets the filename of the sound this actuator plays.
+	@ivar fileName: The filename of the sound this actuator plays.
 	@type fileName: string
 
-	@ivar volume: Sets the volume (gain) of the sound.
+	@ivar volume: The volume (gain) of the sound.
 	@type volume: float
 
-	@ivar pitch: Sets the pitch of the sound.
+	@ivar pitch: The pitch of the sound.
 	@type pitch: float
 	
-	@ivar rollOffFactor: Sets the roll off factor. Rolloff defines the rate of attenuation as the sound gets further away.
+	@ivar rollOffFactor: The roll off factor. Rolloff defines the rate of attenuation as the sound gets further away.
 	@type rollOffFactor: float
 	
-	@ivar looping: Sets the loop mode of the actuator.
+	@ivar looping: The loop mode of the actuator.
 	@type looping: integer
 	
-	@ivar position: Sets the position of the sound.
+	@ivar position: The position of the sound as a list: [x, y, z].
 	@type position: float array
 	
-	@ivar velocity: Sets the speed of the sound; The speed of the sound alter the pitch.
+	@ivar velocity: The velocity of the emitter as a list: [x, y, z]. The relative velocity to the observer determines the pitch. List of 3 floats: [x, y, z].
 	@type velocity: float array
 	
-	@ivar orientation: Sets the orientation of the sound. When setting the orientation you can 
-	                   also use quaternion [float,float,float,float] or euler angles [float,float,float]
+	@ivar orientation: The orientation of the sound. When setting the orientation you can also use quaternion [float,float,float,float] or euler angles [float,float,float]
 	@type orientation: 3x3 matrix [[float]]
 	
-	@ivar mode: Sets the operation mode of the actuator. You can use one of the following constant:
+	@ivar mode: The operation mode of the actuator. You can use one of the following constants:
 				- KX_SOUNDACT_PLAYSTOP               (1)
 				- KX_SOUNDACT_PLAYEND                (2)
 				- KX_SOUNDACT_LOOPSTOP               (3)
@@ -4057,7 +4060,7 @@ class KX_SoundActuator(SCA_IActuator):
 		"""
 		Sets the position this sound will come from.
 		
-		@deprecated: Use the L{localPosition} attribute instead.
+		@deprecated: Use the L{position} attribute instead.
 		@type x: float
 		@param x: The x coordinate of the sound.
 		@type y: float
@@ -4605,6 +4608,7 @@ class SCA_ActuatorSensor(SCA_ISensor):
 	@ivar actuator: the name of the actuator that the sensor is monitoring.
 	@type actuator: string
 	"""
+#{Deprecated
 	def getActuator():
 		"""
 		Return the Actuator with which the sensor operates.
@@ -4621,6 +4625,7 @@ class SCA_ActuatorSensor(SCA_ISensor):
 		@param name: actuator name
 		@type name: string
 		"""
+#}
 
 class SCA_AlwaysSensor(SCA_ISensor):
 	"""
@@ -4649,6 +4654,7 @@ class SCA_DelaySensor(SCA_ISensor):
 	@ivar repeat: 1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once.
 	@type repeat: integer
 	"""
+#{Deprecated
 	def setDelay(delay):
 		"""
 		Set the initial delay before the positive trigger.
@@ -4695,6 +4701,7 @@ class SCA_DelaySensor(SCA_ISensor):
 		@deprecated: Use the L{repeat} attribute instead.
 		@rtype: KX_TRUE or KX_FALSE
 		"""
+#}
 
 class SCA_JoystickSensor(SCA_ISensor):
 	"""
@@ -4748,6 +4755,7 @@ class SCA_JoystickSensor(SCA_ISensor):
 		@type buttonIndex: integer
 		@rtype: bool
 		"""
+#{Deprecated
 	def getIndex():
 		"""
 		Returns the joystick index to use (from 1 to 8).
@@ -4786,7 +4794,7 @@ class SCA_JoystickSensor(SCA_ISensor):
 		"""
 		Returns the state of the joysticks axis. See differs to L{getAxis()<SCA_JoystickSensor.getAxis>} returning the current state of the joystick.
 		
-		@deprecated: Use the L{axisSingle} attribute instead.
+		@deprecated: Use the L{axisValues} attribute instead.
 		@rtype: list
 		@return: 4 values, each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing. 
 
@@ -4876,6 +4884,7 @@ class SCA_JoystickSensor(SCA_ISensor):
 		@deprecated: Use the L{connected} attribute instead.
 		@rtype: bool
 		"""
+#}
 
 class SCA_KeyboardSensor(SCA_ISensor):
 	"""
@@ -4917,7 +4926,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		@param keycode: The code that represents the key you want to get the state of
 		"""
 	
-	#--The following methods are DEPRECATED--
+#{Deprecated
 	def getKey():
 		"""
 		Returns the key code this sensor is looking for.
@@ -4981,6 +4990,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		@deprecated: Use the L{events} attribute instead.
 		@rtype: list of key status. [[keycode, status]]
 		"""
+#}
 
 class SCA_NANDController(SCA_IController):
 	"""
@@ -5023,7 +5033,7 @@ class SCA_PropertyActuator(SCA_IActuator):
 		
 		If there is no property of this name, the call is ignored.
 		
-		@deprecated: Use the L{property} attribute instead.
+		@deprecated: Use the L{propName} attribute instead.
 		@type prop: string
 		@param prop: The name of the property to set.
 		"""
@@ -5031,7 +5041,7 @@ class SCA_PropertyActuator(SCA_IActuator):
 		"""
 		Returns the name of the property on which to operate.
 		
-		@deprecated: Use the L{property} attribute instead.
+		@deprecated: Use the L{propName} attribute instead.
 		@rtype: string
 		"""
 	def setValue(value):
@@ -5132,7 +5142,7 @@ class SCA_PythonController(SCA_IController):
 	Properties:
 	
 	@ivar script: the Python script this controller executes
-	@type script: string, read-only
+	@type script: string
 	
 	@group Deprecated: getScript, setScript
 	"""
