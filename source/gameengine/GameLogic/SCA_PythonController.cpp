@@ -336,7 +336,7 @@ bool SCA_PythonController::Import()
 	PyObject *base= mod;
 	
 	for(unsigned int i=1; i < py_function_path.size(); i++) {
-		if(m_debug) {
+		if(m_debug && PyModule_Check(base)) { /* base could be a class */
 			Py_DECREF(base); /* getting a new one so dont hold a ref to the old one */
 			base= PyImport_ReloadModule(base);
 			if (base==NULL) {
