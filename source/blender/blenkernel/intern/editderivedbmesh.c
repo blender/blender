@@ -58,6 +58,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_scanfill.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -112,7 +113,9 @@ BMEditMesh *TM_Copy(BMEditMesh *tm)
 	tm2->bm = BM_Copy_Mesh(tm->bm);
 	TM_RecalcTesselation(tm2);
 
-	tm2->vert_index = tm2->edge_index = tm2->face_index = NULL;
+	tm2->vert_index = NULL;
+	tm2->edge_index = NULL;
+	tm2->face_index = NULL;
 
 	return tm2;
 }
@@ -134,21 +137,59 @@ void TM_RecalcTesselation(BMEditMesh *tm)
 		/*don't consider two-edged faces*/
 		if (f->len < 3) continue;
 		
-		/*for now, just do a triangle fan, in the future,
-		  use scanfill*/
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for (; l; l=BMIter_Step(&liter)) {
-			if (l == f->loopbase) continue;
-			if ((BMLoop*)l->head.next == f->loopbase) continue;
+		if (f->len <= 4) {
+			/*triangle fan for quads.  should be recoded to
+			  just add one tri for tris, and two for quads,
+			  but this code works for now too.*/
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (; l; l=BMIter_Step(&liter)) {
+				if (l == f->loopbase) continue;
+				if ((BMLoop*)l->head.next == f->loopbase) continue;
 
-			V_GROW(looptris);
-			V_GROW(looptris);
-			V_GROW(looptris);
+				V_GROW(looptris);
+				V_GROW(looptris);
+				V_GROW(looptris);
 
-			looptris[i*3] = l;
-			looptris[i*3+1] = (BMLoop*)l->head.next;
-			looptris[i*3+2] = f->loopbase;
-			i += 1;
+				looptris[i*3] = l;
+				looptris[i*3+1] = (BMLoop*)l->head.next;
+				looptris[i*3+2] = f->loopbase;
+				i += 1;
+			}
+		} else {
+			/*scanfill time*/
+			EditVert *v, *lastv=NULL, *firstv=NULL;
+			EditEdge *e;
+			EditFace *efa;
+
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (; l; l=BMIter_Step(&liter)) {
+				v = BLI_addfillvert(l->v->co);
+				v->tmp.p = l;
+				
+				if (lastv) {
+					e = BLI_addfilledge(lastv, v);
+				}
+
+				lastv = v;
+				if (firstv==NULL) firstv = v;
+			}
+
+			/*complete the loop*/
+			BLI_addfilledge(firstv, v);
+
+			BLI_edgefill(0, 0);
+			
+			for (efa = fillfacebase.first; efa; efa=efa->next) {
+				V_GROW(looptris);
+				V_GROW(looptris);
+				V_GROW(looptris);
+
+				looptris[i*3] = efa->v1->tmp.p;
+				looptris[i*3+1] = efa->v2->tmp.p;
+				looptris[i*3+2] = efa->v3->tmp.p;
+				i += 1;
+			}
+			BLI_end_edgefill();
 		}
 	}
 

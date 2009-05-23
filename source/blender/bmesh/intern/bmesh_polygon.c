@@ -117,6 +117,15 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	}
 	
 	l = sqrt(n[0]*n[0]+n[1]*n[1]+n[2]*n[2]);
+
+	if (l == 0.0) {
+		normal[0] = 0.0f;
+		normal[1] = 0.0f;
+		normal[2] = 1.0f;
+
+		return;
+	}
+
 	n[0] /= l;
 	n[1] /= l;
 	n[2] /= l;
@@ -396,6 +405,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		do{
 			VECCOPY(projectverts[i], l->v->co);
 			l = (BMLoop*)(l->head.next);
+			i += 1;
 		}while(l!=f->loopbase);
 
 		compute_poly_plane(projectverts, f->len);
