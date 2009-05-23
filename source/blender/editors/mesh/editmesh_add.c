@@ -60,6 +60,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
+#include "BKE_tessmesh.h"
 
 #include "BIF_retopo.h"
 
@@ -670,16 +671,17 @@ void addfaces_from_edgenet(EditMesh *em)
 // XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
-static void addedgeface_mesh(EditMesh *em, wmOperator *op)
+static void addedgeface_mesh(Mesh *me, BMEditMesh *bem, wmOperator *op)
 {
+	EditMesh *em;
 	EditVert *eve, *neweve[4];
 	EditEdge *eed;
 	EditFace *efa;
 	short amount=0;
 	
 	/*return if bmesh vert connect does anything.*/
-	if (em->selectmode & SCE_SELECT_VERTEX) {
-		BMesh *bm = editmesh_to_bmesh(em);
+	if (bem->selectmode & SCE_SELECT_VERTEX) {
+		BMesh *bm = bem->bm;
 		BMOperator bmop;
 		int len, ok;
 
@@ -687,7 +689,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		BMO_Exec_Op(bm, &bmop);
 		BMO_Finish_Op(bm, &bmop);
 
-		ok = EDBM_Finish(bm, em, op, 1);
+		ok = EDBM_Finish(bm, bem, op, 1);
 		if (!ok) return OPERATOR_CANCELLED;
 
 		len = BMO_GetSlot(&bmop, "edgeout")->len;		
@@ -700,7 +702,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 	  hacks like this to integrate with it
 	  are necassary.*/
 	{
-		BMesh *bm = editmesh_to_bmesh(em);
+		BMesh *bm = bem->bm;
 		BMOperator bmop;
 		int len, ok;
 
@@ -708,12 +710,14 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		BMO_Exec_Op(bm, &bmop);
 		BMO_Finish_Op(bm, &bmop);
 
-		ok = EDBM_Finish(bm, em, op, 1);
+		ok = EDBM_Finish(bm, bem, op, 1);
 		if (!ok) return OPERATOR_CANCELLED;
 
 		len = BMO_GetSlot(&bmop, "regionout")->len;		
 		if (len) return;
 	}
+
+	em = BKE_mesh_get_editmesh(me);
 
 	/* how many selected ? */
 	if(em->selectmode & SCE_SELECT_EDGE) {
@@ -733,16 +737,19 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 	if(amount==2) {
 		eed= addedgelist(em, neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
-
+		
+		BKE_mesh_end_editmesh(me, em);
 		// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
 		addfaces_from_edgenet(em);
+		BKE_mesh_end_editmesh(me, em);
 		return;
 	}
 	else if(amount<2) {
 		BKE_report(op->reports, RPT_ERROR, "More vertices are needed to make an edge/face");
+		BKE_mesh_end_editmesh(me, em);
 		return;
 	}
 
@@ -781,6 +788,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 				
 				if(count++ > 4){
 					addfaces_from_edgenet(em);
+					BKE_mesh_end_editmesh(me, em);
 					return;
 				} else {
 				/* if 4 edges exist, we just create the face, convex or not */
@@ -822,20 +830,21 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		
 		recalc_editnormals(em);
 	}
-	}
+
+	BKE_mesh_end_editmesh(me, em);
+}
 
 static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	
-	addedgeface_mesh(em, op);
+	addedgeface_mesh((Mesh *)obedit->data, em, op);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
-	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
