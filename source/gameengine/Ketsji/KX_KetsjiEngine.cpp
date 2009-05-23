@@ -1770,6 +1770,11 @@ double KX_KetsjiEngine::GetClockTime(void) const
 	return m_clockTime;
 }
 
+double KX_KetsjiEngine::GetRealTime(void) const
+{
+	return m_kxsystem->GetTimeInSeconds();
+}
+
 void KX_KetsjiEngine::SetAnimFrameRate(double framerate)
 {
 	m_anim_framerate = framerate;

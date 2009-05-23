@@ -682,6 +682,11 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					if (eventmgr)
 					{
 						int randomSeed = blenderrndsensor->seed;
+						if (randomSeed == 0)
+						{
+							randomSeed = (int)(kxengine->GetRealTime()*100000.0);
+							randomSeed ^= (intptr_t)blenderrndsensor;
+						}
 						gamesensor = new SCA_RandomSensor(eventmgr, gameobj, randomSeed);
 					}
 				}

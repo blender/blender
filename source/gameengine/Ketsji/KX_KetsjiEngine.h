@@ -271,6 +271,7 @@ public:
 	 */
 	double GetClockTime(void) const;
 
+	double GetRealTime(void) const;
 	/**
 	 * Returns the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
