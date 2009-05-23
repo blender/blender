@@ -27,6 +27,7 @@
  */
 
 #include "KX_BlenderGL.h"
+#include "BLF_api.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -42,9 +43,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BMF_Api.h"
-
-#include "BIF_gl.h"
+#include "GL/glew.h"
 
 #include "BL_Material.h" // MAXTEX
 
@@ -148,8 +147,7 @@ void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
-	glRasterPos2s(xco, height-yco);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco, height-yco, 0.0f, text);
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
@@ -184,11 +182,9 @@ void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int
 
 	/* draw in black first*/
 	glColor3ub(0, 0, 0);
-	glRasterPos2s(xco+1, height-yco-1);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco+1, height-yco-1, 0.0f, text);
 	glColor3ub(255, 255, 255);
-	glRasterPos2s(xco, height-yco);
-	BMF_DrawString(G.fonts, text);
+	BLF_draw_default(xco, height-yco, 0.0f, text);
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();

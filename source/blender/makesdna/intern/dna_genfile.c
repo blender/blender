@@ -298,7 +298,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 /* in sdna->data the data, now we convert that to something understandable */
 {
 	int *data, *verg;
-	long nr; /* intptr_t 2.48 XXX */
+	intptr_t nr;
 	short *sp;
 	char str[8], *cp;
 	
@@ -334,7 +334,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */ /* intptr_t 2.48 XXX */
+		nr= (intptr_t)cp;		/* prevent BUS error */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -372,7 +372,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */ /* intptr_t 2.48 XXX */
+		nr= (intptr_t)cp;		/* prevent BUS error */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -1081,6 +1081,6 @@ int DNA_elem_offset(SDNA *sdna, char *stype, char *vartype, char *name)
 	int SDNAnr= DNA_struct_find_nr(sdna, stype);
 	short *spo= sdna->structs[SDNAnr];
 	char *cp= find_elem(sdna, vartype, name, spo, NULL, NULL);
-	return (int)((long)cp); /* intptr_t 2.48 XXX */
+	return (int)((intptr_t)cp);
 }
 

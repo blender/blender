@@ -51,7 +51,9 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
-#include "UI_text.h"
+
+#include "BLF_api.h"
+
 #include "interface_intern.h"
 
 #include "RNA_access.h"
@@ -149,7 +151,7 @@ typedef struct uiAfterFunc {
 	void *butm_func_arg;
 	int a2;
 
-	const char *opname;
+	wmOperatorType *optype;
 	int opcontext;
 	PointerRNA *opptr;
 
@@ -220,7 +222,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
+	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
@@ -240,14 +242,14 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 			after->a2= but->a2;
 		}
 
-		after->opname= but->opname;
+		after->optype= but->optype;
 		after->opcontext= but->opcontext;
 		after->opptr= but->opptr;
 
 		after->rnapoin= but->rnapoin;
 		after->rnaprop= but->rnaprop;
 
-		but->opname= NULL;
+		but->optype= NULL;
 		but->opcontext= 0;
 		but->opptr= NULL;
 
@@ -278,8 +280,8 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.butm_func)
 			after.butm_func(C, after.butm_func_arg, after.a2);
 
-		if(after.opname)
-			WM_operator_name_call(C, after.opname, after.opcontext, after.opptr);
+		if(after.optype)
+			WM_operator_name_call(C, after.optype->idname, after.opcontext, after.opptr);
 		if(after.opptr) {
 			WM_operator_properties_free(after.opptr);
 			MEM_freeN(after.opptr);
@@ -309,8 +311,10 @@ static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	if(but->type == COL)
-		ui_set_but_vectorf(but, data->vec);
+	if(but->type == COL) {
+		if(but->a1 != -1) // this is not a color picker (weak!)
+			ui_set_but_vectorf(but, data->vec);
+	}
 	else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 		ui_set_but_val(but, data->value);
 
@@ -393,7 +397,7 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 	if(!data->str)
 		return;
 
-	ui_set_but_string(but, data->str);
+	ui_set_but_string(C, but, data->str);
 	ui_check_but(but);
 
 	/* give butfunc the original text too */
@@ -409,30 +413,17 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(data->str) {
-		/* XXX 2.50 missing python api */
-#if 0
-		if(BPY_button_eval(data->str, &data->value)) {
-			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
-			data->value = 0.0f; /* Zero out value on error */
-			
-			if(data->str[0]) {
-				data->cancel= 1; /* invalidate return value if eval failed, except when string was null */
-				return;
-			}
+		if(ui_set_but_string(C, but, data->str)) {
+			data->value= ui_get_but_val(but);
 		}
-#else
-		data->value= atof(data->str);
-#endif
-
-		if(!ui_is_but_float(but)) data->value= (int)data->value;
-		if(but->type==NUMABS) data->value= fabs(data->value);
-
-		/* not that we use hard limits here */
-		if(data->value<but->hardmin) data->value= but->hardmin;
-		if(data->value>but->hardmax) data->value= but->hardmax;
+		else {
+			data->cancel= 1;
+			return;
+		}
 	}
+	else
+		ui_set_but_val(but, data->value);
 
-	ui_set_but_val(but, data->value);
 	ui_check_but(but);
 	ui_apply_but_func(C, but);
 
@@ -506,7 +497,7 @@ static void ui_apply_but_CURVE(bContext *C, uiBut *but, uiHandleButtonData *data
 
 static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	but->idpoin_func(C, data->str, but->idpoin_idpp);
+	ui_set_but_string(C, but, data->str);
 	ui_check_but(but);
 	ui_apply_but_func(C, but);
 	data->retval= but->retval;
@@ -575,6 +566,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case TEX:
 			ui_apply_but_TEX(C, but, data);
 			break;
+		case TOGBUT: 
 		case TOG: 
 		case TOGR: 
 		case ICONTOG:
@@ -661,7 +653,8 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if(mode=='v') {
 		/* extract first line from clipboard in case of multi-line copies */
-		char *p = WM_clipboard_text_get(0);
+		char *p, *pbuf= WM_clipboard_text_get(0);
+		p= pbuf;
 		if(p) {
 			int i = 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
@@ -669,7 +662,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				p++;
 			}
 			buf[i]= 0;
-			MEM_freeN(p);
+			MEM_freeN(pbuf);
 		}
 	}
 	
@@ -820,14 +813,17 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
+	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
 	char *origstr;
-	
+
+	uiStyleFontSet(&style->widget);
+
 	origstr= MEM_callocN(sizeof(char)*(data->maxlen+1), "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen+1);
 	but->pos= strlen(origstr)-but->ofs;
 	
-	while((but->aspect*UI_GetStringWidth(but->font, origstr+but->ofs, 0) + but->x1) > x) {
+	while((BLF_width(origstr+but->ofs) + but->x1) > x) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		origstr[but->pos+but->ofs] = 0;
@@ -1139,42 +1135,9 @@ static void ui_textedit_begin(uiBut *but, uiHandleButtonData *data)
 	}
 
 	/* retrieve string */
-	if(but->type == TEX) {
-		data->maxlen= but->hardmax;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-
-		ui_get_but_string(but, data->str, data->maxlen+1);
-	}
-	else if(but->type == IDPOIN) {
-		ID *id;
-		
-		data->maxlen= 22;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-
-		id= *but->idpoin_idpp;
-		if(id) BLI_strncpy(data->str, id->name+2, data->maxlen+1);
-		else data->str[0]= 0;
-	}
-	else {
-		double value;
-
-		data->maxlen= UI_MAX_DRAW_STR;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-		
-		value= ui_get_but_val(but);
-		if(ui_is_but_float(but)) {
-			if(but->a2) { /* amount of digits defined */
-				if(but->a2==1) sprintf(data->str, "%.1f", value);
-				else if(but->a2==2) sprintf(data->str, "%.2f", value);
-				else if(but->a2==3) sprintf(data->str, "%.3f", value);
-				else sprintf(data->str, "%.4f", value);
-			}
-			else sprintf(data->str, "%.3f", value);
-		}
-		else {
-			sprintf(data->str, "%d", (int)value);
-		}
-	}
+	data->maxlen= ui_get_but_string_max_length(but);
+	data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
+	ui_get_but_string(but, data->str, data->maxlen+1);
 
 	data->origstr= BLI_strdup(data->str);
 	data->selextend= 0;
@@ -2639,10 +2602,37 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if(but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_BREAK;
 
-	/* handle copy-paste */
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		/* handle copy-paste */
 		if(ELEM(event->type, CKEY, VKEY) && event->val==KM_PRESS && (event->ctrl || event->oskey)) {
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle keyframeing */
+		else if(event->type == IKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_delete_keyframe(C);
+			else
+				ui_but_anim_insert_keyframe(C);
+
+			ED_region_tag_redraw(CTX_wm_region(C));
+
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle driver adding */
+		else if(event->type == DKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_remove_driver(C);
+			else
+				ui_but_anim_add_driver(C);
+				
+			ED_region_tag_redraw(CTX_wm_region(C));
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle menu */
+		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
+			ui_but_anim_menu(C, but);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
@@ -2672,6 +2662,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case KEYEVT:
 		retval= ui_do_but_KEYEVT(C, but, data, event);
 		break;
+	case TOGBUT: 
 	case TOG: 
 	case TOGR: 
 	case ICONTOG:
@@ -2778,6 +2769,11 @@ static uiBut *ui_but_find_activated(ARegion *ar)
 	return NULL;
 }
 
+int ui_button_is_active(ARegion *ar)
+{
+	return (ui_but_find_activated(ar) != NULL);
+}
+
 static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 {
 	uiBlock *block;
@@ -2845,8 +2841,13 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for(but=block->buttons.first; but; but= but->next) {
-			/* give precedence to already activated buttons */
+			if(but->flag & UI_NO_HILITE)
+				continue;
+			if(but->type==LABEL)
+				continue;
+
 			if(ui_but_contains_pt(but, mx, my))
+				/* give precedence to already activated buttons */
 				if(!butover || (!butover->active && but->active))
 					butover= but;
 		}
@@ -2983,7 +2984,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	data->interactive= 1;
+	data->interactive= but->type==BUT_CURVE?0:1; // XXX temp
 	data->state = BUTTON_STATE_INIT;
 
 	/* activate button */
@@ -3789,8 +3790,8 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		if(temp.menuretval == UI_RETURN_OK) {
 			if(temp.popup_func)
 				temp.popup_func(C, temp.popup_arg, temp.retvalue);
-			if(temp.opname)
-				WM_operator_name_call(C, temp.opname, temp.opcontext, NULL);
+			if(temp.optype)
+				WM_operator_name_call(C, temp.optype->idname, temp.opcontext, NULL);
 		}
 		else if(temp.cancel_func)
 			temp.cancel_func(temp.popup_arg);

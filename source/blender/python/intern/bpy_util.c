@@ -22,11 +22,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
+#include "DNA_listBase.h"
+#include "RNA_access.h"
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
-#include "bpy_compat.h"
+#include "BKE_report.h"
 
 PyObject *BPY_flag_to_list(struct BPY_flag_def *flagdef, int flag)
 {
@@ -241,3 +242,110 @@ PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	Py_XINCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
 	return item;
 }
+
+int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
+{
+	PyObject *item, *fitem;
+	PyObject *py_arg_count;
+	int i, arg_count;
+
+	if (base_class) {
+		if (!PyObject_IsSubclass(class, base_class)) {
+			PyObject *name= PyObject_GetAttrString(base_class, "__name__");
+			PyErr_Format( PyExc_AttributeError, "expected %s subclass of class \"%s\"", class_type, name ? _PyUnicode_AsString(name):"<UNKNOWN>");
+			Py_XDECREF(name);
+			return -1;
+		}
+	}
+	
+	for(i= 0;class_attrs->name; class_attrs++, i++) {
+		item = PyObject_GetAttrString(class, class_attrs->name);
+
+		if (py_class_attrs)
+			py_class_attrs[i]= item;
+		
+		if (item==NULL) {
+			if ((class_attrs->flag & BPY_CLASS_ATTR_OPTIONAL)==0) {
+				PyErr_Format( PyExc_AttributeError, "expected %s class to have an \"%s\" attribute", class_type, class_attrs->name);
+				return -1;
+			}
+
+			PyErr_Clear();
+		}
+		else {
+			Py_DECREF(item); /* no need to keep a ref, the class owns it */
+
+			if((item==Py_None) && (class_attrs->flag & BPY_CLASS_ATTR_NONE_OK)) {
+				/* dont do anything, this is ok, dont bother checking other types */
+			}
+			else {
+				switch(class_attrs->type) {
+				case 's':
+					if (PyUnicode_Check(item)==0) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a string", class_type, class_attrs->name);
+						return -1;
+					}
+					break;
+				case 'l':
+					if (PyList_Check(item)==0) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a list", class_type, class_attrs->name);
+						return -1;
+					}
+					break;
+				case 'f':
+					if (PyMethod_Check(item))
+						fitem= PyMethod_Function(item); /* py 2.x */
+					else
+						fitem= item; /* py 3.x */
+
+					if (PyFunction_Check(fitem)==0) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a function", class_type, class_attrs->name);
+						return -1;
+					}
+					if (class_attrs->arg_count >= 0) { /* -1 if we dont care*/
+						py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(fitem), "co_argcount");
+						arg_count = PyLong_AsSsize_t(py_arg_count);
+						Py_DECREF(py_arg_count);
+
+						if (arg_count != class_attrs->arg_count) {
+							PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" function to have %d args", class_type, class_attrs->name, class_attrs->arg_count);
+							return -1;
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+char *BPy_enum_as_string(EnumPropertyItem *item)
+{
+	DynStr *dynstr= BLI_dynstr_new();
+	EnumPropertyItem *e;
+	char *cstring;
+
+	for (e= item; item->identifier; item++) {
+		BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
+	}
+
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
+
+int BPy_reports_to_error(ReportList *reports)
+{
+	char *report_str;
+
+	report_str= BKE_reports_string(reports, RPT_ERROR);
+
+	if(report_str) {
+		PyErr_SetString(PyExc_SystemError, report_str);
+		MEM_freeN(report_str);
+	}
+
+	return (report_str != NULL);
+}
+

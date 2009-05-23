@@ -32,3 +32,13 @@ class SCA_MouseSensor(SCA_ISensor):
 		@rtype: integer
 		@return: the current y coordinate of the mouse, in frame coordinates (pixels).
 		"""	
+	def getButtonStatus(button):
+		"""
+		Get the mouse button status.
+		
+		@type button: int
+		@param button: value in GameLogic members KX_MOUSE_BUT_LEFT, KX_MOUSE_BUT_MIDDLE, KX_MOUSE_BUT_RIGHT
+		
+		@rtype: integer
+		@return: value in GameLogic members KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
+		"""

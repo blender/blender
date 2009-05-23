@@ -25,7 +25,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <PyObjectPlus.h>
 #include <structmember.h>
 
-#include <BIF_gl.h>
+#include "GL/glew.h"
 
 #include "Texture.h"
 #include "ImageBase.h"

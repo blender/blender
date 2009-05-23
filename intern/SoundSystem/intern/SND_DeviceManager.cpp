@@ -38,9 +38,6 @@
 #include "SND_DeviceManager.h"
 #include "SND_DependKludge.h"
 #include "SND_DummyDevice.h"
-#ifdef USE_FMOD
-#include "SND_FmodDevice.h"
-#endif
 #ifdef USE_OPENAL
 #include "SND_OpenALDevice.h"
 #endif
@@ -51,11 +48,7 @@ int SND_DeviceManager::m_subscriptions = 0;
 #ifdef USE_OPENAL
 int SND_DeviceManager::m_device_type = snd_e_openaldevice;
 #else
-#	ifdef USE_FMOD
-int SND_DeviceManager::m_device_type = snd_e_fmoddevice;
-#	else
 int SND_DeviceManager::m_device_type = snd_e_dummydevice;
-#	endif
 #endif
 
 void SND_DeviceManager::Subscribe()
@@ -115,14 +108,6 @@ void SND_DeviceManager::SetDeviceType(int device_type)
 	// let's create the chosen device
 	switch (device_type)
 	{
-#ifdef USE_FMOD
-	case snd_e_fmoddevice:
-		{
-			m_instance = new SND_FmodDevice();
-			m_device_type = device_type;
-			break;
-		}
-#endif
 #ifdef USE_OPENAL
 	case snd_e_openaldevice:
 		{

@@ -224,8 +224,9 @@ void BLI_newname(char *name, int add)
  * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
  *	len: maximum length of string (to prevent overflows, etc.)
  *	defname: the name that should be used by default if none is specified already
+ *	delim: the character which acts as a delimeter between parts of the name
  */
-void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs, short len)
+void BLI_uniquename(ListBase *list, void *vlink, char defname[], char delim, short name_offs, short len)
 {
 	Link *link;
 	char tempname[128];
@@ -261,12 +262,12 @@ void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs
 		return;
 
 	/* Strip off the suffix */
-	dot = strchr(GIVE_STRADDR(vlink, name_offs), '.');
+	dot = strchr(GIVE_STRADDR(vlink, name_offs), delim);
 	if (dot)
 		*dot=0;
 	
 	for (number = 1; number <= 999; number++) {
-		BLI_snprintf(tempname, 128, "%s.%03d", GIVE_STRADDR(vlink, name_offs), number);
+		BLI_snprintf(tempname, 128, "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
 		
 		exists = 0;
 		for (link= list->first; link; link= link->next) {
@@ -826,6 +827,99 @@ char *BLI_gethome(void) {
 		return "C:\\Temp";	/* sheesh! bad, bad, bad! (aphex) */
 	#endif
 }
+
+/* this function returns the path to a blender folder, if it exists,
+ * trying in this order:
+ *
+ * path_to_executable/release/folder_name (in svn)
+ * ./release/folder_name (in svn)
+ * $HOME/.blender/folder_name
+ * path_to_executable/.blender/folder_name
+ *
+ * returns NULL if none is found. */
+
+char *BLI_gethome_folder(char *folder_name)
+{
+	extern char bprogname[]; /* argv[0] from creator.c */
+	static char homedir[FILE_MAXDIR] = "";
+	static char fulldir[FILE_MAXDIR] = "";
+	char tmpdir[FILE_MAXDIR];
+	char bprogdir[FILE_MAXDIR];
+	char *s;
+	int i;
+
+	/* use argv[0] (bprogname) to get the path to the executable */
+	s = BLI_last_slash(bprogname);
+
+	i = s - bprogname + 1;
+	BLI_strncpy(bprogdir, bprogname, i);
+
+	/* try path_to_executable/release/folder_name (in svn) */
+	if (folder_name) {
+		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
+		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	/* try ./release/folder_name (in svn) */
+	if(folder_name) {
+		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	/* BLI_gethome() can return NULL if env vars are not set */
+	s = BLI_gethome();
+
+	if(!s) { /* bail if no $HOME */
+		printf("$HOME is NOT set\n");
+		return NULL;
+	}
+
+	if(strstr(s, ".blender"))
+		BLI_strncpy(homedir, s, FILE_MAXDIR);
+	else
+		BLI_make_file_string("/", homedir, s, ".blender");
+
+	/* if $HOME/.blender/folder_name exists, return it */
+	if(BLI_exists(homedir)) {
+		if (folder_name) {
+			BLI_make_file_string("/", fulldir, homedir, folder_name);
+			if(BLI_exists(fulldir))
+				return fulldir;
+		}
+		else
+			return homedir;
+	}
+	else
+		homedir[0] = '\0';
+
+	/* using tmpdir to preserve homedir (if) found above:
+	 * the ideal is to have a home dir with folder_name dir inside
+	 * it, but if that isn't available, it's possible to
+	 * have a 'broken' home dir somewhere and a folder_name dir in the
+	 * svn sources */
+	BLI_make_file_string("/", tmpdir, bprogdir, ".blender");
+
+	if(BLI_exists(tmpdir)) {
+		if(folder_name) {
+			BLI_make_file_string("/", fulldir, tmpdir, folder_name);
+			if(BLI_exists(fulldir)) {
+				BLI_strncpy(homedir, tmpdir, FILE_MAXDIR);
+				return fulldir;
+			}
+			else {
+				homedir[0] = '\0';
+				fulldir[0] = '\0';
+			}
+		}
+		else return homedir;
+	}
+
+	return NULL;
+}
+
 
 void BLI_clean(char *path)
 {

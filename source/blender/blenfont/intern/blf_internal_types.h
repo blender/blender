@@ -78,13 +78,7 @@ typedef struct GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct GlyphBLF {
-	struct GlyphBLF *next;
-	struct GlyphBLF *prev;
-
-	/* and the character, as UTF8 */
-	unsigned int c;
-
+typedef struct GlyphTextureBLF {
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
@@ -96,14 +90,8 @@ typedef struct GlyphBLF {
 	int width;
 	int height;
 
-	/* glyph bounding box. */
-	rctf box;
-
 	/* uv coords. */
 	float uv[2][2];
-
-	/* advance value. */
-	float advance;
 
 	/* X and Y bearing of the glyph.
 	 * The X bearing is from the origin to the glyph left bbox edge.
@@ -111,6 +99,38 @@ typedef struct GlyphBLF {
 	 */
 	float pos_x;
 	float pos_y;
+} GlyphTextureBLF;
+
+typedef struct GlyphBitmapBLF {
+	/* image data. */
+	unsigned char *image;
+
+	int width;
+	int height;
+	int pitch;
+
+	float pos_x;
+	float pos_y;
+} GlyphBitmapBLF;
+
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
+
+	/* and the character, as UTF8 */
+	unsigned int c;
+
+	/* glyph box. */
+	rctf box;
+
+	/* advance size. */
+	float advance;
+
+	/* texture information. */
+	GlyphTextureBLF *tex_data;
+
+	/* bitmap information. */
+	GlyphBitmapBLF *bitmap_data;
 } GlyphBLF;
 
 typedef struct FontBLF {
@@ -120,11 +140,8 @@ typedef struct FontBLF {
 	/* filename or NULL. */
 	char *filename;
 
-	/* font type, can be freetype2 or internal. */
-	int type;
-
-	/* reference count. */
-	int ref;
+	/* draw mode, texture or bitmap. */
+	int mode;
 
 	/* aspect ratio or scale. */
 	float aspect;
@@ -134,7 +151,10 @@ typedef struct FontBLF {
 
 	/* angle in degrees. */
 	float angle;
-
+	
+	/* blur: 3 or 5 large kernel */
+	int blur;
+	
 	/* this is the matrix that we load before rotate/scale/translate. */
 	float mat[4][4];
 
@@ -159,35 +179,9 @@ typedef struct FontBLF {
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
 
-	/* engine data. */
-	void *engine;
-
-	/* engine functions. */
-	void (*size_set)(struct FontBLF *, int, int);
-	void (*draw)(struct FontBLF *, char *);
-	void (*boundbox_get)(struct FontBLF *, char *, rctf *);
-	float (*width_get)(struct FontBLF *, char *);
-	float (*height_get)(struct FontBLF *, char *);
-	void (*free)(struct FontBLF *);
+	/* freetype2 face. */
+	FT_Face face;
 } FontBLF;
-
-typedef struct CharDataBLF {
-	signed char width, height;
-	signed char xorig, yorig;
-	signed char advance;
-	
-	short data_offset;
-} CharDataBLF;
-
-typedef struct FontDataBLF {
-	int xmin, ymin;
-	int xmax, ymax;
-
-	CharDataBLF chars[256];
-	unsigned char *bitmap_data;
-
-	GLuint texid;
-} FontDataBLF;
 
 typedef struct DirBLF {
 	struct DirBLF *next;
@@ -196,27 +190,5 @@ typedef struct DirBLF {
 	/* full path where search fonts. */
 	char *path;
 } DirBLF;
-
-typedef struct LangBLF {
-	struct LangBLF *next;
-	struct LangBLF *prev;
-
-	char *line;
-	char *language;
-	char *code;
-	int id;
-} LangBLF;
-
-#define BLF_LANG_FIND_BY_LINE 0
-#define BLF_LANG_FIND_BY_LANGUAGE 1
-#define BLF_LANG_FIND_BY_CODE 2
-
-/* font->clip_mode */
-#define BLF_CLIP_DISABLE 0
-#define BLF_CLIP_OUT 1
-
-/* font->type */
-#define BLF_FONT_FREETYPE2 0
-#define BLF_FONT_INTERNAL 1
 
 #endif /* BLF_INTERNAL_TYPES_H */

@@ -7,6 +7,6 @@ o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
-incs += ' ../windowmanager'
+incs += ' ../windowmanager ../editors/include'
 
 env.BlenderLib ( 'bf_rna', objs, Split(incs), [], libtype=['core'], priority = [195] )

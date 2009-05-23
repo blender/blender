@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <float.h>
 
@@ -18,6 +19,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_curve.h" 
@@ -98,7 +100,9 @@ FCurve *copy_fcurve (FCurve *fcu)
 		
 	/* make a copy */
 	fcu_d= MEM_dupallocN(fcu);
+	
 	fcu_d->next= fcu_d->prev= NULL;
+	fcu_d->grp= NULL;
 	
 	/* copy curve data */
 	fcu_d->bezt= MEM_dupallocN(fcu_d->bezt);
@@ -171,13 +175,27 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+short on_keyframe_fcurve(FCurve *fcu, float cfra)
+{
+	BezTriple *bezt;
+	unsigned i;
+
+	bezt= fcu->bezt;
+	for (i=0; i<fcu->totvert; i++, bezt++) {
+		if (IS_EQ(bezt->vec[1][0], cfra))
+			return 1;
+	}
+	
+	return 0;
+}
+
 /* Calculate the extents of F-Curve's data */
 void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax)
 {
 	float xminv=999999999.0f, xmaxv=-999999999.0f;
 	float yminv=999999999.0f, ymaxv=-999999999.0f;
 	short foundvert=0;
-	int i;
+	unsigned int i;
 	
 	if (fcu->totvert) {
 		if (fcu->bezt) {
@@ -192,8 +210,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				BezTriple *bezt;
 				
 				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-					yminv= MIN2(yminv, bezt->vec[1][1]);
-					ymaxv= MAX2(ymaxv, bezt->vec[1][1]);
+					if (bezt->vec[1][1] < yminv)
+						yminv= bezt->vec[1][1];
+					if (bezt->vec[1][1] > ymaxv)
+						ymaxv= bezt->vec[1][1];
 				}
 			}
 		}
@@ -209,8 +229,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				FPoint *fpt;
 				
 				for (fpt=fcu->fpt, i=0; i < fcu->totvert; fpt++, i++) {
-					yminv= MIN2(yminv, fpt->vec[1]);
-					ymaxv= MAX2(ymaxv, fpt->vec[1]);
+					if (fpt->vec[1] < yminv)
+						yminv= fpt->vec[1];
+					if (fpt->vec[1] > ymaxv)
+						ymaxv= fpt->vec[1];
 				}
 			}
 		}
@@ -418,7 +440,7 @@ void calchandles_fcurve (FCurve *fcu)
 void testhandles_fcurve (FCurve *fcu)
 {
 	BezTriple *bezt;
-	int a;
+	unsigned int a;
 
 	/* only beztriples have handles (bpoints don't though) */
 	if ELEM(NULL, fcu, fcu->bezt)
@@ -475,7 +497,7 @@ void sort_time_fcurve (FCurve *fcu)
 		/* currently, will only be needed when there are beztriples */
 		if (fcu->bezt) {
 			BezTriple *bezt;
-			int a;
+			unsigned int a;
 			
 			/* loop over ALL points to adjust position in array and recalculate handles */
 			for (a=0, bezt=fcu->bezt; a < fcu->totvert; a++, bezt++) {
@@ -509,7 +531,7 @@ void sort_time_fcurve (FCurve *fcu)
 /* This function tests if any BezTriples are out of order, thus requiring a sort */
 short test_time_fcurve (FCurve *fcu)
 {
-	int a;
+	unsigned int a;
 	
 	/* sanity checks */
 	if (fcu == NULL)
@@ -543,19 +565,61 @@ short test_time_fcurve (FCurve *fcu)
 
 /* Driver API --------------------------------- */
 
+/* This frees the driver target itself */
+void driver_free_target (ChannelDriver *driver, DriverTarget *dtar)
+{
+	/* sanity checks */
+	if (dtar == NULL)
+		return;
+		
+	/* free target vars */
+	if (dtar->rna_path)
+		MEM_freeN(dtar->rna_path);
+	
+	/* remove the target from the driver */
+	if (driver)
+		BLI_freelinkN(&driver->targets, dtar);
+	else
+		MEM_freeN(dtar);
+}
+
+/* Add a new driver target variable */
+DriverTarget *driver_add_new_target (ChannelDriver *driver)
+{
+	DriverTarget *dtar;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* make a new target */
+	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
+	BLI_addtail(&driver->targets, dtar);
+	
+	/* give the target a 'unique' name */
+	strcpy(dtar->name, "var");
+	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
+	
+	/* return the target */
+	return dtar;
+}
+
 /* This frees the driver itself */
 void fcurve_free_driver(FCurve *fcu)
 {
 	ChannelDriver *driver;
+	DriverTarget *dtar, *dtarn;
 	
 	/* sanity checks */
 	if ELEM(NULL, fcu, fcu->driver)
 		return;
 	driver= fcu->driver;
 	
-	/* free RNA-paths, as these were allocated when getting the path string */
-	if (driver->rna_path) MEM_freeN(driver->rna_path);
-	if (driver->rna_path2) MEM_freeN(driver->rna_path2);
+	/* free driver targets */
+	for (dtar= driver->targets.first; dtar; dtar= dtarn) {
+		dtarn= dtar->next;
+		driver_free_target(driver, dtar);
+	}
 	
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
@@ -566,6 +630,7 @@ void fcurve_free_driver(FCurve *fcu)
 ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 {
 	ChannelDriver *ndriver;
+	DriverTarget *dtar;
 	
 	/* sanity checks */
 	if (driver == NULL)
@@ -573,8 +638,16 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 		
 	/* copy all data */
 	ndriver= MEM_dupallocN(driver);
-	ndriver->rna_path= MEM_dupallocN(ndriver->rna_path);
-	ndriver->rna_path2= MEM_dupallocN(ndriver->rna_path2);
+	
+	/* copy targets */
+	ndriver->targets.first= ndriver->targets.last= NULL;
+	BLI_duplicatelist(&ndriver->targets, &driver->targets);
+	
+	for (dtar= ndriver->targets.first; dtar; dtar= dtar->next) {
+		/* make a copy of target's rna path if available */
+		if (dtar->rna_path)
+			dtar->rna_path = MEM_dupallocN(dtar->rna_path);
+	}
 	
 	/* return the new driver */
 	return ndriver;
@@ -582,10 +655,8 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 
 /* Driver Evaluation -------------------------- */
 
-/* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) 
- * 	- target: used to specify which of the two driver-targets to use
- */
-static float driver_get_driver_value (ChannelDriver *driver, short target)
+/* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
+float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -594,21 +665,15 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 	int index;
 	float value= 0.0f;
 	
-	/* get RNA-pointer for the ID-block given in driver */
-	if (target == 1) {
-		/* second target */
-		RNA_id_pointer_create(driver->id2, &id_ptr);
-		id= driver->id2;
-		path= driver->rna_path2;
-		index= driver->array_index2;
-	}
-	else {
-		/* first/main target */
-		RNA_id_pointer_create(driver->id, &id_ptr);
-		id= driver->id;
-		path= driver->rna_path;
-		index= driver->array_index;
-	}
+	/* sanity check */
+	if ELEM(NULL, driver, dtar)
+		return 0.0f;
+	
+	/* get RNA-pointer for the ID-block given in target */
+	RNA_id_pointer_create(dtar->id, &id_ptr);
+	id= dtar->id;
+	path= dtar->rna_path;
+	index= dtar->array_index;
 	
 	/* error check for missing pointer... */
 	if (id == NULL) {
@@ -620,21 +685,21 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve(&id_ptr, path, &ptr, &prop)) {
-		switch (RNA_property_type(&ptr, prop)) {
+		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= (float)RNA_property_boolean_get_index(&ptr, prop, index);
 				else
 					value= (float)RNA_property_boolean_get(&ptr, prop);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= (float)RNA_property_int_get_index(&ptr, prop, index);
 				else
 					value= (float)RNA_property_int_get(&ptr, prop);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= RNA_property_float_get_index(&ptr, prop, index);
 				else
 					value= RNA_property_float_get(&ptr, prop);
@@ -650,21 +715,80 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 	return value;
 }
 
+/* Get two PoseChannels from the targets of the given Driver */
+static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pchan1, bPoseChannel **pchan2)
+{
+	DriverTarget *dtar;
+	short i = 0;
+	
+	/* before doing anything */
+	*pchan1= NULL;
+	*pchan2= NULL;
+	
+	/* only take the first two targets */
+	for (dtar= driver->targets.first; (dtar) && (i < 2); dtar=dtar->next, i++) {
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+		
+		/* get RNA-pointer for the ID-block given in target */
+		if (dtar->id)
+			RNA_id_pointer_create(dtar->id, &id_ptr);
+		else
+			continue;
+		
+		/* resolve path so that we have pointer to the right posechannel */
+		if (RNA_path_resolve(&id_ptr, dtar->rna_path, &ptr, &prop)) {
+			/* is pointer valid (i.e. pointing to an actual posechannel */
+			if ((ptr.type == &RNA_PoseChannel) && (ptr.data)) {
+				/* first or second target? */
+				if (i)
+					*pchan1= ptr.data;
+				else
+					*pchan2= ptr.data;
+			}
+		}
+	}
+}
+
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  * 	- has to return a float value 
  */
 static float evaluate_driver (ChannelDriver *driver, float evaltime)
 {
+	DriverTarget *dtar;
+	
 	/* check if driver can be evaluated */
-	if (driver->flag & DRIVER_FLAG_DISABLED)
+	if (driver->flag & DRIVER_FLAG_INVALID)
 		return 0.0f;
 	
+	// TODO: the flags for individual targets need to be used too for more fine-grained support...
 	switch (driver->type) {
-		case DRIVER_TYPE_CHANNEL: /* channel/setting drivers channel/setting */
-			return driver_get_driver_value(driver, 0);
-			
-
+		case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
+		{
+			/* check how many targets there are first (i.e. just one?) */
+			if (driver->targets.first == driver->targets.last) {
+				/* just one target, so just use that */
+				dtar= driver->targets.first;
+				return driver_get_target_value(driver, dtar);
+			}
+			else {
+				/* more than one target, so average the values of the targets */
+				int tot = 0;
+				float value = 0.0f;
+				
+				/* loop through targets, adding (hopefully we don't get any overflow!) */
+				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
+					value += driver_get_target_value(driver, dtar); 
+					tot++;
+				}
+				
+				/* return the average of these */
+				return (value / (float)tot);
+			}
+		}
+			break;
+		
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifndef DISABLE_PYTHON
@@ -684,11 +808,30 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			break;
 
 		
-		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should be in same armature) */
+		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should ideally be in same armature) */
 		{
-			/*
+			bPoseChannel *pchan, *pchan2;
 			float q1[4], q2[4], quat[4], angle;
 			
+			/* get pose channels, and check if we've got two */
+			driver_get_target_pchans2(driver, &pchan, &pchan2);
+			if (ELEM(NULL, pchan, pchan2)) {
+				/* disable this driver, since it doesn't work correctly... */
+				driver->flag |= DRIVER_FLAG_INVALID;
+				
+				/* check what the error was */
+				if ((pchan == NULL) && (pchan2 == NULL))
+					printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+				else if (pchan == NULL)
+					printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+				else if (pchan2 == NULL)
+					printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+					
+				/* stop here... */
+				return 0.0f;
+			}			
+			
+			/* use the final posed locations */
 			Mat4ToQuat(pchan->pose_mat, q1);
 			Mat4ToQuat(pchan2->pose_mat, q2);
 			
@@ -698,7 +841,6 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			angle= ABS(angle);
 			
 			return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
-			*/
 		}
 			break;
 		
@@ -895,7 +1037,8 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 {
 	BezTriple *bezt, *prevbezt, *lastbezt;
 	float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
-	int a, b;
+	unsigned int a;
+	int b;
 	float cvalue = 0.0f;
 	
 	/* get pointers */
@@ -1115,6 +1258,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 	fcm_modname_copy, /* copy data */
 	fcm_modname_new_data, /* new data */
 	fcm_modname_verify, /* verify */
+	fcm_modname_time, /* evaluate time */
 	fcm_modname_evaluate /* evaluate */
 };
 #endif
@@ -1370,7 +1514,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			
 			/* execute function callback to set value if appropriate */
 			if (fn) {
-				float value= data->coefficients[0]*fn(arg) + data->coefficients[3];
+				float value= (float)(data->coefficients[0]*fn(arg) + data->coefficients[3]);
 				
 				if (data->flag & FCM_GENERATOR_ADDITIVE)
 					*cvalue += value;
@@ -1399,6 +1543,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	fcm_generator_copy, /* copy data */
 	fcm_generator_new_data, /* new data */
 	fcm_generator_verify, /* verify */
+	NULL, /* evaluate time */
 	fcm_generator_evaluate /* evaluate */
 };
 
@@ -1505,6 +1650,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	fcm_envelope_copy, /* copy data */
 	fcm_envelope_new_data, /* new data */
 	fcm_envelope_verify, /* verify */
+	NULL, /* evaluate time */
 	fcm_envelope_evaluate /* evaluate */
 };
 
@@ -1520,6 +1666,11 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  * 				as appropriate
  */
 
+/* temp data used during evaluation */
+typedef struct tFCMED_Cycles {
+	float cycyofs;		/* y-offset to apply */
+} tFCMED_Cycles;
+ 
 static void fcm_cycles_new_data (void *mdata)
 {
 	FMod_Cycles *data= (FMod_Cycles *)mdata;
@@ -1527,13 +1678,11 @@ static void fcm_cycles_new_data (void *mdata)
 	/* turn on cycles by default */
 	data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
 }
- 
-static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+
+static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-	ListBase mods = {NULL, NULL};
 	float prevkey[2], lastkey[2], cycyofs=0.0f;
-	float new_value;
 	short side=0, mode=0;
 	int cycles=0;
 	
@@ -1541,7 +1690,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	// FIXME...
 	if (fcm->prev) {
 		fcm->flag |= FMODIFIER_FLAG_DISABLED;
-		return;
+		return evaltime;
 	}
 	
 	/* calculate new evaltime due to cyclic interpolation */
@@ -1566,7 +1715,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		lastkey[1]= lastfpt->vec[1];
 	}
 	else
-		return;
+		return evaltime;
 		
 	/* check if modifier will do anything
 	 *	1) if in data range, definitely don't do anything
@@ -1587,11 +1736,12 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		}
 	}
 	if ELEM(0, side, mode)
-		return;
+		return evaltime;
 		
 	/* find relative place within a cycle */
 	{
 		float cycdx=0, cycdy=0, ofs=0;
+		float cycle= 0;
 		
 		/* ofs is start frame of cycle */
 		ofs= prevkey[0];
@@ -1602,19 +1752,22 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		
 		/* check if cycle is infinitely small, to be point of being impossible to use */
 		if (cycdx == 0)
-			return;
+			return evaltime;
 			
+		/* calculate the 'number' of the cycle */
+		cycle= ((float)side * (evaltime - ofs) / cycdx);
+		
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
 			/* catch this case so that we don't exit when we have cycles=0
 			 * as this indicates infinite cycles...
 			 */
 		}
-		else if ( ((float)side * (evaltime - ofs) / cycdx) > (cycles+1) ) {
+		else if (cycle > (cycles+1)) {
 			/* we are too far away from range to evaluate
 			 * TODO: but we should still hold last value... 
 			 */
-			return;
+			return evaltime;
 		}
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
@@ -1624,21 +1777,49 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		}
 		
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
-		evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle) % 2)) {
+			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse 
+			 *	- for 'before' extrapolation, we need to flip in a different way, otherwise values past
+			 *	  then end of the curve get referenced (result of fmod will be negative, and with different phase)
+			 */
+			if (side < 0)
+				evaltime= (float)(prevkey[0] - fmod(evaltime-ofs, cycdx));
+			else
+				evaltime= (float)(lastkey[0] - fmod(evaltime-ofs, cycdx));
+		}
+		else {
+			/* the cycle is played normally... */
+			evaltime= (float)(fmod(evaltime-ofs, cycdx) + ofs);
+		}
 		if (evaltime < ofs) evaltime += cycdx;
 	}
 	
+	/* store temp data if needed */
+	if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
+		tFCMED_Cycles *edata;
+		
+		/* for now, this is just a float, but we could get more stuff... */
+		fcm->edata= edata= MEM_callocN(sizeof(tFCMED_Cycles), "tFCMED_Cycles");
+		edata->cycyofs= cycyofs;
+	}
 	
-	/* store modifiers after (and including ourself) before recalculating curve with new evaltime */
-	mods= fcu->modifiers;
-	fcu->modifiers.first= fcu->modifiers.last= NULL;
+	/* return the new frame to evaluate */
+	return evaltime;
+}
+ 
+static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	tFCMED_Cycles *edata= (tFCMED_Cycles *)fcm->edata;
 	
-	/* re-enter the evaluation loop (but without the burden of evaluating any modifiers, so 'should' be relatively quick) */
-	new_value= evaluate_fcurve(fcu, evaltime);
-	
-	/* restore modifiers, and set new value (don't assume everything is still ok after being re-entrant) */
-	fcu->modifiers= mods;
-	*cvalue= new_value + cycyofs;
+	/* use temp data */
+	if (edata) {
+		/* add cyclic offset - no need to check for now, otherwise the data wouldn't exist! */
+		*cvalue += edata->cycyofs;
+		
+		/* free temp data */
+		MEM_freeN(edata);
+		fcm->edata= NULL;
+	}
 }
 
 static FModifierTypeInfo FMI_CYCLES = {
@@ -1652,12 +1833,48 @@ static FModifierTypeInfo FMI_CYCLES = {
 	NULL, /* copy data */
 	fcm_cycles_new_data, /* new data */
 	NULL /*fcm_cycles_verify*/, /* verify */
+	fcm_cycles_time, /* evaluate time */
 	fcm_cycles_evaluate /* evaluate */
 };
 
 /* Noise F-Curve Modifier  --------------------------- */
 
-#if 0 // XXX not yet implemented 
+static void fcm_noise_new_data (void *mdata)
+{
+	FMod_Noise *data= (FMod_Noise *)mdata;
+	
+	/* defaults */
+	data->size= 1.0f;
+	data->strength= 1.0f;
+	data->phase= 1.0f;
+	data->depth = 0;
+	data->modification = FCM_NOISE_MODIF_REPLACE;
+}
+ 
+static void fcm_noise_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Noise *data= (FMod_Noise *)fcm->data;
+	float noise;
+	
+	noise = BLI_turbulence(data->size, evaltime, data->phase, 0.f, data->depth);
+	
+	switch (data->modification) {
+		case FCM_NOISE_MODIF_ADD:
+			*cvalue= *cvalue + noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_SUBTRACT:
+			*cvalue= *cvalue - noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_MULTIPLY:
+			*cvalue= *cvalue * noise * data->strength;
+			break;
+		case FCM_NOISE_MODIF_REPLACE:
+		default:
+			*cvalue= *cvalue + (noise - 0.5f) * data->strength;
+			break;
+	}
+}
+
 static FModifierTypeInfo FMI_NOISE = {
 	FMODIFIER_TYPE_NOISE, /* type */
 	sizeof(FMod_Noise), /* size */
@@ -1669,9 +1886,9 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL, /* copy data */
 	fcm_noise_new_data, /* new data */
 	NULL /*fcm_noise_verify*/, /* verify */
+	NULL, /* evaluate time */
 	fcm_noise_evaluate /* evaluate */
 };
-#endif // XXX not yet implemented
 
 /* Filter F-Curve Modifier --------------------------- */
 
@@ -1687,6 +1904,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL /*fcm_filter_verify*/, /* verify */
+	NULL, /* evlauate time */
 	fcm_filter_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1742,9 +1960,52 @@ static FModifierTypeInfo FMI_PYTHON = {
 	fcm_python_copy, /* copy data */
 	fcm_python_new_data, /* new data */
 	NULL /*fcm_python_verify*/, /* verify */
+	NULL /*fcm_python_time*/, /* evaluate time */
 	fcm_python_evaluate /* evaluate */
 };
 
+
+/* Limits F-Curve Modifier --------------------------- */
+
+static float fcm_limits_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
+	
+	/* check for the time limits */
+	if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin))
+		return data->rect.xmin;
+	if ((data->flag & FCM_LIMIT_XMAX) && (evaltime > data->rect.xmax))
+		return data->rect.xmax;
+		
+	/* modifier doesn't change time */
+	return evaltime;
+}
+
+static void fcm_limits_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
+	
+	/* value limits now */
+	if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin))
+		*cvalue= data->rect.ymin;
+	if ((data->flag & FCM_LIMIT_YMAX) && (*cvalue > data->rect.ymax))
+		*cvalue= data->rect.ymax;
+}
+
+static FModifierTypeInfo FMI_LIMITS = {
+	FMODIFIER_TYPE_LIMITS, /* type */
+	sizeof(FMod_Limits), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
+	"Limits", /* name */
+	"FMod_Limits", /* struct name */
+	NULL, /* free data */
+	NULL, /* copy data */
+	NULL, /* new data */
+	NULL, /* verify */
+	fcm_limits_time, /* evaluate time */
+	fcm_limits_evaluate /* evaluate */
+};
 
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
@@ -1762,9 +2023,10 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
 	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
 	fmodifiersTypeInfo[3]=  &FMI_CYCLES;			/* Cycles F-Curve Modifier */
-	fmodifiersTypeInfo[4]=  NULL/*&FMI_NOISE*/;				/* Apply-Noise F-Curve Modifier */ // XXX unimplemented
+	fmodifiersTypeInfo[4]=  &FMI_NOISE;				/* Apply-Noise F-Curve Modifier */
 	fmodifiersTypeInfo[5]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[6]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
+	fmodifiersTypeInfo[7]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -1981,9 +2243,11 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
 float evaluate_fcurve (FCurve *fcu, float evaltime) 
 {
 	FModifier *fcm;
-	float cvalue = 0.0f;
+	float cvalue= 0.0f;
+	float devaltime;
 	
 	/* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime" 
+	 * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
 	 *	- this value will also be returned as the value of the 'curve', if there are no keyframes
 	 */
 	if (fcu->driver) {
@@ -1991,11 +2255,37 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		evaltime= cvalue= evaluate_driver(fcu->driver, evaltime);
 	}
 	
-	/* evaluate curve-data */
+	/* evaluate time modifications imposed by some F-Curve Modifiers
+	 *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
+	 *	  several times by modifiers requesting the time be modified, as the final result
+	 *	  would have required using the modified time
+	 *	- modifiers only ever recieve the unmodified time, as subsequent modifiers should be
+	 *	  working on the 'global' result of the modified curve, not some localised segment,
+	 *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
+	 *	- we start from the end of the stack, as only the last one matters for now
+	 */
+	devaltime= evaltime;
+	
+	for (fcm= fcu->modifiers.last; fcm; fcm= fcm->prev) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* only evaluate if there's a callback for this */
+		// TODO: implement the 'influence' control feature...
+		if (fmi && fmi->evaluate_modifier_time) {
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
+				devaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
+			break;
+		}
+	}
+	
+	/* evaluate curve-data 
+	 *	- 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying 
+	 *	  F-Curve modifier on the stack requested the curve to be evaluated at
+	 */
 	if (fcu->bezt)
-		cvalue= fcurve_eval_keyframes(fcu, fcu->bezt, evaltime);
+		cvalue= fcurve_eval_keyframes(fcu, fcu->bezt, devaltime);
 	else if (fcu->fpt)
-		cvalue= fcurve_eval_samples(fcu, fcu->fpt, evaltime);
+		cvalue= fcurve_eval_samples(fcu, fcu->fpt, devaltime);
 	
 	/* evaluate modifiers */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
@@ -2004,7 +2294,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		/* only evaluate if there's a callback for this */
 		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier) {
-			if ((fcm->flag & FMODIFIER_FLAG_DISABLED) == 0)
+			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
 		}
 	}

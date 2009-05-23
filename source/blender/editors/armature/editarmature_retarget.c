@@ -64,9 +64,9 @@
 #include "BKE_context.h"
 
 #include "ED_armature.h"
+#include "ED_util.h"
+
 #include "BIF_retarget.h"
-//#include "BIF_space.h"
-//#include "BIF_toolbox.h"
 
 #include "PIL_time.h"
 
@@ -206,12 +206,12 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	}
 }
 
-float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4])
+float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4], float up_axis[3])
 {
 	if (previous == NULL)
 	{
-		QuatOne(qroll);
-		return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+		/* default to up_axis if no previous */
+		return rollBoneByQuatAligned(edge->bone, edge->up_axis, qrot, qroll, up_axis);
 	}
 	else
 	{
@@ -228,9 +228,8 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 		}
 		else
 		{
-			/* SHOULDN'T BE HERE */
-			QuatOne(qroll);
-			return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+			/* default to up_axis if first bone in the chain is an offset */
+			return rollBoneByQuatAligned(edge->bone, edge->up_axis, qrot, qroll, up_axis);
 		}
 		
 		VecSubf(vec_second, edge->bone->tail, edge->bone->head);
@@ -1645,6 +1644,7 @@ RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm)
 }
 /************************************ GENERATING *****************************************************/
 
+#if 0
 static EditBone *add_editbonetolist(char *name, ListBase *list)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
@@ -1668,6 +1668,7 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	
 	return bone;
 }
+#endif
 
 void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
 {
@@ -1857,7 +1858,7 @@ static void repositionBone(bContext *C, RigGraph *rigg, RigEdge *edge, float vec
 		}
 		else if (scene->toolsettings->skgen_retarget_roll == SK_RETARGET_ROLL_JOINT)
 		{
-			bone->roll = rollBoneByQuatJoint(edge, edge->next, qrot, qroll);
+			bone->roll = rollBoneByQuatJoint(edge, edge->prev, qrot, qroll, up_axis);
 		}
 		else
 		{
@@ -2733,7 +2734,7 @@ static void adjustGraphs(bContext *C, RigGraph *rigg)
 	arm->edbo = rigg->editbones;
 	ED_armature_from_edit(scene, rigg->ob);
 	
-	ED_undo_push("Retarget Skeleton");
+	ED_undo_push(C, "Retarget Skeleton");
 }
 
 static void retargetGraphs(bContext *C, RigGraph *rigg)
@@ -2890,7 +2891,7 @@ void BIF_retargetArmature(bContext *C)
 	printf("retarget: \t%.3f (%.1f%%)\n", retarget_time, retarget_time / total_time * 100);
 	printf("-----------\n");
 	
-	ED_undo_push("Retarget Skeleton");
+	ED_undo_push(C, "Retarget Skeleton");
 
 	// XXX	
 //	allqueue(REDRAWVIEW3D, 0);

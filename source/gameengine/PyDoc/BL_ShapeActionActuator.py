@@ -1,6 +1,7 @@
 # $Id$
 # Documentation for BL_ShapeActionActuator
 from SCA_IActuator import *
+from SCA_ILogicBrick import *
 
 class BL_ShapeActionActuator(SCA_IActuator):
 	"""
@@ -10,7 +11,7 @@ class BL_ShapeActionActuator(SCA_IActuator):
 	@type action: string
 	@ivar start: Specifies the starting frame of the shape animation.
 	@type start: float
-	@type end: Specifies the ending frame of the shape animation.
+	@ivar end: Specifies the ending frame of the shape animation.
 	@type end: float
 	@ivar blendin: Specifies the number of frames of animation to generate when making transitions between actions.
 	@type blendin: float

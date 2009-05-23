@@ -79,6 +79,11 @@
 
 #include "graph_intern.h"	// own include
 
+/* XXX */
+
+/* temporary definition for limits of float number buttons (FLT_MAX tends to infinity with old system) */
+#define UI_FLT_MAX 	10000.0f
+
 
 /* ******************* graph editor space & buttons ************** */
 
@@ -99,18 +104,49 @@ static void do_graph_region_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
-static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
 {
-	FCurve *fcu= (FCurve *)ale->data;
+	bAnimContext ac;
+	bAnimListElem *elem= NULL;
+	
+	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
+	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
+	 */
+	if (ANIM_animdata_get_context(C, &ac) == 0) 
+		return 0;
+	
+	/* try to find 'active' F-Curve */
+	elem= get_active_fcurve_channel(&ac);
+	if(elem == NULL) 
+		return 0;
+	
+	if(fcu)
+		*fcu= (FCurve*)elem->data;
+	if(ale)
+		*ale= elem;
+	else
+		MEM_freeN(elem);
+	
+	return 1;
+}
+
+static int graph_panel_poll(const bContext *C, PanelType *pt)
+{
+	return graph_panel_context(C, NULL, NULL);
+}
+
+static void graph_panel_properties(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
 	uiBlock *block;
 	char name[128];
 
-	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS, UI_HELV);
-	if (uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
-	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
 
-	/* to force height */
-	uiNewPanelHeight(block, 204);
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
 	/* Info - Active F-Curve */
 	uiDefBut(block, LABEL, 1, "Active F-Curve:",					10, 200, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -131,6 +167,8 @@ static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, 
 	 *	- Access details (ID-block + RNA-Path + Array Index)
 	 *	- ...
 	 */
+
+	MEM_freeN(ale);
 }
 
 /* ******************* drivers ******************************** */
@@ -141,80 +179,171 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	switch(event) {
+	switch (event) {
 		case B_IPO_DEPCHANGE:
 		{
 			/* rebuild depsgraph for the new deps */
 			DAG_scene_sort(scene);
 			
-			/* TODO: which one? we need some way of sending these updates since curves from non-active ob could be being edited */
-			//DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			//DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+			/* force an update of depsgraph */
+			ED_anim_dag_flush_update(C);
 		}
 			break;
 	}
 	
 	/* default for now */
-	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_SCENE, scene);
 }
 
-static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+/* callback to remove the active driver */
+static void driver_remove_cb (bContext *C, void *ale_v, void *dummy_v)
 {
-	FCurve *fcu= (FCurve *)ale->data;
+	bAnimListElem *ale= (bAnimListElem *)ale_v;
+	ID *id= ale->id;
+	FCurve *fcu= ale->data;
+	
+	/* try to get F-Curve that driver lives on, and ID block which has this AnimData */
+	if (ELEM(NULL, id, fcu))
+		return;
+	
+	/* call API method to remove this driver  */	
+	ANIM_remove_driver(id, fcu->rna_path, fcu->array_index, 0);
+}
+
+/* callback to add a target variable to the active driver */
+static void driver_add_var_cb (bContext *C, void *driver_v, void *dummy_v)
+{
+	ChannelDriver *driver= (ChannelDriver *)driver_v;
+	
+	/* add a new var */
+	driver_add_new_target(driver);
+}
+
+/* callback to remove target variable from active driver */
+static void driver_delete_var_cb (bContext *C, void *driver_v, void *dtar_v)
+{
+	ChannelDriver *driver= (ChannelDriver *)driver_v;
+	DriverTarget *dtar= (DriverTarget *)dtar_v;
+	
+	/* add a new var */
+	driver_free_target(driver, dtar);
+}
+
+/* callback to reset the driver's flags */
+static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
+{
+	FCurve *fcu= (FCurve *)fcu_v;
 	ChannelDriver *driver= fcu->driver;
+	
+	/* clear invalid flags */
+	driver->flag &= ~DRIVER_FLAG_INVALID;
+}
+
+/* drivers panel poll */
+static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
+{
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+
+	if(sipo->mode != SIPO_MODE_DRIVERS)
+		return 0;
+
+	return graph_panel_context(C, NULL, NULL);
+}
+
+/* driver settings for active F-Curve (only for 'Drivers' mode) */
+static void graph_panel_drivers(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	ChannelDriver *driver;
+	DriverTarget *dtar;
+	
+	PointerRNA rna_ptr;
 	uiBlock *block;
 	uiBut *but;
-	int len;
+	int yco=85, i=0;
 
-	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS, UI_HELV);
-	if (uiNewPanel(C, ar, block, "Drivers", "Graph", 340, 30, 318, 254)==0) return;
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
+
+	driver= fcu->driver;
+	
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
-
-	/* to force height */
-	uiNewPanelHeight(block, 204);
+	
+	/* general actions */
+	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 200, 180, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
+	uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
+	
+	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 200, 200, 110, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
+	uiButSetFunc(but, driver_remove_cb, ale, NULL);
 	
 	/* type */
-	uiDefBut(block, LABEL, 1, "Type:",					10, 200, 120, 20, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, "Type:",					10, 170, 60, 20, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButI(block, MENU, B_IPO_DEPCHANGE,
-					"Driver Type%t|Transform Channel%x0|Scripted Expression%x1|Rotational Difference%x2", 
-					130,200,180,20, &driver->type, 0, 0, 0, 0, "Driver type");
-					
-	/* buttons to draw depends on type of driver */
-	if (driver->type == DRIVER_TYPE_PYTHON) { /* PyDriver */
-		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,160,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
+					"Driver Type%t|Normal%x0|Scripted Expression%x1|Rotational Difference%x2", 
+					70,170,240,20, &driver->type, 0, 0, 0, 0, "Driver type");
+	
+	/* show expression box if doing scripted drivers */
+	if (driver->type == DRIVER_TYPE_PYTHON) {
+		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,150,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
 		
+		/* errors */
 		if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 140, 20, 19, NULL, 0, 0, 0, 0, "");
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 48, 48, NULL, 0, 0, 0, 0, ""); // a bit larger
 			uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
-					30,140,230,19, NULL, 0, 0, 0, 0, "");
+					50,110,230,19, NULL, 0, 0, 0, 0, "");
 		}
 	}
-	else { /* Channel or RotDiff - RotDiff just has extra settings */
-		/* Driver Object */
-		but= uiDefBut(block, TEX, B_IPO_DEPCHANGE, "OB: ",	10,160,150,20, driver->id->name+2, 0.0, 21.0, 0, 0, "Object that controls this Driver.");
-		uiButSetFunc(but, test_idbutton_cb, driver->id->name, NULL);
+	else {
+		/* errors */
+		if (driver->flag & DRIVER_FLAG_INVALID) {
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 48, 48, NULL, 0, 0, 0, 0, ""); // a bit larger
+			uiDefBut(block, LABEL, 0, "Error: invalid target channel(s)",
+					50,130,230,19, NULL, 0, 0, 0, 0, "");
+		}
+	}
+	
+	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 10, 110, 300, 20, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
+	uiButSetFunc(but, driver_add_var_cb, driver, NULL);
+	
+	/* loop over targets, drawing them */
+	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+		short height = (dtar->id) ? 80 : 60;
+		
+		/* panel behind buttons */
+		uiDefBut(block, ROUNDBOX, B_REDR, "", 5, yco-height+25, 310, height, NULL, 5.0, 0.0, 12.0, 0, "");
+		
+		/* variable name */
+		uiDefButC(block, TEX, B_REDR, "Name: ", 10,yco,280,20, dtar->name, 0, 63, 0, 0, "Name of target variable (No spaces or dots are allowed. Also, must not start with a symbol or digit).");
+		
+		/* remove button */
+		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+		uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
+		
+		
+		/* Target Object */
+		uiDefBut(block, LABEL, 1, "Value:",	10, yco-30, 60, 20, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob: ", 70, yco-30, 240, 20, &dtar->id, "Object to use as Driver target");
 		
 		// XXX should we hide these technical details?
-		if (driver->id) {
-			/* Array Index */
-			// XXX ideally this is grouped with the path, but that can get quite long...
-			uiDefButI(block, NUM, B_IPO_DEPCHANGE, "Index: ", 170,160,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
-			
-			/* RNA-Path - allocate if non-existant */
-			if (driver->rna_path == NULL) {
-				driver->rna_path= MEM_callocN(256, "Driver RNA-Path");
-				len= 255;
-			}
-			else
-				len= strlen(driver->rna_path);
-			uiDefBut(block, TEX, B_IPO_DEPCHANGE, "Path: ", 10,130,300,20, driver->rna_path, 0, len, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
+		if (dtar->id) {
+			uiBlockBeginAlign(block);
+				/* RNA Path */
+				RNA_pointer_create(ale->id, &RNA_DriverTarget, dtar, &rna_ptr);
+				uiDefButR(block, TEX, 0, "Path: ", 10, yco-50, 250, 20, &rna_ptr, "rna_path", 0, 0, 0, -1, -1, "RNA Path (from Driver Object) to property used as Driver.");
+					
+				/* Array Index */
+				uiDefButI(block, NUM, B_REDR, "", 260,yco-50,50,20, &dtar->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
+			uiBlockEndAlign(block);
 		}
 		
-		/* for rotational difference, show second target... */
-		if (driver->type == DRIVER_TYPE_ROTDIFF) {
-			// TODO...
-		}
+		/* adjust y-coordinate for next target */
+		yco -= height;
+		i++;
 	}
+
+	MEM_freeN(ale);
 }
 
 /* ******************* f-modifiers ******************************** */
@@ -235,10 +364,7 @@ static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 // XXX for now, roundbox has it's callback func set to NULL to not intercept events
 #define DRAW_BACKDROP(height) \
 	{ \
-		if (active) uiBlockSetCol(block, TH_BUT_ACTION); \
-			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
-			uiButSetFunc(but, NULL, NULL, NULL); \
-		if (active) uiBlockSetCol(block, TH_AUTO); \
+		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, *yco-height, width+3, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
 	}
 
 /* callback to verify modifier data */
@@ -287,13 +413,13 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 	(*height) = 90;
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
-			(*height) += 20*(data->poly_order+1) + 35;
+			(*height) += 20*(data->poly_order+1) + 20;
 			break;
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
-			(*height) += 20 * data->poly_order;
+			(*height) += 20 * data->poly_order + 15;
 			break;
 		case FCM_GENERATOR_FUNCTION: /* builtin function */
-			(*height) += 50; // xxx
+			(*height) += 55; // xxx
 			break;
 		case FCM_GENERATOR_EXPRESSION: /* py-expression */
 			// xxx nothing to draw 
@@ -301,7 +427,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 	}
 	
 	/* basic settings (backdrop + mode selector + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	uiBlockBeginAlign(block);
 		but= uiDefButS(block, MENU, B_FMODIFIER_REDRAW, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
 		uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
@@ -330,7 +456,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 			cp= data->coefficients;
 			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
 				/* coefficient */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient for polynomial");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient for polynomial");
 				
 				/* 'x' param (and '+' if necessary) */
 				if (i == 0)
@@ -368,15 +494,15 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 				uiDefBut(block, LABEL, 1, "(", 40, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficients */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 100, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient of x");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 100, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient of x");
 				
 				uiDefBut(block, LABEL, 1, "x + ", 150, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 180, cy, 100, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Second coefficient");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 180, cy, 100, 20, cp+1, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Second coefficient");
 				
 				/* closing bracket and '+' sign */
 				if ( (i != (data->poly_order - 1)) || ((i==0) && data->poly_order==2) )
-					uiDefBut(block, LABEL, 1, ") ×", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ") â—Š", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				else
 					uiDefBut(block, LABEL, 1, ")", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
@@ -399,7 +525,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 			{
 				uiDefBut(block, LABEL, 1, "y = ", 0, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp+3, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (D) for function");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp+3, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient (D) for function");
 				uiDefBut(block, LABEL, 1, "+", 200, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				cy -= 20;
 			}
@@ -409,7 +535,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 				char func_name[32];
 				
 				/* coefficient outside bracket */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, cy, 80, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (A) for function");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5, cy, 80, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient (A) for function");
 				
 				/* opening bracket */
 				switch (data->func_type)
@@ -433,14 +559,14 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 						sprintf(func_name, "<fn?>(");
 						break;
 				}
-				uiDefBut(block, LABEL, 1, func_name, 80, cy, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, func_name, 85, cy, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficients inside bracket */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 115, cy, 75, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (B) of x");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 120, cy, 75, 20, cp+1, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient (B) of x");
 				
-				uiDefBut(block, LABEL, 1, "x+", 190, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "x+", 195, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 220, cy, 80, 20, cp+2, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (C) of function");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 225, cy, 80, 20, cp+2, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient (C) of function");
 				
 				/* closing bracket */
 					uiDefBut(block, LABEL, 1, ")", 300, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
@@ -461,28 +587,58 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2";
+	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2|Repeat Mirrored%x3";
 	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
 	
 	/* set the height */
-	(*height) = 90;
+	(*height) = 80;
 	
 	/* basic settings (backdrop + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	
 	/* 'before' range */
-	uiDefBut(block, LABEL, 1, "Before:", 10, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
+	uiDefBut(block, LABEL, 1, "Before:", 4, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
 	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 10,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 10, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 3,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 3, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
 	uiBlockEndAlign(block);
 	
 	/* 'after' range */
-	uiDefBut(block, LABEL, 1, "After:", 160, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
+	uiDefBut(block, LABEL, 1, "After:", 155, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
 	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 170,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 170, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 157,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 157, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
 	uiBlockEndAlign(block);
+}
+
+/* --------------- */
+
+/* draw settings for noise modifier */
+static void draw_modifier__noise(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Noise *data= (FMod_Noise *)fcm->data;
+	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
+	char cyc_mode[]="Modification %t|Replace %x0|Add %x1|Subtract %x2|Multiply %x3";
+	
+	/* set the height */
+	(*height) = 80;
+	
+	/* basic settings (backdrop + some padding) */
+	DRAW_BACKDROP((*height));
+	
+	uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode,
+			  3, cy, 150, 20, &data->modification, 0, 0, 0, 0, "Method of modifying the existing F-Curve use before first keyframe");
+	
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Size:", 
+			  3, cy1, 150, 20, &data->size, 0.000001, 10000.0, 0.01, 3, "");
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Strength:", 
+			  3, cy2, 150, 20, &data->strength, 0.0, 10000.0, 0.01, 3, "");
+	
+	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Phase:", 
+			  155, cy1, 150, 20, &data->phase, 0.0, 100000.0, 0.1, 3, "");
+	uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Depth:", 
+			  155, cy2, 150, 20, &data->depth, 0, 128, 1, 3, "");
+
 }
 
 /* --------------- */
@@ -652,27 +808,27 @@ static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm,
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
 	uiBut *but;
-	int cy= (*yco - 30);
+	int cy= (*yco - 28);
 	int i;
 	
 	/* set the height:
 	 *	- basic settings + variable height from envelope controls
 	 */
-	(*height) = 96 + (25 * env->totvert);
+	(*height) = 115 + (35 * env->totvert);
 	
 	/* basic settings (backdrop + general settings + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	
 	/* General Settings */
 	uiDefBut(block, LABEL, 1, "Envelope:", 10, cy, 100, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
 	cy -= 20;
 	
 	uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Reference Val:", 10, cy, 300, 20, &env->midval, -FLT_MAX, FLT_MAX, 10, 3, "");
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Reference Val:", 10, cy, 300, 20, &env->midval, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "");
 		cy -= 20;
 		
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 10, cy, 150, 20, &env->min, -FLT_MAX, env->max, 10, 3, "Minimum value (relative to Reference Value) that is used as the 'normal' minimum value");
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 160, cy, 150, 20, &env->max, env->min, FLT_MAX, 10, 3, "Maximum value (relative to Reference Value) that is used as the 'normal' maximum value");
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 10, cy, 150, 20, &env->min, -UI_FLT_MAX, env->max, 10, 3, "Minimum value (relative to Reference Value) that is used as the 'normal' minimum value");
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 160, cy, 150, 20, &env->max, env->min, UI_FLT_MAX, 10, 3, "Maximum value (relative to Reference Value) that is used as the 'normal' maximum value");
 		cy -= 35;
 	uiBlockEndAlign(block);
 	
@@ -687,17 +843,54 @@ static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm,
 	/* Points List */
 	for (i=0, fed=env->data; i < env->totvert; i++, fed++) {
 		uiBlockBeginAlign(block);
-			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 5, cy, 100, 20, &fed->time, -FLT_MAX, FLT_MAX, 10, 3, "Frame that envelope point occurs");
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 2, cy, 90, 20, &fed->time, -UI_FLT_MAX, UI_FLT_MAX, 10, 1, "Frame that envelope point occurs");
 			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 			
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 105, cy, 100, 20, &fed->min, -FLT_MAX, FLT_MAX, 10, 3, "Minimum bound of envelope at this point");
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 205, cy, 100, 20, &fed->max, -FLT_MAX, FLT_MAX, 10, 3, "Maximum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 92, cy, 100, 20, &fed->min, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Minimum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 192, cy, 100, 20, &fed->max, -UI_FLT_MAX, UI_FLT_MAX, 10, 2, "Maximum bound of envelope at this point");
 			
-			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 305, cy, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
+			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 292, cy, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
 			uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
 		uiBlockBeginAlign(block);
 		cy -= 25;
 	}
+}
+
+/* --------------- */
+
+/* draw settings for limits modifier */
+static void draw_modifier__limits(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
+	const int togButWidth = 50;
+	const int textButWidth = ((width/2)-togButWidth);
+	
+	/* set the height */
+	(*height) = 60;
+	
+	/* basic settings (backdrop + some padding) */
+	DRAW_BACKDROP((*height));
+	
+	/* Draw Pairs of LimitToggle+LimitValue */
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMIN, B_FMODIFIER_REDRAW, "xMin", 5, *yco-30, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+togButWidth, *yco-30, (textButWidth-5), 18, &data->rect.xmin, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Lowest x value to allow"); 
+	uiBlockEndAlign(block); 
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMAX, B_FMODIFIER_REDRAW, "XMax", 5+(width-(textButWidth-5)-togButWidth), *yco-30, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+(width-textButWidth-5), *yco-30, (textButWidth-5), 18, &data->rect.xmax, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Highest x value to allow"); 
+	uiBlockEndAlign(block); 
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMIN, B_FMODIFIER_REDRAW, "yMin", 5, *yco-52, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+togButWidth, *yco-52, (textButWidth-5), 18, &data->rect.ymin, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Lowest y value to allow"); 
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMAX, B_FMODIFIER_REDRAW, "YMax", 5+(width-(textButWidth-5)-togButWidth), *yco-52, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+(width-textButWidth-5), *yco-52, (textButWidth-5), 18, &data->rect.ymax, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Highest y value to allow"); 
+	uiBlockEndAlign(block); 
 }
 
 /* --------------- */
@@ -716,25 +909,24 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
-#if 0 // XXX buggy...
-		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
-			rb_col= (active)?-20:20;
-			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
-		if (active) uiBlockSetCol(block, TH_AUTO);
-#endif // XXX buggy
+		rb_col= (active)?-20:20;
+		but= uiDefBut(block, ROUNDBOX, B_REDR, "", 0, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
 		
 		/* expand */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	5, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	5, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded.");
 		
 		/* checkbox for 'active' status (for now) */
-		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	25, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one");
+		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	25, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one.");
 		uiButSetFunc(but, activate_fmodifier_cb, fcu, fcm);
 		
 		/* name */
 		if (fmi)
-			but= uiDefBut(block, LABEL, 1, fmi->name,	10+40, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiDefBut(block, LABEL, 1, fmi->name,	10+40, *yco, 150, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
 		else
-			but= uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+40, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+40, *yco, 150, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+		
+		/* 'mute' button */
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_MUTED, B_REDR, ICON_MUTE_IPO_OFF,	10+(width-60), *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is temporarily muted (not evaluated).");
 		
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
@@ -758,6 +950,14 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
 				draw_modifier__envelope(block, fcu, fcm, yco, &height, width, active, rb_col);
 				break;
+				
+			case FMODIFIER_TYPE_LIMITS: /* Limits */
+				draw_modifier__limits(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+			
+			case FMODIFIER_TYPE_NOISE: /* Noise */
+				draw_modifier__noise(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
 			
 			default: /* unknown type */
 				height= 96;
@@ -770,18 +970,19 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 	(*yco) -= (height + 27); 
 }
 
-static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+static void graph_panel_modifiers(const bContext *C, Panel *pa)	
 {
-	FCurve *fcu= (FCurve *)ale->data;
+	bAnimListElem *ale;
+	FCurve *fcu;
 	FModifier *fcm;
 	uiBlock *block;
 	int yco= 190;
 	
-	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS, UI_HELV);
-	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
-	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
 	
-	uiNewPanelHeight(block, 204);
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
 	
 	/* 'add modifier' button at top of panel */
 	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
@@ -790,12 +991,8 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
 	/* draw each modifier */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
 		graph_panel_modifier_draw(block, fcu, fcm, &yco);
-	
-	/* since these buttons can have variable height */
-	if (yco < 0)
-		uiNewPanelHeight(block, (204 - yco));
-	else
-		uiNewPanelHeight(block, 204);
+
+	MEM_freeN(ale);
 }
 
 /* ******************* general ******************************** */
@@ -828,42 +1025,31 @@ bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
 	return NULL;
 }
 
-void graph_region_buttons(const bContext *C, ARegion *ar)
+void graph_buttons_register(ARegionType *art)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-	bAnimContext ac;
-	bAnimListElem *ale= NULL;
-	
-	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
-	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
-	 */
-	if (ANIM_animdata_get_context(C, &ac) == 0) 
-		return;
-	
-	
-	/* try to find 'active' F-Curve */
-	ale= get_active_fcurve_channel(&ac);
-	if (ale == NULL) 
-		return;	
-		
-	/* for now, the properties panel displays info about the selected channels */
-	graph_panel_properties(C, ar, 0, ale);
-	
-	/* driver settings for active F-Curve (only for 'Drivers' mode) */
-	if (sipo->mode == SIPO_MODE_DRIVERS)
-		graph_panel_drivers(C, ar, 0, ale);
-	
-	/* modifiers */
-	graph_panel_modifiers(C, ar, 0, ale);
-	
+	PanelType *pt;
 
-	uiDrawPanels(C, 1);		/* 1 = align */
-	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
-	
-	/* free temp data */
-	MEM_freeN(ale);
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
+	strcpy(pt->idname, "GRAPH_PT_properties");
+	strcpy(pt->label, "Properties");
+	pt->draw= graph_panel_properties;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
+	strcpy(pt->idname, "GRAPH_PT_drivers");
+	strcpy(pt->label, "Drivers");
+	pt->draw= graph_panel_drivers;
+	pt->poll= graph_panel_drivers_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
+	strcpy(pt->idname, "GRAPH_PT_modifiers");
+	strcpy(pt->label, "Modifiers");
+	pt->draw= graph_panel_modifiers;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
 }
-
 
 static int graph_properties(bContext *C, wmOperator *op)
 {

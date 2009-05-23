@@ -87,11 +87,12 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
 	IDProperty *idprop= (IDProperty*)data;
 	PropertyRNA *prop;
+	StructRNA *ptype= iter->builtin_parent.type;
 
 	/* function to skip any id properties that are already known by RNA,
 	 * for the second loop where we go over unknown id properties */
 
-	for(prop= iter->parent.type->properties.first; prop; prop=prop->next)
+	for(prop= ptype->cont.properties.first; prop; prop=prop->next)
 		if(strcmp(prop->identifier, idprop->name) == 0)
 			return 1;
 	
@@ -107,7 +108,16 @@ static int rna_property_builtin(CollectionPropertyIterator *iter, void *data)
 	return (prop->flag & PROP_BUILTIN);
 }
 
-static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
+static int rna_function_builtin(CollectionPropertyIterator *iter, void *data)
+{
+	FunctionRNA *func= (FunctionRNA*)data;
+
+	/* function to skip builtin rna functions */
+
+	return (func->flag & FUNC_BUILTIN);
+}
+
+static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter, IteratorSkipFunc skip, int funcs)
 {
 	/* RNA struct inheritance */
 	while(!iter->valid && iter->level > 0) {
@@ -120,20 +130,36 @@ static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter,
 			srna= srna->base;
 
 		rna_iterator_listbase_end(iter);
-		rna_iterator_listbase_begin(iter, &srna->properties, skip);
+
+		if (funcs)
+			rna_iterator_listbase_begin(iter, &srna->functions, skip);
+		else
+			rna_iterator_listbase_begin(iter, &srna->cont.properties, skip);
 	}
 }
 
-static void rna_inheritance_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
+static void rna_inheritance_properties_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
 {
 	rna_iterator_listbase_begin(iter, lb, skip);
-	rna_inheritance_next_level_restart(iter, skip);
+	rna_inheritance_next_level_restart(iter, skip, 0);
 }
 
-static void rna_inheritance_listbase_next(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
+static void rna_inheritance_properties_listbase_next(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
 {
 	rna_iterator_listbase_next(iter);
-	rna_inheritance_next_level_restart(iter, skip);
+	rna_inheritance_next_level_restart(iter, skip, 0);
+}
+
+static void rna_inheritance_functions_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
+{
+	rna_iterator_listbase_begin(iter, lb, skip);
+	rna_inheritance_next_level_restart(iter, skip, 1);
+}
+
+static void rna_inheritance_functions_listbase_next(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
+{
+	rna_iterator_listbase_next(iter);
+	rna_inheritance_next_level_restart(iter, skip, 1);
 }
 
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
@@ -147,11 +173,11 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 	}
 	else {
 		/* regular properties */
-		rna_inheritance_listbase_next(iter, rna_property_builtin);
+		rna_inheritance_properties_listbase_next(iter, rna_property_builtin);
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= rna_idproperties_get(&iter->parent, 0);
+			group= RNA_struct_idproperties(&iter->builtin_parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
@@ -175,7 +201,7 @@ static void rna_Struct_properties_begin(CollectionPropertyIterator *iter, Pointe
 		srna= srna->base;
 	}
 
-	rna_inheritance_listbase_begin(iter, &srna->properties, rna_property_builtin);
+	rna_inheritance_properties_listbase_begin(iter, &srna->cont.properties, rna_property_builtin);
 }
 
 static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
@@ -187,8 +213,37 @@ static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Property, internal->link);
 }
 
+static void rna_Struct_functions_next(CollectionPropertyIterator *iter)
+{
+	rna_inheritance_functions_listbase_next(iter, rna_function_builtin);
+}
+
+static void rna_Struct_functions_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	StructRNA *srna;
+
+	/* here ptr->data should always be the same as iter->parent.type */
+	srna= (StructRNA *)ptr->data;
+
+	while(srna->base) {
+		iter->level++;
+		srna= srna->base;
+	}
+
+	rna_inheritance_functions_listbase_begin(iter, &srna->functions, rna_function_builtin);
+}
+
+static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+
+	/* we return either PropertyRNA* or IDProperty*, the rna_access.c
+	 * functions can handle both as PropertyRNA* with some tricks */
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Function, internal->link);
+}
+
 /* Builtin properties iterator re-uses the Struct properties iterator, only
- * difference is that we need to see the ptr data to the type of the struct
+ * difference is that we need to set the ptr data to the type of the struct
  * whose properties we want to iterate over. */
 
 void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -205,6 +260,7 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
 		newptr.id.data= NULL;
 
 	iter->parent= newptr;
+	iter->builtin_parent = *ptr;
 
 	rna_Struct_properties_begin(iter, &newptr);
 }
@@ -311,6 +367,18 @@ static int rna_Property_array_length_get(PointerRNA *ptr)
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
 	return prop->arraylength;
+}
+
+static int rna_Property_registered_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_REGISTER;
+}
+
+static int rna_Property_registered_optional_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_REGISTER_OPTIONAL;
 }
 
 static int rna_IntProperty_hard_min_get(PointerRNA *ptr)
@@ -447,6 +515,45 @@ static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((CollectionPropertyRNA*)prop)->type);
 }
 
+/* Function */
+
+static void rna_Function_identifier_get(PointerRNA *ptr, char *value)
+{
+	strcpy(value, ((FunctionRNA*)ptr->data)->identifier);
+}
+
+static int rna_Function_identifier_length(PointerRNA *ptr)
+{
+	return strlen(((FunctionRNA*)ptr->data)->identifier);
+}
+
+static void rna_Function_description_get(PointerRNA *ptr, char *value)
+{
+	strcpy(value, ((FunctionRNA*)ptr->data)->description);
+}
+
+static int rna_Function_description_length(PointerRNA *ptr)
+{
+	return strlen(((FunctionRNA*)ptr->data)->description);
+}
+
+static void rna_Function_parameters_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	rna_iterator_listbase_begin(iter, &((FunctionRNA*)ptr->data)->cont.properties, rna_property_builtin);
+}
+
+static int rna_Function_registered_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return func->flag & FUNC_REGISTER;
+}
+
+static int rna_Function_registered_optional_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return func->flag & FUNC_REGISTER_OPTIONAL;
+}
+
 /* Blender RNA */
 
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -503,6 +610,12 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Property");
 	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
+
+	prop= RNA_def_property(srna, "functions", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "Function");
+	RNA_def_property_collection_funcs(prop, "rna_Struct_functions_begin", "rna_Struct_functions_next", "rna_iterator_listbase_end", "rna_Struct_functions_get", 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Functions", "");
 }
 
 static void rna_def_property(BlenderRNA *brna)
@@ -567,6 +680,52 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
 	RNA_def_property_ui_text(prop, "Editable", "Property is editable through RNA.");
+
+	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered", "Property is registerd as part of type registration.");
+
+	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registerd as part of type registration.");
+}
+
+static void rna_def_function(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Function", NULL);
+	RNA_def_struct_ui_text(srna, "Function Definition", "RNA function definition");
+
+	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Function_identifier_get", "rna_Function_identifier_length", NULL);
+	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Function_description_get", "rna_Function_description_length", NULL);
+	RNA_def_property_ui_text(prop, "Description", "Description of the Function's purpose.");
+
+	prop= RNA_def_property(srna, "parameters", PROP_COLLECTION, PROP_NONE);
+	/*RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
+	RNA_def_property_struct_type(prop, "Property");
+	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Parameters", "Parameters for the function.");
+
+	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered", "Function is registerd as callback as part of type registration.");
+
+	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registerd as callback part of type registration.");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
@@ -718,6 +877,9 @@ void RNA_def_rna(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CollectionProperty", "Property");
 	RNA_def_struct_ui_text(srna, "Collection Definition", "RNA collection property to define lists, arrays and mappings.");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
+	
+	/* Function */
+	rna_def_function(brna);
 
 	/* Blender RNA */
 	srna= RNA_def_struct(brna, "BlenderRNA", NULL);

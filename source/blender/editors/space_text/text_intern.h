@@ -33,7 +33,6 @@
 struct ARegion;
 struct ARegionType;
 struct bContext;
-struct BMF_Font;
 struct ReportList;
 struct ScrArea;
 struct SpaceText;
@@ -43,7 +42,6 @@ struct wmOperatorType;
 struct wmWindowManager;
 
 /* text_header.c */
-void text_properties_register(struct ARegionType *art);
 void text_header_register(struct ARegionType *art);
 
 /* text_draw.c */
@@ -106,6 +104,7 @@ enum { DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD };
 void TEXT_OT_new(struct wmOperatorType *ot);
 void TEXT_OT_open(struct wmOperatorType *ot);
 void TEXT_OT_reload(struct wmOperatorType *ot);
+void TEXT_OT_unlink(struct wmOperatorType *ot);
 void TEXT_OT_save(struct wmOperatorType *ot);
 void TEXT_OT_save_as(struct wmOperatorType *ot);
 void TEXT_OT_make_internal(struct wmOperatorType *ot);

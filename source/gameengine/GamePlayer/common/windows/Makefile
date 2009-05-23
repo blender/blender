@@ -48,8 +48,8 @@ CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
 
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
-CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
 
 # Blender stuff
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel

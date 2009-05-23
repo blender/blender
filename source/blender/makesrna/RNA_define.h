@@ -53,6 +53,8 @@ void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
+void RNA_def_struct_idproperties_func(StructRNA *srna, const char *refine);
+void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg);
 void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
@@ -60,54 +62,46 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 
 /* Compact Property Definitions */
 
-PropertyRNA *RNA_def_boolean(StructRNA *srna, const char *identifier, int default_value,
-	const char *ui_name, const char *ui_description);
-PropertyRNA *RNA_def_boolean_array(StructRNA *srna, const char *identifier, int len, int *default_value,
-	const char *ui_name, const char *ui_description);
-PropertyRNA *RNA_def_boolean_vector(StructRNA *srna, const char *identifier, int len, int *default_value,
-	const char *ui_name, const char *ui_description);
+typedef void StructOrFunctionRNA;
 
-PropertyRNA *RNA_def_int(StructRNA *srna, const char *identifier, int default_value, int hardmin, int hardmax,
-	const char *ui_name, const char *ui_description, int softmin, int softmax);
-PropertyRNA *RNA_def_int_vector(StructRNA *srna, const char *identifier, int len, const int *default_value, int hardmin, int hardmax,
-	const char *ui_name, const char *ui_description, int softmin, int softmax);
-PropertyRNA *RNA_def_int_array(StructRNA *srna, const char *identifier, int len, const int *default_value, int hardmin, int hardmax,
-	const char *ui_name, const char *ui_description, int softmin, int softmax);
+PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont, const char *identifier, int default_value, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description);
 
-PropertyRNA *RNA_def_string(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
-	const char *ui_name, const char *ui_description);
-PropertyRNA *RNA_def_string_file_path(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
-	const char *ui_name, const char *ui_description);
-PropertyRNA *RNA_def_string_dir_path(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
-	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont, const char *identifier, int default_value, int hardmin, int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax);
+PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const int *default_value, int hardmin, int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax);
+PropertyRNA *RNA_def_int_array(StructOrFunctionRNA *cont, const char *identifier, int len, const int *default_value, int hardmin, int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax);
 
-PropertyRNA *RNA_def_enum(StructRNA *srna, const char *identifier, EnumPropertyItem *items, int default_value,
-	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
 
-PropertyRNA *RNA_def_float(StructRNA *srna, const char *identifier, float default_value, float hardmin, float hardmax,
-	const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_vector(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
+
+PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_color(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_matrix(StructRNA *srna, const char *identifier, int len, const float *default_value,
-	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_rotation(StructRNA *srna, const char *identifier, int len, const float *default_value,
-	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int len, const float *default_value,
-	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
-PropertyRNA *RNA_def_float_percentage(StructRNA *srna, const char *identifier, float default_value, float hardmin, float hardmax,
+PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax,
 	const char *ui_name, const char *ui_description, float softmin, float softmax);
 
-PropertyRNA *RNA_def_pointer_runtime(StructRNA *srna, const char *identifier, StructRNA *type,
+PropertyRNA *RNA_def_pointer(StructOrFunctionRNA *cont, const char *identifier, const char *type,
+	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_pointer_runtime(StructOrFunctionRNA *cont, const char *identifier, StructRNA *type,
 	const char *ui_name, const char *ui_description);
 
-PropertyRNA *RNA_def_collection_runtime(StructRNA *srna, const char *identifier, StructRNA *type,
+PropertyRNA *RNA_def_collection(StructOrFunctionRNA *cont, const char *identifier, const char *type,
+	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_collection_runtime(StructOrFunctionRNA *cont, const char *identifier, StructRNA *type,
 	const char *ui_name, const char *ui_description);
 
 /* Extended Property Definitions */
 
-PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype);
+PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont, const char *identifier, int type, int subtype);
 
 void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit);
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit);
@@ -151,6 +145,14 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set);
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
+
+/* Function */
+
+FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const char *call);
+FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, CallFunc call);
+void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
+void RNA_def_function_flag(FunctionRNA *func, int flag);
+void RNA_def_function_ui_description(FunctionRNA *func, const char *description);
 
 #ifdef __cplusplus
 }

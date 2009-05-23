@@ -78,6 +78,7 @@
 #include "RNA_define.h"
 
 #include "ED_datafiles.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 
@@ -94,405 +95,6 @@
 #include "wm.h"
 #include "wm_window.h"
 
-/***/
-
-/* define for setting colors in theme below */
-#define SETCOL(col, r, g, b, a)  {col[0]=r; col[1]=g; col[2]= b; col[3]= a;}
-
-/* patching UserDef struct and Themes */
-static void init_userdef_themes(void)
-{
-//	countall();
-	
-	/* the UserDef struct is not corrected with do_versions() .... ugh! */
-	if(U.wheellinescroll == 0) U.wheellinescroll = 3;
-	if(U.menuthreshold1==0) {
-		U.menuthreshold1= 5;
-		U.menuthreshold2= 2;
-	}
-	if(U.tb_leftmouse==0) {
-		U.tb_leftmouse= 5;
-		U.tb_rightmouse= 5;
-	}
-	if(U.mixbufsize==0) U.mixbufsize= 2048;
-	if (BLI_streq(U.tempdir, "/")) {
-		char *tmp= getenv("TEMP");
-		
-		strcpy(U.tempdir, tmp?tmp:"/tmp/");
-	}
-	if (U.savetime <= 0) {
-		U.savetime = 1;
-// XXX		error(".B.blend is buggy, please consider removing it.\n");
-	}
-	/* transform widget settings */
-	if(U.tw_hotspot==0) {
-		U.tw_hotspot= 14;
-		U.tw_size= 20;			// percentage of window size
-		U.tw_handlesize= 16;	// percentage of widget radius
-	}
-	if(U.pad_rot_angle==0)
-		U.pad_rot_angle= 15;
-	
-	if(U.flag & USER_CUSTOM_RANGE) 
-		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
-	
-	if (G.main->versionfile <= 191) {
-		strcpy(U.plugtexdir, U.textudir);
-		strcpy(U.sounddir, "/");
-	}
-	
-	/* patch to set Dupli Armature */
-	if (G.main->versionfile < 220) {
-		U.dupflag |= USER_DUP_ARM;
-	}
-	
-	/* userdef new option */
-	if (G.main->versionfile <= 222) {
-		U.vrmlflag= USER_VRML_LAYERS;
-	}
-	
-	/* added seam, normal color, undo */
-	if (G.main->versionfile <= 234) {
-		bTheme *btheme;
-		
-		U.uiflag |= USER_GLOBALUNDO;
-		if (U.undosteps==0) U.undosteps=32;
-		
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->tv3d.edge_seam[3]==0) {
-				SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
-			}
-			if(btheme->tv3d.normal[3]==0) {
-				SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
-			}
-			if(btheme->tv3d.face_dot[3]==0) {
-				SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
-				btheme->tv3d.facedot_size= 4;
-			}
-		}
-	}
-	if (G.main->versionfile <= 235) {
-		/* illegal combo... */
-		if (U.flag & USER_LMOUSESELECT) 
-			U.flag &= ~USER_TWOBUTTONMOUSE;
-	}
-	if (G.main->versionfile <= 236) {
-		bTheme *btheme;
-		/* new space type */
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->ttime.back[3]==0) {
-				btheme->ttime = btheme->tsnd;	// copy from sound
-			}
-			if(btheme->text.syntaxn[3]==0) {
-				SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
-				SETCOL(btheme->text.syntaxl,	100, 0, 0, 255);	/* Strings  red */
-				SETCOL(btheme->text.syntaxc,	0, 100, 50, 255);	/* Comments greenish */
-				SETCOL(btheme->text.syntaxv,	95, 95, 0, 255);	/* Special */
-				SETCOL(btheme->text.syntaxb,	128, 0, 80, 255);	/* Builtin, red-purple */
-			}
-		}
-	}
-	if (G.main->versionfile <= 237) {
-		bTheme *btheme;
-		/* bone colors */
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->tv3d.bone_solid[3]==0) {
-				SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-				SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);
-			}
-		}
-	}
-	if (G.main->versionfile <= 238) {
-		bTheme *btheme;
-		/* bone colors */
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->tnla.strip[3]==0) {
-				SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
-				SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
-			}
-		}
-	}
-	if (G.main->versionfile <= 239) {
-		bTheme *btheme;
-		
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* Lamp theme, check for alpha==0 is safe, then color was never set */
-			if(btheme->tv3d.lamp[3]==0) {
-				SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
-/* TEMPORAL, remove me! (ton) */				
-				U.uiflag |= USER_PLAINMENUS;
-			}
-			
-			/* check for text field selection highlight, set it to text editor highlight by default */
-			if(btheme->tui.textfield_hi[3]==0) {
-				SETCOL(btheme->tui.textfield_hi, 	
-					btheme->text.shade2[0], 
-					btheme->text.shade2[1], 
-					btheme->text.shade2[2],
-					255);
-			}
-		}
-		if(U.obcenter_dia==0) U.obcenter_dia= 6;
-	}
-	if (G.main->versionfile <= 241) {
-		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* Node editor theme, check for alpha==0 is safe, then color was never set */
-			if(btheme->tnode.syntaxn[3]==0) {
-				/* re-uses syntax color storage */
-				btheme->tnode= btheme->tv3d;
-				SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
-				SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
-				SETCOL(btheme->tnode.syntaxn, 129, 131, 144, 255);	/* in/output */
-				SETCOL(btheme->tnode.syntaxb, 127,127,127, 255);	/* operator */
-				SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
-				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
-			}
-			/* Group theme colors */
-			if(btheme->tv3d.group[3]==0) {
-				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
-				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
-			}
-			/* Sequence editor theme*/
-			if(btheme->tseq.movie[3]==0) {
-				SETCOL(btheme->tseq.movie, 	81, 105, 135, 255);
-				SETCOL(btheme->tseq.image, 	109, 88, 129, 255);
-				SETCOL(btheme->tseq.scene, 	78, 152, 62, 255);
-				SETCOL(btheme->tseq.audio, 	46, 143, 143, 255);
-				SETCOL(btheme->tseq.effect, 	169, 84, 124, 255);
-				SETCOL(btheme->tseq.plugin, 	126, 126, 80, 255);
-				SETCOL(btheme->tseq.transition, 162, 95, 111, 255);
-				SETCOL(btheme->tseq.meta, 	109, 145, 131, 255);
-			}
-			if(!(btheme->tui.iconfile)) {
-				BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
-			}
-		}
-		
-		/* set defaults for 3D View rotating axis indicator */ 
-		/* since size can't be set to 0, this indicates it's not saved in .B.blend */
-		if (U.rvisize == 0) {
-			U.rvisize = 15;
-			U.rvibright = 8;
-			U.uiflag |= USER_SHOW_ROTVIEWICON;
-		}
-		
-	}
-	if (G.main->versionfile <= 242) {
-		bTheme *btheme;
-		
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* long keyframe color */
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->tact.strip[3]==0) {
-				SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
-				SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 204);
-				SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 204);
-			}
-			
-			/* IPO-Editor - Vertex Size*/
-			if(btheme->tipo.vertex_size == 0) {
-				btheme->tipo.vertex_size= 3;
-			}
-		}
-	}
-	if (G.main->versionfile <= 243) {
-		/* set default number of recently-used files (if not set) */
-		if (U.recent_files == 0) U.recent_files = 10;
-	}
-	if (G.main->versionfile < 245 || (G.main->versionfile == 245 && G.main->subversionfile < 3)) {
-		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
-		}
-		if(U.coba_weight.tot==0)
-			init_colorband(&U.coba_weight, 1);
-	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same colour */
-			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same color */
-			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* action channel groups (recolor anyway) */
-			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
-			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
-			
-			/* bone custom-color sets */
-			// FIXME: this check for initialised colors is bad
-			if (btheme->tarm[0].solid[3] == 0) {
-					/* set 1 */
-				SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
-				SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
-				SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
-					/* set 2 */
-				SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
-				SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
-				SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
-					/* set 3 */
-				SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
-				SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
-				SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
-					/* set 4 */
-				SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
-				SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
-				SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
-					/* set 5 */
-				SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
-				SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
-				SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
-					/* set 6 */
-				SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
-				SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
-				SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
-					/* set 7 */
-				SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
-				SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
-				SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
-					/* set 8 */
-				SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
-				SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
-				SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
-					/* set 9 */
-				SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
-				SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
-				SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
-					/* set 10 */
-				SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
-				SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
-				SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
-					/* set 11 */
-				SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
-				SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
-				SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
-					/* set 12 */
-				SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
-				SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
-				SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
-					/* set 13 */
-				SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
-				SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
-				SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
-					/* set 14 */
-				SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
-				SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
-				SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
-					/* set 15 */
-				SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
-				SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
-				SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
-			}
-		}
-	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
-		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
-	}
-	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 2)) {
-		bTheme *btheme;
-		
-		/* adjust themes */
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			char *col;
-			
-			/* IPO Editor: Handles/Vertices */
-			col = btheme->tipo.vertex;
-			SETCOL(btheme->tipo.handle_vertex, col[0], col[1], col[2], 255);
-			col = btheme->tipo.vertex_select;
-			SETCOL(btheme->tipo.handle_vertex_select, col[0], col[1], col[2], 255);
-			btheme->tipo.handle_vertex_size= btheme->tipo.vertex_size;
-			
-			/* Sequence/Image Editor: colors for GPencil text */
-			col = btheme->tv3d.bone_pose;
-			SETCOL(btheme->tseq.bone_pose, col[0], col[1], col[2], 255);
-			SETCOL(btheme->tima.bone_pose, col[0], col[1], col[2], 255);
-			col = btheme->tv3d.vertex_select;
-			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
-		}
-	}
-	if (G.main->versionfile < 250) {
-		bTheme *btheme;
-		
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* this was not properly initialized in 2.45 */
-			if(btheme->tima.face_dot[3]==0) {
-				SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
-				SETCOL(btheme->tima.face_dot, 255, 133, 0, 255);
-				btheme->tima.facedot_size= 2;
-			}
-			
-			/* DopeSheet - (Object) Channel color */
-			SETCOL(btheme->tact.ds_channel, 	82, 96, 110, 255);
-			SETCOL(btheme->tact.ds_subchannel,	124, 137, 150, 255);
-			/* DopeSheet - Group Channel color (saner version) */
-			SETCOL(btheme->tact.group, 79, 101, 73, 255);
-			SETCOL(btheme->tact.group_active, 135, 177, 125, 255);
-			
-			/* Graph Editor - (Object) Channel color */
-			SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
-			SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
-			/* Graph Editor - Group Channel color */
-			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
-			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
-		}
-		
-		/* adjust grease-pencil distances */
-		U.gp_manhattendist= 1;
-		U.gp_euclideandist= 2;
-		
-		/* adjust default interpolation for new IPO-curves */
-		U.ipo_new= BEZT_IPO_BEZ;
-	}
-	
-	/* GL Texture Garbage Collection (variable abused above!) */
-	if (U.textimeout == 0) {
-		U.texcollectrate = 60;
-		U.textimeout = 120;
-	}
-	if (U.memcachelimit <= 0) {
-		U.memcachelimit = 32;
-	}
-	if (U.frameserverport == 0) {
-		U.frameserverport = 8080;
-	}
-
-	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
-	
-	// sets themes, fonts, .. from userdef
-	UI_init_userdef();
-	
-	/* funny name, but it is GE stuff, moves userdef stuff to engine */
-// XXX	space_set_commmandline_options();
-	/* this timer uses U */
-// XXX	reset_autosave();
-
-}
 
 /* To be able to read files without windows closing, opening, moving 
    we try to prepare for worst case:
@@ -603,12 +205,26 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						
 						win->eventstate= oldwin->eventstate;
 						oldwin->eventstate= NULL;
+						
+						/* ensure proper screen rescaling */
+						win->sizex= oldwin->sizex;
+						win->sizey= oldwin->sizey;
+						win->posx= oldwin->posx;
+						win->posy= oldwin->posy;
 					}
 				}
 			}
 			wm_close_and_free_all(C, oldwmlist);
 		}
 	}
+}
+
+/* in case UserDef was read, we re-initialize all, and do versioning */
+static void wm_init_userdef()
+{
+	UI_init_userdef();
+	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
+	
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)
@@ -638,7 +254,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 // XXX		sound_initialize_sounds();
 
-		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
+		if(retval==2) wm_init_userdef();	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) G.relbase_valid = 1;
 
@@ -662,6 +278,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'Erase All' */
+/* op can be NULL */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
@@ -675,7 +292,11 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	free_ttfont(); /* still weird... what does it here? */
 		
 	G.relbase_valid = 0;
-	if (!from_memory) BLI_make_file_string(G.sce, tstr, home, ".B.blend");
+	if (!from_memory) {
+		BLI_make_file_string(G.sce, tstr, home, ".B25.blend");
+		if(!BLI_exists(tstr))
+			BLI_make_file_string(G.sce, tstr, home, ".B.blend");
+	}
 	strcpy(scestr, G.sce);	/* temporary store */
 	
 	/* prevent loading no UI */
@@ -696,7 +317,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	strcpy(G.sce, scestr); /* restore */
 	
-	init_userdef_themes();
+	wm_init_userdef();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
 	GPU_default_lights();
@@ -949,16 +570,16 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		strcpy(di, target);
 	}
 
-	if (BLI_exists(di)) {
+//	if (BLI_exists(di)) {
 // XXX		if(!saveover(di))
 // XXX			return; 
-	}
+//	}
 	
 	if (G.fileflags & G_AUTOPACK) {
 		packAll();
 	}
 	
-// XXX	waitcursor(1);	// exit_editmode sets cursor too
+	ED_object_exit_editmode(C, 0);
 
 	do_history(di, reports);
 	
@@ -986,7 +607,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
-	BLI_make_file_string("/", tstr, BLI_gethome(), ".B.blend");
+	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);

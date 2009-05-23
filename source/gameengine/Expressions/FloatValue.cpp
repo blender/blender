@@ -278,7 +278,7 @@ ret: the float stored in the object
 
 
 
-float CFloatValue::GetNumber()
+double CFloatValue::GetNumber()
 {
 	return m_float;
 }
@@ -287,7 +287,7 @@ float CFloatValue::GetNumber()
 
 void CFloatValue::SetValue(CValue* newval)
 { 	
-	m_float = newval->GetNumber(); 
+	m_float = (float)newval->GetNumber(); 
 	SetModified(true);
 }
 

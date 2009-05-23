@@ -6,7 +6,7 @@ WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat-52.lib avcodec-51.lib avdevice-52.lib avutil-49.lib swscale-0.lib'
+BF_FFMPEG_LIB = 'avformat-52.lib avcodec-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib'
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.5'
@@ -45,9 +45,6 @@ BF_PTHREADS = LIBDIR + '/pthreads'
 BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadVC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
-
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
@@ -89,11 +86,6 @@ BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
-WITH_BF_FTGL = True
-BF_FTGL = LIBDIR + '/ftgl'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True

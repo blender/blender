@@ -29,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -50,39 +51,17 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-/* ************************************************** */
-/* LOCAL TYPES AND DEFINES */
-
-/* ----------- Common KeyData Sources ------------ */
-
-/* temporary struct to gather data combos to keyframe */
-typedef struct bCommonKeySrc {
-	struct bCommonKeySrc *next, *prev;
-		
-		/* general data/destination-source settings */
-	ID *id;					/* id-block this comes from */
-	char *rna_path;			/* base path to use */	// xxx.... maybe we don't need this?
-	
-		/* specific cases */
-	bPoseChannel *pchan;	/* only needed when doing recalcs... */
-} bCommonKeySrc;
+#include "anim_intern.h"
 
 /* ******************************************* */
 /* Animation Data Validation */
 
-/* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
- * for the given Animation Data block. This assumes that all the destinations are valid.
+/* Get (or add relevant data to be able to do so) the Active Action for the given 
+ * Animation Data block, given an ID block where the Animation Data should reside.
  */
-FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const int array_index, short add)
+bAction *verify_adt_action (ID *id, short add)
 {
 	AnimData *adt;
-	bAction *act;
-	bActionGroup *grp;
-	FCurve *fcu;
-	
-	/* sanity checks */
-	if ELEM(NULL, id, rna_path)
-		return NULL;
 	
 	/* init animdata if none available yet */
 	adt= BKE_animdata_from_id(id);
@@ -90,6 +69,7 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 		adt= BKE_id_add_animdata(id);
 	if (adt == NULL) { 
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+		printf("ERROR: Couldn't add AnimData (ID = %s) \n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
 		
@@ -97,7 +77,22 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 	// TODO: need some wizardry to handle NLA stuff correct
 	if ((adt->action == NULL) && (add))
 		adt->action= add_empty_action("Action");
-	act= adt->action;
+		
+	/* return the action */
+	return adt->action;
+}
+
+/* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
+ * for the given Animation Data block. This assumes that all the destinations are valid.
+ */
+FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], const int array_index, short add)
+{
+	bActionGroup *grp;
+	FCurve *fcu;
+	
+	/* sanity checks */
+	if ELEM(NULL, act, rna_path)
+		return NULL;
 		
 	/* try to find f-curve matching for this setting 
 	 *	- add if not found and allowed to add one
@@ -134,7 +129,7 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 				BLI_snprintf(grp->name, 64, group);
 				
 				BLI_addtail(&act->groups, grp);
-				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
+				BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
 			}
 			
 			/* add F-Curve to group */
@@ -480,21 +475,21 @@ static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int inde
 {
 	float value= 0.0f;
 	
-	switch (RNA_property_type(ptr, prop)) {
+	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= (float)RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_boolean_get(ptr, prop);
 			break;
 		case PROP_INT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= (float)RNA_property_int_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_int_get(ptr, prop);
 			break;
 		case PROP_FLOAT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= RNA_property_float_get_index(ptr, prop, index);
 			else
 				value= RNA_property_float_get(ptr, prop);
@@ -545,14 +540,14 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		Object *ob= (Object *)ptr->data;
 		
 		con= ob->constraints.first;
-		identifier= (char *)RNA_property_identifier(ptr, prop);
+		identifier= (char *)RNA_property_identifier(prop);
 	}
 	else if (ptr->type == &RNA_PoseChannel) {
 		/* Pose Channel */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		
 		con= pchan->constraints.first;
-		identifier= (char *)RNA_property_identifier(ptr, prop);
+		identifier= (char *)RNA_property_identifier(prop);
 	}
 	
 	/* check if any data to search using */
@@ -631,7 +626,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
  */
 static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
-	char *identifier= (char *)RNA_property_identifier(ptr, prop);
+	char *identifier= (char *)RNA_property_identifier(prop);
 	
 	/* handle for Objects or PoseChannels only 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
@@ -710,28 +705,30 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insertkey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	FCurve *fcu;
 	
-	/* validate pointer first - exit if failure*/
+	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
-	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0 || prop == NULL) {
-		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (%s)\n", rna_path);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
 		return 0;
 	}
 	
-	/* get F-Curve */
-	fcu= verify_fcurve(id, group, rna_path, array_index, 1);
+	/* get F-Curve - if no action is provided, keyframe to the default one attached to this ID-block */
+	if (act == NULL)
+		act= verify_adt_action(id, 1);
+	fcu= verify_fcurve(act, group, rna_path, array_index, 1);
 	
 	/* only continue if we have an F-Curve to add keyframe to */
 	if (fcu) {
 		float curval= 0.0f;
 		
 		/* set additional flags for the F-Curve (i.e. only integer values) */
-		if (RNA_property_type(&ptr, prop) != PROP_FLOAT)
+		if (RNA_property_type(prop) != PROP_FLOAT)
 			fcu->flag |= FCURVE_INT_VALUES;
 		
 		/* apply special time tweaking */
@@ -798,6 +795,9 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
 		}
 	}
 	
+	/* no F-Curve to add keyframes to */
+	printf("ERROR: no F-Curve to add keyframes to \n");
+	
 	/* return failure */
 	return 0;
 }
@@ -812,22 +812,24 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short deletekey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
-	AnimData *adt;
-	FCurve *fcu;
+	FCurve *fcu = NULL;
 	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!
 	 * 		so 'add' var must be 0
 	 */
+	if (act == NULL) {
+		/* if no action is provided, use the default one attached to this ID-block */
+		AnimData *adt= BKE_animdata_from_id(id);
+		act= adt->action;
+	}
 	/* we don't check the validity of the path here yet, but it should be ok... */
-	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
-	adt= BKE_animdata_from_id(id);
+	fcu= verify_fcurve(act, group, rna_path, array_index, 0);
 	
-	/* only continue if we have an ipo-curve to remove keyframes from */
-	if (adt && adt->action && fcu) {
-		bAction *act= adt->action;
+	/* only continue if we have an F-Curve to remove keyframes from */
+	if (act && fcu) {
 		short found = -1;
 		int i;
 		
@@ -867,183 +869,6 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 }
 
 /* ******************************************* */
-/* KEYINGSETS */
-
-/* Operators ------------------------------------------- */
-
-/* These operators are only provided for scripting/macro usage, not for direct
- * calling from the UI since they wrap some of the data-access API code for these
- * (defined in blenkernel) which have quite a few properties.
- */
-
-/* ----- */
-
-static int keyingset_add_destination_exec (bContext *C, wmOperator *op)
-{
-	PointerRNA ptr;
-	KeyingSet *ks= NULL;
-	ID *id= NULL;
-	char rna_path[256], group_name[64]; // xxx
-	short groupmode=0, flag=0;
-	int array_index=0;
-	
-	/* get settings from operator properties */
-	ptr = RNA_pointer_get(op->ptr, "keyingset");
-	if (ptr.data) 
-		ks= (KeyingSet *)ptr.data;
-	
-	ptr = RNA_pointer_get(op->ptr, "id");
-	if (ptr.data)
-		id= (ID *)ptr.data;
-	
-	groupmode= RNA_enum_get(op->ptr, "grouping_method");
-	RNA_string_get(op->ptr, "group_name", group_name);		
-	
-	RNA_string_get(op->ptr, "rna_path", rna_path);
-	array_index= RNA_int_get(op->ptr, "array_index");
-	
-	if (RNA_boolean_get(op->ptr, "entire_array"))
-		flag |= KSP_FLAG_WHOLE_ARRAY;
-	
-	/* if enough args are provided, call API method */
-	if (ks) {
-		BKE_keyingset_add_destination(ks, id, group_name, rna_path, array_index, flag, groupmode);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
-	}	
-}
-
-void ANIM_OT_keyingset_add_destination (wmOperatorType *ot)
-{
-	// XXX: this is also defined in rna_animation.c
-	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
-		{0, NULL, NULL, NULL}};
-	
-	/* identifiers */
-	ot->name= "Add Keying Set Destination";
-	ot->idname= "ANIM_OT_keyingset_add_destination";
-	
-	/* callbacks */
-	ot->exec= keyingset_add_destination_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* props */
-		/* pointers */ // xxx - do we want to directly expose these?
-	RNA_def_pointer_runtime(ot->srna, "keyingset", &RNA_KeyingSet, "Keying Set", "Keying Set to add destination to.");
-	RNA_def_pointer_runtime(ot->srna, "id", &RNA_ID, "ID", "ID-block for the destination.");
-		/* grouping */
-	RNA_def_enum(ot->srna, "grouping_method", prop_mode_grouping_items, KSP_GROUP_NAMED, "Grouping Method", "Method used to define which Group-name to use.");
-	RNA_def_string(ot->srna, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
-		/* rna-path */
-	RNA_def_string(ot->srna, "rna_path", "", 256, "RNA-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
-	RNA_def_int(ot->srna, "array_index", 0, 0, INT_MAX, "Array Index", "If applicable, the index ", 0, INT_MAX);
-		/* flags */
-	RNA_def_boolean(ot->srna, "entire_array", 1, "Entire Array", "hen an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
-	
-}
- 
-/* ----- */
-
-static int keyingset_add_new_exec (bContext *C, wmOperator *op)
-{
-	Scene *sce= CTX_data_scene(C);
-	KeyingSet *ks= NULL;
-	short flag=0, keyingflag=0;
-	char name[64];
-	
-	/* get settings from operator properties */
-	RNA_string_get(op->ptr, "name", name);
-	
-	if (RNA_boolean_get(op->ptr, "absolute"))
-		flag |= KEYINGSET_ABSOLUTE;
-	if (RNA_boolean_get(op->ptr, "insertkey_needed"))
-		keyingflag |= INSERTKEY_NEEDED;
-	if (RNA_boolean_get(op->ptr, "insertkey_visual"))
-		keyingflag |= INSERTKEY_MATRIX;
-		
-	/* call the API func, and set the active keyingset index */
-	ks= BKE_keyingset_add(&sce->keyingsets, name, flag, keyingflag);
-	
-	if (ks) {
-		sce->active_keyingset= BLI_countlist(&sce->keyingsets);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void ANIM_OT_keyingset_add_new (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Keying Set";
-	ot->idname= "ANIM_OT_keyingset_add_new";
-	
-	/* callbacks */
-	ot->exec= keyingset_add_new_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* props */
-		/* name */
-	RNA_def_string(ot->srna, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
-		/* flags */
-	RNA_def_boolean(ot->srna, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
-		/* keying flags */
-	RNA_def_boolean(ot->srna, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(ot->srna, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
-}
-
-/* UI API --------------------------------------------- */
-
-/* Build menu-string of available keying-sets (allocates memory for string)
- * NOTE: mode must not be longer than 64 chars
- */
-char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
-{
-	DynStr *pupds= BLI_dynstr_new();
-	KeyingSet *ks;
-	char buf[64];
-	char *str;
-	int i;
-	
-	/* add title first */
-	BLI_dynstr_append(pupds, "Keying Sets%t|");
-	
-	/* add dummy entries for none-active */
-	if (for_edit) { 
-		BLI_dynstr_append(pupds, "Add New%x-1|");
-		BLI_dynstr_append(pupds, " %x0|");
-	}
-	else
-		BLI_dynstr_append(pupds, "<No Keying Set Active>%x0|");
-	
-	/* loop through keyingsets, adding them */
-	for (ks=list->first, i=1; ks; ks=ks->next, i++) {
-		if (for_edit == 0)
-			BLI_dynstr_append(pupds, "KS: ");
-		
-		BLI_dynstr_append(pupds, ks->name);
-		BLI_snprintf( buf, 64, "%%x%d%s", i, ((ks->next)?"|":"") );
-		BLI_dynstr_append(pupds, buf);
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
-
-
-/* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
 /* mode for commonkey_modifykey */
@@ -1051,829 +876,6 @@ enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
 } eCommonModifyKey_Modes;
-
-#if 0 // XXX old keyingsets code based on adrcodes... to be restored in due course
-
-/* --------- KeyingSet Adrcode Getters ------------ */
-
-/* initialise a channel-getter storage */
-static void ks_adrcodegetter_init (bKS_AdrcodeGetter *kag, bKeyingSet *ks, bCommonKeySrc *cks)
-{
-	/* error checking */
-	if (kag == NULL)
-		return;
-	
-	if (ELEM(NULL, ks, cks)) {
-		/* set invalid settings that won't cause harm */
-		kag->ks= NULL;
-		kag->cks= NULL;
-		kag->index= -2;
-		kag->tot= 0;
-	}
-	else {
-		/* store settings */
-		kag->ks= ks;
-		kag->cks= cks;
-		
-		/* - index is -1, as that allows iterators to return first element
-		 * - tot is chan_num by default, but may get overriden if -1 is encountered (for extension-type getters)
-		 */
-		kag->index= -1;
-		kag->tot= ks->chan_num;
-	}
-}
-
-/* 'default' channel-getter that will be used when iterating through keyingset's channels 
- *	 - iteration will stop when adrcode <= 0 is encountered, so we use that as escape
- */
-static short ks_getnextadrcode_default (bKS_AdrcodeGetter *kag)
-{	
-	bKeyingSet *ks= (kag)? kag->ks : NULL;
-	
-	/* error checking */
-	if (ELEM(NULL, kag, ks)) return 0;
-	if (kag->tot <= 0) return 0;
-	
-	kag->index++;
-	if ((kag->index < 0) || (kag->index >= kag->tot)) return 0;
-	
-	/* return the adrcode stored at index then */
-	return ks->adrcodes[kag->index];
-}
-
-/* add map flag (for MTex channels, as certain ones need special offset) */
-static short ks_getnextadrcode_addmap (bKS_AdrcodeGetter *kag)
-{
-	short adrcode= ks_getnextadrcode_default(kag);
-	
-	/* if there was an adrcode returned, assume that kag stuff is set ok */
-	if (adrcode) {
-		bCommonKeySrc *cks= kag->cks;
-		bKeyingSet *ks= kag->ks;
-		
-		if (ELEM3(ks->blocktype, ID_MA, ID_LA, ID_WO)) {
-			switch (adrcode) {
-				case MAP_OFS_X: case MAP_OFS_Y: case MAP_OFS_Z:
-				case MAP_SIZE_X: case MAP_SIZE_Y: case MAP_SIZE_Z:
-				case MAP_R: case MAP_G: case MAP_B: case MAP_DVAR:
-				case MAP_COLF: case MAP_NORF: case MAP_VARF: case MAP_DISP:
-					adrcode += cks->map;
-					break;
-			}
-		}
-	}
-	
-	/* adrcode must be returned! */
-	return adrcode;
-}
-
-/* extend posechannel keyingsets with rotation info (when KAG_CHAN_EXTEND is encountered) 
- *	- iteration will stop when adrcode <= 0 is encountered, so we use that as escape
- *	- when we encounter KAG_CHAN_EXTEND as adrcode, start returning our own
- */
-static short ks_getnextadrcode_pchanrot (bKS_AdrcodeGetter *kag)
-{	
-	/* hardcoded adrcode channels used here only 
-	 *	- length is keyed-channels + 1 (last item must be 0 to escape)
-	 */
-	static short quat_adrcodes[5] = {AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z, 0};
-	static short eul_adrcodes[4] = {AC_EUL_X, AC_EUL_Y, AC_EUL_Z, 0};
-		
-	/* useful variables */
-	bKeyingSet *ks= (kag)? kag->ks : NULL;
-	bCommonKeySrc *cks= (kag) ? kag->cks : NULL;
-	short index, adrcode;
-	
-	/* error checking */
-	if (ELEM3(NULL, kag, ks, cks)) return 0;
-	if (ks->chan_num <= 0) return 0;
-	
-	/* get index 
-	 *	- if past the last item (kag->tot), return stuff from our static arrays
-	 *	- otherwise, just keep returning stuff from the keyingset (but check out for -1!) 
-	 */
-	kag->index++;
-	if (kag->index < 0)
-		return 0;
-	
-	/* normal (static stuff) */
-	if (kag->index < kag->tot) {
-		/* get adrcode, and return if not KAG_CHAN_EXTEND (i.e. point for start of iteration) */
-		adrcode= ks->adrcodes[kag->index];
-		
-		if (adrcode != KAG_CHAN_EXTEND) 
-			return adrcode;
-		else	
-			kag->tot= kag->index;
-	}
-		
-	/* based on current rotation-mode
-	 *	- index can be at most 5, if we are to prevent segfaults
-	 */
-	index= kag->index - kag->tot;
-	if ((index < 0) || (index > 5))
-		return 0;
-	
-	if (cks->pchan && cks->pchan->rotmode)
-		return eul_adrcodes[index];
-	else
-		return quat_adrcodes[index];
-}
-
-/* ------------- KeyingSet Defines ------------ */
-/* Note: these must all be named with the defks_* prefix, otherwise the template macro will not work! */
-
-/* macro for defining keyingset contexts */
-#define KSC_TEMPLATE(ctx_name) {&defks_##ctx_name[0], NULL, sizeof(defks_##ctx_name)/sizeof(bKeyingSet)}
-
-/* --- */
-
-/* check if option not available for deleting keys */
-static short incl_non_del_keys (bKeyingSet *ks, const char mode[])
-{
-	/* as optimisation, assume that it is sufficient to check only first letter
-	 * of mode (int comparison should be faster than string!)
-	 */
-	//if (strcmp(mode, "Delete")==0)
-	if (mode && mode[0]=='D')
-		return 0;
-	
-	return 1;
-}
-
-/* Object KeyingSets  ------ */
-
-/* check if include shapekey entry  */
-static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
-{
-	//Object *ob= (G.obedit)? (G.obedit) : (OBACT); // XXX
-	Object *ob= NULL;
-	char *newname= NULL;
-	
-	if(ob==NULL)
-		return 0;
-	
-	/* not available for delete mode */
-	if (strcmp(mode, "Delete")==0)
-		return 0;
-	
-	/* check if is geom object that can get shapekeys */
-	switch (ob->type) {
-		/* geometry? */
-		case OB_MESH:		newname= "Mesh";		break;
-		case OB_CURVE:		newname= "Curve";		break;
-		case OB_SURF:		newname= "Surface";		break;
-		case OB_LATTICE: 	newname= "Lattice";		break;
-		
-		/* not geometry! */
-		default:
-			return 0;
-	}
-	
-	/* if ks is shapekey entry (this could be callled for separator before too!) */
-	if (ks->flag == -3)
-		BLI_strncpy(ks->name, newname, sizeof(ks->name));
-	
-	/* if it gets here, it's ok */
-	return 1;
-}
-
-/* array for object keyingset defines */
-bKeyingSet defks_v3d_object[] = 
-{
-	/* include_cb, adrcode-getter, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Loc", ID_OB, 0, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
-	{NULL, "Rot", ID_OB, 0, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	{NULL, "Scale", ID_OB, 0, 3, {OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "LocRot", ID_OB, 0, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-		 
-	{NULL, "LocScale", ID_OB, 0, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-		 
-	{NULL, "LocRotScale", ID_OB, 0, 9, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-		 
-	{NULL, "RotScale", ID_OB, 0, 6, 
-		{OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-	
-	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
-	
-	{incl_non_del_keys, "VisualLoc", ID_OB, INSERTKEY_MATRIX, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
-	{incl_non_del_keys, "VisualRot", ID_OB, INSERTKEY_MATRIX, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	
-	{incl_non_del_keys, "VisualLocRot", ID_OB, INSERTKEY_MATRIX, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Layer", ID_OB, 0, 1, {OB_LAY}}, // icky option...
-	{NULL, "Available", ID_OB, -2, 0, {0}},
-	
-	{incl_v3d_ob_shapekey, "%l%l", 0, -1, 0, {0}}, // separator (linked to shapekey entry)
-	{incl_v3d_ob_shapekey, "<ShapeKey>", ID_OB, -3, 0, {0}}
-};
-
-/* PoseChannel KeyingSets  ------ */
-
-/* array for posechannel keyingset defines */
-bKeyingSet defks_v3d_pchan[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Loc", ID_PO, 0, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{NULL, "Rot", ID_PO, COMMONKEY_PCHANROT, 1, {KAG_CHAN_EXTEND}},
-	{NULL, "Scale", ID_PO, 0, 3, {AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "LocRot", ID_PO, COMMONKEY_PCHANROT, 4, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,
-		 KAG_CHAN_EXTEND}},
-		 
-	{NULL, "LocScale", ID_PO, 0, 6, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,
-		 AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
-		 
-	{NULL, "LocRotScale", ID_PO, COMMONKEY_PCHANROT, 7, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z, 
-		 KAG_CHAN_EXTEND}},
-		 
-	{NULL, "RotScale", ID_PO, 0, 4, 
-		{AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z, 
-		 KAG_CHAN_EXTEND}},
-	
-	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
-	
-	{incl_non_del_keys, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{incl_non_del_keys, "VisualRot", ID_PO, INSERTKEY_MATRIX|COMMONKEY_PCHANROT, 1, {KAG_CHAN_EXTEND}},
-	
-	{incl_non_del_keys, "VisualLocRot", ID_PO, INSERTKEY_MATRIX|COMMONKEY_PCHANROT, 4, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z, KAG_CHAN_EXTEND}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_PO, -2, 0, {0}}
-};
-
-/* Material KeyingSets  ------ */
-
-/* array for material keyingset defines */
-bKeyingSet defks_buts_shading_mat[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "RGB", ID_MA, 0, 3, {MA_COL_R,MA_COL_G,MA_COL_B}},
-	{NULL, "Alpha", ID_MA, 0, 1, {MA_ALPHA}},
-	{NULL, "Halo Size", ID_MA, 0, 1, {MA_HASIZE}},
-	{NULL, "Mode", ID_MA, 0, 1, {MA_MODE}}, // evil bitflags
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "All Color", ID_MA, 0, 18, 
-		{MA_COL_R,MA_COL_G,MA_COL_B,
-		 MA_ALPHA,MA_HASIZE, MA_MODE,
-		 MA_SPEC_R,MA_SPEC_G,MA_SPEC_B,
-		 MA_REF,MA_EMIT,MA_AMB,MA_SPEC,MA_HARD,
-		 MA_MODE,MA_TRANSLU,MA_ADD}},
-		 
-	{NULL, "All Mirror", ID_MA, 0, 5, 
-		{MA_RAYM,MA_FRESMIR,MA_FRESMIRI,
-		 MA_FRESTRA,MA_FRESTRAI}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_MA, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_MA, -2, 0, {0}}
-};
-
-/* World KeyingSets  ------ */
-
-/* array for world keyingset defines */
-bKeyingSet defks_buts_shading_wo[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Zenith RGB", ID_WO, 0, 3, {WO_ZEN_R,WO_ZEN_G,WO_ZEN_B}},
-	{NULL, "Horizon RGB", ID_WO, 0, 3, {WO_HOR_R,WO_HOR_G,WO_HOR_B}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Mist", ID_WO, 0, 4, {WO_MISI,WO_MISTDI,WO_MISTSTA,WO_MISTHI}},
-	{NULL, "Stars", ID_WO, 0, 5, {WO_STAR_R,WO_STAR_G,WO_STAR_B,WO_STARDIST,WO_STARSIZE}},
-	
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_WO, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_WO, -2, 0, {0}}
-};
-
-/* Lamp KeyingSets  ------ */
-
-/* array for lamp keyingset defines */
-bKeyingSet defks_buts_shading_la[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "RGB", ID_LA, 0, 3, {LA_COL_R,LA_COL_G,LA_COL_B}},
-	{NULL, "Energy", ID_LA, 0, 1, {LA_ENERGY}},
-	{NULL, "Spot Size", ID_LA, 0, 1, {LA_SPOTSI}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_LA, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_LA, -2, 0, {0}}
-};
-
-/* Texture KeyingSets  ------ */
-
-/* array for texture keyingset defines */
-bKeyingSet defks_buts_shading_tex[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Clouds", ID_TE, 0, 5, 
-		{TE_NSIZE,TE_NDEPTH,TE_NTYPE,
-		 TE_MG_TYP,TE_N_BAS1}},
-	
-	{NULL, "Marble", ID_TE, 0, 7, 
-		{TE_NSIZE,TE_NDEPTH,TE_NTYPE,
-		 TE_TURB,TE_MG_TYP,TE_N_BAS1,TE_N_BAS2}},
-		 
-	{NULL, "Stucci", ID_TE, 0, 5, 
-		{TE_NSIZE,TE_NTYPE,TE_TURB,
-		 TE_MG_TYP,TE_N_BAS1}},
-		 
-	{NULL, "Wood", ID_TE, 0, 6, 
-		{TE_NSIZE,TE_NTYPE,TE_TURB,
-		 TE_MG_TYP,TE_N_BAS1,TE_N_BAS2}},
-		 
-	{NULL, "Magic", ID_TE, 0, 2, {TE_NDEPTH,TE_TURB}},
-	
-	{NULL, "Blend", ID_TE, 0, 1, {TE_MG_TYP}},	
-		
-	{NULL, "Musgrave", ID_TE, 0, 6, 
-		{TE_MG_TYP,TE_MGH,TE_MG_LAC,
-		 TE_MG_OCT,TE_MG_OFF,TE_MG_GAIN}},
-		 
-	{NULL, "Voronoi", ID_TE, 0, 9, 
-		{TE_VNW1,TE_VNW2,TE_VNW3,TE_VNW4,
-		TE_VNMEXP,TE_VN_DISTM,TE_VN_COLT,
-		TE_ISCA,TE_NSIZE}},
-		
-	{NULL, "Distorted Noise", ID_TE, 0, 4, 
-		{TE_MG_OCT,TE_MG_OFF,TE_MG_GAIN,TE_DISTA}},
-	
-	{NULL, "Color Filter", ID_TE, 0, 5, 
-		{TE_COL_R,TE_COL_G,TE_COL_B,TE_BRIGHT,TE_CONTRA}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_TE, -2, 0, {0}}
-};
-
-/* Object Buttons KeyingSets  ------ */
-
-/* check if include particles entry  */
-static short incl_buts_ob (bKeyingSet *ks, const char mode[])
-{
-	//Object *ob= OBACT; // xxx
-	Object *ob= NULL;
-	/* only if object is mesh type */
-	
-	if(ob==NULL) return 0;
-	return (ob->type == OB_MESH);
-}
-
-/* array for texture keyingset defines */
-bKeyingSet defks_buts_object[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{incl_buts_ob, "Surface Damping", ID_OB, 0, 1, {OB_PD_SDAMP}},
-	{incl_buts_ob, "Random Damping", ID_OB, 0, 1, {OB_PD_RDAMP}},
-	{incl_buts_ob, "Permeability", ID_OB, 0, 1, {OB_PD_PERM}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Force Strength", ID_OB, 0, 1, {OB_PD_FSTR}},
-	{NULL, "Force Falloff", ID_OB, 0, 1, {OB_PD_FFALL}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_OB, -2, 0, {0}}  // this will include ob-transforms too!
-};
-
-/* Camera Buttons KeyingSets  ------ */
-
-/* check if include internal-renderer entry  */
-static short incl_buts_cam1 (bKeyingSet *ks, const char mode[])
-{
-	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
-	/* only if renderer is internal renderer */
-	return (scene->r.renderer==R_INTERN);
-}
-
-/* check if include external-renderer entry  */
-static short incl_buts_cam2 (bKeyingSet *ks, const char mode[])
-{
-	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
-	/* only if renderer is internal renderer */
-	return (scene->r.renderer!=R_INTERN);
-}
-
-/* array for camera keyingset defines */
-bKeyingSet defks_buts_cam[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Lens", ID_CA, 0, 1, {CAM_LENS}},
-	{NULL, "Clipping", ID_CA, 0, 2, {CAM_STA,CAM_END}},
-	{NULL, "Focal Distance", ID_CA, 0, 1, {CAM_YF_FDIST}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	
-	{incl_buts_cam2, "Aperture", ID_CA, 0, 1, {CAM_YF_APERT}},
-	{incl_buts_cam1, "Viewplane Shift", ID_CA, 0, 2, {CAM_SHIFT_X,CAM_SHIFT_Y}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_CA, -2, 0, {0}}
-};
-
-/* --- */
-
-/* Keying Context Defines - Must keep in sync with enumeration (eKS_Contexts) */
-bKeyingContext ks_contexts[] = 
-{
-	KSC_TEMPLATE(v3d_object),
-	KSC_TEMPLATE(v3d_pchan),
-	
-	KSC_TEMPLATE(buts_shading_mat),
-	KSC_TEMPLATE(buts_shading_wo),
-	KSC_TEMPLATE(buts_shading_la),
-	KSC_TEMPLATE(buts_shading_tex),
-
-	KSC_TEMPLATE(buts_object),
-	KSC_TEMPLATE(buts_cam)
-};
-
-/* Keying Context Enumeration - Must keep in sync with definitions*/
-typedef enum eKS_Contexts {
-	KSC_V3D_OBJECT = 0,
-	KSC_V3D_PCHAN,
-	
-	KSC_BUTS_MAT,
-	KSC_BUTS_WO,
-	KSC_BUTS_LA,
-	KSC_BUTS_TEX,
-	
-	KSC_BUTS_OB,
-	KSC_BUTS_CAM,
-	
-		/* make sure this last one remains untouched! */
-	KSC_TOT_TYPES
-} eKS_Contexts;
-
-
-/* ---------------- KeyingSet Tools ------------------- */
-
-/* helper for commonkey_context_get() -  get keyingsets for 3d-view */
-static void commonkey_context_getv3d (const bContext *C, ListBase *sources, bKeyingContext **ksc)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob;
-	IpoCurve *icu;
-	
-	if ((OBACT) && (OBACT->flag & OB_POSEMODE)) {
-		bPoseChannel *pchan;
-		
-		/* pose-level */
-		ob= OBACT;
-		*ksc= &ks_contexts[KSC_V3D_PCHAN];
-			// XXX
-		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
-		
-		/* loop through posechannels */
-		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-			if (pchan->flag & POSE_KEY) {
-				bCommonKeySrc *cks;
-				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to, and action */
-				cks->id= (ID *)ob;
-				cks->act= ob->action;
-				
-				/* set pchan */
-				cks->pchan= pchan;
-				cks->actname= pchan->name;
-			}
-		}
-	}
-	else {
-		/* object-level */
-		*ksc= &ks_contexts[KSC_V3D_OBJECT];
-		
-		/* loop through bases */
-		// XXX but we're only supposed to do this on editable ones, not just selected ones!
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
-			bCommonKeySrc *cks;
-			
-			/* add new keyframing destination */
-			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-			BLI_addtail(sources, cks);
-			
-			/* set id-block to key to */
-			ob= base->object;
-			cks->id= (ID *)ob;
-		}
-		CTX_DATA_END;
-	}
-}
-
-/* helper for commonkey_context_get() -  get keyingsets for buttons window */
-static void commonkey_context_getsbuts (const bContext *C, ListBase *sources, bKeyingContext **ksc)
-{
-#if 0 // XXX dunno what's the future of this stuff...	
-	bCommonKeySrc *cks;
-	
-	/* check on tab-type */
-	switch (G.buts->mainb) {
-	case CONTEXT_SHADING:	/* ------------- Shading buttons ---------------- */
-		/* subtabs include "Material", "Texture", "Lamp", "World"*/
-		switch (G.buts->tab[CONTEXT_SHADING]) {
-			case TAB_SHADING_MAT: /* >------------- Material Tab -------------< */
-			{
-				Material *ma= editnode_get_active_material(G.buts->lockpoin);
-				
-				if (ma) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)ma;
-					cks->ipo= ma->ipo;
-					cks->map= texchannel_to_adrcode(ma->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_MAT];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_WORLD: /* >------------- World Tab -------------< */
-			{
-				World *wo= G.buts->lockpoin;
-				
-				if (wo) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)wo;
-					cks->ipo= wo->ipo;
-					cks->map= texchannel_to_adrcode(wo->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_WO];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_LAMP: /* >------------- Lamp Tab -------------< */
-			{
-				Lamp *la= G.buts->lockpoin;
-				
-				if (la) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)la;
-					cks->ipo= la->ipo;
-					cks->map= texchannel_to_adrcode(la->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_LA];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_TEX: /* >------------- Texture Tab -------------< */
-			{
-				Tex *tex= G.buts->lockpoin;
-				
-				if (tex) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)tex;
-					cks->ipo= tex->ipo;
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_TEX];
-					return;
-				}
-			}
-				break;
-		}
-		break;
-	
-	case CONTEXT_OBJECT:	/* ------------- Object buttons ---------------- */
-		{
-			Object *ob= OBACT;
-			
-			if (ob) {
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to */
-				cks->id= (ID *)ob;
-				cks->ipo= ob->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_OB];
-				return;
-			}
-		}
-		break;
-	
-	case CONTEXT_EDITING:	/* ------------- Editing buttons ---------------- */
-		{
-			Object *ob= OBACT;
-			
-			if ((ob) && (ob->type==OB_CAMERA) && (G.buts->lockpoin)) { /* >---------------- camera buttons ---------------< */
-				Camera *ca= G.buts->lockpoin;
-				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to */
-				cks->id= (ID *)ca;
-				cks->ipo= ca->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_CAM];
-				return;
-			}
-		}
-		break;
-	}
-#endif // XXX end of buttons stuff to port...
-	
-	/* if nothing happened... */
-	*ksc= NULL;
-}
-
-#endif // XXX old keyingsets code based on adrcodes... to be restored in due course
-
-#if 0 // XXX new relative keyingsets code
-
-/* Check if context data is suitable for the given absolute Keying Set */
-static short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
-{
-	
-	return 1;
-}
-
-/* Get list of data-sources from context for inserting keyframes using the given relative Keying Set */
-static short commonkey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks)
-{
-	
-} 
-
-#endif // XXX new relative keyingsets code
-
-/* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
- * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
- * Returns the number of channels that keyframes were added to
- */
-static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, float cfra)
-{
-	KS_Path *ksp;
-	int kflag=0, success= 0;
-	char *groupname= NULL;
-	
-	/* get flags to use */
-	if (mode == COMMONKEY_MODE_INSERT) {
-		/* use KeyingSet's flags as base */
-		kflag= ks->keyingflag;
-		
-		/* suppliment with info from the context */
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
-		// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
-	}
-	else if (mode == COMMONKEY_MODE_DELETE)
-		kflag= 0;
-	
-	/* check if the KeyingSet is absolute or not (i.e. does it requires sources info) */
-	if (ks->flag & KEYINGSET_ABSOLUTE) {
-		/* Absolute KeyingSets are simpler to use, as all the destination info has already been
-		 * provided by the user, and is stored, ready to use, in the KeyingSet paths.
-		 */
-		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
-			int arraylen, i;
-			
-			/* get pointer to name of group to add channels to */
-			if (ksp->groupmode == KSP_GROUP_NONE)
-				groupname= NULL;
-			else if (ksp->groupmode == KSP_GROUP_KSNAME)
-				groupname= ks->name;
-			else
-				groupname= ksp->group;
-			
-			/* init arraylen and i - arraylen should be greater than i so that
-			 * normal non-array entries get keyframed correctly
-			 */
-			i= ksp->array_index;
-			arraylen= i+1;
-			
-			/* get length of array if whole array option is enabled */
-			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
-				PointerRNA id_ptr, ptr;
-				PropertyRNA *prop;
-				
-				RNA_id_pointer_create(ksp->id, &id_ptr);
-				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(&ptr, prop);
-			}
-			
-			/* for each possible index, perform operation 
-			 *	- assume that arraylen is greater than index
-			 */
-			for (; i < arraylen; i++) {
-				/* action to take depends on mode */
-				if (mode == COMMONKEY_MODE_INSERT)
-					success+= insertkey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
-				else if (mode == COMMONKEY_MODE_DELETE)
-					success+= deletekey(ksp->id, groupname,  ksp->rna_path, i, cfra, kflag);
-			}
-			
-			// TODO: set recalc tags on the ID?
-		}
-	}
-#if 0 // XXX still need to figure out how to get such keyingsets working
-	else if (dsources) {
-		/* for each one of the 'sources', resolve the template markers and expand arrays, then insert keyframes */
-		bCommonKeySrc *cks;
-		char *path = NULL;
-		int index=0, tot=0;
-		
-		/* for each 'source' for keyframe data, resolve each of the paths from the KeyingSet */
-		for (cks= dsources->first; cks; cks= cks->next) {
-			
-		}
-	}
-#endif // XXX still need to figure out how to get such 
-	
-	return success;
-}
-
 
 /* Polling callback for use with ANIM_*_keyframe() operators
  * This is based on the standard ED_operator_areaactive callback,
@@ -1904,37 +906,55 @@ static int modify_key_op_poll(bContext *C)
 
 /* Insert Key Operator ------------------------ */
 
-/* NOTE:
- * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
- * For now, these are absolute Keying Sets only, so there is very little context info involved.
- *
- * 	-- Joshua Leung, Feb 2009
- */
- 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;
+	int type= RNA_int_get(op->ptr, "type");
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success;
 	
-	/* try to get KeyingSet */
-	if (scene->active_keyingset > 0)
+	/* type is the Keying Set the user specified to use when calling the operator:
+	 *	- type == 0: use scene's active Keying Set
+	 *	- type > 0: use a user-defined Keying Set from the active scene
+	 *	- type < 0: use a builtin Keying Set
+	 */
+	if (type == 0) 
+		type= scene->active_keyingset;
+	if (type > 0)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-	/* report failure */
+	else
+		ks= BLI_findlink(&builtin_keyingsets, -type-1);
+		
+	/* report failures */
 	if (ks == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* get context info for relative Keying Sets */
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		/* exit if no suitable data obtained */
+		if (modifykey_get_context_data(C, &dsources, ks) == 0) {
+			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
+	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+	
+	/* free temp context-data if available */
+	if (dsources.first) {
+		/* we assume that there is no extra data that needs to be freed from here... */
+		BLI_freelistN(&dsources);
+	}
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
@@ -1957,41 +977,129 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* settings */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+}
+
+/* Insert Key Operator (With Menu) ------------------------ */
+
+/* XXX 
+ * This operator pops up a menu which sets gets the index of the keyingset to use,
+ * setting the global settings, and calling the insert-keyframe operator using these
+ * settings
+ */
+
+static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int i = 0;
+	
+	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* active Keying Set */
+	uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+	uiItemS(layout);
+	
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	if (scene->keyingsets.first) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next)
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+		uiItemS(layout);
+	}
+	
+	/* builtin Keying Sets */
+	// XXX polling the entire list may lag
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (keyingset_context_ok_poll(C, ks)) {
+			uiItemIntO(layout, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i--);
+		}
+	}
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+ 
+void ANIM_OT_insert_keyframe_menu (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe_menu";
+	
+	/* callbacks */
+	ot->invoke= insert_key_menu_invoke;
+	ot->exec= insert_key_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties
+	 *	- NOTE: here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
 
 /* Delete Key Operator ------------------------ */
 
-/* NOTE:
- * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
- * For now, these are absolute Keying Sets only, so there is very little context info involved.
- *
- * 	-- Joshua Leung, Feb 2009
- */
- 
 static int delete_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks= NULL;
+	KeyingSet *ks= NULL;	
+	int type= RNA_int_get(op->ptr, "type");
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success;
 	
-	/* try to get KeyingSet */
-	if (scene->active_keyingset > 0)
+	/* type is the Keying Set the user specified to use when calling the operator:
+	 *	- type == 0: use scene's active Keying Set
+	 *	- type > 0: use a user-defined Keying Set from the active scene
+	 *	- type < 0: use a builtin Keying Set
+	 */
+	if (type == 0) 
+		type= scene->active_keyingset;
+	if (type > 0)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	else
+		ks= BLI_findlink(&builtin_keyingsets, -type-1);
+	
 	/* report failure */
 	if (ks == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* get context info for relative Keying Sets */
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		/* exit if no suitable data obtained */
+		if (modifykey_get_context_data(C, &dsources, ks) == 0) {
+			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_DELETE, cfra);
+	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
 	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+	
+	/* free temp context-data if available */
+	if (dsources.first) {
+		/* we assume that there is no extra data that needs to be freed from here... */
+		BLI_freelistN(&dsources);
+	}
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
@@ -2014,220 +1122,18 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/* Insert Key Operator ------------------------ */
-
-/* XXX WARNING:
- * This is currently just a basic operator, which work in 3d-view context on objects/bones only
- * and will insert keyframes for a few settings only. This is until it becomes clear how
- * to separate (or not) the process for RNA-path creation between context + keyingsets.
- * 
- * -- Joshua Leung, Jan 2009
- */
-
-/* defines for basic insert-key testing operator  */
-	// XXX this will definitely be replaced
-EnumPropertyItem prop_insertkey_types[] = {
-	{0, "KEYINGSET", "Active KeyingSet", ""},
-	{1, "OBLOC", "Object Location", ""},
-	{2, "OBROT", "Object Rotation", ""},
-	{3, "OBSCALE", "Object Scale", ""},
-	{4, "MAT_COL", "Active Material - Color", ""},
-	{5, "PCHANLOC", "Pose-Channel Location", ""},
-	{6, "PCHANROT", "Pose-Channel Rotation", ""},
-	{7, "PCHANSCALE", "Pose-Channel Scale", ""},
-	{0, NULL, NULL, NULL}
-};
-
-static int insert_key_old_invoke (bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head;
 	
-	if (ob == NULL)
-		return OPERATOR_CANCELLED;
-		
-	head= uiPupMenuBegin("Insert Keyframe", 0);
-	
-	/* active keyingset */
-	uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 0);
-	
-	/* selective inclusion */
-	if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-		/* bone types */	
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 5);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 6);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 7);
-	}
-	else {
-		/* object types */
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 2);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 4);
-	}
-	
-	uiPupMenuEnd(C, head);
-	
-	return OPERATOR_CANCELLED;
-}
- 
-static int insert_key_old_exec (bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	short mode= RNA_enum_get(op->ptr, "type");
-	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
-	
-	/* for now, handle 'active keyingset' one separately */
-	if (mode == 0) {
-		ListBase dsources = {NULL, NULL};
-		KeyingSet *ks= NULL;
-		short success;
-		
-		/* try to get KeyingSet */
-		if (scene->active_keyingset > 0)
-			ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-		/* report failure */
-		if (ks == NULL) {
-			BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
-			return OPERATOR_CANCELLED;
-		}
-		
-		/* try to insert keyframes for the channels specified by KeyingSet */
-		success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
-		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
-		
-		/* report failure? */
-		if (success == 0)
-			BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
-	}
-	else {
-		// more comprehensive tests will be needed
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
-		{
-			Object *ob= base->object;
-			ID *id= (ID *)ob;
-			short success= 0;
-			
-			/* check which keyframing mode chosen for this object */
-			if (mode < 4) {
-				/* object-based keyframes */
-				switch (mode) {
-				case 4: /* color of active material (only for geometry...) */
-					// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
-					// XXX no group for now
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
-					break;
-				case 3: /* object scale */
-					success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
-					break;
-				case 2: /* object rotation */
-					success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
-					break;
-				default: /* object location */
-					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
-					break;
-				}
-				
-				ob->recalc |= OB_RECALC_OB;
-			}
-			else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-				/* PoseChannel based keyframes */
-				bPoseChannel *pchan;
-				
-				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					/* only if selected */
-					if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-						char buf[512];
-						
-						switch (mode) {
-						case 7: /* pchan scale */
-							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							break;
-						case 6: /* pchan rotation */
-							if (pchan->rotmode == PCHAN_ROT_QUAT) {
-								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
-							}
-							else {
-								sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							}
-							break;
-						default: /* pchan location */
-							sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							break;
-						}
-					}
-				}
-				
-				ob->recalc |= OB_RECALC_OB;
-			}
-			
-			printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
-		}
-		CTX_DATA_END;
-	}
-	
-	/* send updates */
-	ED_anim_dag_flush_update(C);	
-	
-	if (mode == 0) /* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
-	else if (mode == 4) /* material color requires different notifiers */
-		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
-	else
-		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-void ANIM_OT_insert_keyframe_old (wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Insert Keyframe";
-	ot->idname= "ANIM_OT_insert_keyframe_old";
-	
-	/* callbacks */
-	ot->invoke= insert_key_old_invoke;
-	ot->exec= insert_key_old_exec; 
-	ot->poll= ED_operator_areaactive;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-		// XXX update this for the latest RNA stuff styles...
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_insertkey_types);
+	/* properties
+	 *	- NOTE: here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
 
 /* Delete Key Operator ------------------------ */
 
 /* XXX WARNING:
  * This is currently just a basic operator, which work in 3d-view context on objects only. 
+ * Should this be kept? It does have advantages over a version which requires selecting a keyingset to use...
  * -- Joshua Leung, Jan 2009
  */
  
@@ -2251,7 +1157,7 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
-				success+= deletekey(id, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+				success+= delete_keyframe(id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
 			}
 		}
 		
@@ -2264,7 +1170,6 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
 	
-		// XXX what if it was a material keyframe?
 	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -2277,7 +1182,7 @@ void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 	ot->idname= "ANIM_OT_delete_keyframe_old";
 	
 	/* callbacks */
-	ot->invoke= WM_operator_confirm; // XXX we will need our own one eventually, to cope with the dynamic menus...
+	ot->invoke= WM_operator_confirm;
 	ot->exec= delete_key_old_exec; 
 	
 	ot->poll= ED_operator_areaactive;
@@ -2286,12 +1191,156 @@ void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+/* Insert Key Button Operator ------------------------ */
+
+static int insert_key_button_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr;
+	PropertyRNA *prop= NULL;
+	char *path;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success= 0;
+	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	
+	/* try to insert keyframe using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	if ((ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			if (all) {
+				length= RNA_property_array_length(prop);
+				
+				if(length) index= 0;
+				else length= 1;
+			}
+			else
+				length= 1;
+			
+			for (a=0; a<length; a++)
+				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
+			
+			MEM_freeN(path);
+		}
+		else {
+			if (G.f & G_DEBUG)
+				printf("Button Insert-Key: no path to property \n");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead.");
+		}
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
+		printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
+	}
+	
+	if (success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, ND_KEYS, NULL);
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe_button";
+	
+	/* callbacks */
+	ot->exec= insert_key_button_exec; 
+	ot->poll= modify_key_op_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
+}
+
+/* Delete Key Button Operator ------------------------ */
+
+static int delete_key_button_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr;
+	PropertyRNA *prop= NULL;
+	char *path;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success= 0;
+	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	
+	/* try to insert keyframe using property retrieved from UI */
+	memset(&ptr, 0, sizeof(PointerRNA));
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+
+	if (ptr.data && prop) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			if (all) {
+				length= RNA_property_array_length(prop);
+				
+				if(length) index= 0;
+				else length= 1;
+			}
+			else
+				length= 1;
+			
+			for (a=0; a<length; a++)
+				success+= delete_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
+			
+			MEM_freeN(path);
+		}
+		else if (G.f & G_DEBUG)
+			printf("Button Delete-Key: no path to property \n");
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p \n", ptr.data, prop);
+	}
+	
+	
+	if(success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, ND_KEYS, NULL);
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Keyframe";
+	ot->idname= "ANIM_OT_delete_keyframe_button";
+	
+	/* callbacks */
+	ot->exec= delete_key_button_exec; 
+	ot->poll= modify_key_op_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");
+}
+
 /* ******************************************* */
 /* KEYFRAME DETECTION */
 
 /* --------------- API/Per-Datablock Handling ------------------- */
 
-/* Checks whether an IPO-block has a keyframe for a given frame 
+/* Checks whether an Action has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
 short action_frame_has_keyframe (bAction *act, float frame, short filter)

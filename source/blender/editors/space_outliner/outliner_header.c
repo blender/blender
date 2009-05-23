@@ -118,7 +118,7 @@ static uiBlock *outliner_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "outliner_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "outliner_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	if (soops->flag & SO_HIDE_RESTRICTCOLS)
@@ -213,15 +213,12 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3, xmax;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_outliner_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, outliner_viewmenu, CTX_wm_area(C), 

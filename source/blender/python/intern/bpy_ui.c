@@ -27,6 +27,7 @@
 #include "bpy_rna.h" /* for rna buttons */
 #include "bpy_operator.h" /* for setting button operator properties */
 #include "bpy_compat.h"
+
 #include "WM_types.h" /* for WM_OP_INVOKE_DEFAULT & friends */
 
 #include "BLI_dynstr.h"
@@ -42,12 +43,13 @@
 
 static PyObject *Method_pupMenuBegin( PyObject * self, PyObject * args )
 {
+	PyObject *py_context;
 	char *title; int icon;
 	
-	if( !PyArg_ParseTuple( args, "si:pupMenuBegin", &title, &icon))
+	if( !PyArg_ParseTuple( args, "O!si:pupMenuBegin", &PyCObject_Type, &py_context, &title, &icon))
 		return NULL;
 	
-	return PyCObject_FromVoidPtr( uiPupMenuBegin(title, icon), NULL );
+	return PyCObject_FromVoidPtr( uiPupMenuBegin(PyCObject_AsVoidPtr(py_context), title, icon), NULL );
 }
 
 static PyObject *Method_pupMenuEnd( PyObject * self, PyObject * args )
@@ -58,20 +60,6 @@ static PyObject *Method_pupMenuEnd( PyObject * self, PyObject * args )
 		return NULL;
 	
 	uiPupMenuEnd(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_head));
-	
-	Py_RETURN_NONE;
-}
-
-static PyObject *Method_menuItemO( PyObject * self, PyObject * args )
-{
-	PyObject *py_head;
-	char *opname;
-	int icon;
-	
-	if( !PyArg_ParseTuple( args, "O!is:menuItemO", &PyCObject_Type, &py_head, &icon, &opname))
-		return NULL;
-	
-	uiMenuItemO(PyCObject_AsVoidPtr(py_head), icon, opname);
 	
 	Py_RETURN_NONE;
 }
@@ -156,7 +144,9 @@ static PyObject *Method_pupBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) // XXX missing 2 args - UI_EMBOSS, UI_HELV, do we care?
+// XXX missing arg - UI_EMBOSS, do we care?
+// XXX well, right now this only is to distinguish whether we have regular buttons or for pulldowns (ton)
+static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) 
 {
 	PyObject *py_context, *py_ar;
 	char *name;
@@ -164,7 +154,7 @@ static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) // XXX mi
 	if( !PyArg_ParseTuple( args, "O!O!s:beginBlock", &PyCObject_Type, &py_context, &PyCObject_Type, &py_ar, &name) )
 		return NULL;
 	
-	return PyCObject_FromVoidPtr(uiBeginBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_ar), name, UI_EMBOSS, UI_HELV), NULL);
+	return PyCObject_FromVoidPtr(uiBeginBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_ar), name, UI_EMBOSS), NULL);
 }
 
 static PyObject *Method_endBlock( PyObject * self, PyObject * args )
@@ -186,29 +176,6 @@ static PyObject *Method_drawBlock( PyObject * self, PyObject * args )
 		return NULL;
 	
 	uiDrawBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_block));
-	Py_RETURN_NONE;
-}
-
-static PyObject *Method_drawPanels( PyObject * self, PyObject * args )
-{
-	PyObject *py_context;
-	int align;
-	
-	if( !PyArg_ParseTuple( args, "O!i:drawPanels", &PyCObject_Type, &py_context, &align) )
-		return NULL;
-	
-	uiDrawPanels(PyCObject_AsVoidPtr(py_context), align);
-	Py_RETURN_NONE;
-}
-
-static PyObject *Method_matchPanelsView2d( PyObject * self, PyObject * args )
-{
-	PyObject *py_ar;
-	
-	if( !PyArg_ParseTuple( args, "O!:matchPanelsView2d", &PyCObject_Type, &py_ar) )
-		return NULL;
-	
-	uiMatchPanelsView2d(PyCObject_AsVoidPtr(py_ar));
 	Py_RETURN_NONE;
 }
 
@@ -256,18 +223,6 @@ static PyObject *Method_blockSetFlag( PyObject * self, PyObject * args )
 	
 	uiBlockSetFlag(PyCObject_AsVoidPtr(py_block), flag);
 	Py_RETURN_NONE;
-}
-
-static PyObject *Method_newPanel( PyObject * self, PyObject * args )
-{
-	PyObject *py_context, *py_area, *py_block;
-	char *panelname, *tabname;
-	int ofsx, ofsy, sizex, sizey;
-	
-	if( !PyArg_ParseTuple( args, "O!O!O!ssiiii:newPanel", &PyCObject_Type, &py_context, &PyCObject_Type, &py_area, &PyCObject_Type, &py_block, &panelname, &tabname, &ofsx, &ofsy, &sizex, &sizey))
-		return NULL;
-	
-	return PyLong_FromSsize_t(uiNewPanel(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_area), PyCObject_AsVoidPtr(py_block), panelname, tabname, ofsx, ofsy, sizex, sizey));
 }
 
 /* similar to Draw.c */
@@ -352,7 +307,7 @@ static PyObject *Method_registerKey( PyObject * self, PyObject * args )
 static bContext *get_py_context__internal(void)
 {
 	PyObject *globals = PyEval_GetGlobals();
-	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__");
+	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__"); /* borrow ref */
 	return PyCObject_AsVoidPtr(val);
 }
 
@@ -399,7 +354,6 @@ static PyObject *Method_getWindowPtr( PyObject * self )
 static struct PyMethodDef ui_methods[] = {
 	{"pupMenuBegin", (PyCFunction)Method_pupMenuBegin, METH_VARARGS, ""},
 	{"pupMenuEnd", (PyCFunction)Method_pupMenuEnd, METH_VARARGS, ""},
-	{"menuItemO", (PyCFunction)Method_menuItemO, METH_VARARGS, ""},
 	{"defButO", (PyCFunction)Method_defButO, METH_VARARGS, ""},
 	{"defAutoButR", (PyCFunction)Method_defAutoButR, METH_VARARGS, ""},
 	{"pupBlock", (PyCFunction)Method_pupBlock, METH_VARARGS, ""},
@@ -410,9 +364,6 @@ static struct PyMethodDef ui_methods[] = {
 	{"blockBeginAlign", (PyCFunction)Method_blockBeginAlign, METH_VARARGS, ""},
 	{"blockEndAlign", (PyCFunction)Method_blockEndAlign, METH_VARARGS, ""},
 	{"blockSetFlag", (PyCFunction)Method_blockSetFlag, METH_VARARGS, ""},
-	{"newPanel", (PyCFunction)Method_newPanel, METH_VARARGS, ""},
-	{"drawPanels", (PyCFunction)Method_drawPanels, METH_VARARGS, ""},
-	{"matchPanelsView2d", (PyCFunction)Method_matchPanelsView2d, METH_VARARGS, ""},
 	
 	{"register", (PyCFunction)Method_register, METH_VARARGS, ""}, // XXX not sure about this - registers current script with the ScriptSpace, like Draw.Register()
 	{"registerKey", (PyCFunction)Method_registerKey, METH_VARARGS, ""}, // XXX could have this in another place too
@@ -423,6 +374,7 @@ static struct PyMethodDef ui_methods[] = {
 	{"getScreenPtr", (PyCFunction)Method_getScreenPtr, METH_NOARGS, ""},
 	{"getSpacePtr", (PyCFunction)Method_getSpacePtr, METH_NOARGS, ""},
 	{"getWindowPtr", (PyCFunction)Method_getWindowPtr, METH_NOARGS, ""},
+
 	{NULL, NULL, 0, NULL}
 };
 

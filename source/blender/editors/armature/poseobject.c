@@ -970,7 +970,7 @@ void pose_add_posegroup (Scene *scene)
 	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
 	strcpy(grp->name, "Group");
 	BLI_addtail(&pose->agroups, grp);
-	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
 	
 	pose->active_group= BLI_countlist(&pose->agroups);
 	
@@ -1236,7 +1236,6 @@ static short pose_select_same_layer (Object *ob)
 	
 	return changed;
 }
-
 
 void pose_select_grouped (Scene *scene, short nr)
 {
@@ -1669,9 +1668,7 @@ void pose_special_editmenu(Scene *scene)
 		pose_clear_paths(ob);
 	}
 	else if(nr==5) {
-		rest_pose(ob->pose);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Clear User Transform Pose");
+		pose_clear_user_transforms(scene, ob);
 	}
 	else if(nr==6) {
 		pose_relax();
@@ -1680,5 +1677,31 @@ void pose_special_editmenu(Scene *scene)
 		pose_autoside_names(nr-7);
 	}
 #endif
+}
+
+/* Restore selected pose-bones to 'action'-defined pose */
+void pose_clear_user_transforms(Scene *scene, Object *ob)
+{
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	if (ob->pose == NULL)
+		return;
+	
+	/* find selected bones */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
+			pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+	}
+	
+	/* clear pose locking flag 
+	 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
+	 */
+	ob->pose->flag |= POSE_DO_UNLOCK;
+	
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	BIF_undo_push("Clear User Transform");
 }
 

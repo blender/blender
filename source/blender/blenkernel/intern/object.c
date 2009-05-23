@@ -1643,7 +1643,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
-		em = EM_GetEditMesh(me);
+		em = BKE_mesh_get_editmesh(me);
 
 		if(em) {
 			EditVert *eve;
@@ -1654,7 +1654,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 					break;
 				}
 			}
-			EM_EndEditMesh(me, em);
+			BKE_mesh_end_editmesh(me, em);
 		}
 		else {
 			DerivedMesh *dm = par->derivedFinal;
@@ -2299,7 +2299,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			if(ob->type==OB_MESH) {
 				BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 
-					// here was vieweditdatamask? XXX
+				// here was vieweditdatamask? XXX
 				if(ob==scene->obedit) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
 				} else

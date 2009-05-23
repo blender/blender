@@ -425,7 +425,7 @@ int startanim5(struct anim * anim) {
 	/* de hele file wordt in het geheugen gemapped */
 
 	totlen = BLI_filesize(file);
-	if (totlen && file>=0) {
+	if (totlen>0 && file>=0) {
 		lseek(file, 0L, SEEK_SET);
 		
 		mem= MEM_mallocN(totlen, "mmap");

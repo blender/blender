@@ -74,6 +74,7 @@ private:
 	PyObject*					m_pythondictionary;
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
+	class KX_Dome*						m_dome; // dome stereo mode
 
 	/** Lists of scenes scheduled to be removed at the end of the frame. */
 	std::set<STR_String> m_removingScenes;
@@ -208,6 +209,12 @@ public:
 	RAS_ICanvas*		    GetCanvas(){return m_canvas;};
 	RAS_IRenderTools*	    GetRenderTools(){return m_rendertools;};
 
+	/// Dome functions
+	void			InitDome(float size, short res, short mode, short angle, float resbuf, struct Text* text); 
+	void			EndDome();
+	void			RenderDome();
+	bool			m_usedome;
+
 	///returns true if an update happened to indicate -> Render
 	bool			NextFrame();
 	void			Render();
@@ -234,6 +241,8 @@ public:
 	void			GetSceneViewport(KX_Scene* scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
 
 	void SetDrawType(int drawingtype);
+	int  GetDrawType(){return m_drawingmode;};
+
 	void SetCameraZoom(float camzoom);
 	
 	void EnableCameraOverride(const STR_String& forscene);

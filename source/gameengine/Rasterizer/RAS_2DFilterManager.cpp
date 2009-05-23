@@ -435,11 +435,12 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
+	glPushMatrix();		//GL_MODELVIEW
+	glLoadIdentity();	// GL_MODELVIEW
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 	glLoadIdentity();
 
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
@@ -466,6 +467,9 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glEnable(GL_DEPTH_TEST);
 	glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
 	EndShaderProgram();	
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 }
 
 void RAS_2DFilterManager::EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text)

@@ -33,7 +33,7 @@ public:
 	CBoolValue(bool innie, STR_String name, AllocationTYPE alloctype = CValue::HEAPVALUE);
 
 	virtual const STR_String& GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	bool				GetBool();
 	virtual void		SetValue(CValue* newval);
 	

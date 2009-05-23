@@ -63,12 +63,10 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-//#include "BIF_screen.h"
-//#include "BIF_resources.h"
-//#include "BIF_mywindow.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 

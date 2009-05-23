@@ -7,4 +7,9 @@ incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../makesrna'
 
-env.BlenderLib ( 'bf_editors_space_image', sources, Split(incs), [], libtype=['core'], priority=[40] )
+defs = []
+
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+
+env.BlenderLib ( 'bf_editors_space_image', sources, Split(incs), defs, libtype=['core'], priority=[40] )

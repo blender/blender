@@ -369,7 +369,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				blscene);
 			
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
@@ -380,9 +380,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();
 #endif
+
+			//initialize Dome Settings
+			if(blscene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
+				ketsjiengine->InitDome(blscene->r.domesize, blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometext);
 
 			if (sceneconverter)
 			{
@@ -539,7 +544,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		SND_DeviceManager::Unsubscribe();
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-
+	
+	Py_DECREF(pyGlobalDict);
+	
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));
@@ -669,7 +676,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				blscene);
 
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
@@ -677,6 +684,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();
 #endif

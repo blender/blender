@@ -164,7 +164,11 @@ extern "C" {
 
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
-
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdGraphicController.h"
+#endif
+#include "KX_MotionState.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -598,10 +602,7 @@ BL_Material* ConvertMaterial(
 
 	if( validface ) {
 
-		material->ras_mode |= !( 
-			(mface->flag & ME_HIDE)	||
-			(tface->mode & TF_INVISIBLE)
-			)?POLY_VIS:0;
+		material->ras_mode |= (tface->mode & TF_INVISIBLE)?0:POLY_VIS;
 
 		material->transp = tface->transp;
 		material->tile	= tface->tile;
@@ -839,6 +840,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 		{
 			bool visible = true;
+			bool twoside = false;
 			RAS_IPolyMaterial* polymat = NULL;
 			BL_Material *bl_mat = NULL;
 
@@ -855,6 +857,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
+				twoside = ((bl_mat->mode & TF_TWOSIDE)!=0);
 
 				/* vertex colors and uv's were stored in bl_mat temporarily */
 				bl_mat->GetConversionRGB(rgb);
@@ -894,7 +897,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					tile = tface->tile;
 					mode = tface->mode;
 					
-					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					visible = !(tface->mode & TF_INVISIBLE);
+					twoside = ((tface->mode & TF_TWOSIDE)!=0);
 					
 					uv0.setValue(tface->uv[0]);
 					uv1.setValue(tface->uv[1]);
@@ -995,6 +999,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 			poly->SetVisible(visible);
 			poly->SetCollider(collider);
+			poly->SetTwoside(twoside);
 			//poly->SetEdgeCode(mface->edcode);
 
 			meshobj->AddVertex(poly,0,pt0,uv0,uv20,tan0,rgb0,no0,flat,mface->v1);
@@ -1099,6 +1104,10 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	shapeProps->m_do_fh     = (blenderobject->gameflag & OB_DO_FH) != 0; 
 	shapeProps->m_do_rot_fh = (blenderobject->gameflag & OB_ROT_FH) != 0;
 	
+//	velocity clamping XXX
+	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
+	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
+	
 	return shapeProps;
 }
 
@@ -1116,6 +1125,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	BoundBox *bb;
 	MT_Point3 min, max;
 	float mloc[3], msize[3];
+	float radius=0.0f, vert_radius, *co;
 	int a;
 	
 	if(me->bb==0) me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
@@ -1128,7 +1138,15 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	
 	mvert= me->mvert;
 	for(a=0; a<me->totvert; a++, mvert++) {
-		DO_MINMAX(mvert->co, min, max);
+		co= mvert->co;
+		
+		/* bounds */
+		DO_MINMAX(co, min, max);
+		
+		/* radius */
+		vert_radius= co[0]*co[0] + co[1]*co[1] + co[2]*co[2];
+		if (vert_radius > radius)
+			radius= vert_radius;
 	}
 		
 	if(me->totvert) {
@@ -1154,13 +1172,6 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
 
-	float radius = 0;
-	for (a=0, mvert = me->mvert; a < me->totvert; a++, mvert++)
-	{
-		float vert_radius = MT_Vector3(mvert->co).length2();
-		if (vert_radius > radius)
-			radius = vert_radius;
-	} 
 	return sqrt(radius);
 }
 		
@@ -1265,8 +1276,37 @@ static void my_get_local_bounds(Object *ob, float *center, float *size)
 //////////////////////////////////////////////////////
 
 
-
-
+void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+							   const MT_Point3& localAabbMin,
+							   const MT_Point3& localAabbMax,
+							   KX_Scene* kxscene,
+							   bool isActive,
+							   e_PhysicsEngine physics_engine)
+{
+	if (gameobj->GetMeshCount() > 0) 
+	{
+		switch (physics_engine)
+		{
+#ifdef USE_BULLET
+		case UseBullet:
+			{
+				CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
+				assert(env);
+				PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+				CcdGraphicController* ctrl = new CcdGraphicController(env, motionstate);
+				gameobj->SetGraphicController(ctrl);
+				ctrl->setNewClientInfo(gameobj->getClientInfo());
+				ctrl->setLocalAabb(localAabbMin, localAabbMax);
+				if (isActive)
+					env->addCcdGraphicController(ctrl);
+			}
+			break;
+#endif
+		default:
+			break;
+		}
+	}
+}
 
 void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 struct Object* blenderobject,
@@ -1642,6 +1682,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool ignoreActivityCulling =  
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
+		gameobj->SetOccluder((ob->gameflag & OB_OCCLUDER) != 0, false);
 	
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
@@ -1859,10 +1900,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	if (blenderscene->world) {
 		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
 		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
+		kxscene->SetDbvtCulling((blenderscene->world->mode & WO_DBVT_CULLING) != 0);
 	} else {
 		kxscene->SetActivityCulling(false);
+		kxscene->SetDbvtCulling(false);
 	}
-	
+	// no occlusion culling by default
+	kxscene->SetDbvtOcclusionRes(0);
+
 	int activeLayerBitInfo = blenderscene->lay;
 	
 	// templist to find Root Parents (object with no parents)
@@ -1954,7 +1999,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->NodeSetLocalPosition(pos);
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 			
 			BL_ConvertIpos(blenderobject,gameobj,converter);
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
@@ -2037,7 +2082,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				objectlist->Add(gameobj->AddRef());
 				//tf.Add(gameobj->GetSGNode());
 				
-				gameobj->NodeUpdateGS(0,true);
+				gameobj->NodeUpdateGS(0);
 				gameobj->AddMeshUser();
 		
 			}
@@ -2148,7 +2193,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							gameobj->NodeSetLocalPosition(pos);
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
-							gameobj->NodeUpdateGS(0,true);
+							gameobj->NodeUpdateGS(0);
 							
 							BL_ConvertIpos(blenderobject,gameobj,converter);
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
@@ -2226,7 +2271,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								objectlist->Add(gameobj->AddRef());
 								//tf.Add(gameobj->GetSGNode());
 								
-								gameobj->NodeUpdateGS(0,true);
+								gameobj->NodeUpdateGS(0);
 								gameobj->AddMeshUser();
 							}
 							else
@@ -2309,7 +2354,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			// Remove the child reference in the local list!
 			// Note: there may be descendents already if the children of the child were processed
 			//       by this loop before the child. In that case, we must remove the children also
-			CListValue* childrenlist = (CListValue*)childobj->PyGetChildrenRecursive(childobj);
+			CListValue* childrenlist = childobj->GetChildrenRecursive();
 			childrenlist->Add(childobj->AddRef());
 			for ( i=0;i<childrenlist->GetCount();i++)
 			{
@@ -2377,7 +2422,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (gameobj->GetSGNode()->GetSGParent() == 0)
 		{
 			parentlist->Add(gameobj->AddRef());
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 		}
 	}
 	
@@ -2414,6 +2459,27 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
 	}
 	
+	// create graphic controller for culling
+	if (kxscene->GetDbvtCulling())
+	{
+		bool occlusion = false;
+		for (i=0; i<sumolist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+			if (gameobj->GetMeshCount() > 0) 
+			{
+				MT_Point3 box[2];
+				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
+				// box[0] is the min, box[1] is the max
+				bool isactive = objectlist->SearchValue(gameobj);
+				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
+				if (gameobj->GetOccluder())
+					occlusion = true;
+			}
+		}
+		if (occlusion)
+			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
+	}
 	
 	//set ini linearVel and int angularVel //rcruiz
 	if (converter->addInitFromFrame)

@@ -156,7 +156,7 @@ this object
 	return ret;
 }
 
-float CVectorValue::GetNumber()
+double CVectorValue::GetNumber()
 {
 	return m_vec[KX_X];
 }

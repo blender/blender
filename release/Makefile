@@ -1,4 +1,5 @@
-#
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 # $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -163,6 +164,9 @@ endif
 	@echo "----> Copy python infrastructure"
 	@[ ! -d scripts ] || cp -r scripts $(CONFDIR)/scripts
 
+	@echo "----> Copy python UI files"
+	@[ ! -d ui ] || cp -r ui $(CONFDIR)/ui
+
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
 	@rm -fr $(DISTDIR)/blender$(EXT0)/Contents/MacOS/.blender
@@ -197,16 +201,16 @@ pkg: install
 	@$(COMPRESS) $(COMPRESSFLAGS) $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)
     endif
 	@#echo "****> Clean up temporary distribution directory"
-	@rm -fr $(DISTDIR)
+	@#rm -fr $(DISTDIR)
 	@echo "****> $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)$(EXT2) is ready"
 
 version: FORCE
 	@echo "*---> Create $(BLENDNAME) package"
 
 makedirs: FORCE
-	@#echo "****> Create package directory $(VERSION) if necessary"
+	@echo "****> Create package directory $(VERSION) if necessary"
 	@[ -d $(NAN_OBJDIR)/$(VERSION) ] || mkdir $(NAN_OBJDIR)/$(VERSION)
-	@#echo "****> Prepare temporary distribution directory"
+	@echo "****> Remove and recreate temporary distribution directory"
 	@rm -fr $(DISTDIR)
 	@mkdir $(DISTDIR)
 

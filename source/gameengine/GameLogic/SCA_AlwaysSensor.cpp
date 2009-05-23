@@ -105,22 +105,22 @@ bool SCA_AlwaysSensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_AlwaysSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_AlwaysSensor",
-	sizeof(SCA_AlwaysSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject SCA_AlwaysSensor::Parents[] = {
@@ -139,8 +139,8 @@ PyAttributeDef SCA_AlwaysSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_AlwaysSensor::_getattr(const char *attr) {
-	_getattr_up(SCA_ISensor);
+PyObject* SCA_AlwaysSensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_ISensor);
 }
 
 /* eof */

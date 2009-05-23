@@ -55,8 +55,8 @@
 #include "ED_image.h"
 #include "ED_screen.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -117,10 +117,12 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 
 	if(ibuf->rect_float) {
 		if(ibuf->rect==NULL) {
-			if(image_curves_active(sima))
+			if(image_curves_active(sima)) {
 				curvemapping_do_ibuf(sima->cumap, ibuf);
-			else 
+			}
+			else {
 				IMB_rect_from_float(ibuf);
+			}
 		}
 	}
 }
@@ -147,16 +149,13 @@ static void draw_render_info(SpaceImage *sima, ARegion *ar)
 	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
 	
 	UI_ThemeColor(TH_TEXT_HI);
-	glRasterPos2i(12, rect.ymin + 5);
-	UI_RasterPos(12, rect.ymin + 5);
 
 	if(showspare) {
-		UI_DrawString(G.fonts, "(Previous)", 0);
-		glRasterPos2i(72, rect.ymin + 5);
-		UI_RasterPos(72, rect.ymin + 5);
+		UI_DrawString(12, rect.ymin + 5, "(Previous)");
+		UI_DrawString(72, rect.ymin + 5, str);
 	}
-
-	UI_DrawString(G.fonts, str, 0);
+	else
+		UI_DrawString(12, rect.ymin + 5, str);
 }
 
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
@@ -192,10 +191,8 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glDisable(GL_BLEND);
 	
 	glColor3ub(255, 255, 255);
-	glRasterPos2i(10, 10);
-	UI_RasterPos(10, 10);
 	
-	UI_DrawString(G.fonts, str, 0);
+	UI_DrawString(10, 10, str);
 }
 
 /* image drawing */
@@ -314,6 +311,13 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 //	glColorMask(1, 1, 1, 1);
 }
 
+static void sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
+{
+	colorcorrection_do_ibuf(ibuf, "MONOSCNR.ICM"); /* path is hardcoded here, find some place better */
+	
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
+}
+
 static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
 {
 	/* zbuffer values are signed, so we need to shift color range */
@@ -391,6 +395,14 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf
 		else if(ibuf->channels==1)
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
+#ifdef WITH_LCMS
+	else if(sima->flag & SI_COLOR_CORRECTION) {
+		image_verify_buffer_float(sima, ibuf);
+		
+		sima_draw_colorcorrected_pixels(x, y, ibuf);
+
+	}
+#endif
 	else {
 		if(sima->flag & SI_USE_ALPHA) {
 			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy);

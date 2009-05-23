@@ -781,13 +781,17 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
 			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
-			if (driver->rna_path)
-				writedata(wd, DATA, strlen(driver->rna_path)+1, driver->rna_path);
-			if (driver->rna_path2)
-				writedata(wd, DATA, strlen(driver->rna_path2)+1, driver->rna_path2);
+			/* targets */
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				writestruct(wd, DATA, "DriverTarget", 1, dtar);
+				
+				if (dtar->rna_path)
+					writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+			}
 		}
 		
 		/* Modifiers */
@@ -952,6 +956,11 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* Write channels */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
+		/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+		 of library blocks that implement this.*/
+		if (chan->prop)
+			IDP_WriteProperty(chan->prop, wd);
+		
 		write_constraints(wd, &chan->constraints);
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
@@ -1430,9 +1439,9 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if (tex->adt) write_animdata(wd, tex->adt);
 
 			/* direct data */
-			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
+			if(tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
-			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if(tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {
@@ -1689,27 +1698,30 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
-static void write_gpencil(WriteData *wd, bGPdata *gpd)
+static void write_gpencils(WriteData *wd, ListBase *lb)
 {
+	bGPdata *gpd;
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
 	
-	/* write gpd data block to file */
-	writestruct(wd, DATA, "bGPdata", 1, gpd);
-	
-	/* write grease-pencil layers to file */
-	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-		writestruct(wd, DATA, "bGPDlayer", 1, gpl);
+	for (gpd= lb->first; gpd; gpd= gpd->id.next) {
+		/* write gpd data block to file */
+		writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 		
-		/* write this layer's frames to file */
-		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-			writestruct(wd, DATA, "bGPDframe", 1, gpf);
+		/* write grease-pencil layers to file */
+		for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+			writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 			
-			/* write strokes */
-			for (gps= gpf->strokes.first; gps; gps= gps->next) {
-				writestruct(wd, DATA, "bGPDstroke", 1, gps);
-				writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+			/* write this layer's frames to file */
+			for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+				writestruct(wd, DATA, "bGPDframe", 1, gpf);
+				
+				/* write strokes */
+				for (gps= gpf->strokes.first; gps; gps= gps->next) {
+					writestruct(wd, DATA, "bGPDstroke", 1, gps);
+					writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+				}
 			}
 		}
 	}
@@ -1804,10 +1816,19 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
-					if(v3d->gpd) write_gpencil(wd, v3d->gpd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					ListBase tmpGhosts = sipo->ghostCurves;
+					
+					/* temporarily disable ghost curves when saving */
+					sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
+					
 					writestruct(wd, DATA, "SpaceIpo", 1, sl);
+					if(sipo->ads) writestruct(wd, DATA, "bDopeSheet", 1, sipo->ads);
+					
+					/* reenable ghost curves */
+					sipo->ghostCurves= tmpGhosts;
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					writestruct(wd, DATA, "SpaceButs", 1, sl);
@@ -1816,9 +1837,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_SEQ) {
-					SpaceSeq *sseq= (SpaceSeq *)sl;
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
-					if(sseq->gpd) write_gpencil(wd, sseq->gpd);
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
@@ -1838,8 +1857,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
 						write_curvemapping(wd, sima->cumap);
-					if(sima->gpd) 
-						write_gpencil(wd, sima->gpd);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
@@ -1865,9 +1882,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NODE){
-					SpaceNode *snode= (SpaceNode *)sl;
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
-					if(snode->gpd) write_gpencil(wd, snode->gpd);
 				}
 				sl= sl->next;
 			}
@@ -2194,6 +2209,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_nodetrees(wd, &mainvar->nodetree);
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
+	write_gpencils (wd, &mainvar->gpencil);
 	if(current==NULL)	
 		write_libraries(wd,  mainvar->next); /* no library save in undo */
 
@@ -2229,8 +2245,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
-	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B.blend");
-
+	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
 	write_user_block= BLI_streq(dir, userfilename);
 
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);

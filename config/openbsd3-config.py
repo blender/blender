@@ -22,9 +22,6 @@ BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
-
 WITH_BF_OPENEXR = False
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = '/usr/local'
@@ -61,11 +58,6 @@ BF_GETTEXT = '/usr/local'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl iconv'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
-WITH_BF_FTGL = True
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE=False
 

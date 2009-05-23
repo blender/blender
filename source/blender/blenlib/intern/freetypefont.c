@@ -30,8 +30,6 @@
  * Code that uses exotic character maps is present but commented out.
  */
 
-#ifdef WITH_FREETYPE2
-
 #ifdef WIN32
 #pragma warning (disable:4244)
 #endif
@@ -179,6 +177,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 						bezt->vec[2][1] = (dy +	(2 * ftoutline.points[l+1].y)* scale) / 3.0;
 
 						bezt->h1= bezt->h2= HD_ALIGN;
+						bezt->radius= 1.0f;
 						bezt++;
 					}
 				}
@@ -265,6 +264,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 					{
 						bezt->h1= bezt->h2= HD_ALIGN;
 					}
+					bezt->radius= 1.0f;
 					bezt++;
 				}
 			}
@@ -511,10 +511,6 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Ahh everything ok
 	return TRUE;
 }
-
-#endif // WITH_FREETYPE2
-
-
 
 #if 0
 

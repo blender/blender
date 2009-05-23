@@ -189,7 +189,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
   	prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Backscattered Light", "Backscattered light.");
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
@@ -200,7 +200,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "atmosphere_turbidity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "atm_turbidity");
-	RNA_def_property_range(prop, 0.0f, 30.0f);
+	RNA_def_property_range(prop, 1.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Atmosphere Turbidity", "Sky turbidity.");
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
@@ -252,7 +252,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "LOCAL", "Local", "Omnidirectional point light source."},
+		{LA_LOCAL, "POINT", "Point", "Omnidirectional point light source."},
 		{LA_SUN, "SUN", "Sun", "Constant direction parallel ray light source."},
 		{LA_SPOT, "SPOT", "Spot", "Directional cone light source."},
 		{LA_HEMI, "HEMI", "Hemi", "180 degree constant light source."},
@@ -270,7 +270,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0.0f, 9999.0f);
+	RNA_def_property_range(prop, 0.01f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
@@ -372,9 +372,14 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem prop_ray_sampling_method_items[] = {
-		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", "Constant Jittered", ""},
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", "Constant QMC", ""},
+		{0, NULL, NULL, NULL}};
+	
+	static EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
+		{LA_SAMP_HALTON, "ADAPTIVE_QMC", "Adaptive QMC", ""},
+		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", "Constant QMC", ""},
+		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", "Constant Jittered", ""},
 		{0, NULL, NULL, NULL}};
 
 
@@ -397,7 +402,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	prop= RNA_def_property(srna, "shadow_ray_sampling_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ray_samp_method");
-	RNA_def_property_enum_items(prop, prop_ray_sampling_method_items);
+	RNA_def_property_enum_items(prop, (area)? prop_spot_ray_sampling_method_items: prop_ray_sampling_method_items);
 	RNA_def_property_ui_text(prop, "Shadow Ray Sampling Method", "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
@@ -508,8 +513,8 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR	, "REGULAR", "Classical", "Classic shadow buffer."},
-		{LA_SHADBUF_IRREGULAR, "IRREGULAR", "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing."},
 		{LA_SHADBUF_HALFWAY, "HALFWAY", "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces."},
+		{LA_SHADBUF_IRREGULAR, "IRREGULAR", "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing."},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {

@@ -49,6 +49,11 @@ else
    CPPFLAGS += -DNO_KETSJI
 endif
 
+ifeq ($(BF_PROFILE), true)
+    CFLAGS += -pg
+    CCFLAGS += -pg
+endif
+
 ifeq ($(WITH_BF_OPENMP), true)
     CFLAGS += -fopenmp
     CCFLAGS += -fopenmp

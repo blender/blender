@@ -375,22 +375,22 @@ void SCA_IObject::SetState(unsigned int state)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_IObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_IObject",
-	sizeof(SCA_IObject),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -414,7 +414,7 @@ PyAttributeDef SCA_IObject::Attributes[] = {
 };
 
 
-PyObject* SCA_IObject::_getattr(const char *attr) {
-	_getattr_up(CValue);
+PyObject* SCA_IObject::py_getattro(PyObject *attr) {
+	py_getattro_up(CValue);
 }
 

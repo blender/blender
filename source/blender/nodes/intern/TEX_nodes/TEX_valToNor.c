@@ -45,7 +45,7 @@ static void normalfn(float *out, float *coord, bNode *node, bNodeStack **in, sho
 
 	float nabla = tex_input_value(in[1], coord, thread);	
 	float val;
-	float nor[2];
+	float nor[3];
 
 	val = tex_input_value(in[0], coord, thread);
 

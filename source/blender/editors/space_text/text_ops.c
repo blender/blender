@@ -49,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_suggestions.h"
@@ -265,6 +266,90 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= reload_exec;
+	ot->invoke= WM_operator_confirm;
+	ot->poll= text_edit_poll;
+}
+
+/******************* delete operator *********************/
+
+static void text_unlink(Main *bmain, Text *text)
+{
+	bScreen *scr;
+	ScrArea *area;
+	SpaceLink *sl;
+
+	/* XXX this ifdef is in fact dangerous, if python is
+	 * disabled it will leave invalid pointers in files! */
+
+#ifndef DISABLE_PYTHON
+	// XXX BPY_clear_bad_scriptlinks(text);
+	// XXX BPY_free_pyconstraint_links(text);
+	// XXX free_text_controllers(text);
+	// XXX free_dome_warp_text(text);
+
+	/* check if this text was used as script link:
+	 * this check function unsets the pointers and returns how many
+	 * script links used this Text */
+	if(0) // XXX BPY_text_check_all_scriptlinks (text))
+		; // XXX notifier: allqueue(REDRAWBUTSSCRIPT, 0);
+
+	/* equivalently for pynodes: */
+	if(0) // XXX nodeDynamicUnlinkText ((ID*)text))
+		; // XXX notifier: allqueue(REDRAWNODE, 0);
+#endif
+	
+	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
+		for(area= scr->areabase.first; area; area= area->next) {
+			for(sl= area->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype==SPACE_TEXT) {
+					SpaceText *st= (SpaceText*) sl;
+					
+					if(st->text==text) {
+						st->text= NULL;
+						st->top= 0;
+						
+						if(st==area->spacedata.first)
+							ED_area_tag_redraw(area);
+					}
+				}
+			}
+		}
+	}
+
+	free_libblock(&bmain->text, text);
+}
+
+static int unlink_exec(bContext *C, wmOperator *op)
+{
+	SpaceText *st= CTX_wm_space_text(C);
+	Text *text= CTX_data_edit_text(C);
+
+	/* make the previous text active, if its not there make the next text active */
+	if(st) {
+		if(text->id.prev) {
+			st->text = text->id.prev;
+			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+		}
+		else if(text->id.next) {
+			st->text = text->id.next;
+			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+		}
+	}
+
+	text_unlink(CTX_data_main(C), text);
+	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, text);
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_unlink(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Unlink";
+	ot->idname= "TEXT_OT_unlink";
+
+	/* api callbacks */
+	ot->exec= unlink_exec;
 	ot->invoke= WM_operator_confirm;
 	ot->poll= text_edit_poll;
 }
@@ -2448,31 +2533,35 @@ static int resolve_conflict_exec(bContext *C, wmOperator *op)
 static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Text *text= CTX_data_edit_text(C);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
 	switch(text_file_modified(text)) {
 		case 1:
 			if(text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */
-				head= uiPupMenuBegin("File Modified Outside and Inside Blender", 0);
-				uiMenuItemEnumO(head, "Reload from disk (ignore local changes)", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiMenuItemEnumO(head, "Save to disk (ignore outside changes)", 0, op->type->idname, "resolution", RESOLVE_SAVE);
-				uiMenuItemEnumO(head, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiPupMenuEnd(C, head);
+				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", 0);
+				layout= uiPupMenuLayout(pup);
+				uiItemEnumO(layout, "Reload from disk (ignore local changes)", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, "Save to disk (ignore outside changes)", 0, op->type->idname, "resolution", RESOLVE_SAVE);
+				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiPupMenuEnd(C, pup);
 			}
 			else {
-				head= uiPupMenuBegin("File Modified Outside Blender", 0);
-				uiMenuItemEnumO(head, "Reload from disk", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiMenuItemEnumO(head, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiMenuItemEnumO(head, "Ignore", 0, op->type->idname, "resolution", RESOLVE_IGNORE);
-				uiPupMenuEnd(C, head);
+				pup= uiPupMenuBegin(C, "File Modified Outside Blender", 0);
+				layout= uiPupMenuLayout(pup);
+				uiItemEnumO(layout, "Reload from disk", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO(layout, "Ignore", 0, op->type->idname, "resolution", RESOLVE_IGNORE);
+				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
-			head= uiPupMenuBegin("File Deleted Outside Blender", 0);
-			uiMenuItemEnumO(head, "Make text internal", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiMenuItemEnumO(head, "Recreate file", 0, op->type->idname, "resolution", RESOLVE_SAVE);
-			uiPupMenuEnd(C, head);
+			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", 0);
+			layout= uiPupMenuLayout(pup);
+			uiItemEnumO(layout, "Make text internal", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO(layout, "Recreate file", 0, op->type->idname, "resolution", RESOLVE_SAVE);
+			uiPupMenuEnd(C, pup);
 			break;
 	}
 

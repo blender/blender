@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_text.h"
 
@@ -71,7 +72,6 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
@@ -101,7 +101,7 @@ static uiBlock *text_template_scriptsmenu(bContext *C, void *args_unused)
 	// int i= 0;
 	// short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "text_template_scriptsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "text_template_scriptsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_text_template_scriptsmenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */
@@ -134,7 +134,7 @@ static uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
 	// int i= 0;
 	// short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "text_plugin_scriptsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "text_plugin_scriptsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_text_plugin_scriptsmenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */
@@ -155,44 +155,46 @@ static uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
 }
 #endif
 
-static void text_editmenu_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_editmenu_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemEnumO(head, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
-	uiMenuItemEnumO(head, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
+	uiItemEnumO(layout, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
+	uiItemEnumO(layout, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
 }
 
-static void text_editmenu_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_editmenu_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "TEXT_OT_select_all");
-	uiMenuItemO(head, 0, "TEXT_OT_select_line");
+	uiItemO(layout, NULL, 0, "TEXT_OT_select_all");
+	uiItemO(layout, NULL, 0, "TEXT_OT_select_line");
 }
 
-static void text_editmenu_markermenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_editmenu_markermenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "TEXT_OT_markers_clear");
-	uiMenuItemO(head, 0, "TEXT_OT_next_marker");
-	uiMenuItemO(head, 0, "TEXT_OT_previous_marker");
+	uiItemO(layout, NULL, 0, "TEXT_OT_markers_clear");
+	uiItemO(layout, NULL, 0, "TEXT_OT_next_marker");
+	uiItemO(layout, NULL, 0, "TEXT_OT_previous_marker");
 }
 
-static void text_formatmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_formatmenu(const bContext *C, Menu *menu)
 {
-	uiMenuItemO(head, 0, "TEXT_OT_indent");
-	uiMenuItemO(head, 0, "TEXT_OT_unindent");
+	uiLayout *layout= menu->layout;
 
-	uiMenuSeparator(head);
+	uiItemO(layout, NULL, 0, "TEXT_OT_indent");
+	uiItemO(layout, NULL, 0, "TEXT_OT_unindent");
 
-	uiMenuItemO(head, 0, "TEXT_OT_comment");
-	uiMenuItemO(head, 0, "TEXT_OT_uncomment");
+	uiItemS(layout);
 
-	uiMenuSeparator(head);
+	uiItemO(layout, NULL, 0, "TEXT_OT_comment");
+	uiItemO(layout, NULL, 0, "TEXT_OT_uncomment");
 
-	uiMenuLevelEnumO(head, "TEXT_OT_convert_whitespace", "type");
+	uiItemS(layout);
+
+	uiItemMenuEnumO(layout, NULL, 0, "TEXT_OT_convert_whitespace", "type");
 }
 
-static void text_editmenu_to3dmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_editmenu_to3dmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiMenuItemBooleanO(head, "One Object", 0, "TEXT_OT_to_3d_object", "split_lines", 0);
-	uiMenuItemBooleanO(head, "One Object Per Line", 0, "TEXT_OT_to_3d_object", "split_lines", 1);
+	uiItemBooleanO(layout, "One Object", 0, "TEXT_OT_to_3d_object", "split_lines", 0);
+	uiItemBooleanO(layout, "One Object Per Line", 0, "TEXT_OT_to_3d_object", "split_lines", 1);
 }
 
 static int text_menu_edit_poll(bContext *C)
@@ -200,306 +202,55 @@ static int text_menu_edit_poll(bContext *C)
 	return (CTX_data_edit_text(C) != NULL);
 }
 
-static void text_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void text_editmenu(const bContext *C, Menu *menu)
 {
-	uiMenuItemO(head, 0, "ED_OT_undo");
-	uiMenuItemO(head, 0, "ED_OT_redo");
+	uiLayout *layout= menu->layout;
 
-	uiMenuSeparator(head);
+	uiItemO(layout, NULL, 0, "ED_OT_undo");
+	uiItemO(layout, NULL, 0, "ED_OT_redo");
 
-	uiMenuItemO(head, 0, "TEXT_OT_cut");
-	uiMenuItemO(head, 0, "TEXT_OT_copy");
-	uiMenuItemO(head, 0, "TEXT_OT_paste");
+	uiItemS(layout);
 
-	uiMenuSeparator(head);
+	uiItemO(layout, NULL, 0, "TEXT_OT_cut");
+	uiItemO(layout, NULL, 0, "TEXT_OT_copy");
+	uiItemO(layout, NULL, 0, "TEXT_OT_paste");
 
-	uiMenuLevel(head, "View", text_editmenu_viewmenu);
-	uiMenuLevel(head, "Select", text_editmenu_selectmenu);
-	uiMenuLevel(head, "Markers", text_editmenu_markermenu);
+	uiItemS(layout);
 
-	uiMenuSeparator(head);
+	uiItemMenuF(layout, "View", 0, text_editmenu_viewmenu);
+	uiItemMenuF(layout, "Select", 0, text_editmenu_selectmenu);
+	uiItemMenuF(layout, "Markers", 0, text_editmenu_markermenu);
 
-	uiMenuItemO(head, 0, "TEXT_OT_jump");
-	uiMenuItemO(head, 0, "TEXT_OT_properties");
+	uiItemS(layout);
 
-	uiMenuSeparator(head);
+	uiItemO(layout, NULL, 0, "TEXT_OT_jump");
+	uiItemO(layout, NULL, 0, "TEXT_OT_properties");
 
-	uiMenuLevel(head, "Text to 3D Object", text_editmenu_to3dmenu);
-}
+	uiItemS(layout);
 
-static void text_filemenu(bContext *C, uiMenuItem *head, void *arg_unused)
-{
-	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
-	Text *text= st->text;
-
-	uiMenuItemO(head, 0, "TEXT_OT_new");
-	uiMenuItemO(head, 0, "TEXT_OT_open");
-	
-	if(text) {
-		uiMenuItemO(head, 0, "TEXT_OT_reload");
-		
-		uiMenuSeparator(head);
-		
-		uiMenuItemO(head, 0, "TEXT_OT_save");
-		uiMenuItemO(head, 0, "TEXT_OT_save_as");
-		
-		if(text->name)
-			uiMenuItemO(head, 0, "TEXT_OT_make_internal");
-
-		uiMenuSeparator(head);
-		
-		uiMenuItemO(head, 0, "TEXT_OT_run_script");
-
-#ifndef DISABLE_PYTHON
-		if(BPY_is_pyconstraint(text))
-			uiMenuItemO(head, 0, "TEXT_OT_refresh_pyconstraints");
-#endif
-	}
-
-#ifndef DISABLE_PYTHON
-	// XXX uiMenuSeparator(head);
-
-	// XXX uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
-	// XXX uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
-#endif
-}
-
-/*********************** datablock browse *************************/
-
-static void text_unlink(Main *bmain, Text *text)
-{
-	bScreen *scr;
-	ScrArea *area;
-	SpaceLink *sl;
-
-	/* XXX this ifdef is in fact dangerous, if python is
-	 * disabled it will leave invalid pointers in files! */
-
-#ifndef DISABLE_PYTHON
-	// XXX BPY_clear_bad_scriptlinks(text);
-	// XXX BPY_free_pyconstraint_links(text);
-	// XXX free_text_controllers(text);
-
-	/* check if this text was used as script link:
-	 * this check function unsets the pointers and returns how many
-	 * script links used this Text */
-	if(0) // XXX BPY_text_check_all_scriptlinks (text))
-		; // XXX notifier: allqueue(REDRAWBUTSSCRIPT, 0);
-
-	/* equivalently for pynodes: */
-	if(0) // XXX nodeDynamicUnlinkText ((ID*)text))
-		; // XXX notifier: allqueue(REDRAWNODE, 0);
-#endif
-	
-	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
-		for(area= scr->areabase.first; area; area= area->next) {
-			for(sl= area->spacedata.first; sl; sl= sl->next) {
-				if(sl->spacetype==SPACE_TEXT) {
-					SpaceText *st= (SpaceText*) sl;
-					
-					if(st->text==text) {
-						st->text= NULL;
-						st->top= 0;
-						
-						if(st==area->spacedata.first)
-							ED_area_tag_redraw(area);
-					}
-				}
-			}
-		}
-	}
-
-	free_libblock(&bmain->text, text);
-}
-
-static void text_idpoin_handle(bContext *C, ID *id, int event)
-{
-	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
-	Text *text;
-
-	switch(event) {
-		case UI_ID_BROWSE:
-			st->text= (Text*)id;
-			st->top= 0;
-
-			text_update_edited(st->text);
-			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
-
-			ED_undo_push(C, "Browse Text");
-			break;
-		case UI_ID_DELETE:
-			text= st->text;
-
-			/* make the previous text active, if its not there make the next text active */
-			if(text->id.prev) {
-				st->text = text->id.prev;
-				WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
-			}
-			else if(text->id.next) {
-				st->text = text->id.next;
-				WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
-			}
-
-			text_unlink(CTX_data_main(C), text);
-			WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, text);
-
-			ED_undo_push(C, "Delete Text");
-			break;
-		case UI_ID_RENAME:
-			break;
-		case UI_ID_ADD_NEW:
-			WM_operator_name_call(C, "TEXT_OT_new", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case UI_ID_OPEN:
-			WM_operator_name_call(C, "TEXT_OT_open", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-	}
+	uiItemMenuF(layout, "Text to 3D Object", 0, text_editmenu_to3dmenu);
 }
 
 /********************** header buttons ***********************/
 
-static void text_header_draw(const bContext *C, uiLayout *layout)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
-	PointerRNA spaceptr;
-	Text *text= st->text;
-	
-	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
-
-	uiTemplateHeaderMenus(layout);
-	uiItemMenu(layout, UI_TSLOT_HEADER, "Text", 0, text_filemenu);
-	if(text) {
-		uiItemMenu(layout, UI_TSLOT_HEADER, "Edit", 0, text_editmenu);
-		uiItemMenu(layout, UI_TSLOT_HEADER, "Format", 0, text_formatmenu);
-	}
-
-	/* warning button if text is out of date */
-	if(text && text_file_modified(text)) {
-		uiTemplateHeaderButtons(layout);
-		uiTemplateSetColor(layout, TH_REDALERT);
-		uiItemO(layout, UI_TSLOT_HEADER, "", ICON_HELP, "TEXT_OT_resolve_conflict");
-	}
-
-	uiTemplateHeaderButtons(layout);
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
-	// XXX uiItemR(layout, "", ICON_SCRIPTPLUGINS, &spaceptr, "do_python_plugins");
-
-	uiTemplateHeaderID(layout, &spaceptr, "text",
-		UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE,
-		text_idpoin_handle);
-
-	/* file info */
-	if(text) {
-		char fname[HEADER_PATH_MAX];
-		static char headtxt[HEADER_PATH_MAX+17];
-		int len;
-
-		if(text->name) {
-			len = strlen(text->name);
-			if(len > HEADER_PATH_MAX-1)
-				len = HEADER_PATH_MAX-1;
-			strncpy(fname, text->name, len);
-			fname[len]='\0';
-			if(text->flags & TXT_ISDIRTY)
-				sprintf(headtxt, "File: *%s (unsaved)", fname);
-			else
-				sprintf(headtxt, "File: %s", fname);
-		}
-		else
-			sprintf(headtxt, text->id.lib? "Text: External": "Text: Internal");
-
-		uiTemplateHeaderButtons(layout);
-		uiItemLabel(layout, UI_TSLOT_HEADER, headtxt, 0);
-	}
-}
-
 void text_header_register(ARegionType *art)
 {
-	HeaderType *ht;
+	MenuType *mt;
 
-	/* header */
-	ht= MEM_callocN(sizeof(HeaderType), "spacetype text header");
-	ht->idname= "TEXT_HT_header";
-	ht->name= "Header";
-	ht->draw= text_header_draw;
-	BLI_addhead(&art->headertypes, ht);
+	mt= MEM_callocN(sizeof(MenuType), "spacetype text menu edit");
+	strcpy(mt->idname, "TEXT_MT_edit");
+	strcpy(mt->label, "Edit");
+	mt->draw= text_editmenu;
+	BLI_addhead(&art->menutypes, mt);
+
+	mt= MEM_callocN(sizeof(MenuType), "spacetype text menu format");
+	strcpy(mt->idname, "TEXT_MT_format");
+	strcpy(mt->label, "Format");
+	mt->draw= text_formatmenu;
+	BLI_addhead(&art->menutypes, mt);
 }
 
 /************************** properties ******************************/
-
-static void text_properties_panel_draw(const bContext *C, Panel *panel)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	SpaceText *st= CTX_wm_space_text(C);
-	uiLayout *layout= panel->layout;
-	PointerRNA spaceptr;
-	
-	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
-
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
-
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "font_size");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "tab_width");
-}
-
-static void text_find_panel_draw(const bContext *C, Panel *panel)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	SpaceText *st= CTX_wm_space_text(C);
-	uiLayout *layout= panel->layout;
-	PointerRNA spaceptr;
-	
-	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
-
-	/* find */
-	uiTemplateLeftRight(layout);
-	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "find_text");
-	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_find_set_selected");
-	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_find");
-
-	/* replace */
-	uiTemplateLeftRight(layout);
-	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "replace_text");
-	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_replace_set_selected");
-	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_replace");
-
-	/* mark */
-	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_mark_all");
-
-	/* settings */
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Wrap", 0, &spaceptr, "find_wrap");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "All", 0, &spaceptr, "find_all");
-}
-
-void text_properties_register(ARegionType *art)
-{
-	PanelType *pt;
-
-	/* panels: properties */
-	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
-	pt->idname= "TEXT_PT_properties";
-	pt->name= "Properties";
-	pt->draw= text_properties_panel_draw;
-	BLI_addtail(&art->paneltypes, pt);
-
-	/* panels: find */
-	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
-	pt->idname= "TEXT_PT_find";
-	pt->name= "Find";
-	pt->draw= text_find_panel_draw;
-	BLI_addtail(&art->paneltypes, pt);
-}
 
 ARegion *text_has_properties_region(ScrArea *sa)
 {
@@ -569,75 +320,75 @@ void TEXT_OT_properties(wmOperatorType *ot)
 {
 	// RMB
 
-	uiMenuItem *head;
+	uiPopupMenu *pup;
 
 	if(text) {
-		head= uiPupMenuBegin("Text", 0);
+		pup= uiPupMenuBegin(C, "Text", 0);
 		if(txt_has_sel(text)) {
-			uiMenuItemO(head, 0, "TEXT_OT_cut");
-			uiMenuItemO(head, 0, "TEXT_OT_copy");
+			uiItemO(layout, NULL, 0, "TEXT_OT_cut");
+			uiItemO(layout, NULL, 0, "TEXT_OT_copy");
 		}
-		uiMenuItemO(head, 0, "TEXT_OT_paste");
-		uiMenuItemO(head, 0, "TEXT_OT_new");
-		uiMenuItemO(head, 0, "TEXT_OT_open");
-		uiMenuItemO(head, 0, "TEXT_OT_save");
-		uiMenuItemO(head, 0, "TEXT_OT_save_as");
-		uiMenuItemO(head, 0, "TEXT_OT_run_script");
-		uiPupMenuEnd(C, head);
+		uiItemO(layout, NULL, 0, "TEXT_OT_paste");
+		uiItemO(layout, NULL, 0, "TEXT_OT_new");
+		uiItemO(layout, NULL, 0, "TEXT_OT_open");
+		uiItemO(layout, NULL, 0, "TEXT_OT_save");
+		uiItemO(layout, NULL, 0, "TEXT_OT_save_as");
+		uiItemO(layout, NULL, 0, "TEXT_OT_run_script");
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		head= uiPupMenuBegin("File", 0);
-		uiMenuItemO(head, 0, "TEXT_OT_new");
-		uiMenuItemO(head, 0, "TEXT_OT_open");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(C, "File", 0);
+		uiItemO(layout, NULL, 0, "TEXT_OT_new");
+		uiItemO(layout, NULL, 0, "TEXT_OT_open");
+		uiPupMenuEnd(C, pup);
 	}
 }
 
 {
 	// Alt+Shift+E
 
-	uiMenuItem *head;
+	uiPopupMenu *pup;
 
-	head= uiPupMenuBegin("Edit", 0);
-	uiMenuItemO(head, 0, "TEXT_OT_cut");
-	uiMenuItemO(head, 0, "TEXT_OT_copy");
-	uiMenuItemO(head, 0, "TEXT_OT_paste");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin(C, "Edit", 0);
+	uiItemO(layout, NULL, 0, "TEXT_OT_cut");
+	uiItemO(layout, NULL, 0, "TEXT_OT_copy");
+	uiItemO(layout, NULL, 0, "TEXT_OT_paste");
+	uiPupMenuEnd(C, pup);
 }
 
 {
 	// Alt+Shift+F
 
-	uiMenuItem *head;
+	uiPopupMenu *pup;
 
 	if(text) {
-		head= uiPupMenuBegin("Text", 0);
-		uiMenuItemO(head, 0, "TEXT_OT_new");
-		uiMenuItemO(head, 0, "TEXT_OT_open");
-		uiMenuItemO(head, 0, "TEXT_OT_save");
-		uiMenuItemO(head, 0, "TEXT_OT_save_as");
-		uiMenuItemO(head, 0, "TEXT_OT_run_script");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(C, "Text", 0);
+		uiItemO(layout, NULL, 0, "TEXT_OT_new");
+		uiItemO(layout, NULL, 0, "TEXT_OT_open");
+		uiItemO(layout, NULL, 0, "TEXT_OT_save");
+		uiItemO(layout, NULL, 0, "TEXT_OT_save_as");
+		uiItemO(layout, NULL, 0, "TEXT_OT_run_script");
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		head= uiPupMenuBegin("File", 0);
-		uiMenuItemO(head, 0, "TEXT_OT_new");
-		uiMenuItemO(head, 0, "TEXT_OT_open");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(C, "File", 0);
+		uiItemO(layout, NULL, 0, "TEXT_OT_new");
+		uiItemO(layout, NULL, 0, "TEXT_OT_open");
+		uiPupMenuEnd(C, pup);
 	}
 }
 
 {
 	// Alt+Shift+V
 
-	uiMenuItem *head;
+	uiPopupMenu *pup;
 
-	head= uiPupMenuBegin("Text", 0);
-	uiMenuItemEnumO(head, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
-	uiMenuItemEnumO(head, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
-	uiMenuItemEnumO(head, "Page Up", 0, "TEXT_OT_move", "type", PREV_PAGE);
-	uiMenuItemEnumO(head,  "Page Down", 0, "TEXT_OT_move", "type", NEXT_PAGE);
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin(C, "Text", 0);
+	uiItemEnumO(layout, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
+	uiItemEnumO(layout, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
+	uiItemEnumO(layout, "Page Up", 0, "TEXT_OT_move", "type", PREV_PAGE);
+	uiItemEnumO(layout,  "Page Down", 0, "TEXT_OT_move", "type", NEXT_PAGE);
+	uiPupMenuEnd(C, pup);
 }
 #endif
 

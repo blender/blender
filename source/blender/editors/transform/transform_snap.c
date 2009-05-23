@@ -556,13 +556,13 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			
 			peelObjectsTransForm(t, &depth_peels, t->mval);
 			
-//			if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
-//			{
-//				last_p = stk->points[stk->nb_points - 1].p;
-//			}
-//			else if (LAST_SNAP_POINT_VALID)
+//			if (LAST_SNAP_POINT_VALID)
 //			{
 //				last_p = LAST_SNAP_POINT;
+//			}
+//			else
+//			{
+				last_p = t->tsnap.snapPoint;
 //			}
 			
 			
@@ -1633,13 +1633,26 @@ int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, ListBase
 					
 					if (ob->type == OB_MESH) {
 #if 0 //BMESH_TODO
-						DerivedMesh *dm;
+						EditMesh *em;
+						DerivedMesh *dm = NULL;
 						int val;
-						
-						val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
-	
+
+						if (ob != obedit)
+						{
+							dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+							
+							val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+						}
+						else
+						{
+							em = ((Mesh *)ob->data)->edit_mesh;
+							dm = editmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
+							
+							val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+						}
+
 						retval = retval || val;
-	
+						
 						dm->release(dm);
 #endif
 					}

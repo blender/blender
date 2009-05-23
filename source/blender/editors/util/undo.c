@@ -176,6 +176,10 @@ void ED_undo_pop(bContext *C)
 {
 	ed_undo_step(C, 1);
 }
+void ED_undo_redo(bContext *C)
+{
+	ed_undo_step(C, -1);
+}
 
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {

@@ -85,7 +85,7 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nothing yet", 0, yco-=20, 
@@ -238,7 +238,7 @@ uiBlock *info_externalfiles(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "info_externalfiles", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "info_externalfiles", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_info_externalfiles, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into .blend file",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -258,22 +258,22 @@ uiBlock *info_externalfiles(bContext *C, ARegion *ar, void *arg_unused)
 
 
 
-static void info_filemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	
-	uiMenuContext(head, WM_OP_EXEC_AREA);
-	uiMenuItemO(head, 0, "WM_OT_read_homefile"); 
-	uiMenuContext(head, WM_OP_INVOKE_AREA);
-	uiMenuItemO(head, 0, "WM_OT_open_mainfile"); 
+	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_read_homefile"); 
+	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_open_mainfile"); 
 //	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
 //	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
-	uiMenuSeparator(head);
+	uiItemS(layout);
 	
-	uiMenuContext(head, WM_OP_EXEC_AREA);
-	uiMenuItemO(head, 0, "WM_OT_save_mainfile"); 
-	uiMenuContext(head, WM_OP_INVOKE_AREA);
-	uiMenuItemO(head, 0, "WM_OT_save_as_mainfile"); 
+	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_save_mainfile"); 
+	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
 
 #if 0
 	if(U.flag & USER_FILECOMPRESS) {
@@ -392,7 +392,7 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_info_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
@@ -400,31 +400,28 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("File");
-		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 22, "");
+		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Add",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Add",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Timeline");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Timeline",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Timeline",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Game");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Game",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Game",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Render");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Render",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Render",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Help");
-		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	

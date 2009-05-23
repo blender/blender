@@ -92,6 +92,158 @@ void rna_freelistN(ListBase *listbase)
 	listbase->first= listbase->last= NULL;
 }
 
+StructDefRNA *rna_find_struct_def(StructRNA *srna)
+{
+	StructDefRNA *dsrna;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_struct_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	dsrna= DefRNA.structs.last;
+	for (; dsrna; dsrna= dsrna->cont.prev)
+		if (dsrna->srna==srna)
+			return dsrna;
+
+	return NULL;
+}
+
+PropertyDefRNA *rna_find_struct_property_def(PropertyRNA *prop)
+{
+	StructDefRNA *dsrna;
+	PropertyDefRNA *dprop;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_property_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	dsrna= rna_find_struct_def(DefRNA.laststruct);
+	dprop= dsrna->cont.properties.last;
+	for (; dprop; dprop= dprop->prev)
+		if (dprop->prop==prop)
+			return dprop;
+
+	dsrna= DefRNA.structs.last;
+	for (; dsrna; dsrna= dsrna->cont.prev) {
+		dprop= dsrna->cont.properties.last;
+		for (; dprop; dprop= dprop->prev)
+			if (dprop->prop==prop)
+				return dprop;
+	}
+
+	return NULL;
+}
+
+PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
+{
+	PropertyDefRNA *dprop;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_property_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	dprop= rna_find_struct_property_def(prop);
+	if (dprop)
+		return dprop;
+
+	dprop= rna_find_parameter_def(prop);
+	if (dprop)
+		return dprop;
+
+	return NULL;
+}
+
+FunctionDefRNA *rna_find_function_def(FunctionRNA *func)
+{
+	StructDefRNA *dsrna;
+	FunctionDefRNA *dfunc;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_function_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	dsrna= rna_find_struct_def(DefRNA.laststruct);
+	dfunc= dsrna->functions.last;
+	for (; dfunc; dfunc= dfunc->cont.prev)
+		if (dfunc->func==func)
+			return dfunc;
+
+	dsrna= DefRNA.structs.last;
+	for (; dsrna; dsrna= dsrna->cont.prev) {
+		dfunc= dsrna->functions.last;
+		for (; dfunc; dfunc= dfunc->cont.prev)
+			if (dfunc->func==func)
+				return dfunc;
+	}
+
+	return NULL;
+}
+
+PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm)
+{
+	StructDefRNA *dsrna;
+	FunctionDefRNA *dfunc;
+	PropertyDefRNA *dparm;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_parameter_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	dsrna= rna_find_struct_def(DefRNA.laststruct);
+	dfunc= dsrna->functions.last;
+	for (; dfunc; dfunc= dfunc->cont.prev) {
+		dparm= dfunc->cont.properties.last;
+		for (; dparm; dparm= dparm->prev)
+			if (dparm->prop==parm)
+				return dparm;
+	}
+
+	dsrna= DefRNA.structs.last;
+	for (; dsrna; dsrna= dsrna->cont.prev) {
+		dfunc= dsrna->functions.last;
+		for (; dfunc; dfunc= dfunc->cont.prev) {
+			dparm= dfunc->cont.properties.last;
+			for (; dparm; dparm= dparm->prev)
+				if (dparm->prop==parm)
+					return dparm;
+		}
+	}
+
+	return NULL;
+}
+
+ContainerDefRNA *rna_find_container_def(ContainerRNA *cont)
+{
+	StructDefRNA *ds;
+	FunctionDefRNA *dfunc;
+
+	if(!DefRNA.preprocess) {
+		/* we should never get here */
+		fprintf(stderr, "rna_find_container_def: only at preprocess time.\n");
+		return NULL;
+	}
+
+	ds= rna_find_struct_def((StructRNA*)cont);
+	if(ds)
+		return &ds->cont;
+
+	dfunc= rna_find_function_def((FunctionRNA*)cont);
+	if(dfunc)
+		return &dfunc->cont;
+
+	return NULL;
+}
+
 /* DNA utility function for looking up members */
 
 typedef struct DNAStructMember {
@@ -159,12 +311,26 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			return 1;
 		}
 		else if(cmp == 2) {
+			smember->type= "";
+			smember->name= dnaname;
+			smember->pointerlevel= 0;
+			smember->arraylength= 0;
+
 			membername= strstr(membername, ".") + strlen(".");
-			return rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+
+			return 1;
 		}
 		else if(cmp == 3) {
+			smember->type= "";
+			smember->name= dnaname;
+			smember->pointerlevel= 0;
+			smember->arraylength= 0;
+
 			membername= strstr(membername, "->") + strlen("->");
-			return rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+
+			return 1;
 		}
 	}
 
@@ -244,15 +410,21 @@ BlenderRNA *RNA_create()
 
 void RNA_define_free(BlenderRNA *brna)
 {
-	StructDefRNA *srna;
+	StructDefRNA *ds;
+	FunctionDefRNA *dfunc;
 	AllocDefRNA *alloc;
 
 	for(alloc=DefRNA.allocs.first; alloc; alloc=alloc->next)
 		MEM_freeN(alloc->mem);
 	rna_freelistN(&DefRNA.allocs);
 
-	for(srna=DefRNA.structs.first; srna; srna=srna->next)
-		rna_freelistN(&srna->properties);
+	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next) {
+		for (dfunc= ds->functions.first; dfunc; dfunc= dfunc->cont.next)
+			rna_freelistN(&dfunc->cont.properties);
+
+		rna_freelistN(&ds->cont.properties);
+		rna_freelistN(&ds->functions);
+	}
 
 	rna_freelistN(&DefRNA.structs);
 
@@ -264,16 +436,53 @@ void RNA_define_free(BlenderRNA *brna)
 	DefRNA.error= 0;
 }
 
+void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
+{
+	FunctionRNA *func, *nextfunc;
+	PropertyRNA *prop, *nextprop;
+	PropertyRNA *parm, *nextparm;
+
+	for(prop=srna->cont.properties.first; prop; prop=nextprop) {
+		nextprop= prop->next;
+
+		if(prop->flag & PROP_RUNTIME)
+			rna_freelinkN(&srna->cont.properties, prop);
+	}
+
+	for(func=srna->functions.first; func; func=nextfunc) {
+		nextfunc= func->cont.next;
+
+		for(parm=func->cont.properties.first; parm; parm=nextparm) {
+			nextparm= parm->next;
+
+			if(parm->flag & PROP_RUNTIME)
+				rna_freelinkN(&func->cont.properties, parm);
+		}
+
+		if(func->flag & FUNC_RUNTIME) {
+			rna_freelinkN(&srna->functions, func);
+		}
+	}
+
+	if(srna->flag & STRUCT_RUNTIME)
+		rna_freelinkN(&brna->structs, srna);
+}
+
 void RNA_free(BlenderRNA *brna)
 {
 	StructRNA *srna, *nextsrna;
-	PropertyRNA *prop, *nextprop;
+	FunctionRNA *func;
 
 	if(DefRNA.preprocess) {
 		RNA_define_free(brna);
 
-		for(srna=brna->structs.first; srna; srna=srna->next)
-			rna_freelistN(&srna->properties);
+		for(srna=brna->structs.first; srna; srna=srna->cont.next) {
+			for (func= srna->functions.first; func; func= func->cont.next)
+				rna_freelistN(&func->cont.properties);
+
+			rna_freelistN(&srna->cont.properties);
+			rna_freelistN(&srna->functions);
+		}
 
 		rna_freelistN(&brna->structs);
 		
@@ -281,17 +490,8 @@ void RNA_free(BlenderRNA *brna)
 	}
 	else {
 		for(srna=brna->structs.first; srna; srna=nextsrna) {
-			nextsrna= srna->next;
-
-			for(prop=srna->properties.first; prop; prop=nextprop) {
-				nextprop= prop->next;
-
-				if(prop->flag & PROP_RUNTIME)
-					rna_freelinkN(&srna->properties, prop);
-			}
-
-			if(srna->flag & STRUCT_RUNTIME)
-				rna_freelinkN(&brna->structs, srna);
+			nextsrna= srna->cont.next;
+			RNA_struct_free(brna, srna);
 		}
 	}
 }
@@ -314,7 +514,7 @@ static StructDefRNA *rna_find_def_struct(StructRNA *srna)
 {
 	StructDefRNA *ds;
 
-	for(ds=DefRNA.structs.first; ds; ds=ds->next)
+	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next)
 		if(ds->srna == srna)
 			return ds;
 
@@ -340,7 +540,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	
 	if(from) {
 		/* find struct to derive from */
-		for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->next)
+		for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->cont.next)
 			if(strcmp(srnafrom->identifier, from) == 0)
 				break;
 
@@ -357,7 +557,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* copy from struct to derive stuff, a bit clumsy since we can't
 		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
-		srna->properties.first= srna->properties.last= NULL;
+		srna->cont.properties.first= srna->cont.properties.last= NULL;
+		srna->functions.first= srna->functions.last= NULL;
 
 		if(DefRNA.preprocess) {
 			srna->base= srnafrom;
@@ -394,7 +595,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	}
 	else {
 		/* define some builtin properties */
-		prop= RNA_def_property(srna, "rna_properties", PROP_COLLECTION, PROP_NONE);
+		prop= RNA_def_property(&srna->cont, "rna_properties", PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_BUILTIN);
 		RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");
 
@@ -412,7 +613,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 #endif
 		}
 
-		prop= RNA_def_property(srna, "rna_type", PROP_POINTER, PROP_NONE);
+		prop= RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
 		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 
 		if(DefRNA.preprocess) {
@@ -433,12 +634,14 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 {
-	StructDefRNA *ds= DefRNA.structs.last;
+	StructDefRNA *ds;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_struct_sdna: only during preprocessing.\n");
 		return;
 	}
+
+	ds= rna_find_def_struct(srna);
 
 	if(!DNA_struct_find_nr(DefRNA.sdna, structname)) {
 		if(!DefRNA.silent) {
@@ -453,12 +656,14 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 
 void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname)
 {
-	StructDefRNA *ds= DefRNA.structs.last;
+	StructDefRNA *ds;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_struct_sdna_from: only during preprocessing.\n");
 		return;
 	}
+
+	ds= rna_find_def_struct(srna);
 
 	if(!ds->dnaname) {
 		fprintf(stderr, "RNA_def_struct_sdna_from: %s base struct must know DNA already.\n", structname);
@@ -492,7 +697,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 	StructRNA *srnafrom;
 
 	/* find struct to derive from */
-	for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->next)
+	for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->cont.next)
 		if(strcmp(srnafrom->identifier, structname) == 0)
 			break;
 
@@ -517,6 +722,27 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	}
 
 	if(refine) srna->refine= (StructRefineFunc)refine;
+}
+
+void RNA_def_struct_idproperties_func(StructRNA *srna, const char *idproperties)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_idproperties_func: only during preprocessing.\n");
+		return;
+	}
+
+	if(idproperties) srna->idproperties= (IDPropertiesFunc)idproperties;
+}
+
+void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_register_funcs: only during preprocessing.\n");
+		return;
+	}
+
+	if(reg) srna->reg= (StructRegisterFunc)reg;
+	if(unreg) srna->unreg= (StructUnregisterFunc)unreg;
 }
 
 void RNA_def_struct_path_func(StructRNA *srna, const char *path)
@@ -545,18 +771,14 @@ void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *descr
 	srna->description= description;
 }
 
-void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
-{
-	rna_freelistN(&srna->properties);
-	rna_freelinkN(&brna->structs, srna);
-}
-
 /* Property Definition */
 
-PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype)
+PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier, int type, int subtype)
 {
-	StructDefRNA *ds;
-	PropertyDefRNA *dp= NULL;
+	StructRNA *srna= DefRNA.laststruct;
+	ContainerRNA *cont= cont_;
+	ContainerDefRNA *dcont;
+	PropertyDefRNA *dprop= NULL;
 	PropertyRNA *prop;
 
 	if(DefRNA.preprocess) {
@@ -567,9 +789,9 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 			DefRNA.error= 1;
 		}
 		
-		ds= DefRNA.structs.last;
-		dp= MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
-		rna_addtail(&ds->properties, dp);
+		dcont= rna_find_container_def(cont);
+		dprop= MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
+		rna_addtail(&dcont->properties, dprop);
 	}
 
 	prop= MEM_callocN(rna_property_type_sizeof(type), "PropertyRNA");
@@ -628,8 +850,8 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	}
 
 	if(DefRNA.preprocess) {
-		dp->srna= srna;
-		dp->prop= prop;
+		dprop->cont= cont;
+		dprop->prop= prop;
 	}
 
 	prop->magic= RNA_MAGIC;
@@ -639,8 +861,12 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	prop->name= identifier;
 	prop->description= "";
 
-	if(type != PROP_COLLECTION && type != PROP_POINTER)
-		prop->flag= PROP_EDITABLE|PROP_ANIMATEABLE;
+	if(type != PROP_COLLECTION && type != PROP_POINTER) {
+		prop->flag= PROP_EDITABLE;
+	
+		if(type != PROP_STRING)
+			prop->flag |= PROP_ANIMATEABLE;
+	}
 
 	if(DefRNA.preprocess) {
 		switch(type) {
@@ -687,7 +913,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	else
 		prop->flag |= PROP_IDPROPERTY|PROP_RUNTIME;
 
-	rna_addtail(&srna->properties, prop);
+	rna_addtail(&cont->properties, prop);
 
 	return prop;
 }
@@ -1050,8 +1276,13 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	DNAStructMember smember;
-	StructDefRNA *ds= DefRNA.structs.last;
-	PropertyDefRNA *dp= ds->properties.last;
+	StructDefRNA *ds;
+	PropertyDefRNA *dp;
+
+	dp= rna_find_struct_property_def(prop);
+	if (dp==NULL) return NULL;
+
+	ds= rna_find_struct_def((StructRNA*)dp->cont);
 
 	if(!structname)
 		structname= ds->dnaname;
@@ -1104,12 +1335,13 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *structname, const char *propname, int booleanbit)
 {
-	StructDefRNA *ds;
 	PropertyDefRNA *dp;
 
 	RNA_def_property_boolean_sdna(prop, structname, propname, booleanbit);
 
-	if((ds=DefRNA.structs.last) && (dp=ds->properties.last))
+	dp= rna_find_struct_property_def(prop);
+
+	if(dp)
 		dp->booleannegative= 1;
 }
 
@@ -1200,12 +1432,13 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 
 void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
-	StructDefRNA *ds;
 	PropertyDefRNA *dp;
 
 	RNA_def_property_enum_sdna(prop, structname, propname);
 
-	if((ds=DefRNA.structs.last) && (dp=ds->properties.last))
+	dp= rna_find_struct_property_def(prop);
+
+	if(dp)
 		dp->enumbitflags= 1;
 }
 
@@ -1297,7 +1530,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 
 	if(dp && lengthpropname) {
 		DNAStructMember smember;
-		StructDefRNA *ds= DefRNA.structs.last;
+		StructDefRNA *ds= rna_find_struct_def((StructRNA*)dp->cont);
 
 		if(!structname)
 			structname= ds->dnaname;
@@ -1548,23 +1781,25 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 
 /* Compact definitions */
 
-PropertyRNA *RNA_def_boolean(StructRNA *srna, const char *identifier, int default_value,
-	const char *ui_name, const char *ui_description)
+PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_, const char *identifier, int default_value, const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_array(StructRNA *srna, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description)
+PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value, 
+	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1572,11 +1807,13 @@ PropertyRNA *RNA_def_boolean_array(StructRNA *srna, const char *identifier, int 
 	return prop;
 }
 
-PropertyRNA *RNA_def_boolean_vector(StructRNA *srna, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description)
+PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value, 
+	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_VECTOR);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1584,12 +1821,13 @@ PropertyRNA *RNA_def_boolean_vector(StructRNA *srna, const char *identifier, int
 	return prop;
 }
 
-PropertyRNA *RNA_def_int(StructRNA *srna, const char *identifier, int default_value, int hardmin, int hardmax,
+PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont_, const char *identifier, int default_value, int hardmin, int hardmax, 
 	const char *ui_name, const char *ui_description, int softmin, int softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_INT, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_NONE);
 	RNA_def_property_int_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1598,12 +1836,13 @@ PropertyRNA *RNA_def_int(StructRNA *srna, const char *identifier, int default_va
 	return prop;
 }
 
-PropertyRNA *RNA_def_int_vector(StructRNA *srna, const char *identifier, int len, const int *default_value,
+PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, const int *default_value, 
 	int hardmin, int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_VECTOR);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1613,12 +1852,13 @@ PropertyRNA *RNA_def_int_vector(StructRNA *srna, const char *identifier, int len
 	return prop;
 }
 
-PropertyRNA *RNA_def_int_array(StructRNA *srna, const char *identifier, int len, const int *default_value,
+PropertyRNA *RNA_def_int_array(StructOrFunctionRNA *cont_, const char *identifier, int len, const int *default_value, 
 	int hardmin, int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_INT, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1628,12 +1868,13 @@ PropertyRNA *RNA_def_int_array(StructRNA *srna, const char *identifier, int len,
 	return prop;
 }
 
-PropertyRNA *RNA_def_string(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
+PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value, int maxlen, 
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_STRING, PROP_NONE);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
 	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1641,12 +1882,13 @@ PropertyRNA *RNA_def_string(StructRNA *srna, const char *identifier, const char 
 	return prop;
 }
 
-PropertyRNA *RNA_def_string_file_path(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
+PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value, int maxlen, 
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(cont, identifier, PROP_STRING, PROP_FILEPATH);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
 	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1654,12 +1896,13 @@ PropertyRNA *RNA_def_string_file_path(StructRNA *srna, const char *identifier, c
 	return prop;
 }
 
-PropertyRNA *RNA_def_string_dir_path(StructRNA *srna, const char *identifier, const char *default_value, int maxlen,
+PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value, int maxlen, 
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(cont, identifier, PROP_STRING, PROP_DIRPATH);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
 	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1667,12 +1910,13 @@ PropertyRNA *RNA_def_string_dir_path(StructRNA *srna, const char *identifier, co
 	return prop;
 }
 
-PropertyRNA *RNA_def_enum(StructRNA *srna, const char *identifier, EnumPropertyItem *items, int default_value,
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, EnumPropertyItem *items, int default_value, 
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_ENUM, PROP_NONE);
 	if(items) RNA_def_property_enum_items(prop, items);
 	RNA_def_property_enum_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1680,12 +1924,13 @@ PropertyRNA *RNA_def_enum(StructRNA *srna, const char *identifier, EnumPropertyI
 	return prop;
 }
 
-PropertyRNA *RNA_def_float(StructRNA *srna, const char *identifier, float default_value,
+PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1694,12 +1939,13 @@ PropertyRNA *RNA_def_float(StructRNA *srna, const char *identifier, float defaul
 	return prop;
 }
 
-PropertyRNA *RNA_def_float_vector(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_VECTOR);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1709,12 +1955,13 @@ PropertyRNA *RNA_def_float_vector(StructRNA *srna, const char *identifier, int l
 	return prop;
 }
 
-PropertyRNA *RNA_def_float_color(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_COLOR);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1725,12 +1972,13 @@ PropertyRNA *RNA_def_float_color(StructRNA *srna, const char *identifier, int le
 }
 
 
-PropertyRNA *RNA_def_float_matrix(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_MATRIX);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1740,12 +1988,13 @@ PropertyRNA *RNA_def_float_matrix(StructRNA *srna, const char *identifier, int l
 	return prop;
 }
 
-PropertyRNA *RNA_def_float_rotation(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_ROTATION);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1755,12 +2004,13 @@ PropertyRNA *RNA_def_float_rotation(StructRNA *srna, const char *identifier, int
 	return prop;
 }
 
-PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int len, const float *default_value,
+PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -1770,12 +2020,13 @@ PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int le
 	return prop;
 }
 
-PropertyRNA *RNA_def_float_percentage(StructRNA *srna, const char *identifier, float default_value,
+PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_, const char *identifier, float default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1784,27 +2035,191 @@ PropertyRNA *RNA_def_float_percentage(StructRNA *srna, const char *identifier, f
 	return prop;
 }
 
-PropertyRNA *RNA_def_pointer_runtime(StructRNA *srna, const char *identifier, StructRNA *type,
+PropertyRNA *RNA_def_pointer(StructOrFunctionRNA *cont_, const char *identifier, const char *type,
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, type);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_pointer_runtime(StructOrFunctionRNA *cont_, const char *identifier, StructRNA *type,
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(cont, identifier, PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, type);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
 }
 
-PropertyRNA *RNA_def_collection_runtime(StructRNA *srna, const char *identifier, StructRNA *type,
+PropertyRNA *RNA_def_collection(StructOrFunctionRNA *cont_, const char *identifier, const char *type,
 	const char *ui_name, const char *ui_description)
 {
+	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, identifier, PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(cont, identifier, PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, type);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_collection_runtime(StructOrFunctionRNA *cont_, const char *identifier, StructRNA *type,
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(cont, identifier, PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, type);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
+}
+
+/* Function */
+
+static FunctionRNA *rna_def_function(StructRNA *srna, const char *identifier)
+{
+	FunctionRNA *func;
+	StructDefRNA *dsrna;
+	FunctionDefRNA *dfunc;
+
+	if(DefRNA.preprocess) {
+		char error[512];
+
+		if (rna_validate_identifier(identifier, error, 0) == 0) {
+			fprintf(stderr, "RNA_def_function: function identifier \"%s\" - %s\n", identifier, error);
+			DefRNA.error= 1;
+		}
+	}
+
+	func= MEM_callocN(sizeof(FunctionRNA), "FunctionRNA");
+	func->identifier= identifier;
+	func->description= identifier;
+
+	rna_addtail(&srna->functions, func);
+
+	if(DefRNA.preprocess) {
+		dsrna= rna_find_struct_def(srna);
+		dfunc= MEM_callocN(sizeof(FunctionDefRNA), "FunctionDefRNA");
+		rna_addtail(&dsrna->functions, dfunc);
+		dfunc->func= func;
+	}
+	else
+		func->flag|= FUNC_RUNTIME;
+
+	return func;
+}
+
+FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const char *call)
+{
+	FunctionRNA *func;
+	FunctionDefRNA *dfunc;
+
+	func= rna_def_function(srna, identifier);
+
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_function: only at preprocess time.\n");
+		return func;
+	}
+
+	dfunc= rna_find_function_def(func);
+	dfunc->call= call;
+
+	return func;
+}
+
+FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, CallFunc call)
+{
+	FunctionRNA *func;
+
+	func= rna_def_function(srna, identifier);
+
+	if(DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_function_call_runtime: only at runtime.\n");
+		return func;
+	}
+
+	func->call= call;
+
+
+	return func;
+}
+
+void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
+{
+	func->ret= ret;
+	ret->flag|=PROP_RETURN;
+}
+
+void RNA_def_function_flag(FunctionRNA *func, int flag)
+{
+	func->flag|= flag;
+}
+
+void RNA_def_function_ui_description(FunctionRNA *func, const char *description)
+{
+	func->description= description;
+}
+
+int rna_parameter_size(PropertyRNA *parm)
+{
+	PropertyType ptype= parm->type;
+	int len= parm->arraylength;
+
+	if(len > 0) {
+		switch (ptype) {
+			case PROP_BOOLEAN:
+			case PROP_INT:
+				return sizeof(int)*len;
+			case PROP_FLOAT:
+				return sizeof(float)*len;
+			default:
+				break;
+		}
+	}
+	else {
+		switch (ptype) {
+			case PROP_BOOLEAN:
+			case PROP_INT:
+			case PROP_ENUM:
+				return sizeof(int);
+			case PROP_FLOAT:
+				return sizeof(float);
+			case PROP_STRING:
+				return sizeof(char *);
+			case PROP_POINTER: {
+				PointerPropertyRNA *pprop= (PointerPropertyRNA*)parm;
+
+#ifdef RNA_RUNTIME
+				if(pprop->type == &RNA_AnyType)
+					return sizeof(PointerRNA);
+				else
+					return sizeof(void *);
+#else
+				if(strcmp((char*)pprop->type, "AnyType") == 0)
+					return sizeof(PointerRNA);
+				else
+					return sizeof(void *);
+#endif
+			}
+			case PROP_COLLECTION:
+				/* XXX does not work yet */
+				return sizeof(ListBase);
+		}
+	}
+
+	return sizeof(void *);
 }
 

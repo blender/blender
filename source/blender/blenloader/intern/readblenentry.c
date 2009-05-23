@@ -86,6 +86,7 @@ static IDType idtypes[]= {
 	{ ID_BR,		"Brush",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CA,		"Camera",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_GD,		"GPencil",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_GR,		"Group",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_ID,		"ID",		0}, 
 	{ ID_IM,		"Image",	IDTYPE_FLAGS_ISLINKABLE}, 

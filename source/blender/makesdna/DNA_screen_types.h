@@ -39,6 +39,7 @@ struct SpaceLink;
 struct ARegion;
 struct ARegionType;
 struct PanelType;
+struct HeaderType;
 struct Scene;
 struct uiLayout;
 struct wmTimer;
@@ -90,19 +91,30 @@ typedef struct ScrEdge {
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
 
-	struct PanelType *type;		/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
+	struct PanelType *type;			/* runtime */
+	struct uiLayout *layout;		/* runtime for drawing */
 
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
 	short ofsx, ofsy, sizex, sizey;
-	short flag, active;					/* active= used currently by a uiBlock */
+	short labelofs, pad;
+	short flag, runtime_flag;
 	short control;
 	short snap;
-	int sortcounter, pad;		/* when sorting panels, it uses this to put new ones in right place */
+	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
 } Panel;
+
+typedef struct Header {
+	struct HeaderType *type;	/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Header;
+
+typedef struct Menu {
+	struct MenuType *type;		/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Menu;
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
@@ -206,6 +218,7 @@ typedef struct ARegion {
 #define RGN_TYPE_CHANNELS	2
 #define RGN_TYPE_TEMPORARY	3
 #define RGN_TYPE_UI			4
+#define RGN_TYPE_TOOLS		5
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

@@ -55,6 +55,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "interface_intern.h"
+
 #define DEF_BUT_WIDTH 		150
 #define DEF_ICON_BUT_WIDTH	20
 #define DEF_BUT_HEIGHT		20
@@ -88,7 +90,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE_DATA;
 	else if(rnatype == &RNA_MetaBall)
-		return ICON_MBALL_DATA;
+		return ICON_META_DATA;
 	else if(rnatype == &RNA_MetaElement)
 		return ICON_OUTLINER_DATA_META;
 	else if(rnatype == &RNA_Lattice)
@@ -140,7 +142,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Brush)
 		return ICON_BRUSH_DATA;
 	else if(rnatype == &RNA_VectorFont)
-		return ICON_FONT;
+		return ICON_FONT_DATA;
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DATA_DIRECT;
 	else if(rnatype == &RNA_Action)
@@ -202,7 +204,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_BooleanModifier)
 		return ICON_MOD_BOOLEAN;
 	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLEINSTANCE;
+		return ICON_MOD_PARTICLES;
 	else if(rnatype == &RNA_ParticleSystemModifier)
 		return ICON_MOD_PARTICLES;
 	else if(rnatype == &RNA_EdgeSplitModifier)
@@ -213,6 +215,30 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_MOD_UVPROJECT;
 	else if(rnatype == &RNA_DisplaceModifier)
 		return ICON_MOD_DISPLACE;
+	else if(rnatype == &RNA_ShrinkwrapModifier)
+		return ICON_MOD_SHRINKWRAP;
+	else if(rnatype == &RNA_CastModifier)
+		return ICON_MOD_CAST;
+	else if(rnatype == &RNA_MeshDeformModifier)
+		return ICON_MOD_MESHDEFORM;
+	else if(rnatype == &RNA_BevelModifier)
+		return ICON_MOD_BEVEL;
+	else if(rnatype == &RNA_SmoothModifier)
+		return ICON_MOD_SMOOTH;
+	else if(rnatype == &RNA_SimpleDeformModifier)
+		return ICON_MOD_SIMPLEDEFORM;
+	else if(rnatype == &RNA_MaskModifier)
+		return ICON_MOD_MASK;
+	else if(rnatype == &RNA_ClothModifier)
+		return ICON_MOD_CLOTH;
+	else if(rnatype == &RNA_ExplodeModifier)
+		return ICON_MOD_EXPLODE;
+	else if(rnatype == &RNA_CollisionModifier)
+		return ICON_MOD_PHYSICS;
+	else if(rnatype == &RNA_FluidSimulationModifier)
+		return ICON_MOD_FLUIDSIM;
+	else if(rnatype == &RNA_MultiresModifier)
+		return ICON_MOD_MULTIRES;
 	else
 		return ICON_DOT;
 }
@@ -220,17 +246,17 @@ int UI_GetIconRNA(PointerRNA *ptr)
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
 {
 	uiBut *but=NULL;
-	const char *propname= RNA_property_identifier(ptr, prop);
-	int arraylen= RNA_property_array_length(ptr, prop);
+	const char *propname= RNA_property_identifier(prop);
+	int arraylen= RNA_property_array_length(prop);
 
-	switch(RNA_property_type(ptr, prop)) {
+	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
 			int value, length;
 
 			if(arraylen && index == -1)
 				return NULL;
 
-			length= RNA_property_array_length(ptr, prop);
+			length= RNA_property_array_length(prop);
 
 			if(length)
 				value= RNA_property_boolean_get_index(ptr, prop, index);
@@ -248,10 +274,10 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 		case PROP_INT:
 		case PROP_FLOAT:
 			if(arraylen && index == -1) {
-				if(RNA_property_subtype(ptr, prop) == PROP_COLOR)
+				if(RNA_property_subtype(prop) == PROP_COLOR)
 					but= uiDefButR(block, COL, 0, name, x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
 			}
-			else if(RNA_property_subtype(ptr, prop) == PROP_PERCENTAGE)
+			else if(RNA_property_subtype(prop) == PROP_PERCENTAGE)
 				but= uiDefButR(block, NUMSLI, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else
 				but= uiDefButR(block, NUM, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
@@ -264,35 +290,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			break;
 		case PROP_POINTER: {
 			PointerRNA pptr;
-			PropertyRNA *nameprop;
-			char *text, *descr, textbuf[256];
 			int icon;
 
 			pptr= RNA_property_pointer_get(ptr, prop);
-			descr= (char*)RNA_property_ui_description(ptr, prop);
-
 			if(!pptr.type)
-				pptr.type= RNA_property_pointer_type(ptr, prop);
-
+				pptr.type= RNA_property_pointer_type(prop);
 			icon= UI_GetIconRNA(&pptr);
 
-			if(pptr.data == NULL) {
-				but= uiDefIconTextBut(block, LABEL, 0, icon, "", x1, y1, x2, y2, NULL, 0, 0, 0, 0, "");
-			}
-			else {
-				nameprop= RNA_struct_name_property(&pptr);
-
-				if(nameprop) {
-					text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
-					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-					if(text != textbuf)
-						MEM_freeN(text);
-				}
-				else {
-					text= (char*)RNA_struct_ui_name(&pptr);
-					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-				}
-			}
+			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_COLLECTION: {
@@ -310,39 +315,61 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
+void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout;
+	uiLayout *split;
 	char *name;
-	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 0);
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, (char*)RNA_struct_ui_name(ptr), 0);
-
-	iterprop= RNA_struct_iterator_property(ptr);
+	iterprop= RNA_struct_iterator_property(ptr->type);
 	RNA_property_collection_begin(ptr, iterprop, &iter);
 
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
 
-		if(strcmp(RNA_property_identifier(ptr, prop), "rna_type") == 0)
+		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		uiTemplateColumn(layout);
+		split = uiLayoutSplit(layout);
 
-		name= (char*)RNA_property_ui_name(ptr, prop);
-		uiItemLabel(layout, UI_TSLOT_COLUMN_1, name, 0);
-		uiItemR(layout, UI_TSLOT_COLUMN_2, "", 0, ptr, (char*)RNA_property_identifier(ptr, prop));
+		name= (char*)RNA_property_ui_name(prop);
+
+		uiItemL(uiLayoutColumn(split, 0), name, 0);
+		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
-	uiLayoutEnd(C, block, layout, &x, &y);
+}
 
-	return -y;
+/* temp call, single collumn, test for toolbar only */
+void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+{
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *prop;
+	uiLayout *col;
+	char *name;
+	
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
+	
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+	
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		
+		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+			continue;
+		
+		name= (char*)RNA_property_ui_name(prop);
+		col= uiLayoutColumn(layout, 1);
+		uiItemL(col, name, 0);
+		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0);
+	}
+	
+	RNA_property_collection_end(&iter);
 }
 
 /***************************** ID Utilities *******************************/
@@ -377,11 +404,11 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 			else return;
 			break;
 		case UI_ID_BROWSE: {
-			if(id==0) id= lb->first;
-			if(id==0) return;
+			/* ID can be NULL, if nothing was assigned yet */
+			if(lb->first==NULL) return;
 
 			if(params->browsenr== -2) {
-				/* XXX implement or find a replacement
+				/* XXX implement or find a replacement (ID can be NULL!)
 				 * activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_MESHBROWSE, &params->browsenr, do_global_buttons); */
 				return;
 			}
@@ -438,7 +465,7 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 	uiBut *but;
 	uiIDPoinParams *params, *dup_params;
 	char *str=NULL, str1[10];
-	int len, oldcol, add_addbutton=0;
+	int len, add_addbutton=0;
 
 	/* setup struct that we will pass on with the buttons */
 	params= MEM_callocN(sizeof(uiIDPoinParams), "uiIDPoinParams");
@@ -450,14 +477,15 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 
 	/* create buttons */
 	uiBlockBeginAlign(block);
-	oldcol= uiBlockGetCol(block);
 
+	/* XXX solve?
 	if(id && id->us>1)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 
 	if((events & UI_ID_PIN) && *pin_p)
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-
+	*/
+	
 	/* pin button */
 	if(id && (events & UI_ID_PIN)) {
 		but= uiDefIconButS(block, ICONTOG, (events & UI_ID_PIN), ICON_KEY_DEHLT, x, y ,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, pin_p, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
@@ -507,37 +535,24 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		MEM_freeN(str);
 	}
 
-	uiBlockSetCol(block, oldcol);
-
 	/* text button with name */
 	if(id) {
-		/* name */
+		/* XXX solve?
 		if(id->us > 1)
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-
-		/* pinned data? */
+		*/
+		/* pinned data? 
 		if((events & UI_ID_PIN) && *pin_p)
 			uiBlockSetCol(block, TH_BUT_SETTING2);
-
-		/* redalert overrides pin color */
+		*/
+		/* redalert overrides pin color 
 		if(id->us<=0)
 			uiBlockSetCol(block, TH_REDALERT);
-
+		*/
 		uiBlockSetButLock(block, id->lib!=0, "Can't edit external libdata");
 		
 		/* name button */
-		if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCE:");
-		else if(GS(id->name)==ID_SCE)
-			strcpy(str1, "SCR:");
-		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
-			strcpy(str1, "NT:");
-		else {
-			str1[0]= id->name[0];
-			str1[1]= id->name[1];
-			str1[2]= ':';
-			str1[3]= 0;
-		}
+		text_idbutton(id, str1);
 		
 		if(GS(id->name)==ID_IP) len= 110;
 		else if((y) && (GS(id->name)==ID_AC)) len= 100; // comes from button panel (poselib)
@@ -611,7 +626,6 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 	}
 	/* add new button */
 	else if(add_addbutton) {
-		uiBlockSetCol(block, oldcol);
 		if(parid) uiBlockSetButLock(block, parid->lib!=0, "Can't edit external libdata");
 		dup_params= MEM_dupallocN(params);
 		but= uiDefButS(block, TOG, 0, "Add New", x, y, 110, DEF_BUT_HEIGHT, &dup_params->browsenr, params->browsenr, 32767.0, 0, 0, "Add new data block");
@@ -619,7 +633,6 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		x+= 110;
 	}
 	
-	uiBlockSetCol(block, oldcol);
 	uiBlockEndAlign(block);
 
 	MEM_freeN(params);
@@ -934,7 +947,7 @@ static uiBlock *curvemap_clipping_func(struct bContext *C, struct ARegion *ar, v
 	uiBlock *block;
 	uiBut *bt;
 	
-	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS);
 	
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, 16, 128, 106, NULL, 0, 0, 0, 0, "");
@@ -994,7 +1007,7 @@ static uiBlock *curvemap_tools_func(struct bContext *C, struct ARegion *ar, void
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");

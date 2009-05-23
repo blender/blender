@@ -178,7 +178,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend)
+- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -1667,8 +1667,10 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			driver->id= newlibadr(fd, id->lib, driver->id); 
-			driver->id2= newlibadr(fd, id->lib, driver->id2); 
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				dtar->id= newlibadr(fd, id->lib, dtar->id); 
 		}
 		
 		/* modifiers */
@@ -1708,9 +1710,12 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
 			
-			driver->rna_path= newdataadr(fd, driver->rna_path);
-			driver->rna_path2= newdataadr(fd, driver->rna_path2);
+			/* relink targets and their paths */
+			link_list(fd, &driver->targets);
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				dtar->rna_path= newdataadr(fd, dtar->rna_path);
 		}
 		
 		/* modifiers */
@@ -1718,6 +1723,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
 			/* relink general data */
 			fcm->data = newdataadr(fd, fcm->data);
+			fcm->edata= NULL;
 			
 			/* do relinking of data for specific types */
 			switch (fcm->type) {
@@ -2147,6 +2153,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data;
+				data= ((bShrinkwrapConstraint*)con->data);
+				data->target = newlibadr(fd, id->lib, data->target);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -2163,9 +2176,12 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 		
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
+			
 			link_list(fd, &data->targets);
+			
 			data->prop = newdataadr(fd, data->prop);
-			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (data->prop)
+				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
 	}
 }
@@ -3404,7 +3420,13 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->bone= NULL;
 		pchan->parent= newdataadr(fd, pchan->parent);
 		pchan->child= newdataadr(fd, pchan->child);
+		
 		direct_link_constraints(fd, &pchan->constraints);
+		
+		pchan->prop = newdataadr(fd, pchan->prop);
+		if (pchan->prop)
+			IDP_DirectLinkProperty(pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
@@ -3478,6 +3500,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
 			
+		}
+		else if (md->type==eModifierType_Surface) {
+			SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+
+			surmd->dm = NULL;
+			surmd->bvhtree = NULL;
 		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
@@ -3815,7 +3843,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
-			
+			/*Game Settings: Dome Warp Text*/
+			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -3842,6 +3872,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
+	sce->obedit= NULL;
+	
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
 
@@ -4060,12 +4092,16 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 
 /* ****************** READ GREASE PENCIL ***************** */
 
-/* relinks grease-pencil data for 3d-view(s) - used for direct_link */
-static void link_gpencil(FileData *fd, bGPdata *gpd)
+/* relinks grease-pencil data - used for direct_link and old file linkage */
+static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 {
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	
+	/* we must firstly have some grease-pencil data to link! */
+	if (gpd == NULL)
+		return;
 	
 	/* relink layers */
 	link_list(fd, &gpd->layers);
@@ -4162,9 +4198,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->files= NULL;
 						sfile->params= NULL;
 						sfile->op= NULL;
-						/* sfile->returnfunc= NULL; 
-						sfile->menup= NULL;
-						sfile->pupmenu= NULL; */ /* XXX removed */
+						sfile->layout= NULL;
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
 						SpaceImaSel *simasel= (SpaceImaSel *)sl;
@@ -4239,7 +4273,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 							else if(GS(snode->id->name)==ID_TE)
 								snode->nodetree= ((Tex *)snode->id)->nodetree;
 						}
-						
 					}
 				}
 				sa= sa->next;
@@ -4350,7 +4383,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						*/
 					}
 					else if(v3d->scenelock) v3d->lay= sc->scene->lay;
-					
+
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
@@ -4457,9 +4490,9 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 
 	for(pa= ar->panels.first; pa; pa=pa->next) {
 		pa->paneltab= newdataadr(fd, pa->paneltab);
-		pa->active= 0;
-		pa->sortcounter= 0;
+		pa->runtime_flag= 0;
 		pa->activedata= NULL;
+		pa->type= NULL;
 	}
 	
 	ar->regiondata= newdataadr(fd, ar->regiondata);
@@ -4505,7 +4538,6 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->dist= v3d->dist;
 			VECCOPY(rv3d->ofs, v3d->ofs);
 			QUATCOPY(rv3d->viewquat, v3d->viewquat);
-			Mat4One(rv3d->twmat);
 		}
 	}
 }
@@ -4589,7 +4621,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					v3d->bgpic->iuser.ok= 1;
 				if(v3d->gpd) {
 					v3d->gpd= newdataadr(fd, v3d->gpd);
-					link_gpencil(fd, v3d->gpd);
+					direct_link_gpencil(fd, v3d->gpd);
 				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
@@ -4601,6 +4633,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceIpo *sipo= (SpaceIpo*)sl;
 				
 				sipo->ads= newdataadr(fd, sipo->ads);
+				sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
 			}
 			else if (sl->spacetype==SPACE_OUTLINER) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -4617,11 +4650,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceImage *sima= (SpaceImage *)sl;
 				
 				sima->cumap= newdataadr(fd, sima->cumap);
-				if(sima->cumap)
-					direct_link_curvemapping(fd, sima->cumap);
 				sima->gpd= newdataadr(fd, sima->gpd);
 				if (sima->gpd)
-					link_gpencil(fd, sima->gpd);
+					direct_link_gpencil(fd, sima->gpd);
+				if(sima->cumap)
+					direct_link_curvemapping(fd, sima->cumap);
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
@@ -4629,7 +4662,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				if(snode->gpd) {
 					snode->gpd= newdataadr(fd, snode->gpd);
-					link_gpencil(fd, snode->gpd);
+					direct_link_gpencil(fd, snode->gpd);
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
@@ -4637,7 +4670,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceSeq *sseq= (SpaceSeq *)sl;
 				if(sseq->gpd) {
 					sseq->gpd= newdataadr(fd, sseq->gpd);
-					link_gpencil(fd, sseq->gpd);
+					direct_link_gpencil(fd, sseq->gpd);
 				}
 			}
 		}
@@ -4814,6 +4847,7 @@ static char *dataname(short id_code)
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
 		case ID_PA: return "Data from PA";
+		case ID_GD: return "Data from GD";
 	}
 	return "Data from Lib Block";
 	
@@ -4969,6 +5003,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_SCRIPT:
 			direct_link_script(fd, (Script*)id);
+			break;
+		case ID_GD:
+			direct_link_gpencil(fd, (bGPdata *)id);
 			break;
 	}
 	
@@ -5613,7 +5650,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
-				ar->v2d.keepzoom |= V2D_KEEPASPECT;
 				break;
 			}
 			case SPACE_FILE:
@@ -5672,6 +5708,63 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		}
 	}
 }
+
+static void versions_gpencil_add_main(ListBase *lb, ID *id, char *name)
+{
+	
+	BLI_addtail(lb, id);
+	id->us= 1;
+	id->flag= LIB_FAKEUSER;
+	*( (short *)id->name )= ID_GD;
+	
+	new_id(lb, id, name);
+	/* alphabetic insterion: is in new_id */
+	
+	if(G.f & G_DEBUG)
+		printf("Converted GPencil to ID: %s\n", id->name+2);
+}
+
+static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
+{
+	ScrArea *sa;
+	SpaceLink *sl;
+	
+	/* add regions */
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
+			if (sl->spacetype==SPACE_VIEW3D) {
+				View3D *v3d= (View3D*) sl;
+				if(v3d->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)v3d->gpd, "GPencil View3D");
+					v3d->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_NODE) {
+				SpaceNode *snode= (SpaceNode *)sl;
+				if(snode->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)snode->gpd, "GPencil Node");
+					snode->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_SEQ) {
+				SpaceSeq *sseq= (SpaceSeq *)sl;
+				if(sseq->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)sseq->gpd, "GPencil Node");
+					sseq->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= (SpaceImage *)sl;
+				if(sima->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)sima->gpd, "GPencil Image");
+					sima->gpd= NULL;
+				}
+			}
+		}
+	}		
+}
+
+
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -8736,6 +8829,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		Object *ob;
+
+		/* Adjustments needed after Bullets update */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->damping *= 0.635f;
+			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+		}
+	}
+	
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 4)) {
+		Scene *sce;
+		World *wrld;
+
+		/*  Dome (Fisheye) default parameters  */
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->r.domeangle = 180;
+			sce->r.domemode = 1;
+			sce->r.domesize = 1.0f;
+			sce->r.domeres = 4;
+			sce->r.domeresbuf = 1.0f;
+		}
+		/* DBVT culling by default */
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->mode |= WO_DBVT_CULLING;
+			wrld->occlusionRes = 128;
+		}
+	}
+
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
@@ -8744,8 +8866,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Tex *tx;
 		
-		for(screen= main->screen.first; screen; screen= screen->id.next)
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
+			do_versions_gpencil_2_50(main, screen);
+		}
 		
 		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
 		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
@@ -8788,6 +8912,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	   bump the version (or sub-version.) */
 	{
 		Object *ob;
+		Material *ma;
 		int i;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -8853,8 +8978,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->data = olddata;
 			}
 		}
+
+		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			if(ma->mode & MA_HALO) {
+				ma->material_type= MA_TYPE_HALO;
+				ma->mode &= ~MA_HALO;
+			}
+		}
 	}
-				       
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8902,7 +9034,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	bfd->user= read_struct(fd, bhead, "user def");
 	bfd->user->themes.first= bfd->user->themes.last= NULL;
-
+	// XXX
+	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
+	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
+	
 	bhead = blo_nextbhead(fd, bhead);
 
 		/* read all attached data */
@@ -9190,9 +9325,10 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
 		ChannelDriver *driver= fcd->driver;
+		DriverTarget *dtar;
 		
-		expand_doit(fd, mainvar, driver->id);
-		expand_doit(fd, mainvar, driver->id2);
+		for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+			expand_doit(fd, mainvar, dtar->id);
 	}
 }	
 
@@ -9497,6 +9633,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->target);
+			}
+			break;
 		default:
 			break;
 		}
@@ -9726,6 +9868,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
 	}
+
+	if(sce->r.dometext)
+		expand_doit(fd, mainvar, sce->r.dometext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

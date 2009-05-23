@@ -46,7 +46,7 @@ public:
 	CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	const STR_String &	GetText();
-	float		GetNumber();
+	double		GetNumber();
 	STR_String	GetName();
 	void		SetName(STR_String name);								// Set the name of the value
 	void		ReplicaSetName(STR_String name);
@@ -54,8 +54,8 @@ public:
 
 
 // stuff for python integration
-	virtual PyObject* _getattr(const char *attr);
-	virtual int    _setattr(const char *attr, PyObject *pyvalue);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int    py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	KX_PYMETHOD_NOARGS(KX_VertexProxy,GetXYZ);
 	KX_PYMETHOD_O(KX_VertexProxy,SetXYZ);

@@ -18,13 +18,13 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		# Mesh (name, near, far)
 		# Meshes overlap so that they don't 'pop' when on the edge of the distance.
 		meshes = ((".Hi", 0.0, -20.0),
-		          (".Med", -15.0, -50.0),
-			  (".Lo", -40.0, -100.0)
-			  )
+				  (".Med", -15.0, -50.0),
+				  (".Lo", -40.0, -100.0)
+				)
 		
 		co = GameLogic.getCurrentController()
 		obj = co.getOwner()
-		act = co.getActuator("LOD." + obj.getName())
+		act = co.getActuator("LOD." + obj.name)
 		cam = GameLogic.getCurrentScene().active_camera
 		
 		def Depth(pos, plane):
@@ -39,10 +39,10 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		for mesh in meshes:
 			if depth < mesh[1] and depth > mesh[2]:
 				newmesh = mesh
-			if "ME" + obj.getName() + mesh[0] == act.getMesh():
+			if "ME" + obj.name + mesh[0] == act.getMesh():
 				curmesh = mesh
 		
-		if newmesh != None and "ME" + obj.getName() + newmesh[0] != act.getMesh():
+		if newmesh != None and "ME" + obj.name + newmesh[0] != act.getMesh():
 			# The mesh is a different mesh - switch it.
 			# Check the current mesh is not a better fit.
 			if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
@@ -55,9 +55,14 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		This will generate a warning in the console:
 		
 		C{ERROR: GameObject I{OBName} ReplaceMeshActuator I{ActuatorName} without object}
+	
+	@ivar mesh: L{KX_MeshProxy} or the name of the mesh that will replace the current one
+	            Set to None to disable actuator
+	@type mesh: L{KX_MeshProxy} or None if no mesh is set
 	"""
 	def setMesh(name):
 		"""
+		DEPRECATED: Use the mesh property instead.
 		Sets the name of the mesh that will replace the current one.
 		When the name is None it will unset the mesh value so no action is taken.
 		
@@ -65,10 +70,15 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		"""
 	def getMesh():
 		"""
+		DEPRECATED: Use the mesh property instead.
 		Returns the name of the mesh that will replace the current one.
 		
 		Returns None if no mesh has been scheduled to be added.
 		
 		@rtype: string or None
 		"""
-
+	def instantReplaceMesh():
+		"""
+		Immediately replace mesh without delay.
+		@rtype: None
+		"""

@@ -43,6 +43,7 @@ struct bDeformGroup;
 struct MDeformWeight;
 struct MDeformVert;
 struct Scene;
+struct Mesh;
 struct MCol;
 struct UvVertMap;
 struct UvMapVert;

@@ -1141,17 +1141,18 @@ int minmax_verts(Object *obedit, float *min, float *max)
 
 static int snap_menu_invoke(bContext *C, wmOperator *unused, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Snap", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Snap", 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_selected_to_grid");
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_selected_to_cursor");
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_selected_to_center");
-	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_cursor_to_selected");
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_cursor_to_grid");
-	uiMenuItemO(head, 0, "VIEW3D_OT_snap_cursor_to_active");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_grid");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_cursor");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_center");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_selected");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_grid");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_active");
 	
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;

@@ -54,11 +54,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 
-#include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
-
 #include "BLI_blenlib.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
@@ -83,6 +78,7 @@
 #include "wm_window.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_node.h"
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
@@ -122,18 +118,15 @@ void WM_init(bContext *C)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 	
-	BLF_init();
+	BLF_init(11, U.dpi);
 	BLF_lang_init();
+	
+	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
 	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
 	
 	UI_init();
-	
-	/* goes away */
-	G.font= BMF_GetFont(BMF_kHelvetica12);
-	G.fonts= BMF_GetFont(BMF_kHelvetica10);
-	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
 	
 	//	clear_matcopybuf(); /* XXX */
 	
@@ -234,7 +227,6 @@ void WM_exit(bContext *C)
 //	fsmenu_free();
 
 	BLF_exit();
-	BLF_lang_exit();
 
 	RE_FreeAllRender();
 	
@@ -254,10 +246,6 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
-#ifdef INTERNATIONAL
-	FTF_End();
-#endif
-
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);
@@ -269,7 +257,7 @@ void WM_exit(bContext *C)
 	ED_file_exit(); /* for fsmenu */
 
 	UI_exit();
-	BLI_freelistN(&U.themes);
+	BKE_userdef_free();
 
 	RNA_exit();
 	

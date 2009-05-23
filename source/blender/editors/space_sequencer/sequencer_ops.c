@@ -73,7 +73,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
 	WM_operatortype_append(SEQUENCER_OT_duplicate_add);
 	WM_operatortype_append(SEQUENCER_OT_delete);
-	WM_operatortype_append(SEQUENCER_OT_separate_images);
+	WM_operatortype_append(SEQUENCER_OT_images_separate);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
@@ -94,11 +94,11 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_border);
 	
 	/* sequencer_add.c */
-	WM_operatortype_append(SEQUENCER_OT_add_scene_strip);
-	WM_operatortype_append(SEQUENCER_OT_add_movie_strip);
-	WM_operatortype_append(SEQUENCER_OT_add_sound_strip);
-	WM_operatortype_append(SEQUENCER_OT_add_image_strip);
-	WM_operatortype_append(SEQUENCER_OT_add_effect_strip);
+	WM_operatortype_append(SEQUENCER_OT_scene_strip_add);
+	WM_operatortype_append(SEQUENCER_OT_movie_strip_add);
+	WM_operatortype_append(SEQUENCER_OT_sound_strip_add);
+	WM_operatortype_append(SEQUENCER_OT_image_strip_add);
+	WM_operatortype_append(SEQUENCER_OT_effect_strip_add);
 }
 
 
@@ -129,7 +129,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_separate_images", YKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_images_separate", YKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_toggle", TABKEY, KM_PRESS, 0, 0);
 

@@ -45,6 +45,7 @@ struct World;
 struct Scene;
 struct Image;
 struct Group;
+struct Text;
 struct bNodeTree;
 struct AnimData;
 
@@ -316,6 +317,14 @@ typedef struct RenderData {
 	/* jpeg2000 */
 	short jp2_preset, jp2_depth;
 	int rpad3;
+
+	/* Dome variables */
+	short domeres, domemode;
+	short domeangle, pad9;
+	float domesize;
+	float domeresbuf;
+	struct Text *dometext;
+
 } RenderData;
 
 /* control render convert and shading engine */
@@ -453,6 +462,8 @@ typedef struct ToolSettings {
 	short unwrapper;
 	float uvcalc_radius;
 	float uvcalc_cubesize;
+	float uvcalc_margin;
+	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -588,7 +599,7 @@ typedef struct Scene {
 	int frame_step;
 	
 	/* User-Defined KeyingSets */
-	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1 */
+	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
 	ListBase keyingsets;			/* KeyingSets for the given frame */
 } Scene;
 

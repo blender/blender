@@ -31,6 +31,36 @@
 
 #include <vector>
 
+// used for debugging: stage of the game engine main loop at which a Scenegraph modification is done
+enum SG_Stage
+{
+	SG_STAGE_UNKNOWN = 0,
+	SG_STAGE_NETWORK,
+	SG_STAGE_NETWORK_UPDATE,
+	SG_STAGE_PHYSICS1,
+	SG_STAGE_PHYSICS1_UPDATE,
+	SG_STAGE_CONTROLLER,
+	SG_STAGE_CONTROLLER_UPDATE,
+	SG_STAGE_ACTUATOR,
+	SG_STAGE_ACTUATOR_UPDATE,
+	SG_STAGE_PHYSICS2,
+	SG_STAGE_PHYSICS2_UPDATE,
+	SG_STAGE_SCENE,
+	SG_STAGE_RENDER,
+	SG_STAGE_CONVERTER,
+	SG_STAGE_CULLING,
+	SG_STAGE_MAX
+};
+
+extern SG_Stage gSG_Stage;
+
+inline void SG_SetActiveStage(SG_Stage stage)
+{
+	gSG_Stage = stage;
+}
+	
+
+
 class SG_Controller;
 class SG_IObject;
 

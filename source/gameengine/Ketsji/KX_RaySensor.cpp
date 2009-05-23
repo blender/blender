@@ -136,8 +136,13 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void 
 	{
 		m_rayHit = true;
 		m_hitObject = hitKXObj;
-		m_hitPosition = result->m_hitPoint;
-		m_hitNormal = result->m_hitNormal;
+		m_hitPosition[0] = result->m_hitPoint[0];
+		m_hitPosition[1] = result->m_hitPoint[1];
+		m_hitPosition[2] = result->m_hitPoint[2];
+
+		m_hitNormal[0] = result->m_hitNormal[0];
+		m_hitNormal[1] = result->m_hitNormal[1];
+		m_hitNormal[2] = result->m_hitNormal[2];
 			
 	}
 	// no multi-hit search yet
@@ -180,8 +185,13 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	bool reset = m_reset && m_level;
 	m_rayHit = false; 
 	m_hitObject = NULL;
-	m_hitPosition.setValue(0,0,0);
-	m_hitNormal.setValue(1,0,0);
+	m_hitPosition[0] = 0;
+	m_hitPosition[1] = 0;
+	m_hitPosition[2] = 0;
+
+	m_hitNormal[0] = 1;
+	m_hitNormal[1] = 0;
+	m_hitNormal[2] = 0;
 	
 	KX_GameObject* obj = (KX_GameObject*)GetParent();
 	MT_Point3 frompoint = obj->NodeGetWorldPosition();
@@ -236,7 +246,9 @@ bool KX_RaySensor::Evaluate(CValue* event)
 		}
 	}
 	todir.normalize();
-	m_rayDirection = todir;
+	m_rayDirection[0] = todir[0];
+	m_rayDirection[1] = todir[1];
+	m_rayDirection[2] = todir[2];
 
 	MT_Point3 topoint = frompoint + (m_distance) * todir;
 	PHY_IPhysicsEnvironment* pe = m_scene->GetPhysicsEnvironment();
@@ -309,22 +321,23 @@ bool KX_RaySensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_RaySensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_RaySensor",
-	sizeof(KX_RaySensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+
 };
 
 PyParentObject KX_RaySensor::Parents[] = {
@@ -336,25 +349,47 @@ PyParentObject KX_RaySensor::Parents[] = {
 };
 
 PyMethodDef KX_RaySensor::Methods[] = {
+	// Deprecated ----->
 	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
 	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_NOARGS, (PY_METHODCHAR)GetHitPosition_doc},
 	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_NOARGS, (PY_METHODCHAR)GetHitNormal_doc},
 	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_NOARGS, (PY_METHODCHAR)GetRayDirection_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_RaySensor::Attributes[] = {
+	KX_PYATTRIBUTE_BOOL_RW("useMaterial", KX_RaySensor, m_bFindMaterial),
+	KX_PYATTRIBUTE_BOOL_RW("useXRay", KX_RaySensor, m_bXRay),
+	KX_PYATTRIBUTE_FLOAT_RW("range", 0, 10000, KX_RaySensor, m_distance),
+	KX_PYATTRIBUTE_STRING_RW("property", 0, 100, false, KX_RaySensor, m_propertyname),
+	KX_PYATTRIBUTE_INT_RW("axis", 0, 5, true, KX_RaySensor, m_axis),
+	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("hitPosition", KX_RaySensor, m_hitPosition, 3),
+	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("rayDirection", KX_RaySensor, m_rayDirection, 3),
+	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("hitNormal", KX_RaySensor, m_hitNormal, 3),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObject", KX_RaySensor, pyattr_get_hitobject),
 	{ NULL }	//Sentinel
 };
 
+PyObject* KX_RaySensor::pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_RaySensor* self = static_cast<KX_RaySensor*>(self_v);
+	if (self->m_hitObject)
+		return self->m_hitObject->GetProxy();
+
+	Py_RETURN_NONE;
+}
+
+// Deprecated ----->
 const char KX_RaySensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitObject()
 {
+	ShowDeprecationWarning("getHitObject()", "the hitObject property");
 	if (m_hitObject)
 	{
-		return m_hitObject->AddRef();
+		return m_hitObject->GetProxy();
 	}
 	Py_RETURN_NONE;
 }
@@ -363,29 +398,59 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
 const char KX_RaySensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitPosition()
 {
-	return PyObjectFrom(m_hitPosition);
+	ShowDeprecationWarning("getHitPosition()", "the hitPosition property");
+
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
+	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
+
+	return retVal;
 }
 
 const char KX_RaySensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self)
+PyObject* KX_RaySensor::PyGetRayDirection()
 {
-	return PyObjectFrom(m_rayDirection);
+	ShowDeprecationWarning("getRayDirection()", "the rayDirection property");
+
+	PyObject *retVal = PyList_New(3);
+	
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
+	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
+
+	return retVal;
 }
 
 const char KX_RaySensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitNormal()
 {
-	return PyObjectFrom(m_hitNormal);
+	ShowDeprecationWarning("getHitNormal()", "the hitNormal property");
+
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
+	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
+
+	return retVal;
 }
 
 
 
-PyObject* KX_RaySensor::_getattr(const char *attr) {
-	_getattr_up(SCA_ISensor);
+PyObject* KX_RaySensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_ISensor);
 }
+
+int KX_RaySensor::py_setattro(PyObject *attr, PyObject *value) {
+	py_setattro_up(SCA_ISensor);
+}
+
+// <----- Deprecated

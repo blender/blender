@@ -163,6 +163,13 @@ struct RAS_FrameFrustum
 	float x2,y2;
 };	
 
+/* must match R_CULLING_... from DNA_scene_types.h */
+enum RAS_CullingMode
+{
+	RAS_CULLING_DBVT = 0,
+	RAS_CULLING_NORMAL,
+	RAS_CULLING_NONE
+};
 
 /**
  * @section RAS_FramingManager

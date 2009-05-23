@@ -32,33 +32,19 @@ struct ARegion;
 struct ARegionType;
 struct bContext;
 
-/* warning: the values of these defines are used in sbuts->tabs[7] */
+/* warning: the values of these defines are used in sbuts->tabs[8] */
 /* buts->mainb new */
-#define CONTEXT_SCENE	0
-#define CONTEXT_OBJECT	1
-#define CONTEXT_TYPES	2
-#define CONTEXT_SHADING	3
-#define CONTEXT_EDITING	4
-#define CONTEXT_SCRIPT	5
-#define CONTEXT_LOGIC	6
-
-/* buts->tab new */
-#define TAB_SHADING_MAT 	0
-#define TAB_SHADING_TEX 	1
-#define TAB_SHADING_RAD 	2
-#define TAB_SHADING_WORLD	3
-#define TAB_SHADING_LAMP	4
-
-#define TAB_OBJECT_OBJECT	0
-#define TAB_OBJECT_PHYSICS 	1
-#define TAB_OBJECT_PARTICLE	2
-
-#define TAB_SCENE_RENDER	0
-#define TAB_SCENE_WORLD     	1
-#define TAB_SCENE_ANIM		2
-#define TAB_SCENE_SOUND		3
-#define TAB_SCENE_SEQUENCER	4
-
+#define BCONTEXT_SCENE		0
+#define BCONTEXT_WORLD		1
+#define BCONTEXT_OBJECT		2
+#define BCONTEXT_DATA		3
+#define BCONTEXT_MATERIAL	4
+#define BCONTEXT_TEXTURE	5
+#define BCONTEXT_PARTICLE	6
+#define BCONTEXT_PHYSICS	7
+#define BCONTEXT_GAME		8
+#define BCONTEXT_BONE		9
+#define BCONTEXT_MODIFIER	10
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -73,13 +59,10 @@ struct bContext;
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
-
 /* internal exports only */
 
 /* image_header.c */
 void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
-void buttons_scene(const struct bContext *C, struct ARegion *ar);
-void buttons_object_register(struct ARegionType *art);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

@@ -687,6 +687,7 @@ char *WM_clipboard_text_get(int selection)
 
 void WM_clipboard_text_set(char *buf, int selection)
 {
+#ifdef _WIN32
 	/* do conversion from \n to \r\n on Windows */
 	char *p, *p2, *newbuf;
 	int newlen= 0;
@@ -710,6 +711,9 @@ void WM_clipboard_text_set(char *buf, int selection)
 
 	GHOST_putClipboard((GHOST_TInt8*)newbuf, selection);
 	MEM_freeN(newbuf);
+#else
+	GHOST_putClipboard((GHOST_TInt8*)buf, selection);
+#endif
 }
 
 /* ************************************ */

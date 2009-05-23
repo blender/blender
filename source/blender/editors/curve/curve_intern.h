@@ -41,7 +41,7 @@ enum { CASE_LOWER, CASE_UPPER };
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
        PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
 
-void FONT_OT_insert_text(struct wmOperatorType *ot);
+void FONT_OT_text_insert(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
 void FONT_OT_insert_lorem(struct wmOperatorType *ot);
 
@@ -51,11 +51,11 @@ void FONT_OT_style_toggle(struct wmOperatorType *ot);
 void FONT_OT_style_set(struct wmOperatorType *ot);
 void FONT_OT_material_set(struct wmOperatorType *ot);
 
-void FONT_OT_copy_text(struct wmOperatorType *ot);
-void FONT_OT_cut_text(struct wmOperatorType *ot);
-void FONT_OT_paste_text(struct wmOperatorType *ot);
-void FONT_OT_paste_file(struct wmOperatorType *ot);
-void FONT_OT_paste_buffer(struct wmOperatorType *ot);
+void FONT_OT_text_copy(struct wmOperatorType *ot);
+void FONT_OT_text_cut(struct wmOperatorType *ot);
+void FONT_OT_text_paste(struct wmOperatorType *ot);
+void FONT_OT_file_paste(struct wmOperatorType *ot);
+void FONT_OT_buffer_paste(struct wmOperatorType *ot);
 
 void FONT_OT_move(struct wmOperatorType *ot);
 void FONT_OT_move_select(struct wmOperatorType *ot);
@@ -99,7 +99,7 @@ void CURVE_OT_switch_direction(struct wmOperatorType *ot);
 void CURVE_OT_subdivide(struct wmOperatorType *ot);
 void CURVE_OT_make_segment(struct wmOperatorType *ot);
 void CURVE_OT_spin(struct wmOperatorType *ot);
-void CURVE_OT_add_vertex(struct wmOperatorType *ot);
+void CURVE_OT_vertex_add(struct wmOperatorType *ot);
 void CURVE_OT_extrude(struct wmOperatorType *ot);
 void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 

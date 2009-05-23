@@ -514,6 +514,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Dome.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_EmptyObject.cpp"
 				>
 			</File>
@@ -571,6 +575,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInitTypes.cpp"
 				>
 			</File>
 			<File
@@ -799,6 +807,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Dome.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_EmptyObject.h"
 				>
 			</File>
@@ -872,6 +884,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInitTypes.h"
 				>
 			</File>
 			<File

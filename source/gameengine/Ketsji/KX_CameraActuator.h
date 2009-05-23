@@ -120,21 +120,24 @@ private :
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject* value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	/* set object to look at */
 	KX_PYMETHOD_DOC_O(KX_CameraActuator,SetObject);
 	/* get current object  */
 	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,GetObject);
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetMin);
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetMin);
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetMax);
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetMax);
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetHeight);
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetHeight);
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetXY);
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetXY);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,SetMin);
+	KX_PYMETHOD_DOC_NOARGS(KX_CameraActuator,GetMin);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,SetMax);
+	KX_PYMETHOD_DOC_NOARGS(KX_CameraActuator,GetMax);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,SetHeight);
+	KX_PYMETHOD_DOC_NOARGS(KX_CameraActuator,GetHeight);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,SetXY);
+	KX_PYMETHOD_DOC_NOARGS(KX_CameraActuator,GetXY);
+	
+	static PyObject*	pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 };
 

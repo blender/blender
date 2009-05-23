@@ -42,6 +42,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -168,6 +169,9 @@ static void graph_free(SpaceLink *sl)
 		BLI_freelistN(&si->ads->chanbase);
 		MEM_freeN(si->ads);
 	}
+	
+	if (si->ghostCurves.first)
+		free_fcurves(&si->ghostCurves);
 }
 
 
@@ -232,8 +236,14 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	
 	/* draw data */
-	if (ANIM_animdata_get_context(C, &ac))
-		graph_draw_curves(&ac, sipo, ar, grid);
+	if (ANIM_animdata_get_context(C, &ac)) {
+		/* draw ghost curves */
+		graph_draw_ghost_curves(&ac, sipo, ar, grid);
+		
+		/* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
+		graph_draw_curves(&ac, sipo, ar, grid, 0);
+		graph_draw_curves(&ac, sipo, ar, grid, 1);
+	}
 	
 	/* only free grid after drawing data, as we need to use it to determine sampling rate */
 	UI_view2d_grid_free(grid);
@@ -283,7 +293,7 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 	float col[3];
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_SHADE2, col);
+	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
@@ -336,33 +346,16 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_HEADER, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	graph_region_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_panels(C, ar, 1, NULL);
 }
-
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -576,6 +569,8 @@ void ED_spacetype_ipo(void)
 	art->draw= graph_buttons_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
+
+	graph_buttons_register(art);
 	
 	BKE_spacetype_register(st);
 }

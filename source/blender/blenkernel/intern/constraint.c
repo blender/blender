@@ -34,7 +34,6 @@
 #include <float.h>
 
 #include "MEM_guardedalloc.h"
-//XXX #include "nla.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -42,6 +41,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -66,6 +66,8 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
+#include "BKE_mesh.h"
+#include "BKE_shrinkwrap.h"
 #include "BKE_mesh.h"
 
 #ifndef DISABLE_PYTHON
@@ -95,7 +97,7 @@
 /* Find the first available, non-duplicate name for a given constraint */
 void unique_constraint_name (bConstraint *con, ListBase *list)
 {
-	BLI_uniquename(list, con, "Const", offsetof(bConstraint, name), 32);
+	BLI_uniquename(list, con, "Const", '.', offsetof(bConstraint, name), 32);
 }
 
 /* ----------------- Evaluation Loop Preparation --------------- */
@@ -389,15 +391,16 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 /* ------------ General Target Matrix Tools ---------- */
 
 /* function that sets the given matrix based on given vertex group in mesh */
-static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
+static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, float mat[][4])
 {
 	DerivedMesh *dm;
 	Mesh *me= ob->data;
-	EditMesh *em = EM_GetEditMesh(me);
+	EditMesh *em = BKE_mesh_get_editmesh(me);
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
 	int dgroup;
+	short freeDM = 0;
 	
 	/* initialize target matrix using target matrix */
 	Mat4CpyMat4(mat, ob->obmat);
@@ -410,10 +413,19 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
 		dm = CDDM_from_editmesh(em, ob->data);
+		freeDM= 1;
 	}
 	else {
-		/* when not in EditMode, this should exist */
-		dm = (DerivedMesh *)ob->derivedFinal;
+		/* when not in EditMode, use the 'final' derived mesh 
+		 *	- check if the custom data masks for derivedFinal mean that we can just use that
+		 *	  (this is more effficient + sufficient for most cases)
+		 */
+		if (ob->lastDataMask != CD_MASK_DERIVEDMESH) {
+			dm = mesh_get_derived_final(scene, ob, CD_MASK_DERIVEDMESH);
+			freeDM= 1;
+		}
+		else 
+			dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	
 	/* only continue if there's a valid DerivedMesh */
@@ -479,10 +491,10 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	}
 	
 	/* free temporary DerivedMesh created (in EditMode case) */
-	if (em) {
-		if (dm) dm->release(dm);
-		EM_EndEditMesh(me, em);
-	}
+	if (dm && freeDM)
+		dm->release(dm);
+	if (em)
+		BKE_mesh_end_editmesh(me, em);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */
@@ -544,7 +556,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][4], short from, short to, float headtail)
+static void constraint_target_to_mat4 (Scene *scene, Object *ob, char *substring, float mat[][4], short from, short to, float headtail)
 {
 	/*	Case OBJECT */
 	if (!strlen(substring)) {
@@ -561,7 +573,7 @@ static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][
 	 *		way as constraints can only really affect things on object/bone level.
 	 */
 	else if (ob->type == OB_MESH) {
-		contarget_get_mesh_mat(ob, substring, mat);
+		contarget_get_mesh_mat(scene, ob, substring, mat);
 		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	else if (ob->type == OB_LATTICE) {
@@ -643,7 +655,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
 {
 	if (VALID_CONS_TARGET(ct))
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct)
 		Mat4One(ct->matrix);
 }
@@ -1058,7 +1070,7 @@ static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstra
 	bKinematicConstraint *data= con->data;
 	
 	if (VALID_CONS_TARGET(ct)) 
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct) {
 		if (data->flag & CONSTRAINT_IK_AUTO) {
 			Object *ob= cob->ob;
@@ -1748,7 +1760,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
 		 */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* only execute target calculation if allowed */
 #ifndef DISABLE_PYTHON
@@ -1855,7 +1867,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		Mat4One(ct->matrix);
 		
 		/* get the transform matrix of the target */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* determine where in transform range target is */
 		/* data->type is mapped as follows for backwards compatability:
@@ -1891,7 +1903,6 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
 		
 		/* Get the appropriate information from the action */
-		// XXX probably we might need some special filtering methods to make this more efficient
 		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
 			bPose *pose;
@@ -1905,8 +1916,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			tchan= verify_pose_channel(pose, pchan->name);
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
-			// XXX we need some flags to prevent evaluation from setting disabled flags on all other settings
-			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, t);
+			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
 			chan_calc_mat(tchan);
@@ -1919,7 +1929,8 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			Object workob;
 			
 			/* evaluate using workob */
-			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, t);
+			// FIXME: we don't have any consistent standards on limiting effects on object...
+			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, NULL, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
@@ -3111,6 +3122,165 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 	transform_evaluate /* evaluate */
 };
 
+/* ---------- Shrinkwrap Constraint ----------- */
+
+static int shrinkwrap_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bShrinkwrapConstraint *data = con->data;
+		bConstraintTarget *ct;
+		
+		SINGLETARGETNS_GET_TARS(con, data->target, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+static void shrinkwrap_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bShrinkwrapConstraint *data = con->data;
+		bConstraintTarget *ct= list->first;
+		
+		SINGLETARGETNS_FLUSH_TARS(con, data->target, ct, list, nocopy)
+	}
+}
+
+
+static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+{
+	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
+	
+	if( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
+	{
+		int fail = FALSE;
+		float co[3] = {0.0f, 0.0f, 0.0f};
+		float no[3] = {0.0f, 0.0f, 0.0f};
+		float dist;
+
+		SpaceTransform transform;
+		DerivedMesh *target = object_get_derived_final(cob->scene, ct->tar, CD_MASK_BAREMESH);
+		BVHTreeRayHit hit;
+		BVHTreeNearest nearest;
+
+		BVHTreeFromMesh treeData;
+		memset( &treeData, 0, sizeof(treeData) );
+
+		nearest.index = -1;
+		nearest.dist = FLT_MAX;
+
+		hit.index = -1;
+		hit.dist = 100000.0f;  //TODO should use FLT_MAX.. but normal projection doenst yet supports it
+
+		Mat4One(ct->matrix);
+
+		if(target != NULL)
+		{
+			space_transform_from_matrixs(&transform, cob->matrix, ct->tar->obmat);
+
+			switch(scon->shrinkType)
+			{
+				case MOD_SHRINKWRAP_NEAREST_SURFACE:
+				case MOD_SHRINKWRAP_NEAREST_VERTEX:
+
+					if(scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
+						bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
+					else
+						bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
+
+					if(treeData.tree == NULL)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					space_transform_apply(&transform, co);
+
+					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
+					
+					dist = VecLenf(co, nearest.co);
+					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	/* linear interpolation */
+					space_transform_invert(&transform, co);
+				break;
+
+				case MOD_SHRINKWRAP_PROJECT:
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) no[0] = 1.0f;
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) no[1] = 1.0f;
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) no[2] = 1.0f;
+
+					if(INPR(no,no) < FLT_EPSILON)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					Normalize(no);
+
+
+					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
+					if(treeData.tree == NULL)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
+					{
+						fail = TRUE;
+						break;
+					}
+					VECCOPY(co, hit.co);
+				break;
+			}
+
+			free_bvhtree_from_mesh(&treeData);
+
+			target->release(target);
+
+			if(fail == TRUE)
+			{
+				/* Don't move the point */
+				co[0] = co[1] = co[2] = 0.0f;
+			}
+
+			/* co is in local object coordinates, change it to global and update target position */
+			VecMat4MulVecfl(co, cob->matrix, co);
+			VECCOPY(ct->matrix[3], co);
+		}
+	}
+}
+
+static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bConstraintTarget *ct= targets->first;
+	
+	/* only evaluate if there is a target */
+	if (VALID_CONS_TARGET(ct))
+	{
+		VECCOPY(cob->matrix[3], ct->matrix[3]);
+	}
+}
+
+static bConstraintTypeInfo CTI_SHRINKWRAP = {
+	CONSTRAINT_TYPE_SHRINKWRAP, /* type */
+	sizeof(bShrinkwrapConstraint), /* size */
+	"Shrinkwrap", /* name */
+	"bShrinkwrapConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	NULL, /* new data */
+	shrinkwrap_get_tars, /* get constraint targets */
+	shrinkwrap_flush_tars, /* flush constraint targets */
+	shrinkwrap_get_tarmat, /* get a target matrix */
+	shrinkwrap_evaluate /* evaluate */
+};
+
+
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
@@ -3142,6 +3312,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[17]= &CTI_RIGIDBODYJOINT;	/* RigidBody Constraint */
 	constraintsTypeInfo[18]= &CTI_CLAMPTO; 			/* ClampTo Constraint */	
 	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
+	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -3204,17 +3375,16 @@ void free_constraint_data (bConstraint *con)
 }
 
 /* Free all constraints from a constraint-stack */
-void free_constraints (ListBase *conlist)
+void free_constraints (ListBase *list)
 {
 	bConstraint *con;
 	
 	/* Free constraint data and also any extra data */
-	for (con= conlist->first; con; con= con->next) {
+	for (con= list->first; con; con= con->next)
 		free_constraint_data(con);
-	}
 	
 	/* Free the whole list */
-	BLI_freelistN(conlist);
+	BLI_freelistN(list);
 }
 
 /* Reassign links that constraints have to other data (called during file loading?) */
@@ -3265,6 +3435,23 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		if (cti && cti->copy_data)
 			cti->copy_data(con, srccon);
 	}
+}
+
+/* finds the 'active' constraint in a constraint stack */
+bConstraint *constraints_get_active (ListBase *list)
+{
+	bConstraint *con;
+	
+	/* search for the first constraint with the 'active' flag set */
+	if (list) {
+		for (con= list->first; con; con= con->next) {
+			if (con->flag & CONSTRAINT_ACTIVE)
+				return con;
+		}
+	}
+	
+	/* no active constraint found */
+	return NULL;
 }
 
 /* -------- Constraints and Proxies ------- */

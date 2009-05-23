@@ -39,7 +39,7 @@ RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray *darray, i
 	m_offset[0]= m_offset[1]= m_offset[2]= m_offset[3]= 0;
 	m_numvert = numvert;
 
-	m_edgecode = 255;
+//	m_edgecode = 255;
 	m_polyflags = 0;
 }
 
@@ -63,6 +63,7 @@ int RAS_Polygon::GetVertexOffset(int i)
 	return m_offset[i];
 }
 
+/*
 int RAS_Polygon::GetEdgeCode()
 {
 	return m_edgecode;
@@ -71,7 +72,7 @@ int RAS_Polygon::GetEdgeCode()
 void RAS_Polygon::SetEdgeCode(int edgecode)
 {
 	m_edgecode = edgecode;
-}
+}*/
 
 	
 bool RAS_Polygon::IsVisible()
@@ -94,6 +95,17 @@ void RAS_Polygon::SetCollider(bool visible)
 {
 	if(visible) m_polyflags |= COLLIDER;
 	else m_polyflags &= ~COLLIDER;
+}
+
+bool RAS_Polygon::IsTwoside()
+{
+	return (m_polyflags & TWOSIDE) != 0;
+}
+
+void RAS_Polygon::SetTwoside(bool twoside)
+{
+	if(twoside) m_polyflags |= TWOSIDE;
+	else m_polyflags &= ~TWOSIDE;
 }
 
 RAS_MaterialBucket* RAS_Polygon::GetMaterial()

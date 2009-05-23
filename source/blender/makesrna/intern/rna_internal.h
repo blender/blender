@@ -34,10 +34,26 @@ struct SDNA;
 
 /* Data structures used during define */
 
+typedef struct ContainerDefRNA {
+	void *next, *prev;
+
+	ContainerRNA *cont;
+	ListBase properties;
+} ContainerDefRNA;
+
+typedef struct FunctionDefRNA {
+	ContainerDefRNA cont;
+
+	FunctionRNA *func;
+	const char *srna;
+	const char *call;
+	const char *gencall;
+} FunctionDefRNA;
+
 typedef struct PropertyDefRNA {
 	struct PropertyDefRNA *next, *prev;
 
-	struct StructRNA *srna;
+	struct ContainerRNA *cont;
 	struct PropertyRNA *prop;
 
 	/* struct */
@@ -61,7 +77,7 @@ typedef struct PropertyDefRNA {
 } PropertyDefRNA;
 
 typedef struct StructDefRNA {
-	struct StructDefRNA *next, *prev;
+	ContainerDefRNA cont;
 
 	struct StructRNA *srna;
 	const char *filename;
@@ -72,7 +88,7 @@ typedef struct StructDefRNA {
 	const char *dnafromname;
 	const char *dnafromprop;
 
-	ListBase properties;
+	ListBase functions;
 } StructDefRNA;
 
 typedef struct AllocDefRNA {
@@ -109,6 +125,7 @@ void RNA_def_context(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);
 void RNA_def_curve(struct BlenderRNA *brna);
 void RNA_def_fluidsim(struct BlenderRNA *brna);
+void RNA_def_fcurve(struct BlenderRNA *brna);
 void RNA_def_gameproperty(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
@@ -138,11 +155,14 @@ void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_timeline_marker(struct BlenderRNA *brna);
 void RNA_def_sound(struct BlenderRNA *brna);
+void RNA_def_ui(struct BlenderRNA *brna);
 void RNA_def_userdef(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
 void RNA_def_vpaint(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
+
+/* Common Define functions */
 
 void rna_def_animdata_common(struct StructRNA *srna);
 
@@ -153,7 +173,9 @@ void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
+struct IDProperty *rna_ID_idproperties(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
+struct IDProperty *rna_IDPropertyGroup_idproperties(struct PointerRNA *ptr, int create);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
@@ -161,6 +183,10 @@ void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value,
 void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+
+/* API functions */
+
+void RNA_api_ui_layout(struct StructRNA *srna);
 
 /* ID Properties */
 
@@ -177,7 +203,6 @@ extern FloatPropertyRNA rna_IDProperty_double_array;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 
-struct IDProperty *rna_idproperties_get(struct PointerRNA *ptr, int create);
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
 
 /* Builtin Property Callbacks */
@@ -221,9 +246,17 @@ void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
 
+StructDefRNA *rna_find_struct_def(StructRNA *srna);
+FunctionDefRNA *rna_find_function_def(FunctionRNA *func);
+PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm);
+
 /* Pointer Handling */
 
 PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *type, void *data);
+
+/* Functions */
+
+int rna_parameter_size(struct PropertyRNA *parm);
 
 #endif /* RNA_INTERNAL_H */
 

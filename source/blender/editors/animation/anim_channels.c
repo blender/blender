@@ -100,6 +100,18 @@
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
 		else 									(channel)->flag &= ~(sflag); \
 	}
+	
+/* set/clear/toggle macro, where the flag is negative 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
+		else 									(channel)->flag |= (sflag); \
+	}
 
 /* -------------------------- Exposed API ----------------------------------- */
 
@@ -108,7 +120,6 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	short smode;
 	
 	/* try to build list of filtered items */
 	// XXX we don't need/supply animcontext for now, since in this case, there's nothing really essential there that isn't already covered
@@ -120,15 +131,7 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* skip if types don't match */
 		if (channel_type != ale->type)
-			continue;	
-		
-		/* flag setting mode 
-		 *	- depends on whether the provided channel is encountered
-		 */
-		if (ale->data == channel_data)
-			smode= ACHANNEL_SETFLAG_ADD;
-		else
-			smode= ACHANNEL_SETFLAG_CLEAR;
+			continue;
 		
 		/* flag to set depends on type */
 		switch (ale->type) {
@@ -136,14 +139,32 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				
-				ACHANNEL_SET_FLAG(agrp, smode, AGRP_ACTIVE);
+				ACHANNEL_SET_FLAG(agrp, ACHANNEL_SETFLAG_CLEAR, AGRP_ACTIVE);
 			}
 				break;
 			case ANIMTYPE_FCURVE:
 			{
 				FCurve *fcu= (FCurve *)ale->data;
 				
-				ACHANNEL_SET_FLAG(fcu, smode, FCURVE_ACTIVE);
+				ACHANNEL_SET_FLAG(fcu, ACHANNEL_SETFLAG_CLEAR, FCURVE_ACTIVE);
+			}
+				break;
+		}
+	}
+	
+	/* set active flag */
+	if (channel_data) {
+		switch (channel_type) {
+			case ANIMTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)channel_data;
+				agrp->flag |= AGRP_ACTIVE;
+			}
+				break;
+			case ANIMTYPE_FCURVE:
+			{
+				FCurve *fcu= (FCurve *)channel_data;
+				fcu->flag |= FCURVE_ACTIVE;
 			}
 				break;
 		}
@@ -695,6 +716,7 @@ enum {
 	ACHANNEL_SETTING_PROTECT = 1,
 	ACHANNEL_SETTING_MUTE,
 	ACHANNEL_SETTING_VISIBLE,
+	ACHANNEL_SETTING_EXPAND,
 } eAnimChannel_Settings;
 
 /* defines for setting animation-channel flags */
@@ -715,30 +737,158 @@ EnumPropertyItem prop_animchannel_settings_types[] = {
 
 /* ------------------- */
 
+/* macro to be used in setflag_anim_channels */
+#define ASUBCHANNEL_SEL_OK(ale) ( (onlysel == 0) || \
+		((ale->id) && (GS(ale->id->name)==ID_OB) && (((Object *)ale->id)->flag & SELECT)) ) 
+
 /* Set/clear a particular flag (setting) for all selected + visible channels 
  *	setting: the setting to modify
  *	mode: eAnimChannels_SetFlag
+ *	onlysel: only selected channels get the flag set
  */
-static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
+static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, short onlysel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_SEL);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	if (onlysel) filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* affect selected channels */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		switch (ale->type) {
+			case ANIMTYPE_OBJECT:
+			{
+				Base *base= (Base *)ale->data;
+				Object *ob= base->object;
+				
+				if (setting == ACHANNEL_SETTING_EXPAND) {
+					// XXX - settings should really be moved out of ob->nlaflag
+					if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_COLLAPSED;
+					else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag &= ~OB_ADS_COLLAPSED;
+					else 									ob->nlaflag |= OB_ADS_COLLAPSED;
+				}
+			}
+				break;
+			
+			case ANIMTYPE_FILLACTD:
+			{
+				bAction *act= (bAction *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG_NEG(act, mode, ACT_COLLAPSED);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_FILLDRIVERS:
+			{
+				AnimData *adt= (AnimData *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG_NEG(adt, mode, ADT_DRIVERS_COLLAPSED);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_FILLMATD:
+			{
+				Object *ob= (Object *)ale->data;
+				
+				// XXX - settings should really be moved out of ob->nlaflag
+				if ((onlysel == 0) || (ob->flag & SELECT)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_SHOWMATS;
+						else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag |= OB_ADS_SHOWMATS;
+						else 									ob->nlaflag &= ~OB_ADS_SHOWMATS;
+					}
+				}
+			}
+				break;
+					
+			case ANIMTYPE_DSMAT:
+			{
+				Material *ma= (Material *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(ma, mode, MA_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSLAM:
+			{
+				Lamp *la= (Lamp *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(la, mode, LA_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSCAM:
+			{
+				Camera *ca= (Camera *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(ca, mode, CAM_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSCUR:
+			{
+				Curve *cu= (Curve *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(cu, mode, CU_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSSKEY:
+			{
+				Key *key= (Key *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(key, mode, KEYBLOCK_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSWOR:
+			{
+				World *wo= (World *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(wo, mode, WO_DS_EXPAND);
+					}
+				}
+			}
+				break;
+				
 			case ANIMTYPE_GROUP:
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				
-				/* only 'protect' is available */
-				if (setting == ACHANNEL_SETTING_PROTECT) {
-					ACHANNEL_SET_FLAG(agrp, mode, AGRP_PROTECTED);
+				switch (setting) {
+					case ACHANNEL_SETTING_PROTECT:
+						ACHANNEL_SET_FLAG(agrp, mode, AGRP_PROTECTED);
+						break;
+					case ACHANNEL_SETTING_EXPAND:
+						ACHANNEL_SET_FLAG(agrp, mode, AGRP_EXPANDED);
+						break;
 				}
 			}
 				break;
@@ -746,15 +896,16 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
 			{
 				FCurve *fcu= (FCurve *)ale->data;
 				
-				/* mute */
-				if (setting == ACHANNEL_SETTING_MUTE) {
-					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_MUTED);
-				}
-				else if (setting == ACHANNEL_SETTING_PROTECT) {
-					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_PROTECTED);
-				}
-				else if (setting == ACHANNEL_SETTING_VISIBLE) {
-					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_VISIBLE);
+				switch (setting) {
+					case ACHANNEL_SETTING_MUTE:
+						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_MUTED);
+						break;
+					case ACHANNEL_SETTING_PROTECT:
+						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_PROTECTED);
+						break;
+					case ACHANNEL_SETTING_VISIBLE:
+						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_VISIBLE);
+						break;
 				}
 			}
 				break;
@@ -762,14 +913,13 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
 			{
 				bGPDlayer *gpl= (bGPDlayer *)ale->data;
 				
-				/* 'protect' and 'mute' */
-				if (setting == ACHANNEL_SETTING_MUTE) {
-					/* mute */
-					ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_HIDE);
-				}
-				else if (setting == ACHANNEL_SETTING_PROTECT) {
-					/* protected */
-					ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_LOCKED);
+				switch (setting) {
+					case ACHANNEL_SETTING_MUTE:
+						ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_HIDE);
+						break;
+					case ACHANNEL_SETTING_PROTECT:
+						ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_LOCKED);
+						break;
 				}
 			}
 				break;
@@ -795,7 +945,7 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 	setting= RNA_enum_get(op->ptr, "type");
 	
 	/* modify setting */
-	setflag_anim_channels(&ac, setting, mode);
+	setflag_anim_channels(&ac, setting, mode, 1);
 	
 	/* set notifier tha things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_CHANNELS);
@@ -886,6 +1036,88 @@ void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
 	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
+}
+
+/* ********************** Expand Channels Operator *********************** */
+
+static int animchannels_expand_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short onlysel= 1;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* only affect selected channels? */
+	if (RNA_boolean_get(op->ptr, "all"))
+		onlysel= 0;
+	
+	/* modify setting */
+	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_ADD, onlysel);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_CHANNELS);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_channels_expand (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Expand Channels";
+	ot->idname= "ANIM_OT_channels_expand";
+	
+	/* api callbacks */
+	ot->exec= animchannels_expand_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Expand all channels (not just selected ones)");
+}
+
+/* ********************** Collapse Channels Operator *********************** */
+
+static int animchannels_collapse_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short onlysel= 1;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* only affect selected channels? */
+	if (RNA_boolean_get(op->ptr, "all"))
+		onlysel= 0;
+	
+	/* modify setting */
+	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_CLEAR, onlysel);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_CHANNELS);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_channels_collapse (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Collapse Channels";
+	ot->idname= "ANIM_OT_channels_collapse";
+	
+	/* api callbacks */
+	ot->exec= animchannels_collapse_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -1262,8 +1494,9 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				offset = 0;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle protection */
-				fcu->flag ^= FCURVE_PROTECTED;
+				/* toggle protection (only if there's a toggle there) */
+				if (fcu->bezt)
+					fcu->flag ^= FCURVE_PROTECTED;
 			}
 			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
@@ -1389,11 +1622,11 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
+void ANIM_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Click on Channels";
-	ot->idname= "ANIM_OT_channels_mouseclick";
+	ot->idname= "ANIM_OT_channels_click";
 	
 	/* api callbacks */
 	ot->invoke= animchannels_mouseclick_invoke;
@@ -1414,7 +1647,7 @@ void ED_operatortypes_animchannels(void)
 {
 	WM_operatortype_append(ANIM_OT_channels_select_all_toggle);
 	WM_operatortype_append(ANIM_OT_channels_select_border);
-	WM_operatortype_append(ANIM_OT_channels_mouseclick);
+	WM_operatortype_append(ANIM_OT_channels_click);
 	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
@@ -1429,6 +1662,9 @@ void ED_operatortypes_animchannels(void)
 	//WM_operatortype_append(ANIM_OT_channels_move_top);
 	//WM_operatortype_append(ANIM_OT_channels_move_bottom);
 	
+	WM_operatortype_append(ANIM_OT_channels_expand);
+	WM_operatortype_append(ANIM_OT_channels_collapse);
+	
 	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 }
 
@@ -1439,9 +1675,9 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	/* selection */
 		/* click-select */
 		// XXX for now, only leftmouse.... 
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -1457,6 +1693,13 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	
 	/* settings - specialised hotkeys */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
+	
+	/* expand/collapse */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, 0, 0);
+	
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
 	
 	/* rearranging - actions only */
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);

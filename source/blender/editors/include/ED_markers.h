@@ -28,6 +28,11 @@
 #ifndef ED_MARKERS_H
 #define ED_MARKERS_H
 
+struct wmWindowManager;
+struct bContext;
+struct TimeMarker;
+
+/* Drawing API ------------------------------ */
 
 /* flags for drawing markers */
 enum {
@@ -35,11 +40,18 @@ enum {
 	DRAW_MARKERS_LOCAL	= (1<<1)
 };
 
-struct wmWindowManager;
-struct bContext;
-
 void draw_markers_time(const struct bContext *C, int flag);
-int find_nearest_marker_time(ListBase *markers, float dx);
+
+/* Backend API ----------------------------- */
+
+struct TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x);
+int ED_markers_find_nearest_marker_time(ListBase *markers, float x);
+
+void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *last);
+
+void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
+
+/* Operators ------------------------------ */
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void); 

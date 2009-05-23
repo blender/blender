@@ -42,48 +42,55 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_sculpt.h"
 #include "ED_util.h"
 
-#include "UI_text.h"
+#include "UI_interface.h"
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
 
+/* frees all editmode stuff */
 void ED_editors_exit(bContext *C)
 {
-	Object *ob= CTX_data_edit_object(C);
+	Scene *sce;
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	undo_imagepaint_clear();
 	
-	/* global in meshtools... */
-	mesh_octree_table(ob, NULL, NULL, 'e');
-	
-	if(ob) {
-		if(ob->type==OB_MESH) {
-			Mesh *me= ob->data;
-			if(me->edit_btmesh) {
-				EDBM_FreeEditBMesh(me->edit_btmesh);
-				MEM_freeN(me->edit_btmesh);
-				me->edit_btmesh= NULL;
+	for(sce=G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->obedit) {
+			Object *ob= sce->obedit;
+		
+			/* global in meshtools... */
+			mesh_octree_table(ob, NULL, NULL, 'e');
+			
+			if(ob) {
+				if(ob->type==OB_MESH) {
+					Mesh *me= ob->data;
+					if(me->edit_btmesh) {
+						EDBM_FreeEditBMesh(me->edit_btmesh);
+						MEM_freeN(me->edit_btmesh);
+						me->edit_btmesh= NULL;
+					}
+				}
+				else if(ob->type==OB_ARMATURE) {
+					ED_armature_edit_free(ob);
+				}
+				else if(ob->type==OB_FONT) {
+					//			free_editText();
+				}
+				//		else if(ob->type==OB_MBALL) 
+				//			BLI_freelistN(&editelems);
+				//	free_editLatt();
+				//	free_posebuf();
 			}
 		}
-		else if(ob->type==OB_ARMATURE) {
-			ED_armature_edit_free(ob);
-		}
-		else if(ob->type==OB_FONT) {
-			//			free_editText();
-		}
-		//		else if(ob->type==OB_MBALL) 
-		//			BLI_freelistN(&editelems);
 	}
-	
-	//	free_editLatt();
-	//	free_posebuf();
 	
 }
 
@@ -115,7 +122,7 @@ int GetButStringLength(char *str)
 {
 	int rt;
 	
-	rt= UI_GetStringWidth(G.font, str, (U.transopts & USER_TR_BUTTONS));
+	rt= UI_GetStringWidth(str);
 	
 	return rt + 15;
 }

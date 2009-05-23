@@ -317,6 +317,15 @@ typedef struct bDistLimitConstraint {
 	int 		pad;
 } bDistLimitConstraint;
 
+typedef struct bShrinkwrapConstraint {
+	Object		*target;
+	float		dist;			/* distance to kept from target */
+	short		shrinkType;		/* shrink type (look on MOD shrinkwrap for values) */
+	char		projAxis;		/* axis to project over UP_X, UP_Y, UP_Z */
+	char 		pad[9];
+} bShrinkwrapConstraint;
+
+
 /* ------------------------------------------ */
 
 /* bConstraint->type 
@@ -344,10 +353,11 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
 	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
+	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
 	
 	
 	/* NOTE: everytime a new constraint is added, update this */
-	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_TRANSFORM
+	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_SHRINKWRAP
 } B_CONSTRAINT_TYPES; 
 
 /* bConstraint->flag */

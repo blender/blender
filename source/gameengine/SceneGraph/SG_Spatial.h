@@ -61,7 +61,7 @@ protected:
 	
 	SG_BBox			m_bbox;
 	MT_Scalar		m_radius;
-	
+	bool			m_modified;
 
 public:
 
@@ -180,7 +180,7 @@ public:
 
 	MT_Transform GetWorldTransform() const;
 
-	bool	ComputeWorldTransforms(		const SG_Spatial *parent);
+	bool	ComputeWorldTransforms(const SG_Spatial *parent, bool& parentUpdated);
 
 	/**
 	 * Bounding box functions.
@@ -193,9 +193,14 @@ public:
 	
 	MT_Scalar Radius() const { return m_radius; }
 	void SetRadius(MT_Scalar radius) { m_radius = radius; }
+	bool IsModified() { return m_modified; }
 	
 protected:
 	friend class SG_Controller;
+	friend class KX_BoneParentRelation;
+	friend class KX_VertexParentRelation;
+	friend class KX_SlowParentRelation;
+	friend class KX_NormalParentRelation;
 	
 	/** 
 	 * Protected constructor this class is not
@@ -223,8 +228,10 @@ protected:
 		bool 
 	UpdateSpatialData(
 		const SG_Spatial *parent,
-		double time
+		double time,
+		bool& parentUpdated
 	);
+	void SetModified(bool modified) { m_modified = modified; }
 
 };
 

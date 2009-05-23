@@ -120,6 +120,7 @@ def setup_staticlibs(lenv):
 		lenv['BF_ICONV_LIBPATH']
 		]
 
+	libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
 	if lenv['WITH_BF_PYTHON']:
 		libincs += Split(lenv['BF_PYTHON_LIBPATH'])
 	if lenv['WITH_BF_SDL']:
@@ -134,7 +135,6 @@ def setup_staticlibs(lenv):
 			statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
-		libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
 	if lenv['WITH_BF_OPENAL']:
 		libincs += Split(lenv['BF_OPENAL_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENAL']:
@@ -158,13 +158,15 @@ def setup_syslibs(lenv):
 		lenv['BF_ZLIB_LIB']
 		]
 
+	syslibs += Split(lenv['BF_FREETYPE_LIB'])
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
-		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
-			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
-		else:
-			syslibs.append(lenv['BF_PYTHON_LIB'])
+		#if not lenv['BF_NO_PYDEBUG'] and lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
+		#	print "using debug py"
+		#	syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
+		#else:
+			#print "not using debug py"
+		syslibs.append(lenv['BF_PYTHON_LIB'])
 	if lenv['WITH_BF_INTERNATIONAL']:
-		syslibs += Split(lenv['BF_FREETYPE_LIB'])
 		syslibs += Split(lenv['BF_GETTEXT_LIB'])
 	if lenv['WITH_BF_OPENAL']:
 		if not lenv['WITH_BF_STATICOPENAL']:
@@ -189,6 +191,9 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_OPENGL_LIB'])
 	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
+	if lenv['WITH_BF_LCMS']:
+		syslibs.append(lenv['BF_LCMS_LIB'])
+
 
 	syslibs += lenv['LLIBS']
 
@@ -353,6 +358,8 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
 	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
 	commands.getoutput(cmd)

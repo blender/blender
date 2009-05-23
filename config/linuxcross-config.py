@@ -35,9 +35,6 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadGC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_FMOD = False
-BF_FMOD = LIBDIR + '/fmod'
-
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/gcc/openexr'
@@ -76,11 +73,6 @@ BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
-WITH_BF_FTGL = True
-BF_FTGL = LIBDIR + '/ftgl'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = False
 

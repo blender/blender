@@ -33,10 +33,13 @@
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "PIL_time.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
@@ -47,13 +50,16 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
+
 #include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -65,9 +71,10 @@
 #include "WM_types.h"
 
 #include "wm.h"
-#include "wm_window.h"
-#include "wm_subwindow.h"
+#include "wm_draw.h"
 #include "wm_event_system.h"
+#include "wm_subwindow.h"
+#include "wm_window.h"
 
 
 
@@ -147,12 +154,12 @@ char *WM_operator_pystring(wmOperator *op)
 
 	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
 
-	iterprop= RNA_struct_iterator_property(op->ptr);
+	iterprop= RNA_struct_iterator_property(op->ptr->type);
 	RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
-		arg_name= RNA_property_identifier(&iter.ptr, prop);
+		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
@@ -200,18 +207,20 @@ void WM_operator_properties_free(PointerRNA *ptr)
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
 	}
-	else if (RNA_property_type(op->ptr, prop) != PROP_ENUM) {
+	else if (RNA_property_type(prop) != PROP_ENUM) {
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {
-		head= uiPupMenuBegin(op->type->name, 0);
-		uiMenuItemsEnumO(head, op->type->idname, "type");
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(C, op->type->name, 0);
+		layout= uiPupMenuLayout(pup);
+		uiItemsEnumO(layout, op->type->idname, "type");
+		uiPupMenuEnd(C, pup);
 	}
 
 	return OPERATOR_CANCELLED;
@@ -220,11 +229,13 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("OK?", ICON_HELP);
-	uiMenuItemO(head, 0, op->type->idname);
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin(C, "OK?", ICON_HELP);
+	layout= uiPupMenuLayout(pup);
+	uiItemO(layout, NULL, 0, op->type->idname);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -246,6 +257,66 @@ int WM_operator_winactive(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
 	return 1;
+}
+
+/* op->invoke */
+static void redo_cb(bContext *C, void *arg_op, void *arg2)
+{
+	wmOperator *lastop= arg_op;
+	
+	if(lastop) {
+		ED_undo_pop(C);
+		WM_operator_repeat(C, lastop);
+	}
+}
+
+static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= arg_op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+	
+	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFunc(block, redo_cb, arg_op, NULL);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
+	uiDefAutoButsRNA(C, layout, &ptr);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+int WM_operator_redo(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int retval= OPERATOR_CANCELLED;
+	
+	if(op->type->exec)
+		retval= op->type->exec(C, op);
+
+	if(retval != OPERATOR_CANCELLED)
+		uiPupBlock(C, wm_block_create_redo, op);
+
+	return retval;
+}
+
+int WM_operator_redo_popup(bContext *C, wmOperator *op)
+{
+	uiPupBlock(C, wm_block_create_redo, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 /* ************ window / screen operator definitions ************** */
@@ -311,21 +382,23 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	struct RecentFile *recent;
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int i, ofs= 0;
 
-	head= uiPupMenuBegin("Open Recent", 0);
+	pup= uiPupMenuBegin(C, "Open Recent", 0);
+	layout= uiPupMenuLayout(pup);
 
 	if(G.sce[0]) {
-		uiMenuItemIntO(head, G.sce, 0, op->type->idname, "nr", 1);
+		uiItemIntO(layout, G.sce, 0, op->type->idname, "nr", 1);
 		ofs = 1;
 	}
 	
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++)
 		if(strcmp(recent->filename, G.sce))
-			uiMenuItemIntO(head, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
+			uiItemIntO(layout, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
 
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -1199,6 +1272,93 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 }
 
+/* ************************** timer for testing ***************** */
+
+/* uses no type defines, fully local testing function anyway... ;) */
+
+static int ten_timer_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	double stime= PIL_check_seconds_timer();
+	int type = RNA_int_get(op->ptr, "type");
+	int a, time;
+	char tmpstr[128];
+	
+	WM_cursor_wait(1);
+	
+	for(a=0; a<10; a++) {
+		if (type==0) {
+			ED_region_do_draw(C, ar);
+		} 
+		else if (type==1) {
+			wmWindow *win= CTX_wm_window(C);
+			
+			ED_region_tag_redraw(ar);
+			wm_draw_update(C);
+			
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+		}
+		else if (type==2) {
+			wmWindow *win= CTX_wm_window(C);
+			ScrArea *sa;
+			
+			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
+				ED_area_tag_redraw(sa);
+			wm_draw_update(C);
+			
+			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+		}
+		else if (type==3) {
+			Scene *scene= CTX_data_scene(C);
+			
+			if(a & 1) scene->r.cfra--;
+			else scene->r.cfra++;
+			scene_update_for_newframe(scene, scene->lay);
+		}
+		else {
+			ED_undo_pop(C);
+			ED_undo_redo(C);
+		}
+	}
+	
+	time= (int) ((PIL_check_seconds_timer()-stime)*1000);
+	
+	if(type==0) sprintf(tmpstr, "10 x Draw Region: %d ms", time);
+	if(type==1) sprintf(tmpstr, "10 x Draw Region and Swap: %d ms", time);
+	if(type==2) sprintf(tmpstr, "10 x Draw Window and Swap: %d ms", time);
+	if(type==3) sprintf(tmpstr, "Anim Step: %d ms", time);
+	if(type==4) sprintf(tmpstr, "10 x Undo/Redo: %d ms", time);
+	
+	WM_cursor_wait(0);
+	
+	uiPupMenuNotice(C, tmpstr);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_ten_timer(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_type_items[] = {
+	{0, "DRAW", "Draw Region", ""},
+	{1, "DRAWSWAP", "Draw Region + Swap", ""},
+	{2, "DRAWWINSWAP", "Draw Window + Swap", ""},
+	{3, "ANIMSTEP", "Anim Step", ""},
+	{4, "UNDO", "Undo/Redo", ""},
+	{0, NULL, NULL, NULL}};
+	
+	ot->name= "Ten Timer";
+	ot->idname= "WM_OT_ten_timer";
+	
+	ot->invoke= WM_menu_invoke;
+	ot->exec= ten_timer_exec;
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+
+}
+
+
+
 /* ******************************************************* */
  
 /* called on initialize WM_exit() */
@@ -1220,6 +1380,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
+	WM_operatortype_append(WM_OT_ten_timer);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -1241,5 +1402,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 }
 

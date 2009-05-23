@@ -599,11 +599,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_EMITTER);
 	RNA_def_property_ui_text(prop, "Emitter", "Render emitter Object also.");
 
-	//could not find this one in the UI - should this be read only?
-	prop= RNA_def_property(srna, "keys", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_KEYS);
-	RNA_def_property_ui_text(prop, "Keys", "");
-
 	/* used?
 	prop= RNA_def_property(srna, "adapt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_ADAPT);

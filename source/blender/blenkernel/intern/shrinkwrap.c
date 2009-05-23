@@ -38,6 +38,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
@@ -47,6 +48,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
@@ -95,7 +97,7 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 
 /* get derived mesh */
 //TODO is anyfunction that does this? returning the derivedFinal witouth we caring if its in edit mode or not?
-static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
+DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
 	BMEditMesh *em = me->edit_btmesh;
@@ -104,7 +106,7 @@ static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, Cu
 	{
 		DerivedMesh *final = NULL;
 		editbmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
-		
+
 		return final;
 	}
 	else
@@ -152,7 +154,6 @@ static float squared_dist(const float *a, const float *b)
 	return INPR(tmp, tmp);
 }
 
-
 /*
  * Shrinkwrap to the nearest vertex
  *
@@ -187,8 +188,17 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
-		VECCOPY(tmp_co, co);
-		space_transform_apply(&calc->local2target, tmp_co); //Convert the coordinates to the tree coordinates
+
+		//Convert the vertex to tree coordinates
+		if(calc->vert)
+		{
+			VECCOPY(tmp_co, calc->vert[i].co);
+		}
+		else
+		{
+			VECCOPY(tmp_co, co);
+		}
+		space_transform_apply(&calc->local2target, tmp_co);
 
 		//Use local proximity heuristics (to reduce the nearest search)
 		//
@@ -291,174 +301,117 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 	int i;
 
 	//Options about projection direction
-	const char use_normal    = calc->smd->shrinkOpts;
-	float proj_axis[3] = {0.0f, 0.0f, 0.0f};
-	MVert *vert  = NULL; //Needed in case of vertex normal
-	DerivedMesh* ss_mesh = NULL;
+	const char use_normal	= calc->smd->shrinkOpts;
+	float proj_axis[3]		= {0.0f, 0.0f, 0.0f};
 
 	//Raycast and tree stuff
 	BVHTreeRayHit hit;
-	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh; 	//target
+	BVHTreeFromMesh treeData= NULL_BVHTreeFromMesh;
 
 	//auxiliar target
-	DerivedMesh * aux_mesh = NULL;
-	BVHTreeFromMesh auxData= NULL_BVHTreeFromMesh;
+	DerivedMesh *auxMesh	= NULL;
+	BVHTreeFromMesh auxData	= NULL_BVHTreeFromMesh;
 	SpaceTransform local2aux;
 
-do
-{
+	//If the user doesn't allows to project in any direction of projection axis
+	//then theres nothing todo.
+	if((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
+		return;
+
 
 	//Prepare data to retrieve the direction in which we should project each vertex
 	if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
 	{
-		//No Mvert information: jump to "free memory and return" part
-		if(calc->original == NULL) break;
-
-		if(calc->smd->subsurfLevels)
-		{
-			SubsurfModifierData smd;
-			memset(&smd, 0, sizeof(smd));
-			smd.subdivType = ME_CC_SUBSURF;			//catmull clark
-			smd.levels = calc->smd->subsurfLevels;	//levels
-
-			ss_mesh = subsurf_make_derived_from_derived(calc->original, &smd, FALSE, NULL, 0, 0);
-
-			if(ss_mesh)
-			{
-				vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
-				if(vert)
-				{
-					//TRICKY: this code assumes subsurface will have the transformed original vertices
-					//in their original order at the end of the vert array.
-					vert = vert
-						 + ss_mesh->getNumVerts(ss_mesh)
-						 - calc->original->getNumVerts(calc->original);
-				}
-			}
-
-			//To make sure we are not letting any memory behind
-			assert(smd.emCache == NULL);
-			assert(smd.mCache == NULL);
-		}
-		else
-			vert = calc->original->getVertDataArray(calc->original, CD_MVERT);
-
-		//Not able to get vert information: jump to "free memory and return" part
-		if(vert == NULL) break;
+		if(calc->vert == NULL) return;
 	}
 	else
 	{
-		//The code supports any axis that is a combination of X,Y,Z.. altought currently UI only allows to set the 3 diferent axis
+		//The code supports any axis that is a combination of X,Y,Z
+		//altought currently UI only allows to set the 3 diferent axis
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
 
 		Normalize(proj_axis);
 
-		//Invalid projection direction: jump to "free memory and return" part
-		if(INPR(proj_axis, proj_axis) < FLT_EPSILON) break; 
+		//Invalid projection direction
+		if(INPR(proj_axis, proj_axis) < FLT_EPSILON)
+			return; 
 	}
 
-	//If the user doesn't allows to project in any direction of projection axis... then theres nothing todo.
-	if((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
-		break; //jump to "free memory and return" part
-
-
-	//Build target tree
-	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keepDist, 4, 6));
-	if(treeData.tree == NULL)
-		break; //jump to "free memory and return" part
-
-
-	//Build auxiliar target
 	if(calc->smd->auxTarget)
 	{
+		auxMesh = object_get_derived_final(scene, calc->smd->auxTarget, CD_MASK_BAREMESH);
 		space_transform_setup( &local2aux, calc->ob, calc->smd->auxTarget);
-
-		aux_mesh = CDDM_copy( object_get_derived_final(scene, calc->smd->auxTarget, CD_MASK_BAREMESH) ); 		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
-		if(aux_mesh)
-			BENCH(bvhtree_from_mesh_faces(&auxData, aux_mesh, 0.0, 4, 6));
-		else
-			printf("Auxiliar target finalDerived mesh is null\n");
 	}
 
+	//After sucessufuly build the trees, start projection vertexs
+	if( bvhtree_from_mesh_faces(&treeData, calc->target, calc->keepDist, 4, 6)
+	&&  (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
+	{
 
-	//Now, everything is ready to project the vertexs!
 #ifndef __APPLE__
 #pragma omp parallel for private(i,hit) schedule(static)
 #endif
-	for(i = 0; i<calc->numVerts; ++i)
-	{
-		float *co = calc->vertexCos[i];
-		float tmp_co[3], tmp_no[3];
-		float lim = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
-		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
-
-		if(weight == 0.0f) continue;
-
-		if(ss_mesh)
+		for(i = 0; i<calc->numVerts; ++i)
 		{
-			VECCOPY(tmp_co, vert[i].co);
-		}
-		else
-		{
-			VECCOPY(tmp_co, co);
-		}
+			float *co = calc->vertexCos[i];
+			float tmp_co[3], tmp_no[3];
+			float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+
+			if(weight == 0.0f) continue;
+
+			if(calc->vert)
+			{
+				VECCOPY(tmp_co, calc->vert[i].co);
+				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+					NormalShortToFloat(tmp_no, calc->vert[i].no);
+				else
+					VECCOPY(tmp_no, proj_axis);
+			}
+			else
+			{
+				VECCOPY(tmp_co, co);
+				VECCOPY(tmp_no, proj_axis);
+			}
 
 
-		if(vert)
-			NormalShortToFloat(tmp_no, vert[i].no);
-		else
-			VECCOPY( tmp_no, proj_axis );
+			hit.index = -1;
+			hit.dist = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
+
+			//Project over positive direction of axis
+			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR)
+			{
+
+				if(auxData.tree)
+					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+			}
+
+			//Project over negative direction of axis
+			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
+			{
+				float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
 
 
-		hit.index = -1;
-		hit.dist = lim;
+				if(auxData.tree)
+					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+			}
 
 
-		//Project over positive direction of axis
-		if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR)
-		{
-
-			if(auxData.tree)
-				normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
-
-			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-		}
-
-		//Project over negative direction of axis
-		if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
-		{
-			float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
-
-
-			if(auxData.tree)
-				normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
-
-			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
-		}
-
-
-		if(hit.index != -1)
-		{
-			VecLerpf(co, co, hit.co, weight);
+			if(hit.index != -1)
+			{
+				VecLerpf(co, co, hit.co, weight);
+			}
 		}
 	}
 
-
-//Simple do{} while(0) structure to allow to easily jump to the "free memory and return" part
-} while(0);
-
 	//free data structures
-
 	free_bvhtree_from_mesh(&treeData);
 	free_bvhtree_from_mesh(&auxData);
-
-	if(aux_mesh)
-		aux_mesh->release(aux_mesh);
-
-	if(ss_mesh)
-		ss_mesh->release(ss_mesh);
 }
 
 /*
@@ -473,8 +426,6 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
-
-
 
 	//Create a bvh-tree of the given target
 	BENCH(bvhtree_from_mesh_faces( &treeData, calc->target, 0.0, 2, 6));
@@ -501,7 +452,14 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates
-		VECCOPY(tmp_co, co);
+		if(calc->vert)
+		{
+			VECCOPY(tmp_co, calc->vert[i].co);
+		}
+		else
+		{
+			VECCOPY(tmp_co, co);
+		}
 		space_transform_apply(&calc->local2target, tmp_co);
 
 		//Use local proximity heuristics (to reduce the nearest search)
@@ -540,53 +498,89 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		}
 	}
 
-
 	free_bvhtree_from_mesh(&treeData);
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
-	
+
+	DerivedMesh *ss_mesh	= NULL;
 	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
-	
+
 	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
 	if(smd->target == ob) smd->target = NULL;
 	if(smd->auxTarget == ob) smd->auxTarget = NULL;
-	
-	
+
+
 	//Configure Shrinkwrap calc data
 	calc.smd = smd;
 	calc.ob = ob;
-	calc.original = dm;
 	calc.numVerts = numVerts;
 	calc.vertexCos = vertexCos;
-	
+
 	//DeformVertex
 	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
-	if(calc.original)
+	if(dm)
 	{
-		calc.dvert = calc.original->getVertDataArray(calc.original, CD_MDEFORMVERT);
+		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
 	else if(calc.ob->type == OB_LATTICE)
 	{
 		calc.dvert = lattice_get_deform_verts(calc.ob);
 	}
-	
-	
+
+
 	if(smd->target)
 	{
-		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
-		calc.target = CDDM_copy( object_get_derived_final(scene, smd->target, CD_MASK_BAREMESH) );
-		
-		//TODO there might be several "bugs" on non-uniform scales matrixs.. because it will no longer be nearest surface, not sphere projection
+		calc.target = object_get_derived_final(scene, smd->target, CD_MASK_BAREMESH);
+
+		//TODO there might be several "bugs" on non-uniform scales matrixs
+		//because it will no longer be nearest surface, not sphere projection
 		//because space has been deformed
 		space_transform_setup(&calc.local2target, ob, smd->target);
-		
-		calc.keepDist = smd->keepDist;	//TODO: smd->keepDist is in global units.. must change to local
+
+		//TODO: smd->keepDist is in global units.. must change to local
+		calc.keepDist = smd->keepDist;
 	}
-	
-	
+
+
+
+	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
+
+	if(dm != NULL)
+	{
+		//Setup arrays to get vertexs positions, normals and deform weights
+		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
+		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+
+		//Using vertexs positions/normals as if a subsurface was applied 
+		if(smd->subsurfLevels)
+		{
+			SubsurfModifierData ssmd;
+			memset(&ssmd, 0, sizeof(ssmd));
+			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
+			ssmd.levels		= smd->subsurfLevels;	//levels
+
+			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, FALSE, NULL, 0, 0);
+
+			if(ss_mesh)
+			{
+				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
+				if(calc.vert)
+				{
+					//TRICKY: this code assumes subsurface will have the transformed original vertices
+					//in their original order at the end of the vert array.
+					calc.vert = calc.vert + ss_mesh->getNumVerts(ss_mesh) - dm->getNumVerts(dm);
+				}
+			}
+
+			//Just to make sure we are not letting any memory behind
+			assert(ssmd.emCache == NULL);
+			assert(ssmd.mCache == NULL);
+		}
+	}
+
 	//Projecting target defined - lets work!
 	if(calc.target)
 	{
@@ -594,20 +588,20 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene,
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
-				break;
-				
+			break;
+
 			case MOD_SHRINKWRAP_PROJECT:
 				BENCH(shrinkwrap_calc_normal_projection(&calc, scene));
-				break;
-				
+			break;
+
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
 				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
-				break;
+			break;
 		}
 	}
-	
+
 	//free memory
-	if(calc.target)
-		calc.target->release( calc.target );
+	if(ss_mesh)
+		ss_mesh->release(ss_mesh);
 }
 

@@ -127,13 +127,10 @@ CValue* KX_NearSensor::GetReplica()
 		}
 		
 	}
-	//static_cast<KX_TouchEventManager*>(m_eventmgr)->RegisterSensor(this);
-	//todo: make sure replication works fine
-	//>m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	
-	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
+	//Wrong: the parent object could be a child, this code works only if it is a root parent.
+	//Anyway, at this stage, the parent object is already synchronized, nothing to do.
+	//bool parentUpdated = false;
+	//((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL, parentUpdated);
 	replica->SynchronizeTransform();
 	
 	return replica;
@@ -154,8 +151,10 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 */
-	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
-	SynchronizeTransform();
+	//Not needed, was done in GetReplica() already
+	//bool parentUpdated = false;
+	//((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL,parentUpdated);
+	//SynchronizeTransform();
 	SCA_ISensor::ReParent(parent);
 }
 
@@ -287,22 +286,22 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject KX_NearSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NearSensor",
-	sizeof(KX_NearSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -330,20 +329,12 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 };
 
 
-PyObject* KX_NearSensor::_getattr(const char *attr)
+PyObject* KX_NearSensor::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-
-	_getattr_up(KX_TouchSensor);
+	py_getattro_up(KX_TouchSensor);
 }
 
-int KX_NearSensor::_setattr(const char *attr, PyObject* value)
+int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-
-	return KX_TouchSensor::_setattr(attr, value);
+	py_setattro_up(KX_TouchSensor);
 }

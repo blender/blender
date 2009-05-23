@@ -17,7 +17,7 @@ class KX_TouchSensor(SCA_ISensor):
 	@ivar objectHit: The last collided object. (Read Only)
 	@type objectHit: L{KX_GameObject} or None
 	@ivar objectHitList: A list of colliding objects. (Read Only)
-	@type objectHitList: list
+	@type objectHitList: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 	"""
 		
 	#--The following methods are deprecated, please use properties instead.
@@ -53,7 +53,7 @@ class KX_TouchSensor(SCA_ISensor):
 		
 		Only objects that have the requisite material/property are listed.
 		
-		@rtype: list [L{KX_GameObject}]
+		@rtype: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		"""
 	def getTouchMaterial():
 		"""

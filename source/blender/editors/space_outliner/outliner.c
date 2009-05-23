@@ -96,19 +96,15 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 #include "RNA_access.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
 #include "outliner_intern.h"
-
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "PIL_time.h" 
 
@@ -617,6 +613,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				Object *ob= (Object *)id;
 				
 				outliner_add_element(soops, &te->subtree, ob->adt, te, TSE_ANIM_DATA, 0);
+				outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
 				
 				if(ob->proxy && ob->id.lib==NULL)
 					outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
@@ -933,14 +930,18 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			TreeElement *ted= outliner_add_element(soops, &te->subtree, adt, te, TSE_DRIVER_BASE, 0);
 			ID *lastadded= NULL;
 			FCurve *fcu;
+			DriverTarget *dtar;
 			
 			ted->name= "Drivers";
 		
 			for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-				if (fcu->driver && fcu->driver->id) {
-					if (lastadded != fcu->driver->id) {
-						outliner_add_element(soops, &ted->subtree, fcu->driver->id, ted, TSE_LINKED_OB, 0);
-						lastadded= fcu->driver->id;
+				if (fcu->driver && fcu->driver->targets.first)  {
+					for (dtar= fcu->driver->targets.first; dtar; dtar= dtar->next) {
+						if (lastadded != dtar->id) {
+							// XXX this lastadded check is rather lame, and also fails quite badly...
+							outliner_add_element(soops, &ted->subtree, dtar->id, ted, TSE_LINKED_OB, 0);
+							lastadded= dtar->id;
+						}
 					}
 				}
 			}
@@ -1042,20 +1043,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			nameprop= RNA_struct_name_property(ptr);
+			nameprop= RNA_struct_name_property(ptr->type);
 
 			if(nameprop) {
 				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
 				te->flag |= TE_FREE_NAME;
 			}
 			else
-				te->name= (char*)RNA_struct_ui_name(ptr);
+				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
-			iterprop= RNA_struct_iterator_property(ptr);
+			iterprop= RNA_struct_iterator_property(ptr->type);
 			tot= RNA_property_collection_length(ptr, iterprop);
 
 			/* auto open these cases */
-			if(!parent || (RNA_property_type(&parent->rnaptr, parent->directdata)) == PROP_POINTER)
+			if(!parent || (RNA_property_type(parent->directdata)) == PROP_POINTER)
 				if(!tselem->used)
 					tselem->flag &= ~TSE_CLOSED;
 
@@ -1070,13 +1071,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_PROPERTY) {
 			/* property */
-			iterprop= RNA_struct_iterator_property(ptr);
+			iterprop= RNA_struct_iterator_property(ptr->type);
 			RNA_property_collection_lookup_int(ptr, iterprop, index, &propptr);
 
 			prop= propptr.data;
-			proptype= RNA_property_type(ptr, prop);
+			proptype= RNA_property_type(prop);
 
-			te->name= (char*)RNA_property_ui_name(ptr, prop);
+			te->name= (char*)RNA_property_ui_name(prop);
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 
@@ -1103,7 +1104,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					te->flag |= TE_LAZY_CLOSED;
 			}
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-				tot= RNA_property_array_length(ptr, prop);
+				tot= RNA_property_array_length(prop);
 
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++)
@@ -1120,9 +1121,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			static char *coloritem[4]= {"  r", "  g", "  b", "  a"};
 
 			prop= parent->directdata;
-			proptype= RNA_property_type(ptr, prop);
-			propsubtype= RNA_property_subtype(ptr, prop);
-			tot= RNA_property_array_length(ptr, prop);
+			proptype= RNA_property_type(prop);
+			propsubtype= RNA_property_subtype(prop);
+			tot= RNA_property_array_length(prop);
 
 			te->directdata= prop;
 			te->rnaptr= *ptr;
@@ -3047,18 +3048,9 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 	}
 }
 
-/* ***************** KEYINGSET OPERATIONS *************** */
+/* ***************** ANIMATO OPERATIONS ********************************** */
+/* KeyingSet and Driver Creation - Helper functions */
 
-/* These operators are only available in databrowser mode for now, as
- * they depend on having RNA paths and/or hierarchies available.
- */
-enum {
-	KEYINGSET_EDITMODE_ADD	= 0,
-	KEYINGSET_EDITMODE_REMOVE,
-} eKeyingSet_EditModes;
-
-/* Utilities ---------------------------------- */
- 
 /* specialised poll callback for these operators to work in Datablocks view only */
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
@@ -3069,33 +3061,9 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
 	}
 	return 0;
 }
- 
- 
-/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
-// TODO: should this be an API func?
-static KeyingSet *verify_active_keyingset(Scene *scene, short add)
-{
-	KeyingSet *ks= NULL;
-	
-	/* sanity check */
-	if (scene == NULL)
-		return NULL;
-	
-	/* try to find one from scene */
-	if (scene->active_keyingset > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-		
-	/* add if none found */
-	// XXX the default settings have yet to evolve
-	if ((add) && (ks==NULL)) {
-		ks= BKE_keyingset_add(&scene->keyingsets, "KeyingSet", KEYINGSET_ABSOLUTE, 0);
-		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
-	}
-	
-	return ks;
-}
 
-/* Helper func to extract an RNA path from seleted tree element 
+
+/* Helper func to extract an RNA path from selected tree element 
  * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
  * this function does not do that yet 
  */
@@ -3146,16 +3114,16 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
 			if(tse->type == TSE_RNA_PROPERTY) {
-				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
+				if(RNA_property_type(prop) == PROP_POINTER) {
 					/* for pointer we just append property name */
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
-				else if(RNA_property_type(ptr, prop) == PROP_COLLECTION) {
+				else if(RNA_property_type(prop) == PROP_COLLECTION) {
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
 					nextptr= &temnext->rnaptr;
-					nameprop= RNA_struct_name_property(nextptr);
+					nameprop= RNA_struct_name_property(nextptr->type);
 					
 					if(nameprop) {
 						/* if possible, use name as a key in the path */
@@ -3192,7 +3160,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
-				if(RNA_struct_is_ID(ptr)) {
+				if(RNA_struct_is_ID(ptr->type)) {
 					*id= (ID *)ptr->data;
 					
 					/* clear path */
@@ -3216,7 +3184,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* item is part of an array, so must set the array_index */
 			*array_index= te->index;
 		}
-		else if (RNA_property_array_length(ptr, prop)) {
+		else if (RNA_property_array_length(prop)) {
 			/* entire array was selected, so keyframe all */
 			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
@@ -3229,6 +3197,178 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 
 	/* free temp data */
 	BLI_freelistN(&hierarchy);
+}
+
+/* ***************** KEYINGSET OPERATIONS *************** */
+
+/* These operators are only available in databrowser mode for now, as
+ * they depend on having RNA paths and/or hierarchies available.
+ */
+enum {
+	DRIVERS_EDITMODE_ADD	= 0,
+	DRIVERS_EDITMODE_REMOVE,
+} eDrivers_EditModes;
+
+/* Utilities ---------------------------------- */ 
+
+/* Recursively iterate over tree, finding and working on selected items */
+static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short mode)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for (te= tree->first; te; te=te->next) {
+		tselem= TREESTORE(te);
+		
+		/* if item is selected, perform operation */
+		if (tselem->flag & TSE_SELECTED) {
+			ID *id= NULL;
+			char *path= NULL;
+			int array_index= 0;
+			short flag= 0;
+			short groupmode= KSP_GROUP_KSNAME;
+			
+			/* check if RNA-property described by this selected element is an animateable prop */
+			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+				/* get id + path + index info from the selected element */
+				tree_element_to_path(soops, te, tselem, 
+						&id, &path, &array_index, &flag, &groupmode);
+			}
+			
+			/* only if ID and path were set, should we perform any actions */
+			if (id && path) {
+				/* action depends on mode */
+				switch (mode) {
+					case DRIVERS_EDITMODE_ADD:
+					{
+						/* add a new driver with the information obtained (only if valid) */
+						ANIM_add_driver(id, path, array_index, flag);
+					}
+						break;
+					case DRIVERS_EDITMODE_REMOVE:
+					{
+						/* remove driver matching the information obtained (only if valid) */
+						ANIM_remove_driver(id, path, array_index, flag);
+					}
+						break;
+				}
+				
+				/* free path, since it had to be generated */
+				MEM_freeN(path);
+			}
+			
+			
+		}
+		
+		/* go over sub-tree */
+		if ((tselem->flag & TSE_CLOSED)==0)
+			do_outliner_drivers_editop(soops, &te->subtree, mode);
+	}
+}
+
+/* Add Operator ---------------------------------- */
+
+static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_ADD);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_drivers_add(wmOperatorType *ot)
+{
+	/* api callbacks */
+	ot->idname= "OUTLINER_OT_drivers_add";
+	ot->name= "Add Drivers";
+	ot->description= "Add drivers to selected items.";
+	
+	/* api callbacks */
+	ot->exec= outliner_drivers_addsel_exec;
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+}
+
+
+/* Remove Operator ---------------------------------- */
+
+static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_REMOVE);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_drivers_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->idname= "OUTLINER_OT_drivers_delete";
+	ot->name= "Delete Drivers";
+	ot->description= "Delete drivers assigned to selected items.";
+	
+	/* api callbacks */
+	ot->exec= outliner_drivers_deletesel_exec;
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+}
+
+/* ***************** KEYINGSET OPERATIONS *************** */
+
+/* These operators are only available in databrowser mode for now, as
+ * they depend on having RNA paths and/or hierarchies available.
+ */
+enum {
+	KEYINGSET_EDITMODE_ADD	= 0,
+	KEYINGSET_EDITMODE_REMOVE,
+} eKeyingSet_EditModes;
+
+/* Utilities ---------------------------------- */ 
+ 
+/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
+// TODO: should this be an API func?
+static KeyingSet *verify_active_keyingset(Scene *scene, short add)
+{
+	KeyingSet *ks= NULL;
+	
+	/* sanity check */
+	if (scene == NULL)
+		return NULL;
+	
+	/* try to find one from scene */
+	if (scene->active_keyingset > 0)
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		
+	/* add if none found */
+	// XXX the default settings have yet to evolve
+	if ((add) && (ks==NULL)) {
+		ks= BKE_keyingset_add(&scene->keyingsets, "Keying Set", KEYINGSET_ABSOLUTE, 0);
+		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+	}
+	
+	return ks;
 }
 
 /* Recursively iterate over tree, finding and working on selected items */
@@ -3424,7 +3564,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLEINSTANCE); break;
+						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_ParticleInstance:
 						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_EdgeSplit:
@@ -3435,6 +3575,30 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
 					case eModifierType_Displace:
 						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
+					case eModifierType_Shrinkwrap:
+						UI_icon_draw(x, y, ICON_MOD_SHRINKWRAP); break;
+					case eModifierType_Cast:
+						UI_icon_draw(x, y, ICON_MOD_CAST); break;
+					case eModifierType_MeshDeform:
+						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;
+					case eModifierType_Bevel:
+						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
+					case eModifierType_Smooth:
+						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
+					case eModifierType_SimpleDeform:
+						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;
+					case eModifierType_Mask:
+						UI_icon_draw(x, y, ICON_MOD_MASK); break;
+					case eModifierType_Cloth:
+						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
+					case eModifierType_Explode:
+						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
+					case eModifierType_Collision:
+						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
+					case eModifierType_Fluidsim:
+						UI_icon_draw(x, y, ICON_MOD_FLUIDSIM); break;
+					case eModifierType_Multires:
+						UI_icon_draw(x, y, ICON_MOD_MULTIRES); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
@@ -3703,10 +3867,10 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		if(active==1) UI_ThemeColor(TH_TEXT_HI);
 		else if(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
 		else UI_ThemeColor(TH_TEXT);
-		glRasterPos2i(startx+offsx, *starty+5);
-		UI_RasterPos((float)startx+offsx, (float)*starty+5);
-		UI_DrawString(G.font, te->name, 0);
-		offsx+= (int)(OL_X + UI_GetStringWidth(G.font, te->name, 0));
+		
+		UI_DrawString(startx+offsx, *starty+5, te->name);
+		
+		offsx+= (int)(OL_X + UI_GetStringWidth(te->name));
 		
 		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
 		if(tselem->flag & TSE_CLOSED) {
@@ -3824,6 +3988,9 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	float col[4];
 	
 #if 0 // XXX was #ifdef INTERNATIONAL
+	/* Maybe the INTERNATIONAL was really for check about freetype2 ?
+	 * anyway I think that we can remove this now - Diego
+	 */
 	FTF_SetFontSize('l');
 	BIF_SetScale(1.0);
 #endif
@@ -4060,7 +4227,7 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					Object *ob= (Object *)tselem->id; // id = object
 					bActionGroup *grp= te->directdata;
 					
-					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+					BLI_uniquename(&ob->pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
 				}
 				break;
 			case TSE_R_LAYER:
@@ -4088,17 +4255,14 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
@@ -4137,12 +4301,10 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 			else if(tselem->type==TSE_POSE_CHANNEL)  {
 				bPoseChannel *pchan= (bPoseChannel *)te->directdata;
@@ -4152,7 +4314,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 			else if(tselem->type==TSE_EBONE)  {
 				EditBone *ebone= (EditBone *)te->directdata;
@@ -4161,7 +4322,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 		}
 		
@@ -4203,7 +4363,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
+				if(!(RNA_property_type(prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
 					uiDefAutoButR(block, ptr, prop, -1, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -4240,7 +4400,7 @@ static void outliner_buttons(uiBlock *block, ARegion *ar, SpaceOops *soops, List
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 				else len= sizeof(((ID*) 0)->name)-2;
 				
-				dx= (int)UI_GetStringWidth(G.font, te->name, 0);
+				dx= (int)UI_GetStringWidth(te->name);
 				if(dx<50) dx= 50;
 				
 				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
@@ -4311,7 +4471,7 @@ void draw_outliner(const bContext *C)
 	outliner_draw_tree(scene, ar, soops);
 
 	/* draw icons and names */
-	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_buttons(block, ar, soops, &soops->tree);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {

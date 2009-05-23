@@ -187,6 +187,7 @@ typedef struct PreviewImage {
 #define ID_NT		MAKE_ID2('N', 'T')
 #define ID_BR		MAKE_ID2('B', 'R')
 #define ID_PA		MAKE_ID2('P', 'A')
+#define ID_GD		MAKE_ID2('G', 'D')
 #define ID_WM		MAKE_ID2('W', 'M')
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */

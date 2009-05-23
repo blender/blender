@@ -53,11 +53,28 @@ static ListBase spacetypes= {NULL, NULL};
 static void spacetype_free(SpaceType *st)
 {
 	ARegionType *art;
+	PanelType *pt;
+	HeaderType *ht;
+	MenuType *mt;
 	
 	for(art= st->regiontypes.first; art; art= art->next) {
 		BLI_freelistN(&art->drawcalls);
+
+		for(pt= art->paneltypes.first; pt; pt= pt->next)
+			if(pt->py_free)
+				pt->py_free(pt->py_data);
+
+		for(ht= art->headertypes.first; ht; ht= ht->next)
+			if(ht->py_free)
+				ht->py_free(ht->py_data);
+
+		for(mt= art->menutypes.first; mt; mt= mt->next)
+			if(mt->py_free)
+				mt->py_free(mt->py_data);
+
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
+		BLI_freelistN(&art->menutypes);
 	}
 	
 	BLI_freelistN(&st->regiontypes);

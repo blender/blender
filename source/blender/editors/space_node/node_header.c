@@ -97,8 +97,7 @@ static uiBlock *node_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "node_selectmenu", 
-					  UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_selectmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_selectmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -213,7 +212,7 @@ static uiBlock *node_add_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "node_add_inputmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_inputmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_INPUT, block);
@@ -228,7 +227,7 @@ static uiBlock *node_add_outputmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_outputmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_outputmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OUTPUT, block);
@@ -243,7 +242,7 @@ static uiBlock *node_add_colormenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_colormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_colormenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_COLOR, block);
@@ -258,7 +257,7 @@ static uiBlock *node_add_vectormenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_vectormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_vectormenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_VECTOR, block);
@@ -273,7 +272,7 @@ static uiBlock *node_add_filtermenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_filtermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_filtermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_FILTER, block);
@@ -288,7 +287,7 @@ static uiBlock *node_add_convertermenu(bContext *C, ARegion *ar, void *arg_unuse
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_convertermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_convertermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_CONVERTOR, block);
@@ -303,7 +302,7 @@ static uiBlock *node_add_mattemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_mattemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_mattemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_MATTE, block);
@@ -318,7 +317,7 @@ static uiBlock *node_add_distortmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_distortmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_distortmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_DISTORT, block);
@@ -333,7 +332,7 @@ static uiBlock *node_add_patternmenu(bContext *C, ARegion *ar,  void *arg_unused
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_patternmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_patternmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_PATTERN, block);
@@ -348,7 +347,7 @@ static uiBlock *node_add_texturemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_texturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_texturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_TEXTURE, block);
@@ -363,7 +362,7 @@ static uiBlock *node_add_groupmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_groupmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_groupmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_GROUP, block);
@@ -379,7 +378,7 @@ static uiBlock *node_add_dynamicmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "node_add_dynamicmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_dynamicmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_DYNAMIC, block);
@@ -398,7 +397,7 @@ static uiBlock *node_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "node_addmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_addmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	if(snode->treetype==NTREE_SHADER) {
@@ -519,8 +518,7 @@ static uiBlock *node_nodemenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "node_nodemenu", 
-					  UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_nodemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_nodemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -604,7 +602,7 @@ static uiBlock *node_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "node_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_node_viewmenu, NULL);
 
 	if (snode->nodetree) {
@@ -694,35 +692,32 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	short xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header node", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header node", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_node_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
-		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, node_viewmenu, NULL, 
-					  "View", xco, yco-2, xmax-3, 24, "");
+					  "View", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
 		uiDefPulldownBut(block, node_selectmenu, NULL, 
-						 "Select", xco, yco-2, xmax-3, 24, "");
+						 "Select", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");
 		uiDefPulldownBut(block, node_addmenu, NULL, 
-						 "Add", xco, yco-2, xmax-3, 24, "");
+						 "Add", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Node");
 		uiDefPulldownBut(block, node_nodemenu, NULL, 
-						 "Node", xco, yco-2, xmax-3, 24, "");
+						 "Node", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	

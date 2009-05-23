@@ -1062,6 +1062,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= new_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_image_active;
 
 	/* flags */
@@ -1124,16 +1125,18 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
 
 	if(!pack_test(C, op))
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		head= uiPupMenuBegin("OK", ICON_HELP);
-		uiMenuItemBooleanO(head, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
-		uiPupMenuEnd(C, head);
+		pup= uiPupMenuBegin(C, "OK", ICON_HELP);
+		layout= uiPupMenuLayout(pup);
+		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
+		uiPupMenuEnd(C, pup);
 
 		return OPERATOR_CANCELLED;
 	}

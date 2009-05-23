@@ -40,6 +40,7 @@ struct RAS_LightObject
 	};
 	bool	m_modified;
 	int	m_layer;
+	void	*m_scene;
 	
 	float	m_energy;
 	float	m_distance;

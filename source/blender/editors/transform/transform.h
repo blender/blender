@@ -83,8 +83,8 @@ typedef struct TransSnap {
 	short	mode;
 	short	align;
 	short  	status;
-	float	snapPoint[3];
-	float	snapTarget[3];
+	float	snapPoint[3]; /* snapping from this point */
+	float	snapTarget[3]; /* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
 	float	dist; // Distance from snapPoint to snapTarget
@@ -232,6 +232,7 @@ typedef struct TransInfo {
 	short		persp;
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
+	char		helpline;		/* helpline modes (not to be confused with hotline) */
 	
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
@@ -324,6 +325,14 @@ typedef struct TransInfo {
 
 
 /* ******************************************************************************** */
+
+/* transinfo->helpline */
+#define HLP_NONE		0
+#define HLP_SPRING		1
+#define HLP_ANGLE		2
+#define HLP_HARROW		3
+#define HLP_VARROW		4
+#define HLP_TRACKBALL	5
 
 /* transinfo->con->mode */
 #define CON_APPLY		1

@@ -483,9 +483,13 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
-	MCol *mc = DM_get_face_data_layer(dm, CD_MCOL);
+	MCol *mc;
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+
+	mc = DM_get_face_data_layer(dm, CD_WEIGHT_MCOL);
+	if(!mc)
+		mc = DM_get_face_data_layer(dm, CD_MCOL);
 
 	for(i = 0; i < dm->numFaceData; i++, mf++) {
 		int drawSmooth = (mf->flag & ME_SMOOTH);
@@ -927,13 +931,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	index = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totface; ++i, ++index)
 		*index = i;
-	
-	/* works in conjunction with hack during modifier calc, where active mcol
-	   layer with weight paint colors is temporarily added */
-	/* XXX make this real but temporary layer */
-//	if ((G.f & G_WEIGHTPAINT) &&
-//		(ob && ob==(scene->basact?scene->basact->object:NULL)))
-//		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MCOL);
 
 	return dm;
 }

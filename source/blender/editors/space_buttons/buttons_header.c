@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -40,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -66,14 +68,10 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 
 	switch(event) {
-		case 0: /* panel alignment */
 		case 1:
 		case 2:
 			sbuts->align= event;
-			if(event) {
-				sbuts->re_align= 1;
-				// uiAlignPanelStep(sa, 1.0);
-			}
+			sbuts->re_align= 1;
             break;
     }
 
@@ -87,7 +85,7 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -95,9 +93,6 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	if(sa->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -124,6 +119,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, NULL);
 			break;
 		case B_CONTEXT_SWITCH:
+		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
 	}
@@ -134,10 +130,11 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	Object *ob= CTX_data_active_object(C);
 	uiBlock *block;
-	int xco, yco= 3;
+	int xco, yco= 3, dataicon= ICON_OBJECT_DATA;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
@@ -145,65 +142,75 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco-2, xmax-3, 24, "");
+						 "View", xco, yco, xmax-3, 20, "");
 		
-		xco+=XIC+xmax;
+		xco+=xmax;
+	}
+	// DATA Icons
+	if(ob) {
+		switch(ob->type) {
+			case OB_EMPTY: dataicon= ICON_EMPTY_DATA; break;
+			case OB_MESH: dataicon= ICON_MESH_DATA; break;
+			case OB_CURVE: dataicon= ICON_CURVE_DATA; break;
+			case OB_SURF: dataicon= ICON_SURFACE_DATA; break;
+			case OB_FONT: dataicon= ICON_FONT_DATA; break;
+			case OB_MBALL: dataicon= ICON_META_DATA; break;
+			case OB_LAMP: dataicon= ICON_LAMP_DATA; break;
+			case OB_CAMERA: dataicon= ICON_CAMERA_DATA; break;
+			case OB_LATTICE: dataicon= ICON_LATTICE_DATA; break;
+			case OB_ARMATURE: dataicon= ICON_ARMATURE_DATA; break;
+			default: break;
+		}
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
+	// if object selection changed, validate button selection
+	if(ob && (ob->type == OB_LAMP) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+
+	if(ob && (ob->type == OB_EMPTY) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+		
+	if((ob && ELEM(ob->type, OB_CAMERA, OB_ARMATURE)) && ELEM4(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+		
+	if((ob && (ob->type != OB_ARMATURE)) && (sbuts->mainb == (float)BCONTEXT_BONE))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+	
+	 if(!ob && !ELEM(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_WORLD))
+		sbuts->mainb = (float)BCONTEXT_WORLD;
+		
+	if((ob && ELEM5(ob->type, OB_EMPTY, OB_MBALL, OB_LAMP, OB_CAMERA, OB_ARMATURE)) && (sbuts->mainb == (float) BCONTEXT_MODIFIER))
+		sbuts->mainb = (float)BCONTEXT_DATA;
+	
+	// Default panels
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCRIPT,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL_DATA,xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
 	
-	xco+= XIC;
-	
-	/* select the context to be drawn, per contex/tab the actual context is tested */
-	uiBlockSetEmboss(block, UI_EMBOSS);	// normal
-	switch(sbuts->mainb) {
-		case CONTEXT_SCENE:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SCENE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SEQUENCE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SEQUENCER, 0, 0, "Sequencer buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_ANIM,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SOUND,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
-			
-			break;
-		case CONTEXT_OBJECT:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PARTICLE, 0, 0, "Particle buttons");
-			
-			break;
-		case CONTEXT_SHADING:
-			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_LAMP,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_LAMP, 0, 0, "Lamp buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_MAT, 0, 0, "Material buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_TEX, 0, 0, "Texture buttons(F6)");
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,			ICON_RADIO,xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_RAD, 0, 0, "Radiosity buttons");
-			uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_WORLD,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_WORLD, 0, 0, "World buttons");
-			
-			break;
-		case CONTEXT_EDITING:
-			
-			break;
-		case CONTEXT_SCRIPT:
-			
-			break;
-		case CONTEXT_LOGIC:
-			
-			break;
+	// Specific panels, check on active object seletion
+	if(ob) {
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
+		
+		if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
+			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
+		
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+		if((ob->type == OB_ARMATURE))
+			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
+		if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+			uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+		if(ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_LAMP))
+			uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+		if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
+			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+		if(ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_EMPTY))
+			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
 	}
+	xco+= XIC;
 	
 	uiBlockEndAlign(block);
 	

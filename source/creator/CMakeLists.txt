@@ -100,6 +100,7 @@ IF(UNIX AND NOT APPLE)
     COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/.blender/
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/.blender/
     COMMAND find ${TARGETDIR} -name CVS -prune -exec rm -rf {} "\;"
   )
 ENDIF(UNIX AND NOT APPLE)
@@ -124,9 +125,11 @@ IF(APPLE)
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
     COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
     COMMAND find ${TARGETDIR}/blender.app -name CVS -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
   )
 ENDIF(APPLE)
 
@@ -139,11 +142,13 @@ IF(WIN32)
     COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
     COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
     COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
+    COMMAND if not exist \"${TARGETDIR}\\.blender\\ui\" mkdir \"${TARGETDIR}\\.blender\\ui\"
     COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python25.zip\" \"${TARGETDIR}\\\"
@@ -238,11 +243,8 @@ IF(UNIX)
     bf_guardedalloc 
     blender_CTR 
     bf_moto 
-    bf_bmfont 
     bf_windowmanager
-	bf_editors
-    bf_ftfont 
-    extern_ftgl 
+    bf_editors
     bf_blroutines 
     bf_converter 
     bf_dummy 

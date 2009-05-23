@@ -550,7 +550,7 @@ void EM_select_flush(EditMesh *em)
 	EM_nfaces_selected(em);
 }
 
-/* when vertices or edges can be selected, also make fgon consistant */
+/* when vertices or edges can be selected, also make fgon consistent */
 static void check_fgons_selection(EditMesh *em)
 {
 	EditFace *efa, *efan;
@@ -741,7 +741,7 @@ void EM_convertsel(EditMesh *em, short oldmode, short selectmode)
 	EM_nfaces_selected(em);
 }
 
-/* when switching select mode, makes sure selection is consistant for editing */
+/* when switching select mode, makes sure selection is consistent for editing */
 /* also for paranoia checks to make sure edge or face mode works */
 void EM_selectmode_set(EditMesh *em)
 {
@@ -1883,7 +1883,7 @@ void adduplicateflag(EditMesh *em, int flag)
 	EditFace *efa, *newfa, *act_efa = EM_get_actFace(em, 0);
 
 	EM_clear_flag_all(em, 128);
-	EM_selectmode_set(em);	// paranoia check, selection now is consistant
+	EM_selectmode_set(em);	// paranoia check, selection now is consistent
 
 	/* vertices first */
 	for(eve= em->verts.last; eve; eve= eve->prev) {

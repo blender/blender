@@ -62,7 +62,6 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 /* XXX */
@@ -86,7 +85,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 		sprintf(str, "   %.2f", FRA2TIME(CFRA));
 	else 
 		sprintf(str, "   %d", CFRA);
-	slen= (short)UI_GetStringWidth(G.font, str, 0) - 1;
+	slen= (short)UI_GetStringWidth(str) - 1;
 	
 	/* get starting coordinates for drawing */
 	x= cfra * xscale;
@@ -98,8 +97,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	ui_rasterpos_safe(x-5, y+3, 1.0f);
-	UI_DrawString(G.fonts, str, 0); // XXX may need to be updated for font stuff
+	UI_DrawString(x-5, y+3, str); // XXX may need to be updated for font stuff
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);

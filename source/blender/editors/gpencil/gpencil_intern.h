@@ -32,7 +32,7 @@
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES */
 
-/* XXX */
+/* XXX - TODO: replace this with the modern bAnimListElem... */
 /* This struct defines a structure used for quick access */
 typedef struct bActListElem {
 	struct bActListElem *next, *prev;

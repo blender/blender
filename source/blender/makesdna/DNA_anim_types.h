@@ -28,6 +28,7 @@ typedef struct FModifier {
 	struct FModifier *next, *prev;
 	
 	void *data;			/* pointer to modifier data */
+	void *edata;		/* pointer to temporary data used during evaluation */
 	
 	char name[64];		/* user-defined description for the modifier */
 	short type;			/* type of f-curve modifier */
@@ -46,7 +47,8 @@ enum {
 	FMODIFIER_TYPE_CYCLES,
 	FMODIFIER_TYPE_NOISE,		/* unimplemented - generate variations using some basic noise generator... */
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
-	FMODIFIER_TYPE_PYTHON,		
+	FMODIFIER_TYPE_PYTHON,	
+	FMODIFIER_TYPE_LIMITS,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -60,6 +62,8 @@ enum {
 	FMODIFIER_FLAG_EXPANDED		= (1<<1),
 		/* modifier is active one (in UI) for editing purposes */
 	FMODIFIER_FLAG_ACTIVE		= (1<<2),
+		/* user wants modifier to be skipped */
+	FMODIFIER_FLAG_MUTED		= (1<<3),
 } eFModifier_Flags; 
 
 /* --- */
@@ -73,7 +77,7 @@ typedef struct FMod_Generator {
 	float *coefficients;		/* coefficients array */
 	unsigned int arraysize;		/* size of the coefficients array */
 	
-	unsigned short poly_order;	/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
+	short poly_order;			/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
 	short func_type;			/* builtin math function eFMod_Generator_Functions */
 	
 	int pad;
@@ -140,6 +144,7 @@ enum {
 	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
 	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
+	FCM_EXTRAPOLATE_MIRROR,				/* alternate between forward and reverse playback of keyframe range */
 } eFMod_Cycling_Modes;
 
 
@@ -149,7 +154,62 @@ typedef struct FMod_Python {
 	IDProperty *prop;			/* ID-properties to provide 'custom' settings */
 } FMod_Python;
 
+
+/* limits modifier data */
+typedef struct FMod_Limits {
+	rctf rect;					/* rect defining the min/max values */
+	int flag;					/* settings for limiting */
+	int pad;
+} FMod_Limits;
+
+/* limiting flags */
+enum {
+	FCM_LIMIT_XMIN		= (1<<0),
+	FCM_LIMIT_XMAX		= (1<<1),
+	FCM_LIMIT_YMIN		= (1<<2),
+	FCM_LIMIT_YMAX		= (1<<3),
+} eFMod_Limit_Flags;
+
+/* noise modifier data */
+typedef struct FMod_Noise {
+	float size;
+	float strength;
+	float phase;
+	float pad;
+
+	short depth;
+	short modification;
+
+} FMod_Noise;
+	
+/* modification modes */
+enum {
+	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
+	FCM_NOISE_MODIF_ADD,			/* Add noise to the curve */
+	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
+	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
+} eFMod_Noise_Modifications;
+
 /* Drivers -------------------------------------- */
+
+/* Driver Target 
+ *
+ * A 'variable' for use as a target of the driver/expression.
+ * Defines a way of accessing some channel to use, that can be
+ * referred to in the expression as a variable, thus simplifying
+ * expressions and also Depsgraph building.
+ */
+typedef struct DriverTarget {
+	struct DriverTarget *next, *prev;
+	
+	ID 	*id;			/* ID-block which owns the target */
+	char *rna_path;		/* target channel to use as driver value */
+	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	
+	int flags;			/* flags for the validity of the target */
+	
+	char name[64];		/* name of the variable */
+} DriverTarget;
 
 /* Channel Driver (i.e. Drivers / Expressions) (driver)
  *
@@ -163,34 +223,26 @@ typedef struct FMod_Python {
  * evaluated in. This order is set by the Depsgraph's sorting stuff. 
  */
 typedef struct ChannelDriver {
-		/* primary target */
-	ID 	*id;			/* ID-block which owns the target */
-	char *rna_path;		/* target channel to use as driver value */
-	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	ListBase targets;	/* targets for this driver (i.e. list of DriverTarget) */
 	
-		/* value cache (placed here for alignment reasons) */
+	/* python expression to execute (may call functions defined in an accessory file) 
+	 * which relates the target 'variables' in some way to yield a single usable value
+	 */
+	char expression[256]; 
+	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
-	
-		/* secondary target (for rotational difference) */
-	ID 	*id2;			/* ID-block which owns the second target */
-	char *rna_path2;	/* second target channel to use as driver value */
-	int array_index2;	/* if applicable, the index of the RNA-array item to use as driver */
-		
-		/* general settings (placed here for alignment reasons) */
-	int type;			/* type of driver */
-	int flag;			/* settings of driver */
-	
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
 	
-		/* settings for Python Drivers (PyDrivers) */
-	char expression[256]; /* python expression to execute (may call functions defined in an accessory file) */
+		/* general settings */
+	int type;			/* type of driver */
+	int flag;			/* settings of driver */
 } ChannelDriver;
 
 /* driver type */
 enum {
-		/* channel drives channel */
-	DRIVER_TYPE_CHANNEL	= 0,
-		/* py-expression used as driver */
+		/* target values are averaged together */
+	DRIVER_TYPE_AVERAGE	= 0,
+		/* python expression/function relates targets */
 	DRIVER_TYPE_PYTHON,
 		/* rotational difference (must use rotation channels only) */
 	DRIVER_TYPE_ROTDIFF,
@@ -200,13 +252,11 @@ enum {
 enum {
 		/* driver has invalid settings (internal flag)  */
 	DRIVER_FLAG_INVALID		= (1<<0),
-		/* driver was disabled temporarily, so shouldn't be evaluated (set by user) */
-	DRIVER_FLAG_DISABLED 	= (1<<1),
 		/* driver needs recalculation (set by depsgraph) */
-	DRIVER_FLAG_RECALC		= (1<<2),
+	DRIVER_FLAG_RECALC		= (1<<1),
 		/* driver does replace value, but overrides (for layering of animation over driver) */
-		// TODO: is this necessary?
-	DRIVER_FLAG_LAYERING	= (1<<3),
+		// TODO: this needs to be implemented at some stage or left out...
+	DRIVER_FLAG_LAYERING	= (1<<2),
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
@@ -493,12 +543,16 @@ enum {
 
 /* KS_Path->groupmode */
 enum {
-		/* path should be grouped using its own group-name */
+		/* path should be grouped using group name stored in path */
 	KSP_GROUP_NAMED = 0,
 		/* path should not be grouped at all */
 	KSP_GROUP_NONE,
-		/* path should be grouped under an ActionGroup KeyingSet's name */
+		/* path should be grouped using KeyingSet's name */
 	KSP_GROUP_KSNAME,
+		/* path should be grouped using name of inner-most context item from templates 
+		 * 	- this is most useful for relative KeyingSets only
+		 */
+	KSP_GROUP_TEMPLATE_ITEM,
 } eKSP_Grouping;
 
 /* KS_Path->templates  (Template Flags)

@@ -213,7 +213,7 @@ typedef enum {
 	ICON_OBJECT_DATA,
 	ICON_MESH_DATA,
 	ICON_CURVE_DATA,
-	ICON_MBALL_DATA,
+	ICON_META_DATA,
 	ICON_LATTICE_DATA,
 	ICON_LAMP_DATA,
 	ICON_MATERIAL_DATA,
@@ -239,11 +239,11 @@ typedef enum {
 	ICON_IMAGE_DATA,
 	ICON_FILE,
 	ICON_FCURVE,
-	ICON_FONT,
+	ICON_FONT_DATA,
 	ICON_RENDER_RESULT,
-	ICON_BLANK080A,
-	ICON_BLANK080B,
-	ICON_BLANK080C,
+	ICON_SURFACE_DATA,
+	ICON_EMPTY_DATA,
+	ICON_SETTINGS,
 	ICON_BLANK080D,
 	ICON_BLANK080E,
 	ICON_BLANK080F,
@@ -319,7 +319,7 @@ typedef enum {
 	ICON_BLANK127b,
 	
 	/* OUTLINER */
-	ICON_BLANK128,
+	ICON_OUTLINER_DATA_EMPTY,
 	ICON_OUTLINER_DATA_MESH,
 	ICON_OUTLINER_DATA_CURVE,
 	ICON_OUTLINER_DATA_LATTICE,
@@ -355,7 +355,7 @@ typedef enum {
 	ICON_MOD_SOFT,
 	ICON_MOD_SUBSURF,
 	ICON_HOOK,
-	ICON_MOD_PARTICLEINSTANCE,
+	ICON_MOD_PHYSICS,
 	ICON_MOD_PARTICLES,
 	ICON_MOD_BOOLEAN,
 	ICON_MOD_EDGESPLIT,
@@ -366,19 +366,19 @@ typedef enum {
 	ICON_MOD_LATTICE,
 	ICON_BLANK143,
 	ICON_MOD_ARMATURE,
-	ICON_BLANK147,
-	ICON_BLANK148,
-	ICON_BLANK149,
-	ICON_BLANK150,
-	ICON_BLANK151,
-	ICON_BLANK152,
-	ICON_BLANK152b,
+	ICON_MOD_SHRINKWRAP,
+	ICON_MOD_CAST,
+	ICON_MOD_MESHDEFORM,
+	ICON_MOD_BEVEL,
+	ICON_MOD_SMOOTH,
+	ICON_MOD_SIMPLEDEFORM,
+	ICON_MOD_MASK,
 	
-	/* available */
-	ICON_BLANK153,
-	ICON_BLANK154,
-	ICON_BLANK155,
-	ICON_BLANK156,
+	/* MODIFIERS */
+	ICON_MOD_CLOTH,
+	ICON_MOD_EXPLODE,
+	ICON_MOD_FLUIDSIM,
+	ICON_MOD_MULTIRES,
 	ICON_BLANK157,
 	ICON_BLANK158,
 	ICON_BLANK159,
@@ -498,14 +498,14 @@ typedef enum {
 	ICON_SNAP_VERTEX,
 	ICON_SNAP_EDGE,
 	ICON_SNAP_FACE,
-	ICON_BLANK218b,
+	ICON_SNAP_VOLUME,
 	ICON_STICKY_UVS_LOC,
 	ICON_STICKY_UVS_DISABLE,
 	ICON_STICKY_UVS_VERT,
 	ICON_CLIPUV_DEHLT,
 	ICON_CLIPUV_HLT,
 	ICON_BLANK219,
-	ICON_BLANK220,
+	ICON_SNAP_PEEL_OBJECT,
 	ICON_BLANK221,
 	ICON_BLANK222,
 	ICON_BLANK223,
@@ -612,7 +612,7 @@ typedef enum {
 	ICON_BOOKMARKS,
 	ICON_FONTPREVIEW,
 	ICON_FILTER,
-	ICON_BLANK285E,
+	ICON_NEWFOLDER,
 	ICON_BLANK285F,
 	ICON_FILE_PARENT,
 	ICON_FILE_REFRESH,
@@ -652,7 +652,7 @@ typedef enum {
 	ICON_BLANK314,
 	ICON_BLANK315,
 	ICON_BLANK316,
-	ICON_BLANK316b,
+	ICON_DISK_DRIVE,
 	
 	/* SHADING / TEXT */
 	ICON_MATPLANE,
@@ -794,45 +794,31 @@ typedef enum {
 
 } BIFColorID;
 
-/* XXX WARNING: this is saved in file, so do not change order! */
 enum {
-	TH_AUTO,	/* for buttons, to signal automatic color assignment */
-	
-// uibutton colors
-	TH_BUT_OUTLINE,
-	TH_BUT_NEUTRAL,
-	TH_BUT_ACTION,
-	TH_BUT_SETTING,
-	TH_BUT_SETTING1,
-	TH_BUT_SETTING2,
-	TH_BUT_NUM,
-	TH_BUT_TEXTFIELD,
-	TH_BUT_POPUP,
-	TH_BUT_TEXT,
-	TH_BUT_TEXT_HI,
-	TH_MENU_BACK,
-	TH_MENU_ITEM,
-	TH_MENU_HILITE,
-	TH_MENU_TEXT,
-	TH_MENU_TEXT_HI,
-	
-	TH_BUT_DRAWTYPE,
-	
 	TH_REDALERT,
-	TH_CUSTOM,
-	
-	TH_BUT_TEXTFIELD_HI,
-	TH_ICONFILE,
-	
+
 	TH_THEMEUI,
 // common colors among spaces
 	
 	TH_BACK,
 	TH_TEXT,
 	TH_TEXT_HI,
+	TH_TITLE,
+	
 	TH_HEADER,
 	TH_HEADERDESEL,
+	TH_HEADER_TEXT,
+	TH_HEADER_TEXT_HI,
+	
+	/* float panels */
 	TH_PANEL,
+	TH_PANEL_TEXT,
+	TH_PANEL_TEXT_HI,
+	
+	TH_BUTBACK,
+	TH_BUTBACK_TEXT,
+	TH_BUTBACK_TEXT_HI,
+	
 	TH_SHADE1,
 	TH_SHADE2,
 	TH_HILITE,
@@ -947,16 +933,13 @@ void	UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 // get pointer from RNA pointer
 int		UI_GetIconRNA(struct PointerRNA *ptr);
 
-struct ScrArea;
-
 // internal (blender) usage only, for init and set active
-void 	UI_SetTheme(struct ScrArea *sa);
-void 	ui_theme_init_userdef		(void);
-void	ui_resources_init		(void);
-void	ui_resources_free		(void);
+void 	UI_SetTheme(int spacetype, int regionid);
 
 /* only for buttons in theme editor! */
 char 	*UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 char 	*UI_ThemeColorsPup(int spacetype);
+
+void UI_make_axis_color(char *src_col, char *dst_col, char axis);
 
 #endif /*  UI_ICONS_H */

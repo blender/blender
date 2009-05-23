@@ -3,10 +3,17 @@
 Documentation for the GameLogic Module.
 =======================================
 
-	There are only three importable modules in the game engine:
+	Modules available in the game engine:
 		- GameLogic
 		- L{GameKeys}
 		- L{Rasterizer}
+		- L{GameTypes}
+	
+	Undocumented modules:
+		- VideoTexture
+		- CValue
+		- Expression
+		- PhysicsConstraints
 	
 	All the other modules are accessible through the methods in GameLogic.
 	
@@ -18,7 +25,7 @@ Documentation for the GameLogic Module.
 		
 		# To get the game object this controller is on:
 		obj = co.getOwner()
-	L{KX_GameObject} and L{KX_Camera} or L{KX_Light} methods are
+	L{KX_GameObject} and L{KX_Camera} or L{KX_LightObject} methods are
 	available depending on the type of object::
 		# To get a sensor linked to this controller.
 		# "sensorname" is the name of the sensor as defined in the Blender interface.
@@ -72,6 +79,7 @@ Documentation for the GameLogic Module.
 		- L{SoundActuator<KX_SoundActuator.KX_SoundActuator>}
 		- L{TrackToActuator<KX_TrackToActuator.KX_TrackToActuator>}
 		- L{VisibilityActuator<KX_VisibilityActuator.KX_VisibilityActuator>}
+		- L{DynamicActuator<KX_SCA_DynamicActuator.KX_SCA_DynamicActuator>}
 	
 	Most logic brick's methods are accessors for the properties available in the logic buttons.
 	Consult the logic bricks documentation for more information on how each logic brick works.
@@ -148,8 +156,34 @@ Documentation for the GameLogic Module.
 @var KX_RADAR_AXIS_NEG_X:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_NEG_Y:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_NEG_Z:		    See L{KX_RadarSensor}
-"""
 
+@group Ray Sensor: KX_RAY_AXIS_POS_X, KX_RAY_AXIS_POS_Y, KX_RAY_AXIS_POS_Z, KX_RAY_AXIS_NEG_X, KX_RAY_AXIS_NEG_Y, KX_RAY_AXIS_NEG_Z
+@var KX_RAY_AXIS_POS_X:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_POS_Y:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_POS_Z:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_X:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_Y:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_Z:		    See L{KX_RaySensor}
+
+@group Dynamic Actuator: KX_DYN_RESTORE_DYNAMICS, KX_DYN_DISABLE_DYNAMICS, KX_DYN_ENABLE_RIGID_BODY, KX_DYN_DISABLE_RIGID_BODY,	KX_DYN_SET_MASS
+@var KX_DYN_RESTORE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_DISABLE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_ENABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_DISABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_SET_MASS:			See L{KX_SCA_DynamicActuator}
+
+@group Input Status: KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
+@var KX_INPUT_NONE:				See L{SCA_MouseSensor}
+@var KX_INPUT_JUST_ACTIVATED:	See L{SCA_MouseSensor}
+@var KX_INPUT_ACTIVE:			See L{SCA_MouseSensor}
+@var KX_INPUT_JUST_RELEASED:	See L{SCA_MouseSensor}
+
+
+@group Mouse Buttons: KX_MOUSE_BUT_LEFT, KX_MOUSE_BUT_MIDDLE, KX_MOUSE_BUT_RIGHT
+@var KX_MOUSE_BUT_LEFT:		See L{SCA_MouseSensor}
+@var KX_MOUSE_BUT_MIDDLE:	See L{SCA_MouseSensor}
+@var KX_MOUSE_BUT_RIGHT:	See L{SCA_MouseSensor}
+"""
 
 def getCurrentController():
 	"""
@@ -170,6 +204,19 @@ def addActiveActuator(actuator, activate):
 	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
+	"""
+def sendMessage(subject, body="", to="", message_from=""):
+	"""
+	Sends a message to sensors in any active scene.
+	
+	@param subject: The subject of the message
+	@type subject: string
+	@param body: The body of the message (optional)
+	@type body: string
+	@param to: The name of the object to send the message to (optional)
+	@type to: string
+	@param message_from: The name of the object that the message is coming from (optional)
+	@type message_from: string
 	"""
 def getRandomFloat():
 	"""

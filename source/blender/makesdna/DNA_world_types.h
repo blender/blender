@@ -86,9 +86,12 @@ typedef struct World {
 	 * bit 1: Do stars
 	 * bit 2: (reserved) depth of field
 	 * bit 3: (gameengine): Activity culling is enabled.
+	 * bit 4: ambient occlusion
+	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling 
 	 */
 	short mode;
-	int physicsEngine;	/* here it's aligned */
+	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
+	short physicsEngine;	/* here it's aligned */
 	
 	float misi, miststa, mistdist, misthi;
 	
@@ -139,6 +142,7 @@ typedef struct World {
 #define WO_DOF                 4
 #define WO_ACTIVITY_CULLING	   8
 #define WO_AMB_OCC	   		  16
+#define WO_DBVT_CULLING		  32
 
 /* aomix */
 #define WO_AOADD	0

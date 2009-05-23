@@ -66,10 +66,25 @@
 /* -- */
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
+
+EditMesh *BKE_mesh_get_editmesh(Mesh *me)
+{
+	return bmesh_to_editmesh(me->edit_btmesh->bm);
+}
+
+void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
+{
+	BM_Free_Mesh(me->edit_btmesh->bm);
+
+	me->edit_btmesh->bm = editmesh_to_bmesh(em);
+	TM_RecalcTesselation(me->edit_btmesh);
+}
+
 
 void mesh_update_customdata_pointers(Mesh *me)
 {

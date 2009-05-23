@@ -30,13 +30,10 @@ WITH_BF_STATICCXX = 'false'
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 WITH_BF_SDL = 'true'
-BF_SDL = LCGDIR+'/SDL' #$(shell sdl-config --prefix)
+BF_SDL = LCGDIR+'/sdl' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL audio iconv charset' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
-
-WITH_BF_FMOD = 'false'
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'false'
 WITH_BF_STATICOPENEXR = 'false'
@@ -79,11 +76,6 @@ BF_GETTEXT = LCGDIR+'/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextpo intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
-WITH_BF_FTGL = 'true'
-BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE='false'
 

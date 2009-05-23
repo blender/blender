@@ -255,7 +255,7 @@ static uiBlock *action_keymenu_transformmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_transformmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_transformmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_transformmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -303,7 +303,7 @@ static uiBlock *action_keymenu_snapmenu(bContext *C, ARegion *ar, void *arg_unus
 	short yco= 0, menuwidth=120;
 
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_snapmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_snapmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_snapmenu, NULL);
 
 	if (saction->flag & SACTION_DRAWTIME) {
@@ -365,7 +365,7 @@ static uiBlock *action_keymenu_mirrormenu(bContext *C, ARegion *ar, void *arg_un
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_mirrormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_mirrormenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_mirrormenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -419,7 +419,7 @@ static uiBlock *action_keymenu_handlemenu(bContext *C, ARegion *ar, void *arg_un
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_handlemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_handlemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_handlemenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -471,7 +471,7 @@ static uiBlock *action_keymenu_extendmenu(bContext *C, ARegion *ar, void *arg_un
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_extendmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_extendmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_extendmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -520,7 +520,7 @@ static uiBlock *action_keymenu_intpolmenu(bContext *C, ARegion *ar, void *arg_un
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu_intpolmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu_intpolmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_keymenu_intpolmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -581,7 +581,7 @@ static uiBlock *action_keymenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_keymenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_keymenu", UI_EMBOSSP);
 
 
 	uiBlockSetButmFunc(block, do_action_keymenu, NULL);
@@ -670,7 +670,7 @@ static uiBlock *action_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_framemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_framemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_action_keymenu, NULL);
 	
 	uiDefIconTextBlockBut(block, action_keymenu_transformmenu, 
@@ -754,7 +754,7 @@ static uiBlock *action_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_markermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_markermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_markermenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
@@ -825,7 +825,7 @@ static uiBlock *action_channelmenu_posmenu(bContext *C, ARegion *ar, void *arg_u
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
-	block= uiBeginBlock(C, ar, "action_channelmenu_posmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_channelmenu_posmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_channelmenu_posmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -879,7 +879,7 @@ static uiBlock *action_channelmenu_groupmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
-	block= uiBeginBlock(C, ar, "action_channelmenu_groupmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_channelmenu_groupmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_channelmenu_groupmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -923,7 +923,7 @@ static uiBlock *action_channelmenu_settingsmenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
-	block= uiBeginBlock(C, ar, "action_channelmenu_settingsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_channelmenu_settingsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_channelmenu_settingsmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -979,7 +979,7 @@ static uiBlock *action_channelmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_channelmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_channelmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_channelmenu, NULL);
 		
 	uiDefIconTextBlockBut(block, action_channelmenu_groupmenu, 
@@ -1043,7 +1043,7 @@ static uiBlock *action_gplayermenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_gplayermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_gplayermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_channelmenu, NULL);
 		
 	uiDefIconTextBlockBut(block, action_channelmenu_settingsmenu, 
@@ -1097,7 +1097,7 @@ static uiBlock *action_selectmenu_columnmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
-	block= uiBeginBlock(C, ar, "action_selectmenu_columnmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_selectmenu_columnmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_selectmenu_columnmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -1208,7 +1208,7 @@ static uiBlock *action_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "action_selectmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "action_selectmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_selectmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -1382,7 +1382,7 @@ static uiBlock *action_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -1558,31 +1558,45 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 {
 	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
 	Object *obact= CTX_data_active_object(C);
-	// AnimData *adt= BKE_id_add_animdata((ID *)obact);
-
+	
+	printf("actedit do id: \n");
+	
 	switch (event) {
 		case UI_ID_BROWSE:
+			printf("browse \n");
 		case UI_ID_DELETE:
+			printf("browse or delete \n");
 			saction->action= (bAction*)id;
+			
 			/* we must set this action to be the one used by active object (if not pinned) */
-			if (saction->pin == 0)
-				obact->adt->action= saction->action;
+			if (saction->pin == 0) {
+				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+				
+				/* set action */
+				printf("\tset action \n");
+				adt->action= saction->action;
+			}
 			
 			ED_area_tag_redraw(CTX_wm_area(C));
 			ED_undo_push(C, "Assign Action");
 			break;
 		case UI_ID_RENAME:
+			printf("actedit rename \n");
 			break;
 		case UI_ID_ADD_NEW:
+			printf("actedit addnew \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_OPEN:
+			printf("actedit open \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_ALONE:
+			printf("actedit alone \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_PIN:
+			printf("actedit pin \n");
 			break;
 	}
 }
@@ -1595,7 +1609,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3, xmax;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_action_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
@@ -1606,8 +1620,6 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	ANIM_animdata_get_context(C, &ac);
 	
 	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, action_viewmenu, CTX_wm_area(C), 
@@ -1691,7 +1703,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			/* NAME ETC */
 			//uiClearButLock();
 			
-			/* NAME ETC (it is assumed that */
+			/* NAME ETC  */
 			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
 				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			

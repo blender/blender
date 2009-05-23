@@ -345,7 +345,11 @@ static void node_dynamic_pyerror_print(bNode *node)
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	fprintf(stderr, "\nError in dynamic node script \"%s\":\n", node->name);
-	if (PyErr_Occurred()) { PyErr_Print(); }
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
+		PySys_SetObject("last_traceback", NULL);
+	}
 	else { fprintf(stderr, "Not a valid dynamic node Python script.\n"); }
 
 	PyGILState_Release(gilstate);

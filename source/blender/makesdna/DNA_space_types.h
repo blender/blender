@@ -96,11 +96,13 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for 
+		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
 	//ListBase ipokey;		// XXX it's not clear how these will come back yet
 	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
 	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
+	
+	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
 	
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */
@@ -135,9 +137,9 @@ typedef struct SpaceButs {
 	short re_align;
 	
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
-	char pad, flag;
+	char flag, texact;
 	
-	char texact, tab[7];	/* storing tabs for each context */
+	char tab[8];	/* storing tabs for each context */
 		
 } SpaceButs;
 
@@ -416,8 +418,8 @@ typedef struct SpaceImaSel {
 
 /* **************** SPACE DEFINES ********************* */
 
-/* button defines  */
-/* warning: the values of these defines are used in sbuts->tabs[7] */
+/* button defines (deprecated) */
+/* warning: the values of these defines are used in sbuts->tabs[8] */
 /* sbuts->mainb new */
 #define CONTEXT_SCENE	0
 #define CONTEXT_OBJECT	1
@@ -427,7 +429,7 @@ typedef struct SpaceImaSel {
 #define CONTEXT_SCRIPT	5
 #define CONTEXT_LOGIC	6
 
-/* sbuts->mainb old */
+/* sbuts->mainb old (deprecated) */
 #define BUTS_VIEW			0
 #define BUTS_LAMP			1
 #define BUTS_MAT			2
@@ -444,7 +446,7 @@ typedef struct SpaceImaSel {
 #define BUTS_CONSTRAINT		13
 #define BUTS_EFFECTS		14
 
-/* sbuts->tab new */
+/* sbuts->tab new (deprecated) */
 #define TAB_SHADING_MAT 	0
 #define TAB_SHADING_TEX 	1
 #define TAB_SHADING_RAD 	2
@@ -465,8 +467,10 @@ typedef struct SpaceImaSel {
 #define SB_PRV_OSA			1
 
 /* sbuts->align */
+#define BUT_FREE  		0
 #define BUT_HORIZONTAL  1
 #define BUT_VERTICAL    2
+#define BUT_AUTO		3
 
 /* sbuts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -572,6 +576,8 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_STRETCH	1<<21
 #define SI_DISPGP		1<<22
 #define SI_DRAW_OTHER	1<<23
+
+#define SI_COLOR_CORRECTION	1<<24
 
 /* SpaceIpo->flag (Graph Editor Settings) */
 #define SIPO_LOCK_VIEW			(1<<0)

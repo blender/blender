@@ -61,6 +61,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "PIL_time.h"
 
@@ -784,8 +785,8 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	BMesh *bm;
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data)), *em2;
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	BMesh *bm = em->bm;
 	ARegion *ar= CTX_wm_region(C);
 	BMVert *bv;
 	BMIter iter;
@@ -798,9 +799,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	int len=0, isected, flag, i;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
-	if (EM_nvertices_selected(em) < 2) {
+	if (bm->totvertsel < 2) {
 		error("No edges are selected to operate on");
-		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;;
 	}
 
@@ -814,11 +814,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	RNA_END;
 	
 	if(len<2) {
-		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
-
-	bm = editmesh_to_bmesh(em);
 
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
@@ -869,17 +866,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	//else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
 	//else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
 	
-	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
 
-	free_editMesh(em);
-
-	em2 = bmesh_to_editmesh(bm);
-	*em = *em2;
-	
-	MEM_freeN(em2);
-	BM_Free_Mesh(bm);
-
-	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

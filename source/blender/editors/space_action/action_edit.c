@@ -60,6 +60,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -300,7 +301,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -344,7 +345,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -410,7 +411,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 			
 		/* if there's an id */
 		if (ale->id)
-			insertkey(ale->id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
 	}
@@ -440,7 +441,7 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -507,7 +508,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED; // xxx - start transform
@@ -584,7 +585,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -647,7 +648,7 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -771,7 +772,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -846,7 +847,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -871,14 +872,6 @@ void ACT_OT_keyframes_extrapolation_type_set (wmOperatorType *ot)
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
-
-/* defines for set ipo-type for selected keyframes tool */
-EnumPropertyItem prop_actkeys_ipo_types[] = {
-	{BEZT_IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
-	{BEZT_IPO_LIN, "LINEAR", "Linear Interpolation", ""},
-	{BEZT_IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
-	{0, NULL, NULL, NULL}
-};
 
 /* this function is responsible for setting interpolation mode for keyframes */
 static void setipo_action_keys(bAnimContext *ac, short mode) 
@@ -924,7 +917,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -945,20 +938,10 @@ void ACT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_ipo_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
-
-/* defines for set handle-type for selected keyframes tool */
-EnumPropertyItem prop_actkeys_handletype_types[] = {
-	{HD_AUTO, "AUTO", "Auto Handles", ""},
-	{HD_VECT, "VECTOR", "Vector Handles", ""},
-	{HD_FREE, "FREE", "Free Handles", ""},
-	{HD_ALIGN, "ALIGN", "Aligned Handles", ""},
-//	{-1, "TOGGLE", "Toggle between Free and Aligned Handles", ""},
-	{0, NULL, NULL, NULL}
-};
 
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_action_keys(bAnimContext *ac, short mode) 
@@ -1022,7 +1005,7 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1043,29 +1026,13 @@ void ACT_OT_keyframes_handle_type_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_handletype_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
 
 /* ***************** Snap Current Frame Operator *********************** */
-
-/* helper callback for actkeys_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
-// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
-static short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
-{
-	/* only if selected */
-	if (bezt->f2 & SELECT) {
-		/* store average time in float (only do rounding at last step */
-		bed->f1 += bezt->vec[1][0];
-		
-		/* increment number of items */
-		bed->i1++;
-	}
-	
-	return 0;
-}
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
@@ -1098,7 +1065,7 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, ac.scene);
 	
 	return OPERATOR_FINISHED;
@@ -1151,6 +1118,10 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
+	if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
+		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
+		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1189,7 +1160,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1243,13 +1214,14 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == ACTKEYS_MIRROR_MARKER) {
-		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= scene->markers.first; marker; marker=marker->next) {
-			if (marker->flag & SELECT) {
-				break;
+		if (ac->markers) {
+			for (marker= ac->markers->first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					break;
+				}
 			}
 		}
 		
@@ -1304,7 +1276,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;

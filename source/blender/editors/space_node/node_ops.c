@@ -57,7 +57,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_border);
 	WM_operatortype_append(NODE_OT_delete);
 	WM_operatortype_append(NODE_OT_link);
-	WM_operatortype_append(NODE_OT_size_widget);
+	WM_operatortype_append(NODE_OT_resize);
 	WM_operatortype_append(NODE_OT_links_cut);
 }
 
@@ -72,7 +72,7 @@ void node_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_size_widget", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
 	

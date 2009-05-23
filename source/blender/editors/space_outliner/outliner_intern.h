@@ -119,8 +119,12 @@ void outliner_select(struct SpaceOops *soops, struct ListBase *lb, int *index, s
 void draw_outliner(const struct bContext *C);
 
 void OUTLINER_OT_activate_click(struct wmOperatorType *ot);
+
 void OUTLINER_OT_keyingset_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);
+
+void OUTLINER_OT_drivers_add(struct wmOperatorType *ot);
+void OUTLINER_OT_drivers_delete(struct wmOperatorType *ot);
 
 #if 0
 extern void outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, short event);

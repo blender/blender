@@ -35,6 +35,7 @@ struct bAnimListElem;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;
+struct ARegionType;
 struct View2DGrid;
 
 /* internal exports only */
@@ -46,7 +47,9 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 /* ***************************************** */
 /* graph_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
-void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
+
+void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid, short sel);
+void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
 
 /* ***************************************** */
 /* graph_header.c */
@@ -81,6 +84,8 @@ enum {
 
 void GRAPHEDIT_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
+
+void GRAPHEDIT_OT_keyframes_click_insert(struct wmOperatorType *ot);
 
 void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
@@ -125,10 +130,15 @@ enum {
 
 void GRAPHEDIT_OT_fmodifier_add(struct wmOperatorType *ot);
 
+/* ----------- */
+
+void GRAPHEDIT_OT_ghost_curves_create(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_ghost_curves_clear(struct wmOperatorType *ot);
+
 /* ***************************************** */
 /* graph_buttons.c */
 void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
-void graph_region_buttons(const struct bContext *C, struct ARegion *ar);
+void graph_buttons_register(struct ARegionType *art);
 
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 

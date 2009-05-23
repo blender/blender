@@ -172,6 +172,9 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 #if MANIFOLD_CACHE_SIZE >= 4
 		//sort cache so best points come first, based on area
 		insertIndex = sortCachedPoints(newPoint);
+		
+		if (insertIndex<0)
+			insertIndex=0;
 #else
 		insertIndex = 0;
 #endif
@@ -180,11 +183,7 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 	} else
 	{
 		m_cachedPoints++;
-
-		
 	}
-	if (insertIndex<0)
-		insertIndex=0;
 
 	btAssert(m_pointCache[insertIndex].m_userPersistentData==0);
 	m_pointCache[insertIndex] = newPoint;

@@ -77,9 +77,6 @@
 
 #include "RE_pipeline.h"
 
-/* for stamp drawing to an image */
-#include "BMF_Api.h"
-
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
@@ -1069,6 +1066,9 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 
 void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels)
 {
+#if 0
+// XXX
+// This go back when BLF_draw_buffer is implemented - Diego
 	struct StampData stamp_data;
 	
 	int x=1,y=1;
@@ -1188,7 +1188,7 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
-	
+#endif // 0 XXX	
 }
 
 void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)

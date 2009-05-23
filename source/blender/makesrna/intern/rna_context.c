@@ -37,31 +37,31 @@
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_manager(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_WindowManager, CTX_wm_manager(C));
 }
 
 /*static PointerRNA rna_Context_window_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_window(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_Window, CTX_wm_window(C));
 }*/
 
 static PointerRNA rna_Context_screen_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_screen(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_Screen, CTX_wm_screen(C));
 }
 
 static PointerRNA rna_Context_area_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_area(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_Area, CTX_wm_area(C));
 }
 
 static PointerRNA rna_Context_space_data_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_space_data(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_Space, CTX_wm_space_data(C));
 }
 
 static PointerRNA rna_Context_region_get(PointerRNA *ptr)
@@ -73,7 +73,7 @@ static PointerRNA rna_Context_region_get(PointerRNA *ptr)
 /*static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_region_data(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_RegionData, CTX_wm_region_data(C));
 }*/
 
 static PointerRNA rna_Context_main_get(PointerRNA *ptr)
@@ -97,6 +97,7 @@ void RNA_def_context(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Context", NULL);
 	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context.");
+	RNA_def_struct_sdna(srna, "bContext");
 
 	/* WM */
 	prop= RNA_def_property(srna, "manager", PROP_POINTER, PROP_NONE);

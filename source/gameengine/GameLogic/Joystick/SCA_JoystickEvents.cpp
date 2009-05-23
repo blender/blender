@@ -68,7 +68,7 @@ void SCA_Joystick::OnButtonUp(SDL_Event* sdl_event)
 
 void SCA_Joystick::OnButtonDown(SDL_Event* sdl_event)
 {
-	if(sdl_event->jbutton.button >= 0 || sdl_event->jbutton.button <= m_buttonmax)
+	if(sdl_event->jbutton.button <= m_buttonmax) /* unsigned int so always above 0 */
 	{
 		m_istrig_button = 1;
 		m_buttonnum = sdl_event->jbutton.button;
@@ -111,9 +111,11 @@ void SCA_Joystick::HandleEvents(void)
 		case SDL_JOYBUTTONDOWN:
 			SCA_Joystick::m_instance[sdl_event.jbutton.which]->OnButtonDown(&sdl_event);
 			break;
+#if 0	/* Not used yet */
 		case SDL_JOYBALLMOTION:
 			SCA_Joystick::m_instance[sdl_event.jball.which]->OnBallMotion(&sdl_event);
 			break;
+#endif
 		default:
 			printf("SCA_Joystick::HandleEvents, Unknown SDL event, this should not happen\n");
 			break;

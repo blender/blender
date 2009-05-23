@@ -37,8 +37,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BMF_Api.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -53,6 +51,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_sequence.h"
 #include "BKE_utildefines.h"
 
@@ -102,7 +101,7 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	bGPdata *gpd= (bGPdata *)gpd_arg;
 	bGPDlayer *gpl= (bGPDlayer *)gpl_arg;
 	
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
+	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
 	
 	scrarea_queue_winredraw(curarea);
@@ -132,8 +131,10 @@ void gp_ui_delstroke_cb (void *gpd, void *gpl)
 {
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	
+	if (gpf->framenum != CFRA) return;
+
 	gpencil_layer_setactive(gpd, gpl);
-	gpencil_frame_delete_laststroke(gpf);
+	gpencil_frame_delete_laststroke(gpl, gpf);
 	
 	scrarea_queue_winredraw(curarea);
 }
@@ -871,6 +872,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 	glDisable(GL_LINE_SMOOTH); // smooth lines
 	
 	/* show info for debugging the status of gpencil */
+#if 0
 	if ( ((dflag & GP_DRAWDATA_NOSTATUS)==0) && (gpd->flag & GP_DATA_DISPINFO) ) {
 		char printable[256];
 		short xmax;
@@ -904,10 +906,10 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		
 		/* only draw it if view is wide enough (assume padding of 20 is enough for now) */
 		if (winx > (xmax + 20)) { 
-			glRasterPos2i(winx-xmax, winy-20);
-			BMF_DrawString(G.fonts, printable);
+			BLF_draw_default(winx-xmax, winy-20, 0.0f, printable);
 		}
 	}
+#endif
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);

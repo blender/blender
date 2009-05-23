@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 defs = []
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' #/intern/bmfont ../../python ../../makesrna ../../blenfont'
+incs += ' ../../python ../../makesrna ../../blenfont'
 
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')

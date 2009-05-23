@@ -217,14 +217,8 @@ void SND_Scene::UpdateListener()
 	if (m_listener.IsModified())
 	{
 		m_audiodevice->SetListenerGain(m_listener.GetGain());
-		
-		// fmod doesn't support dopplervelocity, so just use the dopplerfactor instead
-#ifdef USE_FMOD
-		m_audiodevice->SetDopplerFactor(m_listener.GetDopplerVelocity());
-#else
 		m_audiodevice->SetDopplerVelocity(m_listener.GetDopplerVelocity());
 		m_audiodevice->SetDopplerFactor(m_listener.GetDopplerFactor());
-#endif
 		m_listener.SetModified(false);
 	}
 }
@@ -304,23 +298,6 @@ void SND_Scene::UpdateActiveObects()
 		
 		if (id >= 0)
 		{
-#ifdef USE_FMOD
-			// fmod wants these set before playing the sample
-			if (pObject->IsModified())
-			{
-				m_audiodevice->SetObjectLoop(id, pObject->GetLoopMode());
-				m_audiodevice->SetObjectLoopPoints(id, pObject->GetLoopStart(), pObject->GetLoopEnd());
-			}
-
-			// ok, properties Set. now see if it must play
-			if (pObject->GetPlaystate() == SND_MUST_PLAY)
-			{
-				m_audiodevice->PlayObject(id);
-				pObject->SetPlaystate(SND_PLAYING);
-				pObject->InitRunning();
-//				printf("start play: %d\n", tijd);
-			}
-#endif
 			if (pObject->Is3D())
 			{
 				// Get the global positions and velocity vectors

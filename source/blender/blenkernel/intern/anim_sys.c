@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -238,6 +239,9 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	/* add KeyingSet to list */
 	BLI_addtail(list, ks);
 	
+	/* make sure KeyingSet has a unique name (this helps with identification) */
+	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
+	
 	/* return new KeyingSet for further editing */
 	return ks;
 }
@@ -274,6 +278,10 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 		else
 			strcpy(ksp->group, "");
 	}
+	
+	/* store additional info for relative paths (just in case user makes the set relative) */
+	if (id)
+		ksp->idtype= GS(id->name);
 	
 	/* just copy path info */
 	// XXX no checks are performed for templates yet
@@ -369,22 +377,22 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
-			switch (RNA_property_type(&new_ptr, prop)) 
+			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (RNA_property_array_length(prop))
 						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (RNA_property_array_length(prop))
 						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (RNA_property_array_length(prop))
 						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
@@ -393,12 +401,12 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 					RNA_property_enum_set(&new_ptr, prop, (int)value);
 					break;
 				default:
-					break;
+					/* nothing can be done here... so it is unsuccessful? */
+					return 0;
 			}
 		}
 		
 		/* successful */
-		// XXX should the unhandled case also be successful?
 		return 1;
 	}
 	else {
@@ -415,21 +423,25 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 }
 
 /* Simple replacement based data-setting of the FCurve using RNA */
-static void animsys_execute_fcurve (PointerRNA *ptr, AnimMapper *remap, FCurve *fcu)
+static short animsys_execute_fcurve (PointerRNA *ptr, AnimMapper *remap, FCurve *fcu)
 {
 	char *path = NULL;
 	short free_path=0;
+	short ok= 0;
 	
 	/* get path, remapped as appropriate to work in its new environment */
 	free_path= animsys_remap_path(remap, fcu->rna_path, &path);
 	
 	/* write value to setting */
 	if (path)
-		animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
+		ok= animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
 	
 	/* free temp path-info */
 	if (free_path)
 		MEM_freeN(path);
+		
+	/* return whether we were successful */
+	return ok;
 }
 
 /* Evaluate all the F-Curves in the given list 
@@ -465,20 +477,25 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) 
 	{
 		ChannelDriver *driver= fcu->driver;
+		short ok= 0;
 		
 		/* check if this driver's curve should be skipped */
 		// FIXME: maybe we shouldn't check for muted, though that would make things more confusing, as there's already too many ways to disable?
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
-			if ((driver) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
+			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID)/*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
 				/* evaluate this using values set already in other places */
 				// NOTE: for 'layering' option later on, we should check if we should remove old value before adding new to only be done when drivers only changed
 				calculate_fcurve(fcu, ctime);
-				animsys_execute_fcurve(ptr, NULL, fcu);
+				ok= animsys_execute_fcurve(ptr, NULL, fcu);
 				
 				/* clear recalc flag */
 				driver->flag &= ~DRIVER_FLAG_RECALC;
+				
+				/* set error-flag if evaluation failed */
+				if (ok == 0)
+					driver->flag |= DRIVER_FLAG_INVALID; 
 			}
 		}
 	}
@@ -487,8 +504,29 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 /* ***************************************** */
 /* Actions Evaluation */
 
+/* Evaluate Action Group */
+void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup *agrp, AnimMapper *remap, float ctime)
+{
+	FCurve *fcu;
+	
+	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
+	if ELEM(NULL, act, agrp) return;
+	if ((remap) && (remap->target != act)) remap= NULL;
+	
+	/* calculate then execute each curve */
+	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) 
+	{
+		/* check if this curve should be skipped */
+		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
+		{
+			calculate_fcurve(fcu, ctime);
+			animsys_execute_fcurve(ptr, remap, fcu); 
+		}
+	}
+}
+
 /* Evaluate Action (F-Curve Bag) */
-static void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
+void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -846,7 +884,10 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	// TODO...
 	
 	/* objects */
-	EVAL_ANIM_IDS(main->object.first, 0);
+		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
+		 * this tagged by Depsgraph on framechange 
+		 */
+	EVAL_ANIM_IDS(main->object.first, /*ADT_RECALC_ANIM*/0); 
 	
 	/* worlds */
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);

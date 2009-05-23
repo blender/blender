@@ -36,12 +36,12 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -71,7 +71,7 @@
  */
 
 /* ************************************************************************** */
-/* IPO Editing Loops - Exposed API */
+/* Keyframe Editing Loops - Exposed API */
 
 /* --------------------------- Base Functions ------------------------------------ */
 
@@ -121,14 +121,14 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
     return 0;
 }
 
-/* -------------------------------- Further Abstracted ----------------------------- */
+/* -------------------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */
 
 /* This function is used to loop over the keyframe data in an Action Group */
 static short agrp_keys_bezier_loop(BeztEditData *bed, bActionGroup *agrp, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb)
 {
 	FCurve *fcu;
 	
-	/* only iterate over the action-channels and their sub-channels that are in this group */
+	/* only iterate over the F-Curves that are in this group */
 	for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
 		if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
 			return 1;
@@ -144,17 +144,73 @@ static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc 
 	
 	/* just loop through all F-Curves */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
-		ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb);
+		if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
+			return 1;
 	}
+	
+	return 0;
+}
+
+/* This function is used to loop over the keyframe data of an AnimData block */
+static short adt_keys_bezier_loop(BeztEditData *bed, AnimData *adt, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	/* drivers or actions? */
+	if (filterflag & ADS_FILTER_ONLYDRIVERS) {
+		FCurve *fcu;
+		
+		/* just loop through all F-Curves acting as Drivers */
+		for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
+			if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
+				return 1;
+		}
+	}
+	else if (adt->action) {
+		/* call the function for actions */
+		if (act_keys_bezier_loop(bed, adt->action, bezt_ok, bezt_cb, fcu_cb))
+			return 1;
+	}
+	
+	return 0;
+}
+
+/* This function is used to loop over the keyframe data in an Object */
+static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	Key *key= ob_get_key(ob);
+	
+	/* firstly, Object's own AnimData */
+	if (ob->adt) 
+		adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	
+	/* shapekeys */
+	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
+		adt_keys_bezier_loop(bed, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		
+	// FIXME: add materials, etc. (but drawing code doesn't do it yet too! :)
+	
+	return 0;
+}
+
+/* This function is used to loop over the keyframe data in a Scene */
+static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	World *wo= sce->world;
+	
+	/* Scene's own animation */
+	if (sce->adt)
+		adt_keys_bezier_loop(bed, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	
+	/* World */
+	if (wo && wo->adt)
+		adt_keys_bezier_loop(bed, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	
 	return 0;
 }
 
 /* --- */
 
-
 /* This function is used to apply operation to all keyframes, regardless of the type */
-short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb)
+short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	/* sanity checks */
 	if (ale == NULL)
@@ -173,6 +229,41 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 		case ALE_ACT: /* action */
 			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, fcu_cb);
+			
+		case ALE_OB: /* object */
+			return ob_keys_bezier_loop(bed, (Object *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_SCE: /* scene */
+			return scene_keys_bezier_loop(bed, (Scene *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	}
+	
+	return 0;
+}
+
+/* This function is used to apply operation to all keyframes, regardless of the type without needed an AnimListElem wrapper */
+short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int keytype, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	/* sanity checks */
+	if (data == NULL)
+		return 0;
+	
+	/* method to use depends on the type of keyframe data */
+	switch (keytype) {
+		/* direct keyframe data (these loops are exposed) */
+		case ALE_FCURVE: /* F-Curve */
+			return ANIM_fcurve_keys_bezier_loop(bed, data, bezt_ok, bezt_cb, fcu_cb);
+		
+		/* indirect 'summaries' (these are not exposed directly) 
+		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
+		 */
+		case ALE_GROUP: /* action group */
+			return agrp_keys_bezier_loop(bed, (bActionGroup *)data, bezt_ok, bezt_cb, fcu_cb);
+		case ALE_ACT: /* action */
+			return act_keys_bezier_loop(bed, (bAction *)data, bezt_ok, bezt_cb, fcu_cb);
+			
+		case ALE_OB: /* object */
+			return ob_keys_bezier_loop(bed, (Object *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_SCE: /* scene */
+			return scene_keys_bezier_loop(bed, (Scene *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
@@ -274,6 +365,38 @@ BeztEditFunc ANIM_editkeyframes_ok(short mode)
 }
 
 /* ******************************************* */
+/* Assorted Utility Functions */
+
+/* helper callback for <animeditor>_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
+short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		/* store average time in float (only do rounding at last step */
+		bed->f1 += bezt->vec[1][0];
+		
+		/* increment number of items */
+		bed->i1++;
+	}
+	
+	return 0;
+}
+
+/* helper callback for columnselect_<animeditor>_keys() -> populate list CfraElems with frame numbers from selected beztriples */
+short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		CfraElem *ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+		BLI_addtail(&bed->list, ce);
+		
+		ce->cfra= bezt->vec[1][0];
+	}
+	
+	return 0;
+}
+
+/* ******************************************* */
 /* Transform */
 
 static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
@@ -303,22 +426,22 @@ static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 
 static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 {
-	//if (bezt->f2 & SELECT)
-	//	bezt->vec[1][0]= (float)find_nearest_marker_time(bezt->vec[1][0]);  // XXX missing function!
+	if (bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)ED_markers_find_nearest_marker_time(&bed->list, bezt->vec[1][0]);
 	return 0;
 }
 
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }
 
-// calchandles_ipocurve
+
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
 	/* eEditKeyframes_Snap */

@@ -84,10 +84,8 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 /* XXX */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
@@ -744,7 +742,83 @@ static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
 
 /* Public Curve-Drawing API  ---------------- */
 
-void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
+/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) */
+void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
+{
+	FCurve *fcu;
+	
+	/* draw with thick dotted lines */
+	setlinestyle(1);
+	glLineWidth(3.0f);
+	
+	/* anti-aliased lines for less jagged appearance */
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
+	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
+	for (fcu= sipo->ghostCurves.first; fcu; fcu= fcu->next) {
+		/* set whatever color the curve has set 
+		 * 	- this is set by the function which creates these
+		 *	- draw with a fixed opacity of 2
+		 */
+		glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], 0.5f);
+		
+		/* simply draw the stored samples */
+		draw_fcurve_curve_samples(fcu, &ar->v2d);
+	}
+	
+	/* restore settings */
+	setlinestyle(0);
+	glLineWidth(1.0f);
+	
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
+}
+
+/* check if any FModifiers to draw controls for  - fcm is 'active' modifier */
+static short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
+{
+	/* don't draw if there aren't any modifiers at all */
+	if (fcu->modifiers.first == NULL) 
+		return 0;
+	
+	/* if there's an active modifier - don't draw if it doesn't drastically
+	 * alter the curve...
+	 */
+	if (fcm) {
+		switch (fcm->type) {
+			/* clearly harmless */
+			case FMODIFIER_TYPE_CYCLES:
+				return 0;
+				
+			/* borderline... */
+			case FMODIFIER_TYPE_NOISE:
+				return 0;
+		}
+	}
+	
+	/* if only one modifier - don't draw if it is muted or disabled */
+	if (fcu->modifiers.first == fcu->modifiers.last) {
+		fcm= fcu->modifiers.first;
+		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
+			return 0;
+	}
+	
+	/* if only active modifier - don't draw if it is muted or disabled */
+	if (fcm) {
+		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
+			return 0;
+	}
+	
+	/* if we're still here, this means that there are modifiers with controls to be drawn */
+	// FIXME: what happens if all the modifiers were muted/disabled
+	return 1;
+}
+
+/* This is called twice from space_graph.c -> graph_main_area_draw()
+ * Unselected then selected F-Curves are drawn so that they do not occlude each other.
+ */
+void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -752,6 +826,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	
 	/* build list of curves to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
+	filter |= ((sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL));
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
@@ -787,8 +862,10 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}
 			else {
-				/* set whatever color the curve has set */
-				glColor3fv(fcu->color);
+				/* set whatever color the curve has set 
+				 *	- unselected curves draw less opaque to help distinguish the selected ones
+				 */
+				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], ((sel) ? 1.0f : 0.5f));
 			}
 			
 			/* anti-aliased lines for less jagged appearance */
@@ -818,14 +895,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		}
 		
 		/* 2) draw handles and vertices as appropriate based on active */
-		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first && !fcm) ) {
-			/* draw controls for the 'active' modifier
-			 *	- there may not be an 'active' modifier on this curve to draw
-			 *	- this curve may not be active, so modifier controls shouldn't get drawn either
-			 *
-			 * NOTE: cycles modifier is currently an exception where the original points can still be edited, so
-			 *  	 	this branch is skipped... (TODO: set up the generic system for this so that we don't need special hacks like this)
-			 */
+		if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
+			/* only draw controls if this is the active modifier */
 			if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
 				switch (fcm->type) {
 					case FMODIFIER_TYPE_ENVELOPE: /* envelope */
@@ -972,7 +1043,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 						expand= ICON_TRIA_RIGHT;
 					
 					sel = SEL_ACTC(act);
-					strcpy(name, "Action");
+					strcpy(name, act->id.name+2);
 				}
 					break;
 				case ANIMTYPE_FILLDRIVERS: /* drivers widget */
@@ -1176,10 +1247,14 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					else	
 						mute = ICON_MUTE_IPO_OFF;
 						
-					if (EDITABLE_FCU(fcu))
-						protect = ICON_UNLOCKED;
+					if (fcu->bezt) {
+						if (EDITABLE_FCU(fcu))
+							protect = ICON_UNLOCKED;
+						else
+							protect = ICON_LOCKED;
+					}
 					else
-						protect = ICON_LOCKED;
+						protect = ICON_ZOOMOUT; // XXX editability is irrelevant here, but this icon is temp...
 					
 					sel = SEL_FCU(fcu);
 					
@@ -1326,8 +1401,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 			offset += 3;
-			ui_rasterpos_safe(x+offset, y-4, 1.0f);
-			UI_DrawString(G.font, name, 0);
+			UI_DrawString(x+offset, y-4, name);
 			
 			/* reset offset - for RHS of panel */
 			offset = 0;

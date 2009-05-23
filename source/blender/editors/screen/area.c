@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
@@ -50,12 +53,11 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BLF_api.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "BMF_Api.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -65,12 +67,15 @@
 
 /* general area and region code */
 
-static void region_draw_emboss(ARegion *ar)
+static void region_draw_emboss(ARegion *ar, rcti *scirct)
 {
-	short winx, winy;
+	rcti rect;
 	
-	winx= ar->winrct.xmax-ar->winrct.xmin;
-	winy= ar->winrct.ymax-ar->winrct.ymin;
+	/* translate scissor rect to region space */
+	rect.xmin= scirct->xmin - ar->winrct.xmin;
+	rect.ymin= scirct->ymin - ar->winrct.ymin;
+	rect.xmax= scirct->xmax - ar->winrct.xmin;
+	rect.ymax= scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
 	glEnable( GL_BLEND );
@@ -78,19 +83,19 @@ static void region_draw_emboss(ARegion *ar)
 	
 	/* right  */
 	glColor4ub(0,0,0, 50);
-	sdrawline(winx, 0, winx, winy);
+	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
 	
 	/* bottom  */
 	glColor4ub(0,0,0, 80);
-	sdrawline(0, 0, winx, 0);
+	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
 	
 	/* top  */
 	glColor4ub(255,255,255, 60);
-	sdrawline(0, winy, winx, winy);
+	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
 
 	/* left  */
 	glColor4ub(255,255,255, 50);
-	sdrawline(0, 0, 0, winy);
+	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
 	glDisable( GL_BLEND );
 }
@@ -161,6 +166,27 @@ void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 	}
 }
 
+static void area_draw_azone(short x1, short y1, short x2, short y2)
+{
+	float xmin = x1;
+	float xmax = x2-2;
+	float ymin = y1-1;
+	float ymax = y2-3;
+	
+	float dx= 0.3f*(xmax-xmin);
+	float dy= 0.3f*(ymax-ymin);
+	
+	glColor4ub(255, 255, 255, 80);
+	fdrawline(xmin, ymax, xmax, ymin);
+	fdrawline(xmin, ymax-dy, xmax-dx, ymin);
+	fdrawline(xmin, ymax-2*dy, xmax-2*dx, ymin);
+	
+	glColor4ub(0, 0, 0, 150);
+	fdrawline(xmin, ymax+1, xmax+1, ymin);
+	fdrawline(xmin, ymax-dy+1, xmax-dx+1, ymin);
+	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
+}
+
 /* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
@@ -179,8 +205,7 @@ void ED_area_overdraw(bContext *C)
 		for(az= sa->actionzones.first; az; az= az->next) {
 			if(az->do_draw) {
 				if(az->type==AZONE_TRI) {
-					glColor4ub(0, 0, 0, 70);
-					sdrawtrifill(az->x1, az->y1, az->x2, az->y2);
+					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
 				}
 				az->do_draw= 0;
 			}
@@ -190,48 +215,73 @@ void ED_area_overdraw(bContext *C)
 	
 }
 
+/* get scissor rect, checking overlapping regions */
+static void region_scissor_winrct(ARegion *ar, rcti *winrct)
+{
+	*winrct= ar->winrct;
+	
+	if(ELEM(ar->alignment, RGN_OVERLAP_LEFT, RGN_OVERLAP_RIGHT))
+		return;
+
+	while(ar->prev) {
+		ar= ar->prev;
+		
+		if(ar->flag & RGN_FLAG_HIDDEN);
+		else if(ar->alignment==RGN_OVERLAP_LEFT) {
+			winrct->xmin= ar->winrct.xmax + 1;
+		}
+		else if(ar->alignment==RGN_OVERLAP_RIGHT) {
+			winrct->xmax= ar->winrct.xmin - 1;
+		}
+		else break;
+	}
+}
+
 /* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ARegionType *at= ar->type;
-
+	rcti winrct;
+	
+	/* checks other overlapping regions */
+	region_scissor_winrct(ar, &winrct);
+	
 	/* if no partial draw rect set, full rect */
 	if(ar->drawrct.xmin == ar->drawrct.xmax)
-		ar->drawrct= ar->winrct;
-	
-	/* extra clip for safety */
-	ar->drawrct.xmin= MAX2(ar->winrct.xmin, ar->drawrct.xmin);
-	ar->drawrct.ymin= MAX2(ar->winrct.ymin, ar->drawrct.ymin);
-	ar->drawrct.xmax= MIN2(ar->winrct.xmax, ar->drawrct.xmax);
-	ar->drawrct.ymax= MIN2(ar->winrct.ymax, ar->drawrct.ymax);
+		ar->drawrct= winrct;
+	else {
+		/* extra clip for safety */
+		ar->drawrct.xmin= MAX2(winrct.xmin, ar->drawrct.xmin);
+		ar->drawrct.ymin= MAX2(winrct.ymin, ar->drawrct.ymin);
+		ar->drawrct.xmax= MIN2(winrct.xmax, ar->drawrct.xmax);
+		ar->drawrct.ymax= MIN2(winrct.ymax, ar->drawrct.ymax);
+	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
 	
+	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
+	
 	/* optional header info instead? */
 	if(ar->headerstr) {
 		float col[3];
-		UI_SetTheme(sa);
 		UI_GetThemeColor3fv(TH_HEADER, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		UI_ThemeColor(TH_MENU_TEXT);
-		glRasterPos2i(20, 6);
-		BMF_DrawString(G.font, ar->headerstr);
+		UI_ThemeColor(TH_TEXT);
+		BLF_draw_default(20, 6, 0.0f, ar->headerstr);
 	}
 	else if(at->draw) {
-		UI_SetTheme(sa);
 		at->draw(C, ar);
-		UI_SetTheme(NULL);
 	}
 	
-	if(sa)
-		region_draw_emboss(ar);
-
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
+	
+	if(sa)
+		region_draw_emboss(ar, &winrct);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(ar);
@@ -646,6 +696,8 @@ void ED_region_init(bContext *C, ARegion *ar)
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_manager(C), CTX_wm_window(C), ar);
 	
+	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
+	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 }
 
 
@@ -875,9 +927,6 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBut *but;
 	int xco= 8;
 	
-	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
-	else uiBlockSetCol(block, TH_HEADERDESEL);
-	
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   windowtype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
@@ -904,6 +953,195 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	}
 	xco+=XIC;
 	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
 	return xco;
+}
+
+/************************ standard UI regions ************************/
+
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	PanelType *pt;
+	Panel *panel;
+	View2D *v2d= &ar->v2d;
+	float col[3];
+	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
+
+	if(vertical) {
+		w= v2d->cur.xmax - v2d->cur.xmin;
+		em= (ar->type->minsizex)? 10: 20;
+	}
+	else {
+		w= UI_PANEL_WIDTH;
+		em= (ar->type->minsizex)? 10: 20;
+	}
+
+	header= 20; // XXX
+	triangle= 22;
+	x= 0;
+	y= -style->panelouter;
+
+	/* create panels */
+	uiBeginPanels(C, ar);
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, v2d);
+
+	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
+		/* verify context */
+		if(context)
+			if(!pt->context || strcmp(context, pt->context) != 0)
+				continue;
+
+		/* draw panel */
+		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
+			panel= uiBeginPanel(ar, block, pt, &open);
+
+			if(vertical)
+				y -= header;
+
+			if(pt->draw_header && (open || vertical)) {
+				/* for enabled buttons */
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+					triangle, header+style->panelspace, header, 1, style);
+
+				pt->draw_header(C, panel);
+
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				panel->labelofs= xco - triangle;
+				panel->layout= NULL;
+			}
+
+			if(open) {
+				panel->type= pt;
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+					style->panelspace, 0, w-2*style->panelspace, em, style);
+
+				pt->draw(C, panel);
+
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				panel->layout= NULL;
+
+				yco -= 2*style->panelspace;
+				uiEndPanel(block, w, -yco);
+			}
+			else
+				yco= 0;
+
+			uiEndBlock(C, block);
+
+			if(vertical) {
+				y += yco-style->panelouter;
+			}
+			else {
+				x += w;
+				miny= MIN2(y, yco-style->panelouter-header);
+			}
+		}
+	}
+
+	if(vertical)
+		x += w;
+	else
+		y= miny;
+	
+	/* in case there are no panels */
+	if(x == 0 || y == 0) {
+		x= UI_PANEL_WIDTH;
+		y= UI_PANEL_WIDTH;
+	}
+
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* before setting the view */
+	if(vertical) {
+		v2d->keepofs |= V2D_LOCKOFS_X;
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+	}
+	else {
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+	}
+
+	UI_view2d_totRect_set(v2d, x, -y);
+
+	/* set the view */
+	UI_view2d_view_ortho(C, v2d);
+
+	/* this does the actual drawing! */
+	uiEndPanels(C, ar);
+	
+	/* restore view matrix */
+	UI_view2d_view_restore(C);
+}
+
+void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+}
+
+void ED_region_header(const bContext *C, ARegion *ar)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	uiLayout *layout;
+	HeaderType *ht;
+	Header header = {0};
+	float col[3];
+	int xco, yco;
+
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+
+	xco= 8;
+	yco= HEADERY-3;
+
+	/* draw all headers types */
+	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
+		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
+
+		if(ht->draw) {
+			header.type= ht;
+			header.layout= layout;
+			ht->draw(C, &header);
+		}
+
+		uiBlockLayoutResolve(C, block, &xco, &yco);
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+	}
+
+	/* always as last  */
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+void ED_region_header_init(ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 

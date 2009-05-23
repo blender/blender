@@ -109,7 +109,7 @@ void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 				printf(value->GetText());
 			} else
 			{
-				float num = value->GetNumber();
+				float num = (float)value->GetNumber();
 				expressionresult = !MT_fuzzyZero(num);
 			}
 			value->Release();

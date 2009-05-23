@@ -65,6 +65,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
+#include "RNA_access.h"
+#include "RNA_types.h"
+
 //XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
@@ -169,17 +172,39 @@ void free_action (bAction *act)
 bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
-	//bActionGroup *dgrp, *sgrp;	// XXX not used yet
+	bActionGroup *dgrp, *sgrp;
+	FCurve *dfcu, *sfcu;
 	
 	if (src == NULL) 
 		return NULL;
 	dst= copy_libblock(src);
 	
-	BLI_duplicatelist(&dst->groups, &src->groups);	// XXX not used yet
+	/* duplicate the lists of groups and markers */
+	BLI_duplicatelist(&dst->groups, &src->groups);
 	BLI_duplicatelist(&dst->markers, &src->markers);
 	
-	/* copy f-curves */
-	copy_fcurves(&dst->curves, &src->curves);
+	/* copy F-Curves, fixing up the links as we go */
+	dst->curves.first= dst->curves.last= NULL;
+	
+	for (sfcu= src->curves.first; sfcu; sfcu= sfcu->next) {
+		/* duplicate F-Curve */
+		dfcu= copy_fcurve(sfcu);
+		BLI_addtail(&dst->curves, dfcu);
+		
+		/* fix group links (kindof bad list-in-list search, but this is the most reliable way) */
+		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+			if (sfcu->grp == sgrp) {
+				dfcu->grp= dgrp;
+				
+				if (dgrp->channels.first == sfcu)
+					dgrp->channels.first= dfcu;
+				if (dgrp->channels.last == sfcu)
+					dgrp->channels.last= dfcu;
+					
+				break;
+			}
+		}
+	}
 	
 	dst->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
 	dst->id.us++;
@@ -740,38 +765,27 @@ float get_action_frame_inv(Object *ob, float cframe)
 /* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
 {
-	// FCurve *fcu;
+	FCurve *fcu;
 	float min=999999999.0f, max=-999999999.0f;
-	int	foundvert=0;
+	short foundvert=0;
 
 	if (act) {
-#if 0 // XXX old animation system
-		for (chan=act->chanbase.first; chan; chan=chan->next) {
-			if ((incl_hidden) || (chan->flag & ACHAN_HIDDEN)==0) {
-				if (chan->ipo) {
-					for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-						if (icu->totvert) {
-							min= MIN2(min, icu->bezt[0].vec[1][0]);
-							max= MAX2(max, icu->bezt[icu->totvert-1].vec[1][0]);
-							foundvert=1;
-						}
-					}
-				}
-				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-					if (conchan->ipo) {
-						for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
-							if (icu->totvert) {
-								min= MIN2(min, icu->bezt[0].vec[1][0]);
-								max= MAX2(max, icu->bezt[icu->totvert-1].vec[1][0]);
-								foundvert=1;
-							}
-						}
-					}
-				}
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			if (fcu->totvert) {
+				float nmin, nmax;
+				
+				/* get extents for this curve */
+				calc_fcurve_range(fcu, &nmin, &nmax);
+				
+				/* compare to the running tally */
+				min= MIN2(min, nmin);
+				max= MAX2(max, nmax);
+				
+				foundvert= 1;
 			}
 		}
-#endif // XXX old animation system
 	}	
+	
 	if (foundvert) {
 		if(min==max) max+= 1.0f;
 		*start= min;
@@ -847,9 +861,11 @@ void copy_pose_result(bPose *to, bPose *from)
 		if(pchanto) {
 			Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
 			Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
+			
 			/* used for local constraints */
 			VECCOPY(pchanto->loc, pchanfrom->loc);
 			QUATCOPY(pchanto->quat, pchanfrom->quat);
+			VECCOPY(pchanto->eul, pchanfrom->eul);
 			VECCOPY(pchanto->size, pchanfrom->size);
 			
 			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
@@ -862,13 +878,12 @@ void copy_pose_result(bPose *to, bPose *from)
 /* For the calculation of the effects of an Action at the given frame on an object 
  * This is currently only used for the Action Constraint 
  */
-void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, bAction *act, float cframe)
+void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
-	AnimData adt;
+	bActionGroup *agrp= action_groups_find_named(act, groupname);
 	
-	/* clear workob and animdata */
+	/* clear workob */
 	clear_workob(workob);
-	memset(&adt, 0, sizeof(AnimData));
 	
 	/* init workob */
 	Mat4CpyMat4(workob->obmat, ob->obmat);
@@ -893,14 +908,30 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	strcpy(workob->parsubstr, ob->parsubstr);
 	strcpy(workob->id.name, "OB<ConstrWorkOb>"); /* we don't use real object name, otherwise RNA screws with the real thing */
 	
-	/* init animdata, and attach to workob */
-	workob->adt= &adt;
-	
-	adt.recalc= ADT_RECALC_ANIM;
-	adt.action= act;
-	
-	/* execute effects of Action on to workob (or it's PoseChannels) */
-	BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
+	/* if we're given a group to use, it's likely to be more efficient (though a bit more dangerous) */
+	if (agrp) {
+		/* specifically evaluate this group only */
+		PointerRNA id_ptr;
+		
+		/* get RNA-pointer for the workob's ID */
+		RNA_id_pointer_create(&workob->id, &id_ptr);
+		
+		/* execute action for this group only */
+		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
+	}
+	else {
+		AnimData adt;
+		
+		/* init animdata, and attach to workob */
+		memset(&adt, 0, sizeof(AnimData));
+		workob->adt= &adt;
+		
+		adt.recalc= ADT_RECALC_ANIM;
+		adt.action= act;
+		
+		/* execute effects of Action on to workob (or it's PoseChannels) */
+		BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
+	}
 }
 
 /* ********** NLA with non-poses works with ipo channels ********** */

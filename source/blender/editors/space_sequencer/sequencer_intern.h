@@ -80,7 +80,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot);
 void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_duplicate_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
-void SEQUENCER_OT_separate_images(struct wmOperatorType *ot);
+void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
@@ -102,11 +102,11 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 
 
 /* sequencer_select.c */
-void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot);
-void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot);
-void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot);
-void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot);
-void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {

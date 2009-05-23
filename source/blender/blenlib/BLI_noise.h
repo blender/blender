@@ -26,7 +26,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  * 
- * $Id:  $ 
 */
 
 #ifndef BLI_NOISE_H

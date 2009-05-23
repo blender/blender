@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 7037 2006-03-12 14:11:23Z ton $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

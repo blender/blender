@@ -77,8 +77,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BMF_Api.h"
-
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -102,9 +100,9 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	
-	BM_esubdivideflag(obedit, ((Mesh *)obedit->data)->edit_btmesh->bm, 
-		1, 0.0, scene->toolsettings->editbutflag, 1, 0);
+	BM_esubdivideflag(obedit, em->bm, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -218,11 +216,13 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Subdivision Type", 0);
-	uiMenuItemsEnumO(head, "MESH_OT_subdivs", "type");
-	uiPupMenuEnd(C, head);
+	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
+	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -276,10 +276,8 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
 	RNA_def_int(ot->srna, "number_cuts", 4, 1, 10, "Number of Cuts", "", 1, INT_MAX);
 	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
-		
+	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);		
 }
-
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */

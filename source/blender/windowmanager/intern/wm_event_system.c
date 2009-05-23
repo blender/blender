@@ -1196,7 +1196,7 @@ void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
 	}
 }
 
-wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
+wmEventHandler *WM_event_add_ui_handler(const bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
 {
 	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event ui handler");
 	handler->ui_handle= func;

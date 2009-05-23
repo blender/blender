@@ -40,6 +40,8 @@
 
 #ifdef RNA_RUNTIME
 
+int text_file_modified(Text *text);
+
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
 	Text *text= (Text*)ptr->data;
@@ -67,6 +69,12 @@ static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 		text->name= BLI_strdup(value);
 	else
 		text->name= NULL;
+}
+
+static int rna_Text_modified_get(PointerRNA *ptr)
+{
+	Text *text= (Text*)ptr->data;
+	return text_file_modified(text);
 }
 
 static void rna_TextLine_line_get(PointerRNA *ptr, char *value)
@@ -173,6 +181,11 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISDIRTY);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dirty", "Text file has been edited since last save.");
+
+	prop= RNA_def_property(srna, "modified", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Text_modified_get", NULL);
+	RNA_def_property_ui_text(prop, "Modified", "Text file on disk is different than the one in memory.");
 
 	prop= RNA_def_property(srna, "memory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISMEM);

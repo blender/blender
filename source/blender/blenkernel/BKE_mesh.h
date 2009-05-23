@@ -36,6 +36,7 @@
 struct BoundBox;
 struct DispList;
 struct ListBase;
+struct EditMesh;
 struct MDeformVert;
 struct Mesh;
 struct MFace;
@@ -50,6 +51,9 @@ struct CustomData;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
+void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);

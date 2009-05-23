@@ -70,6 +70,7 @@ static SpaceLink *buttons_new(const bContext *C)
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
 	sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
+	sbuts->align= BUT_AUTO;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for buts");
@@ -128,7 +129,15 @@ static void buttons_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceButs *sbuts= sa->spacedata.first;
 
+	/* auto-align based on size */
+	if(sbuts->align == BUT_AUTO || !sbuts->align) {
+		if(sa->winx > sa->winy)
+			sbuts->align= BUT_HORIZONTAL;
+		else
+			sbuts->align= BUT_VERTICAL;
+	}
 }
 
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
@@ -146,8 +155,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 
-//	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
@@ -158,51 +166,32 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	int vertical= (sbuts->align == BUT_VERTICAL);
 
-	if(sbuts->mainb == CONTEXT_OBJECT) {
-		int tab= sbuts->tab[CONTEXT_OBJECT];
-		int vertical= (sbuts->align == 2);
+	if(sbuts->mainb == BCONTEXT_SCENE)
+		ED_region_panels(C, ar, vertical, "scene");
+	else if(sbuts->mainb == BCONTEXT_WORLD)
+		ED_region_panels(C, ar, vertical, "world");
+	else if(sbuts->mainb == BCONTEXT_OBJECT)
+		ED_region_panels(C, ar, vertical, "object");
+	else if(sbuts->mainb == BCONTEXT_DATA)
+		ED_region_panels(C, ar, vertical, "data");
+	else if(sbuts->mainb == BCONTEXT_MATERIAL)
+		ED_region_panels(C, ar, vertical, "material");
+	else if(sbuts->mainb == BCONTEXT_TEXTURE)
+		ED_region_panels(C, ar, vertical, "texture");
+	else if(sbuts->mainb == BCONTEXT_PARTICLE)
+		ED_region_panels(C, ar, vertical, "particle");
+	else if(sbuts->mainb == BCONTEXT_PHYSICS)
+		ED_region_panels(C, ar, vertical, "physics");
+	else if(sbuts->mainb == BCONTEXT_BONE)
+		ED_region_panels(C, ar, vertical, "bone");
+	else if(sbuts->mainb == BCONTEXT_MODIFIER)
+		ED_region_panels(C, ar, vertical, "modifier");
 
-		if(tab == TAB_OBJECT_OBJECT)
-			uiRegionPanelLayout(C, ar, vertical, "object");
-	}
-	else {
-		View2D *v2d= &ar->v2d;
-		float col[3], fac;
-		//int align= 0;
-
-		/* clear and setup matrix */
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		UI_view2d_view_ortho(C, v2d);
-
-		/* swapbuffers indicator */
-		fac= BLI_frand();
-		glColor3f(fac, fac, fac);
-		glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
-		
-		/* panels */
-		if(sbuts->mainb == CONTEXT_SCENE)
-			buttons_scene(C, ar);
-		else
-			drawnewstuff();
-		
-#if 0
-		if(sbuts->align)
-			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
-				align= 1;
-#endif
-
-		uiDrawPanels(C, 1); // XXX align);
-		uiMatchPanelsView2d(ar);
-		
-		/* reset view matrix */
-		UI_view2d_view_restore(C);
-		
-		/* scrollers? */
-	}
+    sbuts->re_align= 0;
+	sbuts->mainbo= sbuts->mainb;
+	sbuts->tabo= sbuts->tab[sbuts->mainb];
 }
 
 void buttons_operatortypes(void)
@@ -251,6 +240,17 @@ static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_TRANSFORM:
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_GEOM_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -279,10 +279,7 @@ void ED_spacetype_buttons(void)
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
 	art->listener= buttons_area_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-
-	buttons_object_register(art);
-
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

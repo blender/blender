@@ -79,17 +79,20 @@ public:
 	
 	void SetBlendTime (float newtime);
 	void BlendShape(struct Key* key, float weigth);
+	
+	bAction*	GetAction() { return m_action; }
+	void		SetAction(bAction* act) { m_action= act; }
 
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetAction);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendin);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetPriority);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetStart);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetEnd);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrame);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrameProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetChannel);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetAction);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetBlendin);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetPriority);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetStart);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetEnd);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetFrame);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetProperty);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetFrameProperty);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetBlendtime);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetChannel);
 
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetAction);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetBlendin);
@@ -101,10 +104,13 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrameProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetType);
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject* value);
+	virtual PyObject* py_getattro(PyObject* attr);
+	virtual int py_setattro(PyObject* attr, PyObject* value);
+
+	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	static int CheckBlendTime(void *self, const PyAttributeDef*)
 	{
@@ -138,7 +144,7 @@ public:
 			case ACT_ACTION_FROM_PROP:
 				return 0;
 			default:
-				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
+				PyErr_SetString(PyExc_ValueError, "Shape Action Actuator, invalid play type supplied");
 				return 1;
 		}
 

@@ -29,9 +29,6 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_YAFRAY']:
     SConscript(['yafray/SConscript'])
 
-if env['WITH_BF_INTERNATIONAL']:
-    SConscript (['ftfont/SConscript'])
-
 if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
 

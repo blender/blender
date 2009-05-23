@@ -110,10 +110,12 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type);
 /* Constraint function prototypes */
 void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 
-void free_constraints(struct ListBase *conlist);
+void free_constraints(struct ListBase *list);
 void copy_constraints(struct ListBase *dst, struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
+
+struct bConstraint *constraints_get_active(struct ListBase *list);
 
 /* Constraints + Proxies function prototypes */
 void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);

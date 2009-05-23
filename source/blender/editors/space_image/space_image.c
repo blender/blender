@@ -47,6 +47,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_mesh.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 #include "BKE_mesh.h"
@@ -256,7 +257,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		EditMesh *em= EM_GetEditMesh(me);
+		EditMesh *em= BKE_mesh_get_editmesh(me);
 		MTFace *tf;
 		
 		if(em && EM_texFaceCheck(em)) {
@@ -280,7 +281,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 			}
 		}
 
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 }
 
@@ -483,32 +484,16 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
+
+	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
 }
 
 static void image_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	image_buttons_area_defbuts(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_panels(C, ar, 1, NULL);
 }
 
 static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -589,6 +574,8 @@ void ED_spacetype_image(void)
 	art->init= image_buttons_area_init;
 	art->draw= image_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
+
+	image_buttons_register(art);
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
@@ -759,12 +746,11 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em = EM_GetEditMesh(obedit->data);
+		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 		int ret;
 	
 		ret = EM_texFaceCheck(em);
-
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return ret;
 	}
 
@@ -778,12 +764,11 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em = EM_GetEditMesh(obedit->data);
+			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 			int ret;
-
 			ret = EM_texFaceCheck(em);
 
-			EM_EndEditMesh(obedit->data, em);
+			BKE_mesh_end_editmesh(obedit->data, em);
 			return ret;
 		}
 

@@ -39,7 +39,12 @@
 #include "IfExpr.h" 
 
 #if defined(WIN32) || defined(WIN64)
-#define strcasecmp _stricmp
+#define strcasecmp	_stricmp
+
+#ifndef strtoll
+#define strtoll		_strtoi64
+#endif
+
 #endif /* Def WIN32 or Def WIN64 */
 
 #define NUM_PRIORITY 6
@@ -319,12 +324,14 @@ void CParser::NextSym()
 	}
 }
 
+#if 0
 int CParser::MakeInt() {
 	// returns the integer representation of the value in the global
 	// variable const_as_string
 	// pre: const_as_string contains only numercal chars
 	return atoi(const_as_string);
 }
+#endif
 
 STR_String CParser::Symbol2Str(int s) {
 	// returns a string representation of of symbol s,
@@ -436,8 +443,8 @@ CExpression *CParser::Ex(int i) {
 					break;
 				case inttype:
 					{
-						int temp;
-						temp = atoi(const_as_string);
+						cInt temp;
+						temp = strtoll(const_as_string, NULL, 10); /* atoi is for int only */
 						e1 = new CConstExpr(new CIntValue(temp));
 						break;
 					}
@@ -580,7 +587,7 @@ float CParser::GetFloat(STR_String txt)
 	CExpression* expr = ProcessText(txt);
 	if (expr) {
 		val = expr->Calculate();
-		result=val->GetNumber();
+		result=(float)val->GetNumber();
 		
 		
 	
@@ -642,7 +649,7 @@ PyObject*	CParserPyMake(PyObject* ignored,PyObject* args)
 	CExpression* expr = parser.ProcessText(txt);
 	CValue* val = expr->Calculate();
 	expr->Release();
-	return val;
+	return val->GetProxy();
 }
 
 static PyMethodDef	CParserMethods[] = 

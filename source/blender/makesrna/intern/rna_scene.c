@@ -181,6 +181,12 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_ALPHAKEY, "STRAIGHT", "Straight Alpha", "Transparent RGB and alpha pixels are unmodified"},
 		{0, NULL, NULL, NULL}};
 		
+	static EnumPropertyItem color_mode_items[] ={
+		{R_PLANESBW, "BW", "BW", "Images are saved with BW (grayscale) data"},
+		{R_PLANES24, "RGB", "RGB", "Images are saved with RGB (color) data"},
+		{R_PLANES32, "RGBA", "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+		{0, NULL, NULL, NULL}};
+		
 	static EnumPropertyItem octree_resolution_items[] = {
 		{64, "OCTREE_RES_64", "64", ""},
 		{128, "OCTREE_RES_128", "128", ""},
@@ -194,15 +200,52 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{11, "OVERSAMPLE_11", "11", ""},
 		{16, "OVERSAMPLE_16", "16", ""},
 		{0, NULL, NULL, NULL}};
-	
+		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", "Even Fields First", ""},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd Fields First", ""},
+		{0, "FIELDS_EVENFIRST", "Even", "Even Fields First"},
+		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd", "Odd Fields First"},
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
 		{0, "THREADS_AUTO", "Auto-detect", ""},
 		{R_FIXED_THREADS, "THREADS_FIXED", "Fixed Number", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem image_type_items[] = {
+		{R_FRAMESERVER, "FRAMESERVER", "Frame Server", ""},
+#ifdef WITH_FFMPEG
+		{R_FFMPEG, "FFMPEG", "FFMpeg", ""},
+#endif
+		{R_AVIRAW, "AVIRAW", "AVI Raw", ""},
+		{R_AVIJPEG, "AVIJPEG", "AVI JPEG", ""},
+#ifdef _WIN32
+		{R_AVICODEC, "AVICODEC", "AVI Codec", ""},
+#endif
+#ifdef WITH_QUICKTIME
+		{R_QUICKTIME, "QUICKTIME", "QuickTime", ""},
+#endif
+		{R_TARGA, "TARGA", "Targa", ""},
+		{R_RAWTGA, "RAWTARGA", "Targa Raw", ""},
+		{R_PNG, "PNG", "PNG", ""},
+		//{R_DDS, "DDS", "DDS", ""}, // XXX not yet implemented
+#ifdef WITH_OPENJPEG
+		{R_JP2, "JPEG2000", "JPEG 2000", ""},
+#endif		
+		{R_BMP, "BMP", "BMP", ""},
+		{R_JPEG90, "JPEG", "JPEG", ""},
+		{R_HAMX, "HAMX", "HamX", ""},
+		{R_IRIS, "IRIS", "Iris", ""},
+		{R_RADHDR, "RADHDR", "Radiance HDR", ""},
+		{R_CINEON, "CINEON", "Cineon", ""},
+		{R_DPX, "DPX", "DPX", ""},
+#ifdef __sgi
+		{R_MOVIE, "MOVIE", "Movie", ""},
+#endif
+#ifdef WITH_OPENEXR
+		{R_OPENEXR, "OPENEXR", "OpenEXR", ""},
+		{R_MULTILAYER, "MULTILAYER", "MultiLayer", ""},
+#endif
+		{R_TIFF, "TIFF", "TIFF", ""},	// XXX only with G.have_libtiff
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
@@ -210,17 +253,22 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
 	
+	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
+	RNA_def_property_enum_items(prop, color_mode_items);
+	RNA_def_property_ui_text(prop, "Color Mode", "What Color Mode images are saved in (BW, RGB, RGBA)");
+	
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the rendered image.");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ysch");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the rendered image.");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "resolution_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
@@ -229,13 +277,13 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "parts_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xparts");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Parts X", "Number of horizontal tiles to use while rendering.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "parts_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yparts");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Parts Y", "Number of vertical tiles to use while rendering.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -243,12 +291,30 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "xasp");
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect X", "Horizontal aspect ratio - for anamorphic or non-square pixel output");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT, NULL);
+	
 	prop= RNA_def_property(srna, "pixel_aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yasp");
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT, NULL);
+	
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "quality");
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Quality", "Quality setting for JPEG images, AVI Jpeg and SGI movies.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
+	RNA_def_property_range(prop, 1, 120);
+	RNA_def_property_ui_text(prop, "FPS", "Frames per second.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "fps_base", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
+	RNA_def_property_range(prop, 0.1f, 120.0f);
+	RNA_def_property_ui_text(prop, "FPS Base", "Frames per second base");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
@@ -361,7 +427,7 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "threads");
-	RNA_def_property_range(prop, 0, 8);
+	RNA_def_property_range(prop, 1, 8);
 	RNA_def_property_ui_text(prop, "Threads", "Number of CPU threads to use simultaneously while rendering (for multi-core/CPU systems)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -410,11 +476,36 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Extensions", "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	prop= RNA_def_property(srna, "image_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "imtype");
+	RNA_def_property_enum_items(prop, image_type_items);
+	RNA_def_property_ui_text(prop, "Image Type", "File format to save the rendered images as.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures", "Free all image texture from memory after render, to save memory before compositing.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "save_buffers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_TILE_FILE);
+	RNA_def_property_ui_text(prop, "Save Buffers","Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling).");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "full_sample", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
+	RNA_def_property_ui_text(prop, "Full Sample","Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower).");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "backbuf", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", R_BACKBUF);
+	RNA_def_property_ui_text(prop, "Back Buffer", "Render backbuffer image");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "output_path", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "pic");
+	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 }
 
 void RNA_def_scene(BlenderRNA *brna)
@@ -430,7 +521,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
+
+	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
 
 	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");

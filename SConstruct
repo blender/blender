@@ -270,29 +270,34 @@ if 'blendernogame' in B.targets:
 	env['WITH_BF_GAMEENGINE'] = False
 
 if 'blenderlite' in B.targets:
-	env['WITH_BF_GAMEENGINE'] = False
-	env['WITH_BF_OPENAL'] = False
-	env['WITH_BF_OPENEXR'] = False
-	env['WITH_BF_ICONV'] = False
-	env['WITH_BF_INTERNATIONAL'] = False
-	env['WITH_BF_OPENJPEG'] = False
-	env['WITH_BF_FFMPEG'] = False
-	env['WITH_BF_QUICKTIME'] = False
-	env['WITH_BF_YAFRAY'] = False
-	env['WITH_BF_REDCODE'] = False
-	env['WITH_BF_FTGL'] = False
-	env['WITH_BF_DDS'] = False
-	env['WITH_BF_ZLIB'] = False
-	env['WITH_BF_SDL'] = False
-	env['WITH_BF_JPEG'] = False
-	env['WITH_BF_PNG'] = False
-	env['WITH_BF_ODE'] = False
-	env['WITH_BF_BULLET'] = False
-	env['WITH_BF_SOLID'] = False
-	env['WITH_BF_BINRELOC'] = False
-	env['BF_BUILDINFO'] = False
-	env['BF_NO_ELBEEM'] = True
-	env['WITH_BF_PYTHON'] = False
+	target_env_defs = {}
+	target_env_defs['WITH_BF_GAMEENGINE'] = False
+	target_env_defs['WITH_BF_OPENAL'] = False
+	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_ICONV'] = False
+	target_env_defs['WITH_BF_INTERNATIONAL'] = False
+	target_env_defs['WITH_BF_OPENJPEG'] = False
+	target_env_defs['WITH_BF_FFMPEG'] = False
+	target_env_defs['WITH_BF_QUICKTIME'] = False
+	target_env_defs['WITH_BF_YAFRAY'] = False
+	target_env_defs['WITH_BF_REDCODE'] = False
+	target_env_defs['WITH_BF_DDS'] = False
+	target_env_defs['WITH_BF_ZLIB'] = False
+	target_env_defs['WITH_BF_SDL'] = False
+	target_env_defs['WITH_BF_JPEG'] = False
+	target_env_defs['WITH_BF_PNG'] = False
+	target_env_defs['WITH_BF_ODE'] = False
+	target_env_defs['WITH_BF_BULLET'] = False
+	target_env_defs['WITH_BF_SOLID'] = False
+	target_env_defs['WITH_BF_BINRELOC'] = False
+	target_env_defs['BF_BUILDINFO'] = False
+	target_env_defs['BF_NO_ELBEEM'] = True
+	target_env_defs['WITH_BF_PYTHON'] = False
+	
+	# Merge blenderlite, let command line to override
+	for k,v in target_env_defs.iteritems():
+		if k not in B.arguments:
+			env[k] = v
 
 if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-ming', 'win64-vc'):
 	env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
@@ -472,6 +477,17 @@ if  env['OURPLATFORM']!='darwin':
 				source=[dp+os.sep+f for f in df]
 				scriptinstall.append(env.Install(dir=dir,source=source))
 
+			#-- .blender/ui	
+			scriptpath='release/ui'
+			for dp, dn, df in os.walk(scriptpath):
+				if 'CVS' in dn:
+					dn.remove('CVS')
+				if '.svn' in dn:
+					dn.remove('.svn')
+				dir=env['BF_INSTALLDIR']+'/.blender/ui'+dp[len(scriptpath):]
+				source=[dp+os.sep+f for f in df]
+				scriptinstall.append(env.Install(dir=dir,source=source))
+
 #-- icons
 if env['OURPLATFORM']=='linux2':
 	iconlist = []
@@ -565,9 +581,11 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 		else:
 			dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
 	if env['WITH_BF_PYTHON']:
-		dllsources.append('#release/windows/extra/python25.zip')
+		ver = env["BF_PYTHON_VERSION"].replace(".", "")
+		
+		dllsources.append('#release/windows/extra/python' + ver + '.zip')
 		dllsources.append('#release/windows/extra/zlib.pyd')
-		if env['BF_DEBUG']:
+		if env['BF_DEBUG'] and not env["BF_NO_PYDEBUG"]:
 			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}_d.dll')
 		else:
 			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}.dll')
@@ -577,14 +595,14 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 		else:
 			dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
 	if env['WITH_BF_FFMPEG']:
-		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
+		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avdevice-52.dll',
-						'${LCGDIR}/ffmpeg/lib/avutil-49.dll',
-						'${LCGDIR}/ffmpeg/lib/libfaad-0.dll',
+						'${LCGDIR}/ffmpeg/lib/avutil-50.dll',
+						'${LCGDIR}/ffmpeg/lib/libfaad-2.dll',
 						'${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
 						'${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
-						'${LCGDIR}/ffmpeg/lib/libx264-59.dll',
+						'${LCGDIR}/ffmpeg/lib/libx264-67.dll',
 						'${LCGDIR}/ffmpeg/lib/xvidcore.dll',
 						'${LCGDIR}/ffmpeg/lib/swscale-0.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
@@ -622,6 +640,13 @@ if not env['WITHOUT_BF_INSTALL']:
 
 #------------ EPYDOC
 if env['WITH_BF_DOCS']:
-	SConscript('source/blender/python/api2_2x/doc/SConscript')
-	SConscript('source/gameengine/PyDoc/SConscript')
+	try:		import epydoc
+	except:	epydoc = None
+	
+	if epydoc:
+		SConscript('source/blender/python/api2_2x/doc/SConscript')
+		SConscript('source/gameengine/PyDoc/SConscript')
+	else:
+		print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "
+	
 

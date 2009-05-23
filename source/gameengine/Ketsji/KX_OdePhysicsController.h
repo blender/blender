@@ -82,6 +82,10 @@ public:
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
+	virtual	float GetLinVelocityMin() { return ODEPhysicsController::GetLinVelocityMin(); }
+	virtual void	SetLinVelocityMin(float val) { ODEPhysicsController::SetLinVelocityMin(val); }
+	virtual	float GetLinVelocityMax() { return ODEPhysicsController::GetLinVelocityMax(); }
+	virtual void	SetLinVelocityMax(float val) { ODEPhysicsController::SetLinVelocityMax(val); }
 	
 	virtual void	SetSumoTransform(bool nondynaonly);
 	// todo: remove next line !

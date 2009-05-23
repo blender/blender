@@ -56,7 +56,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 #include "file_intern.h"
 #include "filelist.h"
@@ -102,7 +101,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	int xco, yco= 3;
 	int xcotitle;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
@@ -111,17 +110,12 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, "");
 		xco+=XIC+xmax;
 	}
 	 */
-	
-	/* SORT TYPE */
-	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
 	xco += 5;
 
@@ -160,25 +154,26 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 		xco+=XIC;
 	}
 	 */
+	
+	uiDefIconButBitS(block, TOG, FILE_FILTER, B_FILTERIMASELDIR, ICON_FILTER,xco+=XIC,yco,XIC,YIC, &params->flag, 0, 0, 0, 0, "Filter files");
 
-	uiDefIconButBitS(block, TOG, FILE_FILTER, B_FILTERIMASELDIR, ICON_FILTER,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Filter files");
 	if (params->flag & FILE_FILTER) {
 		xco+=4;
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, IMAGEFILE, B_FILTERIMASELDIR, ICON_FILE_IMAGE,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show images");
-		uiDefIconButBitS(block, TOG, BLENDERFILE, B_FILTERIMASELDIR, ICON_FILE_BLEND,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show .blend files");
-		uiDefIconButBitS(block, TOG, MOVIEFILE, B_FILTERIMASELDIR, ICON_FILE_MOVIE,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show movies");
-		uiDefIconButBitS(block, TOG, PYSCRIPTFILE, B_FILTERIMASELDIR, ICON_FILE_SCRIPT,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show python scripts");
-		uiDefIconButBitS(block, TOG, FTFONTFILE, B_FILTERIMASELDIR, ICON_FILE_FONT,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show fonts");
-		uiDefIconButBitS(block, TOG, SOUNDFILE, B_FILTERIMASELDIR, ICON_FILE_SOUND,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show sound files");
-		uiDefIconButBitS(block, TOG, TEXTFILE, B_FILTERIMASELDIR, ICON_FILE_BLANK,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show text files");
-		uiDefIconButBitS(block, TOG, FOLDERFILE, B_FILTERIMASELDIR, ICON_FILE_FOLDER,xco+=XIC,0,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show folders");
+		uiDefIconButBitS(block, TOG, IMAGEFILE, B_FILTERIMASELDIR, ICON_FILE_IMAGE,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show images");
+		uiDefIconButBitS(block, TOG, BLENDERFILE, B_FILTERIMASELDIR, ICON_FILE_BLEND,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show .blend files");
+		uiDefIconButBitS(block, TOG, MOVIEFILE, B_FILTERIMASELDIR, ICON_FILE_MOVIE,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show movies");
+		uiDefIconButBitS(block, TOG, PYSCRIPTFILE, B_FILTERIMASELDIR, ICON_FILE_SCRIPT,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show python scripts");
+		uiDefIconButBitS(block, TOG, FTFONTFILE, B_FILTERIMASELDIR, ICON_FILE_FONT,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show fonts");
+		uiDefIconButBitS(block, TOG, SOUNDFILE, B_FILTERIMASELDIR, ICON_FILE_SOUND,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show sound files");
+		uiDefIconButBitS(block, TOG, TEXTFILE, B_FILTERIMASELDIR, ICON_FILE_BLANK,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show text files");
+		uiDefIconButBitS(block, TOG, FOLDERFILE, B_FILTERIMASELDIR, ICON_FILE_FOLDER,xco+=XIC,yco,XIC,YIC, &params->filter, 0, 0, 0, 0, "Show folders");
 		uiBlockEndAlign(block);
 		xco+=XIC;
 	}
 
 	xcotitle= xco;
-	xco+= UI_GetStringWidth(G.font, params->title, 0);
+	xco+= UI_GetStringWidth(params->title);
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 

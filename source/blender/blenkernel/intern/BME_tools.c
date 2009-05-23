@@ -3,7 +3,7 @@
  *
  *	Functions for changing the topology of a mesh.
  *
- * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

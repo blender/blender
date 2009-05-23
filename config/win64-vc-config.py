@@ -9,10 +9,10 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-52.lib avcodec-51.lib avdevice-52.lib avutil-49.lib swscale-0.lib'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.0'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python25'
+BF_PYTHON_LIB = 'python30'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = False 
@@ -87,13 +87,8 @@ WITH_BF_INTERNATIONAL = False
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'gnu_gettext'
+BF_GETTEXT_LIB = 'gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
-WITH_BF_FTGL = False
-BF_FTGL = LIBDIR + '/ftgl'
-BF_FTGL_INC = '${BF_FTGL}/include'
-BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = False

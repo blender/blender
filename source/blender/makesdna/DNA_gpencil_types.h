@@ -117,6 +117,8 @@ typedef struct bGPDlayer {
 
 /* Grease-Pencil Annotations - 'DataBlock' */
 typedef struct bGPdata {
+	ID id;					/* Grease Pencil data is */
+	
 	/* saved Grease-Pencil data */
 	ListBase layers;		/* bGPDlayers */
 	int flag;				/* settings for this datablock */
@@ -131,6 +133,7 @@ typedef struct bGPdata {
 } bGPdata;
 
 /* bGPdata->flag */
+// XXX many of these flags should be depreceated for more general ideas in 2.5
 	/* don't allow painting to occur at all */
 #define GP_DATA_LMBPLOCK	(1<<0)
 	/* show debugging info in viewport (i.e. status print) */

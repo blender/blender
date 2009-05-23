@@ -37,8 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BMF_Api.h"
-
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -74,6 +72,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "BLF_api.h"
 
 #include "UI_resources.h"
 
@@ -1806,9 +1805,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ba
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-							glRasterPos3fv(vec);
-							BMF_DrawString(G.font, " ");
-							BMF_DrawString(G.font, pchan->name);
+							view3d_object_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
@@ -1993,8 +1990,7 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							BMF_DrawString(G.font, " ");
-							BMF_DrawString(G.font, eBone->name);
+							view3d_object_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
@@ -2155,15 +2151,13 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 						
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
 						if (a == 0) {
-							glRasterPos3fv(fp);
 							sprintf(str, "  %d\n", (a+sfra));
-							BMF_DrawString(G.font, str);
+							view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 						}
 						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
-								glRasterPos3fv(fp);
 								sprintf(str, "  %d\n", (a+sfra));
-								BMF_DrawString(G.font, str);
+								view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 							}
 						}
 					}
@@ -2205,9 +2199,8 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 								if (ak->cfra == (a+sfra)) {
 									char str[32];
 									
-									glRasterPos3fv(fp);
 									sprintf(str, "  %d\n", (a+sfra));
-									BMF_DrawString(G.font, str);
+									view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 								}
 							}
 						}

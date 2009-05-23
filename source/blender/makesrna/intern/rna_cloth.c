@@ -196,7 +196,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pin_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "goalspring");
-	RNA_def_property_range(prop, 0.0f, 0.50);
+	RNA_def_property_range(prop, 0.0f, 50.0);
 	RNA_def_property_ui_text(prop, "Pin Stiffness", "Pin (vertex target position) spring stiffness.");
 
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);

@@ -92,7 +92,7 @@ struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, 
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
-struct wmEventHandler *WM_event_add_ui_handler(struct bContext *C, ListBase *handlers,
+struct wmEventHandler *WM_event_add_ui_handler(const struct bContext *C, ListBase *handlers,
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 void		WM_event_remove_ui_handler(ListBase *handlers,
@@ -123,6 +123,9 @@ int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wm
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
+			/* invoke callback, exec + redo popup */
+int			WM_operator_redo		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
@@ -180,6 +183,8 @@ void		wmMultMatrix		(float mat[][4]);
 void		wmGetSingleMatrix	(float mat[][4]);
 void		wmScale				(float x, float y, float z);
 void		wmLoadIdentity		(void);		/* note: old name clear_view_mat */
+void		wmPushMatrix		(void);		/* one level only */
+void		wmPopMatrix			(void);		/* one level only */
 
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);

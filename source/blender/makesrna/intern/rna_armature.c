@@ -165,8 +165,8 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active", "Bone was the last bone clicked on (most operations are applied to only this bone)");
 	
 	prop= RNA_def_property(srna, "hinge", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HINGE);
-	RNA_def_property_ui_text(prop, "Hinge", "Bone doesn't inherit rotation or scale from parent bone.");
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
+	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone doesn't inherit rotation or scale from parent bone.");
 	
 	prop= RNA_def_property(srna, "editmode_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_A);
@@ -182,7 +182,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "inherit_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_SCALE);
-	RNA_def_property_ui_text(prop, "Inherit scale", "Bone inherits scaling from parent bone.");
+	RNA_def_property_ui_text(prop, "Inherit Scale", "Bone inherits scaling from parent bone.");
 	
 	prop= RNA_def_property(srna, "draw_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_DRAWWIRE);
@@ -403,7 +403,7 @@ void rna_def_armature(BlenderRNA *brna)
 		/* bone path settings */
 	prop= RNA_def_property(srna, "path_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathsize");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Bone Paths Frame Step", "Number of frames between 'dots' on Bone Paths (when drawing).");
 	
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);

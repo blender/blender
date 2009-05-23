@@ -1,5 +1,5 @@
 /*
- * $Id: editparticle.c $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1821,7 +1821,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rekey_exec;
-	// XXX show buttons ot->invoke= rekey_invoke;
+	ot->invoke= WM_operator_redo;
 	ot->poll= PE_poll;
 
 	/* flags */
@@ -3839,19 +3839,21 @@ void PE_change_act_psys(Scene *scene, Object *ob, ParticleSystem *psys)
 static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
-	uiMenuItem *head;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-	head= uiPupMenuBegin("Specials", 0);
+	pup= uiPupMenuBegin(C, "Specials", 0);
+	layout= uiPupMenuLayout(pup);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_rekey");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
 	if(scene->selectmode & SCE_SELECT_POINT) {
-		uiMenuItemO(head, 0, "PARTICLE_OT_subdivide");
-		uiMenuItemO(head, 0, "PARTICLE_OT_select_first");
-		uiMenuItemO(head, 0, "PARTICLE_OT_select_last");
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
+		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
 	}
-	uiMenuItemO(head, 0, "PARTICLE_OT_remove_doubles");
+	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
 
-	uiPupMenuEnd(C, head);
+	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }

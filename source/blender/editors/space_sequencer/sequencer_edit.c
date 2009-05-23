@@ -1981,11 +1981,11 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 }
 
 
-void SEQUENCER_OT_separate_images(wmOperatorType *ot)
+void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Separate Images";
-	ot->idname= "SEQUENCER_OT_separate_images";
+	ot->idname= "SEQUENCER_OT_images_separate";
 
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;

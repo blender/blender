@@ -101,6 +101,9 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_view_all);
 	WM_operatortype_append(GRAPHEDIT_OT_properties);
 	
+	WM_operatortype_append(GRAPHEDIT_OT_ghost_curves_create);
+	WM_operatortype_append(GRAPHEDIT_OT_ghost_curves_clear);
+	
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clickselect);
@@ -125,6 +128,8 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_copy);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
 	
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_click_insert);
+	
 	//TODO: insertkey...
 	
 	/* F-Curve Modifiers */
@@ -136,16 +141,28 @@ void graphedit_operatortypes(void)
 
 static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
+	wmKeymapItem *kmi;
+	
 	/* view */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_handles_view_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* graph_select.c - selection tools */
 		/* click-select */
-		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "column", 1);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "column", 1);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "curves", 1);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "curves", 1);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -189,7 +206,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* insertkey */
-	// TODO..
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_click_insert", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);

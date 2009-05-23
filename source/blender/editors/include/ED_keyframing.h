@@ -33,12 +33,29 @@ struct ID;
 
 struct KeyingSet;
 
+struct bAction;
 struct FCurve;
 struct BezTriple;
 
+struct bPoseChannel;
+struct bConstraint;
+
+struct bContext;
 struct wmOperatorType;
 
 /* ************ Keyframing Management **************** */
+
+/* Get (or add relevant data to be able to do so) the Active Action for the given 
+ * Animation Data block, given an ID block where the Animation Data should reside.
+ */
+struct bAction *verify_adt_action(struct ID *id, short add);
+
+/* Get (or add relevant data to be able to do so) F-Curve from the given Action. 
+ * This assumes that all the destinations are valid.
+ */
+struct FCurve *verify_fcurve(struct bAction *act, const char group[], const char rna_path[], const int array_index, short add);
+
+/* -------- */
 
 /* Lesser Keyframing API call:
  *	Use this when validation of necessary animation data isn't necessary as it already
@@ -58,23 +75,14 @@ void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insertkey(struct ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag);
+short insert_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
 /* Main Keyframing API call: 
  * 	Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
  */
-short deletekey(struct ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag);
+short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
-
-/* Generate menu of KeyingSets */
-char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
-
-/* KeyingSet Editing Operators:
- *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
- *	acting as a means by which they can be added outside the Outliner.
- */
-void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
-void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
+/* -------- */
 
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They only make use of
@@ -83,12 +91,80 @@ void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
 void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
 
-/* Main Keyframe Management operators (legacy style): 
+/* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 
  * 	required for each space.
  */
-void ANIM_OT_insert_keyframe_old(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot);
+void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_menu(struct wmOperatorType *ot); // xxx unimplemented yet
+void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot); // xxx rename and keep?
+
+/* Keyframe managment operators for UI buttons. */
+void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
+
+/* ************ Keying Sets ********************** */
+
+/* temporary struct to gather data combos to keyframe
+ * (is used by modify_keyframes for 'relative' KeyingSets, provided via the dsources arg)
+ */
+typedef struct bCommonKeySrc {
+	struct bCommonKeySrc *next, *prev;
+		
+		/* general data/destination-source settings */
+	struct ID *id;					/* id-block this comes from */
+	
+		/* specific cases */
+	struct bPoseChannel *pchan;	
+	struct bConstraint *con;
+} bCommonKeySrc;
+
+/* -------- */
+
+/* mode for modify_keyframes */
+enum {
+	MODIFYKEY_MODE_INSERT = 0,
+	MODIFYKEY_MODE_DELETE,
+} eModifyKey_Modes;
+
+/* Keyframing Helper Call - use the provided Keying Set to Add/Remove Keyframes */
+int modify_keyframes(struct bContext *C, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
+
+/* -------- */
+
+/* Generate menu of KeyingSets */
+char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
+
+/* Get the first builtin KeyingSet with the given name, which occurs after the given one (or start of list if none given) */
+struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, char name[]);
+
+/* Initialise builtin KeyingSets on startup */
+void init_builtin_keyingsets(void);
+
+/* -------- */
+
+/* KeyingSet Editing Operators:
+ *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
+ *	acting as a means by which they can be added outside the Outliner.
+ */
+void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
+
+/* ************ Drivers ********************** */
+
+/* Main Driver Management API calls:
+ * 	Add a new driver for the specified property on the given ID block
+ */
+short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Main Driver Management API calls:
+ * 	Remove the driver for the specified property on the given ID block (if available)
+ */
+short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Driver management operators for UI buttons */
+void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
+void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

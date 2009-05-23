@@ -166,7 +166,8 @@ typedef struct bJoystickSensor {
 	char type;
 	char joyindex;
 	short flag;
-	int axis;
+	short axis;
+	short axis_single;
 	int axisf;
 	int button;
 	int hat;
@@ -255,19 +256,21 @@ typedef struct bJoystickSensor {
 
 #define SENS_JOY_ANY_EVENT		1
 
-#define SENS_JOY_BUTTON		0
+#define SENS_JOY_BUTTON		0			/* axis type */
 #define SENS_JOY_BUTTON_PRESSED	0
 #define SENS_JOY_BUTTON_RELEASED	1
 
-#define SENS_JOY_AXIS			1
+#define SENS_JOY_AXIS			1		/* axis type */
 #define SENS_JOY_X_AXIS		0
 #define SENS_JOY_Y_AXIS		1
 #define SENS_JOY_NEG_X_AXIS     	2
 #define SENS_JOY_NEG_Y_AXIS     	3
 #define SENS_JOY_PRECISION		4
 
-#define SENS_JOY_HAT			2
+#define SENS_JOY_HAT			2		/* axis type */
 #define SENS_JOY_HAT_DIR		0
+
+#define SENS_JOY_AXIS_SINGLE	3		/* axis type */
 
 
 #define SENS_DELAY_REPEAT		1

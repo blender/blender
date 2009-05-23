@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\freetype\include;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\extern\glew\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;WITH_BF_INTERNATIONAL;WITH_FREETYPE2"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;WITH_BF_INTERNATIONAL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\freetype\include;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\extern\glew\include"
-				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_BF_INTERNATIONAL,WITH_FREETYPE2"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_BF_INTERNATIONAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -209,6 +209,10 @@
 		<Filter
 			Name="intern"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_font_helv10.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenfont\intern\blf_internal.h"
 				>

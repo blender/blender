@@ -109,14 +109,14 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	/* read x-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetXPosition);
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetXPosition);
 	/* read y-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetYPosition);
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetYPosition);
 	//<----- deprecated
 	
 	// get button status

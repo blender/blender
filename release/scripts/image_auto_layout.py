@@ -9,7 +9,7 @@ Tooltip: 'Pack all texture images into 1 image and remap faces.'
 
 __author__ = "Campbell Barton"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.1 2007/02/15"
+__version__ = "1.1a 2009/04/01"
 
 __bpydoc__ = """\
 This script makes a new image from the used areas of all the images mapped to the selected mesh objects.
@@ -273,9 +273,12 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	
 	# New Mesh and Object
 	render_mat= B.Material.New()
-	render_mat.mode |= B.Material.Modes.SHADELESS
-	render_mat.mode |= B.Material.Modes.TEXFACE
-	render_mat.mode |= B.Material.Modes.ZTRANSP
+	render_mat.mode |= \
+			B.Material.Modes.SHADELESS | \
+			B.Material.Modes.TEXFACE | \
+			B.Material.Modes.TEXFACE_ALPHA | \
+			B.Material.Modes.ZTRANSP
+	
 	render_mat.setAlpha(0.0)
 		
 	render_me= B.Mesh.New()
@@ -420,7 +423,7 @@ def main():
 	
 	PREF_IMAGE_PATH= PREF_IMAGE_PATH.val
 	PREF_IMAGE_SIZE= PREF_IMAGE_SIZE.val
-	PREF_IMAGE_MARGIN= PREF_IMAGE_MARGIN.val
+	PREF_IMAGE_MARGIN= float(PREF_IMAGE_MARGIN.val) # important this is a float otherwise division wont work properly
 	PREF_KEEP_ASPECT= PREF_KEEP_ASPECT.val
 	PREF_ALL_SEL_OBS= PREF_ALL_SEL_OBS.val
 	

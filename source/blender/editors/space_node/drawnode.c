@@ -71,8 +71,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BMF_Api.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "ED_node.h"
@@ -87,7 +85,6 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
-#include "UI_text.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -96,8 +93,6 @@
 
 #include "node_intern.h"
 
-extern void autocomplete_uv(char *str, void *arg_v);
-// XXX extern int verify_valid_uv_name(char *str);
 
 /* autocomplete callback for buttons */
 static void autocomplete_vcol(bContext *C, char *str, void *arg_v)
@@ -296,7 +291,7 @@ static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 {
 	if(block) {
 		if(node->storage) {
-			; // XXX draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
+			uiBlockColorbandButtons(block, node->storage, butr, B_NODE_EXEC);
 		}
 	}
 	return 40;
@@ -573,9 +568,11 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 		if(butr->ymax-butr->ymin > 21.0f) dy+= 19;
 		
 		uiBlockBeginAlign(block);
+		/* XXX
 		if(node->id==NULL) uiBlockSetCol(block, TH_REDALERT);
 		else if(has_us) uiBlockSetCol(block, TH_BUT_SETTING1);
 		else uiBlockSetCol(block, TH_BUT_SETTING2);
+		*/
 		
 		/* browse button */
 		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), NULL, NULL);
@@ -592,7 +589,6 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 						 butr->xmin+19, dy, (short)(butr->xmax-butr->xmin-19.0f), 19, 
 						 NULL, 0.0, 0.0, 0, 0, "Add new Material");
 			uiButSetFunc(bt, node_new_mat_cb, ntree, node);
-			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			/* name button */
@@ -615,7 +611,6 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 			/* WATCH IT: we use this callback in material buttons, but then only want first row */
 			if(butr->ymax-butr->ymin > 21.0f) {
 				/* node options */
-				uiBlockSetCol(block, TH_AUTO);
 				uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
 							 butr->xmin, butr->ymin, dx, 19, 
 							 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
@@ -701,14 +696,12 @@ static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *no
 		// XXX if(!verify_valid_uv_name(ngeo->uvname))
 		// XXX	uiBlockSetCol(block, TH_REDALERT);
 		but= uiDefBut(block, TEX, B_NODE_EXEC, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
-		// uiButSetCompleteFunc(but, autocomplete_uv, NULL);
-		uiBlockSetCol(block, TH_AUTO);
+		// XXX uiButSetCompleteFunc(but, autocomplete_uv, NULL);
 
-		if(!verify_valid_vcol_name(ngeo->colname))
-			uiBlockSetCol(block, TH_REDALERT);
+		if(!verify_valid_vcol_name(ngeo->colname));
+//			uiBlockSetCol(block, TH_REDALERT);
 		but= uiDefBut(block, TEX, B_NODE_EXEC, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
 		uiButSetCompleteFunc(but, autocomplete_vcol, NULL);
-		uiBlockSetCol(block, TH_AUTO);
 	}
 
 	return 40;
@@ -896,7 +889,6 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		char *strp;
 		
 		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_BUT_SETTING2);
 		
 		/* browse button */
 		IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
@@ -913,7 +905,6 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 						 butr->xmin+19, dy, (short)(butr->xmax-butr->xmin-19.0f), 19, 
 						 NULL, 0.0, 0.0, 0, 0, "Add new Image");
 			uiButSetFunc(bt, node_active_cb, ntree, node);
-			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			/* name button + type */
@@ -2267,7 +2258,6 @@ static int node_texture_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node
 	
 	if( block ) {
 		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_BUT_SETTING2);
 		
 		/* browse button */
 		IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
@@ -2284,7 +2274,6 @@ static int node_texture_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node
 						 butr->xmin+19, butr->ymin, (short)(butr->xmax-butr->xmin-19.0f), 19, 
 						 NULL, 0.0, 0.0, 0, 0, "Add new Image");
 			uiButSetFunc(bt, node_active_cb, ntree, node);
-			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			/* name button */
@@ -2451,6 +2440,9 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
 			float x, y; 
+			
+			wmPushMatrix();
+			
 			/* somehow the offset has to be calculated inverse */
 			
 			glaDefine2DArea(&ar->winrct);
@@ -2465,9 +2457,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 			else if(ibuf->channels==4)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
-			/* sort this out, this should not be needed */
-			wmOrtho2(ar->v2d.cur.xmin, ar->v2d.cur.xmax, ar->v2d.cur.ymin, ar->v2d.cur.ymax);
-			glLoadIdentity();
+			wmPopMatrix();
 		}
 	}
 }

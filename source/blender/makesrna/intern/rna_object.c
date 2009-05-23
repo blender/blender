@@ -48,6 +48,12 @@ static void rna_Object_update(bContext *C, PointerRNA *ptr)
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
+static void rna_Object_scene_update(bContext *C, PointerRNA *ptr)
+{
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
+	DAG_scene_sort(CTX_data_scene(C));
+}
+
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -436,6 +442,20 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{PARVERT3, "VERTEX_3", "3 Vertices", ""},
 		{PARBONE, "BONE", "Bone", ""},
 		{0, NULL, NULL, NULL}};
+	
+	static EnumPropertyItem object_type_items[] = {
+		{OB_EMPTY, "EMPTY", "Empty", ""},
+		{OB_MESH, "MESH", "Mesh", ""},
+		{OB_CURVE, "CURVE", "Curve", ""},
+		{OB_SURF, "SURFACE", "Surface", ""},
+		{OB_FONT, "TEXT", "Text", ""},
+		{OB_MBALL, "META", "Meta", ""},
+		{OB_LAMP, "LAMP", "Lamp", ""},
+		{OB_CAMERA, "CAMERA", "Camera", ""},
+		{OB_WAVE, "WAVE", "Wave", ""},
+		{OB_LATTICE, "LATTICE", "Lattice", ""},
+		{OB_ARMATURE, "ARMATURE", "Armature", ""},
+		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
 		{OB_ARROWS, "ARROWS", "Arrows", ""},
@@ -483,6 +503,14 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{1, "OBJECT", "Object", ""},
 		{0, NULL, NULL, NULL}};
 
+	static EnumPropertyItem dupli_items[] = {
+		{0, "NONE", "None", ""},
+		{OB_DUPLIFRAMES, "FRAMES", "Frames", "Make copy of object for every frame."},
+		{OB_DUPLIVERTS, "VERTS", "Verts", "Duplicate child objects on all vertices."},
+		{OB_DUPLIFACES, "FACES", "Faces", "Duplicate child objects on all faces."},
+		{OB_DUPLIGROUP, "GROUP", "Group", "Enable group instancing."},
+		{0, NULL, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 
@@ -505,8 +533,14 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
 
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, object_type_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+	
 	prop= RNA_def_property(srna, "parent_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "partype");
+	RNA_def_property_enum_sdna(prop, NULL, "partype");
 	RNA_def_property_enum_items(prop, parent_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation.");
@@ -646,11 +680,13 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
 	RNA_def_property_enum_items(prop, empty_drawtype_items);
 	RNA_def_property_ui_text(prop, "Empty Draw Type", "Viewport display style for empties.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
 	RNA_def_property_range(prop, 0.01, 10.0);
 	RNA_def_property_ui_text(prop, "Empty Draw Size", "Size of of display for empties in the viewport.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* render */
 
@@ -720,25 +756,11 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
 	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship.");
 
-	prop= RNA_def_property(srna, "dupli_frames", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFRAMES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Frames", "Make copy of object for every frame.");
-
-	prop= RNA_def_property(srna, "dupli_verts", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIVERTS);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Verts", "Duplicate child objects on all vertices.");
-
-	prop= RNA_def_property(srna, "dupli_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Faces", "Duplicate child objects on all faces.");
-
-	prop= RNA_def_property(srna, "use_dupli_group", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIGROUP);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Use Dupli Group", "Enable group instancing.");
+	prop= RNA_def_property(srna, "dupli_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
+	RNA_def_property_enum_items(prop, dupli_items);
+	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_scene_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);

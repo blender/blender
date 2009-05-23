@@ -79,6 +79,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -114,6 +115,7 @@
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
+#include "BKE_gpencil.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -199,6 +201,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->particle);
 		case ID_WM:
 			return &(mainlib->wm);
+		case ID_GD:
+			return &(mainlib->gpencil);
 	}
 	return 0;
 }
@@ -269,6 +273,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
+	lb[a++]= &(main->gpencil);
 	
 	lb[a]= NULL;
 
@@ -374,6 +379,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
   			break;
+		case ID_GD:
+			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
+			break;
 	}
 	return id;
 }
@@ -576,6 +584,9 @@ void free_libblock(ListBase *lb, void *idv)
 		case ID_WM:
 			if(free_windowmanager_cb)
 				free_windowmanager_cb(NULL, (wmWindowManager *)id);
+			break;
+		case ID_GD:
+			free_gpencil_data((bGPdata *)id);
 			break;
 	}
 
@@ -986,14 +997,15 @@ static void lib_indirect_test_id(ID *id)
 	
 	if(id->lib)
 		return;
-
+	
 	if(GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
 		bActionStrip *strip;
 		Mesh *me;
 
 		int a;
-
+	
+		// XXX old animation system!
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
 			LIBTAG(strip->object); 
 			LIBTAG(strip->act);
@@ -1088,6 +1100,27 @@ void test_idbutton(char *name)
 	}
 
 	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
+}
+
+void text_idbutton(struct ID *id, char *text)
+{
+	if(id) {
+		if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCE: ");
+        else if(GS(id->name)==ID_SCE)
+			strcpy(text, "SCR: ");
+        else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+			strcpy(text, "NT: ");
+        else {
+			text[0]= id->name[0];
+			text[1]= id->name[1];
+			text[2]= ':';
+			text[3]= ' ';
+			text[4]= 0;
+        }
+	}
+	else
+		strcpy(text, "");
 }
 
 void rename_id(ID *id, char *name)

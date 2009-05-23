@@ -124,6 +124,10 @@ public:
 	float	getFriction() { return m_friction;}
 	float	getRestitution() { return m_restitution;}
 
+	float GetLinVelocityMin() const { return 0.f; }
+	void  SetLinVelocityMin(float val) { }
+	float GetLinVelocityMax() const { return 0.f; }
+	void  SetLinVelocityMax(float val) { }
 	
 
 private:

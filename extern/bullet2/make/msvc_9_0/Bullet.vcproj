@@ -45,7 +45,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\src"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
-				ExceptionHandling="0"
+				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -444,6 +444,10 @@
 				<Filter
 					Name="Dynamics"
 					>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btActionInterface.h"
+						>
+					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.cpp"
 						>

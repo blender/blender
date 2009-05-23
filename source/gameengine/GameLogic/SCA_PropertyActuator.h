@@ -43,6 +43,7 @@ class SCA_PropertyActuator : public SCA_IActuator
 		KX_ACT_PROP_ASSIGN,
 		KX_ACT_PROP_ADD,
 		KX_ACT_PROP_COPY,
+		KX_ACT_PROP_TOGGLE,
 		KX_ACT_PROP_MAX
 	};
 	
@@ -85,8 +86,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject*  _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject*  py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// python wrapped methods
 	KX_PYMETHOD_DOC(SCA_PropertyActuator,SetProperty);

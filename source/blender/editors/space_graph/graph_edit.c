@@ -60,6 +60,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -115,19 +116,21 @@ static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xm
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= NULL; //ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
-			float tmin, tmax;
+			float txmin, txmax, tymin, tymax;
 			
 			/* get range and apply necessary scaling before */
-			calc_fcurve_bounds(fcu, &tmin, &tmax, ymin, ymax);
+			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
 			if (nob) {
-				tmin= get_action_frame_inv(nob, tmin);
-				tmax= get_action_frame_inv(nob, tmax);
+				txmin= get_action_frame_inv(nob, txmin);
+				txmax= get_action_frame_inv(nob, txmax);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
-			if (xmin) *xmin= MIN2(*xmin, tmin);
-			if (xmax) *xmax= MAX2(*xmax, tmax);
+			if ((xmin) && (txmin < *xmin)) 		*xmin= txmin;
+			if ((xmax) && (txmax > *xmax)) 		*xmax= txmax;
+			if ((ymin) && (tymin < *ymin)) 		*ymin= tymin;
+			if ((ymax) && (tymax > *ymax)) 		*ymax= tymax;
 		}
 		
 		/* free memory */
@@ -238,11 +241,244 @@ void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Create Ghost-Curves Operator *********************** */
+/* This operator samples the data of the selected F-Curves to F-Points, storing them
+ * as 'ghost curves' in the active Graph Editor
+ */
+
+/* Bake each F-Curve into a set of samples, and store as a ghost curve */
+static void create_ghost_curves (bAnimContext *ac, int start, int end)
+{	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* free existing ghost curves */
+	free_fcurves(&sipo->ghostCurves);
+	
+	/* sanity check */
+	if (start >= end) {
+		printf("Error: Frame range for Ghost F-Curve creation is inappropriate \n");
+		return;
+	}
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and add keys between selected keyframes on every frame  */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		FCurve *gcu= MEM_callocN(sizeof(FCurve), "Ghost FCurve");
+		ChannelDriver *driver= fcu->driver;
+		FPoint *fpt;
+		int cfra;		
+		
+		/* disable driver so that it don't muck up the sampling process */
+		fcu->driver= NULL;
+		
+		/* create samples, but store them in a new curve 
+		 *	- we cannot use fcurve_store_samples() as that will only overwrite the original curve 
+		 */
+		gcu->fpt= fpt= MEM_callocN(sizeof(FPoint)*(end-start+1), "Ghost FPoint Samples");
+		gcu->totvert= end - start + 1;
+		
+		/* use the sampling callback at 1-frame intervals from start to end frames */
+		for (cfra= start; cfra <= end; cfra++, fpt++) {
+			fpt->vec[0]= (float)cfra;
+			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, (float)cfra);
+		}
+		
+		/* set color of ghost curve 
+		 *	- make the color slightly darker
+		 */
+		gcu->color[0]= fcu->color[0] - 0.07f;
+		gcu->color[1]= fcu->color[1] - 0.07f;
+		gcu->color[2]= fcu->color[2] - 0.07f;
+		
+		/* store new ghost curve */
+		BLI_addtail(&sipo->ghostCurves, gcu);
+		
+		/* restore driver */
+		fcu->driver= driver;
+	}
+	
+	/* admin and redraws */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	View2D *v2d;
+	int start, end;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* ghost curves are snapshots of the visible portions of the curves, so set range to be the visible range */
+	v2d= &ac.ar->v2d;
+	start= (int)v2d->cur.xmin;
+	end= (int)v2d->cur.xmax;
+	
+	/* bake selected curves into a ghost curve */
+	create_ghost_curves(&ac, start, end);
+	
+	/* update this editor only */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_ghost_curves_create (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Create Ghost Curves";
+	ot->idname= "GRAPHEDIT_OT_ghost_curves_create";
+	ot->description= "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor.";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_create_ghostcurves_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	// todo: add props for start/end frames
+}
+
+/* ******************** Clear Ghost-Curves Operator *********************** */
+/* This operator clears the 'ghost curves' for the active Graph Editor */
+
+static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	SpaceIpo *sipo;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	sipo= (SpaceIpo *)ac.sa->spacedata.first;
+		
+	/* if no ghost curves, don't do anything */
+	if (sipo->ghostCurves.first == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* free ghost curves */
+	free_fcurves(&sipo->ghostCurves);
+	
+	/* update this editor only */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_ghost_curves_clear (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Create Ghost Curves";
+	ot->idname= "GRAPHEDIT_OT_ghost_curves_clear";
+	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor.";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_clear_ghostcurves_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
 // TODO: insertkey
+
+/* ******************** Click-Insert Keyframes Operator ************************* */
+
+static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	float frame, val;
+	
+	/* get animation context */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get active F-Curve 'anim-list-element' */
+	ale= get_active_fcurve_channel(&ac);
+	if (ELEM(NULL, ale, ale->data)) {
+		if (ale) MEM_freeN(ale);
+		return OPERATOR_CANCELLED;
+	}
+		
+	/* get frame and value from props */
+	frame= RNA_float_get(op->ptr, "frame");
+	val= RNA_float_get(op->ptr, "value");
+	
+	/* insert keyframe on the specified frame + value */
+	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);
+	
+	/* free temp data */
+	MEM_freeN(ale);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+static int graphkeys_click_insert_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	bAnimContext ac;
+	ARegion *ar;
+	View2D *v2d;
+	int mval[2];
+	float x, y;
+	
+	/* get animation context */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* store mouse coordinates in View2D space, into the operator's properties */
+	ar= ac.ar;
+	v2d= &ar->v2d;
+	
+	mval[0]= (evt->x - ar->winrct.xmin);
+	mval[1]= (evt->y - ar->winrct.ymin);
+	
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+	
+	RNA_float_set(op->ptr, "frame", x);
+	RNA_float_set(op->ptr, "value", y);
+	
+	/* run exec now */
+	return graphkeys_click_insert_exec(C, op);
+}
+
+void GRAPHEDIT_OT_keyframes_click_insert (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Click-Insert Keyframes";
+	ot->idname= "GRAPHEDIT_OT_keyframes_click_insert";
+	
+	/* api callbacks */
+	ot->invoke= graphkeys_click_insert_invoke;
+	ot->exec= graphkeys_click_insert_exec;
+	ot->poll= ED_operator_areaactive; // XXX active + editable poll
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_float(ot->srna, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame Number", "Frame to insert keyframe on", 0, 100);
+	RNA_def_float(ot->srna, "value", 1.0f, -FLT_MAX, FLT_MAX, "Value", "Value for keyframe on", 0, 100);
+}
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */
 /* NOTE: the backend code for this is shared with the dopesheet editor */
@@ -302,7 +538,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -341,7 +577,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -398,7 +634,7 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -469,7 +705,7 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -530,7 +766,7 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -611,7 +847,7 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -737,7 +973,7 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -811,7 +1047,7 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -836,14 +1072,6 @@ void GRAPHEDIT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
-
-/* defines for set ipo-type for selected keyframes tool */
-EnumPropertyItem prop_graphkeys_ipo_types[] = {
-	{BEZT_IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
-	{BEZT_IPO_LIN, "LINEAR", "Linear Interpolation", ""},
-	{BEZT_IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
-	{0, NULL, NULL, NULL}
-};
 
 /* this function is responsible for setting interpolation mode for keyframes */
 static void setipo_graph_keys(bAnimContext *ac, short mode) 
@@ -887,7 +1115,7 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -908,20 +1136,10 @@ void GRAPHEDIT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_ipo_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
-
-/* defines for set handle-type for selected keyframes tool */
-EnumPropertyItem prop_graphkeys_handletype_types[] = {
-	{HD_AUTO, "AUTO", "Auto Handles", ""},
-	{HD_VECT, "VECTOR", "Vector Handles", ""},
-	{HD_FREE, "FREE", "Free Handles", ""},
-	{HD_ALIGN, "ALIGN", "Aligned Handles", ""},
-//	{-1, "TOGGLE", "Toggle between Free and Aligned Handles", ""},
-	{0, NULL, NULL, NULL}
-};
 
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_graph_keys(bAnimContext *ac, short mode) 
@@ -984,7 +1202,7 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1005,7 +1223,7 @@ void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_handletype_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1098,22 +1316,6 @@ void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
 
 /* ***************** Snap Current Frame Operator *********************** */
 
-/* helper callback for graphkeys_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
-// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
-static short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
-{
-	/* only if selected */
-	if (bezt->f2 & SELECT) {
-		/* store average time in float (only do rounding at last step */
-		bed->f1 += bezt->vec[1][0];
-		
-		/* increment number of items */
-		bed->i1++;
-	}
-	
-	return 0;
-}
-
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int graphkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 {
@@ -1145,7 +1347,7 @@ static int graphkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, ac.scene);
 	
 	return OPERATOR_FINISHED;
@@ -1188,7 +1390,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	BeztEditFunc edit_cb;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1196,6 +1398,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
+	if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
+		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
+		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1232,7 +1438,7 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1286,13 +1492,14 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == GRAPHKEYS_MIRROR_MARKER) {
-		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= scene->markers.first; marker; marker=marker->next) {
-			if (marker->flag & SELECT) {
-				break;
+		if (ac->markers) {
+			for (marker= ac->markers->first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					break;
+				}
 			}
 		}
 		
@@ -1342,7 +1549,7 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1396,7 +1603,7 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1420,18 +1627,6 @@ void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
 /* F-CURVE MODIFIERS */
 
 /* ******************** Add F-Curve Modifier Operator *********************** */
-
-/* F-Modifier types - duplicate of existing codes...  */
-	// XXX how can we have this list from the RNA definitions instead?
-EnumPropertyItem prop_fmodifier_types[] = {
-	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
-	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
-	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
-	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
-	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
-	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
-	{0, NULL, NULL, NULL}
-};
 
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -1491,7 +1686,7 @@ void GRAPHEDIT_OT_fmodifier_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_fmodifier_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */

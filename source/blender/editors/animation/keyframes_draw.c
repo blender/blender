@@ -83,7 +83,6 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
@@ -449,8 +448,6 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		/* get filterflag */
 		if (ads)
 			filterflag= ads->filterflag;
-		else if ((aki) && (aki->actmode == -1)) /* only set like this by NLA */
-			filterflag= ADS_FILTER_NLADUMMY;
 		else
 			filterflag= 0;
 		

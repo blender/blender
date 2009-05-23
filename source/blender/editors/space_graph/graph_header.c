@@ -66,8 +66,6 @@
 enum {
 	B_REDR 	= 0,
 	B_MODECHANGE,
-	B_GRAPHCOPYKEYS,
-	B_GRAPHPASTEKEYS,
 } eActHeader_ButEvents;
 
 /* ************************ header area region *********************** */
@@ -99,7 +97,7 @@ static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 		// XXX these options should use new menu-options
@@ -156,16 +154,13 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_graph_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
-		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, graph_viewmenu, CTX_wm_area(C), 
@@ -198,17 +193,17 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Curves");
 		uiBlockEndAlign(block);
-		xco += 30;
+		xco += 15;
 	}
 	else {
 		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
-		xco += 6*XIC + 35;
+		xco += 6*XIC + 15;
 	}
 	
 	/* copy + paste */
 	uiBlockBeginAlign(block);
-		uiDefIconBut(block, BUT, B_GRAPHCOPYKEYS, ICON_COPYDOWN,	xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-		uiDefIconBut(block, BUT, B_GRAPHPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco+=XIC,yco,XIC,YIC, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco+=XIC,yco,XIC,YIC, "Pastes the keyframes from the buffer");
 	uiBlockEndAlign(block);
 	xco += (XIC + 8);
 	
@@ -225,6 +220,16 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 				xco,yco,90,YIC, &sipo->autosnap, 0, 1, 0, 0, 
 				"Auto-snapping mode for keyframe times when transforming");
 	}
+	xco += 98;
+	
+	/* ghost curves */
+	// XXX these icons need to be changed
+	if (sipo->ghostCurves.first)
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
+	else 
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
+	xco+= XIC;
+	
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax - ar->v2d.tot.ymin));

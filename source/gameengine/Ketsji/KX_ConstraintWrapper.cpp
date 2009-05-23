@@ -49,17 +49,12 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
 //python integration methods
-PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* args, PyObject* kwds)
 {
-	
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* args, PyObject* kwds)
 {
 	return PyInt_FromLong(m_constraintId);
 }
@@ -69,22 +64,22 @@ PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* self,
 
 //python specific stuff
 PyTypeObject KX_ConstraintWrapper::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_ConstraintWrapper",
-		sizeof(KX_ConstraintWrapper),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0, //&cvalue_as_number,
+		py_base_dealloc,
 		0,
 		0,
 		0,
-		0
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 PyParentObject KX_ConstraintWrapper::Parents[] = {
@@ -92,16 +87,16 @@ PyParentObject KX_ConstraintWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_ConstraintWrapper::_getattr(const char *attr)
+PyObject*	KX_ConstraintWrapper::py_getattro(PyObject *attr)
 {
 	//here you can search for existing data members (like mass,friction etc.)
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
-int	KX_ConstraintWrapper::_setattr(const char *attr,PyObject* pyobj)
+int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
 {
 	int result = 1;
-
+	/* what the heck is this supposed to do?, needs attention */
 	if (PyList_Check(pyobj))
 	{
 		result = 0;
@@ -120,7 +115,7 @@ int	KX_ConstraintWrapper::_setattr(const char *attr,PyObject* pyobj)
 		result = 0;
 	}
 	if (result)
-		result = PyObjectPlus::_setattr(attr,pyobj);
+		result = PyObjectPlus::py_setattro(attr,pyobj);
 	return result;
 };
 

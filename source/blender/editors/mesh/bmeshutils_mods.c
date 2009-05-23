@@ -1030,7 +1030,7 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_loop_multi(wmOperatorType *ot)
+void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
@@ -1110,7 +1110,7 @@ static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_loop(wmOperatorType *ot)
+void MESH_OT_loop_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
@@ -1211,7 +1211,7 @@ static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent
 	return OPERATOR_FINISHED;
 }
 	
-void MESH_OT_select_path_shortest(wmOperatorType *ot)
+void MESH_OT_select_shortest_path(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";

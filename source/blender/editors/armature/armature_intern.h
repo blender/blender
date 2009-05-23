@@ -33,7 +33,7 @@ struct wmOperatorType;
 
 /* editarmature.c operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
-void ARMATURE_OT_align_bones(struct wmOperatorType *ot);
+void ARMATURE_OT_bones_align(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
 void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivs(struct wmOperatorType *ot);
@@ -69,14 +69,20 @@ void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_select(struct wmOperatorType *ot);
 
+/* PoseLib */
+void POSELIB_OT_pose_add(struct wmOperatorType *ot);
+void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
+void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
+
 /* editarmature.c */
 struct bArmature;
 struct EditBone;
 struct ListBase;
 
 void make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent);
-
 struct EditBone *addEditBone(struct bArmature *arm, char *name);
+void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);

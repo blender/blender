@@ -57,20 +57,18 @@ static int rna_ksPath_RnaPath_length(PointerRNA *ptr)
 		return 0;
 }
 
-#if 0
 static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 {
 	KS_Path *ksp= (KS_Path *)ptr->data;
 
 	if (ksp->rna_path)
-		MEM_freeN(ksp->ksp_path);
+		MEM_freeN(ksp->rna_path);
 	
 	if (strlen(value))
 		ksp->rna_path= BLI_strdup(value);
 	else 
 		ksp->rna_path= NULL;
 }
-#endif
 
 #else
 
@@ -84,6 +82,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
 		{KSP_GROUP_NONE, "NONE", "None", ""},
 		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
+		{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", "Innermost Context-Item Name", ""},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "KeyingSetPath", NULL);
@@ -106,11 +105,12 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property setting.");
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable.");
 	
 	/* Flags */

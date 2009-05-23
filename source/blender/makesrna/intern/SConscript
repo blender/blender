@@ -11,27 +11,26 @@ defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = env.Glob('*.c')
-
-# making rna_access.c part of both makesrna and blender seems to
-# give conflict, how to solve?
 source_files.remove('rna_access.c')
 
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
 generated_files.remove('makesrna.c')
-
 generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
+
+source_files.extend(env.Glob('../../editors/*/*_api.c'))
 
 makesrna_tool = env.Clone()
 rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
-                                 '../../blenlib',
-                                 '../../blenkernel',
-                                 '../../makesdna',
-                                 '../../makesrna',
-								 '../../windowmanager'])
+								 '../../blenlib',
+								 '../../blenkernel',
+								 '../../makesdna',
+								 '../../makesrna',
+								 '../../windowmanager',
+								 '../../editors/include'])
 
 if env['OURPLATFORM'] == 'linuxcross':
 	USE_WINE = True # when cross compiling on linux 64bit this is useful
@@ -45,7 +44,7 @@ if not USE_WINE:
 		makesdna_tool.Replace(LINK='gcc')
 
 if sys.platform != 'cygwin':
-    makesrna_tool.Append (CCFLAGS = cflags)
+	makesrna_tool.Append (CCFLAGS = cflags)
 makesrna_tool.Append (CPPDEFINES = defines)
 
 libdir = root_build_dir+'/lib'
@@ -68,25 +67,28 @@ if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetpath = '#' + targetpath
 
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
-    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+	makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
 else:
-    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+	makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
 
 rna_dict = rna.Dictionary()
 rna.Depends (generated_files, makesrna)
 
 # this seems bad, how to retrieve it from scons?
-build_dir = root_build_dir + '/source/blender/makesrna/intern/'
+build_dir = root_build_dir + os.sep +'source' + os.sep + 'blender' + os.sep + 'makesrna' + os.sep + 'intern' + os.sep
 
 if env['OURPLATFORM'] != 'linuxcross':
-    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna " + build_dir)
+	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+		rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )
+	else:
+		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna "  + build_dir)
 else:
-    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 	
-    if USE_WINE:
-        rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
-    else:
-        rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	if USE_WINE:
+		rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	else:
+		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 
 
 obj = ['intern/rna_access.c']

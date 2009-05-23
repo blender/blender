@@ -18,13 +18,23 @@
  #
  # #**** END GPL LICENSE BLOCK #****
 
-# Usage,
-# run this script from blenders root path once you have compiled blender
-# ./blender.bin -b -P source/blender/python/epy_doc_gen.py
-# 
-# This will generate rna.py, generate html docs  by running...
-# epydoc source/blender/python/doc/rna.py -o source/blender/python/doc/html -v --no-sourcecode --name="RNA API" --url="http://brechtvanlommelfanclub.com" --graph=classtree
-# 
+script_help_msg = '''
+Usage,
+run this script from blenders root path once you have compiled blender
+	./blender.bin -P source/blender/python/epy_doc_gen.py
+
+This will generate rna.py and bpyoperator.py in "./source/blender/python/doc/"
+Generate html docs  by running...
+
+	epydoc source/blender/python/doc/*.py -v \\
+			-o source/blender/python/doc/html \\
+			--inheritance=included \\
+			--no-sourcecode \\
+			--graph=classtree \\
+			--graph-font-size=8
+
+'''
+
 # if you dont have graphvis installed ommit the --graph arg.
 
 def range_str(val):
@@ -49,6 +59,125 @@ def full_rna_struct_path(rna_struct):
 	else:
 		return rna_struct.identifier
 
+def write_func(rna, ident, out, func_type):
+	# Keyword attributes
+	kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
+	kw_arg_attrs = [] # "@type mode: int"
+	
+	rna_struct= rna.rna_type
+	
+	# Operators and functions work differently
+	if func_type=='OPERATOR':
+		rna_func_name = rna_struct.identifier
+		rna_func_desc = rna_struct.description
+		items = rna_struct.properties.items()
+	else:
+		rna_func_name = rna.identifier
+		rna_func_desc = rna.description
+		items = rna.parameters.items()
+	
+	for rna_prop_identifier, rna_prop in items:
+		if rna_prop_identifier=='rna_type':
+			continue
+		
+		# clear vars			
+		val = val_error = val_str = rna_prop_type = None
+		
+		# ['rna_type', 'name', 'array_length', 'description', 'hard_max', 'hard_min', 'identifier', 'precision', 'readonly', 'soft_max', 'soft_min', 'step', 'subtype', 'type']
+		#rna_prop=  op_rna.rna_type.properties[attr]
+		rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
+		
+		
+		try:		length = rna_prop.array_length
+		except:	length = 0
+		
+		array_str = get_array_str(length)
+		
+		kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
+		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
+		kw_param_set = False
+		
+		if func_type=='OPERATOR':
+			try:
+				val = getattr(rna, rna_prop_identifier)
+				val_error = False
+			except:
+				val = "'<UNDEFINED>'"
+				val_error = True
+			
+				
+			if val_error:
+				val_str = val
+			elif rna_prop_type=='float':
+				if length==0:
+					val_str= '%g' % val
+					if '.' not in val_str:
+						val_str += '.0'
+				else:
+					# array
+					val_str = str(tuple(val))
+				
+				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
+				kw_param_set= True
+				
+			elif rna_prop_type=='int':
+				if length==0:
+					val_str='%d' % val
+				else:
+					val_str = str(tuple(val))
+				
+				# print(dir(rna_prop))
+				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
+				# These strings dont have a max length???
+				#kw_param_str += ' (maximum length of %s)' %  (rna_prop.max_length)
+				kw_param_set= True
+				
+			elif rna_prop_type=='boolean':
+				if length==0:
+					if val:	val_str='True'
+					else:	val_str='False'
+				else:
+					val_str = str(tuple(val))
+			
+			elif rna_prop_type=='enum':
+				# no array here?
+				val_str="'%s'" % val
+				# Too cramped
+				kw_param_str += (' in (%s)' % ', '.join(rna_prop.items.keys()))
+				
+				kw_param_set= True
+				
+			elif rna_prop_type=='string':
+				# no array here?
+				val_str='"%s"' % val
+			
+			# todo - collection - array
+			# print (rna_prop.type)
+			
+			kw_args.append('%s = %s' % (rna_prop_identifier, val_str))
+			
+			# stora 
+		else:
+			# currently functions dont have a default value
+			kw_args.append('%s' % (rna_prop_identifier))
+		
+		
+		# Same for operators and functions
+		kw_arg_attrs.append(kw_type_str)
+		if kw_param_set:
+			kw_arg_attrs.append(kw_param_str)
+		
+	
+	
+	out.write(ident+'def %s(%s):\n' % (rna_func_name, ', '.join(kw_args)))
+	out.write(ident+'\t"""\n')
+	out.write(ident+'\t%s\n' % rna_func_desc)
+	for desc in kw_arg_attrs:
+		out.write(ident+'\t%s\n' % desc)
+	out.write(ident+'\t@rtype: None\n')
+	out.write(ident+'\t"""\n')
+	
+
 
 def rna2epy(target_path):
 	
@@ -57,7 +186,11 @@ def rna2epy(target_path):
 	rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
 	rna_children_dict =		{}	# store all rna_structs nested from here
 	rna_references_dict =	{}	# store a list of rna path strings that reference this type
+	rna_functions_dict =	{}	# store all functions directly in this type (not inherited)
 	rna_words = set()
+	
+	# def write_func(rna_func, ident):
+	
 	
 	def write_struct(rna_struct, ident):
 		identifier = rna_struct.identifier
@@ -132,7 +265,13 @@ def rna2epy(target_path):
 				out.write(ident+ '\t@type %s: %sL{%s}%s%s\n' %  (rna_prop_identifier, collection_str, rna_prop_ptr.identifier, array_str, readonly_str))
 			else:
 				if rna_prop_type == 'enum':
-					out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
+					if 0:
+						out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
+					else:
+						out.write(ident+ '\t@ivar %s: %s in...\n' %  (rna_prop_identifier, rna_desc))
+						for e in rna_prop.items.keys():
+							out.write(ident+ '\t\t- %s\n' % e)
+						
 					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
 				elif rna_prop_type == 'int' or rna_prop_type == 'float':
 					out.write(ident+ '\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
@@ -146,6 +285,14 @@ def rna2epy(target_path):
 				
 			
 		out.write(ident+ '\t"""\n\n')
+		
+		
+		# Write functions 
+		# for rna_func in rna_struct.functions: # Better ignore inherited (line below)
+		for rna_func in rna_functions_dict[identifier]:
+			write_func(rna_func, ident+'\t', out, 'FUNCTION')
+		
+		out.write('\n')
 		
 		# Now write children recursively
 		for child in rna_children_dict[identifier]:
@@ -177,13 +324,23 @@ def rna2epy(target_path):
 			# Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
 			rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
 			
+			# Store a list of functions, remove inherited later
+			rna_functions_dict[identifier]= list(rna_struct.functions)
+			
+			
 			# fill in these later
 			rna_children_dict[identifier]= []
 			rna_references_dict[identifier]= []
 			
+			
 		else:
 			print("Ignoring", rna_type_name)
 	
+	
+	# Sucks but we need to copy this so we can check original parent functions
+	rna_functions_dict__copy = {}
+	for key, val in rna_functions_dict.items():
+		rna_functions_dict__copy[key] = val[:]
 	
 	
 	structs.sort() # not needed but speeds up sort below, setting items without an inheritance first
@@ -244,6 +401,17 @@ def rna2epy(target_path):
 		nested = rna_struct.nested
 		if nested:
 			rna_children_dict[nested.identifier].append(rna_struct)
+		
+		
+		if rna_base:
+			rna_funcs =			rna_functions_dict[identifier]
+			if rna_funcs:
+				# Remove inherited functions if we have any
+				rna_base_funcs =	rna_functions_dict__copy[rna_base]
+				rna_funcs[:] =		[f for f in rna_funcs if f not in rna_base_funcs]
+	
+	rna_functions_dict__copy.clear()
+	del rna_functions_dict__copy
 	
 	# Sort the refs, just reads nicer
 	for rna_refs in rna_references_dict.values():
@@ -316,8 +484,7 @@ def rna2epy(target_path):
 			
 			ref = rna_ref_string.split('.')[-2]
 			out.write('\t"%s" -> "%s" [label="%s" weight=0.01];\n' % (ref, identifier, rna_ref_string))
-		
-		
+	
 	
 	out.write('}\n')
 	out.close()
@@ -331,9 +498,6 @@ def rna2epy(target_path):
 	rna_words.sort()
 	for w in rna_words:
 		out.write('%s\n' % w)
-	
-	
-	
 	
 
 def op2epy(target_path):
@@ -349,108 +513,22 @@ def op2epy(target_path):
 		if op.startswith('__'):
 			continue
 		
-		# Keyword attributes
-		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
-		kw_arg_attrs = [] # "@type mode: int"
-		
 		# rna = getattr(bpy.types, op).__rna__
 		rna = bpy.ops.__rna__(op)
 		
-		rna_struct = rna.rna_type
-		# print (dir(rna))
-		# print (dir(rna_struct))
-		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
-			if rna_prop_identifier=='rna_type':
-				continue
-			# ['rna_type', 'name', 'array_length', 'description', 'hard_max', 'hard_min', 'identifier', 'precision', 'readonly', 'soft_max', 'soft_min', 'step', 'subtype', 'type']
-			#rna_prop=  op_rna.rna_type.properties[attr]
-			rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
-			
-			try:		length = rna_prop.array_length
-			except:	length = 0
-			
-			array_str = get_array_str(length)
-			
-			try:
-				val = getattr(rna, rna_prop_identifier)
-				val_error = False
-			except:
-				val = "'<UNDEFINED>'"
-				val_error = True
-			
-			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
-			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
-			kw_param_set = False
-			
-			if val_error:
-				val_str = val
-			elif rna_prop_type=='float':
-				if length==0:
-					val_str= '%g' % val
-					if '.' not in val_str:
-						val_str += '.0'
-				else:
-					# array
-					val_str = str(tuple(val))
-				
-				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
-				kw_param_set= True
-				
-			elif rna_prop_type=='int':
-				if length==0:
-					val_str='%d' % val
-				else:
-					val_str = str(tuple(val))
-				
-				# print(dir(rna_prop))
-				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
-				# These strings dont have a max length???
-				#kw_param_str += ' (maximum length of %s)' %  (rna_prop.max_length)
-				kw_param_set= True
-				
-			elif rna_prop_type=='boolean':
-				if length==0:
-					if val:	val_str='True'
-					else:	val_str='False'
-				else:
-					val_str = str(tuple(val))
-			
-			elif rna_prop_type=='enum':
-				# no array here?
-				val_str="'%s'" % val
-				kw_param_str += (' in (%s)' % ', '.join(rna_prop.items.keys()))
-				kw_param_set= True
-				
-			elif rna_prop_type=='string':
-				# no array here?
-				val_str='"%s"' % val
-			
-			# todo - collection - array
-			# print (rna_prop.type)
-			
-			kw_args.append('%s = %s' % (rna_prop_identifier, val_str))
-			
-			# stora 
-			
-			kw_arg_attrs.append(kw_type_str)
-			if kw_param_set:
-				kw_arg_attrs.append(kw_param_str)
-			
-		
-		
-		out.write('def %s(%s):\n' % (op, ', '.join(kw_args)))
-		out.write('\t"""\n')
-		out.write('\t%s\n' % rna_struct.description)
-		for desc in kw_arg_attrs:
-			out.write('\t%s\n' % desc)
-		out.write('\t@rtype: None\n')
-		out.write('\t"""\n')
-	
+		write_func(rna, '', out, 'OPERATOR')
 	
 	out.write('\n')
 	out.close()
 
 if __name__ == '__main__':
-	rna2epy('source/blender/python/doc/rna.py')
-	op2epy('source/blender/python/doc/bpyoperator.py')
-
+	if 'bpy' not in dir():
+		print("\nError, this script must run from inside blender2.5")
+		print(script_help_msg)
+		
+	else:
+		rna2epy('source/blender/python/doc/rna.py')
+		op2epy('source/blender/python/doc/bpyoperator.py')
+	
+	import sys
+	sys.exit()

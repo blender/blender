@@ -8,7 +8,6 @@ incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
-incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' ../bmesh'
@@ -16,49 +15,51 @@ incs += ' ../bmesh'
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
-defs = ''
+defs = []
 
 if not env['WITH_BF_PYTHON']:
-	defs += 'DISABLE_PYTHON'
+	defs.append('DISABLE_PYTHON')
 else:
 	incs += ' ../python'
 	incs += ' ' + env['BF_PYTHON_INC']
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
 
 if env['WITH_BF_QUICKTIME']:
-    incs += ' ../quicktime'
+	incs += ' ../quicktime'
 
 if env['WITH_BF_SDL']:
 	incs += ' ' + env['BF_SDL_INC']
 else:
-	defs += ' DISABLE_SDL'
+	defs.append('DISABLE_SDL')
 
-if env['WITH_BF_INTERNATIONAL']:
-	defs += ' WITH_FREETYPE2'
-	
 if env['WITH_BF_OPENEXR']:
-    defs += ' WITH_OPENEXR'
+	defs.append('WITH_OPENEXR')
 
 if env['WITH_BF_OPENJPEG']:
-    defs += ' WITH_OPENJPEG'
+	defs.append('WITH_OPENJPEG')
 
 if env['WITH_BF_DDS']:
-    defs += ' WITH_DDS'
+	defs.append('WITH_DDS')
 
 if env['WITH_BF_FFMPEG']:
-    defs += ' WITH_FFMPEG'
-    incs += ' ' + env['BF_FFMPEG_INC']
+	defs.append('WITH_FFMPEG')
+	incs += ' ' + env['BF_FFMPEG_INC']
 
 if env['WITH_BF_QUICKTIME']:
-    defs += ' WITH_QUICKTIME'
-    incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_BULLET']:
-    defs += ' WITH_BULLET'
+	defs.append('WITH_BULLET')
 
 if env['BF_NO_ELBEEM']:
-    defs += ' DISABLE_ELBEEM'
+	defs.append('DISABLE_ELBEEM')
 
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+	
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
-env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [165] )
+env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = defs, libtype=['core'], priority = [165] )

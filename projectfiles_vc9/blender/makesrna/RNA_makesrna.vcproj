@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -138,7 +138,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\editors\include;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -231,7 +231,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -324,7 +324,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -420,7 +420,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -516,7 +516,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -589,6 +589,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\makesrna.c"
 				>
 			</File>
@@ -642,6 +646,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_define.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_fcurve.c"
 				>
 			</File>
 			<File
@@ -766,6 +774,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_timeline.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ui.c"
 				>
 			</File>
 			<File

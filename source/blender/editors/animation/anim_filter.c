@@ -291,7 +291,10 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	
 	/* get useful default context settings from context */
 	ac->scene= scene;
-	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
+	if (scene) {
+		ac->markers= &scene->markers;		
+		ac->obact= (scene->basact)?  scene->basact->object : NULL;
+	}
 	ac->sa= sa;
 	ac->ar= ar;
 	ac->spacetype= (sa) ? sa->spacetype : 0;
@@ -563,7 +566,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			lastchan= agrp->channels.last;
 		
 		
-		/* there are some situations, where only the channels of the animive group should get considered */
+		/* there are some situations, where only the channels of the action group should get considered */
 		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
 			/* filters here are a bit convoulted...
 			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
@@ -574,8 +577,9 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 *	- group is expanded
 			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
+			// XXX what was the selection check here for again?
 			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) && (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
+				 ( /*ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) &&*/ (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
 			{
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					// XXX the 'owner' info here needs review...
@@ -750,7 +754,17 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 		Material *ma= give_current_material(ob, a);
 		
 		/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
-		if (ELEM3(NULL, ma, ma->adt, ma->adt->action)) continue;
+		if (ELEM(NULL, ma, ma->adt)) 
+			continue;
+		
+		if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS)==0) {
+			if (ANIMDATA_HAS_KEYS(ma) == 0)
+				continue;
+		}
+		else {
+			if (ANIMDATA_HAS_DRIVERS(ma) == 0)
+				continue;
+		}
 		
 		/* make a temp list elem for this */
 		ld= MEM_callocN(sizeof(LinkData), "DopeSheet-MaterialCache");
@@ -787,10 +801,16 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 				}
 			}
 			
-			/* add material's F-Curve channels? */
+			/* add material's F-Curve or Driver channels? */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS)==0) {
 					// XXX the 'owner' info here is still subject to improvement
-				items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
+					items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
+				}
+				else {
+					// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
+					items += animdata_filter_fcurves(anim_data, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);
+				}	
 			}
 		}
 	}
@@ -869,7 +889,6 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
-	Scene *sce= (Scene *)ads->source;
 	Object *ob= base->object;
 	Key *key= ob_get_key(ob);
 	int items = 0;
@@ -877,7 +896,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* add this object as a channel first */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
-		if (ANIMCHANNEL_SELOK( ((base->flag & SELECT) || (base == sce->basact)) )) {
+		if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
@@ -1195,7 +1214,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short actOk, keyOk, dataOk, matOk;
+			short actOk=1, keyOk=1, dataOk=1, matOk=1;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1204,8 +1223,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 			 */
 			// TODO: if cache is implemented, just check name here, and then 
 			if (filter_mode & ANIMFILTER_VISIBLE) {
-				/* layer visibility */
-				if ((ob->lay & sce->lay)==0) continue;
+				/* layer visibility - we check both object and base, since these may not be in sync yet */
+				if ((sce->lay & (ob->lay|base->lay))==0) continue;
 				
 				/* outliner restrict-flag */
 				if (ob->restrictflag & OB_RESTRICT_VIEW) continue;

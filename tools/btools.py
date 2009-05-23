@@ -27,11 +27,10 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
 	opts_list = [
-			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+			'BF_NO_PYDEBUG', 'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
-			'WITH_BF_FMOD',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
 			'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
@@ -50,7 +49,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
-			'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
@@ -63,6 +61,7 @@ def validate_arguments(args, bc):
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
+			'WITH_BF_LCMS', 'BF_LCMS_LIB',
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			]
@@ -80,7 +79,7 @@ def validate_arguments(args, bc):
 	]
 	
 	
-	arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
+	arg_list = ['BF_NO_PYDEBUG', 'BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
 			'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
 			'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
 			'BF_BSC', 'BF_CONFIG',
@@ -146,6 +145,7 @@ def read_opts(cfg, args):
 	localopts.AddVariables(
 		('LCGDIR', 'location of cvs lib dir'),
 		(BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
+		(BoolVariable('BF_NO_PYDEBUG', 'don\'t use debug python, only valid on win32/msvc', False)),
 		('BF_PYTHON', 'base path for python', ''),
 		('BF_PYTHON_VERSION', 'Python version to use', ''),
 		('BF_PYTHON_INC', 'include path for Python headers', ''),
@@ -177,9 +177,6 @@ def read_opts(cfg, args):
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),
 		('BF_PTHREADS_LIB', 'Pthreads library', ''),
 		('BF_PTHREADS_LIBPATH', 'Pthreads library path', ''),
-
-		(BoolVariable('WITH_BF_FMOD', 'Use FMOD if true', False)),
-		#  BF_FMOD = $(LCGDIR)/fmod
 
 		(BoolVariable('WITH_BF_OPENEXR', 'Use OPENEXR if true', True)),
 		(BoolVariable('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', False)),
@@ -239,7 +236,7 @@ def read_opts(cfg, args):
 		('BF_ZLIB_LIB', 'ZLib library', ''),
 		('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', True)),
+		(BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
 
 		('BF_GETTEXT', 'gettext base path', ''),
 		('BF_GETTEXT_INC', 'gettext include path', ''),
@@ -290,7 +287,7 @@ def read_opts(cfg, args):
 ##BF_PARANOID = True
 ##
 ### enable freetype2 support for text objects
-		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', False)),
+		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
 		('BF_FREETYPE', 'Freetype base path', ''),
 		('BF_FREETYPE_INC', 'Freetype include path', ''),
 		('BF_FREETYPE_LIB', 'Freetype library', ''),
@@ -312,11 +309,6 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 		
-		(BoolVariable('WITH_BF_FTGL', 'Use FTGL if true', True)),
-		('BF_FTGL', 'FTGL base path', ''),
-		('BF_FTGL_INC', 'FTGL include path', ''),
-		('BF_FTGL_LIB', 'FTGL libraries', ''),
-
 		(BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
 		(BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
@@ -363,6 +355,9 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
+		
+		(BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
+		('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),
 
 		('BF_X264_CONFIG', 'configuration flags for x264', ''),
 		('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),

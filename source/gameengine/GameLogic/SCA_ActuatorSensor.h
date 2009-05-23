@@ -61,11 +61,11 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 3. setProperty */
-	KX_PYMETHOD_DOC(SCA_ActuatorSensor,SetActuator);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ActuatorSensor,SetActuator);
 	/* 4. getProperty */
 	KX_PYMETHOD_DOC_NOARGS(SCA_ActuatorSensor,GetActuator);
 	

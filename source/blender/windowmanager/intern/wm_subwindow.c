@@ -68,6 +68,7 @@ typedef struct wmSubWindow {
 	int swinid;
 	
 	float viewmat[4][4], winmat[4][4];
+	float viewmat1[4][4], winmat1[4][4];
 } wmSubWindow;
 
 
@@ -304,6 +305,28 @@ void wmMultMatrix(float mat[][4])
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->viewmat);
 	else
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->winmat);
+}
+
+void wmPushMatrix(void)
+{
+	if(_curswin==NULL) return;
+	
+	Mat4CpyMat4(_curswin->viewmat1, _curswin->viewmat);
+	Mat4CpyMat4(_curswin->winmat1, _curswin->winmat);
+}
+
+void wmPopMatrix(void)
+{
+	if(_curswin==NULL) return;
+	
+	Mat4CpyMat4(_curswin->viewmat, _curswin->viewmat1);
+	Mat4CpyMat4(_curswin->winmat, _curswin->winmat1);
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(&_curswin->winmat[0][0]);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&_curswin->viewmat[0][0]);
+	
 }
 
 void wmGetSingleMatrix(float mat[][4])

@@ -93,7 +93,7 @@ void viewray(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_st
 
 int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
-void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
+void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 
 /* drawobject.c itterators */
@@ -124,7 +124,6 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_get_view_aligned_coordinate(struct ViewContext *vc, float *fp, short mval[2]);
-void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);;
 void view3d_get_transformation(struct ViewContext *vc, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to arithb.c */

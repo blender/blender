@@ -99,7 +99,9 @@ extern "C" {
 	/* 2.5 UI Scripts */
 	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text ); // 2.5 working
 	int BPY_run_script_space_draw(struct bContext *C, struct SpaceScript * sc); // 2.5 working
+	void BPY_run_ui_scripts(struct bContext *C, int reload);
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
+	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
 	
 	
 	
@@ -124,7 +126,6 @@ extern "C" {
 
 	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct ChannelDriver *driver);
-	struct Object **BPY_pydriver_get_objects(struct ChannelDriver *driver);
 
 	int BPY_button_eval(char *expr, double *value);
 
@@ -139,7 +140,8 @@ extern "C" {
 	void BPY_scripts_clear_pyobjects( void );
 	
 	void error_pyscript( void );
-	
+	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
+
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 /* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */

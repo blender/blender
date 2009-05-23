@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="PHY_Physics"
 	ProjectGUID="{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}"
+	RootNamespace="PHY_Physics"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -470,6 +471,14 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_IController.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_IGraphicController.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_IMotionState.cpp"
 				>
 			</File>
@@ -492,6 +501,14 @@
 			>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_DynamicTypes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_IController.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Physics\common\PHY_IGraphicController.h"
 				>
 			</File>
 			<File

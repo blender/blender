@@ -22,7 +22,7 @@
 # Amsterdam, the Netherlands.
 # All rights reserved.
 #
-# The Original Code is: revision 1.2
+# The Original Code is: revision 1.3
 #
 # Contributor(s): Wouter van Heyst, GSR
 #
@@ -50,6 +50,9 @@ LINGUAS_DEST= $(foreach LINGUA, $(LINGUAS),$(DIR)$(LINGUA)/LC_MESSAGES/blender.m
 $(DIR)%/LC_MESSAGES/blender.mo: %.po
 	mkdir -p $(@D)
 	msgfmt -o $@ $<
+	@cmp $@ $(NANBLENDERHOME)/bin/.blender/locale/$(basename $<)/LC_MESSAGES/blender.mo \
+          || ( echo Mismatch between generated and commited $(basename $<).mo catalog && \
+               rm -f $@ && false )
 
 all debug:: $(LINGUAS_DEST)
 #	Just trigger the deps

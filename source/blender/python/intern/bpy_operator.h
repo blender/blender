@@ -40,7 +40,7 @@ typedef struct {
 	PyObject_HEAD /* required python macro   */
 } BPy_OperatorBase;
 
-PyObject *BPY_operator_module(bContext *C );
+PyObject *BPY_operator_module(void);
 
 /* fill in properties from a python dict */
 int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw);

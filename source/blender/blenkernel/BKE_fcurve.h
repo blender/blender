@@ -6,9 +6,12 @@
 #define BKE_FCURVE_H
 
 //struct ListBase;
+
 struct FCurve;
 struct FModifier;
 struct ChannelDriver;
+struct DriverTarget;
+
 struct BezTriple;
 
 /* ************** Keyframe Tools ***************** */
@@ -26,6 +29,11 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 
 void fcurve_free_driver(struct FCurve *fcu);
 struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
+
+void driver_free_target(struct ChannelDriver *driver, struct DriverTarget *dtar);
+struct DriverTarget *driver_add_new_target(struct ChannelDriver *driver);
+
+float driver_get_target_value(struct ChannelDriver *driver, struct DriverTarget *dtar);
 
 /* ************** F-Curve Modifiers *************** */
 
@@ -60,6 +68,8 @@ typedef struct FModifierTypeInfo {
 	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
+		/* evaluate time that the modifier requires the F-Curve to be evaluated at */
+	float (*evaluate_modifier_time)(struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime);
 		/* evaluate the modifier for the given time and 'accumulated' value */
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
@@ -115,6 +125,9 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
+
+/* test if there is a keyframe at cfra */
+short on_keyframe_fcurve(struct FCurve *fcu, float cfra);
 
 /* get the time extents for F-Curve */
 void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);

@@ -490,7 +490,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= EM_GetEditMesh(me); 
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
 	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
 	
@@ -498,19 +498,19 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		/* here was an edge-mode only select flush case, has to be generalized */
 		EM_selectmode_flush(em);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return OPERATOR_FINISHED;
 	}
 	
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 	return OPERATOR_CANCELLED;
 }	
 
-void MESH_OT_select_face_similar(wmOperatorType *ot)
+void MESH_OT_faces_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Face Select";
-	ot->idname= "MESH_OT_select_face_similar";
+	ot->idname= "MESH_OT_faces_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -751,7 +751,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= EM_GetEditMesh(me); 
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
 	int selcount = similar_edge_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
 	
@@ -759,19 +759,19 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		/* here was an edge-mode only select flush case, has to be generalized */
 		EM_selectmode_flush(em);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return OPERATOR_FINISHED;
 	}
 	
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_select_edge_similar(wmOperatorType *ot)
+void MESH_OT_edges_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Edge Select";
-	ot->idname= "MESH_OT_select_edge_similar";
+	ot->idname= "MESH_OT_edges_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -806,7 +806,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= EM_GetEditMesh(me); 
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
 	EditVert *eve, *base_eve=NULL;
 	unsigned int selcount=0; /* count how many new edges we select*/
 	
@@ -833,7 +833,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (!ok || !deselcount) { /* no data selected OR no more data to select*/
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
 	
@@ -864,7 +864,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 							selcount++;
 							deselcount--;
 							if (!deselcount) {/*have we selected all posible faces?, if so return*/
-								EM_EndEditMesh(me, em);
+								BKE_mesh_end_editmesh(me, em);
 								return selcount;
 							}
 						}
@@ -882,7 +882,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						selcount++;
 						deselcount--;
 						if (!deselcount) {/*have we selected all posible faces?, if so return*/
-							EM_EndEditMesh(me, em);
+							BKE_mesh_end_editmesh(me, em);
 							return selcount;
 						}
 					}
@@ -896,7 +896,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 					CD_MDEFORMVERT);
 
 				if (!base_dvert || base_dvert->totweight == 0) {
-					EM_EndEditMesh(me, em);
+					BKE_mesh_end_editmesh(me, em);
 					return selcount;
 				}
 				
@@ -914,7 +914,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 									selcount++;
 									deselcount--;
 									if (!deselcount) { /*have we selected all posible faces?, if so return*/
-										EM_EndEditMesh(me, em);
+										BKE_mesh_end_editmesh(me, em);
 										return selcount;
 									}
 									break;
@@ -929,19 +929,19 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	if(selcount) {
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return OPERATOR_FINISHED;
 	}
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_select_vertex_similar(wmOperatorType *ot)
+void MESH_OT_vertices_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Vertex Select";
-	ot->idname= "MESH_OT_select_vertex_similar";
+	ot->idname= "MESH_OT_vertices_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1650,7 +1650,7 @@ static void edgering_select(EditMesh *em, EditEdge *startedge, int select)
 static int loop_multiselect(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditEdge *eed;
 	EditEdge **edarray;
 	int edindex, edfirstcount;
@@ -1689,16 +1689,16 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
 #if 0 //moved to bmeshutils_mods.c
-void MESH_OT_select_loop_multi(wmOperatorType *ot)
+void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
-	ot->idname= "MESH_OT_select_loop_multi";
+	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
 	ot->exec= loop_multiselect;
@@ -1991,7 +1991,7 @@ void selectconnected_mesh_all(EditMesh *em)
 static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(obedit->data);
+	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 	
 	if( RNA_boolean_get(op->ptr, "limit") ) {
 		ViewContext vc;
@@ -2003,7 +2003,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -2132,13 +2132,13 @@ void EM_hide_mesh(EditMesh *em, int swap)
 static int hide_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	EM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -2198,13 +2198,13 @@ void EM_reveal_mesh(EditMesh *em)
 static int reveal_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	EM_reveal_mesh(em);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -2258,7 +2258,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	* small enough, select the edge
 	*/
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditEdge *eed;
 	EditFace *efa;
 	EditFace **efa1;
@@ -2270,7 +2270,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	
 	if(em->selectmode==SCE_SELECT_FACE) {
 		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2350,15 +2350,15 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_sharp_edges(wmOperatorType *ot)
+void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Sharp Edges";
-	ot->idname= "MESH_OT_select_sharp_edges";
+	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
 	ot->exec= select_sharp_edges_exec;
@@ -2511,21 +2511,21 @@ static void select_linked_flat_faces(EditMesh *em, wmOperator *op, float sharpne
 static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	select_linked_flat_faces(em, op, RNA_float_get(op->ptr, "sharpness"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
+void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked Flat Faces";
-	ot->idname= "MESH_OT_select_linked_flat_faces";
+	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
 	ot->exec= select_linked_flat_faces_exec;
@@ -2611,13 +2611,13 @@ void select_non_manifold(EditMesh *em, wmOperator *op )
 static int select_non_manifold_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	select_non_manifold(em, op);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -2674,13 +2674,13 @@ void EM_select_swap(EditMesh *em) /* exported for UV */
 static int select_invert_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	EM_select_swap(em);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -2711,12 +2711,12 @@ void EM_toggle_select_all(EditMesh *em) /* exported for UV */
 static int toggle_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	EM_toggle_select_all(em);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);	
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 
 	return OPERATOR_FINISHED;
 }
@@ -2797,7 +2797,7 @@ void EM_select_more(EditMesh *em)
 static int select_more(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data)) ;
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data)) ;
 
 	EM_select_more(em);
 
@@ -2805,7 +2805,7 @@ static int select_more(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2887,14 +2887,14 @@ void EM_select_less(EditMesh *em)
 static int select_less(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 
 	EM_select_less(em);
 
 //	if (EM_texFaceCheck(em))
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2957,13 +2957,13 @@ static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a us
 static int mesh_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	selectrandom_mesh(em, RNA_float_get(op->ptr,"percent"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
@@ -3047,13 +3047,13 @@ static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 {		
 	
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 
 	mesh_selection_type(CTX_data_scene(C), em, RNA_enum_get(op->ptr,"type"));
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -3081,7 +3081,8 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 static int editmesh_mark_seam(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Mesh *me= ((Mesh *)obedit->data);
 	EditEdge *eed;
 	int clear = RNA_boolean_get(op->ptr, "clear");
@@ -3112,7 +3113,8 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -3135,7 +3137,8 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Mesh *me= ((Mesh *)obedit->data);
 	int set = RNA_boolean_get(op->ptr, "set");
 	EditEdge *eed;
@@ -3161,7 +3164,8 @@ static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	EM_EndEditMesh(obedit->data, em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -3556,7 +3560,8 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 static int righthandfaces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
@@ -3565,15 +3570,15 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_consistant_normals(wmOperatorType *ot)
+void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Normals Consistant";
-	ot->idname= "MESH_OT_consistant_normals";
+	ot->name= "Make Normals Consistent";
+	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
 	ot->exec= righthandfaces_exec;
@@ -3767,7 +3772,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= EM_GetEditMesh(me); 
+	EditMesh *em= (EditMesh *)me; 
 
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
@@ -3776,8 +3781,9 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	int teller=0;
 	ModifierData *md= obedit->modifiers.first;
 
+
 	if(em==NULL) {
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3787,8 +3793,9 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 		if(eve->f & SELECT) teller++;
 		eve= eve->next;
 	}
+
 	if(teller==0) {
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3903,16 +3910,16 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 #endif
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_smooth_vertex(wmOperatorType *ot)
+void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Vertex";
-	ot->idname= "MESH_OT_smooth_vertex";
+	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
 	ot->exec= smooth_vertex;
@@ -4029,21 +4036,21 @@ static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	vertices_to_sphere(scene, v3d, obedit, em, RNA_float_get(op->ptr,"percent"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_vertices_to_sphere(wmOperatorType *ot)
+void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
-	ot->idname= "MESH_OT_vertices_to_sphere";
+	ot->idname= "MESH_OT_vertices_transform_to_sphere";
 	
 	/* api callbacks */
 	ot->exec= vertices_to_sphere_exec;
@@ -4079,7 +4086,7 @@ void flipface(EditMesh *em, EditFace *efa)
 static int flip_editnormals(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditFace *efa;
 	
 	efa= em->faces.first;
@@ -4093,7 +4100,7 @@ static int flip_editnormals(bContext *C, wmOperator *op)
 	/* update vertex normals too */
 	recalc_editnormals(em);
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

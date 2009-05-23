@@ -16,14 +16,14 @@ class KX_Scene:
 		scene = GameLogic.getCurrentScene()
 		
 		# print all the objects in the scene
-		for obj in scene.getObjectList():
-			print obj.getName()
+		for obj in scene.objects:
+			print obj.name
 		
 		# get an object named 'Cube'
-		obj = scene.getObjectList()["OBCube"]
+		obj = scene.objects["OBCube"]
 		
 		# get the first object in the scene.
-		obj = scene.getObjectList()[0]
+		obj = scene.objects[0]
 	
 	Example::
 		# Get the depth of an object in the camera view.
@@ -39,8 +39,8 @@ class KX_Scene:
 		
 	@ivar name: The scene's name
 	@type name: string
-	@type objects: A list of objects in the scene.
-	@type objects: list [L{KX_GameObject}]
+	@ivar objects: A list of objects in the scene.
+	@type objects: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 	@ivar active_camera: The current active camera
 	@type active_camera: L{KX_Camera}
 	@ivar suspended: True if the scene is suspended.
@@ -55,7 +55,7 @@ class KX_Scene:
 		"""
 		Returns the list of lights in the scene.
 		
-		@rtype: list [L{KX_Light}]
+		@rtype: list [L{KX_LightObject}]
 		"""
 	def getObjectList():
 		"""
@@ -70,7 +70,7 @@ class KX_Scene:
 		@rtype: string
 		"""
 
-	def addObject(object, other, time=0)
+	def addObject(object, other, time=0):
 		"""
 		Adds an object to the scene like the Add Object Actuator would, and returns the created object.
 		

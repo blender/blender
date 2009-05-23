@@ -1,20 +1,21 @@
 #!BPY
 
 """
-Name: 'Autodesk DXF (.dxf)'
+Name: 'Autodesk DXF (.dxf .dwg)'
 Blender: 246
 Group: 'Import'
-Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
+Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.03.14 by migius'
+__version__ = '1.12 - 2009.04.11 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
 __bpydoc__ = """\
-This script imports objects from DXF (2d/3d) into Blender.
+This script imports objects from DWG/DXF (2d/3d) into Blender.
 
 This script imports 2d and 3d geometery from DXF files.
+It supports DWG format too, with help of an external converter.
 Supported DXF format versions: from (r2.5) r12 up to r2008.
 Enhanced features are:
 - configurable object filtering and geometry manipulation,
@@ -111,6 +112,8 @@ History:
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
 
+ v1.12 - 2009.04.11 by migius
+ d4 added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
  v1.12 - 2009.03.14 by migius
  d3 removed all set()functions (problem with osx/python<2.4 reported by Blinkozo)
  d3 code-cleaning
@@ -305,7 +308,8 @@ History:
 # --------------------------------------------------------------------------
 
 import Blender
-from Blender import *
+from Blender import Mathutils, BezTriple, Draw, Registry, sys,\
+Text3d, Window, Mesh, Material, Group
 #from Blender.Mathutils import Vector, Matrix
 #import bpy #not used yet
 #import BPyMessages
@@ -314,7 +318,7 @@ from dxfReader import readDXF
 #from dxfReader import get_name, get_layer
 from dxfReader import Object as dxfObject
 from dxfColorMap import color_map
-from math import *
+from math import log10, sqrt, radians, degrees, atan, cos, sin
 
 # osx-patch by Blinkozo
 #todo: avoid additional modules, prefer Blender-build-in test routines
@@ -325,9 +329,10 @@ from math import *
 #ver = '%s.%s' % version_info[0:2]
 # end osx-patch
 
-try:
-	import os
-	if os.name != 'mac':
+import subprocess
+import os
+if os.name != 'mac':
+	try:
 		import psyco
 		psyco.log(Blender.Get('tempdir')+"/blender.log-psyco")
 		#psyco.log()
@@ -335,14 +340,13 @@ try:
 		psyco.profile(0.05, memory=100)
 		psyco.profile(0.2)
 		#print 'psyco imported'
-except ImportError:
-	print 'psyco not imported'
-	pass
+	except ImportError:
+		print 'psyco not imported'
 
 #try: Curve.orderU
 
 print '\n\n\n'
-print 'DXF-Importer v%s *** start ***' %(__version__)   #---------------------
+print 'DXF/DWG-Importer v%s *** start ***' %(__version__)   #---------------------
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
@@ -385,6 +389,29 @@ AUTO = BezTriple.HandleTypes.AUTO
 FREE = BezTriple.HandleTypes.FREE
 VECT = BezTriple.HandleTypes.VECT
 ALIGN = BezTriple.HandleTypes.ALIGN
+
+UI_MODE = True #activates UI-popup-print, if not multiple files imported
+
+
+#-------- DWG support ------------------------------------------
+extCONV_OK = True
+extCONV = 'DConvertCon.exe'
+extCONV_PATH = os.path.join(Blender.Get('scriptsdir'),extCONV)
+if not os.path.isfile(extCONV_PATH):
+	extCONV_OK = False
+	extCONV_TEXT = 'DWG-Importer cant find external DWG-converter (%s) in Blender script directory.|\
+More details in online Help.' %extCONV
+else:
+	if not os.sys.platform.startswith('win'):
+		# check if Wine installed:   
+		if subprocess.Popen(('which', 'winepath'), stdout=subprocess.PIPE).stdout.read().strip():
+			extCONV_PATH    = 'wine %s'%extCONV_PATH
+		else: 
+			extCONV_OK = False
+			extCONV_TEXT = 'The external DWG-converter (%s) needs Wine installed on your system.|\
+More details in online Help.' %extCONV
+#print 'extCONV_PATH = ', extCONV_PATH
+
 
 
 class View:  #-----------------------------------------------------------------
@@ -754,7 +781,7 @@ class Solid:  #-----------------------------------------------------------------
 
 		if settings.var['vGroup_on'] and not M_OBJ:
 			# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-			replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.ADD/REPLACE
+			replace = Mesh.AssignModes.ADD  #or .AssignModes.ADD/REPLACE
 			if vg_left: me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
 			if vg_right:me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
 			if vg_top:  me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
@@ -899,7 +926,7 @@ class Line:  #-----------------------------------------------------------------
 				ob.link(me) # link mesh to that object
 				vG_name = 'color_%s' %self.color_index
 				if edges: faces = edges
-				replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
+				replace = Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
 				try:
 					me.assignVertsToGroup(vG_name,  faces[0], 1.0, replace)
 					#print 'deb: existed vGroup:', vG_name #---------------------
@@ -1792,7 +1819,7 @@ class Polyline:  #--------------------------------------------------------------
 				# which may be linked to more than one object.
 				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+					replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 					for v in f_left: vg_left.extend(v)
 					for v in f_right: vg_right.extend(v)
@@ -2640,7 +2667,7 @@ class Circle:  #----------------------------------------------------------------
 				# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+					replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_band, vg_top, vg_bottom = [], [], []
 					for v in f_band: vg_band.extend(v)
 					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  vg_band, 1.0, replace)
@@ -2820,7 +2847,7 @@ class Arc:  #-----------------------------------------------------------------
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+						replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 						for v in f_left: vg_left.extend(v)
 						for v in f_right: vg_right.extend(v)
@@ -3364,7 +3391,7 @@ class Ellipse:  #---------------------------------------------------------------
 							me.faces[i].smooth = True
 					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
+						replace = Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
 						for v in f_left: vg_left.extend(v)
 						for v in f_right: vg_right.extend(v)
@@ -3517,7 +3544,7 @@ class Face:  #-----------------------------------------------------------------
 			ob.link(me) # link mesh to that object
 			vG_name = 'color_%s' %self.color_index
 			if edges: faces = edges
-			replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
+			replace = Mesh.AssignModes.ADD  #or .AssignModes.REPLACE or ADD
 			try:
 				me.assignVertsToGroup(vG_name,  faces[0], 1.0, replace)
 				#print 'deb: existed vGroup:', vG_name #---------------------
@@ -4022,10 +4049,8 @@ class Settings:  #--------------------------------------------------------------
 		"""Wraps the built-in print command in a optimization check.
 		"""
 		if self.var['optimization'] <= self.MID:
-			if newline:
-				print text
-			else:
-				print text,
+			if newline: print text
+			else: print text,
 
 
 	def redraw(self):
@@ -4067,9 +4092,9 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 	"""
 	Window.WaitCursor(True)   # Let the user know we are thinking
 	print 'reading DXF file: %s.' % dxfFile
-	time1 = Blender.sys.time()  #time marker1
+	time1 = sys.time()  #time marker1
 	drawing = readDXF(dxfFile, objectify)
-	print 'finish reading in %.4f sec.' % (Blender.sys.time()-time1)
+	print 'finish reading in %.4f sec.' % (sys.time()-time1)
 
 	# First sort out all the section_items
 	sections = dict([(item.name, item) for item in drawing.data])
@@ -4282,10 +4307,45 @@ def main(dxfFile):  #---------------#############################-----------
 		if dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
 			Window.WaitCursor(True)   # Let the user know we are thinking
 			print 'reading file: %s.' % dxfFile
-			time1 = Blender.sys.time()  #time marker1
+			time1 = sys.time()  #time marker1
 			drawing = readDXF(dxfFile, objectify)
-			print 'reading finished in %.4f sec.' % (Blender.sys.time()-time1)
+			print 'reading finished in %.4f sec.' % (sys.time()-time1)
 			Window.WaitCursor(False)
+		elif dxfFile.lower().endswith('.dwg') and sys.exists(dxfFile):
+			if not extCONV_OK:
+				Draw.PupMenu(extCONV_TEXT)
+				Window.WaitCursor(False)
+				if editmode: Window.EditMode(1) # and put things back how we fond them
+				return None
+			else:
+				Window.WaitCursor(True)   # Let the user know we are thinking
+				#todo: issue: in DConvertCon.exe the output filename is fixed to dwg_name.dxf
+				
+				if 0: # works only for Windows
+					dwgTemp = 'temp_01.dwg'
+					dxfTemp = 'temp_01.dxf'
+					os.system('copy %s %s' %(dxfFile,dwgTemp))
+				else:
+					dwgTemp = dxfFile
+					dxfTemp = dxfFile[:-3]+'dxf'
+				#print 'temp. converting: %s\n              to: %s' %(dxfFile, dxfTemp)
+				#os.system('%s %s  -acad11 -dxf' %(extCONV_PATH, dxfFile))
+				os.system('%s %s  -dxf' %(extCONV_PATH, dwgTemp))
+				#os.system('%s %s  -dxf' %(extCONV_PATH, dxfFile_temp))
+				if sys.exists(dxfTemp):
+					print 'reading file: %s.' % dxfTemp
+					time1 = sys.time()  #time marker1
+					drawing = readDXF(dxfTemp, objectify)
+					#os.remove(dwgTemp)
+					os.remove(dxfTemp) # clean up
+					print 'reading finished in %.4f sec.' % (sys.time()-time1)
+					Window.WaitCursor(False)
+				else:
+					if UI_MODE: Draw.PupMenu('DWG importer:  nothing imported!%t|No valid DXF-representation found!')
+					print 'DWG importer:  nothing imported. No valid DXF-representation found.'
+					Window.WaitCursor(False)
+					if editmode: Window.EditMode(1) # and put things back how we fond them
+					return None
 		else:
 			if UI_MODE: Draw.PupMenu('DXF importer:  Alert!%t| no valid DXF-file selected!')
 			print "DXF importer: Alert! - no valid DXF-file selected."
@@ -4295,7 +4355,7 @@ def main(dxfFile):  #---------------#############################-----------
 
 		# Draw all the know entity types in the current scene
 		oblist = []  # a list of all created AND linked objects for final f_globalScale
-		time2 = Blender.sys.time()  #time marker2
+		time2 = sys.time()  #time marker2
 
 		Window.WaitCursor(True)   # Let the user know we are thinking
 		settings.write("\n\nDrawing entities...")
@@ -4322,7 +4382,7 @@ def main(dxfFile):  #---------------#############################-----------
 		#SCENE.objects.selected = SCENE.objects   #select all objects in current scene		  
 		Blender.Redraw()
 
-		time_text = Blender.sys.time() - time2
+		time_text = sys.time() - time2
 		Window.WaitCursor(False)
 		if settings.var['paper_space_on']: space = 'from paper space'
 		else: space = 'from model space'
@@ -4571,7 +4631,7 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 		activObjectLayer = ''
 		activObjectName = ''
 
-		message = "Drawing dxf\'%ss\'..." %_type
+		message = "Drawing dxf \'%ss\'..." %_type
 		cur_COUNTER += len_temp - len(entities)
 		settings.write(message, False)
 		settings.progress(cur_COUNTER, message)
@@ -5078,7 +5138,7 @@ def drawCurveArc(self):  #---- only for ELLIPSE --------------------------------
 
 
 # GUI STUFF -----#################################################-----------------
-from Blender.BGL import *
+from Blender.BGL import glColor3f, glRecti, glClear, glRasterPos2d
 
 EVENT_NONE = 1
 EVENT_START = 2
@@ -5577,7 +5637,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 	y += 30
 	colorbox(x, y+20, x+menu_w+menu_margin*2, menu_margin)
-	Draw.Label("DXF-Importer  v" + __version__, but0c, y, menu_w, 20)
+	Draw.Label("DXF/DWG-Importer v" + __version__, but0c, y, menu_w, 20)
 
 	if config_UI.val:
 		b0, b0_ = but0c, but_0c + butt_margin
@@ -5853,9 +5913,9 @@ def draw_UI():  #---------------------------------------------------------------
 
 	#y -= 10
 	Draw.BeginAlign()
-	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF-file from project directory')
-	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or type *.dxf for multi-import")
-	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'import all dxf files from this directory')
+	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF/DWG-file for import')
+	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF/DWG-file or type *.dxf/*.dwg for multiple files")
+	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'set filter for import all files from this directory')
 	Draw.EndAlign()
 
 	y -= 30
@@ -5902,8 +5962,9 @@ def colorbox(x,y,xright,bottom):
 
 def dxf_callback(input_filename):
 	global dxfFileName
-	dxfFileName.val=input_filename
-#	dirname == Blender.sys.dirname(Blender.Get('filename'))
+	if input_filename.lower()[-3:] in ('dwg','dxf'):
+		dxfFileName.val=input_filename
+#	dirname == sys.dirname(Blender.Get('filename'))
 #	update_RegistryKey('DirName', dirname)
 #	update_RegistryKey('dxfFileName', input_filename)
 	
@@ -5913,17 +5974,17 @@ def ini_callback(input_filename):
 
 def event(evt, val):
 	if evt in (Draw.QKEY, Draw.ESCKEY) and not val:
-		Blender.Draw.Exit()
+		Draw.Exit()
 
 def bevent(evt):
 #   global EVENT_NONE,EVENT_LOAD_DXF,EVENT_LOAD_INI,EVENT_SAVE_INI,EVENT_EXIT
 	global config_UI, user_preset
-	global GUI_A
+	global GUI_A, UI_MODE
 
 	######### Manages GUI events
 	if (evt==EVENT_EXIT):
-		Blender.Draw.Exit()
-		print 'DXF-Importer  *** exit ***'   #---------------------
+		Draw.Exit()
+		print 'DXF/DWG-Importer  *** exit ***'   #---------------------
 	elif (evt==EVENT_CHOOSE_INI):
 		Window.FileSelector(ini_callback, "INI-file Selection", '*.ini')
 	elif (evt==EVENT_REDRAW):
@@ -5980,13 +6041,14 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 		Draw.Redraw()
 	elif (evt==EVENT_DXF_DIR):
 		dxfFile = dxfFileName.val
+		dxfFileExt = '*'+dxfFile.lower()[-4:]  #can be .dxf or .dwg
 		dxfPathName = ''
 		if '/' in dxfFile:
 			dxfPathName = '/'.join(dxfFile.split('/')[:-1]) + '/'
 		elif '\\' in dxfFile:
 			dxfPathName = '\\'.join(dxfFile.split('\\')[:-1]) + '\\'
-		dxfFileName.val = dxfPathName + '*.dxf'
-#		dirname == Blender.sys.dirname(Blender.Get('filename'))
+		dxfFileName.val = dxfPathName + dxfFileExt 
+#		dirname == sys.dirname(Blender.Get('filename'))
 #		update_RegistryKey('DirName', dirname)
 #		update_RegistryKey('dxfFileName', dxfFileName.val)
 		GUI_A['newScene_on'].val = 1
@@ -5994,45 +6056,55 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 	elif (evt==EVENT_CHOOSE_DXF):
 		filename = '' # '*.dxf'
 		if dxfFileName.val:	filename = dxfFileName.val
-		Window.FileSelector(dxf_callback, "DXF-file Selection", filename)
+		Window.FileSelector(dxf_callback, "DXF/DWG-file Selection", filename)
 	elif (evt==EVENT_START):
 		dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
 		if E_M: dxfFileName.val, dxfFile = e_mode(dxfFile) #evaluation mode
 		update_RegistryKey('dxfFileName', dxfFileName.val)
 		if dxfFile.lower().endswith('*.dxf'):
-			if Draw.PupMenu('DXF importer:  OK?|will import all DXF-files from:|%s' % dxfFile) == 1:
-				global UI_MODE
+			if Draw.PupMenu('DXF importer will import all DXF-files from:|%s|OK?' % dxfFile) != -1:
 				UI_MODE = False
-				multi_import(dxfFile[:-5])  # cut last 5 characters '*.dxf'
+				multi_import(dxfFile)
+				UI_MODE = True
 				Draw.Redraw()
-				#Draw.Exit()
-			else:
+
+		elif dxfFile.lower().endswith('*.dwg'):
+			if not extCONV_OK: Draw.PupMenu(extCONV_TEXT)
+			elif Draw.PupMenu('DWG importer will import all DWG-files from:|%s|OK?' % dxfFile) != -1:
+			#elif Draw.PupMenu('DWG importer will import all DWG-files from:|%s|Caution! overwrites existing DXF-files!| OK?' % dxfFile) != -1:
+				UI_MODE = False
+				multi_import(dxfFile)
+				UI_MODE = True
 				Draw.Redraw()
-		elif dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
-			print '\nStandard Mode: active'
-			if GUI_A['newScene_on'].val:
-				_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
-				_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
-				_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
-				global SCENE
-				SCENE = Blender.Scene.New(_dxf_file)
-				SCENE.makeCurrent()
-				Blender.Redraw()
-				#or so? Blender.Scene.makeCurrent(_dxf_file)
-				#sce = bpy.data.scenes.new(_dxf_file)
-				#bpy.data.scenes.active = sce
+				
+		elif sys.exists(dxfFile) and dxfFile.lower()[-4:] in ('.dxf','.dwg'):
+			if dxfFile.lower().endswith('.dwg') and (not extCONV_OK):
+				Draw.PupMenu(extCONV_TEXT)
 			else:
-				SCENE = Blender.Scene.GetCurrent()
-				SCENE.objects.selected = [] # deselect all
-			main(dxfFile)
-			#SCENE.objects.selected = SCENE.objects		 
-			#Window.RedrawAll()
-			#Blender.Redraw()
-			#Draw.Redraw()
+				#print '\nStandard Mode: active'
+				if GUI_A['newScene_on'].val:
+					_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
+					_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
+					_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+					global SCENE
+					SCENE = Blender.Scene.New(_dxf_file)
+					SCENE.makeCurrent()
+					Blender.Redraw()
+					#or so? Blender.Scene.makeCurrent(_dxf_file)
+					#sce = bpy.data.scenes.new(_dxf_file)
+					#bpy.data.scenes.active = sce
+				else:
+					SCENE = Blender.Scene.GetCurrent()
+					SCENE.objects.selected = [] # deselect all
+				main(dxfFile)
+				#SCENE.objects.selected = SCENE.objects		 
+				#Window.RedrawAll()
+				#Blender.Redraw()
+				#Draw.Redraw()
 		else:
-			Draw.PupMenu('DXF importer:  Alert!%t|no valid DXF-file selected!')
-			print "DXF importer: error, no valid DXF-file selected! try again"
+			Draw.PupMenu('DXF importer: nothing imported!%t|no valid DXF-file selected!')
+			print "DXF importer: nothing imported, no valid DXF-file selected! try again"
 			Draw.Redraw()
 
 
@@ -6043,20 +6115,25 @@ def multi_import(DIR):
 	
 	"""
 	global SCENE
-	batchTIME = Blender.sys.time()
+	batchTIME = sys.time()
 	#if #DIR == "": DIR = os.path.curdir
-	if DIR == "": DIR = Blender.sys.dirname(Blender.Get('filename'))
-	print 'Multifiles Import from %s' %DIR
+	if DIR == "":
+		DIR = sys.dirname(Blender.Get('filename'))
+		EXT = '.dxf'
+	else:
+		EXT = DIR[-4:]  # get last 4 characters '.dxf'
+		DIR = DIR[:-5]  # cut last 5 characters '*.dxf'
+	print 'importing multiple %s files from %s' %(EXT,DIR)
 	files = \
-		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith('.dxf')] 
+		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith(EXT)] 
 	if not files:
-		print '...None DXF-files found. Abort!'
+		print '...None %s-files found. Abort!' %EXT
 		return
 	
 	i = 0
 	for dxfFile in files:
 		i += 1
-		print '\nDXF-file', i, 'of', len(files) #,'\nImporting', dxfFile
+		print '\n%s-file' %EXT, i, 'of', len(files) #,'\nImporting', dxfFile
 		if GUI_A['newScene_on'].val:
 			_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
 			_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
@@ -6072,12 +6149,10 @@ def multi_import(DIR):
 		main(dxfFile)
 		#Blender.Redraw()
 
-	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - batchTIME)
+	print 'TOTAL TIME: %.6f' % (sys.time() - batchTIME)
 	print '\a\r', # beep when done
+	Draw.PupMenu('DXF importer:	Done!|finished in %.4f sec.' % (sys.time() - batchTIME))
 
-
-
-UI_MODE = True
 
 if __name__ == "__main__":
 	UI_MODE = True
@@ -6086,7 +6161,7 @@ if __name__ == "__main__":
 	#print 'deb:start dxffilename:', dxffilename #----------------
 	if dxffilename: dxfFileName.val = dxffilename
 	else:
-		dirname = Blender.sys.dirname(Blender.Get('filename'))
+		dirname = sys.dirname(Blender.Get('filename'))
 		#print 'deb:start dirname:', dirname #----------------
 		dxfFileName.val = sys.join(dirname, '')
 	inifilename = check_RegistryKey('iniFileName')
@@ -6099,7 +6174,7 @@ if __name__ == "__main__":
 if 1:
 	# DEBUG ONLY
 	UI_MODE = False
-	TIME= Blender.sys.time()
+	TIME= sys.time()
 	#DIR = '/dxf_r12_testfiles/'
 	DIR = '/metavr/'
 	import os
@@ -6128,5 +6203,5 @@ if 1:
 			dxfFileName.val = _dxf
 			main(_dxf)
 
-	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 """

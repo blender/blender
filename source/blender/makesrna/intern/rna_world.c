@@ -156,17 +156,15 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
-	RNA_def_property_range(prop, 0.001, 5000);
 	RNA_def_property_ui_text(prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect.");
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
-	RNA_def_property_range(prop, 0.00001, 10);
 	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows.");
 
 	prop= RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aoenergy");
-	RNA_def_property_range(prop, 0.01, 3);
+	RNA_def_property_ui_range(prop, 0, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Energy", "Global energy scale for ambient occlusion.");
 
 	prop= RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
@@ -186,12 +184,13 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "error_tolerance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_error");
-	RNA_def_property_range(prop, 0.0001, 1);
+	RNA_def_property_range(prop, 0.0001, 10);
 	RNA_def_property_ui_text(prop, "Error Tolerance", "Low values are slower and higher quality (for Approximate).");
 
 	prop= RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_correction");
 	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation (for Approximate).");
 
 	prop= RNA_def_property(srna, "falloff", PROP_BOOLEAN, PROP_NONE);
@@ -204,7 +203,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "aosamp");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "Samples", "");
 
 	prop= RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
@@ -237,6 +236,12 @@ static void rna_def_world_mist(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem falloff_items[] = {
+		{0, "QUADRATIC", "Quadratic", "Mist uses quadratic progression."},
+		{1, "LINEAR", "Linear", "Mist uses linear progression."},
+		{2, "INVERSE_QUADRATIC", "Inverse Quadratic", "Mist uses inverse quadratic progression."},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldMistSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -268,18 +273,17 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "misthi");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Height", "Factor for a less dense mist with increasing height.");
+	
+	prop= RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mistype");
+	RNA_def_property_enum_items(prop, falloff_items);
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff method for mist.");
 }
 
 static void rna_def_world_stars(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem falloff_items[] = {
-		{0, "QUADRATIC", "Quadratic", "Mist uses quadratic progression."},
-		{1, "LINEAR", "Linear", "Mist uses linear progression."},
-		{2, "INVERSE_QUADRATIC", "Inverse Quadratic", "Mist uses inverse quadratic progression."},
-		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldStarsSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -309,12 +313,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomizes star color.");
-
-	prop= RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mistype");
-	RNA_def_property_enum_items(prop, falloff_items);
-	RNA_def_property_ui_text(prop, "Falloff", "Falloff method for mist.");
-
+	
 	/* unused
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "starr");
@@ -390,7 +389,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "physics_gravity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gravity");
-	RNA_def_property_range(prop, 0.0, 20.0);
+	RNA_def_property_range(prop, 0.0, 25.0);
 	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine.");
 
 	/* nested structs */
