@@ -550,12 +550,12 @@ void KX_BlenderSceneConverter::RegisterGameMesh(
 
 
 RAS_MeshObject *KX_BlenderSceneConverter::FindGameMesh(
-									struct Mesh *for_blendermesh,
-									unsigned int onlayer)
+									struct Mesh *for_blendermesh/*,
+									unsigned int onlayer*/)
 {
 	RAS_MeshObject** meshp = m_map_mesh_to_gamemesh[CHashedPtr(for_blendermesh)];
 	
-	if (meshp && onlayer==(*meshp)->GetLightLayer()) {
+	if (meshp/* && onlayer==(*meshp)->GetLightLayer()*/) {
 		return *meshp;
 	} else {
 		return NULL;

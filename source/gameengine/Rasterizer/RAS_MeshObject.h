@@ -54,7 +54,7 @@ class RAS_MeshObject
 {
 private:
 	unsigned int				m_debugcolor;
-	int							m_lightlayer;
+	//int							m_lightlayer;
 
 	bool						m_bModified;
 	bool						m_bMeshModified;
@@ -94,7 +94,7 @@ public:
 	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
 	list<RAS_MeshMaterial>::iterator GetLastMaterial();
 
-	unsigned int		GetLightLayer();
+	//unsigned int		GetLightLayer();
 
 	/* name */
 	void				SetName(const char *name);

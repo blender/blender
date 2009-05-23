@@ -729,6 +729,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	bool skinMesh = false;
 	int lightlayer = blenderobj->lay;
 
+	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)
+		return meshobj;
 	// Get DerivedMesh data
 	DerivedMesh *dm = CDDM_from_mesh(mesh, blenderobj);
 
@@ -1043,7 +1045,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	// pre calculate texture generation
 	for(list<RAS_MeshMaterial>::iterator mit = meshobj->GetFirstMaterial();
 		mit != meshobj->GetLastMaterial(); ++ mit) {
-		mit->m_bucket->GetPolyMaterial()->OnConstruction();
+		mit->m_bucket->GetPolyMaterial()->OnConstruction(lightlayer);
 	}
 
 	if (layers)
@@ -1057,6 +1059,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		delete kx_blmat;
 	if (kx_polymat)
 		delete kx_polymat;
+	converter->RegisterGameMesh(meshobj, mesh);
 	return meshobj;
 }
 
@@ -1712,14 +1715,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 	case OB_MESH:
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
-		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
 		float center[3], extents[3];
 		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
-		
-		if (!meshobj) {
-			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
-			converter->RegisterGameMesh(meshobj, mesh);
-		}
+		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
 		
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);

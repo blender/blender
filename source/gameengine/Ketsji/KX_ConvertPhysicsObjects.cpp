@@ -980,6 +980,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				compoundShape->calculateLocalInertia(mass,localInertia);
 				rigidbody->setMassProps(mass,localInertia);
 			}
+			// delete motionstate as it's not used
+			delete motionstate;
 			return;
 		}
 

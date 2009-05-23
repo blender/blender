@@ -91,7 +91,7 @@ struct RAS_MeshObject::fronttoback
 STR_String RAS_MeshObject::s_emptyname = "";
 
 RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
-	: m_lightlayer(lightlayer),
+	: //m_lightlayer(lightlayer),
 	m_bModified(true),
 	m_bMeshModified(true),
 	m_mesh(mesh),
@@ -112,10 +112,10 @@ bool RAS_MeshObject::MeshModified()
 	return m_bMeshModified;
 }
 
-unsigned int RAS_MeshObject::GetLightLayer()
-{
-	return m_lightlayer;
-}
+//unsigned int RAS_MeshObject::GetLightLayer()
+//{
+//	return m_lightlayer;
+//}
 
 
 

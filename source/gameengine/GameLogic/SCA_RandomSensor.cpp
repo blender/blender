@@ -50,7 +50,6 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
   				 PyTypeObject* T)
     : SCA_ISensor(gameobj,eventmgr, T)
 {
-	// m_basegenerator is never deleted => memory leak
 	m_basegenerator = new SCA_RandomNumberGenerator(startseed);
 	Init();
 }
@@ -59,7 +58,7 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
 
 SCA_RandomSensor::~SCA_RandomSensor() 
 {
-    /* Nothing to be done here. */
+	m_basegenerator->Release();
 }
 
 void SCA_RandomSensor::Init()
@@ -74,13 +73,18 @@ void SCA_RandomSensor::Init()
 CValue* SCA_RandomSensor::GetReplica()
 {
 	CValue* replica = new SCA_RandomSensor(*this);
-	// replication copies m_basegenerator pointer => share same generator
 	// this will copy properties and so on...
 	replica->ProcessReplica();
 
 	return replica;
 }
 
+void SCA_RandomSensor::ProcessReplica()
+{
+	SCA_ISensor::ProcessReplica();
+	// increment reference count so that we can release the generator at this end
+	m_basegenerator->AddRef();
+}
 
 
 bool SCA_RandomSensor::IsPositiveTrigger()
