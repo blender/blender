@@ -101,6 +101,9 @@ static Scene * audio_scene = 0; /* we can't use G.scene, since
 				   called while we have G.scene changed!)
 				*/
 
+#define AFRA2TIME(a)           ((((double) audio_scene->r.frs_sec_base) * (a)) / audio_scene->r.frs_sec)
+#define ATIME2FRA(a)           ((((double) audio_scene->r.frs_sec) * (a)) / audio_scene->r.frs_sec_base)
+
 /////
 //
 /* local protos ------------------- */
@@ -235,23 +238,27 @@ void audiostream_fill(uint8_t *mixdown, int len)
 }
 
 
-static void audio_levels(uint8_t *buf, int len, float db, float facf, float pan)
+static void audio_levels(uint8_t *buf, int len, float db, 
+			 float facf_start, float facf_end, float pan)
 {
 	int i;
+	double m = (facf_end - facf_start) / len;
 	float facl, facr, fac;
 	signed short *sample;
 	
 	if (pan>=0) { facr = 1.0; facl = 1.0-pan; }
 	       else { facr = pan+1.0; facl = 1.0; }
 	
-	fac = pow(10.0, ((-(db+audio_scene->audio.main))/20.0)) / facf;
-	facl /= fac;
-	facr /= fac;
-	
+	fac = pow(10.0, ((-(db+audio_scene->audio.main))/20.0));
+
 	for (i=0; i<len; i+=4) {
+		float facf = facf_start + ((double) i) * m;
+		float f_l = facl / (fac / facf);
+		float f_r = facr / (fac / facf);
+
 		sample = (signed short*)(buf+i);
-		sample[0] = (short) ((float)sample[0] * facl);
-		sample[1] = (short) ((float)sample[1] * facr);
+		sample[0] = (short) ((float)sample[0] * f_l);
+		sample[1] = (short) ((float)sample[1] * f_r);
 	}
 }
 
@@ -299,13 +306,61 @@ void audio_makestream(bSound *sound)
 }
 
 #ifndef DISABLE_SDL
+
+static int fra2curpos(Sequence * seq, int cfra)
+{
+	return (int)( (AFRA2TIME(((double) cfra) -
+				 ((double) seq->start) +
+				 ((double) 
+				  seq->anim_startofs))
+		       * ((float)audio_scene
+			  ->audio.mixrate)
+		       * 4 ));
+}
+
+static int curpos2fra(Sequence * seq, int curpos)
+{
+	return ((int) floor(
+			ATIME2FRA(
+				((double) curpos) / 4 
+				/audio_scene->audio.mixrate)))
+		- seq->anim_startofs + seq->start;
+}
+
+static void do_audio_seq_ipo(Sequence * seq, int len, float * facf_start,
+			     float * facf_end)
+{
+	int cfra_start = curpos2fra(seq, seq->curpos);
+	int cfra_end = cfra_start + 1;
+	int ipo_curpos_start = fra2curpos(seq, curpos2fra(seq, seq->curpos));
+	int ipo_curpos_end = fra2curpos(seq, cfra_end);
+	double ipo_facf_start;
+	double ipo_facf_end;
+	double m;
+
+	do_seq_ipo(seq, cfra_start);
+	ipo_facf_start = seq->facf0;
+
+	do_seq_ipo(seq, cfra_end);
+	ipo_facf_end = seq->facf0;
+
+	m = (ipo_facf_end- ipo_facf_start)/(ipo_curpos_end - ipo_curpos_start);
+	
+	*facf_start = ipo_facf_start + (seq->curpos - ipo_curpos_start) * m;
+	*facf_end = ipo_facf_start + (seq->curpos + len-ipo_curpos_start) * m;
+}
+
+#endif
+
+#ifndef DISABLE_SDL
 static void audio_fill_ram_sound(Sequence *seq, void * mixdown, 
 				 uint8_t * sstream, int len,
 				 int cfra)
 {
 	uint8_t* cvtbuf;
 	bSound* sound;
-	float facf;
+	float facf_start;
+	float facf_end;
 
 	sound = seq->sound;
 	audio_makestream(sound);
@@ -313,14 +368,15 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq, cfra);
-			facf = seq->facf0;
+			do_audio_seq_ipo(seq, len, &facf_start, &facf_end);
 		} else {
-			facf = 1.0;
+			facf_start = 1.0;
+			facf_end = 1.0;
 		}
 		cvtbuf = malloc(len);					
 		memcpy(cvtbuf, ((uint8_t*)sound->stream)+(seq->curpos & (~3)), len);
-		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
+		audio_levels(cvtbuf, len, seq->level, facf_start, facf_end, 
+			     seq->pan);
 		if (!mixdown) {
 			SDL_MixAudio(sstream, cvtbuf, len, SDL_MIX_MAXVOLUME);
 		} else {
@@ -338,16 +394,17 @@ static void audio_fill_hd_sound(Sequence *seq,
 				int len, int cfra)
 {
 	uint8_t* cvtbuf;
-	float facf;
+	float facf_start;
+	float facf_end;
 
 	if ((seq->curpos >= 0) &&
 	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq, cfra);
-			facf = seq->facf0; 
+			do_audio_seq_ipo(seq, len, &facf_start, &facf_end);
 		} else {
-			facf = 1.0;
+			facf_start = 1.0;
+			facf_end = 1.0;
 		}
 		cvtbuf = malloc(len);
 		
@@ -356,7 +413,8 @@ static void audio_fill_hd_sound(Sequence *seq,
 				      audio_scene->audio.mixrate,
 				      2,
 				      len / 4);
-		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
+		audio_levels(cvtbuf, len, seq->level, facf_start, facf_end,
+			     seq->pan);
 		if (!mixdown) {
 			SDL_MixAudio(sstream, 
 				     cvtbuf, len, SDL_MIX_MAXVOLUME);
