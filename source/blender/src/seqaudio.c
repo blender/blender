@@ -715,7 +715,6 @@ void audiostream_stop(void)
 #ifndef DISABLE_SDL
 	SDL_PauseAudio(1);
 	audio_playing=0;
-	audio_scene=0;
 #endif
 }
 
