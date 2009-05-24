@@ -1068,8 +1068,10 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		snprintf(name, PROXY_MAXFILE, "%s/%s",
-			 dir, seq->strip->proxy->file);
+		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
+		BLI_convertstringcode(name, G.sce);
+		BLI_convertstringframe(name, cfra);
+
 		return TRUE;
 	}
 
