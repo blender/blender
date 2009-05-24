@@ -54,6 +54,12 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+static int view2d_poll(bContext *C)
+{
+	ARegion *ar= CTX_wm_region(C);
+
+	return (ar != NULL) && (ar->v2d.flag & V2D_IS_INITIALISED);
+}
 
 /* ********************************************************* */
 /* VIEW PANNING OPERATOR								 */
@@ -110,8 +116,8 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	vpd->v2d= v2d;
 	
 	/* calculate translation factor - based on size of view */
-	winx= (float)(ar->winrct.xmax - ar->winrct.xmin);
-	winy= (float)(ar->winrct.ymax - ar->winrct.ymin);
+	winx= (float)(ar->winrct.xmax - ar->winrct.xmin + 1);
+	winy= (float)(ar->winrct.ymax - ar->winrct.ymin + 1);
 	vpd->facx= (v2d->cur.xmax - v2d->cur.xmin) / winx;
 	vpd->facy= (v2d->cur.ymax - v2d->cur.ymin) / winy;
 	
@@ -489,12 +495,22 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	
 	/* only resize view on an axis if change is allowed */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
-		v2d->cur.xmin += dx;
-		v2d->cur.xmax -= dx;
+		if (v2d->keepofs & V2D_LOCKOFS_X) {
+			v2d->cur.xmax -= 2*dx;
+		}
+		else {
+			v2d->cur.xmin += dx;
+			v2d->cur.xmax -= dx;
+		}
 	}
 	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
-		v2d->cur.ymin += dy;
-		v2d->cur.ymax -= dy;
+		if (v2d->keepofs & V2D_LOCKOFS_Y) {
+			v2d->cur.ymax -= 2*dy;
+		}
+		else {
+			v2d->cur.ymin += dy;
+			v2d->cur.ymax -= dy;
+		}
 	}
 	
 	/* validate that view is in valid configuration after this operation */
@@ -635,12 +651,22 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	
 	/* only move view on an axis if change is allowed */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
-		v2d->cur.xmin += dx;
-		v2d->cur.xmax -= dx;
+		if (v2d->keepofs & V2D_LOCKOFS_X) {
+			v2d->cur.xmax -= 2*dx;
+		}
+		else {
+			v2d->cur.xmin += dx;
+			v2d->cur.xmax -= dx;
+		}
 	}
 	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
-		v2d->cur.ymin += dy;
-		v2d->cur.ymax -= dy;
+		if (v2d->keepofs & V2D_LOCKOFS_Y) {
+			v2d->cur.ymax -= 2*dy;
+		}
+		else {
+			v2d->cur.ymin += dy;
+			v2d->cur.ymax -= dy;
+		}
 	}
 	
 	/* validate that view is in valid configuration after this operation */
@@ -1187,15 +1213,8 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	View2D *v2d= NULL;
+	View2D *v2d= &ar->v2d;
 	short in_scroller= 0;
-	
-	/* firstly, check context to see if mouse is actually in region */
-	// XXX isn't this the job of poll() callbacks which can't check events, but only context?
-	if (ar == NULL) 
-		return OPERATOR_PASS_THROUGH;//OPERATOR_CANCELLED;
-	else
-		v2d= &ar->v2d;
 		
 	/* check if mouse in scrollbars, if they're enabled */
 	in_scroller= UI_view2d_mouse_in_scrollers(C, v2d, event->x, event->y);
@@ -1241,6 +1260,70 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= scroller_activate_invoke;
 	ot->modal= scroller_activate_modal;
+	ot->poll= view2d_poll;
+}
+
+/* ********************************************************* */
+/* RESET */
+
+static int reset_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= &ar->v2d;
+	int winx, winy;
+
+	/* zoom 1.0 */
+	winx= (float)(v2d->mask.xmax - v2d->mask.xmin + 1);
+	winy= (float)(v2d->mask.ymax - v2d->mask.ymin + 1);
+
+	v2d->cur.xmax= v2d->cur.xmin + winx;
+	v2d->cur.ymax= v2d->cur.ymin + winy;
+
+	/* align */
+	if(v2d->align) {
+		/* posx and negx flags are mutually exclusive, so watch out */
+		if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+			v2d->cur.xmax= 0.0f;
+			v2d->cur.xmin= v2d->winx;
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+			v2d->cur.xmax= v2d->cur.xmax - v2d->cur.xmin;
+			v2d->cur.xmin= 0.0f;
+		}
+
+		/* - posx and negx flags are mutually exclusive, so watch out */
+		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+			v2d->cur.ymax= 0.0f;
+			v2d->cur.ymin= -v2d->winy;
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+			v2d->cur.ymax= v2d->cur.ymax - v2d->cur.ymin;
+			v2d->cur.ymin= 0.0f;
+		}
+	}
+
+	/* validate that view is in valid configuration after this operation */
+	UI_view2d_curRect_validate(v2d);
+	
+	/* request updates to be done... */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void VIEW2D_OT_reset(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset View";
+	ot->idname= "VIEW2D_OT_reset";
+	
+	/* api callbacks */
+	ot->exec= reset_exec;
+	ot->poll= view2d_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
  
 /* ********************************************************* */
@@ -1262,6 +1345,8 @@ void ui_view2d_operatortypes(void)
 	WM_operatortype_append(VIEW2D_OT_zoom_border);
 	
 	WM_operatortype_append(VIEW2D_OT_scroller_activate);
+
+	WM_operatortype_append(VIEW2D_OT_reset);
 }
 
 void UI_view2d_keymap(wmWindowManager *wm)
@@ -1300,12 +1385,15 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	
 	/* scrollers */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
-	
+
 	/* Alternative keymap for buttons listview */
 	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
 }
 

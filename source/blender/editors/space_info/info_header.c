@@ -72,8 +72,9 @@ static int error() {return 0;}
 
 /* ************************ header area region *********************** */
 
-#define B_STOPRENDER 1
-#define B_STOPCAST 2
+#define B_STOPRENDER	1
+#define B_STOPCAST		2
+#define B_STOPANIM		3
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
@@ -328,6 +329,9 @@ static void do_info_buttons(bContext *C, void *arg, int event)
 		case B_STOPCAST:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
 			break;
+		case B_STOPANIM:
+			ED_screen_animation_timer(C, 0, 0);
+			break;
 	}
 }
 
@@ -442,6 +446,10 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	}
 	if(WM_jobs_test(CTX_wm_manager(C), CTX_wm_screen(C))) {
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		xco+= 90;
+	}
+	if(screen->animtimer) {
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 		xco+= 90;
 	}
 	

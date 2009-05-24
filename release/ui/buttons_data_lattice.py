@@ -15,26 +15,26 @@ class DATA_PT_lattice(DataButtonsPanel):
 	__label__ = "Lattice"
 
 	def draw(self, context):
-		lat = context.main.lattices[0]
+		lat = context.active_object.data
 		layout = self.layout
 
 		if not lat:
 			return
 		
-		layout.row()
-		layout.itemR(lat, "points_u")
-		layout.itemR(lat, "interpolation_type_u", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_u")
+		row.itemR(lat, "interpolation_type_u", expand=True)
 		
-		layout.row()
-		layout.itemR(lat, "points_v")
-		layout.itemR(lat, "interpolation_type_v", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_v")
+		row.itemR(lat, "interpolation_type_v", expand=True)
 		
-		layout.row()
-		layout.itemR(lat, "points_w")
-		layout.itemR(lat, "interpolation_type_w", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_w")
+		row.itemR(lat, "interpolation_type_w", expand=True)
 		
-		layout.row()
-		layout.itemR(lat, "outside")
-		layout.itemR(lat, "shape_keys")
+		row = layout.row()
+		row.itemR(lat, "outside")
+		row.itemR(lat, "shape_keys")
 
 bpy.types.register(DATA_PT_lattice)

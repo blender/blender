@@ -117,10 +117,12 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 
 	if(ibuf->rect_float) {
 		if(ibuf->rect==NULL) {
-			if(image_curves_active(sima))
+			if(image_curves_active(sima)) {
 				curvemapping_do_ibuf(sima->cumap, ibuf);
-			else 
+			}
+			else {
 				IMB_rect_from_float(ibuf);
+			}
 		}
 	}
 }
@@ -309,6 +311,13 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 //	glColorMask(1, 1, 1, 1);
 }
 
+static void sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
+{
+	colorcorrection_do_ibuf(ibuf, "MONOSCNR.ICM"); /* path is hardcoded here, find some place better */
+	
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
+}
+
 static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
 {
 	/* zbuffer values are signed, so we need to shift color range */
@@ -386,6 +395,14 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf
 		else if(ibuf->channels==1)
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
+#ifdef WITH_LCMS
+	else if(sima->flag & SI_COLOR_CORRECTION) {
+		image_verify_buffer_float(sima, ibuf);
+		
+		sima_draw_colorcorrected_pixels(x, y, ibuf);
+
+	}
+#endif
 	else {
 		if(sima->flag & SI_USE_ALPHA) {
 			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy);

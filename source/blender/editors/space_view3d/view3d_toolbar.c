@@ -118,18 +118,16 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	}
 }
 
-static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cntrl)
+static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	/* XXX temp */
-	extern int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr);
+	extern void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr);
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op;
 	PointerRNA ptr;
 	uiBlock *block;
-	int height = 0;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_operator_redo", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Operator", "View3d", 0, 10, 120, height)==0) return;
+	block= uiLayoutBlock(pa->layout);
 
 	/* only for operators that are registered and did an undo push */
 	for(op= wm->operators.last; op; op= op->prev)
@@ -149,23 +147,19 @@ static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cnt
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	height= uiDefAutoButsRNA_single(C, block, &ptr);
-	
-	uiNewPanelHeight(block, height);
-	
-	uiEndBlock(C, block);
+	uiDefAutoButsRNA_single(C, pa->layout, &ptr);
 }
 
-
-void view3d_tools_area_defbuts(const bContext *C, ARegion *ar)
+void view3d_toolbar_register(ARegionType *art)
 {
-	uiBeginPanels(C, ar);
-	
-	view3d_panel_operator_redo(C, ar, 0);
-	
-	uiEndPanels(C, ar);
-}
+	PanelType *pt;
 
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
+	strcpy(pt->idname, "VIEW3D_PT_last_operator");
+	strcpy(pt->label, "Last Operator");
+	pt->draw= view3d_panel_operator_redo;
+	BLI_addtail(&art->paneltypes, pt);
+}
 
 static int view3d_toolbar(bContext *C, wmOperator *op)
 {

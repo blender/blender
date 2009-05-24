@@ -2118,7 +2118,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	if(i>1) {
 		bNodeLink *link, *next;
 		
-		for(link= snode->edittree->links.first; link; link= link->next) {
+		for(link= snode->edittree->links.first; link; link= next) {
 			next= link->next;
 			
 			if(cut_links_intersect(link, mcoords, i)) {

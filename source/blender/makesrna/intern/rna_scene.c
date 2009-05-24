@@ -202,8 +202,8 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", "Even Fields First", ""},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd Fields First", ""},
+		{0, "FIELDS_EVENFIRST", "Even", "Even Fields First"},
+		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd", "Odd Fields First"},
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
@@ -256,7 +256,7 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
 	RNA_def_property_enum_items(prop, color_mode_items);
-	RNA_def_property_ui_text(prop, "Colour Mode", "What Colour Mode images are saved in (BW, RGB, RGBA)");
+	RNA_def_property_ui_text(prop, "Color Mode", "What Color Mode images are saved in (BW, RGB, RGBA)");
 	
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
@@ -502,6 +502,10 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Back Buffer", "Render backbuffer image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "output_path", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "pic");
+	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 }
 
 void RNA_def_scene(BlenderRNA *brna)

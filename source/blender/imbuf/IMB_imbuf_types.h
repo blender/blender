@@ -83,6 +83,7 @@ typedef struct ImBuf {
 	int	ftype;					/**< File type we are going to save as */
 	unsigned int	*cmap;		/**< Color map data. */
 	unsigned int	*rect;		/**< pixel values stored here */
+	unsigned int	*crect;		/**< color corrected pixel values stored here */
 	unsigned int	**planes;	/**< bitplanes */
 	int	flags;				/**< Controls which components should exist. */
 	int	mall;				/**< what is malloced internal, and can be freed */

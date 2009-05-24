@@ -42,6 +42,9 @@ struct bContext;
 struct wmWindowManager;
 struct EditMesh;
 struct ViewContext;
+struct ARegionType;
+
+#define BL_NEAR_CLIP 0.001
 
 /* drawing flags: */
 #define DRAW_PICKING	1
@@ -86,6 +89,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
 void drawaxes(float size, int flag, char drawtype);
+void view3d_object_text_draw_add(float x, float y, float z, char *str, short xoffs);
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag);
@@ -119,11 +123,6 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
-void view3d_project_short_clip(struct ARegion *ar, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
-void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, float mat[4][4]);
-
-void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
-
 void centerview(struct ARegion *ar, View3D *v3d);
 
 void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
@@ -133,11 +132,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
-void view3d_buttons_area_defbuts(const struct bContext *C, ARegion *ar);
+void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
-void view3d_tools_area_defbuts(const struct bContext *C, ARegion *ar);
+void view3d_toolbar_register(struct ARegionType *art);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);

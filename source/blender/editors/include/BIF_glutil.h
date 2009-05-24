@@ -137,6 +137,8 @@ void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w,
 
 void glaDrawPixelsTex		(float x, float y, int img_w, int img_h, int format, void *rect);
 
+void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, void *rect, float scaleX, float scaleY);
+
 	/* 2D Drawing Assistance */
 
 	/** Define a 2D area (viewport, scissor, matrices) for OpenGL rendering.

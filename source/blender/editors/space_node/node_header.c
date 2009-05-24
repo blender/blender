@@ -702,22 +702,22 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, node_viewmenu, NULL, 
-					  "View", xco, yco-2, xmax-3, 24, "");
+					  "View", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
 		uiDefPulldownBut(block, node_selectmenu, NULL, 
-						 "Select", xco, yco-2, xmax-3, 24, "");
+						 "Select", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");
 		uiDefPulldownBut(block, node_addmenu, NULL, 
-						 "Add", xco, yco-2, xmax-3, 24, "");
+						 "Add", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Node");
 		uiDefPulldownBut(block, node_nodemenu, NULL, 
-						 "Node", xco, yco-2, xmax-3, 24, "");
+						 "Node", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	

@@ -66,7 +66,7 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, short y)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
 	float fx,fy;
 	int active_file = -1;
@@ -77,7 +77,6 @@ static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, sh
 
 	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 
-	printf("FINDFILE %d\n", active_file);
 	if ( (active_file < 0) || (active_file >= numfiles) )
 	{
 		active_file = -1;
@@ -85,24 +84,6 @@ static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, sh
 	return active_file;
 }
 
-
-static int find_file_mouse_vert(SpaceFile *sfile, struct ARegion* ar, short x, short y)
-{
-	float fx,fy;
-	int active_file = -1;
-	int numfiles = filelist_numfiles(sfile->files);
-	View2D* v2d = &ar->v2d;
-
-	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
-	
-	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
-
-	if ( (active_file < 0) || (active_file >= numfiles) )
-	{
-		active_file = -1;
-	}
-	return active_file;
-}
 
 static void file_deselect_all(SpaceFile* sfile)
 {
@@ -129,13 +110,8 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	if  ( (layout->flag == FILE_LAYOUT_HOR) ) {
-		first_file = find_file_mouse_hor(sfile, ar, rect->xmin, rect->ymax);
-		last_file = find_file_mouse_hor(sfile, ar, rect->xmax, rect->ymin);
-	} else {
-		first_file = find_file_mouse_vert(sfile, ar, rect->xmin, rect->ymax);
-		last_file = find_file_mouse_vert(sfile, ar, rect->xmax, rect->ymin);
-	}
+	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
+	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
 	
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
@@ -147,8 +123,6 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 				file->flags &= ~ACTIVE;
 		}
 	}
-	
-	printf("Selecting %d %d\n", first_file, last_file);
 
 	/* make the last file active */
 	if (last_file >= 0 && last_file < numfiles) {
@@ -318,30 +292,11 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 
 /* ---------- BOOKMARKS ----------- */
 
-#define MARK_HEIGHT	22
-
-static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
-{
-	int nentries = fsmenu_get_nentries(fsmenu_get(), FS_CATEGORY_BOOKMARKS);
-	float fx, fy;
-	short posy;
-
-	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
-
-	posy = ar->v2d.cur.ymax - 2*TILE_BORDER_Y - fy;
-	posy -= MARK_HEIGHT;	/* header */
-	
-	params->active_bookmark = ((float)posy / (MARK_HEIGHT));
-	if (params->active_bookmark < 0 || params->active_bookmark > nentries) {
-		params->active_bookmark = -1;
-	}
-}
-
 static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x, short y, FSMenuCategory category)
 {
 	struct FSMenu* fsmenu = fsmenu_get();
 	int nentries = fsmenu_get_nentries(fsmenu, category);
-	int linestep = MARK_HEIGHT;
+	int linestep = file_font_pointsize()*2.0f;
 	short xs, ys;
 	int i;
 	int selected = -1;
@@ -450,25 +405,20 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	FileSelectParams* params;
-	FileLayout* layout;
 	int numfiles, actfile;
 	
 	if(sfile==NULL || sfile->files==NULL) return 0;
 	
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
-	layout = ED_fileselect_get_layout(sfile, ar);
 
-	if ( (layout->flag == FILE_LAYOUT_HOR)) {
-		actfile = find_file_mouse_hor(sfile, ar, mx , my);
-	} else {
-		actfile = find_file_mouse_vert(sfile, ar, mx, my);
-	}
+	actfile = find_file_mouse(sfile, ar, mx , my);
 	
 	if (params && (actfile >= 0) && (actfile < numfiles) ) {
 		params->active_file=actfile;
 		return 1;
-	}
+	} 
+	params->active_file= -1;
 	return 0;
 }
 

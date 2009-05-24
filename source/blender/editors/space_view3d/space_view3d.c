@@ -487,32 +487,16 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
+
+	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
 }
 
 static void view3d_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-
-	view3d_buttons_area_defbuts(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_panels(C, ar, 1, NULL);
 }
 
 static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -549,34 +533,16 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	ED_region_panels_init(wm, ar);
+
 	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	// XXX +20 temp... need init for this
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx+20, ar->winy);
 }
-
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	view3d_tools_area_defbuts(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_panels(C, ar, 1, NULL);
 }
-
 
 /*
  * Returns true if the Object is a from an external blend file (libdata)
@@ -850,6 +816,8 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
+	view3d_buttons_register(art);
+
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
@@ -861,6 +829,7 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
+	view3d_toolbar_register(art);
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

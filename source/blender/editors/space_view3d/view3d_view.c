@@ -80,9 +80,6 @@
 
 #include "view3d_intern.h"	// own include
 
-#define BL_NEAR_CLIP 0.001
-
-
 
 /* use this call when executing an operator,
    event system doesn't set for each event the
@@ -536,76 +533,16 @@ void request_depth_update(RegionView3D *rv3d)
 		rv3d->depths->damaged= 1;
 }
 
-void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4][4], float vmat[4][4])
+void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4][4])
 {
+	float vmat[4][4];
+	
 	Mat4MulMat4(vmat, ob->obmat, rv3d->viewmat);
 	Mat4MulMat4(pmat, vmat, rv3d->winmat);
-	Mat4CpyMat4(vmat, ob->obmat);
 }
 
-/* projectmat brings it to window coords, wmat to rotated world space */
-void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, float projmat[4][4], float wmat[4][4])
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float fx, fy, vec4[4];
-	
-	adr[0]= IS_CLIPPED;
-	
-	/* clipplanes in eye space */
-	if(rv3d->rflag & RV3D_CLIPPING) {
-		VECCOPY(vec4, vec);
-		Mat4MulVecfl(wmat, vec4);
-		if(view3d_test_clipping(rv3d, vec4))
-			return;
-	}
-	
-	VECCOPY(vec4, vec);
-	vec4[3]= 1.0;
-	
-	Mat4MulVec4fl(projmat, vec4);
-	
-	/* clipplanes in window space */
-	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
-		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
-		
-		if( fx>0 && fx<ar->winx) {
-			
-			fy= (ar->winy/2)*(1 + vec4[1]/vec4[3]);
-			
-			if(fy>0.0 && fy< (float)ar->winy) {
-				adr[0]= (short)floor(fx); 
-				adr[1]= (short)floor(fy);
-			}
-		}
-	}
-}
 
-void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr, float mat[4][4])
-{
-	float fx, fy, vec4[4];
-	
-	adr[0]= IS_CLIPPED;
-	
-	VECCOPY(vec4, vec);
-	vec4[3]= 1.0;
-	
-	Mat4MulVec4fl(mat, vec4);
-	
-	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
-		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
-		
-		if( fx>-32700 && fx<32700) {
-			
-			fy= (ar->winy/2)*(1 + vec4[1]/vec4[3]);
-			
-			if(fy>-32700.0 && fy<32700.0) {
-				adr[0]= (short)floor(fx); 
-				adr[1]= (short)floor(fy);
-			}
-		}
-	}
-}
-
+/* use above call to get projecting mat */
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 {
 	float vec4[4];

@@ -93,6 +93,10 @@ void imb_freerectImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==NULL) return;
 	
+	if (ibuf->crect && ibuf->crect != ibuf->rect) {
+		MEM_freeN(ibuf->crect);
+	}
+
 	if (ibuf->rect) {
 		if (ibuf->mall & IB_rect) {
 			MEM_freeN(ibuf->rect);
@@ -102,6 +106,7 @@ void imb_freerectImBuf(struct ImBuf * ibuf)
 	imb_freemipmapImBuf(ibuf);
 	
 	ibuf->rect= NULL;
+	ibuf->crect= NULL;
 	ibuf->mall &= ~IB_rect;
 }
 

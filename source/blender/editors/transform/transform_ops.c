@@ -122,7 +122,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
-	pup= uiPupMenuBegin("Orientation", 0);
+	pup= uiPupMenuBegin(C, "Orientation", 0);
 	layout= uiPupMenuLayout(pup);
 	BIF_menuTransformOrientation(C, layout, NULL);
 	uiPupMenuEnd(C, pup);

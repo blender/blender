@@ -39,6 +39,7 @@
 #endif
 
 #include "GHOST_SystemWin32.h"
+//#include <stdio.h> //for printf()
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -536,7 +537,7 @@ GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_Event* event = 0;
-	LRESULT lResult;
+	LRESULT lResult = 0;
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
 
@@ -746,6 +747,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * the message is sent asynchronously, so the window is activated immediately. 
 					 */
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
+					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
+					will not be dispatched to OUR active window if we minimize one of OUR windows. */
+					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				case WM_PAINT:
 					/* An application sends the WM_PAINT message when the system or another application 
@@ -905,7 +909,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	if (event) {
 		system->pushEvent(event);
-		lResult = 0;
 	}
 	else {
 		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);

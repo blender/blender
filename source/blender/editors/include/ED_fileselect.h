@@ -62,6 +62,19 @@ typedef struct FileSelectParams {
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
 
+#define MAX_FILE_COLUMN 8
+
+typedef enum FileListColumns {
+	COLUMN_NAME = 0,
+	COLUMN_DATE,
+	COLUMN_TIME,
+	COLUMN_SIZE,
+	COLUMN_MODE1,
+	COLUMN_MODE2,
+	COLUMN_MODE3,
+	COLUMN_OWNER
+} FileListColumns;
+
 typedef struct FileLayout
 {
 	/* view settings - XXX - move into own struct */
@@ -78,7 +91,7 @@ typedef struct FileLayout
 	short width;
 	short height;
 	short flag;
-
+	float column_widths[MAX_FILE_COLUMN];
 } FileLayout;
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);

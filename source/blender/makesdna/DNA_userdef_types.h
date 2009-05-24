@@ -100,8 +100,10 @@ typedef struct uiStyle {
 	short boxspace;
 	short buttonspacex;
 	short buttonspacey;
+	short panelspace;
+	short panelouter;
 
-	short pad;
+	short pad[3];
 } uiStyle;
 
 typedef struct uiWidgetColors {

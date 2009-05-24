@@ -59,15 +59,25 @@ static const int multires_max_levels = 13;
 static const int multires_quad_tot[] = {4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
 static const int multires_side_tot[] = {2, 3, 5,  9,  17,  33,   65,   129,   257,   513,    1025,    2049,    4097};
 
-int multiresModifier_switch_level(Object *ob, const int distance)
+MultiresModifierData *find_multires_modifier(Object *ob)
 {
-	ModifierData *md = NULL;
+	ModifierData *md;
 	MultiresModifierData *mmd = NULL;
 
 	for(md = ob->modifiers.first; md; md = md->next) {
-		if(md->type == eModifierType_Multires)
+		if(md->type == eModifierType_Multires) {
 			mmd = (MultiresModifierData*)md;
+			break;
+		}
 	}
+
+	return mmd;
+
+}
+
+int multiresModifier_switch_level(Object *ob, const int distance)
+{
+	MultiresModifierData *mmd = find_multires_modifier(ob);
 
 	if(mmd) {
 		mmd->lvl += distance;

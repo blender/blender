@@ -61,6 +61,7 @@ def validate_arguments(args, bc):
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
+			'WITH_BF_LCMS', 'BF_LCMS_LIB',
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			]
@@ -353,6 +354,9 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
+		
+		(BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
+		('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),
 
 		('BF_X264_CONFIG', 'configuration flags for x264', ''),
 		('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),

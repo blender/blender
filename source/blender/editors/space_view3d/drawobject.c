@@ -96,8 +96,9 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
-#include "ED_particle.h"
 #include "ED_mesh.h"
+#include "ED_particle.h"
+#include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -132,6 +133,74 @@ static void drawcube_size(float size);
 static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
+
+
+/* ************* only use while object drawing ************** */
+static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float fx, fy, vec4[4];
+	
+	adr[0]= IS_CLIPPED;
+	
+	/* clipplanes in eye space */
+	if(rv3d->rflag & RV3D_CLIPPING) {
+		VECCOPY(vec4, vec);
+		Mat4MulVecfl(rv3d->viewmatob, vec4);
+		if(view3d_test_clipping(rv3d, vec4))
+			return;
+	}
+	
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(rv3d->persmatob, vec4);
+	
+	/* clipplanes in window space */
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* is the NEAR clipping cutoff for picking */
+		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
+		
+		if( fx>0 && fx<ar->winx) {
+			
+			fy= (ar->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+			if(fy>0.0 && fy< (float)ar->winy) {
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
+			}
+		}
+	}
+}
+
+/* only use while object drawing */
+static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float fx, fy, vec4[4];
+	
+	adr[0]= IS_CLIPPED;
+	
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(rv3d->persmatob, vec4);
+	
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* is the NEAR clipping cutoff for picking */
+		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
+		
+		if( fx>-32700 && fx<32700) {
+			
+			fy= (ar->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+			if(fy>-32700.0 && fy<32700.0) {
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
+			}
+		}
+	}
+}
+
+/* ************************ */
 
 /* check for glsl drawing */
 
@@ -364,11 +433,11 @@ void drawaxes(float size, int flag, char drawtype)
 			// patch for 3d cards crashing on glSelect for text drawing (IBM)
 			if((flag & DRAW_PICKING) == 0) {
 				if (axis==0)
-					BLF_draw_default(v2[0], v2[1], v2[2], "x");
+					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "x", 0);
 				else if (axis==1)
-					BLF_draw_default(v2[0], v2[1], v2[2], "y");
+					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "y", 0);
 				else
-					BLF_draw_default(v2[0], v2[1], v2[2], "z");
+					view3d_object_text_draw_add(v2[0], v2[1], v2[2], "z", 0);
 			}
 		}
 		break;
@@ -426,6 +495,75 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *vec, int se
 	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
+/* *********** text drawing for object ************* */
+static ListBase strings= {NULL, NULL};
+
+typedef struct ViewObjectString {
+	struct ViewObjectString *next, *prev;
+	float vec[3], col[4];
+	char str[128]; 
+	short mval[2];
+	short xoffs;
+} ViewObjectString;
+
+
+void view3d_object_text_draw_add(float x, float y, float z, char *str, short xoffs)
+{
+	ViewObjectString *vos= MEM_callocN(sizeof(ViewObjectString), "ViewObjectString");
+
+	BLI_addtail(&strings, vos);
+	BLI_strncpy(vos->str, str, 128);
+	vos->vec[0]= x;
+	vos->vec[1]= y;
+	vos->vec[2]= z;
+	glGetFloatv(GL_CURRENT_COLOR, vos->col);
+	vos->xoffs= xoffs;
+}
+
+static void view3d_object_text_draw(View3D *v3d, ARegion *ar)
+{
+	ViewObjectString *vos;
+	int tot= 0;
+	
+	/* project first and test */
+	for(vos= strings.first; vos; vos= vos->next) {
+		view3d_project_short_clip(ar, vos->vec, vos->mval);
+		if(vos->mval[0]!=IS_CLIPPED)
+			tot++;
+	}
+	
+	if(tot) {
+		RegionView3D *rv3d= ar->regiondata;
+		int a;
+		
+		if(rv3d->rflag & RV3D_CLIPPING)
+			for(a=0; a<6; a++)
+				glDisable(GL_CLIP_PLANE0+a);
+		
+		wmPushMatrix();
+		ED_region_pixelspace(ar);
+		
+		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		
+		for(vos= strings.first; vos; vos= vos->next) {
+			if(vos->mval[0]!=IS_CLIPPED) {
+				glColor3fv(vos->col);
+				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], 0.0, vos->str);
+			}
+		}
+		
+		if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		
+		wmPopMatrix();
+
+		if(rv3d->rflag & RV3D_CLIPPING)
+			for(a=0; a<6; a++)
+				glEnable(GL_CLIP_PLANE0+a);
+	}
+	
+	if(strings.first) 
+		BLI_freelistN(&strings);
+}
 
 void drawsolidcube(float size)
 {
@@ -1093,15 +1231,12 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	BPoint *bp = lt->editlatt->def;
 	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
-	float pmat[4][4], vmat[4][4];
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
-	view3d_get_object_project_mat(vc->rv3d, vc->obedit, pmat, vmat);
-
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s, pmat, vmat);
+			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s);
 			if (s[0] != IS_CLIPPED)
 				func(userData, bp, s[0], s[1]);
 		}
@@ -1195,16 +1330,16 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
 		short s[2]= {IS_CLIPPED, 0};
 
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s, data->pmat, data->vmat);
+			view3d_project_short_clip(data->vc.ar, co, s);
 		} else {
-			view3d_project_short_noclip(data->vc.ar, co, s, data->pmat);
+			view3d_project_short_noclip(data->vc.ar, co, s);
 		}
 
 		if (s[0]!=IS_CLIPPED)
@@ -1214,15 +1349,13 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 
 void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
-
-	view3d_get_object_project_mat(vc->rv3d, vc->obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
@@ -1233,17 +1366,17 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0], data->pmat, data->vmat);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1], data->pmat, data->vmat);
+			view3d_project_short_clip(data->vc.ar, v0co, s[0]);
+			view3d_project_short_clip(data->vc.ar, v1co, s[1]);
 		} else {
-			view3d_project_short_noclip(data->vc.ar, v0co, s[0], data->pmat);
-			view3d_project_short_noclip(data->vc.ar, v1co, s[1], data->pmat);
+			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
+			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
 
 			if (data->clipVerts==2) {
                 if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy)) 
@@ -1258,15 +1391,13 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 
 void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
-
-	view3d_get_object_project_mat(vc->rv3d, vc->obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
@@ -1277,12 +1408,12 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; } *data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short_clip(data->vc.ar, cent, s, data->pmat, data->vmat);
+		view3d_project_short_clip(data->vc.ar, cent, s);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
@@ -1290,14 +1421,12 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 
 void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
-
-	view3d_get_object_project_mat(vc->rv3d, vc->obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -1309,12 +1438,9 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
 	Curve *cu= vc->obedit->data;
-	float pmat[4][4], vmat[4][4];
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
-
-	view3d_get_object_project_mat(vc->rv3d, vc->obedit, pmat, vmat);
 
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1323,17 +1449,17 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
-						view3d_project_short_clip(vc->ar, bezt->vec[0], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, bezt->vec[0], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[1], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(vc->ar, bezt->vec[2], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, bezt->vec[2], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
@@ -1345,7 +1471,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short_clip(vc->ar, bp->vec, s, pmat, vmat);
+					view3d_project_short_clip(vc->ar, bp->vec, s);
 					if (s[0] != IS_CLIPPED)
 						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
@@ -1826,7 +1952,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				}
 				
 				sprintf(val, conv_float, VecLenf(v1, v2));
-				BLF_draw_default(x, y, z, val);
+				view3d_object_text_draw_add(x, y, z, val, 0);
 			}
 		}
 	}
@@ -1861,7 +1987,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 					area = AreaT3Dfl(v1, v2, v3);
 
 				sprintf(val, conv_float, area);
-				BLF_draw_default(efa->cent[0], efa->cent[1], efa->cent[2], val);
+				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 		}
 	}
@@ -1903,13 +2029,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
 				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8);
-				BLF_draw_default(efa->cent[0], efa->cent[1], efa->cent[2], val);
+				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
 				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8);
-				BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
+				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
@@ -1918,14 +2044,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
 				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8);
-				BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
+				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
 					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8);
-					BLF_draw_default(fvec[0], fvec[1], fvec[2], val);
+					view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}
 			}
 		}
@@ -2155,7 +2281,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
-	int hasHaloMat = (ma && (ma->mode&MA_HALO));
+	int hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
@@ -3253,7 +3379,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
 						/* in path drawing state.co is the end point */
 						sprintf(val," %i",a);
-						BLF_draw_default(state.co[0],  state.co[1],  state.co[2], val);
+						view3d_object_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
 					}
 				}
 			}
@@ -3569,7 +3695,7 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 						if(key->flag & PEK_HIDE) continue;
 
 						sprintf(val," %.1f",*key->time);
-						BLF_draw_default(key->world_co[0], key->world_co[1], key->world_co[2], val);
+						view3d_object_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
 					}
 				}
 			}
@@ -3592,7 +3718,7 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 
 					if((pset->flag & PE_SHOW_TIME) && !(G.f & G_RENDER_SHADOW)){
 						sprintf(val," %.1f",*key->time);
-						BLF_draw_default(key->world_co[0], key->world_co[1], key->world_co[2], val);
+						view3d_object_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
 					}
 				}
 			}
@@ -4605,24 +4731,24 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 	glLineWidth (4.0f);
 	setlinestyle(2);
 	for (axis=0; axis<3; axis++) {
-			float dir[3] = {0,0,0};
-			float v[3]= {data->pivX, data->pivY, data->pivZ};
+		float dir[3] = {0,0,0};
+		float v[3]= {data->pivX, data->pivY, data->pivZ};
 
-			dir[axis] = 1.f;
-			glBegin(GL_LINES);
-			Mat4MulVecfl(mat,dir);
-			v[0] += dir[0];
-			v[1] += dir[1];
-			v[2] += dir[2];
-			glVertex3fv(v1);
-			glVertex3fv(v);			
-			glEnd();
-			if (axis==0)
-				BLF_draw_default(v[0], v[1], v[2], "px");
-			else if (axis==1)
-				BLF_draw_default(v[0], v[1], v[2], "py");
-			else
-				BLF_draw_default(v[0], v[1], v[2], "pz");			
+		dir[axis] = 1.f;
+		glBegin(GL_LINES);
+		Mat4MulVecfl(mat,dir);
+		v[0] += dir[0];
+		v[1] += dir[1];
+		v[2] += dir[2];
+		glVertex3fv(v1);
+		glVertex3fv(v);			
+		glEnd();
+		if (axis==0)
+			view3d_object_text_draw_add(v[0], v[1], v[2], "px", 0);
+		else if (axis==1)
+			view3d_object_text_draw_add(v[0], v[1], v[2], "py", 0);
+		else
+			view3d_object_text_draw_add(v[0], v[1], v[2], "pz", 0);
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);
@@ -4743,7 +4869,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 
+	/* multiply view with object matrix */
 	wmMultMatrix(ob->obmat);
+	/* local viewmat and persmat, to calculate projections */
+	wmGetMatrix(rv3d->viewmatob);
+	wmGetSingleMatrix(rv3d->persmatob);
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
@@ -5041,10 +5171,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
-				if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-				BLF_draw_default(0.0, 0.0, 0.0, " ");
-				BLF_draw_default(0.0 + BLF_width_default(" "), 0.0, 0.0, ob->id.name+2);
-				if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+				view3d_object_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10);
 			}
 		}
 		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
@@ -5065,6 +5192,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			setlinestyle(0);
 		}
 	}
+	
+	/* return warning, this is cached text draw */
+	view3d_object_text_draw(v3d, ar);
 
 	wmLoadMatrix(rv3d->viewmat);
 

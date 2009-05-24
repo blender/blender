@@ -29,6 +29,13 @@
 #ifndef ED_SCREEN_TYPES_H__
 #define ED_SCREEN_TYPES_H__
 
+/* for animplayer */
+typedef struct ScreenAnimData {
+	ARegion *ar;	/* do not read from this, only for comparing if region exists */
+	int redraws;
+} ScreenAnimData;
+
+
 typedef struct AZone {
 	struct AZone *next, *prev;
 	int type;

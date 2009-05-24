@@ -203,21 +203,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 }
 
 
-/*
- * Returns true if the Object data is a from an external blend file (libdata)
- */
-int object_data_is_libdata(Object *ob)
-{
-	if (!ob) return 0;
-	if (ob->proxy) return 0;
-	if (ob->id.lib) return 1;
-	if (!ob->data) return 0;
-	if (((ID *)ob->data)->lib) return 1;
-	return 0;
-}
-
-
-
 /* exported */
 void ED_object_base_init_from_view(bContext *C, Base *base)
 {
@@ -463,7 +448,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin(op->type->name, 0);
+	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
 	if(!obedit || obedit->type == OB_CURVE)
 		uiItemsEnumO(layout, op->type->idname, "type");
@@ -632,7 +617,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiPopupMenu *pup= uiPupMenuBegin("Add Object", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
@@ -2623,7 +2608,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiPopupMenu *pup= uiPupMenuBegin("Set Parent To", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
