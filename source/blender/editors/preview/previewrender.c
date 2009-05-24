@@ -349,7 +349,7 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 
 				
 				if(sp->pr_method==PR_ICON_RENDER) {
-					if (mat->mode & MA_HALO) {
+					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay= 1<<MA_FLAT;
 					} 
 					else {

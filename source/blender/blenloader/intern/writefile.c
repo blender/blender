@@ -956,6 +956,11 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* Write channels */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
+		/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+		 of library blocks that implement this.*/
+		if (chan->prop)
+			IDP_WriteProperty(chan->prop, wd);
+		
 		write_constraints(wd, &chan->constraints);
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */

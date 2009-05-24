@@ -14,6 +14,7 @@ SET(INC
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel 
+  ../../../source/blender/blenfont
   ../../../source/blender/editors/include
   ../../../source/blender/windowmanager
   ../../../source/blender 

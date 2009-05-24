@@ -318,12 +318,12 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	{
 		glColor3ub(0, 0, 0);
 		glRasterPos2s(xco+1, height-yco-1);
-		BMF_DrawString(m_font, s);
+		// XXX BMF_DrawString(m_font, s);
 	}
 
 	glColor3ub(255, 255, 255);
 	glRasterPos2s(xco, height-yco);
-	BMF_DrawString(m_font, s);
+	// XXX BMF_DrawString(m_font, s);
 
 	// Restore view settings
 	glMatrixMode(GL_PROJECTION);

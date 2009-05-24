@@ -119,7 +119,7 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 	int length;
 
 	if(but->rnapoin.data && but->rnaprop) {
-		pup= uiPupMenuBegin(RNA_property_ui_name(but->rnaprop), 0);
+		pup= uiPupMenuBegin(C, RNA_property_ui_name(but->rnaprop), 0);
 		layout= uiPupMenuLayout(pup);
 		
 		length= RNA_property_array_length(but->rnaprop);

@@ -89,15 +89,13 @@
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 
-//#include "BSE_drawipo.h"
-//#include "BSE_editnla_types.h"	/* for NLAWIDTH */
 //#include "BSE_editaction_types.h"
-//#include "BSE_time.h"
 //#include "BSE_view.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_markers.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 
@@ -601,6 +599,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				resetTransRestrictions(t); 
 				restoreTransObjects(t);
 				initTranslation(t);
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;
@@ -610,6 +609,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				resetTransRestrictions(t); 
 				restoreTransObjects(t);
 				initResize(t);
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;
@@ -627,6 +627,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initRotation(t);
 				}
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;
@@ -4388,8 +4389,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 			val= *(td->val);
 		
 		/* snap to nearest marker */
-		// XXX missing function!
-		//val= (float)find_nearest_marker_time(val);
+		// TODO: need some more careful checks for where data comes from
+		val= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
 		
 		/* convert frame out of nla-action time */
 		if (ob)

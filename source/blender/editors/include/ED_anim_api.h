@@ -64,6 +64,7 @@ typedef struct bAnimContext {
 	
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
+	ListBase *markers;		/* active set of markers */
 } bAnimContext;
 
 /* Main Data container types */

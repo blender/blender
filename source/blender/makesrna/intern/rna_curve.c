@@ -291,6 +291,19 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem prop_align_items[] = {
+		{CU_LEFT, "LEFT", "Left", "Align text to the left"},
+		{CU_MIDDLE, "CENTRAL", "Center", "Center text"},
+		{CU_RIGHT, "RIGHT", "Right", "Align text to the right"},
+		{CU_JUSTIFY, "JUSTIFY", "Justify", "Align to the left and the right"},
+		{CU_FLUSH, "FLUSH", "Flush", "Align to the left and the right, with equal character spacing"},
+		{0, NULL, NULL, NULL}};
+		
+	/* Enums */
+	prop= RNA_def_property(srna, "spacemode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_align_items);
+	RNA_def_property_ui_text(prop, "Text Align", "Text align from the object center.");
+	
 	/* number values */
 	prop= RNA_def_property(srna, "text_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");
@@ -375,26 +388,6 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "fast", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FAST);
 	RNA_def_property_ui_text(prop, "Fast", "Don't fill polygons while editing.");
-	
-	prop= RNA_def_property(srna, "left_align", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "spacemode", CU_LEFT);
-	RNA_def_property_ui_text(prop, "Left Align", "Left align the text from the object center.");
-	
-	prop= RNA_def_property(srna, "middle_align", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "spacemode", CU_MIDDLE);
-	RNA_def_property_ui_text(prop, "Middle Align", "Middle align the text from the object center.");
-	
-	prop= RNA_def_property(srna, "right_align", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "spacemode", CU_RIGHT);
-	RNA_def_property_ui_text(prop, "Right Align", "Right align the text from the object center.");
-	
-	prop= RNA_def_property(srna, "justify", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "spacemode", CU_JUSTIFY);
-	RNA_def_property_ui_text(prop, "Justify", "Fill complete lines to maximum textframe width.");
-	
-	prop= RNA_def_property(srna, "flush", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "spacemode", CU_FLUSH);
-	RNA_def_property_ui_text(prop, "Left Align", "Fill every line to maximum textframe width distributing space among all characters.");
 }
 
 void rna_def_textbox(BlenderRNA *brna)
@@ -486,41 +479,42 @@ void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bevresol");
 	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_range(prop, 0, 32, 1.0, 0);
 	RNA_def_property_ui_text(prop, "Bevel Resolution", "Bevel resolution when depth is non-zero and no specific bevel object has been defined.");
 	
 	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor.");
 	
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
 	
 	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext2");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
 	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object.");
 	
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	/* pointers */

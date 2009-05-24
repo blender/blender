@@ -346,33 +346,16 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	graph_region_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_panels(C, ar, 1, NULL);
 }
-
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -586,6 +569,8 @@ void ED_spacetype_ipo(void)
 	art->draw= graph_buttons_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
+
+	graph_buttons_register(art);
 	
 	BKE_spacetype_register(st);
 }

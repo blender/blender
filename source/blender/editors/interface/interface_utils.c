@@ -84,9 +84,9 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_MeshTextureFace)
 		return ICON_FACESEL_HLT;
 	else if(rnatype == &RNA_VertexGroup)
-		return ICON_VGROUP;
+		return ICON_GROUP_VERTEX;
 	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_VGROUP;
+		return ICON_GROUP_VERTEX;
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE_DATA;
 	else if(rnatype == &RNA_MetaBall)
@@ -315,18 +315,13 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
+void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout;
+	uiLayout *split;
 	char *name;
-	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, DEF_BUT_WIDTH*2, 20, style);
-
-	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
 	iterprop= RNA_struct_iterator_property(ptr->type);
@@ -338,34 +333,25 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		uiLayoutSplit(layout, 2, 0);
+		split = uiLayoutSplit(layout);
 
 		name= (char*)RNA_property_ui_name(prop);
-		uiLayoutColumn(uiLayoutSub(layout, 0));
-		uiItemL(uiLayoutSub(layout, 0), name, 0);
-		uiLayoutColumn(uiLayoutSub(layout, 1));
-		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0, 0);
+
+		uiItemL(uiLayoutColumn(split, 0), name, 0);
+		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
-	uiLayoutEnd(C, block, layout, &x, &y);
-
-	return -y;
 }
 
 /* temp call, single collumn, test for toolbar only */
-int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
+void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-	uiStyle *style= U.uistyles.first;
 	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop, *prop;
-	uiLayout *layout;
+	uiLayout *col;
 	char *name;
-	int x= 0, y= 0;
 	
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, block->panel->sizex, 20, style);
-	
-	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 	
 	iterprop= RNA_struct_iterator_property(ptr->type);
@@ -377,21 +363,14 @@ int uiDefAutoButsRNA_single(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 		
-		uiLayoutSplit(layout, 1, 0);
-		uiLayoutColumn(uiLayoutSub(layout, 0));
-		
 		name= (char*)RNA_property_ui_name(prop);
-		uiItemL(uiLayoutSub(layout, 0), name, 0);
-
-		uiItemFullR(uiLayoutSub(layout, 0), "", 0, ptr, prop, -1, 0, 0);
+		col= uiLayoutColumn(layout, 1);
+		uiItemL(col, name, 0);
+		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0);
 	}
 	
 	RNA_property_collection_end(&iter);
-	uiLayoutEnd(C, block, layout, &x, &y);
-	
-	return -y;
 }
-
 
 /***************************** ID Utilities *******************************/
 
@@ -425,11 +404,11 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 			else return;
 			break;
 		case UI_ID_BROWSE: {
-			if(id==0) id= lb->first;
-			if(id==0) return;
+			/* ID can be NULL, if nothing was assigned yet */
+			if(lb->first==NULL) return;
 
 			if(params->browsenr== -2) {
-				/* XXX implement or find a replacement
+				/* XXX implement or find a replacement (ID can be NULL!)
 				 * activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_MESHBROWSE, &params->browsenr, do_global_buttons); */
 				return;
 			}

@@ -93,6 +93,8 @@ static void wm_ghostwindow_destroy(wmWindow *win)
    ED_screen_exit should have been called */
 void wm_window_free(bContext *C, wmWindow *win)
 {
+	wmTimer *wt;
+	
 	/* update context */
 	if(C) {
 		wmWindowManager *wm= CTX_wm_manager(C);
@@ -108,6 +110,10 @@ void wm_window_free(bContext *C, wmWindow *win)
 	}	
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
+	
+	for(wt= win->timers.first; wt; wt= wt->next)
+		if(wt->customdata)
+			MEM_freeN(wt->customdata);
 	BLI_freelistN(&win->timers);
 	
 	wm_event_free_all(win);
@@ -657,6 +663,8 @@ void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 			break;
 	if(wt) {
 		BLI_remlink(&win->timers, wt);
+		if(wt->customdata)
+			MEM_freeN(wt->customdata);
 		MEM_freeN(wt);
 	}
 }

@@ -383,15 +383,13 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	}
 }
 
-static void image_panel_game_properties(const bContext *C, ARegion *ar)
+static void image_panel_game_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "image_panel_game_properties", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Real-time Properties", "Image", 10, 10, 318, 204)==0)
-		return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
 	if (ibuf) {
@@ -420,15 +418,14 @@ static void image_panel_game_properties(const bContext *C, ARegion *ar)
 	}
 }
 
-static void image_panel_view_properties(const bContext *C, ARegion *ar)
+static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
 	Object *obedit= CTX_data_edit_object(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "image_view_properties", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "View Properties", "Image", 10, 30, 318, 204)==0)
-		return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 	
 	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,160,140,19, &sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
@@ -599,7 +596,14 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 #endif
 }
 
-static void image_panel_paintcolor(const bContext *C, ARegion *ar)
+static int image_panel_paint_poll(const bContext *C, PanelType *pt)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	
+	return (sima->image && (sima->flag & SI_DRAWTOOL));
+}
+
+static void image_panel_paintcolor(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
@@ -608,37 +612,26 @@ static void image_panel_paintcolor(const bContext *C, ARegion *ar)
 	static float hsv[3], old[3];	// used as temp mem for picker
 	static char hexcol[128];
 	
-	block= uiBeginBlock(C, ar, "image_panel_paintcolor", UI_EMBOSS);
+	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
+		return;
+	
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-	if(uiNewPanel(C, ar, block, "Paint Color", "Image", 10, 22, 318, 204)==0)
-		return;
-	
-	if ( (brush && sima->image && (sima->flag & SI_DRAWTOOL))==0) {
-		uiNewPanelHeight(block, 0);
-		return;
-	}
-	uiNewPanelHeight(block, 204);
-	
-	uiBlockPickerButtons(block, brush->rgb, hsv, old, hexcol, 'f', B_REDR);
+
+	if(brush)
+		uiBlockPickerButtons(block, brush->rgb, hsv, old, hexcol, 'f', B_REDR);
 }
 
-
-
-static void image_panel_paint(const bContext *C, ARegion *ar)
+static void image_panel_paint(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "image_panel_paint", UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-	if(uiNewPanel(C, ar, block, "Image Paint", "Image", 10, 20, 318, 204)==0)
+	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
 		return;
 	
-	if ((sima->image && (sima->flag & SI_DRAWTOOL))==0) {
-		uiNewPanelHeight(block, 0);
-		return;
-	}
-	uiNewPanelHeight(block, 204);
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 	
 	brush_buttons(C, block, 1, B_SIMANOTHING, B_SIMABRUSHCHANGE, B_SIMABRUSHBROWSE, B_SIMABRUSHLOCAL, B_SIMABRUSHDELETE, B_KEEPDATA, B_SIMABTEXBROWSE, B_SIMABTEXDELETE);
 }
@@ -663,7 +656,7 @@ static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
 }
 
 
-static void image_panel_curves(const bContext *C, ARegion *ar)
+static void image_panel_curves(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	ImBuf *ibuf;
@@ -673,9 +666,7 @@ static void image_panel_curves(const bContext *C, ARegion *ar)
 	/* and we check for spare */
 	ibuf= ED_space_image_buffer(sima);
 	
-	block= uiBeginBlock(C, ar, "image_panel_curves", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Curves", "Image", 10, 40, 318, 204)==0)
-		return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 	
 	if (ibuf) {
@@ -1398,39 +1389,61 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 }	
 
 
-static void image_panel_properties(const bContext *C, ARegion *ar)	
+static void image_panel_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "image_panel_properties", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Image Properties", "Image", 10, 50, 318, 204)==0)
-		return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
 	/* note, it draws no bottom half in facemode, for vertex buttons */
 	ED_image_uiblock_panel(C, block, &sima->image, &sima->iuser, B_REDR, B_REDR);
 	image_editvertex_buts(C, block);
-	
-	uiEndBlock(C, block);
 }	
 
-
-
-void image_buttons_area_defbuts(const bContext *C, ARegion *ar)
+void image_buttons_register(ARegionType *art)
 {
-	uiBeginPanels(C, ar);
+	PanelType *pt;
 
-	image_panel_properties(C, ar);
-	image_panel_game_properties(C, ar);
-	image_panel_view_properties(C, ar);
-	image_panel_paint(C, ar);
-	image_panel_paintcolor(C, ar);
-	image_panel_curves(C, ar);
-		
-	uiEndPanels(C, ar);
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel properties");
+	strcpy(pt->idname, "IMAGE_PT_properties");
+	strcpy(pt->label, "Image Properties");
+	pt->draw= image_panel_properties;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel game properties");
+	strcpy(pt->idname, "IMAGE_PT_game_properties");
+	strcpy(pt->label, "Game Properties");
+	pt->draw= image_panel_game_properties;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image view properties");
+	strcpy(pt->idname, "IMAGE_PT_view_properties");
+	strcpy(pt->label, "View Properties");
+	pt->draw= image_panel_view_properties;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint");
+	strcpy(pt->idname, "IMAGE_PT_paint");
+	strcpy(pt->label, "Paint");
+	pt->draw= image_panel_paint;
+	pt->poll= image_panel_paint_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint color");
+	strcpy(pt->idname, "IMAGE_PT_paint_color");
+	strcpy(pt->label, "Paint Color");
+	pt->draw= image_panel_paintcolor;
+	pt->poll= image_panel_paint_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
+	strcpy(pt->idname, "IMAGE_PT_curves");
+	strcpy(pt->label, "Curves");
+	pt->draw= image_panel_curves;
+	BLI_addtail(&art->paneltypes, pt);
 }
-
 
 static int image_properties(bContext *C, wmOperator *op)
 {

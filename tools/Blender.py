@@ -188,6 +188,9 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_OPENGL_LIB'])
 	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross', 'win64-vc'):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
+	if lenv['WITH_BF_LCMS']:
+		syslibs.append(lenv['BF_LCMS_LIB'])
+
 
 	syslibs += lenv['LLIBS']
 

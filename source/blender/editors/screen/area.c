@@ -31,6 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
@@ -542,15 +545,16 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	
-	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1;
+	short rt= CLAMPIS(G.rt, 0, 16);
+
+	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1+rt;
 	else sa->totrct.xmin= sa->v1->vec.x;
-	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax= sa->v4->vec.x-1;
+	if(sa->v4->vec.x<sizex-1) sa->totrct.xmax= sa->v4->vec.x-1-rt;
 	else sa->totrct.xmax= sa->v4->vec.x;
 	
-	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1;
+	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1+rt;
 	else sa->totrct.ymin= sa->v1->vec.y;
-	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax= sa->v2->vec.y-1;
+	if(sa->v2->vec.y<sizey-1) sa->totrct.ymax= sa->v2->vec.y-1-rt;
 	else sa->totrct.ymax= sa->v2->vec.y;
 	
 	/* for speedup */
@@ -579,16 +583,16 @@ void area_azone_initialize(ScrArea *sa)
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(az->pos==AZONE_SW) {
-			az->x1= sa->v1->vec.x+1;
-			az->y1= sa->v1->vec.y+1;
-			az->x2= sa->v1->vec.x+AZONESPOT;
-			az->y2= sa->v1->vec.y+AZONESPOT;
+			az->x1= sa->totrct.xmin;
+			az->y1= sa->totrct.ymin;
+			az->x2= sa->totrct.xmin + AZONESPOT-1;
+			az->y2= sa->totrct.ymin + AZONESPOT-1;
 		} 
 		else if (az->pos==AZONE_NE) {
-			az->x1= sa->v3->vec.x;
-			az->y1= sa->v3->vec.y;
-			az->x2= sa->v3->vec.x-AZONESPOT;
-			az->y2= sa->v3->vec.y-AZONESPOT;
+			az->x1= sa->totrct.xmax+1;
+			az->y1= sa->totrct.ymax+1;
+			az->x2= sa->totrct.xmax-AZONESPOT+1;
+			az->y2= sa->totrct.ymax-AZONESPOT+1;
 		}
 	}
 }
@@ -953,5 +957,192 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	return xco;
+}
+
+/************************ standard UI regions ************************/
+
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	PanelType *pt;
+	Panel *panel;
+	View2D *v2d= &ar->v2d;
+	float col[3];
+	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
+
+	if(vertical) {
+		w= v2d->cur.xmax - v2d->cur.xmin;
+		em= (ar->type->minsizex)? 10: 20;
+	}
+	else {
+		w= UI_PANEL_WIDTH;
+		em= (ar->type->minsizex)? 10: 20;
+	}
+
+	header= 20; // XXX
+	triangle= 22;
+	x= 0;
+	y= -style->panelouter;
+
+	/* create panels */
+	uiBeginPanels(C, ar);
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, v2d);
+
+	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
+		/* verify context */
+		if(context)
+			if(!pt->context || strcmp(context, pt->context) != 0)
+				continue;
+
+		/* draw panel */
+		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
+			panel= uiBeginPanel(ar, block, pt, &open);
+
+			if(vertical)
+				y -= header;
+
+			if(pt->draw_header && (open || vertical)) {
+				/* for enabled buttons */
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+					triangle, header+style->panelspace, header, 1, style);
+
+				pt->draw_header(C, panel);
+
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				panel->labelofs= xco - triangle;
+				panel->layout= NULL;
+			}
+
+			if(open) {
+				panel->type= pt;
+				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
+					style->panelspace, 0, w-2*style->panelspace, em, style);
+
+				pt->draw(C, panel);
+
+				uiBlockLayoutResolve(C, block, &xco, &yco);
+				panel->layout= NULL;
+
+				yco -= 2*style->panelspace;
+				uiEndPanel(block, w, -yco);
+			}
+			else
+				yco= 0;
+
+			uiEndBlock(C, block);
+
+			if(vertical) {
+				y += yco-style->panelouter;
+			}
+			else {
+				x += w;
+				miny= MIN2(y, yco-style->panelouter-header);
+			}
+		}
+	}
+
+	if(vertical)
+		x += w;
+	else
+		y= miny;
+	
+	/* in case there are no panels */
+	if(x == 0 || y == 0) {
+		x= UI_PANEL_WIDTH;
+		y= UI_PANEL_WIDTH;
+	}
+
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* before setting the view */
+	if(vertical) {
+		v2d->keepofs |= V2D_LOCKOFS_X;
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+	}
+	else {
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+	}
+
+	UI_view2d_totRect_set(v2d, x, -y);
+
+	/* set the view */
+	UI_view2d_view_ortho(C, v2d);
+
+	/* this does the actual drawing! */
+	uiEndPanels(C, ar);
+	
+	/* restore view matrix */
+	UI_view2d_view_restore(C);
+}
+
+void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+}
+
+void ED_region_header(const bContext *C, ARegion *ar)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	uiLayout *layout;
+	HeaderType *ht;
+	Header header = {0};
+	float col[3];
+	int xco, yco;
+
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+
+	xco= 8;
+	yco= HEADERY-3;
+
+	/* draw all headers types */
+	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
+		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
+
+		if(ht->draw) {
+			header.type= ht;
+			header.layout= layout;
+			ht->draw(C, &header);
+		}
+
+		uiBlockLayoutResolve(C, block, &xco, &yco);
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+	}
+
+	/* always as last  */
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+void ED_region_header_init(ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 

@@ -17,10 +17,10 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		layout.row()
-		layout.itemR(ob, "location")
-		layout.itemR(ob, "rotation")
-		layout.itemR(ob, "scale")
+		row = layout.row()
+		row.column().itemR(ob, "location")
+		row.column().itemR(ob, "rotation")
+		row.column().itemR(ob, "scale")
 
 class OBJECT_PT_groups(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_groups"
@@ -30,24 +30,24 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		layout.row()
-		layout.itemR(ob, "pass_index")
-		layout.itemR(ob, "parent")
+		row = layout.row()
+		row.itemR(ob, "pass_index")
+		row.itemR(ob, "parent")
 
 		# layout.left_right()
 		# layout.itemO("OBJECT_OT_add_group");
 
 		for group in bpy.data.groups:
 			if ob in group.objects:
-				sub = layout.box()
+				box = layout.box()
 
-				sub.split(number=2, lr=True)
-				sub.sub(0).itemR(group, "name")
-				# sub.sub(1).itemO("OBJECT_OT_remove_group")
+				row = box.row()
+				row.itemR(group, "name")
+				#row.itemO("OBJECT_OT_remove_group")
 
-				sub.row()
-				sub.itemR(group, "layer")
-				sub.itemR(group, "dupli_offset")
+				row = box.row()
+				row.column().itemR(group, "layer")
+				row.column().itemR(group, "dupli_offset")
 
 class OBJECT_PT_display(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_display"
@@ -57,17 +57,17 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 			
-		layout.row()
-		layout.itemR(ob, "max_draw_type", text="Type")
-		layout.itemR(ob, "draw_bounds_type", text="Bounds")
+		row = layout.row()
+		row.itemR(ob, "max_draw_type", text="Type")
+		row.itemR(ob, "draw_bounds_type", text="Bounds")
 
-		layout.column_flow()
-		layout.itemR(ob, "draw_name", text="Name")
-		layout.itemR(ob, "draw_axis", text="Axis")
-		layout.itemR(ob, "draw_wire", text="Wire")
-		layout.itemR(ob, "draw_texture_space", text="Texture Space")
-		layout.itemR(ob, "x_ray", text="X-Ray")
-		layout.itemR(ob, "draw_transparent", text="Transparency")
+		flow = layout.column_flow()
+		flow.itemR(ob, "draw_name", text="Name")
+		flow.itemR(ob, "draw_axis", text="Axis")
+		flow.itemR(ob, "draw_wire", text="Wire")
+		flow.itemR(ob, "draw_texture_space", text="Texture Space")
+		flow.itemR(ob, "x_ray", text="X-Ray")
+		flow.itemR(ob, "draw_transparent", text="Transparency")
 
 class OBJECT_PT_duplication(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_duplication"
@@ -77,15 +77,43 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		layout.column()
-		layout.itemR(ob, "dupli_type", text="", expand=True)
+		row = layout.row()
+		row.itemR(ob, "dupli_type", expand=True)
 
 		if ob.dupli_type == "FRAMES":
-			layout.column_flow()
-			layout.itemR(ob, "dupli_frames_start", text="Start")
-			layout.itemR(ob, "dupli_frames_end", text="End")
-			layout.itemR(ob, "dupli_frames_on", text="On")
-			layout.itemR(ob, "dupli_frames_off", text="Off")
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_start", text="Start")
+			sub.itemR(ob, "dupli_frames_end", text="End")
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_on", text="On")
+			sub.itemR(ob, "dupli_frames_off", text="Off")
+			
+			split = layout.split()
+			sub = split.column()
+			sub.itemR(ob, "dupli_frames_no_speed", text="No Speed")
+
+		elif ob.dupli_type == "VERTS":
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_verts_rotation", text="Rotation")
+
+		elif ob.dupli_type == "FACES":
+			split = layout.split()
+			
+			sub = split.column()
+			sub.itemR(ob, "dupli_faces_scale", text="Scale")
+			sub = split.column()
+			sub.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+
+		elif ob.dupli_type == "GROUP":
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_group", text="Group")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_animation"
@@ -95,10 +123,9 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		layout.split(number=2)
+		row = layout.row()
 		
-		sub = layout.sub(0)
-		sub.column()
+		sub = row.column()
 		sub.itemL(text="Time Offset:")
 		sub.itemR(ob, "time_offset_edit", text="Edit")
 		sub.itemR(ob, "time_offset_particle", text="Particle")
@@ -106,8 +133,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub.itemR(ob, "slow_parent")
 		sub.itemR(ob, "time_offset", text="Offset")
 		
-		sub = layout.sub(1)
-		sub.column()
+		sub = row.column()
 		sub.itemL(text="Tracking:")
 		sub.itemR(ob, "track_axis", text="Axis")
 		sub.itemR(ob, "up_axis", text="Up Axis")

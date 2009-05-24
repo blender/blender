@@ -95,8 +95,8 @@ void BLF_exit(void)
 
 	for (i= 0; i < global_font_num; i++) {
 		font= global_font[i];
-		if(font && font->free)
-			(*font->free)(font);
+		if (font)
+			blf_font_free(font);
 	}
 
 	blf_font_exit();
@@ -128,8 +128,6 @@ int BLF_load(char *name)
 	i= blf_search(name);
 	if (i >= 0) {
 		font= global_font[i];
-		font->ref++;
-		printf("Increment reference (%d): %s\n", font->ref, name);
 		return(i);
 	}
 
@@ -140,7 +138,7 @@ int BLF_load(char *name)
 
 	filename= blf_dir_search(name);
 	if (!filename) {
-		printf("Can't found font: %s\n", name);
+		printf("Can't find font: %s\n", name);
 		return(-1);
 	}
 
@@ -158,6 +156,15 @@ int BLF_load(char *name)
 	return(i);
 }
 
+void BLF_metrics_attach(unsigned char *mem, int mem_size)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		blf_font_attach_from_mem(font, mem, mem_size);
+}
+
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
@@ -169,8 +176,6 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 	i= blf_search(name);
 	if (i >= 0) {
 		font= global_font[i];
-		font->ref++;
-		printf("Increment reference (%d): %s\n", font->ref, name);
 		return(i);
 	}
 
@@ -268,8 +273,8 @@ void BLF_size(int size, int dpi)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->size_set)
-		(*font->size_set)(font, size, dpi);
+	if (font)
+		blf_font_size(font, size, dpi);
 }
 
 void BLF_blur(int size)
@@ -326,7 +331,7 @@ void BLF_draw(char *str)
 	 */
 
 	font= global_font[global_font_cur];
-	if (font && font->draw) {
+	if (font) {
 		if (font->mode == BLF_MODE_BITMAP) {
 			glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 			glPushAttrib(GL_ENABLE_BIT);
@@ -335,7 +340,7 @@ void BLF_draw(char *str)
 			glDisable(GL_BLEND);
 			glRasterPos3f(font->pos[0], font->pos[1], font->pos[2]);
 
-			(*font->draw)(font, str);
+			blf_font_draw(font, str);
 
 			glPopAttrib();
 			glPopClientAttrib();
@@ -352,7 +357,7 @@ void BLF_draw(char *str)
 			if (font->flags & BLF_ROTATION)
 				glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
-			(*font->draw)(font, str);
+			blf_font_draw(font, str);
 
 			glPopMatrix();
 			glDisable(GL_BLEND);
@@ -366,8 +371,8 @@ void BLF_boundbox(char *str, rctf *box)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->boundbox_get)
-		(*font->boundbox_get)(font, str, box);
+	if (font)
+		blf_font_boundbox(font, str, box);
 }
 
 float BLF_width(char *str)
@@ -375,8 +380,8 @@ float BLF_width(char *str)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->width_get)
-		return((*font->width_get)(font, str));
+	if (font)
+		return(blf_font_width(font, str));
 	return(0.0f);
 }
 
@@ -418,8 +423,8 @@ float BLF_height(char *str)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->height_get)
-		return((*font->height_get)(font, str));
+	if (font)
+		return(blf_font_height(font, str));
 	return(0.0f);
 }
 

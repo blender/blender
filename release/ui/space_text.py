@@ -18,38 +18,40 @@ class TEXT_HT_header(bpy.types.Header):
 		text = st.text
 		layout = self.layout
 
-		layout.template_header()
-		layout.itemM("TEXT_MT_text")
-		if text:
-			layout.itemM("TEXT_MT_edit")
-			layout.itemM("TEXT_MT_format")
+		layout.template_header(context)
+
+		if context.area.show_menus:
+			row = layout.row(align=True)
+			row.itemM(context, "TEXT_MT_text")
+			if text:
+				row.itemM(context, "TEXT_MT_edit")
+				row.itemM(context, "TEXT_MT_format")
 
 		if text and text.modified:
-			layout.row()
-			# layout.color(redalert)
-			layout.itemO("TEXT_OT_resolve_conflict", text="", icon=ICON_HELP)
+			row = layout.row()
+			# row.color(redalert)
+			row.itemO("TEXT_OT_resolve_conflict", text="", icon=ICON_HELP)
 
-		layout.row()
-		layout.itemR(st, "line_numbers", text="", icon=ICON_LINENUMBERS_OFF)
-		layout.itemR(st, "word_wrap", text="", icon=ICON_WORDWRAP_OFF)
-		layout.itemR(st, "syntax_highlight", text="", icon=ICON_SYNTAX_OFF)
-		# layout.itemR(st, "do_python_plugins", text="", icon=ICON_SCRIPTPLUGINS)
+		row = layout.row(align=True)
+		row.itemR(st, "line_numbers", text="", icon=ICON_LINENUMBERS_OFF)
+		row.itemR(st, "word_wrap", text="", icon=ICON_WORDWRAP_OFF)
+		row.itemR(st, "syntax_highlight", text="", icon=ICON_SYNTAX_OFF)
+		# row.itemR(st, "do_python_plugins", text="", icon=ICON_SCRIPTPLUGINS)
 
-		layout.row()
-		layout.template_header_ID(st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
+		layout.template_header_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
 
 		if text:
-			layout.row()
+			row = layout.row()
 			if text.filename != "":
 				if text.dirty:
-					layout.itemL(text="File: *" + text.filename + " (unsaved)")
+					row.itemL(text="File: *" + text.filename + " (unsaved)")
 				else:
-					layout.itemL(text="File: " + text.filename)
+					row.itemL(text="File: " + text.filename)
 			else:
 				if text.library:
-					layout.itemL(text="Text: External")
+					row.itemL(text="Text: External")
 				else:
-					layout.itemL(text="Text: Internal")
+					row.itemL(text="Text: Internal")
 
 class TEXT_PT_properties(bpy.types.Panel):
 	__space_type__ = "TEXT_EDITOR"
@@ -60,14 +62,14 @@ class TEXT_PT_properties(bpy.types.Panel):
 		st = context.space_data
 		layout = self.layout
 
-		layout.column_flow()
-		layout.itemR(st, "line_numbers", icon=ICON_LINENUMBERS_OFF)
-		layout.itemR(st, "word_wrap", icon=ICON_WORDWRAP_OFF)
-		layout.itemR(st, "syntax_highlight", icon=ICON_SYNTAX_OFF)
+		flow = layout.column_flow()
+		flow.itemR(st, "line_numbers", icon=ICON_LINENUMBERS_OFF)
+		flow.itemR(st, "word_wrap", icon=ICON_WORDWRAP_OFF)
+		flow.itemR(st, "syntax_highlight", icon=ICON_SYNTAX_OFF)
 
-		layout.column_flow()
-		layout.itemR(st, "font_size")
-		layout.itemR(st, "tab_width")
+		flow = layout.column_flow()
+		flow.itemR(st, "font_size")
+		flow.itemR(st, "tab_width")
 
 class TEXT_PT_find(bpy.types.Panel):
 	__space_type__ = "TEXT_EDITOR"
@@ -79,27 +81,26 @@ class TEXT_PT_find(bpy.types.Panel):
 		layout = self.layout
 
 		# find
-		layout.row()
-		layout.itemR(st, "find_text", text="")
-		layout.itemO("TEXT_OT_find_set_selected", text="", icon=ICON_TEXT)
-		layout.column()
-		layout.itemO("TEXT_OT_find")
+		col = layout.column(align=True)
+		row = col.row()
+		row.itemR(st, "find_text", text="")
+		row.itemO("TEXT_OT_find_set_selected", text="", icon=ICON_TEXT)
+		col.itemO("TEXT_OT_find")
 
 		# replace
-		layout.row()
-		layout.itemR(st, "replace_text", text="")
-		layout.itemO("TEXT_OT_replace_set_selected", text="", icon=ICON_TEXT)
-		layout.column()
-		layout.itemO("TEXT_OT_replace")
+		col = layout.column(align=True)
+		row = col.row()
+		row.itemR(st, "replace_text", text="")
+		row.itemO("TEXT_OT_replace_set_selected", text="", icon=ICON_TEXT)
+		col.itemO("TEXT_OT_replace")
 
 		# mark
-		layout.column()
 		layout.itemO("TEXT_OT_mark_all")
 
 		# settings
-		layout.row()
-		layout.itemR(st, "find_wrap", text="Wrap")
-		layout.itemR(st, "find_all", text="All")
+		row = layout.row()
+		row.itemR(st, "find_wrap", text="Wrap")
+		row.itemR(st, "find_all", text="All")
 
 class TEXT_MT_text(bpy.types.Menu):
 	__space_type__ = "TEXT_EDITOR"

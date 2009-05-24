@@ -58,6 +58,7 @@ void				curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 int					curvemapping_RGBA_does_something(struct CurveMapping *cumap);
 void				curvemapping_initialize(struct CurveMapping *cumap);
 void				curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
+void				colorcorrection_do_ibuf(struct ImBuf *ibuf, const char *profile);
 
 #endif
 

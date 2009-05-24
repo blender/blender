@@ -111,6 +111,22 @@ static void panel_draw(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(list);
 }
 
+static void panel_draw_header(const bContext *C, Panel *pnl)
+{
+	PointerRNA ptr;
+	ParameterList *list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
+	func= RNA_struct_find_function(&ptr, "draw_header");
+
+	list= RNA_parameter_list_create(&ptr, func);
+	RNA_parameter_set_lookup(list, "context", &C);
+	pnl->type->py_call(&ptr, func, list);
+
+	RNA_parameter_list_free(list);
+}
+
 static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 {
 	ARegionType *art;
@@ -169,6 +185,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 
 	pt->poll= (have_function[0])? panel_poll: NULL;
 	pt->draw= (have_function[1])? panel_draw: NULL;
+	pt->draw_header= (have_function[2])? panel_draw_header: NULL;
 
 	BLI_addtail(&art->paneltypes, pt);
 
@@ -426,6 +443,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the panel UI layout.");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	func= RNA_def_function(srna, "draw_header", NULL);
+	RNA_def_function_ui_description(func, "Draw buttons into the panel header UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 

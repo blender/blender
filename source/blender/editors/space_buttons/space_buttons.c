@@ -132,7 +132,7 @@ static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
 	SpaceButs *sbuts= sa->spacedata.first;
 
 	/* auto-align based on size */
-	if(sbuts->align == BUT_AUTO) {
+	if(sbuts->align == BUT_AUTO || !sbuts->align) {
 		if(sa->winx > sa->winy)
 			sbuts->align= BUT_HORIZONTAL;
 		else
@@ -155,8 +155,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 
-//	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+	ED_region_panels_init(wm, ar);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
@@ -170,21 +169,25 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	int vertical= (sbuts->align == BUT_VERTICAL);
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
-		uiRegionPanelLayout(C, ar, vertical, "scene");
+		ED_region_panels(C, ar, vertical, "scene");
 	else if(sbuts->mainb == BCONTEXT_WORLD)
-		uiRegionPanelLayout(C, ar, vertical, "world");
+		ED_region_panels(C, ar, vertical, "world");
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
-		uiRegionPanelLayout(C, ar, vertical, "object");
+		ED_region_panels(C, ar, vertical, "object");
 	else if(sbuts->mainb == BCONTEXT_DATA)
-		uiRegionPanelLayout(C, ar, vertical, "data");
+		ED_region_panels(C, ar, vertical, "data");
 	else if(sbuts->mainb == BCONTEXT_MATERIAL)
-		uiRegionPanelLayout(C, ar, vertical, "material");
+		ED_region_panels(C, ar, vertical, "material");
 	else if(sbuts->mainb == BCONTEXT_TEXTURE)
-		uiRegionPanelLayout(C, ar, vertical, "texture");
+		ED_region_panels(C, ar, vertical, "texture");
 	else if(sbuts->mainb == BCONTEXT_PARTICLE)
-		uiRegionPanelLayout(C, ar, vertical, "particle");
+		ED_region_panels(C, ar, vertical, "particle");
 	else if(sbuts->mainb == BCONTEXT_PHYSICS)
-		uiRegionPanelLayout(C, ar, vertical, "physics");
+		ED_region_panels(C, ar, vertical, "physics");
+	else if(sbuts->mainb == BCONTEXT_BONE)
+		ED_region_panels(C, ar, vertical, "bone");
+	else if(sbuts->mainb == BCONTEXT_MODIFIER)
+		ED_region_panels(C, ar, vertical, "modifier");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -276,7 +279,7 @@ void ED_spacetype_buttons(void)
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
 	art->listener= buttons_area_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

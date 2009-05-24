@@ -43,6 +43,8 @@ struct bContext;
 #define BCONTEXT_PARTICLE	6
 #define BCONTEXT_PHYSICS	7
 #define BCONTEXT_GAME		8
+#define BCONTEXT_BONE		9
+#define BCONTEXT_MODIFIER	10
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1

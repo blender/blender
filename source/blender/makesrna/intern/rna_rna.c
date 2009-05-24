@@ -87,7 +87,7 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
 	IDProperty *idprop= (IDProperty*)data;
 	PropertyRNA *prop;
-	StructRNA *ptype= iter->parent.type;
+	StructRNA *ptype= iter->builtin_parent.type;
 
 	/* function to skip any id properties that are already known by RNA,
 	 * for the second loop where we go over unknown id properties */
@@ -177,7 +177,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= rna_idproperties_get(&iter->parent, 0);
+			group= RNA_struct_idproperties(&iter->builtin_parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
@@ -243,7 +243,7 @@ static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 }
 
 /* Builtin properties iterator re-uses the Struct properties iterator, only
- * difference is that we need to see the ptr data to the type of the struct
+ * difference is that we need to set the ptr data to the type of the struct
  * whose properties we want to iterate over. */
 
 void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -260,6 +260,7 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
 		newptr.id.data= NULL;
 
 	iter->parent= newptr;
+	iter->builtin_parent = *ptr;
 
 	rna_Struct_properties_begin(iter, &newptr);
 }

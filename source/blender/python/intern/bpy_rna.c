@@ -1092,6 +1092,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		case PROP_COLLECTION:
 			/* XXX not supported yet
 			 * ret = pyrna_prop_CreatePyObject(ptr, prop); */
+			ret = NULL;
 			break;
 		default:
 			PyErr_Format(PyExc_AttributeError, "RNA Error: unknown type \"%d\" (pyrna_param_to_py)", type);
@@ -1843,10 +1844,20 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
-	args = PyTuple_New(1);
-	PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(ptr));
-	py_class_instance = PyObject_Call(py_class, args, NULL);
-	Py_DECREF(args);
+	item = pyrna_struct_CreatePyObject(ptr);
+	if(item == NULL) {
+		py_class_instance = NULL;
+	}
+	else if(item == Py_None) { /* probably wont ever happen but possible */
+		Py_DECREF(item);
+		py_class_instance = NULL;
+	}
+	else {
+		args = PyTuple_New(1);
+		PyTuple_SET_ITEM(args, 0, item);
+		py_class_instance = PyObject_Call(py_class, args, NULL);
+		Py_DECREF(args);
+	}
 
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
 		item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
@@ -1877,8 +1888,8 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 			ret = PyObject_Call(item, args, NULL);
 
-			/* args is decref'd from item */
 			Py_DECREF(item);
+			Py_DECREF(args);
 		}
 		else {
 			Py_DECREF(py_class_instance);

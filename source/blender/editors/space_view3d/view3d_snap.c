@@ -1113,7 +1113,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 
 static int snap_menu_invoke(bContext *C, wmOperator *unused, wmEvent *event)
 {
-	uiPopupMenu *pup= uiPupMenuBegin("Snap", 0);
+	uiPopupMenu *pup= uiPupMenuBegin(C, "Snap", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_selected_to_grid");

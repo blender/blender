@@ -32,6 +32,10 @@
 #include <stdlib.h>
 #include <float.h>
 
+#ifdef WITH_LCMS
+#include <lcms.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
@@ -648,6 +652,38 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 	
 	fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
 	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
+}
+
+void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
+{
+	if (ibuf->crect == NULL)
+	{
+#ifdef WITH_LCMS
+		cmsHPROFILE imageProfile, proofingProfile;
+		cmsHTRANSFORM hTransform;
+		
+		ibuf->crect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(int), "imbuf crect");
+
+		imageProfile  = cmsCreate_sRGBProfile();
+		proofingProfile = cmsOpenProfileFromFile(profile, "r");
+		
+		cmsErrorAction(LCMS_ERROR_SHOW);
+	
+		hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
+	                                          proofingProfile,
+	                                          INTENT_ABSOLUTE_COLORIMETRIC,
+	                                          INTENT_ABSOLUTE_COLORIMETRIC,
+	                                          cmsFLAGS_SOFTPROOFING);
+	
+		cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
+	
+		cmsDeleteTransform(hTransform);
+		cmsCloseProfile(imageProfile);
+		cmsCloseProfile(proofingProfile);
+#else
+		ibuf->crect = ibuf->rect;
+#endif
+	}
 }
 
 

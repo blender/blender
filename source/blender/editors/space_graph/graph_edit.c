@@ -116,19 +116,21 @@ static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xm
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= NULL; //ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
-			float tmin, tmax;
+			float txmin, txmax, tymin, tymax;
 			
 			/* get range and apply necessary scaling before */
-			calc_fcurve_bounds(fcu, &tmin, &tmax, ymin, ymax);
+			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
 			if (nob) {
-				tmin= get_action_frame_inv(nob, tmin);
-				tmax= get_action_frame_inv(nob, tmax);
+				txmin= get_action_frame_inv(nob, txmin);
+				txmax= get_action_frame_inv(nob, txmax);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
-			if (xmin) *xmin= MIN2(*xmin, tmin);
-			if (xmax) *xmax= MAX2(*xmax, tmax);
+			if ((xmin) && (txmin < *xmin)) 		*xmin= txmin;
+			if ((xmax) && (txmax > *xmax)) 		*xmax= txmax;
+			if ((ymin) && (tymin < *ymin)) 		*ymin= tymin;
+			if ((ymax) && (tymax > *ymax)) 		*ymax= tymax;
 		}
 		
 		/* free memory */
@@ -1388,7 +1390,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	BeztEditFunc edit_cb;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1396,6 +1398,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.scene= ac->scene;
+	if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
+		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
+		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+	}
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1486,13 +1492,14 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == GRAPHKEYS_MIRROR_MARKER) {
-		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
 		/* find first selected marker */
-		for (marker= scene->markers.first; marker; marker=marker->next) {
-			if (marker->flag & SELECT) {
-				break;
+		if (ac->markers) {
+			for (marker= ac->markers->first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					break;
+				}
 			}
 		}
 		

@@ -1387,7 +1387,7 @@ static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mat
 
 	if(ma->mode&MA_WIRE)
 		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
-	else if(ma->mode & MA_HALO){
+	else if(ma->material_type == MA_TYPE_HALO) {
 		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
 		if(har) har->lay= obr->ob->lay;
 	}
@@ -1593,7 +1593,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
 		if(path_nbr) {
-			if((ma->mode & (MA_HALO|MA_WIRE))==0) {
+			if((ma->material_type != MA_TYPE_HALO) && (ma->mode & MA_WIRE)==0) {
 				sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
 				set_object_orco(re, psys, sd.orco);
 			}
@@ -3035,7 +3035,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	
 	ma= give_render_material(re, ob, 1);
 
-	if(ma->mode & MA_HALO) {
+	if(ma->material_type == MA_TYPE_HALO) {
 		make_render_halos(re, obr, me, totvert, mvert, ma, orco);
 	}
 	else {
@@ -4401,7 +4401,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	if(totmaterial) {
 		for(a= 0; a<*totmaterial; a++) {
 			ma= give_current_material(obd, a);
-			if(ma && (ma->mode & MA_HALO))
+			if(ma && (ma->material_type == MA_TYPE_HALO))
 				return 0;
 		}
 	}

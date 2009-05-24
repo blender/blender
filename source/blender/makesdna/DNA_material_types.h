@@ -52,7 +52,7 @@ typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
-	short colormodel, flag;	
+	short material_type, flag;	
 	/* note, keep this below synced with render_types.h */
 	float r, g, b;
 	float specr, specg, specb;
@@ -147,11 +147,10 @@ typedef struct Material {
 	 */
 #define MAXMAT			16
 
-/* colormodel */
-#define MA_RGB			0
-#define MA_CMYK			1
-#define MA_YUV			2
-#define MA_HSV			3
+/* material_type */
+#define MA_TYPE_SURFACE	0
+#define MA_TYPE_HALO	1
+#define MA_TYPE_VOLUME	2
 
 /* flag */
 		/* for render */
@@ -166,7 +165,7 @@ typedef struct Material {
 #define MA_WIRE			8
 #define MA_VERTEXCOL	16
 #define MA_HALO_SOFT	16
-#define MA_HALO			32
+#define MA_HALO			32			/* deprecated */
 #define MA_ZTRA			64
 #define MA_VERTEXCOLP	128
 #define MA_ZINV			256
