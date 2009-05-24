@@ -1122,6 +1122,8 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra)
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		TStripElem * tse = give_tstripelem(seq, cfra);
+		int frameno = tse->nr + seq->anim_startofs;
 		if (!seq->strip->proxy->anim) {
 			if (!seq_proxy_get_fname(seq, cfra, name)) {
 				return 0;
@@ -1132,7 +1134,8 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra)
 		if (!seq->strip->proxy->anim) {
 			return 0;
 		}
-		return IMB_anim_absolute(seq->strip->proxy->anim, cfra);
+
+		return IMB_anim_absolute(seq->strip->proxy->anim, frameno);
 	}
 
 	if (!seq_proxy_get_fname(seq, cfra, name)) {
