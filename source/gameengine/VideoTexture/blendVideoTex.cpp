@@ -74,7 +74,7 @@ static PyObject * getLastError (PyObject *self, PyObject *args)
 static PyObject * setLogFile (PyObject *self, PyObject *args)
 {
 	// get parameters
-	if (!PyArg_ParseTuple(args, "s", &Exception::m_logFile))
+	if (!PyArg_ParseTuple(args, "s:setLogFile", &Exception::m_logFile))
 		return Py_BuildValue("i", -1);
 	// log file was loaded
 	return Py_BuildValue("i", 0);
@@ -86,7 +86,7 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 {
 	// parameter is Image object
 	PyObject * pyImg;
-	if (!PyArg_ParseTuple(args, "O", &pyImg) || !pyImageTypes.in(pyImg->ob_type))
+	if (!PyArg_ParseTuple(args, "O:imageToArray", &pyImg) || !pyImageTypes.in(pyImg->ob_type))
 	{
 		// if object is incorect, report error
 		PyErr_SetString(PyExc_TypeError, "VideoTexture.imageToArray(image): The value must be a image source object");

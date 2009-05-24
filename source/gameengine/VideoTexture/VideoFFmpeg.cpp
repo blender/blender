@@ -1178,7 +1178,7 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	char * file = NULL;
 
 	// get parameters
-	if (!PyArg_ParseTuple(args, "s", &file))
+	if (!PyArg_ParseTuple(args, "s:ImageFFmpeg", &file))
 		return -1; 
 
 	try
@@ -1203,8 +1203,9 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 PyObject * Image_reload (PyImage * self, PyObject *args)
 {
 	char * newname = NULL;
-
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "|s", &newname))
+	if (!PyArg_ParseTuple(args, "|s:reload", &newname))
+		return NULL;
+	if (self->m_image != NULL)
 	{
 		VideoFFmpeg* video = getFFmpeg(self);
 		// check type of object
