@@ -2508,7 +2508,7 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 		Returns the property or material to collide with. Use
 		getTouchMaterial() to find out whether this sensor
-		looks for properties or materials. (B{deprecated})
+		looks for properties or materials.
 		
 		@deprecated: use the L{property} property
 		@rtype: string
@@ -2588,7 +2588,7 @@ class KX_NetworkMessageActuator(SCA_IActuator):
 		"""
 		Sets the message body.
 		
-		deprecated: Use the L{body} attribute instead.
+		@deprecated: Use the L{body} attribute instead.
 		@type body: string
 		@param body: if the body type is True, this is the name of the property to send.
 		             if the body type is False, this is the text to send.
@@ -2707,15 +2707,17 @@ class KX_ObjectActuator(SCA_IActuator):
 	"""
 	def getForce():
 		"""
-		Returns the force applied by the actuator. (B{deprecated})
-		
+		Returns the force applied by the actuator.
+
+		@deprecated: Use L{force} and L{useLocalForce} instead.
 		@rtype: list [fx, fy, fz, local]
 		@return: A four item list, containing the vector force, and a flag specifying whether the force is local.
 		"""
 	def setForce(fx, fy, fz, local):
 		"""
-		Sets the force applied by the actuator. (B{deprecated})
+		Sets the force applied by the actuator.
 		
+		@deprecated: Use L{force} and L{useLocalForce} instead.
 		@type fx: float
 		@param fx: the x component of the force.
 		@type fy: float
@@ -2728,16 +2730,18 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getTorque():
 		"""
-		Returns the torque applied by the actuator. (B{deprecated})
+		Returns the torque applied by the actuator.
 		
+		@deprecated: Use L{torque} and L{useLocalTorque} instead.
 		@rtype: list [S{Tau}x, S{Tau}y, S{Tau}z, local]
 		@return: A four item list, containing the vector torque, and a flag specifying whether
 		         the torque is applied in local coordinates (True) or world coordinates (False)
 		"""
 	def setTorque(tx, ty, tz, local):
 		"""
-		Sets the torque applied by the actuator. (B{deprecated})
+		Sets the torque applied by the actuator.
 		
+		@deprecated: Use L{torque} and L{useLocalTorque} instead.
 		@type tx: float
 		@param tx: the x component of the torque.
 		@type ty: float
@@ -2750,8 +2754,9 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getDLoc():
 		"""
-		Returns the displacement vector applied by the actuator. (B{deprecated})
+		Returns the displacement vector applied by the actuator.
 		
+		@deprecated: Use L{dLoc} and L{useLocalDLoc} instead.
 		@rtype: list [dx, dy, dz, local]
 		@return: A four item list, containing the vector displacement, and whether
 		         the displacement is applied in local coordinates (True) or world
@@ -2759,12 +2764,13 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def setDLoc(dx, dy, dz, local):
 		"""
-		Sets the displacement vector applied by the actuator. (B{deprecated})
+		Sets the displacement vector applied by the actuator.
 		
 		Since the displacement is applied every frame, you must adjust the displacement
 		based on the frame rate, or you game experience will depend on the player's computer
 		speed.
 		
+		@deprecated: Use L{dLoc} and L{useLocalDLoc} instead.
 		@type dx: float
 		@param dx: the x component of the displacement vector.
 		@type dy: float
@@ -2777,20 +2783,22 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getDRot():
 		"""
-		Returns the angular displacement vector applied by the actuator. (B{deprecated})
+		Returns the angular displacement vector applied by the actuator.
 		
+		@deprecated: Use L{dRot} and L{useLocalDRot} instead.
 		@rtype: list [dx, dy, dz, local]
 		@return: A four item list, containing the angular displacement vector, and whether
 		         the displacement is applied in local coordinates (True) or world coordinates (False)
 		"""
 	def setDRot(dx, dy, dz, local):
 		"""
-		Sets the angular displacement vector applied by the actuator. (B{deprecated})
+		Sets the angular displacement vector applied by the actuator.
 		
 		Since the displacement is applied every frame, you must adjust the displacement
 		based on the frame rate, or you game experience will depend on the player's computer
 		speed.
 		
+		@deprecated: Use L{dRot} and L{useLocalDRot} instead.
 		@type dx: float
 		@param dx: the x component of the angular displacement vector.
 		@type dy: float
@@ -2804,16 +2812,18 @@ class KX_ObjectActuator(SCA_IActuator):
 	def getLinearVelocity():
 		"""
 		Returns the linear velocity applied by the actuator.
-		For the servo control actuator, this is the target speed. (B{deprecated})
-		
+		For the servo control actuator, this is the target speed.
+
+		@deprecated: Use L{linV} and L{useLocalLinV} instead.
 		@rtype: list [vx, vy, vz, local]
 		@return: A four item list, containing the vector velocity, and whether the velocity is applied in local coordinates (True) or world coordinates (False)
 		"""
 	def setLinearVelocity(vx, vy, vz, local):
 		"""
 		Sets the linear velocity applied by the actuator.
-		For the servo control actuator, sets the target speed. (B{deprecated})
-		
+		For the servo control actuator, sets the target speed.
+
+		@deprecated: Use L{linV} and L{useLocalLinV} instead.
 		@type vx: float
 		@param vx: the x component of the velocity vector.
 		@type vy: float
@@ -2826,8 +2836,9 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getAngularVelocity():
 		"""
-		Returns the angular velocity applied by the actuator. (B{deprecated})
-		
+		Returns the angular velocity applied by the actuator.
+
+		@deprecated: Use L{angV} and L{useLocalAngV} instead.
 		@rtype: list [S{omega}x, S{omega}y, S{omega}z, local]
 		@return: A four item list, containing the vector velocity, and whether
 		         the velocity is applied in local coordinates (True) or world
@@ -2835,8 +2846,9 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def setAngularVelocity(wx, wy, wz, local):
 		"""
-		Sets the angular velocity applied by the actuator. (B{deprecated})
-		
+		Sets the angular velocity applied by the actuator.
+
+		@deprecated: Use L{angV} and L{useLocalAngV} instead.
 		@type wx: float
 		@param wx: the x component of the velocity vector.
 		@type wy: float
@@ -2849,30 +2861,34 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getDamping():
 		"""
-		Returns the damping parameter of the servo controller. (B{deprecated})
-		
+		Returns the damping parameter of the servo controller.
+
+		@deprecated: Use L{damping} instead.
 		@rtype: integer
 		@return: the time constant of the servo controller in frame unit.
 		"""
 	def setDamping(damp):
 		"""
-		Sets the damping parameter of the servo controller. (B{deprecated})
-		
+		Sets the damping parameter of the servo controller.
+
+		@deprecated: Use L{damping} instead.
 		@type damp: integer
 		@param damp: the damping parameter in frame unit.
 		"""
 	def getForceLimitX():
 		"""
-		Returns the min/max force limit along the X axis used by the servo controller. (B{deprecated})
-		
+		Returns the min/max force limit along the X axis used by the servo controller.
+
+		@deprecated: Use L{forceLimitX} instead.
 		@rtype: list [min, max, enabled]
 		@return: A three item list, containing the min and max limits of the force as float
 		         and whether the limits are active(true) or inactive(true)
 		"""
 	def setForceLimitX(min, max, enable):
 		"""
-		Sets the min/max force limit along the X axis and activates or deactivates the limits in the servo controller.  (B{deprecated})
-		
+		Sets the min/max force limit along the X axis and activates or deactivates the limits in the servo controller.
+
+		@deprecated: Use L{forceLimitX} instead.
 		@type min: float
 		@param min: the minimum value of the force along the X axis.
 		@type max: float
@@ -2883,16 +2899,18 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getForceLimitY():
 		"""
-		Returns the min/max force limit along the Y axis used by the servo controller. (B{deprecated})
-		
+		Returns the min/max force limit along the Y axis used by the servo controller.
+
+		@deprecated: Use L{forceLimitY} instead.
 		@rtype: list [min, max, enabled]
 		@return: A three item list, containing the min and max limits of the force as float
 		         and whether the limits are active(true) or inactive(true)
 		"""
 	def setForceLimitY(min, max, enable):
 		"""
-		Sets the min/max force limit along the Y axis and activates or deactivates the limits in the servo controller. (B{deprecated})
-		
+		Sets the min/max force limit along the Y axis and activates or deactivates the limits in the servo controller.
+
+		@deprecated: Use L{forceLimitY} instead.
 		@type min: float
 		@param min: the minimum value of the force along the Y axis.
 		@type max: float
@@ -2903,16 +2921,18 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getForceLimitZ():
 		"""
-		Returns the min/max force limit along the Z axis used by the servo controller. (B{deprecated})
-		
+		Returns the min/max force limit along the Z axis used by the servo controller.
+
+		@deprecated: Use L{forceLimitZ} instead.
 		@rtype: list [min, max, enabled]
 		@return: A three item list, containing the min and max limits of the force as float
 		         and whether the limits are active(true) or inactive(true)
 		"""
 	def setForceLimitZ(min, max, enable):
 		"""
-		Sets the min/max force limit along the Z axis and activates or deactivates the limits in the servo controller. (B{deprecated})
-		
+		Sets the min/max force limit along the Z axis and activates or deactivates the limits in the servo controller.
+
+		@deprecated: Use L{forceLimitZ} instead.
 		@type min: float
 		@param min: the minimum value of the force along the Z axis.
 		@type max: float
@@ -2923,8 +2943,9 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def getPID():
 		"""
-		Returns the PID coefficient of the servo controller. (B{deprecated})
-		
+		Returns the PID coefficient of the servo controller.
+
+		@deprecated: Use L{pid} instead.
 		@rtype: list [P, I, D]
 		@return: A three item list, containing the PID coefficient as floats:
 		         P : proportional coefficient
@@ -2933,8 +2954,9 @@ class KX_ObjectActuator(SCA_IActuator):
 		"""
 	def setPID(P, I, D):
 		"""
-		Sets the PID coefficients of the servo controller. (B{deprecated})
-		
+		Sets the PID coefficients of the servo controller.
+
+		@deprecated: Use L{pid} instead.
 		@type P: flat
 		@param P: proportional coefficient
 		@type I: float
