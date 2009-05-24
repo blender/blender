@@ -15,13 +15,10 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		__label__ = "Shape"
 
 		def draw(self, context):
-			curve = context.main.curves[0]
+			curve = context.active_object.data
 			layout = self.layout
 
-			if not curve:
-				return
-			row = layout.row()
-			row.itemR(curve, "curve_2d")			
+			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()
 		
@@ -44,34 +41,29 @@ class DATA_PT_shape_text(DataButtonsPanel):
 			sub.itemL(text="Display:")
 			sub.itemR(curve, "fast")
 			
-
 class DATA_PT_font(DataButtonsPanel):
 	__idname__ = "DATA_PT_font"
 	__label__ = "Font"
 
 	def draw(self, context):
-		text = context.main.curves[0]
+		text = context.active_object.data
 		layout = self.layout
 
-		if not text:
-			return
-		
 		layout.row()
 		layout.itemR(text, "font")
 		
 		split = layout.split()
 		
 		sub = split.column()	
-
 	#	sub.itemR(text, "style")
-		sub.itemR(text, "bold")
-		sub.itemR(text, "italic")
-		sub.itemR(text, "underline")
+	#	sub.itemR(text, "bold")
+	#	sub.itemR(text, "italic")
+	#	sub.itemR(text, "underline")
+	# 	ToDo: These settings are in a sub struct (Edit Format). 
 		sub.itemR(text, "text_size")		
 		sub.itemR(text, "shear")
 
 		sub = split.column()
-
 		sub.itemR(text, "text_on_curve")
 		sub.itemR(text, "family")
 		sub.itemL(text="Underline:")
@@ -80,30 +72,20 @@ class DATA_PT_font(DataButtonsPanel):
 
 	#	sub.itemR(text, "edit_format")
 
-
-
-
-		
 class DATA_PT_paragraph(DataButtonsPanel):
 	__idname__ = "DATA_PT_paragraph"
 	__label__ = "Paragraph"
 
 	def draw(self, context):
-		text = context.main.curves[0]
+		text = context.active_object.data
 		layout = self.layout
 
-		if not text:
-			return
-			
-		row = layout.row()
-		row.itemL(text="Align:")
-		row = layout.row()
-		row.itemR(text, "spacemode", expand=True)
+		layout.itemL(text="Align:")
+		layout.itemR(text, "spacemode", expand=True)
 
 		split = layout.split()
 		
 		sub = split.column()	
-
 		sub.itemL(text="Spacing:")
 		sub.itemR(text, "spacing", text="Character")
 		sub.itemR(text, "word_spacing", text="Word")
@@ -120,16 +102,10 @@ class DATA_PT_textboxes(DataButtonsPanel):
 		__label__ = "Text Boxes"
 
 		def draw(self, context):
-			text = context.main.curves[0]
+			text = context.active_object.data
 			layout = self.layout
 
-			if not text:
-				return
-				
-
-			
 bpy.types.register(DATA_PT_shape_text)	
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
-bpy.types.register(DATA_PT_textboxes)
-
+#bpy.types.register(DATA_PT_textboxes)

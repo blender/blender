@@ -18,9 +18,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		if not ob:
-			return
-
 		row = layout.row()
 		row.item_menu_enumO("OBJECT_OT_modifier_add", "type")
 		row.itemL();
@@ -384,4 +381,3 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
-

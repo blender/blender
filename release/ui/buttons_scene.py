@@ -37,8 +37,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
 		rd = scene.render_data
 		
-		col = layout.column()
-		col.itemR(rd, "output_path")
+		layout.itemR(rd, "output_path")
 		
 		split = layout.split()
 		
@@ -65,8 +64,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 		if rd.fields:
 			sub.itemR(rd, "fields_still", text="Still")
 			sub.row().itemR(rd, "field_order", expand=True)
-		
-	
+
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 

@@ -1,3 +1,4 @@
+
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
@@ -17,13 +18,11 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		arm = context.active_object.data
 		layout = self.layout
 		
-		row = layout.row()
-		row.itemR(arm, "rest_position")
+		layout.itemR(arm, "rest_position")
 
 		split = layout.split()
 
 		sub = split.column()
-
 		sub.itemL(text="Deform:")
 		sub.itemR(arm, "deform_vertexgroups", text="Vertes Groups")
 		sub.itemR(arm, "deform_envelope", text="Envelopes")
@@ -37,7 +36,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		sub.itemL(text="LAYERS")
 		#sub.itemR(arm, "layer")
 		#sub.itemR(arm, "layer_protection")
-
 
 class DATA_PT_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_display"
@@ -59,7 +57,6 @@ class DATA_PT_display(DataButtonsPanel):
 		sub.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
 		sub.itemR(arm, "draw_group_colors", text="Colors")
 
-
 class DATA_PT_paths(DataButtonsPanel):
 	__idname__ = "DATA_PT_paths"
 	__label__ = "Paths"
@@ -71,11 +68,10 @@ class DATA_PT_paths(DataButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
-
 		sub.itemR(arm, "paths_show_around_current_frame", text="Around Frame")
 		if (arm.paths_show_around_current_frame):
-				sub.itemR(arm, "path_before_current", text="Before")
-				sub.itemR(arm, "path_after_current", text="After")
+			sub.itemR(arm, "path_before_current", text="Before")
+			sub.itemR(arm, "path_after_current", text="After")
 		else:
 			sub.itemR(arm, "path_start_frame", text="Start")
 			sub.itemR(arm, "path_end_frame", text="End")
@@ -89,7 +85,6 @@ class DATA_PT_paths(DataButtonsPanel):
 		sub.itemR(arm, "paths_highlight_keyframes", text="Keyframes")
 		sub.itemR(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
 
-		
 class DATA_PT_ghost(DataButtonsPanel):
 	__idname__ = "DATA_PT_ghost"
 	__label__ = "Ghost"
@@ -101,7 +96,6 @@ class DATA_PT_ghost(DataButtonsPanel):
 		split = layout.split()
 
 		sub = split.column()
-
 		sub.itemR(arm, "ghost_type", text="Scope")
 		if arm.ghost_type == 'RANGE':
 			sub.itemR(arm, "ghost_start_frame", text="Start")
@@ -112,7 +106,6 @@ class DATA_PT_ghost(DataButtonsPanel):
 			sub.itemR(arm, "ghost_size", text="Step")
 
 		sub = split.column()
-
 		sub.itemR(arm, "ghost_only_selected", text="Selected Only")
 
 bpy.types.register(DATA_PT_skeleton)

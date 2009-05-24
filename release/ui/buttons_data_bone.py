@@ -15,7 +15,7 @@ class DATA_PT_bone(DataButtonsPanel):
 	__label__ = "Bone"
 
 	def draw(self, context):
-		bone = context.main.armatures[0].bones[0]
+		bone = context.active_object.data.bones[0]
 		layout = self.layout
 
 		split = layout.split()
@@ -26,7 +26,6 @@ class DATA_PT_bone(DataButtonsPanel):
 		sub.itemR(bone, "connected")
 		sub.itemR(bone, "deform")
 
-				
 		sub.itemL(text="Inherit:")
 		sub.itemR(bone, "hinge")
 		sub.itemR(bone, "inherit_scale")
@@ -48,20 +47,18 @@ class DATA_PT_bone(DataButtonsPanel):
 		sub.itemR(bone, "bbone_in", text="Ease In")
 		sub.itemR(bone, "bbone_out", text="Ease Out")
 		
-		
 		sub.itemR(bone, "cyclic_offset")
-
 
 class DATA_PT_constraints(DataButtonsPanel):
 	__idname__ = "DATA_PT_constraints"
 	__label__ = "Constraints"
 	
 	def draw(self, context):
-		bone = context.main.armatures[0].bones[0]
+		bone = context.active_object.data.bones[0]
 		layout = self.layout
 		split = layout.split()
 		
 		sub = split.column()
 
 bpy.types.register(DATA_PT_bone)
-bpy.types.register(DATA_PT_constraints)
+#bpy.types.register(DATA_PT_constraints)

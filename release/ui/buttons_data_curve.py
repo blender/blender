@@ -9,20 +9,16 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		ob = context.active_object
 		return (ob and ob.type == 'CURVE')
-	
 
 class DATA_PT_shape_curve(DataButtonsPanel):
 		__idname__ = "DATA_PT_shape_curve"
 		__label__ = "Shape"
 
 		def draw(self, context):
-			curve = context.main.curves[0]
+			curve = context.active_object.data
 			layout = self.layout
 
-			if not curve:
-				return
-			row = layout.row()
-			row.itemR(curve, "curve_2d")			
+			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()
 		
@@ -47,19 +43,14 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			sub.itemL(text="NORMALS")
 			sub.itemR(curve, "vertex_normal_flip")
 
-
 class DATA_PT_geometry(DataButtonsPanel):
 		__idname__ = "DATA_PT_geometry"
 		__label__ = "Geometry"
 
 		def draw(self, context):
-			curve = context.main.curves[0]
+			curve = context.active_object.data
 			layout = self.layout
 
-			if not curve:
-				return
-				
-				
 			split = layout.split()
 		
 			sub = split.column()
@@ -67,33 +58,25 @@ class DATA_PT_geometry(DataButtonsPanel):
 			sub.itemR(curve, "width")
 			sub.itemR(curve, "extrude")
 			sub.itemR(curve, "taper_object")
+			
 			sub = split.column()
 			sub.itemL(text="Bevel:")
 			sub.itemR(curve, "bevel_depth", text="Depth")
 			sub.itemR(curve, "bevel_resolution", text="Resolution")
 			sub.itemR(curve, "bevel_object")
-
-
-
 	
 class DATA_PT_pathanim(DataButtonsPanel):
 		__idname__ = "DATA_PT_pathanim"
 		__label__ = "Path Animation"
 
 		def draw(self, context):
-			curve = context.main.curves[0]
+			curve = context.active_object.data
 			layout = self.layout
 
-			if not curve:
-				return
-				
-				
-			split = layout.split()		
-			sub = split.column(1)
-			sub.itemR(curve, "path", text="Enable")
-
+			layout.itemR(curve, "path", text="Enable")
 			
 			split = layout.split()		
+			
 			sub = split.column()
 			sub.itemR(curve, "path_length", text="Frames")
 			sub.itemR(curve, "follow")
@@ -101,19 +84,15 @@ class DATA_PT_pathanim(DataButtonsPanel):
 			sub = split.column()
 			sub.itemR(curve, "stretch")
 			sub.itemR(curve, "offset_path_distance", text="Offset Children")
-
-			
+	
 class DATA_PT_current_curve(DataButtonsPanel):
 		__idname__ = "DATA_PT_current_curve"
 		__label__ = "Current Curve"
 
 		def draw(self, context):
-			currentcurve = context.main.curves[0].curves[0]
+			currentcurve = context.active_object.data.curves[0]
 			layout = self.layout
 
-			if not currentcurve:
-				return
-				
 			split = layout.split()
 		
 			sub = split.column()
@@ -129,6 +108,7 @@ class DATA_PT_current_curve(DataButtonsPanel):
 			sub.itemL(text="Endpoints:")
 			sub.itemR(currentcurve, "endpoint_u", text="U")
 			sub.itemR(currentcurve, "endpoint_v", text="V")
+			
 			sub = split.column()
 			sub.itemL(text="Bezier:")
 			sub.itemR(currentcurve, "bezier_u", text="U")

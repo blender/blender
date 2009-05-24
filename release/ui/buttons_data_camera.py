@@ -18,19 +18,16 @@ class DATA_PT_cameralens(DataButtonsPanel):
 		cam = context.active_object.data
 		layout = self.layout
 
-		if not cam:
-			return
-		
 		layout.itemR(cam, "type", expand=True)
 		
 		row = layout.row(align=True)
 		if cam.type == 'PERSP':
+			row.itemR(cam, "lens_unit", text="")
 			if cam.lens_unit == 'MILLIMETERS':
 				row.itemR(cam, "lens", text="Angle")
 			elif cam.lens_unit == 'DEGREES':
 				row.itemR(cam, "angle")
 
-			row.itemR(cam, "lens_unit", text="")
 		elif cam.type == 'ORTHO':
 			row.itemR(cam, "ortho_scale")
 			
@@ -58,9 +55,6 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		cam = context.active_object.data
 		layout = self.layout
 
-		if not cam:
-			return
-			
 		split = layout.split()
 		
 		sub = split.column()
@@ -77,5 +71,3 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		
 bpy.types.register(DATA_PT_cameralens)
 bpy.types.register(DATA_PT_cameradisplay)
-
-

@@ -18,11 +18,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
-		row = layout.row()
-		row.itemR(lamp, "type", expand=True)
+		layout.itemR(lamp, "type", expand=True)
 		
 		split = layout.split()
 		
@@ -64,12 +60,9 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		return (ob.type == 'LAMP' and ob.data.type == 'SUN')
 
 	def draw(self, context):
-		lamp = context.active_object.data
+		lamp = context.active_object.data.sky
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		row = layout.row()
 		row.itemR(lamp, "sky")
 		row.itemR(lamp, "atmosphere")
@@ -86,6 +79,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
 				sub.itemR(lamp, "sky_blend")
 				sub.itemR(lamp, "sky_color_space", text="Color Space")
 				sub.itemR(lamp, "sky_exposure")
+				
 				sub = col.column()
 				sub.itemR(lamp, "horizon_brightness", text="Hor Bright")
 				sub.itemR(lamp, "spread", text="Hor Spread")
@@ -112,9 +106,6 @@ class DATA_PT_shadow(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
 		if lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW'):
@@ -194,9 +185,6 @@ class DATA_PT_spot(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		split = layout.split()
 		
 		sub = split.column()

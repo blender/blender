@@ -93,16 +93,14 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
 		ao = world.ambient_occlusion
 		
-		row = layout.row()
-		row.itemR(ao, "gather_method", expand=True)
+		layout.itemR(ao, "gather_method", expand=True)
 		
 		if ao.gather_method == 'RAYTRACE':
 			row = layout.row()
 			row.itemR(ao, "samples")
 			row.itemR(ao, "distance")
 			
-			row = layout.row()
-			row.itemR(ao, "sample_method")
+			layout.itemR(ao, "sample_method")
 			if ao.sample_method == 'ADAPTIVE_QMC':
 				row = layout.row()
 				row.itemR(ao, "threshold")
@@ -113,17 +111,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 				row.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			row = layout.row()
-			row.itemR(ao, "passes")
-			row.itemR(ao, "error_tolerance", text="Error")
-			
-			row = layout.row()
-			row.itemR(ao, "correction")
-			row.itemR(ao, "pixel_cache")
+			col = layout.column_flow()
+			col.itemR(ao, "passes")
+			col.itemR(ao, "error_tolerance", text="Error")
+			col.itemR(ao, "correction")
+			col.itemR(ao, "pixel_cache")
 
-		row = layout.row()
-		row.itemS()
-			
 		row = layout.row()
 		row.itemR(ao, "falloff")	
 		row.itemR(ao, "strength")
@@ -138,4 +131,3 @@ bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 bpy.types.register(WORLD_PT_color_correction)
-

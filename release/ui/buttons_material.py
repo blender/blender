@@ -18,16 +18,14 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		layout = self.layout
 		mat = context.active_object.active_material
 	
-		row = layout.row()
-		row.itemR(mat, "type", expand=True)
+		layout.itemR(mat, "type", expand=True)
 
 		row = layout.row()
 		row.column().itemR(mat, "diffuse_color")
 		row.column().itemR(mat, "specular_color")
 		row.column().itemR(mat, "mirror_color")
 		
-		row = layout.row()
-		row.itemR(mat, "alpha", slider=True)
+		layout.itemR(mat, "alpha", slider=True)
 			
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
@@ -93,10 +91,11 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 		sub.itemR(raym, "gloss_samples")
 		sub.itemR(raym, "gloss_anisotropic", slider=True)
 		
-		flow = layout.column_flow()
-		flow.itemR(raym, "distance", text="Max Dist")
-		flow.itemR(raym, "depth")
-		flow.itemR(raym, "fade_to")
+		row = layout.row()
+		row.itemR(raym, "distance", text="Max Dist")
+		row.itemR(raym, "depth")
+		
+		layout.itemR(raym, "fade_to")
 		
 class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raytransp"
