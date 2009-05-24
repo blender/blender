@@ -3689,6 +3689,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				if (seq->flag & SEQ_USE_PROXY) {
 					seq->strip->proxy = newdataadr(
 						fd, seq->strip->proxy);
+					seq->strip->proxy->anim = 0;
 				} else {
 					seq->strip->proxy = 0;
 				}

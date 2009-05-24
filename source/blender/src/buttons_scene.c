@@ -1174,7 +1174,7 @@ static void seq_panel_proxy()
 
 	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
 		     B_SEQ_BUT_RELOAD, "Use Proxy", 
-		     10,140,120,19, &last_seq->flag, 
+		     10,140,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Use a preview proxy for this strip");
 
@@ -1187,9 +1187,15 @@ static void seq_panel_proxy()
 
 		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
 			     B_SEQ_BUT_RELOAD, "Custom Dir", 
-			     130,140,120,19, &last_seq->flag, 
+			     90,140,80,19, &last_seq->flag, 
 			     0.0, 21.0, 100, 0, 
 			     "Use a custom directory to store data");
+
+		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_FILE, 
+			     B_SEQ_BUT_RELOAD, "Custom File", 
+			     170,140,80,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Use a custom file to load data from");
 
 		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
 			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
@@ -1202,30 +1208,41 @@ static void seq_panel_proxy()
 				 30,120,220,20, last_seq->strip->proxy->dir, 
 				 0.0, 160.0, 100, 0, "");
 		}
+		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
+				     ICON_FILESEL, 10, 100, 20, 20, 0, 0, 0, 
+				     0, 0, 
+				     "Select the custom proxy file "
+				     "(used for all preview resolutions!)");
+
+			uiDefBut(block, TEX, 
+				 B_SEQ_BUT_RELOAD, "File: ", 
+				 30,100,220,20, last_seq->strip->proxy->file, 
+				 0.0, 160.0, 100, 0, "");
+		}
 	}
 
 	if (last_seq->flag & SEQ_USE_PROXY) {
 		if (G.scene->r.size == 100) {
 			uiDefBut(block, LABEL, 0, 
 				 "Full render size selected, ",
-				 10,100,240,19, 0, 0, 0, 0, 0, "");
+				 10,60,240,19, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, 
 				 "so no proxy enabled!",
-				 10,80,240,19, 0, 0, 0, 0, 0, "");
+				 10,40,240,19, 0, 0, 0, 0, 0, "");
 		} else if (last_seq->type != SEQ_MOVIE 
 			   && last_seq->type != SEQ_IMAGE
 			   && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
 			uiDefBut(block, LABEL, 0, 
 				 "Cannot proxy this strip without ",
-				 10,100,240,19, 0, 0, 0, 0, 0, "");
+				 10,60,240,19, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, 
 				 "custom directory selection!",
-				 10,80,240,19, 0, 0, 0, 0, 0, "");
-
-		} else {
+				 10,40,240,19, 0, 0, 0, 0, 0, "");
+		} else if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
 			uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
 				 "Rebuild proxy",
-				 10,100,240,19, 0, 0, 0, 0, 0, 
+				 10,60,240,19, 0, 0, 0, 0, 0, 
 				 "Rebuild proxy for the "
 				 "currently selected strip.");
 		}
@@ -1294,7 +1311,19 @@ static void sel_proxy_dir(char *name)
 
 	allqueue(REDRAWBUTSSCENE, 0);
 
-	BIF_undo_push("Change proxy directory");
+	BIF_undo_push("Change custom proxy directory");
+}
+
+static void sel_proxy_file(char *name)
+{
+	Sequence *last_seq = get_last_seq();
+
+	BLI_split_dirfile_basic(name, last_seq->strip->proxy->dir,
+				last_seq->strip->proxy->file);
+
+	allqueue(REDRAWBUTSSCENE, 0);
+
+	BIF_undo_push("Change custom proxy file");
 }
 
 void do_sequencer_panels(unsigned short event)
@@ -1323,6 +1352,13 @@ void do_sequencer_panels(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT PROXY DIR", 
 				    last_seq->strip->proxy->dir, 
 				    sel_proxy_dir);
+		break;
+	case B_SEQ_SEL_PROXY_FILE:
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "SELECT PROXY FILE", 
+				    last_seq->strip->proxy->dir, 
+				    sel_proxy_file);
 		break;
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:

@@ -106,6 +106,14 @@ void free_tstripdata(int len, TStripElem *se)
 
 }
 
+static void free_proxy_seq(Sequence *seq)
+{
+	if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
+		IMB_free_anim(seq->strip->proxy->anim);
+		seq->strip->proxy->anim = 0;
+	}
+}
+
 void free_strip(Strip *strip)
 {
 	strip->us--;
@@ -120,6 +128,10 @@ void free_strip(Strip *strip)
 	}
 
 	if (strip->proxy) {
+		if (strip->proxy->anim) {
+			IMB_free_anim(strip->proxy->anim);
+		}
+
 		MEM_freeN(strip->proxy);
 	}
 	if (strip->crop) {
@@ -516,6 +528,8 @@ void reload_sequence_new_file(Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	}
+
+	free_proxy_seq(seq);
 
 	calc_sequence(seq);
 }
@@ -1053,6 +1067,12 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 		}
 	}
 
+	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		snprintf(name, PROXY_MAXFILE, "%s/%s",
+			 dir, seq->strip->proxy->file);
+		return TRUE;
+	}
+
 	/* generate a seperate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
@@ -1099,6 +1119,20 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra)
 		return 0;
 	}
 
+	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		if (!seq->strip->proxy->anim) {
+			if (!seq_proxy_get_fname(seq, cfra, name)) {
+				return 0;
+			}
+
+			seq->strip->proxy->anim = openanim(name, IB_rect);
+		}
+		if (!seq->strip->proxy->anim) {
+			return 0;
+		}
+		return IMB_anim_absolute(seq->strip->proxy->anim, cfra);
+	}
+
 	if (!seq_proxy_get_fname(seq, cfra, name)) {
 		return 0;
 	}
@@ -1128,6 +1162,11 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra)
 
 	/* rendering at 100% ? No real sense in proxy-ing, right? */
 	if (G.scene->r.size == 100.0) {
+		return;
+	}
+
+	/* that's why it is called custom... */
+	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		return;
 	}
 
@@ -2866,6 +2905,7 @@ void free_imbuf_seq_except(int cfra)
 			if(seq->type==SEQ_MOVIE)
 				if(seq->startdisp > cfra || seq->enddisp < cfra)
 					free_anim_seq(seq);
+			free_proxy_seq(seq);
 		}
 	}
 	END_SEQ
@@ -2909,6 +2949,7 @@ void free_imbuf_seq()
 			if(seq->type==SEQ_SPEED) {
 				sequence_effect_speed_rebuild_map(seq, 1);
 			}
+			free_proxy_seq(seq);
 		}
 	}
 	END_SEQ
@@ -2974,6 +3015,7 @@ static int update_changed_seq_recurs(Sequence *seq, Sequence *changed_seq, int l
 			if(seq->type == SEQ_SPEED) {
 				sequence_effect_speed_rebuild_map(seq, 1);
 			}
+			free_proxy_seq(seq);
 		}
 
 		if(len_change)
