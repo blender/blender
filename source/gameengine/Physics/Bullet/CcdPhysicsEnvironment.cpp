@@ -1003,7 +1003,7 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 
 	virtual	btScalar addSingleResult(btCollisionWorld::LocalRayResult& rayResult,bool normalInWorldSpace)
 	{
-		CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->getUserPointer());
+		//CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->getUserPointer());
 		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
 		if (rayResult.m_localShapeInfo)
 		{
@@ -1021,10 +1021,6 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 
 PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
-
-
-	float minFraction = 1.f;
-
 	btVector3 rayFrom(fromX,fromY,fromZ);
 	btVector3 rayTo(toX,toY,toZ);
 
@@ -1174,7 +1170,7 @@ struct OcclusionBuffer
 	{
 		m_initialized=false;
 		m_occlusion = false;
-		m_buffer == NULL;
+		m_buffer = NULL;
 		m_bufferSize = 0;
 	}
 	// multiplication of column major matrices: m=m1*m2
@@ -1282,8 +1278,7 @@ struct OcclusionBuffer
 	static bool	project(btVector4* p,int n)
 	{
 		for(int i=0;i<n;++i)
-		{
-			const btScalar iw=1/p[i][3];
+		{			
 			p[i][2]=1/p[i][3];
 			p[i][0]*=p[i][2];
 			p[i][1]*=p[i][2];
@@ -1601,7 +1596,7 @@ struct OcclusionBuffer
 									6,5,1,2,
 									7,6,2,3,
 									5,4,0,1};
-		for(int i=0;i<(sizeof(d)/sizeof(d[0]));)
+		for(unsigned int i=0;i<(sizeof(d)/sizeof(d[0]));)
 		{
 			const btVector4	p[]={	x[d[i++]],
 									x[d[i++]],
@@ -1954,9 +1949,6 @@ bool CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctr
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
 {
-	
-	CcdPhysicsController* ctrl0=0,*ctrl1=0;
-
 	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE] || (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints)))
 	{
 		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback

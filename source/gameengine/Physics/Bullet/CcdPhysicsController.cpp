@@ -185,12 +185,12 @@ void CcdPhysicsController::CreateRigidbody()
 		rbci.m_restitution = m_cci.m_restitution;
 
 		
-		int nodecount = 0;
+
 		
-		int numtriangles = 1;
+		
 		
 		btVector3 p(0,0,0);// = getOrigin();
-		btScalar h = 1.f;
+
 		
 		btSoftRigidDynamicsWorld* softDynaWorld = (btSoftRigidDynamicsWorld*)m_cci.m_physicsEnv->getDynamicsWorld();
 
@@ -794,7 +794,7 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 
-		btRigidBody* body = GetRigidBody();
+		// btRigidBody* body = GetRigidBody(); // not used anymore
 
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
@@ -1388,8 +1388,6 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	/* Convert blender geometry into bullet mesh, need these vars for mapping */
 	vector<bool> vert_tag_array(numverts, false);
 	unsigned int tot_bt_verts= 0;
-	unsigned int orig_index;
-	int i;
 
 	if (polytope)
 	{
@@ -1609,9 +1607,7 @@ bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
 btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 {
 	btCollisionShape* collisionShape = 0;
-	btTriangleMeshShape* concaveShape = 0;
-	btCompoundShape* compoundShape = 0;
-	CcdShapeConstructionInfo* nextShapeInfo;
+	btCompoundShape* compoundShape = 0;	
 
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
 		return m_shapeProxy->CreateBulletShape(margin);
@@ -1684,7 +1680,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
 					bool removeDuplicateVertices=true;
 					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
-					for(int i=0; i<m_triFaceArray.size(); i+=3) {
+					for(unsigned int i=0; i<m_triFaceArray.size(); i+=3) {
 						btScalar *bt = &m_vertexArray[3*m_triFaceArray[i]];
 						btVector3 v1(bt[0], bt[1], bt[2]);
 						bt = &m_vertexArray[3*m_triFaceArray[i+1]];

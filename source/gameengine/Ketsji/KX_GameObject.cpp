@@ -49,6 +49,8 @@ typedef unsigned long uint_ptr;
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
+#include "KX_Camera.h" // only for their ::Type
+#include "KX_Light.h"  // only for their ::Type
 #include "RAS_MeshObject.h"
 #include "KX_MeshProxy.h"
 #include "KX_PolyProxy.h"
@@ -2757,6 +2759,7 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 	}
 }
 
+
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
@@ -2787,7 +2790,10 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		}
 	}
 	
-	if (PyObject_TypeCheck(value, &KX_GameObject::Type)) {
+	if (	PyObject_TypeCheck(value, &KX_GameObject::Type)	||
+			PyObject_TypeCheck(value, &KX_LightObject::Type)	||
+			PyObject_TypeCheck(value, &KX_Camera::Type)	)
+	{
 		*object = static_cast<KX_GameObject*>BGE_PROXY_REF(value);
 		
 		/* sets the error */
