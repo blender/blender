@@ -922,7 +922,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 		
 
 		bool useReferenceFrameA = true;
-		genericConstraint = new btGeneric6DofConstraint(
+		genericConstraint = new btGeneric6DofSpringConstraint(
 			*rb0,*rb1,
 			frameInA,frameInB,useReferenceFrameA);
 		genericConstraint->setLinearLowerLimit(linearMinLimits);
@@ -1831,6 +1831,28 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 					break;
 				}
 
+			case 12: case 13: case 14: case 15: case 16: case 17:
+			{
+				//param 13-17 are for motorized springs on each of the degrees of freedom
+					btGeneric6DofSpringConstraint* genCons = (btGeneric6DofSpringConstraint*)typedConstraint;
+					int springIndex = param-12;
+					if (value0!=0.f)
+					{
+						bool springEnabled = true;
+						genCons->setStiffness(springIndex,value0);
+						genCons->enableSpring(springIndex,springEnabled);
+						if (value1>0.5f)
+						{
+							genCons->setEquilibriumPoint(springIndex);
+						}
+					} else
+					{
+						bool springEnabled = false;
+						genCons->enableSpring(springIndex,springEnabled);
+					}
+					break;
+			}
+
 			default:
 				{
 				}
@@ -2351,7 +2373,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				frameInB = inv  * globalFrameA;
 				bool useReferenceFrameA = true;
 
-				genericConstraint = new btGeneric6DofConstraint(
+				genericConstraint = new btGeneric6DofSpringConstraint(
 					*rb0,*rb1,
 					frameInA,frameInB,useReferenceFrameA);
 
@@ -2375,7 +2397,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				frameInB = rb0->getCenterOfMassTransform() * frameInA;
 
 				bool useReferenceFrameA = true;
-				genericConstraint = new btGeneric6DofConstraint(
+				genericConstraint = new btGeneric6DofSpringConstraint(
 					*rb0,s_fixedObject2,
 					frameInA,frameInB,useReferenceFrameA);
 			}

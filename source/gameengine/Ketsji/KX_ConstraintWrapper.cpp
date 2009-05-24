@@ -59,20 +59,15 @@ PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
 	int len = PyTuple_Size(args);
 	int success = 1;
 	
-	if (len == 3)
+	int dof;
+	float minLimit,maxLimit;
+	success = PyArg_ParseTuple(args,"iff:setParam",&dof,&minLimit,&maxLimit);
+	if (success)
 	{
-		int dof;
-		float minLimit,maxLimit;
-		success = PyArg_ParseTuple(args,"iff",&dof,&minLimit,&maxLimit);
-		if (success)
-		{
-			m_physenv->setConstraintParam(m_constraintId,dof,minLimit,maxLimit);
-			Py_RETURN_NONE;
-		}
+		m_physenv->setConstraintParam(m_constraintId,dof,minLimit,maxLimit);
 	}
-	return NULL;
+	Py_RETURN_NONE;
 }
-
 
 
 //python specific stuff

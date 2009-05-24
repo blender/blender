@@ -159,7 +159,7 @@ typedef struct Object {
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
-	float pad3; /* pad3 is now used for m_contactProcessingThreshold, can we still rename it? */
+	float m_contactProcessingThreshold;
 
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */

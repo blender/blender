@@ -985,7 +985,7 @@ Object *add_only_object(int type, char *name)
 	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
 	/* ob->pad3 == Contact Processing Threshold */
-	ob->pad3 = 1.;
+	ob->m_contactProcessingThreshold = 1.;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;

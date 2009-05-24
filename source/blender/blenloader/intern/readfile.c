@@ -8110,7 +8110,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		World *wrld;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
-			ob->pad3 = 1.; //pad3 is used for m_contactProcessingThreshold
+			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
 			if(ob->parent) {
 				/* check if top parent has compound shape set and if yes, set this object
 				   to compound shaper as well (was the behaviour before, now it's optional) */

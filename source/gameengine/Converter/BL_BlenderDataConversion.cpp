@@ -1422,7 +1422,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
 	if (objprop.m_angular_rigidbody || !objprop.m_dyna )
 	{
-		objprop.m_contactProcessingThreshold = blenderobject->pad3;
+		objprop.m_contactProcessingThreshold = blenderobject->m_contactProcessingThreshold;
 	} else
 	{
 		objprop.m_contactProcessingThreshold = 0.f;

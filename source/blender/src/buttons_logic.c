@@ -3204,7 +3204,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			if (ob->gameflag & OB_RIGID_BODY)
 			{
 				uiDefButF(block, NUM, 0, "CPT",
-					xco+180, yco, 180, 19, &ob->pad3, 0.00, 1., 1, 0, 
+					xco+180, yco, 180, 19, &ob->m_contactProcessingThreshold, 0.00, 1., 1, 0, 
 					"Contact Processing Threshold");
 			
 				yco -= 20;
@@ -3287,7 +3287,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 			uiDefButF(block, NUM, 0, "CPT",
-				xco+180, yco, 180, 19, &ob->pad3, 0.00, 1., 1, 0, 
+				xco+180, yco, 180, 19, &ob->m_contactProcessingThreshold, 0.00, 1., 1, 0, 
 				"Contact Processing Threshold");
 
 		}
