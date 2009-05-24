@@ -5262,6 +5262,19 @@ static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
 		return ICON_BLANK1;
 }
 
+static void header_xco_step(ARegion *ar, int *xco, int *yco, int *maxco, int step)
+{
+	*xco += step;
+	if(*maxco < *xco) *maxco = *xco;
+	
+	if(ar->winy > *yco + 44) {
+		if(*xco > ar->winrct.xmax) {
+			*xco= 8;
+			*yco+= 22;
+		}
+	}
+}
+
 void view3d_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -5270,7 +5283,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
-	int a, xco, yco= 3;
+	int a, xco, maxco=0, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
@@ -5307,14 +5320,12 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (v3d->modeselect),view3d_modeselect_pup(scene) , 
 																xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
-	
-	xco+= 126+8;
+	header_xco_step(ar, &xco, &yco, &maxco, 126+8);
 	
 	/* DRAWTYPE */
 	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,yco,XIC+10,YIC, &(v3d->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Alt Z)");
 
-	/* around */
-	xco+= XIC+18;
+	header_xco_step(ar, &xco, &yco, &maxco, XIC+18);
 
 	uiBlockBeginAlign(block);
 
@@ -5324,38 +5335,37 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
  			ToolSettings *ts= scene->toolsettings;
  			
  			uiDefButC(block,ROW,B_REDR,"Pen",xco,yco,40,20,&ts->retopo_paint_tool,6.0,RETOPO_PEN,0,0,"");
- 			xco+=40;
+			xco+= 40;
  			uiDefButC(block,ROW,B_REDR,"Line",xco,yco,40,20,&ts->retopo_paint_tool,6.0,RETOPO_LINE,0,0,"");
- 			xco+=40;
+			xco+= 40;
  			uiDefButC(block,ROW,B_REDR,"Ellipse",xco,yco,60,20,&ts->retopo_paint_tool,6.0,RETOPO_ELLIPSE,0,0,"");
- 			xco+=65;
+			xco+= 65;
 			
  			uiBlockBeginAlign(block);
  			if(ts->retopo_paint_tool == RETOPO_PEN) {
  				uiDefButC(block,TOG,B_NOP,"Hotspot",xco,yco,60,20, &ts->retopo_hotspot, 0,0,0,0,"Show hotspots at line ends to allow line continuation");
-	 			xco+=80;
+				xco+= 80;
  			}
  			else if(ts->retopo_paint_tool == RETOPO_LINE) {
 	 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,yco,80,20,&ts->line_div,1,50,0,0,"Subdivisions per retopo line");
-	 			xco+=80;
+				xco+= 80;
 	 		}
 			else if(ts->retopo_paint_tool == RETOPO_ELLIPSE) {
 	 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,yco,80,20,&ts->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
-	 			xco+=80;
+				xco+= 80;
 	 		}
- 			xco+=5;
+			header_xco_step(ar, &xco, &yco, &maxco, 5);
  			
  			uiBlockEndAlign(block);
  		}
  	} else {
  		if (obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
  			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
- 			xco+= XIC+10;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
  		} else {
- 			/* Manipulators arnt used in weight paint mode */
+ 			/* Manipulators aren't used in weight paint mode */
  			char *str_menu;
 			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
-
 			xco+= XIC+10;
 		
 			uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
@@ -5363,14 +5373,13 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 					 &v3d->flag, 0, 0, 0, 0, "Move object centers only");	
 			uiBlockEndAlign(block);
 		
-			xco+= XIC+8;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
 	
 			uiBlockBeginAlign(block);
 
 			/* NDOF */
 			if (G.ndofdevice ==0 ) {
 				uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), xco,yco,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
-	
 				xco+= XIC+10;
 		
 				uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
@@ -5378,7 +5387,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 					 &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
 				uiBlockEndAlign(block);
 		
-				xco+= XIC+8;
+				header_xco_step(ar, &xco, &yco, &maxco, XIC+8);
 			}
 			uiBlockEndAlign(block);
 
@@ -5386,7 +5395,6 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			uiBlockBeginAlign(block);
 			uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,yco,XIC,YIC, &v3d->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
 			xco+= XIC;
-
 		
 			if(v3d->twflag & V3D_USE_MANIPULATOR) {
 				uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,yco,XIC,YIC, &v3d->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
@@ -5405,9 +5413,8 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 			MEM_freeN(str_menu);
 			
-			xco+= 70;
+			header_xco_step(ar, &xco, &yco, &maxco, 78);
 			uiBlockEndAlign(block);
-			xco+= 8;
  		}
  		
 		/* LAYERS */
@@ -5434,7 +5441,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 
 			/* LOCK */
 			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_LOCKVIEW_OFF, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
-			xco+= XIC+10;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
 
 		}
 	
@@ -5450,7 +5457,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC+10;
 			}
 			uiBlockEndAlign(block);
-			xco+= 10;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
 		}
 
 		/* Snap */
@@ -5469,14 +5476,14 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
-				xco+= 70;
+				xco+= XIC+70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
 			}
 
 			uiBlockEndAlign(block);
-			xco+= 10;
+			header_xco_step(ar, &xco, &yco, &maxco, 10);
 		}
 
 		/* selection modus */
@@ -5496,7 +5503,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 			}
 			uiBlockEndAlign(block);
-			xco+= 20;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 
 			BKE_mesh_end_editmesh(obedit->data, em);
 		}
@@ -5509,12 +5516,13 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
 			xco+= XIC;
 			uiBlockEndAlign(block);
+			
 			if(v3d->drawtype > OB_WIRE) {
 				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,yco,XIC,YIC, &v3d->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
 				xco+= XIC;
 			}
 			uiBlockEndAlign(block);
-			xco+= 20;
+			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 		}
 
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
@@ -5525,22 +5533,26 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			uiBlockBeginAlign(block);
 			
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
-					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
 					 "Copies the current pose to the buffer");
 			uiBlockSetButLock(block, object_data_is_libdata(ob), "Can't edit external libdata");
-			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
-					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					 "Pastes the pose from the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
-					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					 "Pastes the mirrored pose from the buffer");
+			xco+= XIC;
 
+			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
+					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 "Pastes the pose from the buffer");
+			xco+= XIC;
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
+					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 "Pastes the mirrored pose from the buffer");
 			uiBlockEndAlign(block);
+			header_xco_step(ar, &xco, &yco, &maxco, XIC);
+
 		}
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, maxco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

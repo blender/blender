@@ -4515,6 +4515,21 @@ void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3
 	}
 }
 
+int IsPointInTri2D(float v1[2], float v2[2], float v3[2], float pt[2])
+{
+	float inp1, inp2, inp3;
+	
+	inp1= (v2[0]-v1[0])*(v1[1]-pt[1]) + (v1[1]-v2[1])*(v1[0]-pt[0]);
+	inp2= (v3[0]-v2[0])*(v2[1]-pt[1]) + (v2[1]-v3[1])*(v2[0]-pt[0]);
+	inp3= (v1[0]-v3[0])*(v3[1]-pt[1]) + (v3[1]-v1[1])*(v3[0]-pt[0]);
+	
+	if(inp1<=0.0f && inp2<=0.0f && inp3<=0.0f) return 1;
+	if(inp1>=0.0f && inp2>=0.0f && inp3>=0.0f) return 1;
+	
+	return 0;
+}
+
+#if 0
 int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2])
 {
 		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
@@ -4542,6 +4557,7 @@ int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2])
 		/* Doing this in 3D is not nice */
 		return LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
 }
+#endif
 
 /*
 

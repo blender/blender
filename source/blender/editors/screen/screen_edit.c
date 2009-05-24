@@ -1135,14 +1135,22 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 /* case when on area-edge or in azones, or outside window */
 static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {
+	AZone *az= NULL;
 	ScrArea *sa;
 	
 	for(sa= win->screen->areabase.first; sa; sa= sa->next)
-		if(is_in_area_actionzone(sa, event->x, event->y))
+		if((az=is_in_area_actionzone(sa, event->x, event->y)))
 			break;
 	
 	if(sa) {
-		WM_cursor_set(win, CURSOR_EDIT);
+		if(az->type==AZONE_AREA)
+			WM_cursor_set(win, CURSOR_EDIT);
+		else if(az->type==AZONE_REGION) {
+			if(az->x1==az->x2)
+				WM_cursor_set(win, CURSOR_X_MOVE);
+			else
+				WM_cursor_set(win, CURSOR_Y_MOVE);
+		}
 	}
 	else {
 		ScrEdge *actedge= screen_find_active_scredge(win->screen, event->x, event->y);
