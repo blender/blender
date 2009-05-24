@@ -78,7 +78,7 @@ public:
 						 const PHY_CollData * coll_data); 
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
 	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2) { return false; };
-	virtual sensortype GetSensorType() { return NEAR; }
+	virtual sensortype GetSensorType() { return ST_NEAR; }
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

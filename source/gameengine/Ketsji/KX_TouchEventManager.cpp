@@ -105,7 +105,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 			it != info->m_sensors.end();
 			++it)
 		{
-			if ((*it)->GetSensorType() == SCA_ISensor::TOUCH) 
+			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH) 
 			{
 				KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*it);
 				if (touchsensor->BroadPhaseSensorFilterCollision(object1, object2))
