@@ -930,6 +930,7 @@ static void draw_image_seq(ScrArea *sa)
 	
 	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		zoom /= G.scene->r.size / 100.0;
 		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 		zoomy = zoom;
 	} else {
