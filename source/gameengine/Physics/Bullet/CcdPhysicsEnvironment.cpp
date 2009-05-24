@@ -426,6 +426,13 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	btRigidBody* body = ctrl->GetRigidBody();
 	if (body)
 	{
+		for (int i=body->getNumConstraintRefs()-1;i>=0;i--)
+		{
+			btTypedConstraint* con = body->getConstraintRef(i);
+			m_dynamicsWorld->removeConstraint(con);
+			body->removeConstraintRef(con);
+			//delete con; //might be kept by python KX_ConstraintWrapper
+		}
 		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
 	} else
 	{
@@ -1791,9 +1798,43 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 	{
 	case PHY_GENERIC_6DOF_CONSTRAINT:
 		{
-			//param = 1..12, min0,max0,min1,max1...min6,max6
-			btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
-			genCons->setLimit(param,value0,value1);
+			
+			switch (param)
+			{
+			case 0:	case 1: case 2: case 3: case 4: case 5:
+				{
+					//param = 0..5 are constraint limits, with low/high limit value
+					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+					genCons->setLimit(param,value0,value1);
+					break;
+				}
+			case 6: case 7: case 8:
+				{
+					//param = 6,7,8 are translational motors, with value0=target velocity, value1 = max motor force
+					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+					int transMotorIndex = param-6;
+					btTranslationalLimitMotor* transMotor = genCons->getTranslationalLimitMotor();
+					transMotor->m_targetVelocity[transMotorIndex]= value0;
+					transMotor->m_maxMotorForce[transMotorIndex]=value1;
+					transMotor->m_enableMotor[transMotorIndex] = (value1>0.f);
+					break;
+				}
+			case 9: case 10: case 11:
+				{
+					//param = 9,10,11 are rotational motors, with value0=target velocity, value1 = max motor force
+					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+					int angMotorIndex = param-9;
+					btRotationalLimitMotor* rotMotor = genCons->getRotationalLimitMotor(angMotorIndex);
+					rotMotor->m_enableMotor = (value1 > 0.f);
+					rotMotor->m_targetVelocity = value0;
+					rotMotor->m_maxMotorForce = value1;
+					break;
+				}
+
+			default:
+				{
+				}
+			}
 			break;
 		};
 	default:

@@ -45,8 +45,7 @@ public:
 	
 	KX_PYMETHOD(KX_ConstraintWrapper,TestMethod);
 	KX_PYMETHOD(KX_ConstraintWrapper,GetConstraintId);
-	KX_PYMETHOD(KX_ConstraintWrapper,SetLimit);
-	KX_PYMETHOD(KX_ConstraintWrapper,EnableMotor);
+	KX_PYMETHOD(KX_ConstraintWrapper,SetParam);
 
 private:
 	int					m_constraintId;

@@ -405,6 +405,8 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 	int physicsid=0,physicsid2 = 0,constrainttype=0,extrainfo=0;
 	int len = PyTuple_Size(args);
 	int success = 1;
+	int flag = 0;
+
 	float pivotX=1,pivotY=1,pivotZ=1,axisX=0,axisY=0,axisZ=1;
 	if (len == 3)
 	{
@@ -420,6 +422,11 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 	{
 		success = PyArg_ParseTuple(args,"iiiffffff",&physicsid,&physicsid2,&constrainttype,
 			&pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ);
+	}
+	else if (len == 10)
+	{
+		success = PyArg_ParseTuple(args,"iiiffffffi",&physicsid,&physicsid2,&constrainttype,
+			&pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ,&flag);
 	}
 	else if (len==4)
 	{
@@ -455,7 +462,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 						pivotX,pivotY,pivotZ,
 						(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 						(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
-						(float)axis2.x(),(float)axis2.y(),(float)axis2.z(),0);//dat->flag); //flag?
+						(float)axis2.x(),(float)axis2.y(),(float)axis2.z(),flag);
 
 				} else
 				{

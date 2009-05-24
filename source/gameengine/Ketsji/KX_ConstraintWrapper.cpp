@@ -54,7 +54,7 @@ PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* args, PyObject* kwds
 	return PyInt_FromLong(m_constraintId);
 }
 
-PyObject* KX_ConstraintWrapper::PySetLimit(PyObject* args, PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
 {
 	int len = PyTuple_Size(args);
 	int success = 1;
@@ -73,11 +73,7 @@ PyObject* KX_ConstraintWrapper::PySetLimit(PyObject* args, PyObject* kwds)
 	return NULL;
 }
 
-PyObject* KX_ConstraintWrapper::PyEnableMotor(PyObject* args, PyObject* kwds)
-{
-	///will add it soon
-	return PyInt_FromLong(0);
-}
+
 
 //python specific stuff
 PyTypeObject KX_ConstraintWrapper::Type = {
@@ -130,8 +126,7 @@ int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* value)
 
 PyMethodDef KX_ConstraintWrapper::Methods[] = {
 	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_VARARGS},
-	{"setLimit",(PyCFunction) KX_ConstraintWrapper::sPySetLimit, METH_VARARGS},
-	{"enableMotor",(PyCFunction) KX_ConstraintWrapper::sPyEnableMotor, METH_VARARGS},
+	{"setParam",(PyCFunction) KX_ConstraintWrapper::sPySetParam, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 
