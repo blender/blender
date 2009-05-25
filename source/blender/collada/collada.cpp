@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "BKE_scene.h"
 
 extern "C"
@@ -9,6 +10,7 @@ extern "C"
 
 	int collada_export(Scene *sce, const char *filepath)
 	{
+		fprintf(stderr, "Hello, world! %s\n", filepath);
 		return 1;
 	}
 }

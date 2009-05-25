@@ -276,6 +276,11 @@ static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
 
+	// XXX: these should move
+	uiItemS(layout);
+	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_collada_export"); 
+
 #if 0
 	if(U.flag & USER_FILECOMPRESS) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Compress File",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 35, "Enable file compression");
