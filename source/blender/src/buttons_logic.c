@@ -1603,12 +1603,12 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 
 	
 		uiBlockBeginAlign(block);
-		uiDefButI(block, MENU, B_REDR, "Execution Method%t|Script%x0|Module%x1", xco+24,yco-24, 66, 19, &pc->mode, 0, 0, 0, 0, "Python script type (textblock or module - faster)");
+		uiDefButI(block, MENU, B_REDR, "Execution Method%t|Script%x0|Module%x1", xco+4,yco-23, 66, 19, &pc->mode, 0, 0, 0, 0, "Python script type (textblock or module - faster)");
 		if(pc->mode==0)
-			uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "", xco+90,yco-24,width-90, 19, &pc->text, "Blender textblock to run as a script");
+			uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "", xco+70,yco-23,width-74, 19, &pc->text, "Blender textblock to run as a script");
 		else {
-			uiDefBut(block, TEX, 1, "", xco+90,yco-24,(width-90)-25, 19, pc->module, 0, 63, 0, 0, "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
-			uiDefButBitI(block, TOG, CONT_PY_DEBUG, B_REDR, "D", (xco+width)-25, yco-24, 19, 19, &pc->flag, 0, 0, 0, 0, "Continuously reload the module from disk for editing external modules without restarting");
+			uiDefBut(block, TEX, 1, "", xco+70,yco-23,(width-70)-25, 19, pc->module, 0, 63, 0, 0, "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
+			uiDefButBitI(block, TOG, CONT_PY_DEBUG, B_REDR, "D", (xco+width)-25, yco-23, 19, 19, &pc->flag, 0, 0, 0, 0, "Continuously reload the module from disk for editing external modules without restarting");
 		}
 		uiBlockEndAlign(block);
 		
@@ -2748,19 +2748,19 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
   		if(parAct->type==ACT_PARENT_SET) { 
 			
-  			ysize= 68; 
+  			ysize= 48; 
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(parAct->ob), "Set this object as parent"); 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+95, yco-24, (width-100), 19, &(parAct->ob), "Set this object as parent"); 
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOGN, ACT_PARENT_COMPOUND, B_REDR,
 				  "Compound",
-				  xco + 40, yco - 64, (width - 80)/2, 19, &parAct->flag,
+				  xco + 5, yco - 44, (width - 10)/2, 19, &parAct->flag,
 				  0.0, 0.0, 0, 0,
 				  "Add this object shape to the parent shape (only if the parent shape is already compound)");
 			uiDefButBitS(block, TOGN, ACT_PARENT_GHOST, B_REDR,
 				  "Ghost",
-				  xco + 40 + ((width - 80)/2), yco - 64, (width - 80)/2, 19, &parAct->flag,
+				  xco + 5 + ((width - 10)/2), yco - 44, (width - 10)/2, 19, &parAct->flag,
 				  0.0, 0.0, 0, 0,
 				  "Make this object ghost while parented (only if not compound)");
 			uiBlockEndAlign(block);
@@ -2773,7 +2773,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
  		}
 
 		str= "Parent %t|Set Parent %x0|Remove Parent %x1";
-		uiDefButI(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &parAct->type, 0.0, 0.0, 0, 0, ""); 
+		uiDefButI(block, MENU, B_REDR, str,		xco+5, yco-24, parAct->type==1?(width-80):90, 19, &parAct->type, 0.0, 0.0, 0, 0, ""); 
 
   		yco-= ysize; 
   		break; 
