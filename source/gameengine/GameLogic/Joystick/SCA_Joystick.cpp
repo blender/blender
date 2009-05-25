@@ -42,7 +42,6 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_axismax(-1),
 	m_buttonmax(-1),
 	m_hatmax(-1),
-	m_hatdir(-2),
 	m_isinit(0),
 	m_istrig_axis(0),
 	m_istrig_button(0),
@@ -50,6 +49,10 @@ SCA_Joystick::SCA_Joystick(short int index)
 {
 	for(int i=0; i<JOYAXIS_MAX; i++)
 		m_axis_array[i]= 0;
+	
+	for(int i=0; i<JOYHAT_MAX; i++)
+		m_hat_array[i]= 0;
+	
 #ifndef DISABLE_SDL
 	m_private = new PrivateData();
 #endif
@@ -184,20 +187,9 @@ bool SCA_Joystick::aButtonReleaseIsPositive(int button)
 }
 
 
-bool SCA_Joystick::aHatIsPositive(int dir)
+bool SCA_Joystick::aHatIsPositive(int hatnum, int dir)
 {
-	bool result;
-	int res = pGetHat(dir);
-	res == dir? result = true : result = false;
-	return result;
-}
-
-int SCA_Joystick::pGetHat(int direction)
-{
-	if(direction == m_hatdir){
-		return m_hatdir;
-	}
-	return 0;
+	return (GetHat(hatnum)==dir) ? true : false;
 }
 
 int SCA_Joystick::GetNumberOfAxes()
@@ -248,8 +240,11 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		if (m_axismax > JOYAXIS_MAX) m_axismax= JOYAXIS_MAX;		/* very unlikely */
 		else if (m_axismax < 0) m_axismax = 0;
 		
+		if (m_hatmax > JOYHAT_MAX) m_hatmax= JOYHAT_MAX;			/* very unlikely */
+		else if(m_hatmax<0) m_hatmax= 0;
+		
 		if(m_buttonmax<0) m_buttonmax= 0;
-		if(m_hatmax<0) m_hatmax= 0;
+		
 	}
 	return true;
 #endif
@@ -277,15 +272,6 @@ int SCA_Joystick::Connected(void)
 #endif
 	return 0;
 }
-
-void SCA_Joystick::pFillAxes()
-{
-#ifndef DISABLE_SDL
-	for(int i=0; i<m_axismax; i++)
-		m_axis_array[i]= SDL_JoystickGetAxis(m_private->m_joystick, i);
-#endif
-}
-
 
 int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 {

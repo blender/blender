@@ -1534,13 +1534,14 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			else if (joy->type == SENS_JOY_HAT)
 			{
 				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
-				&joy->hat, 1, 2.0, 100, 0,
+				&joy->hat, 1, 4.0, 100, 0,
 				"Specify which hat to use");
 				
 				if ((joy->flag & SENS_JOY_ANY_EVENT)==0) {
-					uiDefButI(block, NUM, 1, "Direction:", xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
-					&joy->hatf, 0, 12, 100, 0,
-					"Specify hat direction");
+					str = "Direction%t|Up%x1|Down%x4|Left%x8|Right%x2|%l|Up/Right%x3|Down/Left%x12|Up/Left%x9|Down/Right%x6"; 
+					uiDefButI(block, MENU, B_NOP, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
+					&joy->hatf, 2.0, 31, 0, 0,
+					"The direction of the hat, use 'All Events' to recieve events on any direction");
 				}
 			}
 			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
@@ -2752,12 +2753,12 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
   			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(parAct->ob), "Set this object as parent"); 
 			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOGN, ACT_PARENT_COMPOUND, B_REDR,
+			uiDefButBitS(block, TOGN, ACT_PARENT_COMPOUND, B_REDR,
 				  "Compound",
 				  xco + 40, yco - 64, (width - 80)/2, 19, &parAct->flag,
 				  0.0, 0.0, 0, 0,
 				  "Add this object shape to the parent shape (only if the parent shape is already compound)");
-			uiDefButBitI(block, TOGN, ACT_PARENT_GHOST, B_REDR,
+			uiDefButBitS(block, TOGN, ACT_PARENT_GHOST, B_REDR,
 				  "Ghost",
 				  xco + 40 + ((width - 80)/2), yco - 64, (width - 80)/2, 19, &parAct->flag,
 				  0.0, 0.0, 0, 0,

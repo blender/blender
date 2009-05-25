@@ -47,6 +47,7 @@ class CValue(PyObjectPlus):
 	This class is a basis for other classes.
 	@ivar name: The name of this CValue derived object (read-only).
 	@type name: string
+	@group Deprecated: getName
 	"""
 	def getName():
 		"""
@@ -259,7 +260,7 @@ class SCA_IController(SCA_ILogicBrick):
 	@type actuators: sequence supporting index/string lookups and iteration.
 	@ivar bookmark: the bookmark option.
 	                If set, the controller executes always before all other non-bookmarked controllers.
-	                - note: Order of execution between bookmarked controllers is not guaranteed.
+	                note: Order of execution between bookmarked controllers is not guaranteed.
 	@type bookmark: bool
 	"""
 #{ Deprecated
@@ -4741,6 +4742,24 @@ class SCA_JoystickSensor(SCA_ISensor):
 						Only use this for "Single Axis" type sensors otherwise it will raise an error.
 	@type axisSingle: int
 	
+	@ivar hatValues: (read-only) The state of the joysticks hats as a list of values L{numHats} long.
+						each spesifying the direction of the hat from 1 to 12, 0 when inactive. 
+						Hat directions are as follows...
+							- 0:None
+							- 1:Up
+							- 2:Right
+							- 4:Down
+							- 8:Left
+							- 3:Up - Right
+							- 6:Down - Right
+							- 12:Down - Left
+							- 9:Up - Left
+	
+	@type hatValues: list of ints
+	
+	@ivar hatSingle: (read-only) like L{hatValues} but returns a single hat direction value that is set by the sensor.
+	@type hatSingle: int
+	
 	@ivar numAxis: (read-only) The number of axes for the joystick at this index.
 	@type numAxis: integer
 	@ivar numButtons: (read-only) The number of buttons for the joystick at this index.
@@ -4760,8 +4779,8 @@ class SCA_JoystickSensor(SCA_ISensor):
 	            axisDirection: 0=right, 1=up, 2=left, 3=down
 	@type axis: [integer, integer]
 	@ivar hat: The hat the sensor reacts to, as a list of two values: [hatIndex, hatDirection]
-	            hatIndex: the hat index to use when detecting hat movement, 1=primary hat, 2=secondary hat.
-	            hatDirection: 0-11
+	            hatIndex: the hat index to use when detecting hat movement, 1=primary hat, 2=secondary hat (4 max).
+	            hatDirection: 1-12
 	@type hat: [integer, integer]
 	"""
 	

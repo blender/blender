@@ -35,17 +35,20 @@
 #ifndef DISABLE_SDL
 void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 {
-	pFillAxes();
-	m_axisnum	= sdl_event->jaxis.axis;
-	m_axisvalue = sdl_event->jaxis.value;
+	if(sdl_event->jaxis.axis >= JOYAXIS_MAX)
+		return;
+	
+	m_axis_array[sdl_event->jaxis.axis]= sdl_event->jaxis.value;
 	m_istrig_axis = 1;
 }
 
 
 void SCA_Joystick::OnHatMotion(SDL_Event* sdl_event)
 {
-	m_hatdir = sdl_event->jhat.value;
-	m_hatnum = sdl_event->jhat.hat;
+	if(sdl_event->jhat.hat >= JOYAXIS_MAX)
+		return;
+
+	m_hat_array[sdl_event->jhat.hat]= sdl_event->jhat.value;
 	m_istrig_hat = 1;
 }
 
