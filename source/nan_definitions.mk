@@ -292,8 +292,12 @@ endif
     export HOST = $(shell /usr/bsd/hostname -s)
     #export NAN_NO_KETSJI=true
     export NAN_JUST_BLENDERDYNAMIC=true
-    export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 2.5
+    ifeq ($(IRIX_USE_GCC), true)
+        export NAN_PYTHON ?= $(LCGDIR)/python_gcc
+    else
+        export NAN_PYTHON ?= $(LCGDIR)/python
+    endif
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a -lpthread
     export NAN_OPENAL ?= $(LCGDIR)/openal
