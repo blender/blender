@@ -329,7 +329,7 @@ void BLI_builddir(char *dirname, char *relname)
 void BLI_adddirstrings()
 {
 	char datum[100];
-	char buf[250];
+	char buf[512];
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
@@ -431,9 +431,6 @@ void BLI_adddirstrings()
 			sprintf(size, "> %4.1f M", (double) (st_size / (1024.0 * 1024.0)));
 			sprintf(size, "%10d", (int) st_size);
 		}
-
-		sprintf(buf,"%s %s %10s %s", files[num].date, files[num].time, size,
-			files[num].relname);
 
 		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, files[num].owner, files[num].date, files[num].time, size,
 			files[num].relname);
