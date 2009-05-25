@@ -1968,10 +1968,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_PRINT);
@@ -2031,10 +2028,8 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
+	
 
 	/* call unregister */
 	unreg(C, py_srna->ptr.data);
