@@ -75,8 +75,9 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
 	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */		// XXX 
+	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */
 	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
+	ANIMCONT_NLA,			/* nla (bDopesheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -92,10 +93,10 @@ typedef struct bAnimListElem {
 	int		flag;		/* copy of elem's flags for quick access */
 	int 	index;		/* copy of adrcode where applicable */
 	
-	void	*key_data;	/* motion data - ipo or ipo-curve */
+	void	*key_data;	/* motion data - mostly F-Curves, but can be other types too */
 	short	datatype;	/* type of motion data to expect */
 	
-	struct ID *id;				/* ID block that channel is attached to (may be used  */
+	struct ID *id;		/* ID block that channel is attached to (may be used  */
 	
 	void 	*owner;		/* group or channel which acts as this channel's owner */
 	short	ownertype;	/* type of owner */
@@ -128,6 +129,8 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
+	
+	ANIMTYPE_NLATRACK,
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
@@ -135,6 +138,7 @@ typedef enum eAnim_KeyType {
 	ALE_NONE = 0,		/* no keyframe data */
 	ALE_FCURVE,			/* F-Curve */
 	ALE_GPFRAME,		/* Grease Pencil Frames */
+	ALE_NLASTRIP,		/* NLA Strips */
 	
 	// XXX the following are for summaries... should these be kept?
 	ALE_SCE,			/* Scene summary */
@@ -201,6 +205,10 @@ typedef enum eAnimFilter_Flags {
 	/* Grease Pencil Layer settings */
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
 #define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
+
+/* NLA only */
+#define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
+#define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED)==0)
 
 /* -------------- Channel Defines -------------- */
 

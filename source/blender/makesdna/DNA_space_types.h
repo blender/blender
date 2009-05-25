@@ -244,10 +244,11 @@ typedef struct SpaceNla {
 
 	short blockhandler[8];
 
-	int filterflag;			/* filtering flags (similar to the ones used for Keyframe Editors) */
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
+	int pad;
 	
+	struct bDopeSheet *ads;
 	View2D v2d;	 /* depricated, copied to region */
 } SpaceNla;
 

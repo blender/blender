@@ -72,6 +72,9 @@ static SpaceLink *nla_new(const bContext *C)
 	snla= MEM_callocN(sizeof(SpaceNla), "initnla");
 	snla->spacetype= SPACE_NLA;
 	
+	/* allocate DopeSheet data for NLA Editor */
+	snla->ads= MEM_callocN(sizeof(bDopeSheet), "NLAEdit DopeSheet");
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for nla");
 	
@@ -123,8 +126,12 @@ static SpaceLink *nla_new(const bContext *C)
 /* not spacelink itself */
 static void nla_free(SpaceLink *sl)
 {	
-//	SpaceNla *snla= (SpaceNla*) sl;
+	SpaceNla *snla= (SpaceNla*) sl;
 	
+	if (snla->ads) {
+		BLI_freelistN(&snla->ads->chanbase);
+		MEM_freeN(snla->ads);
+	}
 }
 
 

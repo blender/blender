@@ -287,6 +287,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),
 	ADS_FILTER_ONLYDRIVERS		= (1<<1),
+	ADS_FILTER_ONLYNLA			= (1<<2),
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
