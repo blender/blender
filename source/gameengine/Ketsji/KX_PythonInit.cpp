@@ -120,6 +120,7 @@ static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
+static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
 static PyObject *gp_OrigPythonSysPath= NULL;
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
@@ -2096,9 +2097,9 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 void pathGamePythonConfig( char *path )
 {
-	int len = strlen(gp_GamePythonPath);
+	int len = strlen(gp_GamePythonPathOrig); // Always use the first loaded blend filename
 	
-	BLI_strncpy(path, gp_GamePythonPath, sizeof(gp_GamePythonPath));
+	BLI_strncpy(path, gp_GamePythonPathOrig, sizeof(gp_GamePythonPathOrig));
 
 	/* replace extension */
 	if (BLI_testextensie(path, ".blend")) {
@@ -2111,5 +2112,8 @@ void pathGamePythonConfig( char *path )
 void setGamePythonPath(char *path)
 {
 	BLI_strncpy(gp_GamePythonPath, path, sizeof(gp_GamePythonPath));
+	
+	if (gp_GamePythonPathOrig[0] == '\0')
+		BLI_strncpy(gp_GamePythonPathOrig, path, sizeof(gp_GamePythonPathOrig));
 }
 
