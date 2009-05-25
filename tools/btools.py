@@ -49,6 +49,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
+			'WITH_BF_COLLADA', 'BF_COLLADA', 'BF_COLLADA_INC', 'BF_COLLADA_LIB',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
@@ -307,6 +308,11 @@ def read_opts(cfg, args):
 		('BF_OPENGL_LIBPATH', 'OpenGL library path', ''),
 		('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
 		('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
+
+		(BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', True)),
+		('BF_COLLADA', 'COLLADA base path', ''),
+		('BF_COLLADA_INC', 'COLLADA include path', ''),
+		('BF_COLLADA_LIB', 'COLLADA library', ''),
 		
 		(BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
 		(BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
