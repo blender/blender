@@ -4188,11 +4188,11 @@ void param_pack(ParamHandle *handle, float margin)
 			}
 			
 			box = boxarray+(i-unpacked);
-			trans[0] = margin * area;
-			trans[1] = margin * area;
+			trans[0] = margin;
+			trans[1] = margin;
 			p_chart_uv_translate(chart, trans);
-			box->w += (margin * area) *2;
-			box->h += (margin * area) *2;
+			box->w += margin*2;
+			box->h += margin*2;
 		}
 	}
 	
