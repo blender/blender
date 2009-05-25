@@ -8116,10 +8116,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				/* check if top parent has compound shape set and if yes, set this object
 				   to compound shaper as well (was the behaviour before, now it's optional) */
 				Object *parent= newlibadr(fd, lib, ob->parent);
+				while (parent && parent->parent != NULL) {
+					parent = newlibadr(fd, lib, parent->parent);
+				}
 				if(parent) {
-					while (parent->parent != NULL) {
-						parent = newlibadr(fd, lib, parent->parent);
-					}
 					if (parent->gameflag & OB_CHILD)
 						ob->gameflag |= OB_CHILD;
 				}
