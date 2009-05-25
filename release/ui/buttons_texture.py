@@ -7,8 +7,8 @@ class TextureButtonsPanel(bpy.types.Panel):
 	__context__ = "texture"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material.active_texture.texture)
+		try:	return (context.active_object.active_material.active_texture.texture != None)
+		except:return False
 
 class TEXTURE_PT_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_texture"
@@ -25,8 +25,8 @@ class TEXTURE_PT_clouds(TextureButtonsPanel):
 	__label__ = "Clouds"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "CLOUDS")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'CLOUDS')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -47,8 +47,8 @@ class TEXTURE_PT_wood(TextureButtonsPanel):
 	__label__ = "Wood"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "WOOD")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'WOOD')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -70,8 +70,8 @@ class TEXTURE_PT_marble(TextureButtonsPanel):
 	__label__ = "Marble"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "MARBLE")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'MARBLE')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -94,8 +94,8 @@ class TEXTURE_PT_magic(TextureButtonsPanel):
 	__label__ = "Magic"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "MAGIC")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'MAGIC')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -110,8 +110,8 @@ class TEXTURE_PT_blend(TextureButtonsPanel):
 	__label__ = "Blend"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "BLEND")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'BLEND')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -125,8 +125,8 @@ class TEXTURE_PT_stucci(TextureButtonsPanel):
 	__label__ = "Stucci"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "STUCCI")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'STUCCI')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -146,8 +146,8 @@ class TEXTURE_PT_image(TextureButtonsPanel):
 	__label__ = "Image/Movie"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "IMAGE")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'IMAGE')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -173,8 +173,8 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 	__label__ = "Mapping"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "IMAGE")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'IMAGE')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -216,8 +216,8 @@ class TEXTURE_PT_plugin(TextureButtonsPanel):
 	__label__ = "Plugin"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "PLUGIN")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'PLUGIN')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -230,8 +230,8 @@ class TEXTURE_PT_envmap(TextureButtonsPanel):
 	__label__ = "Environment Map"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "ENVIRONMENT_MAP")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'ENVIRONMENT_MAP')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -244,8 +244,8 @@ class TEXTURE_PT_musgrave(TextureButtonsPanel):
 	__label__ = "Musgrave"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "MUSGRAVE")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'MUSGRAVE')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -277,8 +277,9 @@ class TEXTURE_PT_voronoi(TextureButtonsPanel):
 	__label__ = "Voronoi"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "VORONOI")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'VORONOI')
+		except:return False
+
 
 	def draw(self, context):
 		layout = self.layout
@@ -306,13 +307,13 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 	__label__ = "Distorted Noise"
 	
 	def poll(self, context):
-		tex = context.active_object.active_material.active_texture.texture
-		return (tex and tex.type == "DISTORTED_NOISE")	
+		try:	return (context.active_object.active_material.active_texture.texture.type == 'DISTORTED_NOISE')
+		except:return False
 
 	def draw(self, context):
 		layout = self.layout
 		tex = context.active_object.active_material.active_texture.texture
- 
+
 		layout.itemR(tex, "noise_distortion")
 		layout.itemR(tex, "noise_basis", text="Basis")
 		
