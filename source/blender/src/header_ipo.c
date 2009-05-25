@@ -1216,6 +1216,8 @@ void do_ipo_buttons(short event)
 			if (ei->icu)	ei->flag |= IPO_VISIBLE;
 			else			ei->flag &= ~IPO_VISIBLE;
 		}
+		update_editipo_flags();
+		
 		break;
 	case B_IPOREDRAW:
 		DAG_object_flush_update(G.scene, ob, OB_RECALC);
