@@ -112,7 +112,6 @@ extern "C" {
 #include "GPU_material.h"
 
 static void setSandbox(TPythonSecurityLevel level);
-static void clearGameModules();
 
 // 'local' copy of canvas ptr, for window height/width python scripts
 static RAS_ICanvas* gp_Canvas = NULL;
@@ -122,6 +121,7 @@ static RAS_IRasterizer* gp_Rasterizer = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
 static PyObject *gp_OrigPythonSysPath= NULL;
+static PyObject *gp_OrigPythonSysModules= NULL;
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
@@ -1465,9 +1465,9 @@ void setSandbox(TPythonSecurityLevel level)
 
 /* Explanation of 
  * 
- * - backupPySysPath()		: stores sys.path in gp_OrigPythonSysPath
- * - initPySysPath(main)	: initializes the blendfile and library paths
- * - restorePySysPath()		: restores sys.path from gp_OrigPythonSysPath
+ * - backupPySysObjects()		: stores sys.path in gp_OrigPythonSysPath
+ * - initPySysObjects(main)	: initializes the blendfile and library paths
+ * - restorePySysObjects()		: restores sys.path from gp_OrigPythonSysPath
  * 
  * These exist so the current blend dir "//" can always be used to import modules from.
  * the reason we need a few functions for this is that python is not only used by the game engine
@@ -1482,23 +1482,27 @@ void setSandbox(TPythonSecurityLevel level)
 /**
  * So we can have external modules mixed with our blend files.
  */
-static void backupPySysPath(void)
+static void backupPySysObjects(void)
 {
 	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	PyObject *sys_mods= PySys_GetObject("modules"); /* should never fail */
 	
-	/* just incase its set */
-	Py_XDECREF(gp_OrigPythonSysPath);
-	gp_OrigPythonSysPath= NULL;
-	
+	/* paths */
+	Py_XDECREF(gp_OrigPythonSysPath); /* just incase its set */
 	gp_OrigPythonSysPath = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
+	
+	/* modules */
+	Py_XDECREF(gp_OrigPythonSysModules); /* just incase its set */
+	gp_OrigPythonSysModules = PyDict_Copy(sys_mods); /* copy the list */
+	
 }
 
-/* for initPySysPath only,
+/* for initPySysObjects only,
  * takes a blend path and adds a scripts dir from it
  *
  * "/home/me/foo.blend" -> "/home/me/scripts"
  */
-static void initPySysPath__append(PyObject *sys_path, char *filename)
+static void initPySysObjects__append(PyObject *sys_path, char *filename)
 {
 	PyObject *item;
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
@@ -1515,13 +1519,13 @@ static void initPySysPath__append(PyObject *sys_path, char *filename)
 	
 	Py_DECREF(item);
 }
-static void initPySysPath(Main *maggie)
+static void initPySysObjects(Main *maggie)
 {
 	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
 	
 	if (gp_OrigPythonSysPath==NULL) {
 		/* backup */
-		backupPySysPath();
+		backupPySysObjects();
 	}
 	else {
 		/* get the original sys path when the BGE started */
@@ -1531,26 +1535,35 @@ static void initPySysPath(Main *maggie)
 	Library *lib= (Library *)maggie->library.first;
 	
 	while(lib) {
-		initPySysPath__append(sys_path, lib->name);
+		initPySysObjects__append(sys_path, lib->name);
 		lib= (Library *)lib->id.next;
 	}
 	
-	initPySysPath__append(sys_path, gp_GamePythonPath);
+	initPySysObjects__append(sys_path, gp_GamePythonPath);
 	
 //	fprintf(stderr, "\nNew Path: %d ", PyList_Size(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
-static void restorePySysPath(void)
+static void restorePySysObjects(void)
 {
 	if (gp_OrigPythonSysPath==NULL)
 		return;
 	
 	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
-	
+	PyObject *sys_mods= PySys_GetObject("modules"); /* should never fail */
+
+	/* paths */
 	PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
 	Py_DECREF(gp_OrigPythonSysPath);
 	gp_OrigPythonSysPath= NULL;
+	
+	/* modules */
+	PyDict_Clear(sys_mods);
+	PyDict_Update(sys_mods, gp_OrigPythonSysModules);
+	Py_DECREF(gp_OrigPythonSysModules);
+	gp_OrigPythonSysModules= NULL;	
+	
 	
 //	fprintf(stderr, "\nRestore Path: %d ", PyList_Size(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
@@ -1588,7 +1601,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	
 	bpy_import_main_set(maggie);
 	
-	initPySysPath(maggie);
+	initPySysObjects(maggie);
 	
 	first_time = false;
 	
@@ -1599,11 +1612,9 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 }
 
 void exitGamePlayerPythonScripting()
-{
-	//clearGameModules(); // were closing python anyway
-	
+{	
 	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
-	restorePySysPath(); /* get back the original sys.path and clear the backup */
+	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
 	Py_Finalize();
 	bpy_import_main_set(NULL);
@@ -1629,10 +1640,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	
 	bpy_import_main_set(maggie);
 	
-	initPySysPath(maggie);
-	
-	/* clear user defined modules that may contain data from the last run */
-	clearGameModules();
+	initPySysObjects(maggie);
 
 	PyObjectPlus::NullDeprecationWarning();
 	
@@ -1640,46 +1648,9 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	return PyModule_GetDict(moduleobj);
 }
 
-static void clearModule(PyObject *modules, const char *name)
-{
-	PyObject *mod= PyDict_GetItemString(modules, name);
-	
-	if (mod==NULL)
-		return;
-	
-	PyDict_Clear(PyModule_GetDict(mod)); /* incase there are any circular refs */
-	PyDict_DelItemString(modules, name);
-}
-
-static void clearGameModules()
-{
-	/* references to invalid BGE data is better supported in 2.49+ so dont clear dicts */
-#if 0
-	/* Note, user modules could still reference these modules
-	 * but since the dict's are cleared their members wont be accessible */
-	
-	PyObject *modules= PySys_GetObject((char *)"modules");
-	clearModule(modules, "Expression");
-	clearModule(modules, "CValue");	
-	clearModule(modules, "PhysicsConstraints");	
-	clearModule(modules, "GameLogic");	
-	clearModule(modules, "Rasterizer");	
-	clearModule(modules, "GameKeys");	
-	clearModule(modules, "VideoTexture");
-	clearModule(modules, "Mathutils");	
-	clearModule(modules, "Geometry");	
-	clearModule(modules, "BGL");	
-	PyErr_Clear(); // incase some of these were alredy removed.
-#endif
-	
-	/* clear user defined modules, arg '1' for clear external py modules too */
-	bpy_text_clear_modules(1);
-}
-
 void exitGamePythonScripting()
 {
-	clearGameModules();
-	restorePySysPath(); /* get back the original sys.path and clear the backup */
+	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
 }

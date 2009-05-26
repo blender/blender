@@ -281,6 +281,7 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", blender_reload, METH_VARAR
  * even if we remove a python module a reimport will bring it back again.
  */
 
+#if 0 // not used anymore but may still come in handy later
 
 #if defined(WIN32) || defined(WIN64)
 #define SEPSTR "\\"
@@ -336,4 +337,4 @@ void bpy_text_clear_modules(int clear_all)
 	
 	Py_DECREF(list); /* removes all references from append */
 }
-
+#endif
