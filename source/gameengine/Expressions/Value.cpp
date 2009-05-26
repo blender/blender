@@ -662,7 +662,7 @@ int	CValue::py_delattro(PyObject *attr)
 		return 0;
 	
 	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)

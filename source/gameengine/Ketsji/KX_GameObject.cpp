@@ -1342,7 +1342,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		
 		if (del==0) {
 			if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" could not be set", attr_str);
-			else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key could not be set");
+			else			PyErr_SetString(PyExc_KeyError, "del gameOb[key]: KX_GameObject, key could not be deleted");
 			return -1;
 		}
 		else if (self->m_attr_dict) {
@@ -1902,13 +1902,13 @@ int	KX_GameObject::py_delattro(PyObject *attr)
 	char *attr_str= PyString_AsString(attr); 
 	
 	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	
 	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	
 	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 
