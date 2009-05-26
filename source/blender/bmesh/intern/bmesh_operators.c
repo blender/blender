@@ -966,10 +966,11 @@ static int bmesh_opname_to_opcode(char *opname) {
 
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 {
-	int i, n=strlen(fmt), stop, slotcode = -1, ret, type, state, c;
+	BMOpDefine *def;
 	char *opname, *ofmt;
 	char slotname[64] = {0};
-	BMOpDefine *def;
+	int i, n=strlen(fmt), stop, slotcode = -1, ret, type, state, c;
+	int noslot=0;
 
 	/*we muck around in here, so dup it*/
 	fmt = ofmt = strdup(fmt);
@@ -978,9 +979,10 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 	i = strcspn(fmt, " \t");
 
 	opname = fmt;
+	if (!opname[i]) noslot = 1;
 	opname[i] = 0;
 
-	fmt += i + 1;
+	fmt += i + (noslot ? 0 : 1);
 	
 	for (i=0; i<bmesh_total_ops; i++) {
 		if (!strcmp(opname, opdefines[i]->name)) break;
@@ -1029,6 +1031,10 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 			case 'i':
 			case 'd':
 				BMO_Set_Int(op, slotname, va_arg(vlist, int));
+				state = 1;
+				break;
+			case 'p':
+				BMO_Set_Pnt(op, slotname, va_arg(vlist, void*));
 				state = 1;
 				break;
 			case 'f':

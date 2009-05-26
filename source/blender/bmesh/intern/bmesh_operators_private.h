@@ -21,5 +21,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op);
 void connectverts_exec(BMesh *bm, BMOperator *op);
 void makeprim_exec(BMesh *bm, BMOperator *op);
 void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op);
+void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op);
+void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op);
 
 #endif

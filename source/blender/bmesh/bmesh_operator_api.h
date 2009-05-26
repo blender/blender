@@ -151,7 +151,8 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 
   the formatting codes are:
      %d - put int in slot
-     %f - put float in float
+     %f - put float in slot
+     %p - put pointer in slot
      %h[f/e/v] - put elements with a header flag in slot.
           the letters after %h define which element types to use,
 	  so e.g. %hf will do faces, %hfe will do faces and edges,

@@ -70,7 +70,22 @@ typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
-/*bmesh custom data stuff*/
+/*new face structure, replaces MFace, which is now
+  only used for storing tesselations.*/
+typedef struct MPoly {
+	/*offset into loop array and number of loops in the face*/
+	int loopstart, totloop;
+	char pad, mat_nr;
+	short flag;
+} MPoly;
+
+/*the e here is because we want to move away from
+  relying on edge hashes.*/
+typedef struct MLoop {
+	int v; /*vertex index*/
+	int e; /*edge index*/
+} MLoop;
+
 typedef struct MTexPoly{
 	struct Image *tpage;
 	char flag, transp;

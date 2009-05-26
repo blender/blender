@@ -5,6 +5,12 @@ struct BMLoop;
 struct DerivedMesh;
 struct BMFace;
 
+/*
+ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+    BMEdit module is for code shared with blenkernel that concerns
+    the BMEditMesh structure.
+*/
+
 typedef struct BMEditSelection
 {
 	struct BMEditSelection *next, *prev;
@@ -54,7 +60,7 @@ typedef struct BMEditMesh {
 	int mat_nr;
 } BMEditMesh;
 
-void TM_RecalcTesselation(BMEditMesh *tm);
-BMEditMesh *TM_Create(BMesh *bm);
-BMEditMesh *TM_Copy(BMEditMesh *tm);
-void TM_Free(BMEditMesh *em);
+void BMEdit_RecalcTesselation(BMEditMesh *tm);
+BMEditMesh *BMEdit_Create(BMesh *bm);
+BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
+void BMEdit_Free(BMEditMesh *em);

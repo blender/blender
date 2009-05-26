@@ -72,6 +72,8 @@
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
 
+#include "bmesh.h"
+
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 {
 	return bmesh_to_editmesh(me->edit_btmesh->bm);
@@ -79,10 +81,8 @@ EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 
 void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
 {
-	BM_Free_Mesh(me->edit_btmesh->bm);
-
 	me->edit_btmesh->bm = editmesh_to_bmesh(em);
-	TM_RecalcTesselation(me->edit_btmesh);
+	BMEdit_RecalcTesselation(me->edit_btmesh);
 }
 
 
@@ -97,6 +97,14 @@ void mesh_update_customdata_pointers(Mesh *me)
 	me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
 	me->mcol = CustomData_get_layer(&me->fdata, CD_MCOL);
 	me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
+
+	me->mpoly = CustomData_get_layer(&me->pdata, CD_MPOLY);
+	me->mloop = CustomData_get_layer(&me->ldata, CD_MLOOP);
+
+	me->mtpoly = CustomData_get_layer(&me->pdata, CD_MTEXPOLY);
+
+	me->mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+	me->mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 }
 
 /* Note: unlinking is called when me->id.us is 0, question remains how
@@ -145,6 +153,8 @@ void free_mesh(Mesh *me)
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
+	CustomData_free(&me->ldata, me->totloop);
+	CustomData_free(&me->pdata, me->totpoly);
 
 	if(me->mat) MEM_freeN(me->mat);
 	
@@ -209,6 +219,7 @@ Mesh *copy_mesh(Mesh *me)
 {
 	Mesh *men;
 	MTFace *tface;
+	MTexPoly *txface;
 	int a, i;
 	
 	men= copy_libblock(me);
@@ -222,6 +233,8 @@ Mesh *copy_mesh(Mesh *me)
 	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
 	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
 	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
+	CustomData_copy(&me->ldata, &men->ldata, CD_MASK_MESH, CD_DUPLICATE, men->totloop);
+	CustomData_copy(&me->pdata, &men->pdata, CD_MASK_MESH, CD_DUPLICATE, men->totpoly);
 	mesh_update_customdata_pointers(men);
 
 	/* ensure indirect linked data becomes lib-extern */
@@ -234,7 +247,17 @@ Mesh *copy_mesh(Mesh *me)
 					id_lib_extern((ID*)tface->tpage);
 		}
 	}
-	
+
+	for(i=0; i<me->pdata.totlayer; i++) {
+		if(me->pdata.layers[i].type == CD_MTEXPOLY) {
+			txface= (MTexPoly*)me->pdata.layers[i].data;
+
+			for(a=0; a<me->totpoly; a++, txface++)
+				if(txface->tpage)
+					id_lib_extern((ID*)txface->tpage);
+		}
+	}
+
 	men->mselect= NULL;
 
 	men->bb= MEM_dupallocN(men->bb);
@@ -245,12 +268,43 @@ Mesh *copy_mesh(Mesh *me)
 	return men;
 }
 
+BMesh *BKE_mesh_to_bmesh(Mesh *me)
+{
+	BMesh *bm;
+	int allocsize[4] = {512,512,2048,512};
+
+	bm = BM_Make_Mesh(allocsize);
+
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p", me);
+
+	return bm;
+}
+
 void make_local_tface(Mesh *me)
 {
 	MTFace *tface;
+	MTexPoly *txface;
 	Image *ima;
 	int a, i;
 	
+	for(i=0; i<me->pdata.totlayer; i++) {
+		if(me->pdata.layers[i].type == CD_MTEXPOLY) {
+			txface= (MTexPoly*)me->fdata.layers[i].data;
+			
+			for(a=0; a<me->totpoly; a++, txface++) {
+				/* special case: ima always local immediately */
+				if(txface->tpage) {
+					ima= txface->tpage;
+					if(ima->id.lib) {
+						ima->id.lib= 0;
+						ima->id.flag= LIB_LOCAL;
+						new_id(0, (ID *)ima, 0);
+					}
+				}
+			}
+		}
+	}
+
 	for(i=0; i<me->fdata.totlayer; i++) {
 		if(me->fdata.layers[i].type == CD_MTFACE) {
 			tface= (MTFace*)me->fdata.layers[i].data;
@@ -268,6 +322,7 @@ void make_local_tface(Mesh *me)
 			}
 		}
 	}
+
 }
 
 void make_local_mesh(Mesh *me)

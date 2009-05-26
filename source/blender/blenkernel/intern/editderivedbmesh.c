@@ -90,18 +90,18 @@
 
 #include "bmesh.h"
 
-BMEditMesh *TM_Create(BMesh *bm)
+BMEditMesh *BMEdit_Create(BMesh *bm)
 {
 	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), "tm");
 	
 	tm->bm = bm;
 
-	TM_RecalcTesselation(tm);
+	BMEdit_RecalcTesselation(tm);
 
 	return tm;
 }
 
-BMEditMesh *TM_Copy(BMEditMesh *tm)
+BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 {
 	BMEditMesh *tm2 = MEM_callocN(sizeof(BMEditMesh), "tm2");
 	*tm2 = *tm;
@@ -111,7 +111,7 @@ BMEditMesh *TM_Copy(BMEditMesh *tm)
 	
 	tm2->looptris = NULL;
 	tm2->bm = BM_Copy_Mesh(tm->bm);
-	TM_RecalcTesselation(tm2);
+	BMEdit_RecalcTesselation(tm2);
 
 	tm2->vert_index = NULL;
 	tm2->edge_index = NULL;
@@ -120,7 +120,7 @@ BMEditMesh *TM_Copy(BMEditMesh *tm)
 	return tm2;
 }
 
-void TM_RecalcTesselation(BMEditMesh *tm)
+void BMEdit_RecalcTesselation(BMEditMesh *tm)
 {
 	BMesh *bm = tm->bm;
 	BMLoop **looptris = NULL;
@@ -198,7 +198,7 @@ void TM_RecalcTesselation(BMEditMesh *tm)
 }
 
 /*does not free the BMEditMesh struct itself*/
-void TM_Free(BMEditMesh *em)
+void BMEdit_Free(BMEditMesh *em)
 {
 	if(em->derivedFinal) {
 		if (em->derivedFinal!=em->derivedCage) {
@@ -221,6 +221,8 @@ void TM_Free(BMEditMesh *em)
 	if (em->vert_index) MEM_freeN(em->vert_index);
 	if (em->edge_index) MEM_freeN(em->edge_index);
 	if (em->face_index) MEM_freeN(em->face_index);
+
+	BM_Free_Mesh(em->bm);
 }
 
 

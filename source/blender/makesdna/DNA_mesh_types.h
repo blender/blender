@@ -44,6 +44,11 @@ struct MCol;
 struct MSticky;
 struct Mesh;
 struct OcInfo;
+struct MPoly;
+struct MTexPoly;
+struct MLoop;
+struct MLoopUV;
+struct MLoopCol;
 struct Multires;
 struct PartialVisibility;
 struct EditMesh;
@@ -58,23 +63,35 @@ typedef struct Mesh {
 	struct Ipo *ipo;
 	struct Key *key;
 	struct Material **mat;
+	
+	/*new face structures*/
+	struct MPoly *mpoly;
+	struct MTexPoly *mtpoly;
+	struct MLoop *mloop;
+	struct MLoopUV *mloopuv;
+	struct MLoopCol *mloopcol;
 
-	struct MFace *mface;	/* array of mesh object mode faces */
-	struct MTFace *mtface;	/* store face UV's and texture here */
+	/*mface stores the tesselation (triangulation) of the mesh,
+	  real faces are now stored in nface.*/
+	struct MFace *mface;	/* array of mesh object mode faces for tesselation */
+	struct MTFace *mtface;	/* store tesselation face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
-	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
+	
+	/* array of colors for the tesselated faces, must be number of tesselated
+	   faces * 4 in length */
+	struct MCol *mcol;		
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 
-	struct CustomData vdata, edata, fdata;
+	struct CustomData vdata, edata, fdata, pdata, ldata;
 
-	int totvert, totedge, totface, totselect;
+	int totvert, totedge, totface, totpoly, totloop, totselect;
 	
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track

@@ -3004,6 +3004,26 @@ static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata
 
 }
 
+static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata, int totface)
+{
+	int i;
+
+	for(i=0; i<pdata->totlayer; i++) {
+		CustomDataLayer *layer = &pdata->layers[i];
+		
+		if(layer->type == CD_MTEXPOLY) {
+			MTexPoly *tf= layer->data;
+			int i;
+
+			for (i=0; i<totface; i++, tf++) {
+				tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
+				if(tf->tpage && tf->tpage->id.us==0)
+					tf->tpage->id.us= 1;
+			}
+		}
+	}
+}
+
 static void lib_link_mesh(FileData *fd, Main *main)
 {
 	Mesh *me;
@@ -3030,6 +3050,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
 
 			lib_link_customdata_mtface(fd, me, &me->fdata, me->totface);
+			lib_link_customdata_mtpoly(fd, me, &me->pdata, me->totpoly);
 			if(me->mr && me->mr->levels.first)
 				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
 							   ((MultiresLevel*)me->mr->levels.first)->totface);
@@ -3093,12 +3114,17 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mvert= newdataadr(fd, mesh->mvert);
 	mesh->medge= newdataadr(fd, mesh->medge);
 	mesh->mface= newdataadr(fd, mesh->mface);
+	mesh->mloop= newdataadr(fd, mesh->mloop);
+	mesh->mpoly= newdataadr(fd, mesh->mpoly);
 	mesh->tface= newdataadr(fd, mesh->tface);
 	mesh->mtface= newdataadr(fd, mesh->mtface);
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
-	
+	mesh->mloopcol= newdataadr(fd, mesh->mloopcol);
+	mesh->mloopuv= newdataadr(fd, mesh->mloopuv);
+	mesh->mtpoly= newdataadr(fd, mesh->mtpoly);
+
 	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
 	mesh->pv= newdataadr(fd, mesh->pv);
 	if(mesh->pv) {
@@ -3115,6 +3141,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->vdata, mesh->pv ? mesh->pv->totvert : mesh->totvert);
 	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
 	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
+	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
+	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;

@@ -189,7 +189,7 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 }
 
 /*returns 0 on error, 1 on success*/
-int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op, int report) {
+int EDBM_Finish(BMesh *bm, BMEditMesh *em, wmOperator *op, int report) {
 	char *errmsg;
 
 	if (BMO_GetError(bm, &errmsg, NULL)) {
@@ -208,29 +208,38 @@ void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
 	EditMesh *em;
 	BMesh *bm;
 
-	em = make_editMesh(scene, ob);
-	bm = editmesh_to_bmesh(em);
+	if (!me->mpoly && me->totface) {
+		em = make_editMesh(scene, ob);
+		bm = editmesh_to_bmesh(em);
+	
+		free_editMesh(em);
+	} else {
+		bm = BKE_mesh_to_bmesh(me);
+	}
 
-	me->edit_btmesh = TM_Create(bm);
+	me->edit_btmesh = BMEdit_Create(bm);
 	me->edit_btmesh->selectmode = scene->selectmode;
-
-	free_editMesh(em);
 }
 
 void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
+	BMesh *bm = me->edit_btmesh->bm;
+
+	BMO_CallOpf(bm, "object_load_bmesh scene=%p object=%p", scene, ob);
+
+#if 0
 	EditMesh *em = bmesh_to_editmesh(me->edit_btmesh->bm);
 	
 	load_editMesh(scene, ob, em);
 	free_editMesh(em);
 	MEM_freeN(em);
+#endif
 }
 
 void EDBM_FreeEditBMesh(BMEditMesh *tm)
 {
-	BM_Free_Mesh(tm->bm);
-	TM_Free(tm);
+	BMEdit_Free(tm);
 }
 
 void EDBM_init_index_arrays(BMEditMesh *tm, int forvert, int foredge, int forface)
@@ -742,20 +751,19 @@ static void *getEditMesh(bContext *C)
 static void *editbtMesh_to_undoMesh(void *emv)
 {
 	/*we recalc the tesselation here, to avoid seeding calls to
-	  TM_RecalcTesselation throughout the code.*/
-	TM_RecalcTesselation(emv);
+	  BMEdit_RecalcTesselation throughout the code.*/
+	BMEdit_RecalcTesselation(emv);
 
-	return TM_Copy(emv);
+	return BMEdit_Copy(emv);
 }
 
 static void undoMesh_to_editbtMesh(void *umv, void *emv)
 {
 	BMEditMesh *bm1 = umv, *bm2 = emv;
 
-	BM_Free_Mesh_Data(bm2->bm);
-	TM_Free(bm2);
+	BMEdit_Free(bm2);
 
-	*bm2 = *TM_Copy(bm1);
+	*bm2 = *BMEdit_Copy(bm1);
 }
 
 
@@ -763,8 +771,7 @@ static void free_undo(void *umv)
 {
 	BMEditMesh *em = umv;
 
-	BM_Free_Mesh_Data(em->bm);
-	TM_Free(em);
+	BMEdit_Free(em);
 }
 
 /* and this is all the undo system needs to know */

@@ -43,6 +43,7 @@ struct MFace;
 struct MEdge;
 struct MVert;
 struct MCol;
+struct BMesh;
 struct Object;
 struct MTFace;
 struct VecNor;
@@ -54,6 +55,7 @@ extern "C" {
 
 struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
 void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
+struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me);
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
@@ -134,11 +136,6 @@ void mesh_pmv_off(struct Object *ob, struct Mesh *me);
 int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
 void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
 int mesh_layers_menu(struct CustomData *data, int type);
-
-/*accessor functions for editmesh, all access to editmesh must
-  go through them!*/
-struct EditMesh *EM_GetEditMesh(struct Mesh *me);
-void EM_EndEditMesh(struct Mesh *me, struct EditMesh *em);
 
 #ifdef __cplusplus
 }

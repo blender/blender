@@ -26,6 +26,10 @@
 #define BM_EDGES_OF_MESH 			2
 #define BM_FACES_OF_MESH 			3
 
+#define BM_ITER(ele, iter, bm, type, data) \
+	ele = BMIter_New(iter, bm, type, data); \
+	for ( ; ele; ele=BMIter_Step(iter))
+
 /*these are topological iterators.*/
 #define BM_EDGES_OF_VERT 			4
 #define BM_FACES_OF_VERT 			5

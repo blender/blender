@@ -48,6 +48,13 @@ struct BMFace;
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
 /* ******************** bmeshutils.c */
+
+/*
+ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
+    BMEdit module is for code shared with blenkernel that concerns
+    the BMEditMesh structure.
+*/
+
 /*calls a bmesh op, reporting errors to the user, doing conversions,
   etc.*/
 int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);

@@ -3,6 +3,26 @@
 
 #include <stdio.h>
 
+/*loads a bmesh into an object*/
+BMOpDefine def_object_load_bmesh = {
+	"object_load_bmesh",
+	/*pointer to a mesh struct*/
+	{{BMOP_OPSLOT_PNT, "scene"},
+	{BMOP_OPSLOT_PNT, "object"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_to_mesh_exec,
+	0
+};
+
+
+BMOpDefine def_mesh_to_bmesh = {
+	"mesh_to_bmesh",
+	{{BMOP_OPSLOT_PNT, "me"},
+	{0, /*null-terminating sentinel*/}},
+	mesh_to_bmesh_exec,
+	0
+};
+
 BMOpDefine def_extrudeverts_indiv = {
 	"extrude_vert_indiv",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
@@ -167,6 +187,8 @@ BMOpDefine *opdefines[] = {
 	&def_connectverts,
 	//&def_makeprim,
 	&def_extrudeverts_indiv,
+	&def_mesh_to_bmesh,
+	&def_object_load_bmesh,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

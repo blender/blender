@@ -445,7 +445,7 @@ BMesh *editmesh_to_bmesh(EditMesh *em)
 {
 	BMOperator conv;
 	BMesh *bm;
-	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
+	int allocsize[4] = {512,512,2048,512};
 
 	/*allocate a bmesh*/
 	bm = BM_Make_Mesh(allocsize);

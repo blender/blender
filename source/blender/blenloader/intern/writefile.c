@@ -1336,6 +1336,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, mesh->totedge, &mesh->edata, -1, 0);
 				write_customdata(wd, mesh->totface, &mesh->fdata, -1, 0);
+				write_customdata(wd, mesh->totloop, &mesh->ldata, -1, 0);
+				write_customdata(wd, mesh->totpoly, &mesh->pdata, -1, 0);
 			}
 
 			/* PMV data */
