@@ -345,8 +345,8 @@ static EnumPropertyItem prop_noise_basis_items[] = {
 	{0, NULL, NULL, NULL}};
 
 static EnumPropertyItem prop_noise_type[] = {
-	{TEX_NOISESOFT, "SOFT_NOISE", "Soft Noise", ""},
-	{TEX_NOISEPERL, "HARD_NOISE", "Hard Noise", ""},
+	{TEX_NOISESOFT, "SOFT_NOISE", "Soft", ""},
+	{TEX_NOISEPERL, "HARD_NOISE", "Hard", ""},
 	{0, NULL, NULL, NULL}};
 
 
@@ -356,7 +356,7 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_clouds_stype[] = {
-	{TEX_DEFAULT, "DEFAULT", "Default", ""},
+	{TEX_DEFAULT, "GREYSCALE", "Greyscale", ""},
 	{TEX_COLOR, "COLOR", "Color", ""},
 	{0, NULL, NULL, NULL}};
 
@@ -406,12 +406,12 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	static EnumPropertyItem prop_wood_stype[] = {
 	{TEX_BAND, "BANDS", "Bands", "Uses standard wood texture in bands"},
 	{TEX_RING, "RINGS", "Rings", "Uses wood texture in rings"},
-	{TEX_BANDNOISE, "BANDNOISE", "BandNoise", "Adds noise to standard wood"},
-	{TEX_RINGNOISE, "RINGNOISE", "RingNoise", "Adds noise to rings"},
+	{TEX_BANDNOISE, "BANDNOISE", "Band Noise", "Adds noise to standard wood"},
+	{TEX_RINGNOISE, "RINGNOISE", "Ring Noise", "Adds noise to rings"},
 	{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem prop_wood_noisebasis2[] = {
-	{TEX_SIN, "SIN", "Sin", "Uses a sine wave to produce bands"},
+	{TEX_SIN, "SIN", "Sine", "Uses a sine wave to produce bands"},
 	{TEX_SAW, "SAW", "Saw", "Uses a saw wave to produce bands"},
 	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
 	{0, NULL, NULL, NULL}};
@@ -877,7 +877,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 		{TEX_MINKOVSKY, "MINKOVSKY", "Minkovsky", ""},
 		{0, NULL, NULL, NULL}};
 
-	static EnumPropertyItem prop_color_type_items[] = {
+	static EnumPropertyItem prop_coloring_items[] = {
 		/* XXX: OK names / descriptions? */
 		{TEX_INTENSITY, "INTENSITY", "Intensity", "Only calculate intensity."},
 		{TEX_COL1, "POSITION", "Position", "Color cells by position."},
@@ -905,10 +905,10 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_distance_metric_items);
 	RNA_def_property_ui_text(prop, "Distance Metric", "");
 
-	prop= RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "coloring", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vn_coltype");
-	RNA_def_property_enum_items(prop, prop_color_type_items);
-	RNA_def_property_ui_text(prop, "Color Type", "");
+	RNA_def_property_enum_items(prop, prop_coloring_items);
+	RNA_def_property_ui_text(prop, "Coloring", "");
 
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");

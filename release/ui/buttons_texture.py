@@ -34,8 +34,8 @@ class TEXTURE_PT_clouds(TextureButtonsPanel):
 		
 		layout.itemR(tex, "stype", expand=True)
 		layout.itemL(text="Noise:")
-		layout.itemR(tex, "noise_basis", text="Basis")
 		layout.itemR(tex, "noise_type", text="Type", expand=True)
+		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		col = layout.column_flow()
 		col.itemR(tex, "noise_size", text="Size")
@@ -54,11 +54,11 @@ class TEXTURE_PT_wood(TextureButtonsPanel):
 		layout = self.layout
 		tex = context.active_object.active_material.active_texture.texture
 		
-		layout.itemR(tex, "noisebasis2", expand=True)
 		layout.itemR(tex, "stype", expand=True)
+		layout.itemR(tex, "noisebasis2", expand=True)
 		layout.itemL(text="Noise:")
-		layout.itemR(tex, "noise_basis", text="Basis")
 		layout.itemR(tex, "noise_type", text="Type", expand=True)
+		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		col = layout.column_flow()
 		col.itemR(tex, "noise_size", text="Size")
@@ -80,8 +80,8 @@ class TEXTURE_PT_marble(TextureButtonsPanel):
 		layout.itemR(tex, "stype", expand=True)
 		layout.itemR(tex, "noisebasis2", expand=True)
 		layout.itemL(text="Noise:")
-		layout.itemR(tex, "noise_basis", text="Basis")
 		layout.itemR(tex, "noise_type", text="Type", expand=True)
+		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		col = layout.column_flow()	
 		col.itemR(tex, "noise_size", text="Size")
@@ -134,8 +134,8 @@ class TEXTURE_PT_stucci(TextureButtonsPanel):
 		
 		layout.itemR(tex, "stype", expand=True)
 		layout.itemL(text="Noise:")
-		layout.itemR(tex, "noise_basis", text="Basis")
 		layout.itemR(tex, "noise_type", text="Type", expand=True)
+		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		row = layout.row()
 		row.itemR(tex, "noise_size", text="Size")
@@ -251,9 +251,11 @@ class TEXTURE_PT_musgrave(TextureButtonsPanel):
 		layout = self.layout
 		tex = context.active_object.active_material.active_texture.texture
 		
+		layout.itemR(tex, "musgrave_type")	
+		
 		split = layout.split()
 		
-		sub = split.column()   
+		sub = split.column()
 		sub.itemR(tex, "highest_dimension", text="Dimension")
 		sub.itemR(tex, "lacunarity")
 		sub.itemR(tex, "octaves")
@@ -265,8 +267,8 @@ class TEXTURE_PT_musgrave(TextureButtonsPanel):
 			sub.itemR(tex, "noise_intensity", text="Intensity")
 		
 		layout.itemL(text="Noise:")
+		
 		layout.itemR(tex, "noise_basis", text="Basis")
-		layout.itemR(tex, "musgrave_type")	
 		
 		row = layout.row()
 		row.itemR(tex, "noise_size", text="Size")
@@ -286,13 +288,15 @@ class TEXTURE_PT_voronoi(TextureButtonsPanel):
 		tex = context.active_object.active_material.active_texture.texture
 	
 		layout.itemR(tex, "distance_metric")
-		layout.itemR(tex, "color_type")
+		layout.itemR(tex, "coloring")
 		
 		split = layout.split()
 		
 		sub = split.column()   
-		sub.itemR(tex, "minkovsky_exponent", text="Minkovsky")
+		
 		sub.itemR(tex, "noise_intensity", text="Intensity")
+		if tex.distance_metric == 'MINKOVSKY':
+			sub.itemR(tex, "minkovsky_exponent", text="Exponent")
 		sub = split.column()
 		sub.itemR(tex, "feature_weights", slider=True)
 		
@@ -317,9 +321,14 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		layout.itemR(tex, "noise_distortion")
 		layout.itemR(tex, "noise_basis", text="Basis")
 		
-		row = layout.row()
-		row.itemR(tex, "noise_size", text="Size")
-		row.itemR(tex, "nabla")	
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemR(tex, "distortion_amount", text="Amount")
+		sub.itemR(tex, "noise_size", text="Size")
+		
+		sub = split.column()
+		sub.itemR(tex, "nabla")	
 
 bpy.types.register(TEXTURE_PT_texture)
 bpy.types.register(TEXTURE_PT_clouds)
