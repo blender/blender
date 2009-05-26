@@ -1459,6 +1459,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
+			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= brush->mtex[a];
 				if(mtex)
