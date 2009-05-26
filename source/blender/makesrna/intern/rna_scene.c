@@ -210,7 +210,16 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "THREADS_AUTO", "Auto-detect", ""},
 		{R_FIXED_THREADS, "THREADS_FIXED", "Fixed Number", ""},
 		{0, NULL, NULL, NULL}};
+	
+	static EnumPropertyItem stamp_font_size_items[] = {
+		{1, "STAMP_FONT_TINY", "Tiny", ""},
+		{2, "STAMP_FONT_SMALL", "Small", ""},
+		{3, "STAMP_FONT_MEDIUM", "Medium", ""},
+		{0, "STAMP_FONT_LARGE", "Large", ""},
+		{4, "STAMP_FONT_EXTRALARGE", "Extra Large", ""},
+		{0, NULL, NULL, NULL}};
 		
+	
 	static EnumPropertyItem image_type_items[] = {
 		{R_FRAMESERVER, "FRAMESERVER", "Frame Server", ""},
 #ifdef WITH_FFMPEG
@@ -476,10 +485,10 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Extensions", "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "image_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "imtype");
 	RNA_def_property_enum_items(prop, image_type_items);
-	RNA_def_property_ui_text(prop, "Image Type", "File format to save the rendered images as.");
+	RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
@@ -506,6 +515,85 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "pic");
 	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_STAMP_INFO);
+	RNA_def_property_ui_text(prop, "Stamp", "Embed metadata into the rendered image");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_TIME);
+	RNA_def_property_ui_text(prop, "Stamp Time", "Include the current time in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_date", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_DATE);
+	RNA_def_property_ui_text(prop, "Stamp Date", "Include the current date in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_frame", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_FRAME);
+	RNA_def_property_ui_text(prop, "Stamp Frame", "Include the frame number in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_camera", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_CAMERA);
+	RNA_def_property_ui_text(prop, "Stamp Camera", "Include the name of the active camera in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_scene", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SCENE);
+	RNA_def_property_ui_text(prop, "Stamp Scene", "Include the name of the active scene in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_note", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_NOTE);
+	RNA_def_property_ui_text(prop, "Stamp Note", "Include a custom note in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_marker", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_MARKER);
+	RNA_def_property_ui_text(prop, "Stamp Marker", "Include the name of the last marker in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_filename", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_FILENAME);
+	RNA_def_property_ui_text(prop, "Stamp Filename", "Include the filename of the .blend file in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_sequence_strip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SEQSTRIP);
+	RNA_def_property_ui_text(prop, "Stamp Sequence Strip", "Include the name of the foreground sequence strip in image metadata");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_note_text", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "stamp_udata");
+	RNA_def_property_ui_text(prop, "Stamp Note Text", "Custom text to appear in the stamp note");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "render_stamp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_DRAW);
+	RNA_def_property_ui_text(prop, "Render Stamp", "Render the stamp info text in the rendered image");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_font_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "stamp_font_id");
+	RNA_def_property_enum_items(prop, stamp_font_size_items);
+	RNA_def_property_ui_text(prop, "Stamp Font Size", "Size of the font used when rendering stamp info text");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_foreground", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stamp Foreground", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "stamp_background", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "bg_stamp");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Stamp Background", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
 }
 
 void RNA_def_scene(BlenderRNA *brna)

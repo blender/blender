@@ -27,6 +27,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		sub.itemR(rd, "render_raytracing", text="Ray Tracing")
 		if (rd.render_raytracing):
 			sub.itemR(rd, "octree_resolution", text="Octree")
+		sub.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		
 class RENDER_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
@@ -42,8 +43,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
-		sub.itemR(rd, "image_type")
-		if rd.image_type in ("AVIJPEG", "JPEG"):
+		sub.itemR(rd, "file_format", text="Format")
+		if rd.file_format in ("AVIJPEG", "JPEG"):
 			sub.itemR(rd, "quality", slider=True)
 		
 		sub = split.column()
@@ -126,9 +127,11 @@ class RENDER_PT_render(RenderButtonsPanel):
 		sub.itemR(rd, "parts_x", text="X")
 		sub.itemR(rd, "parts_y", text="Y")
 		
-		row = layout.row()
-		row.itemR(rd, "panorama")
-		row.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		split = layout.split()
+		sub = split.column()
+		sub = split.column()
+		sub.itemR(rd, "panorama")
+		
 		#	row.itemR(rd, "backbuf")
 			
 class RENDER_PT_dimensions(RenderButtonsPanel):
@@ -167,9 +170,45 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 		col.itemL(text="Frame Rate:")
 		col.itemR(rd, "fps")
 		col.itemR(rd, "fps_base",text="/")
+
+class RENDER_PT_stamp(RenderButtonsPanel):
+	__label__ = "Stamp"
+
+	def draw_header(self, context):
+		rd = context.scene.render_data
+
+		layout = self.layout
+		layout.itemR(rd, "stamp", text="")
+
+	def draw(self, context):
+		scene = context.scene
+		layout = self.layout
+
+		rd = scene.render_data
+
+		split = layout.split()
 		
+		sub = split.column()
+		sub.itemR(rd, "stamp_time", text="Time")
+		sub.itemR(rd, "stamp_date", text="Date")
+		sub.itemR(rd, "stamp_frame", text="Frame")
+		sub.itemR(rd, "stamp_camera", text="Scene")
+		sub.itemR(rd, "stamp_marker", text="Marker")
+		sub.itemR(rd, "stamp_filename", text="Filename")
+		sub.itemR(rd, "stamp_sequence_strip", text="Seq. Strip")
+		sub.itemR(rd, "stamp_note", text="Note")
+		if (rd.stamp_note):
+			sub.itemR(rd, "stamp_note_text", text="")
+		
+		sub = split.column()
+		sub.itemR(rd, "render_stamp")
+		sub.itemR(rd, "stamp_foreground")
+		sub.itemR(rd, "stamp_background")
+		sub.itemR(rd, "stamp_font_size", text="Font Size")
+
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_output)
+bpy.types.register(RENDER_PT_stamp)
