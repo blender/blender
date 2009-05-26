@@ -789,9 +789,12 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
 		// btRigidBody* body = GetRigidBody(); // not used anymore
@@ -815,9 +818,12 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
 		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
@@ -840,10 +846,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
-	float orn[4];
-	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	btQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
-	mat.setRotation(quat);
+	float ori[12];
+	m_MotionState->getWorldOrientation(ori);
+	mat.setFromOpenGLSubMatrix(ori);
 }
 
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
@@ -859,9 +864,12 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required
 		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
@@ -911,9 +919,12 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required, this function is only used to update the physic controller
 		//m_MotionState->setWorldPosition(posX,posY,posZ);
