@@ -187,7 +187,7 @@ static float shorten_string(char* string, float w, int flag)
 		char *s = string;
 		BLI_strncpy(temp, "...", 4);
 		pad = file_string_width(temp);
-		while (s && (sw+pad>w)) {
+		while (s && *s && (w > 0) && (sw+pad>w)) {
 			s++;
 			sw = file_string_width(s);
 			shortened = 1;
@@ -200,11 +200,13 @@ static float shorten_string(char* string, float w, int flag)
 		}
 	} else {
 		char *s = string;
-		while (sw>w) {
-			int slen = strlen(string);
-			string[slen-1] = '\0';
-			sw = file_string_width(s);
-			shortened = 1;
+		if (w>0) {
+			while (sw>w) {
+				int slen = strlen(string);
+				string[slen-1] = '\0';
+				sw = file_string_width(s);
+				shortened = 1;
+			}
 		}
 		if (shortened) {
 			int slen = strlen(string);
