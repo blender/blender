@@ -1105,7 +1105,6 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 "getScreenRay()\n"
 )
 {
-	KX_Camera* cam;
 	MT_Vector3 vect;
 	double x,y,dist;
 	char *propName = NULL;

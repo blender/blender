@@ -222,7 +222,6 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 {
     int vertexindex;
 	int matindex;
-	PyObject* vertexob = NULL;
 
 	if (!PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
 		return NULL;

@@ -6437,7 +6437,7 @@ void brush_buttons(uiBlock *block, short sima,
 		}
 		else {
 			if (
-				(sima==NULL) && /* 3D View */
+				(!sima) && /* 3D View */
 				(settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0 && /* Projection Painting */
 				(settings->imapaint.tool == PAINT_TOOL_CLONE)
 			) {

@@ -747,7 +747,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
-	int lay, a, b, k, counter, hair = 0;
+	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
 	if(psys==0) return;

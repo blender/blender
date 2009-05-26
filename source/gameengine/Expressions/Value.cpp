@@ -292,15 +292,13 @@ CValue* CValue::GetProperty(const char *inName)
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-const STR_String& CValue::GetPropertyText(const STR_String & inName,const char *deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName)
 {
 	const static STR_String sEmpty("");
 
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
-	else if (deftext)
-		return STR_String(deftext);
 	else
 		return sEmpty;
 }

@@ -865,7 +865,7 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 	
 	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
 	{
-		const Channel &channel = i.channel();
+		/* const Channel &channel = i.channel(); */ /* Not used yet */
 		const char *str= i.name();
 		int len= strlen(str);
 		if(len) {

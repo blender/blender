@@ -49,23 +49,20 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
 
-PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* args, PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 {
 	return PyInt_FromLong(m_constraintId);
 }
 
 PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
 {
-	int len = PyTuple_Size(args);
-	int success = 1;
-	
 	int dof;
 	float minLimit,maxLimit;
-	success = PyArg_ParseTuple(args,"iff:setParam",&dof,&minLimit,&maxLimit);
-	if (success)
-	{
-		m_physenv->setConstraintParam(m_constraintId,dof,minLimit,maxLimit);
-	}
+	
+	if (!PyArg_ParseTuple(args,"iff:setParam",&dof,&minLimit,&maxLimit))
+		return NULL;
+	
+	m_physenv->setConstraintParam(m_constraintId,dof,minLimit,maxLimit);
 	Py_RETURN_NONE;
 }
 
@@ -120,7 +117,7 @@ int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* value)
 
 
 PyMethodDef KX_ConstraintWrapper::Methods[] = {
-	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_VARARGS},
+	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_NOARGS},
 	{"setParam",(PyCFunction) KX_ConstraintWrapper::sPySetParam, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
