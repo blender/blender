@@ -1364,7 +1364,18 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
 	PyObject *item;
+	
+	Py_INCREF(newclass);
 
+	/* Something fishy is going on here, the pointer is set many times but never free'd
+	 * It also is almost always the same type so it looks like the same point is
+	 * being reused when it should not be - must look into this further */
+#if 0
+	if (RNA_struct_py_type_get(srna))
+		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));	
+	Py_XDECREF(RNA_struct_py_type_get(srna)); // TODO - why does this crash???
+#endif
+	
 	RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
 	/* Not 100% needed but useful,
@@ -1982,8 +1993,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 
 	BKE_reports_clear(&reports);
 
-	pyrna_subtype_set_rna(py_class, srna);
-	Py_INCREF(py_class);
+	pyrna_subtype_set_rna(py_class, srna); /* takes a ref to py_class */
 
 	Py_RETURN_NONE;
 }
