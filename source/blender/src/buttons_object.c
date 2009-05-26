@@ -2768,7 +2768,7 @@ static void object_panel_anim(Object *ob)
 	uiBlockBeginAlign(block);
 	
 	timeoffset_ui = give_timeoffset(ob);
-	but = uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &timeoffset_ui, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	but = uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &timeoffset_ui, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for IPOs and dupligroup instances");
 	uiButSetFunc(but, object_panel_anim_timeoffset_callback, ob, &timeoffset_ui);
 	
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,35,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
