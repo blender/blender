@@ -31,7 +31,7 @@ SET(INC
   ../../../source/kernel/gen_system
   ../../../intern/string
   ../../../intern/moto/include
-  ../../../source/gameengine/Scenegraph
+  ../../../source/gameengine/SceneGraph
   ${PYTHON_INC}
 )
 
