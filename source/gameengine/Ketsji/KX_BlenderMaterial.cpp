@@ -714,7 +714,6 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 		mScene->GetObjectList()->FindValue(mMaterial->mapping[i].objconame);
 
 	if(!obj) return;
-	obj->Release(); /* FindValue() AddRef's */
 
 	obj->Release();
 

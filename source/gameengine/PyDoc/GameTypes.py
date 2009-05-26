@@ -1008,6 +1008,17 @@ class CListValue(CPropValue):
 		"""
 		Reverse the order of the list.
 		"""
+	def get(key, default=None):
+		"""
+		Return the value matching key, or the default value if its not found.
+		@return: The key value or a default.
+		"""
+	def has_key(key):
+		"""
+		Return True if the key is found.
+		@rtype: boolean
+		@return: The key value or a default.
+		"""
 	def from_id(id):
 		"""
 		This is a funtion especially for the game engine to return a value with a spesific id.
@@ -1614,6 +1625,7 @@ class KX_GameObject(SCA_IObject):
 	@ivar childrenRecursive: all children of this object including childrens children, (read-only).
 	@type childrenRecursive: L{CListValue} of L{KX_GameObject}'s
 	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh, getChildren, getChildrenRecursive
+	@group Property Access: get, has_key, attrDict, getPropertyNames
 	"""
 	def endObject():
 		"""
@@ -2056,6 +2068,18 @@ class KX_GameObject(SCA_IObject):
 		@param to: The name of the object to send the message to (optional)
 		@type to: string
 		"""
+	def get(key, default=None):
+		"""
+		Return the value matching key, or the default value if its not found.
+		@return: The key value or a default.
+		"""
+	def has_key(key):
+		"""
+		Return True if the key is found.
+		@rtype: boolean
+		@return: The key value or a default.
+		"""
+
 
 class KX_IpoActuator(SCA_IActuator):
 	"""

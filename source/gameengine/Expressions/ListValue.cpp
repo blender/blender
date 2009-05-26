@@ -76,13 +76,9 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	
 	if (PyString_Check(pyindex))
 	{
-		const char *index = PyString_AsString(pyindex);
-		CValue *item = ((CListValue*) list)->FindValue(index);
+		CValue *item = ((CListValue*) list)->FindValue(PyString_AsString(pyindex));
 		if (item)
-		{
-			item->Release(); /* FindValue() AddRef's */ 
 			return item->GetProxy();
-		}
 	}
 	else if (PyInt_Check(pyindex))
 	{
@@ -279,10 +275,17 @@ PyParentObject CListValue::Parents[] = {
 
 
 PyMethodDef CListValue::Methods[] = {
+	/* List style access */
 	{"append", (PyCFunction)CListValue::sPyappend,METH_O},
 	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_NOARGS},
 	{"index", (PyCFunction)CListValue::sPyindex,METH_O},
 	{"count", (PyCFunction)CListValue::sPycount,METH_O},
+	
+	/* Dict style access */
+	{"get", (PyCFunction)CListValue::sPyget,METH_VARARGS},
+	{"has_key", (PyCFunction)CListValue::sPyhas_key,METH_O},
+	
+	/* Own cvalue funcs */
 	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
 	
 	{NULL,NULL} //Sentinel
@@ -395,25 +398,23 @@ void CListValue::ReleaseAndRemoveAll()
 
 
 
-CValue* CListValue::FindValue(const char * name)
+CValue* CListValue::FindValue(const STR_String & name)
 {
-	CValue* resultval = NULL;
-	int i=0;
+	for (int i=0; i < GetCount(); i++)
+		if (GetValue(i)->GetName() == name)
+			return GetValue(i);
 	
-	while (!resultval && i < GetCount())
-	{
-		CValue* myval = GetValue(i);
-				
-		if (myval->GetName() == name)
-			resultval = GetValue(i)->AddRef(); // add referencecount
-		else
-			i++;
-		
-	}
-	return resultval;
+	return NULL;
 }
 
-
+CValue* CListValue::FindValue(const char * name)
+{
+	for (int i=0; i < GetCount(); i++)
+		if (GetValue(i)->GetName() == name)
+			return GetValue(i);
+	
+	return NULL;
+}
 
 bool CListValue::SearchValue(CValue *val)
 {
@@ -564,7 +565,31 @@ PyObject* CListValue::Pycount(PyObject* value)
 	return PyInt_FromLong(numfound);
 }
 
+/* Matches python dict.get(key, [default]) */
+PyObject* CListValue::Pyget(PyObject *args)
+{
+	char *key;
+	PyObject* def = Py_None;
 
+	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
+		return NULL;
+	
+	CValue *item = FindValue((const char *)key);
+	if (item)
+		return item->GetProxy();
+	
+	Py_INCREF(def);
+	return def;
+}
+
+/* Matches python dict.has_key() */
+PyObject* CListValue::Pyhas_key(PyObject* value)
+{
+	if (PyString_Check(value) && FindValue((const char *)PyString_AsString(value)))
+		Py_RETURN_TRUE;
+	
+	Py_RETURN_FALSE;
+}
 
 PyObject* CListValue::Pyfrom_id(PyObject* value)
 {

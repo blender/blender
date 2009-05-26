@@ -1190,7 +1190,11 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
-
+	
+	// dict style access for props
+	{"has_key",(PyCFunction) KX_GameObject::sPyhas_key, METH_O},
+	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
+	
 	// deprecated
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
@@ -1899,6 +1903,8 @@ int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro m
 
 int	KX_GameObject::py_delattro(PyObject *attr)
 {
+	ShowDeprecationWarning("del ob.attr", "del ob['attr'] for user defined properties");
+	
 	char *attr_str= PyString_AsString(attr); 
 	
 	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
@@ -2736,6 +2742,48 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	scene->GetNetworkScene()->SendMessage(to, from, subject, body);
 	Py_RETURN_NONE;
 }
+
+/* dict style access */
+
+
+/* Matches python dict.get(key, [default]) */
+PyObject* KX_GameObject::Pyget(PyObject *args)
+{
+	PyObject *key;
+	PyObject* def = Py_None;
+	PyObject* ret;
+
+	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
+		return NULL;
+	
+	
+	if(PyString_Check(key)) {
+		CValue *item = GetProperty(PyString_AsString(key));
+		if (item)
+			return item->GetProxy();
+	}
+	
+	if (m_attr_dict && (ret=PyDict_GetItem(m_attr_dict, key))) {
+		Py_INCREF(ret);
+		return ret;
+	}
+	
+	Py_INCREF(def);
+	return def;
+}
+
+/* Matches python dict.has_key() */
+PyObject* KX_GameObject::Pyhas_key(PyObject* value)
+{
+	if(PyString_Check(value) && GetProperty(PyString_AsString(value)))
+		Py_RETURN_TRUE;
+	
+	if (m_attr_dict && PyDict_GetItem(m_attr_dict, value))
+		Py_RETURN_TRUE;
+	
+	Py_RETURN_FALSE;
+}
+
 
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header

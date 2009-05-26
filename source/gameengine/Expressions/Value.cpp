@@ -556,6 +556,8 @@ PyAttributeDef CValue::Attributes[] = {
 
 PyObject*	CValue::py_getattro(PyObject *attr)
 {
+	ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
+	
 	char *attr_str= PyString_AsString(attr);
 	CValue* resultattr = GetProperty(attr_str);
 	if (resultattr)
@@ -655,6 +657,8 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 
 int	CValue::py_delattro(PyObject *attr)
 {
+	ShowDeprecationWarning("del ob.attr", "del ob['attr']");
+	
 	char *attr_str= PyString_AsString(attr);
 	if (RemoveProperty(attr_str))
 		return 0;
@@ -665,6 +669,8 @@ int	CValue::py_delattro(PyObject *attr)
 
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
+	ShowDeprecationWarning("ob.attr = val", "ob['attr'] = val");
+	
 	char *attr_str= PyString_AsString(attr);
 	CValue* oldprop = GetProperty(attr_str);	
 	CValue* vallie;
