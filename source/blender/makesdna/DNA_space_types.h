@@ -146,7 +146,8 @@ typedef struct SpaceSeq {
 	View2D v2d;
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, pad;
+	short mainb;
+	short render_size;
 	short chanshown;
 	short zebra;
 	int flag;
