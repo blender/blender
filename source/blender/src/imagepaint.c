@@ -3300,6 +3300,7 @@ static void project_paint_end(ProjPaintState *ps)
 			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
 			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(arena, size);
 			memset(last_projIma->undoRect, 0, size);
+			last_projIma->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 		
 		for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
