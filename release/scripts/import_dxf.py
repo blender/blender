@@ -2,7 +2,7 @@
 
 """
 Name: 'Autodesk DXF (.dxf .dwg)'
-Blender: 246
+Blender: 249
 Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
@@ -112,6 +112,7 @@ History:
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
  v1.12 - 2009.05.26 by migius
+ d5 changed to the new 2.49 method Vector.cross()
  d5 bugfix WORLDY(1,1,0) to (0,1,0)
  v1.12 - 2009.04.11 by migius
  d4 added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
@@ -343,8 +344,6 @@ if os.name != 'mac':
 		#print 'psyco imported'
 	except ImportError:
 		print 'psyco not imported'
-
-#try: Curve.orderU
 
 print '\n\n\n'
 print 'DXF/DWG-Importer v%s *** start ***' %(__version__)   #---------------------
@@ -4420,11 +4419,14 @@ def getOCS(az):  #--------------------------------------------------------------
 
 	cap = 0.015625 # square polar cap value (1/64.0)
 	if abs(az.x) < cap and abs(az.y) < cap:
-		ax = Mathutils.CrossVecs(WORLDY, az)
+		#ax = Mathutils.CrossVecs(WORLDY, az) #for<2.49
+		ax = WORLDY.cross(az)
 	else:
-		ax = Mathutils.CrossVecs(WORLDZ, az)
+		#ax = Mathutils.CrossVecs(WORLDZ, az) #for<2.49
+		ax = WORLDZ.cross(az)
 	ax = ax.normalize()
-	ay = Mathutils.CrossVecs(az, ax)
+	#ay = Mathutils.CrossVecs(az, ax) #for<2.49
+	ay = az.cross(ax)
 	ay = ay.normalize()
 	return ax, ay, az
 
@@ -6156,19 +6158,22 @@ def multi_import(DIR):
 
 
 if __name__ == "__main__":
-	UI_MODE = True
-	# recall last used DXF-file and INI-file names
-	dxffilename = check_RegistryKey('dxfFileName')
-	#print 'deb:start dxffilename:', dxffilename #----------------
-	if dxffilename: dxfFileName.val = dxffilename
+	if 'cross' not in dir(Mathutils.Vector()):
+		Draw.PupMenu('DXF importer: Abort%t|This script version works for Blender up 2.49 only!')
 	else:
-		dirname = sys.dirname(Blender.Get('filename'))
-		#print 'deb:start dirname:', dirname #----------------
-		dxfFileName.val = sys.join(dirname, '')
-	inifilename = check_RegistryKey('iniFileName')
-	if inifilename: iniFileName.val = inifilename
+		UI_MODE = True
+		# recall last used DXF-file and INI-file names
+		dxffilename = check_RegistryKey('dxfFileName')
+		#print 'deb:start dxffilename:', dxffilename #----------------
+		if dxffilename: dxfFileName.val = dxffilename
+		else:
+			dirname = sys.dirname(Blender.Get('filename'))
+			#print 'deb:start dirname:', dirname #----------------
+			dxfFileName.val = sys.join(dirname, '')
+		inifilename = check_RegistryKey('iniFileName')
+		if inifilename: iniFileName.val = inifilename
 
-	Draw.Register(draw_UI, event, bevent)
+		Draw.Register(draw_UI, event, bevent)
 
 
 """
