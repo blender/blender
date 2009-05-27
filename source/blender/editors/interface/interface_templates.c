@@ -584,7 +584,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* open/close icon */
 	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, ICON_TRIA_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -602,9 +602,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* Softbody not allowed in this situation, enforce! */
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, ICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, ICON_EDITMODE_HLT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
 		}
 		uiBlockEndAlign(block);
@@ -665,8 +665,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		if (!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
 
-			uiBlockBeginAlign(block);
-			if (md->type==eModifierType_ParticleSystem) {
+						if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
 	    		if(!(G.f & G_PARTICLEEDIT)) {
@@ -688,7 +687,6 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
-			uiBlockEndAlign(block);
 		}
 
 		result= uiLayoutColumn(box, 0);
@@ -855,8 +853,9 @@ static void constraint_moveDown(bContext *C, void *ob_v, void *con_v)
  */
 static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short xco, short yco, short owner, short target)
 {
-	short tarx, ownx;
+	short tarx, ownx, iconx;
 	short bwidth;
+	short iconwidth = 20;
 	
 	/* calculate sizes and placement of menus */
 	if (owner == -1) {
@@ -871,15 +870,14 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	}
 	else {
 		bwidth = 100;
-		tarx = 95;
-		ownx = tarx + bwidth;
+		tarx = 85;
+		iconx = tarx + bwidth + 5;
+		ownx = tarx + bwidth + iconwidth + 10;
 	}
 	
 	
-	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "CSpace:", xco, yco, 80,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-	
-	uiBlockBeginAlign(block);
-	
+	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Convert:", xco, yco, 80,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
 	/* Target-Space */
 	if (target == 1) {
 		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
@@ -890,6 +888,10 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 										tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 	}
 	
+	if ((target != -1) && (owner != -1))
+		uiDefIconBut(block, LABEL, B_NOP, ICON_ARROW_LEFTRIGHT,
+			iconx, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	
 	/* Owner-Space */
 	if (owner == 1) {
 		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
@@ -899,8 +901,6 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local (Without Parent) Space %x1", 
 										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
 	}
-	
-	uiBlockEndAlign(block);
 }
 
 /* draw panel showing settings for a constraint */
@@ -951,7 +951,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	
 	/* open/close */
-	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_DISCLOSURE_TRI_RIGHT, xco-10, yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
+	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_TRIA_RIGHT, xco-10, yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 	
 	/* name */	
 	if ((con->flag & CONSTRAINT_EXPAND) && (proxy_protected==0)) {
