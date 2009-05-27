@@ -28,18 +28,23 @@ class DATA_PT_constraints(DataButtonsPanel):
 			if box:
 				if con.type == 'COPY_LOCATION':
 					self.copy_location(box, con)
-							
+					
+	def target_template(self, layout, con, subtargets=True):
+		layout.itemR(con, "target") # XXX limiting settings for only 'curves' or some type of object
+		
+		if con.target and subtargets:
+			if con.target.type == "ARMATURE":
+				layout.itemR(con, "subtarget", text="Bone") # XXX autocomplete
+				
+				row = layout.row()
+				row.itemL(text="Head/Tail:")
+				row.itemR(con, "head_tail", text="")
+			elif con.target.type in ("MESH", "LATTICE"):
+				layout.itemR(con, "subtarget", text="Vertex Group") # XXX autocomplete
+	
 	def copy_location(self, layout, con):
-		layout.itemR(con, "target")
-
-		if con.target and con.target.type == "ARMATURE":
-			layout.itemR(con, "subtarget", text="Bone") # XXX autocomplete
-			row = layout.row()
-			row.itemL(text="Head/Tail:")
-			row.itemR(con, "head_tail", text="")
-		elif con.target and con.target.type == "MESH":
-			layout.itemR(con, "subtarget", text="Vertex Group") # XXX autocomplete
-
+		self.target_template(layout, con)
+		
 		row = layout.row(align=True)
 		row.itemR(con, "locate_like_x", text="X", toggle=True)
 		row.itemR(con, "invert_x", text="-", toggle=True)
