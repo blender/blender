@@ -31,21 +31,6 @@
 #include <string.h>
 #include <vector>
 
-#include "MEM_guardedalloc.h"
-
-#include "BIK_api.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-
-#include "BKE_armature.h"
-#include "BKE_utildefines.h"
-#include "DNA_object_types.h"
-#include "DNA_action_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_armature_types.h"
-
-#include "itasc_plugin.h"
-
 // iTaSC headers
 #include "Armature.hpp"
 #include "MovingFrame.hpp"
@@ -53,6 +38,26 @@
 #include "WSDLSSolver.hpp"
 #include "Scene.hpp"
 #include "Cache.hpp"
+
+#include "MEM_guardedalloc.h"
+
+extern "C" {
+#include "BIK_api.h"
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+
+#include "BKE_global.h"
+#include "BKE_armature.h"
+#include "BKE_utildefines.h"
+#include "BKE_constraint.h"
+#include "DNA_object_types.h"
+#include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_scene_types.h"
+};
+
+#include "itasc_plugin.h"
 
 // Structure pointed by bArmature.ikdata
 // It contains everything needed to simulate the armatures
@@ -63,7 +68,6 @@ struct IK_Data
 };
 
 typedef float Vector3[3];
-typedef float Vector4[4];
 
 // one structure for each target in the scene
 struct IK_Target
@@ -71,6 +75,7 @@ struct IK_Target
 	iTaSC::MovingFrame*		target;
 	iTaSC::ConstraintSet*	constraint;
 	struct bConstraint*		blenderConstraint;
+	Object*					owner;			//for auto IK
 	std::string				targetName;
 	std::string				constraintName;
 	int						ee;				//end effector number
@@ -80,6 +85,7 @@ struct IK_Target
 		target = NULL;
 		constraint = NULL;
 		blenderConstraint = NULL;
+		owner = NULL;
 		ee = 0;
 		targetName.reserve(32);
 		constraintName.reserve(32);
@@ -92,39 +98,54 @@ struct IK_Target
 	}
 };
 
+struct IK_Channel {
+	bPoseChannel*	pchan;		// channel where we must copy matrix back
+	int				parent;		// index in this array of the parent channel
+	KDL::Frame		frame;		// frame of the bone relative to object base, not armature base
+	std::string		bone;		// segment name of the joint from which we get the bone tail and head
+
+	IK_Channel() {
+		pchan = NULL;
+		parent = -1;
+	}
+};
+
 struct IK_Scene
 {
 	IK_Scene*			next;
 	int					numchan;	// number of channel in pchan
-	bPoseChannel**		pchan;		// list of pose in tree, same index as bones and parents
+	// array of bone information, one per channel in the tree
+	IK_Channel*			channels;
 	iTaSC::Armature*	armature;
 	iTaSC::Cache*		cache;
 	iTaSC::Scene*		scene;
-	iTaSC::MovingFrame* base;
+	iTaSC::MovingFrame* base;		// armature base object
+	KDL::Frame			baseFrame;	// frame of armature base relative to blArmature
 	iTaSC::WSDLSSolver* solver;
+	Object*				blArmature;
 	
-	std::vector<std::string>	bones;		// bones[i] = segment name of the joint from which we get the bone i tail and head
 	std::vector<IK_Target*>		targets;
 
 	IK_Scene() {
 		next = NULL;
-		pchan = NULL;
+		channels = NULL;
 		armature = NULL;
 		cache = NULL;
 		scene = NULL;
 		base = NULL;
 		solver = NULL;
+		blArmature = NULL;
 	}
 
 	~IK_Scene() {
-		if (pchan)
-			MEM_freeN(pchan);
 		// delete scene first
 		if (scene)
 			delete scene;
 		for(std::vector<IK_Target*>::iterator it = targets.begin();	it != targets.end(); ++it)
 			delete (*it);
 		targets.clear();
+		if (channels)
+			delete [] channels;
 		if (solver)
 			delete solver;
 		if (armature)
@@ -360,7 +381,17 @@ static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Fram
 	IK_Target* target = (IK_Target*)param;
 	// compute next target position
 	// get target matrix from constraint.
-	return false;
+	bKinematicConstraint* data;
+	float rootmat[4][4];
+
+	data = (bKinematicConstraint*)target->blenderConstraint->data;
+
+	get_constraint_target_matrix(target->blenderConstraint, 0, CONSTRAINT_OBTYPE_OBJECT, target->owner, rootmat, 1.0);
+
+	// rootmat contains the target pose in world coordinate, just put in next pose
+	// TBD: blending, pole target
+	next.setValue(&rootmat[0][0]);
+	return true;
 }
 
 static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
@@ -371,7 +402,24 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 	// ikscene->pchan[0] is the root channel of the tree
 	// if it has a parent, get the pose matrix from it and replace [3] by parent pchan->tail
 	// then multiply by the armature matrix to get ikscene->armature base position
-	return false;
+	bPoseChannel* pchan = ikscene->channels[0].pchan;
+	float rootmat[4][4];
+	if (pchan->parent) {
+		pchan = pchan->parent;
+		float chanmat[4][4];
+		Mat4CpyMat4(chanmat, pchan->pose_mat);
+		VECCOPY(chanmat[3], pchan->pose_tail);
+		// save the base as a frame too so that we can compute deformation
+		// after simulation
+		ikscene->baseFrame.setValue(&chanmat[0][0]);
+		Mat4MulMat4(rootmat, chanmat, ikscene->blArmature->obmat);
+	} 
+	else {
+		Mat4CpyMat4(rootmat, ikscene->blArmature->obmat);
+		ikscene->baseFrame = iTaSC::F_identity;
+	}
+	next.setValue(&rootmat[0][0]);
+	return true;
 }
 
 static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
@@ -382,11 +430,11 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	iTaSC::Armature* arm;
 	iTaSC::Scene* scene;
 	IK_Scene* ikscene;
+	IK_Channel* ikchan;
 	Bone *bone;
 	int a, flag, hasstretch=0;
 	float length;
 	bool ret = true;
-	float restpose[3][3];
 
 	if (tree->totchannel == 0)
 		return NULL;
@@ -394,13 +442,13 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	ikscene = new IK_Scene;
 	arm = new iTaSC::Armature();
 	scene = new iTaSC::Scene();
-	ikscene->pchan = (bPoseChannel**)MEM_mallocN(sizeof(void*)*tree->totchannel, "iTaSC chan list");
+	ikscene->channels = new IK_Channel[tree->totchannel];
 	ikscene->numchan = tree->totchannel;
 	ikscene->armature = arm;
 	ikscene->scene = scene;
 	ikscene->cache = new iTaSC::Cache();;
 	ikscene->solver = new iTaSC::WSDLSSolver();
-	ikscene->bones.resize(tree->totchannel);
+	ikscene->blArmature = ob;
 
 	std::string  joint;
 	std::string  root("root");
@@ -409,10 +457,12 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	float scale = VecLength(ob->obmat[1]);
 	double X, Y, Z;
 
-	for(a=0; a<tree->totchannel; a++) {
+	for(a=0, ikchan = ikscene->channels; a<tree->totchannel; ++a, ++ikchan) {
 		pchan= tree->pchan[a];
+		
 		bone= pchan->bone;
-		ikscene->pchan[a] = pchan;
+		ikchan->pchan = pchan;
+		ikchan->parent = (a>0) ? tree->parent[a] : -1;
 		
 		/* set DoF flag */
 		flag= 0;
@@ -463,7 +513,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		
 		// take scaling into account
 		length= bone->length*scale;
-		parent = (a > 0) ? ikscene->bones[tree->parent[a]] : root;
+		parent = (a > 0) ? ikscene->channels[tree->parent[a]].bone : root;
 		// first the fixed segment to the bone head
 		if (VecLength(bone->head) > KDL::epsilon) {
 			KDL::Frame head(KDL::Vector(bone->head[0], bone->head[1], bone->head[2]));
@@ -572,7 +622,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			// error making the armature??
 			break;
 		// joint points to the segment that correspond to the bone per say
-		ikscene->bones[a] = joint;
+		ikchan->bone = joint;
 		
 		//if (pchan->ikflag & BONE_IK_XLIMIT)
 		//	IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
@@ -603,7 +653,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		// add the end effector
 		IK_Target* iktarget = new IK_Target();
 		ikscene->targets.push_back(iktarget);
-		iktarget->ee = arm->addEndEffector(ikscene->bones[target->tip]);
+		iktarget->ee = arm->addEndEffector(ikscene->channels[target->tip].bone);
 		if (iktarget->ee == -1) {
 			ret = false;
 			break;
@@ -613,7 +663,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		iktarget->target->setCallback(target_callback, iktarget);
 		iktarget->targetName = pchan->bone->name;
 		iktarget->targetName += ":T:";
-		iktarget->targetName + target->con->name;
+		iktarget->targetName += target->con->name;
 		if (!scene->addObject(iktarget->targetName, iktarget->target)) {
 			ret = false;
 			break;
@@ -642,20 +692,12 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	// ikscene->pchan[0] is the root channel of the tree
 	// if it has no parent, then it's just the identify Frame
 	KDL::Frame invBaseFrame;
-	pchan = ikscene->pchan[0];
+	pchan = ikscene->channels[0].pchan;
 	if (pchan->parent) {
-		// it has a parent, get the pose matrix from and move to the tail
-		pchan = pchan->parent;
-		Mat3CpyMat4(restpose, pchan->bone->arm_mat);
-		Mat3Ortho(restpose);
-		Vector4 *fl = pchan->bone->arm_mat;
-		// get the inverse base frame
-		invBaseFrame = KDL::Frame(
-			KDL::Rotation(
-				restpose[0][0], restpose[1][0], restpose[2][0],
-				restpose[0][1], restpose[1][1], restpose[2][1],
-				restpose[0][2], restpose[1][2], restpose[2][2]),
-			KDL::Vector(fl[3][0], fl[3][1], fl[3][2])).Inverse();
+		// it has a parent, get the pose matrix from it and move to the tail
+		pchan = pchan->parent;	
+		invBaseFrame.setValue(&pchan->bone->arm_mat[0][0]);
+		invBaseFrame = invBaseFrame.Inverse();
 	} 
 	// finally add the constraint
 	for (a=0, target=(PoseTarget*)tree->targets.first; target; target=(PoseTarget*)target->next, a++) {
@@ -679,23 +721,17 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			iktarget->constraint->setControlParameter(iTaSC::CopyPose::ID_ROTATION, iTaSC::ACT_ALPHA, condata->orientweight);
 		iktarget->constraintName = pchan->bone->name;
 		iktarget->constraintName += ":C:";
-		iktarget->constraintName + target->con->name;
+		iktarget->constraintName += target->con->name;
 		// add the constraint
-		ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->bones[target->tip]);
+		ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[target->tip].bone);
 		if (!ret)
 			break;
 
 		// store the rest pose of the end effector to compute enforce target
-		Mat3CpyMat4(restpose, pchan->bone->arm_mat);
-		Mat3Ortho(restpose);
-		iktarget->eeRest.M = KDL::Rotation(
-			restpose[0][0], restpose[1][0], restpose[2][0],
-			restpose[0][1], restpose[1][1], restpose[2][1],
-			restpose[0][2], restpose[1][2], restpose[2][2]);
-		Vector4 *fl = pchan->bone->arm_mat;
-		iktarget->eeRest.p = KDL::Vector(fl[3][0], fl[3][1], fl[3][2]);
+		iktarget->eeRest.setValue(&pchan->bone->arm_mat[0][0]);
 		// must remove the frame of the armature base
 		iktarget->eeRest = invBaseFrame * iktarget->eeRest;
+		iktarget->owner = ob;
 	}
 	if (!ret ||
 		!scene->addCache(ikscene->cache) ||
@@ -747,16 +783,105 @@ static void init_scene(Object *ob)
 		for(IK_Scene* scene = ((IK_Data*)arm->ikdata)->first;
 			scene != NULL;
 			scene = scene->next) {
-			scene->pchan[0]->flag |= POSE_IKTREE;
+			scene->channels[0].pchan->flag |= POSE_IKTREE;
 		}
 	}
 }
 
 static void execute_scene(IK_Scene* ikscene, float ctime)
 {
-	// TBD. For now, just mark the channel done
-	for (int i=0; i<ikscene->numchan; i++) {
-		ikscene->pchan[i]->flag |= POSE_DONE;
+	// We don't allow external contraint to change our bones, mark the channel done
+	int i;
+	for (i=0; i<ikscene->numchan; i++) {
+		ikscene->channels[i].pchan->flag |= POSE_DONE;
+	}
+	
+	double timestamp = ctime * G.scene->r.frs_sec_base / G.scene->r.frs_sec;
+	double timestep = 0.040;
+	bool reiterate = false;
+	if (ikscene->cache) {
+		iTaSC::CacheTS sts, cts, dts;
+		sts = cts = (iTaSC::CacheTS)(timestamp*1000.0);
+		if (ikscene->cache->getPreviousCacheItem(NULL, 0, &cts) == NULL || cts == 0) {
+			// the cache is empty before this time, reiterate
+			reiterate = true;
+		} else {
+			// can take the cache as a start point.
+			sts -= cts;
+			timestep = sts/1000.0;
+		}
+	}
+	ikscene->scene->update(timestamp, timestep, 0, false);
+	if (reiterate) {
+		// how many times do we reiterate?
+		for (i=0; i<100; i++) {
+			if (ikscene->armature->getMaxJointChange(timestep) < 0.001)
+				break;
+			ikscene->scene->update(timestamp, timestep, 0, true);
+		}
+	}
+	// Apply result to bone:
+	// walk the ikscene->channels
+	// for each, get the Frame of the joint corresponding to the bone relative to its parent
+	// combine the parent and the joint frame to get the frame relative to armature
+	// a backward translation of the bone length gives the head
+	// if TY, compute the scale as the ratio of the joint length with rest pose length
+	IK_Channel* ikchan;
+	iTaSC::Armature* arm = ikscene->armature;
+	KDL::Frame frame;
+	double q_rest, q;
+	const KDL::Joint* joint;
+	const KDL::Frame* tip;
+	bPoseChannel* pchan;
+	float scale;
+	float length;
+	float yaxis[3];
+	for (i=0, ikchan=ikscene->channels; i<ikscene->numchan; ++i, ++ikchan) {
+		if (i == 0) {
+			if (!arm->getRelativeFrame(frame, ikchan->bone))
+				break;
+			// this frame is relative to base, make it relative to object
+			ikchan->frame = ikscene->baseFrame * frame;
+		} 
+		else {
+			if (!arm->getRelativeFrame(frame, ikchan->bone, ikscene->channels[ikchan->parent].bone))
+				break;
+			// combine with parent frame to get frame relative to object
+			ikchan->frame = ikscene->channels[ikchan->parent].frame * frame;
+		}
+		// ikchan->frame is the tail frame relative to object
+		// get bone length
+		if (!arm->getSegment(ikchan->bone, joint, q_rest, q, tip))
+			break;
+		if (joint->getType() == KDL::Joint::TransY) {
+			// stretch bones have a TY joint, compute the scale
+			scale = (float)(q/q_rest);
+			// the length is the joint itself
+			length = (float)q;
+		} 
+		else {
+			scale = 1.0f;
+			// for fixed bone, the length is in the tip (always along Y axis)
+			length = tip->p(1);
+		}
+		// ready to compute the pose mat
+		pchan = ikchan->pchan;
+		// tail mat
+		ikchan->frame.getValue(&pchan->pose_mat[0][0]);
+		VECCOPY(pchan->pose_tail, pchan->pose_mat[3]);
+		// shift to head
+		VECCOPY(yaxis, pchan->pose_mat[1]);
+		VecMulf(yaxis, length);
+		VecSubf(pchan->pose_mat[3], pchan->pose_mat[3], yaxis);
+		VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
+		// add scale
+		VecMulf(pchan->pose_mat[0], scale);
+		VecMulf(pchan->pose_mat[1], scale);
+		VecMulf(pchan->pose_mat[2], scale);
+	}
+	if (i<ikscene->numchan) {
+		// big problem
+		;
 	}
 }
 
@@ -798,7 +923,7 @@ void itasc_execute_tree(struct Object *ob,  struct bPoseChannel *pchan, float ct
 	if (arm->ikdata) {
 		IK_Data* ikdata = (IK_Data*)arm->ikdata;
 		for (IK_Scene* scene = ikdata->first; scene; scene = ikdata->first) {
-			if (scene->pchan[0] == pchan) {
+			if (scene->channels[0].pchan == pchan) {
 				execute_scene(scene, ctime);
 				break;
 			}

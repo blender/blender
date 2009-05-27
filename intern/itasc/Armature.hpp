@@ -27,6 +27,9 @@ public:
 	// specific limit constraint on joint
 	int addLimitConstraint(const std::string& segment_name, double _min, double _max, double _threshold, double _maxWeight=1000.0, double _slope=1.0);
 	double getJoint(unsigned int joint);
+	double getMaxJointChange(double timestep);
+	bool getSegment(const std::string& segment_name, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip);
+	bool getRelativeFrame(Frame& result, const std::string& segment_name, const std::string& base_name=m_root);
 
 	virtual void finalize();
 
@@ -83,6 +86,7 @@ protected:
     virtual void updateJacobian();
 
 private:
+	static std::string m_root;
     Tree m_tree;
 	unsigned int m_njoint;
 	unsigned int m_nconstraint;

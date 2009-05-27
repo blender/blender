@@ -14,6 +14,7 @@ namespace iTaSC {
 
 // a joint constraint is characterized by 5 values: tolerance, K, alpha, yd, yddot
 static const unsigned int constraintCacheSize = sizeof(double)*5;
+std::string Armature::m_root = "root";
 
 Armature::Armature():
 	ControlledObject(),
@@ -148,6 +149,33 @@ bool Armature::addSegment(const std::string& segment_name, const std::string& ho
 		m_njoint++;
 	}
 	return true;
+}
+
+bool Armature::getSegment(const std::string& name, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip)
+{
+	SegmentMap::const_iterator sit = m_tree.getSegment(name);
+	if (sit == m_tree.getSegments().end())
+		return false;
+	p_joint = &sit->second.segment.getJoint();
+	p_tip = &sit->second.segment.getFrameToTip();
+	if (p_joint->getType() != Joint::None) {
+		q_rest = m_joints[sit->second.q_nr];
+		q = m_qKdl(sit->second.q_nr);
+	}
+	return true;
+}
+
+double Armature::getMaxJointChange(double timestep)
+{
+	if (!m_finalized)
+		return 0.0;
+	double maxJoint = 0.0;
+	for (unsigned int i=0; i<m_njoint; i++) {
+		double joint = fabs(m_qdot(i)*timestep);
+		if (maxJoint < joint)
+			maxJoint = joint;
+	}
+	return maxJoint;
 }
 
 int Armature::addConstraint(const std::string& segment_name, ConstraintCallback _function, void* _param, bool _freeParam, bool _substep)
@@ -310,7 +338,7 @@ void Armature::updateJacobian()
 {
     //calculate pose and jacobian
 	for (unsigned int ee=0; ee<m_nee; ee++) {
-		m_fksolver->JntToCart(m_qKdl,m_effectors[ee].pose,m_effectors[ee].name);
+		m_fksolver->JntToCart(m_qKdl,m_effectors[ee].pose,m_effectors[ee].name,m_root);
 		m_jacsolver->JntToJac(m_qKdl,*m_jac,m_effectors[ee].name);
 		// get the jacobian for the base point, to prepare transformation to world reference
 		changeRefPoint(*m_jac,-m_effectors[ee].pose.p,*m_jac);
@@ -328,6 +356,13 @@ const Frame& Armature::getPose(const unsigned int ee)
 	if (!m_finalized)
 		return F_identity;
 	return (ee >= m_nee) ? F_identity : m_effectors[ee].pose;
+}
+
+bool Armature::getRelativeFrame(Frame& result, const std::string& segment_name, const std::string& base_name)
+{
+	if (!m_finalized)
+		return false;
+	return (m_fksolver->JntToCart(m_qKdl,result,segment_name,base_name) < 0) ? false : true;
 }
 
 double Armature::getJoint(unsigned int joint)

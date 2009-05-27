@@ -94,10 +94,11 @@ void MovingFrame::updateCoordinates(const Timestamp& timestamp)
 	// don't compute the velocity during substepping, it is assumed constant.
 	if (!timestamp.substep) {
 		bool cacheAvail = true;
-		if (!timestamp.reiterate)
+		if (!timestamp.reiterate) {
 			cacheAvail = popInternalFrame(timestamp.cacheTimestamp);
-		if (m_function)
-			(*m_function)(timestamp, m_internalPose, m_nextPose, m_param);
+			if (m_function)
+				(*m_function)(timestamp, m_internalPose, m_nextPose, m_param);
+		}
 		// only compute velocity if we have a previous pose
 		if (cacheAvail) {
 			unsigned int iXu;

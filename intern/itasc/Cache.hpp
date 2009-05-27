@@ -107,7 +107,9 @@ public:
 	   returns the data pointer or NULL if there is no cache item before timestamp.
 	   On return, timestamp is updated with the actual timestamp of the item being returned.
 	   Note that the length of the item is not returned, it is up to the device to organize
-	   the data so that length can be retrieved from the data if needed. */
+	   the data so that length can be retrieved from the data if needed.
+	   Device can NULL, it will then just look the first channel available, useful to 
+	   test the status of the cache. */
 	const void *getPreviousCacheItem(const void *device, int channel, CacheTS *timestamp);
 
 	/* returns the cache item with the timestamp that is exactly equal to the given timestamp

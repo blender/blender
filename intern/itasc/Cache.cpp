@@ -432,12 +432,17 @@ void *Cache::addCacheItem(const void *device, int id, unsigned int timestamp, vo
 
 const void *Cache::getPreviousCacheItem(const void *device, int id, unsigned int *timestamp)
 {
-	CacheMap::iterator it = m_cache.find(device);
+	CacheMap::iterator it;
 	CacheEntry *entry;
 	CacheChannel *channel;
 	CacheBuffer *buffer;
 	CacheItem *item;
 
+	if (device) {
+		it = m_cache.find(device);	
+	} else {
+		it = m_cache.begin();
+	}
 	if (it == m_cache.end()) {
 		// device does not exist
 		return NULL;
