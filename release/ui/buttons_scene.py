@@ -108,8 +108,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon=111)
 		
 		row = layout.row()
-		row.itemR(rd, "do_composite")
-		row.itemR(rd, "do_sequence")
+		row.itemR(rd, "do_composite", toggle=True)
+		row.itemR(rd, "do_sequence", toggle=True)
 		if rd.do_composite:
 			row = layout.row()
 			row.itemR(rd, "free_image_textures")
@@ -188,15 +188,15 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 
 		split = layout.split()
 		
-		sub = split.column()
-		sub.itemR(rd, "stamp_time", text="Time")
-		sub.itemR(rd, "stamp_date", text="Date")
-		sub.itemR(rd, "stamp_frame", text="Frame")
-		sub.itemR(rd, "stamp_camera", text="Scene")
-		sub.itemR(rd, "stamp_marker", text="Marker")
-		sub.itemR(rd, "stamp_filename", text="Filename")
-		sub.itemR(rd, "stamp_sequence_strip", text="Seq. Strip")
-		sub.itemR(rd, "stamp_note", text="Note")
+		sub = split.column(align=True)
+		sub.itemR(rd, "stamp_time", text="Time", toggle=True)
+		sub.itemR(rd, "stamp_date", text="Date", toggle=True)
+		sub.itemR(rd, "stamp_frame", text="Frame", toggle=True)
+		sub.itemR(rd, "stamp_camera", text="Scene", toggle=True)
+		sub.itemR(rd, "stamp_marker", text="Marker", toggle=True)
+		sub.itemR(rd, "stamp_filename", text="Filename", toggle=True)
+		sub.itemR(rd, "stamp_sequence_strip", text="Seq. Strip", toggle=True)
+		sub.itemR(rd, "stamp_note", text="Note", toggle=True)
 		if (rd.stamp_note):
 			sub.itemR(rd, "stamp_note_text", text="")
 		
