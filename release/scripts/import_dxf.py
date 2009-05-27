@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.04.11 by migius'
+__version__ = '1.12 - 2009.05.26 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -111,7 +111,8 @@ History:
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
-
+ v1.12 - 2009.05.26 by migius
+ d5 bugfix WORLDY(1,1,0) to (0,1,0)
  v1.12 - 2009.04.11 by migius
  d4 added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
  v1.12 - 2009.03.14 by migius
@@ -350,7 +351,7 @@ print 'DXF/DWG-Importer v%s *** start ***' %(__version__)   #-------------------
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
-WORLDY = Mathutils.Vector((1,1,0))
+WORLDY = Mathutils.Vector((0,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
 
 G_SCALE = 1.0	   #(0.0001-1000) global scaling factor for all dxf data
