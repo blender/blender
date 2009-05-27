@@ -4438,6 +4438,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	BrushPainter *painter;
 	ToolSettings *settings= G.scene->toolsettings;
 	short prevmval[2], mval[2], project = 0;
+	short brush_size_orig; /* not nice hack because 1 size brushes always fail with projection paint */
 	double time;
 	float pressure;
 	int init = 1;
@@ -4472,6 +4473,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		ps.brush = s.brush;
 		ps.tool = s.tool;
 		ps.blend = s.blend;
+		
+		brush_size_orig = ps.brush->size; /* hack, fixme */
 	}
 	
 	if(texpaint) {
@@ -4535,6 +4538,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			persp(PERSP_WIN);
 			return;
 		}
+		
+		/* Dont allow brush size below 2 */
+		if (ps.brush->size<=1)
+			ps.brush->size = 2;
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -4613,6 +4620,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	brush_painter_free(painter);
 
 	if (project) {
+		ps.brush->size = brush_size_orig;
 		project_paint_end(&ps);
 	}
 	
