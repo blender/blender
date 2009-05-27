@@ -159,7 +159,13 @@ bool Equal(const Rotation& a,const Rotation& b,double eps) {
             Equal(a.data[8],b.data[8],eps)    );
 }
 
-
+void Rotation::Ortho()
+{
+	double n;
+	n=sqrt(sqr(data[0])+sqr(data[3])+sqr(data[6]));n=(n>1e-10)?1.0/n:0.0;data[0]*=n;data[3]*=n;data[6]*=n; 
+	n=sqrt(sqr(data[1])+sqr(data[4])+sqr(data[7]));n=(n>1e-10)?1.0/n:0.0;data[1]*=n;data[4]*=n;data[7]*=n; 
+	n=sqrt(sqr(data[2])+sqr(data[5])+sqr(data[8]));n=(n>1e-10)?1.0/n:0.0;data[2]*=n;data[5]*=n;data[8]*=n; 
+}
 
 Rotation operator *(const Rotation& lhs,const Rotation& rhs)
 // Complexity : 27M+27A

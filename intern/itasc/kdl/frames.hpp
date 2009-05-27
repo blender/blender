@@ -295,6 +295,8 @@ public:
     inline Rotation(const Vector& x,const Vector& y,const Vector& z);
     // default copy constructor is sufficient
 
+	inline void setValue(float* oglmat);
+	inline void getValue(float* oglmat);
 
      inline Rotation& operator=(const Rotation& arg);
 
@@ -354,6 +356,9 @@ public:
 
     //! Along an arbitrary axes.  rotvec should be normalized.
     static Rotation Rot2(const Vector& rotvec,double angle);
+	
+	// make sure the matrix is a pure rotation (no scaling)
+	void Ortho();
 
     //! Returns a vector with the direction of the equiv. axis
     //! and its norm is angle
@@ -514,6 +519,9 @@ public:
      //! The position matrix defaults to zero
      explicit inline Frame(const Rotation& R);
 
+	 inline void setValue(float* oglmat);
+	 inline void getValue(float* oglmat);
+
      inline Frame() {}
      //! The copy constructor. Normal copy by value semantics.
      inline Frame(const Frame& arg);
@@ -530,7 +538,7 @@ public:
      //!    Access to elements 0..3,0..3, bounds are checked when NDEBUG is not set
      inline double operator() (int i,int j) const;
 
-// = Inverse
+	 // = Inverse
      //! Gives back inverse transformation of a Frame
      inline Frame Inverse() const;
 

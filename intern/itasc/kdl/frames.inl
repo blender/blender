@@ -626,6 +626,21 @@ Vector Rotation::Inverse(const Vector& v) const {
     );
 }
 
+void Rotation::setValue(float* oglmat)
+{
+    data[0] = *oglmat++; data[3] = *oglmat++; data[6] = *oglmat++; oglmat++;
+    data[1] = *oglmat++; data[4] = *oglmat++; data[7] = *oglmat++; oglmat++;
+    data[2] = *oglmat++; data[5] = *oglmat++; data[8] = *oglmat;
+	Ortho();
+}
+
+void Rotation::getValue(float* oglmat)
+{
+	*oglmat++ = (float)data[0]; *oglmat++ = (float)data[3]; *oglmat++ = (float)data[6]; *oglmat++ = 0.f;
+	*oglmat++ = (float)data[1]; *oglmat++ = (float)data[4]; *oglmat++ = (float)data[7]; *oglmat++ = 0.f;
+	*oglmat++ = (float)data[2]; *oglmat++ = (float)data[5]; *oglmat++ = (float)data[8]; *oglmat++ = 0.f;
+	*oglmat++ = 0.f;            *oglmat++ = 0.f;            *oglmat++ = 0.f;            *oglmat   = 1.f;
+}
 
 void Rotation::SetInverse()
 {
@@ -679,7 +694,21 @@ Frame Frame::Identity() {
 }
 
 
+void Frame::setValue(float* oglmat)
+{
+	M.setValue(oglmat);
+	p.data[0] = oglmat[12];
+	p.data[1] = oglmat[13];
+	p.data[2] = oglmat[14];
+}
 
+void Frame::getValue(float* oglmat)
+{
+	M.getValue(oglmat);
+	oglmat[12] = (float)p.data[0];
+	oglmat[13] = (float)p.data[1];
+	oglmat[14] = (float)p.data[2];
+}
 
 void Vector::Set2DPlane(const Frame& F_someframe_XY,const Vector2& v_XY)
 // a 3D vector where the 2D vector v is put in the XY plane of the frame

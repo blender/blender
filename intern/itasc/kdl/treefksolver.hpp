@@ -53,7 +53,7 @@ namespace KDL {
          *
          * @return if < 0 something went wrong
          */
-        virtual int JntToCart(const JntArray& q_in, Frame& p_out, std::string segmentName)=0;
+        virtual int JntToCart(const JntArray& q_in, Frame& p_out, const std::string& segmentName, const std::string& baseName)=0;
         virtual ~TreeFkSolverPos(){};
     };
 

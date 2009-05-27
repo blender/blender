@@ -40,12 +40,12 @@ namespace KDL {
         TreeFkSolverPos_recursive(const Tree& tree);
         ~TreeFkSolverPos_recursive();
 
-        virtual int JntToCart(const JntArray& q_in, Frame& p_out, std::string segmentName);
+		virtual int JntToCart(const JntArray& q_in, Frame& p_out, const std::string& segmentName, const std::string& baseName);
 
     private:
         const Tree tree;
         
-        Frame recursiveFk(const JntArray& q_in, const SegmentMap::const_iterator& it);
+        Frame recursiveFk(const JntArray& q_in, const SegmentMap::const_iterator& it, const SegmentMap::const_iterator& baseit);
     };
 
 }

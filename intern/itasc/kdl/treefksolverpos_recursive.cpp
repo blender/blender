@@ -30,35 +30,36 @@ namespace KDL {
     {
     }
 
-    int TreeFkSolverPos_recursive::JntToCart(const JntArray& q_in, Frame& p_out, std::string segmentName)
+    int TreeFkSolverPos_recursive::JntToCart(const JntArray& q_in, Frame& p_out, const std::string& segmentName, const std::string& baseName)
     {      
 		SegmentMap::const_iterator it = tree.getSegment(segmentName); 
-       
+		SegmentMap::const_iterator baseit = tree.getSegment(baseName); 
         
         if(q_in.rows() != tree.getNrOfJoints())
     	    	return -1;
         else if(it == tree.getSegments().end()) //if the segment name is not found
          	return -2;
+        else if(baseit == tree.getSegments().end()) //if the base segment name is not found
+         	return -3;
         else{
         	const TreeElement& currentElement = it->second;
-			p_out = recursiveFk(q_in, it);	
+			p_out = recursiveFk(q_in, it, baseit);	
         	return 0;        	
         }
     }
 
-	Frame TreeFkSolverPos_recursive::recursiveFk(const JntArray& q_in, const SegmentMap::const_iterator& it)
+	Frame TreeFkSolverPos_recursive::recursiveFk(const JntArray& q_in, const SegmentMap::const_iterator& it, const SegmentMap::const_iterator& baseit)
 	{
 		//gets the frame for the current element (segment)
 		const TreeElement& currentElement = it->second;
-		Frame currentFrame = currentElement.segment.pose(q_in(currentElement.q_nr));
 		
-		SegmentMap::const_iterator rootIterator = tree.getSegment("root");
-		if(it == rootIterator){
-			return currentFrame;	
+		if(it == baseit){
+			return KDL::Frame::Identity();
 		}
 		else{
+			Frame currentFrame = currentElement.segment.pose(q_in(currentElement.q_nr));
 			SegmentMap::const_iterator parentIt = currentElement.parent;
-			return recursiveFk(q_in, parentIt) * currentFrame;
+			return recursiveFk(q_in, parentIt, baseit) * currentFrame;
 		}
 	}
 
