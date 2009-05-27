@@ -17,9 +17,9 @@ class WORLD_PT_world(WorldButtonsPanel):
 		layout = self.layout
 		
 		row = layout.row()
-		row.itemR(world, "blend_sky", toggle=True)
-		row.itemR(world, "paper_sky", toggle=True)
-		row.itemR(world, "real_sky", toggle=True)
+		row.itemR(world, "blend_sky")
+		row.itemR(world, "paper_sky")
+		row.itemR(world, "real_sky")
 		
 		row = layout.row()
 		row.column().itemR(world, "horizon_color")
