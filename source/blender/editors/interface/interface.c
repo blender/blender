@@ -679,7 +679,7 @@ static void ui_is_but_sel(uiBut *but)
 
 	value= ui_get_but_val(but);
 
-	if( but->type==TOGN  || but->type==ICONTOGN) true= 0;
+	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) true= 0;
 
 	if( but->bit ) {
 		lvalue= (int)value;
@@ -700,10 +700,12 @@ static void ui_is_but_sel(uiBut *but)
 		case TOG3:
 		case BUT_TOGDUAL:
 		case ICONTOG:
+		case OPTION:
 			if(value!=but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
+		case OPTIONN:
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
@@ -1509,7 +1511,12 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				 * custom collection too for bones, vertex groups, .. */
 				ui_rna_ID_collection(C, but, &ptr, &prop);
 
-				if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
+				if(str == NULL || str[0] == '\0') {
+					memset(&rptr, 0, sizeof(rptr));
+					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+					return 11;
+				}
+				else if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
 					return 1;
 				}
@@ -1987,7 +1994,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return (but->type != LABEL);
+	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
 }
 
 static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)

@@ -1811,11 +1811,13 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
 			case TOGBUT:
-				wt= widget_type(UI_WTYPE_TOGGLE);
-				break;
 			case TOG:
 			case TOGN:
 			case TOG3:
+				wt= widget_type(UI_WTYPE_TOGGLE);
+				break;
+			case OPTION:
+			case OPTIONN:
 				if (!(but->flag & UI_HAS_ICON)) {
 					wt= widget_type(UI_WTYPE_OPTION);
 					but->flag |= UI_TEXT_LEFT;

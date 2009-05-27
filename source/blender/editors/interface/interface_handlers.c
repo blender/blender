@@ -364,7 +364,7 @@ static void ui_apply_but_TOG(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		if(value==0.0) push= 1; 
 		else push= 0;
 		
-		if(but->type==TOGN || but->type==ICONTOGN) push= !push;
+		if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) push= !push;
 		ui_set_but_val(but, (double)push);
 		if(but->type==ICONTOG || but->type==ICONTOGN) ui_check_but(but);		
 	}
@@ -566,6 +566,8 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case ICONTOGN:
 		case TOGN:
 		case BUT_TOGDUAL:
+		case OPTION:
+		case OPTIONN:
 			ui_apply_but_TOG(C, block, but, data);
 			break;
 		case ROW:
@@ -2672,6 +2674,8 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case ICONTOGN:
 	case TOGN:
 	case BUT_TOGDUAL:
+	case OPTION:
+	case OPTIONN:
 		retval= ui_do_but_TOG(C, but, data, event);
 		break;
 #if 0

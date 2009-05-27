@@ -672,7 +672,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	*r_h= h;
 }
 
-void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int value, int expand, int slider)
+void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int value, int expand, int slider, int toggle)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -734,10 +734,13 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 		if(slider && but->type==NUM)
 			but->type= NUMSLI;
+
+		if(toggle && but->type==OPTION)
+			but->type= TOG;
 	}
 }
 
-void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider)
+void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle)
 {
 	PropertyRNA *prop;
 
@@ -752,7 +755,7 @@ void uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *prop
 		return;
 	}
 
-	uiItemFullR(layout, name, icon, ptr, prop, RNA_NO_INDEX, 0, expand, slider);
+	uiItemFullR(layout, name, icon, ptr, prop, RNA_NO_INDEX, 0, expand, slider, toggle);
 }
 
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value)
@@ -770,7 +773,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 		return;
 	}
 
-	uiItemFullR(layout, name, icon, ptr, prop, RNA_ENUM_VALUE, value, 0, 0);
+	uiItemFullR(layout, name, icon, ptr, prop, RNA_ENUM_VALUE, value, 0, 0, 0);
 }
 
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
@@ -1595,7 +1598,7 @@ static void ui_item_align(uiLayout *litem, int nr)
 	}
 }
 
-static void ui_item_layout(uiItem *item, int align)
+static void ui_item_layout(uiItem *item)
 {
 	uiItem *subitem;
 
@@ -1605,7 +1608,7 @@ static void ui_item_layout(uiItem *item, int align)
 		if(litem->items.first == NULL)
 			return;
 
-		if(litem->align && !align)
+		if(litem->align)
 			ui_item_align(litem, ++litem->root->block->alignnr);
 
 		switch(litem->item.type) {
@@ -1635,14 +1638,14 @@ static void ui_item_layout(uiItem *item, int align)
 		}
 
 		for(subitem=litem->items.first; subitem; subitem=subitem->next)
-			ui_item_layout(subitem, litem->align || align);
+			ui_item_layout(subitem);
 	}
 }
 
 static void ui_layout_items(const bContext *C, uiBlock *block, uiLayout *layout)
 {
 	ui_item_estimate(&layout->item);
-	ui_item_layout(&layout->item, 0);
+	ui_item_layout(&layout->item);
 }
 
 static void ui_layout_end(const bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y)

@@ -3359,7 +3359,7 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0); // |O
+	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0, 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
 
 	uiItemS(layout);
@@ -4533,12 +4533,12 @@ static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	RNA_pointer_create(&sc->id, &RNA_Sculpt, s, &rna);
 
-	uiItemR(layout, NULL, 0, &rna, "symmetry_x", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "symmetry_y", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "symmetry_z", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_x", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_y", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_z", 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "symmetry_x", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "symmetry_y", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "symmetry_z", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_x", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_y", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "lock_z", 0, 0, 0);
 
 	/* Brush settings */
 	RNA_pointer_create(&sc->id, &RNA_Brush, s->brush, &rna);
@@ -4551,12 +4551,12 @@ static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &rna, "airbrush", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "rake", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "anchored", 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "space", 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "airbrush", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "rake", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "anchored", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "space", 0, 0, 0);
 
-	uiItemR(layout, NULL, 0, &rna, "flip_direction", 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "flip_direction", 0, 0, 0);
 }
 
 uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)

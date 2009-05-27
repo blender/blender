@@ -88,5 +88,8 @@ void GROUP_OT_objects_remove_active(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_add(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
 
+/* editconstraint.c */
+void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
+
 #endif /* ED_OBJECT_INTERN_H */
 

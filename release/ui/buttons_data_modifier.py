@@ -23,9 +23,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		row.itemL();
 
 		for md in ob.modifiers:
-			box = layout.template_modifier(context, md)
+			box = layout.template_modifier(md)
 
-			if md.expanded:
+			if box:
 				if md.type == 'ARMATURE':
 					self.armature(box, md)
 				if md.type == 'ARRAY':
@@ -103,7 +103,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.fit_type == 'FIT_LENGTH':
 			layout.itemR(md, "length")
 		if md.fit_type == 'FIT_CURVE':
-				layout.itemR(md, "curve")
+			layout.itemR(md, "curve")
 		
 		split = layout.split()
 		
@@ -150,9 +150,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def build(self, layout, md):
 		layout.itemR(md, "start")
 		layout.itemR(md, "length")
-		layout.itemR(md, "randomize")
+
+		row = layout.row()
+		row.itemR(md, "randomize")
 		if md.randomize:
-			layout.itemR(md, "seed")
+			row.itemR(md, "seed")
 			
 	def cast(self, layout, md):
 		layout.itemR(md, "cast_type")
@@ -173,7 +175,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemL(text="See Collision panel.")
 		
 	def curve(self, layout, md):
-		layout.itemR(md, "curve")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "deform_axis")
 		
@@ -218,7 +220,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		# Missing: "Reset" and "Recenter"
 		
 	def lattice(self, layout, md):
-		layout.itemR(md, "lattice")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		
 	def mask(self, layout, md):
@@ -230,7 +232,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "inverse")
 		
 	def meshdeform(self, layout, md):
-		layout.itemR(md, "mesh")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "invert")
 		layout.itemR(md, "precision")
@@ -312,9 +314,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def smooth(self, layout, md):
 		split = layout.split()
 		sub = split.column()
-		sub.itemR(md, "x")
-		sub.itemR(md, "y")
-		sub.itemR(md, "z")
+		row = sub.row(align=True)
+		row.itemR(md, "x", toggle=True)
+		row.itemR(md, "y", toggle=True)
+		row.itemR(md, "z", toggle=True)
 		sub = split.column()
 		sub.itemR(md, "factor")
 		sub.itemR(md, "repeat")
@@ -353,9 +356,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		sub = split.column()
 		sub.itemR(md, "normals")
 		if md.normals:
-			sub.itemR(md, "x_normal", text="X")
-			sub.itemR(md, "y_normal", text="Y")
-			sub.itemR(md, "z_normal", text="Z")
+			row = sub.row(align=True)
+			row.itemR(md, "x_normal", text="X", toggle=True)
+			row.itemR(md, "y_normal", text="Y", toggle=True)
+			row.itemR(md, "z_normal", text="Z", toggle=True)
 		
 		col = layout.column_flow()
 		col.itemR(md, "time_offset")
@@ -381,3 +385,4 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
+

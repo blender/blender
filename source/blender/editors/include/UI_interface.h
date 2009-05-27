@@ -188,6 +188,8 @@ typedef struct uiLayout uiLayout;
 #define FTPREVIEW (35<<9)
 #define NUMABS	(36<<9)
 #define TOGBUT  (37<<9)
+#define OPTION  (38<<9)
+#define OPTIONN (39<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
@@ -559,7 +561,8 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
-uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
+uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
@@ -571,8 +574,8 @@ void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *pr
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
-void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider);
-void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider);
+void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider, int toggle);
+void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 
