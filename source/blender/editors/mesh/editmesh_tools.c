@@ -3829,7 +3829,7 @@ useless:
 	GHash *vertgh;
 
 	SlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist; // XXX, projectMat[4][4], viewMat[4][4];
+	float perc = 0, percp = 0,vertdist; // XXX, projectMat[4][4];
 	float shiftlabda= 0.0f,len = 0.0f;
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
 	int wasshift = 0;
@@ -3849,7 +3849,7 @@ useless:
 	
 //	initNumInput(&num);
 		
-//	view3d_get_object_project_mat(curarea, obedit, projectMat, viewMat);
+//	view3d_get_object_project_mat(curarea, obedit, projectMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
 	numsel =0;  
@@ -4759,7 +4759,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	EditVert *eve, *nextve;
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
-	float projectMat[4][4], vec[3], dist, mindist, viewMat[4][4];
+	float projectMat[4][4], vec[3], dist, mindist;
 	short doit= 1, *mval= event->mval; // XXX ,propmode,prop;
 	
 	
@@ -4771,7 +4771,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* select flush... vertices are important */
 	EM_selectmode_set(em);
 	
-	view3d_get_object_project_mat(rv3d, obedit, projectMat, viewMat);
+	view3d_get_object_project_mat(rv3d, obedit, projectMat);
 
 	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
 	mindist= 1000000.0f;

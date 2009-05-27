@@ -126,7 +126,7 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 	PointerRNA ptr;
 	
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
-	bContext *C = (bContext *)PyCObject_AsVoidPtr(PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__"));
+	bContext *C = BPy_GetContext();
 	
 	char *opname = _PyUnicode_AsString(self);
 

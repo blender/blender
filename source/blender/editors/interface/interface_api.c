@@ -89,6 +89,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	RNA_def_boolean(func, "slider", 0, "", "Use slider for numeric values.");
 
 	func= RNA_def_function(srna, "items_enumR", "uiItemsEnumR");
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
@@ -188,5 +189,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
 	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a new ID block.");
 	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
+
+	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "data", "AnyType", "", "Modifier data.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
+	RNA_def_function_return(func, parm);
 }
 

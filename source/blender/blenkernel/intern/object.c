@@ -1314,6 +1314,18 @@ void make_local_object(Object *ob)
 	expand_local_object(ob);
 }
 
+/* returns true if the Object data is a from an external blend file (libdata) */
+int object_data_is_libdata(Object *ob)
+{
+	if(!ob) return 0;
+	if(ob->proxy) return 0;
+	if(ob->id.lib) return 1;
+	if(!ob->data) return 0;
+	if(((ID *)ob->data)->lib) return 1;
+
+	return 0;
+}
+
 /* *************** PROXY **************** */
 
 /* when you make proxy, ensure the exposed layers are extern */

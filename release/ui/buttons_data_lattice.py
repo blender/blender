@@ -15,12 +15,9 @@ class DATA_PT_lattice(DataButtonsPanel):
 	__label__ = "Lattice"
 
 	def draw(self, context):
-		lat = context.main.lattices[0]
+		lat = context.active_object.data
 		layout = self.layout
 
-		if not lat:
-			return
-		
 		row = layout.row()
 		row.itemR(lat, "points_u")
 		row.itemR(lat, "interpolation_type_u", expand=True)

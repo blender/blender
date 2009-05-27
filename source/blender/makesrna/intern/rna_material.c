@@ -62,14 +62,14 @@ static PointerRNA rna_Material_strand_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialStrand, ptr->id.data);
 }
 
-static void rna_Material_mode_halo_set(PointerRNA *ptr, int value)
+static void rna_Material_type_set(PointerRNA *ptr, int value)
 {
 	Material *ma= (Material*)ptr->data;
-	
-	if(value)
-		ma->mode |= MA_HALO;
-	else
-		ma->mode &= ~(MA_HALO|MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+
+	if(ma->material_type == MA_TYPE_HALO && value != MA_TYPE_HALO)
+		ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+
+	ma->material_type= value;
 }
 
 static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -178,7 +178,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_mapping_items);
 	RNA_def_property_ui_text(prop, "Mapping", "");
 
-	/* XXX: MTex.colormodel, pmapto, pmaptoneg */
+	/* XXX: pmapto, pmaptoneg */
 
 	prop= RNA_def_property(srna, "normal_map_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "normapspace");
@@ -204,18 +204,6 @@ static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
-		{MA_RGB, "RGB", "RGB", ""},
-		// {MA_CMYK, "CMYK", "CMYK", ""}, 
-		// {MA_YUV, "YUV", "YUV", ""},
-		{MA_HSV, "HSV", "HSV", ""},
-		{0, NULL, NULL, NULL}};
-	
-	prop= RNA_def_property(srna, "color_model", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "colormodel");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Color Model", "Color model to display color values with in the user interface.");
-	
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
@@ -466,12 +454,6 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Halo", "Halo particle effect settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Enabled", "Enables halo rendering of material.");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_mode_halo_set");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
-	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "hasize");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
@@ -737,12 +719,25 @@ void rna_def_material_strand(BlenderRNA *brna)
 
 void RNA_def_material(BlenderRNA *brna)
 {
-	StructRNA *srna= NULL;
-	PropertyRNA *prop= NULL;
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_type_items[] = {
+		{MA_TYPE_SURFACE, "SURFACE", "Surface", "Render object as a surface."},
+		{MA_TYPE_VOLUME, "VOLUME", "Volume", "Render object as a volume."},
+		{MA_TYPE_HALO, "HALO", "Halo", "Render object as halo particles."},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "Material datablock to defined the appearance of geometric objects for rendering.");
-
+	
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "material_type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Material type defining how the object is rendered.");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Material_type_set");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "amb");
 	RNA_def_property_range(prop, 0, 1);

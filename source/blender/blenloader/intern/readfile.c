@@ -2229,9 +2229,12 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 		
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
+			
 			link_list(fd, &data->targets);
+			
 			data->prop = newdataadr(fd, data->prop);
-			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (data->prop)
+				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
 	}
 }
@@ -3470,7 +3473,13 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->bone= NULL;
 		pchan->parent= newdataadr(fd, pchan->parent);
 		pchan->child= newdataadr(fd, pchan->child);
+		
 		direct_link_constraints(fd, &pchan->constraints);
+		
+		pchan->prop = newdataadr(fd, pchan->prop);
+		if (pchan->prop)
+			IDP_DirectLinkProperty(pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
@@ -5699,7 +5708,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
-				ar->v2d.keepzoom |= V2D_KEEPASPECT;
 				break;
 			}
 			case SPACE_FILE:
@@ -8962,6 +8970,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	   bump the version (or sub-version.) */
 	{
 		Object *ob;
+		Material *ma;
 		int i;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -9025,6 +9034,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 
 				ob->data = olddata;
+			}
+		}
+
+		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			if(ma->mode & MA_HALO) {
+				ma->material_type= MA_TYPE_HALO;
+				ma->mode &= ~MA_HALO;
 			}
 		}
 	}

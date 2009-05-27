@@ -578,6 +578,8 @@ typedef struct SpaceImaSel {
 #define SI_DISPGP		1<<22
 #define SI_DRAW_OTHER	1<<23
 
+#define SI_COLOR_CORRECTION	1<<24
+
 /* SpaceIpo->flag (Graph Editor Settings) */
 #define SIPO_LOCK_VIEW			(1<<0)
 #define SIPO_NOTRANSKEYCULL		(1<<1)
@@ -683,7 +685,7 @@ enum {
 #define TIME_ONLYACTSEL		4
 
 /* time->redraws */
-#define TIME_LEFTMOST_3D_WIN	1
+#define TIME_REGION				1
 #define TIME_ALL_3D_WIN			2
 #define TIME_ALL_ANIM_WIN		4
 #define TIME_ALL_BUTS_WIN		8

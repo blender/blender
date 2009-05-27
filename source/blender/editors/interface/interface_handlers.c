@@ -311,8 +311,10 @@ static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	if(but->type == COL)
-		ui_set_but_vectorf(but, data->vec);
+	if(but->type == COL) {
+		if(but->a1 != -1) // this is not a color picker (weak!)
+			ui_set_but_vectorf(but, data->vec);
+	}
 	else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 		ui_set_but_val(but, data->value);
 
@@ -425,13 +427,6 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 	ui_check_but(but);
 	ui_apply_but_func(C, but);
 
-	data->retval= but->retval;
-	data->applied= 1;
-}
-
-static void ui_apply_but_LABEL(bContext *C, uiBut *but, uiHandleButtonData *data)
-{
-	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
@@ -588,10 +583,6 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case HSVSLI:
 			break;
-		case ROUNDBOX:	
-		case LABEL:	
-			ui_apply_but_LABEL(C, but, data);
-			break;
 		case TOG3:	
 			ui_apply_but_TOG3(C, but, data);
 			break;
@@ -600,7 +591,6 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case ICONTEXTROW:
 		case BLOCK:
 		case PULLDOWN:
-		case HMENU:
 		case COL:
 			ui_apply_but_BLOCK(C, but, data);
 			break;
@@ -628,6 +618,8 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case LINK:
 		case INLINK:
 			break;
+		default:
+			break;
 	}
 
 	but->editstr= editstr;
@@ -651,7 +643,8 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if(mode=='v') {
 		/* extract first line from clipboard in case of multi-line copies */
-		char *p = WM_clipboard_text_get(0);
+		char *p, *pbuf= WM_clipboard_text_get(0);
+		p= pbuf;
 		if(p) {
 			int i = 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
@@ -659,7 +652,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				p++;
 			}
 			buf[i]= 0;
-			MEM_freeN(p);
+			MEM_freeN(pbuf);
 		}
 	}
 	
@@ -811,6 +804,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	int startx= but->x1;
 	char *origstr;
 
 	uiStyleFontSet(&style->widget);
@@ -820,7 +814,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	BLI_strncpy(origstr, but->drawstr, data->maxlen+1);
 	but->pos= strlen(origstr)-but->ofs;
 	
-	while((BLF_width(origstr+but->ofs) + but->x1) > x) {
+	/* XXX solve generic */
+	if(but->type==NUM || but->type==NUMSLI)
+		startx += 20;
+	
+	while((BLF_width(origstr+but->ofs) + startx) > x) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		origstr[but->pos+but->ofs] = 0;
@@ -1420,20 +1418,28 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	switch(but->type) {
 		case BLOCK:
 		case PULLDOWN:
-			func= but->block_create_func;
-			arg= but->poin;
-			break;
-		case HMENU:
-			menufunc= but->menu_create_func;
-			arg= but->poin;
+			if(but->menu_create_func) {
+				menufunc= but->menu_create_func;
+				arg= but->poin;
+			}
+			else {
+				func= but->block_create_func;
+				arg= but->poin;
+			}
 			break;
 		case MENU:
-			data->origvalue= ui_get_but_val(but);
-			data->value= data->origvalue;
-			but->editval= &data->value;
+			if(but->menu_create_func) {
+				menufunc= but->menu_create_func;
+				arg= but->poin;
+			}
+			else {
+				data->origvalue= ui_get_but_val(but);
+				data->value= data->origvalue;
+				but->editval= &data->value;
 
-			handlefunc= ui_block_func_MENU;
-			arg= but;
+				handlefunc= ui_block_func_MENU;
+				arg= but;
+			}
 			break;
 		case ICONROW:
 			handlefunc= ui_block_func_ICONROW;
@@ -2695,17 +2701,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		retval= ui_do_but_TEX(C, block, but, data, event);
 		break;
 	case MENU:
-		retval= ui_do_but_BLOCK(C, but, data, event);
-		break;
 	case ICONROW:
-		retval= ui_do_but_BLOCK(C, but, data, event);
-		break;
 	case ICONTEXTROW:
-		retval= ui_do_but_BLOCK(C, but, data, event);
-		break;
 	case BLOCK:
 	case PULLDOWN:
-	case HMENU:
 		retval= ui_do_but_BLOCK(C, but, data, event);
 		break;
 	case BUTM:
@@ -2764,6 +2763,11 @@ static uiBut *ui_but_find_activated(ARegion *ar)
 				return but;
 
 	return NULL;
+}
+
+int ui_button_is_active(ARegion *ar)
+{
+	return (ui_but_find_activated(ar) != NULL);
 }
 
 static void ui_blocks_set_tooltips(ARegion *ar, int enable)
@@ -2833,7 +2837,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for(but=block->buttons.first; but; but= but->next) {
-			if(but->flag & UI_NO_HILITE)
+			if(ELEM3(but->type, LABEL, ROUNDBOX, SEPR))
 				continue;
 
 			if(ui_but_contains_pt(but, mx, my))
@@ -2886,7 +2890,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		button_tooltip_timer_reset(but);
 
 		/* automatic open pulldown block timer */
-		if(ELEM4(but->type, BLOCK, PULLDOWN, HMENU, ICONTEXTROW)) {
+		if(ELEM3(but->type, BLOCK, PULLDOWN, ICONTEXTROW)) {
 			if(!data->autoopentimer) {
 				int time;
 
@@ -3400,7 +3404,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 						else but= ui_but_first(block);
 					}
 
-					if(but && ELEM(but->type, BLOCK, HMENU))
+					if(but && ELEM(but->type, BLOCK, PULLDOWN))
 						ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
 				}
 

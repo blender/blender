@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_colortools.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -196,7 +197,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCREEN:
-			if(wmn->data==ND_SCREENCAST)
+			if(ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:

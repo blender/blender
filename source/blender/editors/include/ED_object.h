@@ -39,6 +39,8 @@ struct KeyBlock;
 struct Lattice;
 struct Mesh;
 struct Curve;
+struct ReportList;
+struct ModifierData;
 
 /* object_edit.c */
 void ED_operatortypes_object(void);
@@ -86,7 +88,13 @@ void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
 void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 
-
+/* object_modifier.c */
+int ED_object_modifier_delete(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_convert(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 #endif /* ED_OBJECT_H */
 

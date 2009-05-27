@@ -104,18 +104,49 @@ static void do_graph_region_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
-static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
 {
-	FCurve *fcu= (FCurve *)ale->data;
+	bAnimContext ac;
+	bAnimListElem *elem= NULL;
+	
+	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
+	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
+	 */
+	if (ANIM_animdata_get_context(C, &ac) == 0) 
+		return 0;
+	
+	/* try to find 'active' F-Curve */
+	elem= get_active_fcurve_channel(&ac);
+	if(elem == NULL) 
+		return 0;
+	
+	if(fcu)
+		*fcu= (FCurve*)elem->data;
+	if(ale)
+		*ale= elem;
+	else
+		MEM_freeN(elem);
+	
+	return 1;
+}
+
+static int graph_panel_poll(const bContext *C, PanelType *pt)
+{
+	return graph_panel_context(C, NULL, NULL);
+}
+
+static void graph_panel_properties(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
 	uiBlock *block;
 	char name[128];
 
-	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS);
-	if (uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
-	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
 
-	/* to force height */
-	uiNewPanelHeight(block, 204);
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
 	/* Info - Active F-Curve */
 	uiDefBut(block, LABEL, 1, "Active F-Curve:",					10, 200, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -136,6 +167,8 @@ static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, 
 	 *	- Access details (ID-block + RNA-Path + Array Index)
 	 *	- ...
 	 */
+
+	MEM_freeN(ale);
 }
 
 /* ******************* drivers ******************************** */
@@ -206,11 +239,23 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 
-
-static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+/* drivers panel poll */
+static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
 {
-	FCurve *fcu= (FCurve *)ale->data;
-	ChannelDriver *driver= fcu->driver;
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+
+	if(sipo->mode != SIPO_MODE_DRIVERS)
+		return 0;
+
+	return graph_panel_context(C, NULL, NULL);
+}
+
+/* driver settings for active F-Curve (only for 'Drivers' mode) */
+static void graph_panel_drivers(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	ChannelDriver *driver;
 	DriverTarget *dtar;
 	
 	PointerRNA rna_ptr;
@@ -218,12 +263,13 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	uiBut *but;
 	int yco=85, i=0;
 
-	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS);
-	if (uiNewPanel(C, ar, block, "Drivers", "Graph", 340, 30, 318, 254)==0) return;
-	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
 
-	/* to force height */
-	uiNewPanelHeight(block, 204);
+	driver= fcu->driver;
+	
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
 	
 	/* general actions */
 	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 200, 180, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
@@ -296,12 +342,8 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 		yco -= height;
 		i++;
 	}
-	
-	/* since these buttons can have variable height */
-	if (yco < 0)
-		uiNewPanelHeight(block, (204 - yco));
-	else
-		uiNewPanelHeight(block, 204);
+
+	MEM_freeN(ale);
 }
 
 /* ******************* f-modifiers ******************************** */
@@ -928,18 +970,19 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 	(*yco) -= (height + 27); 
 }
 
-static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+static void graph_panel_modifiers(const bContext *C, Panel *pa)	
 {
-	FCurve *fcu= (FCurve *)ale->data;
+	bAnimListElem *ale;
+	FCurve *fcu;
 	FModifier *fcm;
 	uiBlock *block;
 	int yco= 190;
 	
-	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS);
-	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
-	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
+	if(!graph_panel_context(C, &ale, &fcu))
+		return;
 	
-	uiNewPanelHeight(block, 204);
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
 	
 	/* 'add modifier' button at top of panel */
 	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
@@ -948,12 +991,8 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
 	/* draw each modifier */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
 		graph_panel_modifier_draw(block, fcu, fcm, &yco);
-	
-	/* since these buttons can have variable height */
-	if (yco < 0)
-		uiNewPanelHeight(block, (204 - yco));
-	else
-		uiNewPanelHeight(block, 204);
+
+	MEM_freeN(ale);
 }
 
 /* ******************* general ******************************** */
@@ -986,43 +1025,31 @@ bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
 	return NULL;
 }
 
-void graph_region_buttons(const bContext *C, ARegion *ar)
+void graph_buttons_register(ARegionType *art)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-	bAnimContext ac;
-	bAnimListElem *ale= NULL;
-	
-	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
-	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
-	 */
-	if (ANIM_animdata_get_context(C, &ac) == 0) 
-		return;
-	
-	
-	/* try to find 'active' F-Curve */
-	ale= get_active_fcurve_channel(&ac);
-	if (ale == NULL) 
-		return;	
-		
-	uiBeginPanels(C, ar);
+	PanelType *pt;
 
-	/* for now, the properties panel displays info about the selected channels */
-	graph_panel_properties(C, ar, 0, ale);
-	
-	/* driver settings for active F-Curve (only for 'Drivers' mode) */
-	if (sipo->mode == SIPO_MODE_DRIVERS)
-		graph_panel_drivers(C, ar, 0, ale);
-	
-	/* modifiers */
-	graph_panel_modifiers(C, ar, 0, ale);
-	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
+	strcpy(pt->idname, "GRAPH_PT_properties");
+	strcpy(pt->label, "Properties");
+	pt->draw= graph_panel_properties;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
 
-	uiEndPanels(C, ar);
-	
-	/* free temp data */
-	MEM_freeN(ale);
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
+	strcpy(pt->idname, "GRAPH_PT_drivers");
+	strcpy(pt->label, "Drivers");
+	pt->draw= graph_panel_drivers;
+	pt->poll= graph_panel_drivers_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
+	strcpy(pt->idname, "GRAPH_PT_modifiers");
+	strcpy(pt->label, "Modifiers");
+	pt->draw= graph_panel_modifiers;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
 }
-
 
 static int graph_properties(bContext *C, wmOperator *op)
 {

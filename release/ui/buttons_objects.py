@@ -77,15 +77,31 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		row = layout.row()
-		row.itemR(ob, "dupli_type", text="", expand=True)
+		layout.itemR(ob, "dupli_type", expand=True)
 
-		if ob.dupli_type == "FRAMES":
-			col = layout.column_flow()
-			col.itemR(ob, "dupli_frames_start", text="Start")
-			col.itemR(ob, "dupli_frames_end", text="End")
-			col.itemR(ob, "dupli_frames_on", text="On")
-			col.itemR(ob, "dupli_frames_off", text="Off")
+		if ob.dupli_type == 'FRAMES':
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_start", text="Start")
+			sub.itemR(ob, "dupli_frames_end", text="End")
+			
+			sub = split.column(align=True)
+			sub.itemR(ob, "dupli_frames_on", text="On")
+			sub.itemR(ob, "dupli_frames_off", text="Off")
+			
+			layout.itemR(ob, "dupli_frames_no_speed", text="No Speed")
+
+		elif ob.dupli_type == 'VERTS':
+			layout.itemR(ob, "dupli_verts_rotation", text="Rotation")
+
+		elif ob.dupli_type == 'FACES':
+			row = layout.row()
+			row.itemR(ob, "dupli_faces_scale", text="Scale")
+			row.itemR(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+
+		elif ob.dupli_type == 'GROUP':
+			layout.itemR(ob, "dupli_group", text="Group")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_animation"
@@ -94,10 +110,10 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 	def draw(self, context):
 		ob = context.active_object
 		layout = self.layout
-
-		row = layout.row()
 		
-		sub = row.column()
+		split = layout.split()
+		
+		sub = split.column()
 		sub.itemL(text="Time Offset:")
 		sub.itemR(ob, "time_offset_edit", text="Edit")
 		sub.itemR(ob, "time_offset_particle", text="Particle")
@@ -105,7 +121,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub.itemR(ob, "slow_parent")
 		sub.itemR(ob, "time_offset", text="Offset")
 		
-		sub = row.column()
+		sub = split.column()
 		sub.itemL(text="Tracking:")
 		sub.itemR(ob, "track_axis", text="Axis")
 		sub.itemR(ob, "up_axis", text="Up Axis")
@@ -116,4 +132,3 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
-

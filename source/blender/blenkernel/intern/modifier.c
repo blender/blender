@@ -4058,17 +4058,15 @@ static void decimateModifier_copyData(ModifierData *md, ModifierData *target)
 	tdmd->percent = dmd->percent;
 }
 
-//XXX
-#if 0 
 static DerivedMesh *decimateModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
 {
-	DecimateModifierData *dmd = (DecimateModifierData*) md;
+	// DecimateModifierData *dmd = (DecimateModifierData*) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
 	MVert *mvert;
 	MFace *mface;
-	LOD_Decimation_Info lod;
+	// LOD_Decimation_Info lod;
 	int totvert, totface;
 	int a, numTris;
 
@@ -4090,6 +4088,8 @@ static DerivedMesh *decimateModifier_applyModifier(
 		goto exit;
 	}
 
+	// XXX
+#if 0
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
 	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*totvert, "normals");
 	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*numTris, "trias");
@@ -4174,11 +4174,14 @@ static DerivedMesh *decimateModifier_applyModifier(
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
+#else
+	modifier_setError(md, "Modifier not working yet in 2.5.");
+	goto exit;
+#endif
 
 exit:
 		return result;
 }
-#endif
 
 /* Smooth */
 
@@ -8271,7 +8274,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = decimateModifier_initData;
 		mti->copyData = decimateModifier_copyData;
-		//XXX mti->applyModifier = decimateModifier_applyModifier;
+		mti->applyModifier = decimateModifier_applyModifier;
 
 		mti = INIT_TYPE(Smooth);
 		mti->type = eModifierTypeType_OnlyDeform;

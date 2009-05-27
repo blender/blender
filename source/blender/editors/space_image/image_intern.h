@@ -32,6 +32,7 @@
 /* internal exports only */
 struct bContext;
 struct ARegion;
+struct ARegionType;
 struct ScrArea;
 struct SpaceImage;
 struct Object;
@@ -84,7 +85,7 @@ void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene 
 
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
-void image_buttons_area_defbuts(const struct bContext *C, struct ARegion *ar);
+void image_buttons_register(struct ARegionType *art);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
 
 #endif /* ED_IMAGE_INTERN_H */

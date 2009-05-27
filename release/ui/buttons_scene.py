@@ -19,66 +19,80 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(rd, "render_shadows", text="Shadows")
-		sub.itemR(rd, "render_sss", text="SSS")
-		sub.itemR(rd, "render_envmaps", text="EnvMap")
-		sub.itemR(rd, "render_radiosity", text="Radio")
+		sub.itemR(rd, "render_sss", text="Subsurface Scattering")
+		sub.itemR(rd, "render_envmaps", text="Environment Map")
+		#	sub.itemR(rd, "render_radiosity", text="Radio")
 		
 		sub = split.column()
-		subsub = sub.box()
-		subsub.itemR(rd, "render_raytracing", text="Ray Tracing")
+		sub.itemR(rd, "render_raytracing", text="Ray Tracing")
 		if (rd.render_raytracing):
-			subsub.itemR(rd, "octree_resolution", text="Octree")
-		sub.itemR(rd, "alpha_mode")
+			sub.itemR(rd, "octree_resolution", text="Octree")
+		sub.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		
-class RENDER_PT_image(RenderButtonsPanel):
-	__label__ = "Image"
+class RENDER_PT_output(RenderButtonsPanel):
+	__label__ = "Output"
 
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
 
 		rd = scene.render_data
+		
+		layout.itemR(rd, "output_path")
+		
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemR(rd, "file_format", text="Format")
+		if rd.file_format in ("AVIJPEG", "JPEG"):
+			sub.itemR(rd, "quality", slider=True)
+		
+		sub = split.column()
+		sub.itemR(rd, "color_mode")
+		sub.itemR(rd, "alpha_mode")
+		
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemL(text="Distributed Rendering:")
+		sub.itemR(rd, "placeholders")
+		sub.itemR(rd, "no_overwrite")
+		
+		sub = split.column()
+		sub.itemL(text="Settings:")
+		sub.itemR(rd, "file_extensions")
+		sub.itemR(rd, "fields", text="Fields")
+		if rd.fields:
+			sub.itemR(rd, "fields_still", text="Still")
+			sub.row().itemR(rd, "field_order", expand=True)
 
-		flow = layout.column_flow()
-		flow.itemR(rd, "resolution_x", text="SizeX")
-		flow.itemR(rd, "resolution_y", text="SizeY")
-		flow.itemR(rd, "pixel_aspect_x", text="AspX")
-		flow.itemR(rd, "pixel_aspect_y", text="AspY")
-
-		box = layout.box()
-		box.itemR(rd, "output_path")
-		box.itemR(rd, "image_type")
-		row = box.row()
-		row.itemR(rd, "file_extensions")
-		row.itemR(rd, "color_mode")
-		if rd.image_type in ("AVIJPEG", "JPEG"):
-			row = box.row()
-			row.itemR(rd, "quality")
-	
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
+	def draw_header(self, context):
+		rd = context.scene.render_data
+
+		layout = self.layout
+		layout.itemR(rd, "antialiasing", text="")
+
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
 
 		rd = scene.render_data
 
-		row = layout.row()
-		row.itemR(rd, "antialiasing", text="Enable")
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemL(text="Samples:")
+		sub.row().itemR(rd, "antialiasing_samples", expand=True)
 
-		if rd.antialiasing:
-			row = layout.row()
-			row.itemL(text="Samples:")
-			row.itemR(rd, "antialiasing_samples", expand=True)
-			row = layout.row()
-			row.itemR(rd, "pixel_filter")
-			row.itemR(rd, "filter_size")
-
-			row = layout.row()
-			row.itemR(rd, "save_buffers")
-			if rd.save_buffers:
-				row.itemR(rd, "full_sample")
+		sub = split.column()
+		sub.itemR(rd, "pixel_filter")
+		sub.itemR(rd, "filter_size", text="Size", slider=True)
+		sub.itemR(rd, "save_buffers")
+		if rd.save_buffers:
+			sub.itemR(rd, "full_sample")
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
@@ -90,66 +104,111 @@ class RENDER_PT_render(RenderButtonsPanel):
 		rd = scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="RENDER", icon=0) # ICON_SCENE
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="ANIM", icon=0)
-
-		row = layout.row()
-		row.itemR(scene, "start_frame", text="Start")
-		row.itemR(rd, "fps")
-		row.itemR(scene, "current_frame", text="Frame")
+		row.itemO("SCREEN_OT_render", text="Render Still", icon=109)
+		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon=111)
 		
-		row = layout.row()
-		row.itemR(scene, "end_frame", text="End")
-		row.itemR(rd, "fps_base",text="/")
-		row.itemR(scene, "frame_step", text="Step")
-
 		row = layout.row()
 		row.itemR(rd, "do_composite")
 		row.itemR(rd, "do_sequence")
+		if rd.do_composite:
+			row = layout.row()
+			row.itemR(rd, "free_image_textures")
 
-		row = layout.row()
-		row.itemL(text="General:")
+		split = layout.split()
+		
+		sub = split.column(align=True)
+		sub.itemL(text="Threads:")
+		sub.row().itemR(rd, "threads_mode", expand=True)
+		if rd.threads_mode == 'THREADS_FIXED':
+			sub.itemR(rd, "threads")
+		
+		sub = split.column(align=True)
+		sub.itemL(text="Tiles:")
+		sub.itemR(rd, "parts_x", text="X")
+		sub.itemR(rd, "parts_y", text="Y")
+		
+		split = layout.split()
+		sub = split.column()
+		sub = split.column()
+		sub.itemR(rd, "panorama")
+		
+		#	row.itemR(rd, "backbuf")
+			
+class RENDER_PT_dimensions(RenderButtonsPanel):
+	__label__ = "Dimensions"
 
-		flow = layout.column_flow()
-		flow.itemR(rd, "resolution_percentage", text="Size ")
-		flow.itemR(rd, "dither_intensity")
-		flow.itemR(rd, "parts_x")
-		flow.itemR(rd, "parts_y")
+	def draw(self, context):
+		scene = context.scene
+		layout = self.layout
+
+		rd = scene.render_data
 		
 		split = layout.split()
 		
-		sub = split.column()
-		subsub = sub.box()
-		subsub.itemL(text="Threads Mode:")
-		subsub.itemR(rd, "threads_mode", expand=True)
-		if rd.threads_mode == 'THREADS_FIXED':
-			subsub.itemR(rd, "threads")
+		col = split.column()
+		sub = col.column(align=True)
+		sub.itemL(text="Resolution:")
+		sub.itemR(rd, "resolution_x", text="X")
+		sub.itemR(rd, "resolution_y", text="Y")
+		sub.itemR(rd, "resolution_percentage", text="")
 		
-		subsub = sub.box()
-		subsub.itemL(text="Distributed Rendering:")
-		subsub.itemR(rd, "placeholders")
-		subsub.itemR(rd, "no_overwrite")
-		subsub = sub.box()
-		subsub.itemR(rd, "fields", text="Fields")
-		if rd.fields:
-			subsub.itemR(rd, "fields_still", text="Still")
-			subsub.itemR(rd, "field_order", text="Order")
+		sub.itemL(text="Aspect Ratio:")
+		sub.itemR(rd, "pixel_aspect_x", text="X")
+		sub.itemR(rd, "pixel_aspect_y", text="Y")
 		
-		sub = split.column()
-		subsub = sub.box()
-		subsub.itemL(text="Extra:")
-		subsub.itemR(rd, "panorama")
-		subsub.itemR(rd, "backbuf")
-		subsub.itemR(rd, "free_image_textures")
-		
-		subsub = sub.box()
-		subsub.itemL(text="Border:")
-		subsub.itemR(rd, "border", text="Border Render")
+		sub = col.column(align=False)
+		sub.itemR(rd, "border", text="Border")
 		if rd.border:
-			subsub.itemR(rd, "crop_to_border")
+			sub.itemR(rd, "crop_to_border")
+
+		col = split.column(align=True)
+		col.itemL(text="Frame Range:")
+		col.itemR(scene, "start_frame", text="Start")
+		col.itemR(scene, "end_frame", text="End")
+		col.itemR(scene, "frame_step", text="Step")
+		
+		col.itemL(text="Frame Rate:")
+		col.itemR(rd, "fps")
+		col.itemR(rd, "fps_base",text="/")
+
+class RENDER_PT_stamp(RenderButtonsPanel):
+	__label__ = "Stamp"
+
+	def draw_header(self, context):
+		rd = context.scene.render_data
+
+		layout = self.layout
+		layout.itemR(rd, "stamp", text="")
+
+	def draw(self, context):
+		scene = context.scene
+		layout = self.layout
+
+		rd = scene.render_data
+
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemR(rd, "stamp_time", text="Time")
+		sub.itemR(rd, "stamp_date", text="Date")
+		sub.itemR(rd, "stamp_frame", text="Frame")
+		sub.itemR(rd, "stamp_camera", text="Scene")
+		sub.itemR(rd, "stamp_marker", text="Marker")
+		sub.itemR(rd, "stamp_filename", text="Filename")
+		sub.itemR(rd, "stamp_sequence_strip", text="Seq. Strip")
+		sub.itemR(rd, "stamp_note", text="Note")
+		if (rd.stamp_note):
+			sub.itemR(rd, "stamp_note_text", text="")
+		
+		sub = split.column()
+		sub.itemR(rd, "render_stamp")
+		sub.itemR(rd, "stamp_foreground")
+		sub.itemR(rd, "stamp_background")
+		sub.itemR(rd, "stamp_font_size", text="Font Size")
 
 bpy.types.register(RENDER_PT_render)
+bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_image)
-
+bpy.types.register(RENDER_PT_output)
+bpy.types.register(RENDER_PT_stamp)

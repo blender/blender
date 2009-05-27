@@ -276,7 +276,6 @@ typedef struct ProjPaintState {
 	float cloneOffset[2];
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
-	float viewMat[4][4];
 	float viewDir[3];			/* View vector, use for do_backfacecull and for ray casting with an ortho viewport  */
 	float viewPos[3];			/* View location in object relative 3D space, so can compare to verts  */
 	float clipsta, clipend;
@@ -2971,7 +2970,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	ps->viewDir[1] = 0.0f;
 	ps->viewDir[2] = 1.0f;
 	
-	view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat, ps->viewMat);
+	view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat);
 	
 	/* viewDir - object relative */
 	Mat4Invert(ps->ob->imat, ps->ob->obmat);

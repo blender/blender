@@ -260,6 +260,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 		{SI_USE_ALPHA, "COLOR_ALPHA", "Color and Alpha", "Draw image with RGB colors and alpha transparency."},
 		{SI_SHOW_ALPHA, "ALPHA", "Alpha", "Draw alpha transparency channel."},
 		{SI_SHOW_ZBUF, "Z_BUFFER", "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."},
+		{SI_COLOR_CORRECTION, "COLOR_CORRECTED", "Color Corrected", "Display color corrected image."},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceImageEditor", "Space");

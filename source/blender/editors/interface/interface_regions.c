@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -653,7 +654,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	/* if this is being created from a button */
 	if(but) {
-		if(ELEM3(but->type, BLOCK, PULLDOWN, HMENU))
+		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
 		/* only used for automatic toolbox, so can set the shift flag */
@@ -1054,18 +1055,17 @@ static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
 /* callback to copy from/to palette */
 static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
+	wmWindow *win= CTX_wm_window(C);
 	uiBut *but1= (uiBut *)bt1;
 	float *col= (float *)col1;
 	float *fp, hsv[3];
 	
 	fp= (float *)but1->poin;
 	
-	/* XXX 2.50 bad access, how to solve?
-	 *
-	if( (get_qual() & LR_CTRLKEY) ) {
+	if(win->eventstate->ctrl) {
 		VECCOPY(fp, col);
 	}
-	else*/ {
+	else {
 		VECCOPY(col, fp);
 	}
 	
@@ -1205,8 +1205,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	// palette
 	
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
 	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, col);
 	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
@@ -1221,8 +1219,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	}
 	uiBlockEndAlign(block);
 	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
@@ -1274,6 +1270,90 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	return block;
 }
+
+/* ******************** Color band *************** */
+
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+	
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			/* if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0); */	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(C, coba, NULL);
+//	BIF_undo_push("Add colorband");
+	
+}
+
+static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+//	BIF_undo_push("Delete colorband");
+//	BIF_preview_changed(ID_TE);
+}
+
+void uiBlockColorbandButtons(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, 0, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit, butr->ymin+20.0f, 2.0f*unit, 20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	
+	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+			  xs + 10.0f*unit, butr->ymin+20.0f, unit*4.0f, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+	
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs, butr->ymin, butr->xmax-butr->xmin, 20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+}
+
 
 /* ******************** PUPmenu ****************** */
 
@@ -1902,7 +1982,7 @@ void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 	va_list ap;
 	char titlestr[256];
 
-	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
+	sprintf(titlestr, "OK? %%i%d", ICON_QUESTION);
 
 	va_start(ap, str);
 	vconfirm_opname(C, opname, titlestr, str, ap);
@@ -2000,3 +2080,20 @@ void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 	uiPupBlockO(C, func, arg, NULL, 0);
 }
 
+void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int opcontext)
+{
+	wmWindow *window= CTX_wm_window(C);
+	uiPopupBlockHandle *handle;
+	
+	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, op);
+	handle->popup= 1;
+	handle->retvalue= 1;
+
+	handle->popup_arg= op;
+	handle->popup_func= operator_cb;
+	handle->cancel_func= confirm_cancel_operator;
+	handle->opcontext= opcontext;
+	
+	UI_add_popup_handlers(C, &window->handlers, handle);
+	WM_event_add_mousemove(C);
+}

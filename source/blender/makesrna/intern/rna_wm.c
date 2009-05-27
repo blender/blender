@@ -33,6 +33,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_idprop.h"
+
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm= ptr->id.data;
@@ -55,6 +57,16 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return op->type->srna;
 	else
 		return &RNA_OperatorProperties;
+}
+
+IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
+{
+	if(create && !ptr->data) {
+		IDPropertyTemplate val = {0};
+		ptr->data= IDP_New(IDP_GROUP, val, "RNA_OperatorProperties group");
+	}
+
+	return ptr->data;
 }
 
 static void rna_Operator_name_get(PointerRNA *ptr, char *value)
@@ -100,6 +112,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
+	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)

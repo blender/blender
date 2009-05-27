@@ -79,6 +79,10 @@ typedef struct RegionView3D {
 	float persmat[4][4];
 	float persinv[4][4];
 
+	/* local viewmat/persmat, multiplied with object matrix, while drawing */
+	float viewmatob[4][4];
+	float persmatob[4][4];
+
 	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;

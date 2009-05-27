@@ -340,6 +340,8 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
+struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 

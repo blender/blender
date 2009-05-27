@@ -153,7 +153,7 @@ int BLI_is_writable(char *filename)
 {
 	int file;
 	
-	file = open(filename, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
+	file = open(filename, O_BINARY | O_RDWR, 0666);
 	
 	if (file < 0)
 		return 0;

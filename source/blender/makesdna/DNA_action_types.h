@@ -52,6 +52,9 @@ struct Object;
  */
 typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
+	
+	IDProperty 			*prop;		/* User-Defined Properties on this PoseChannel */			
+	
 	ListBase			constraints;/* Constraints that act on this PoseChannel */
 	char				name[32];	/* Channels need longer names than normal blender objects */
 	
@@ -419,4 +422,5 @@ typedef enum ACHAN_FLAG {
 
 
 #endif
+
 

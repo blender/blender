@@ -41,35 +41,35 @@
 #include "WM_types.h"
 
 EnumPropertyItem modifier_type_items[] ={
-	{eModifierType_Subsurf, "SUBSURF", "Subsurf", ""},
-	{eModifierType_Lattice, "LATTICE", "Lattice", ""},
-	{eModifierType_Curve, "CURVE", "Curve", ""},
-	{eModifierType_Build, "BUILD", "Build", ""},
-	{eModifierType_Mirror, "MIRROR", "Mirror", ""},
-	{eModifierType_Decimate, "DECIMATE", "Decimate", ""},
-	{eModifierType_Wave, "WAVE", "Wave", ""},
 	{eModifierType_Armature, "ARMATURE", "Armature", ""},
-	{eModifierType_Hook, "HOOK", "Hook", ""},
-	{eModifierType_Softbody, "SOFTBODY", "Softbody", ""},
-	{eModifierType_Boolean, "BOOLEAN", "Boolean", ""},
 	{eModifierType_Array, "ARRAY", "Array", ""},
-	{eModifierType_EdgeSplit, "EDGE_SPLIT", "Edge Split", ""},
-	{eModifierType_Displace, "DISPLACE", "Displace", ""},
-	{eModifierType_UVProject, "UV_PROJECT", "UV Project", ""},
-	{eModifierType_Smooth, "SMOOTH", "Smooth", ""},
+	{eModifierType_Bevel, "BEVEL", "Bevel", ""},
+	{eModifierType_Boolean, "BOOLEAN", "Boolean", ""},
+	{eModifierType_Build, "BUILD", "Build", ""},
 	{eModifierType_Cast, "CAST", "Cast", ""},
-	{eModifierType_MeshDeform, "MESH_DEFORM", "Mesh Deform", ""},
-	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", "Particle System", ""},
-	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", "Particle Instance", ""},
-	{eModifierType_Explode, "EXPLODE", "Explode", ""},
 	{eModifierType_Cloth, "CLOTH", "Cloth", ""},
 	{eModifierType_Collision, "COLLISION", "Collision", ""},
-	{eModifierType_Bevel, "BEVEL", "Bevel", ""},
-	{eModifierType_Shrinkwrap, "SHRINKWRAP", "Shrinkwrap", ""},
+	{eModifierType_Curve, "CURVE", "Curve", ""},
+	{eModifierType_Decimate, "DECIMATE", "Decimate", ""},
+	{eModifierType_Displace, "DISPLACE", "Displace", ""},
+	{eModifierType_EdgeSplit, "EDGE_SPLIT", "Edge Split", ""},
+	{eModifierType_Explode, "EXPLODE", "Explode", ""},
 	{eModifierType_Fluidsim, "FLUID_SIMULATION", "Fluid Simulation", ""},
+	{eModifierType_Hook, "HOOK", "Hook", ""},
+	{eModifierType_Lattice, "LATTICE", "Lattice", ""},
 	{eModifierType_Mask, "MASK", "Mask", ""},
-	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
+	{eModifierType_MeshDeform, "MESH_DEFORM", "Mesh Deform", ""},
+	{eModifierType_Mirror, "MIRROR", "Mirror", ""},
 	{eModifierType_Multires, "MULTIRES", "Multires", ""},
+	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", "Particle Instance", ""},
+	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", "Particle System", ""},
+	{eModifierType_Shrinkwrap, "SHRINKWRAP", "Shrinkwrap", ""},
+	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
+	{eModifierType_Smooth, "SMOOTH", "Smooth", ""},
+	{eModifierType_Softbody, "SOFTBODY", "Softbody", ""},
+	{eModifierType_Subsurf, "SUBSURF", "Subsurf", ""},
+	{eModifierType_UVProject, "UV_PROJECT", "UV Project", ""},
+	{eModifierType_Wave, "WAVE", "Wave", ""},
 	{0, NULL, NULL, NULL}};
 
 
@@ -286,6 +286,7 @@ static void rna_def_property_subdivision_common(StructRNA *srna, const char type
 	RNA_def_property_enum_sdna(prop, NULL, type);
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
@@ -334,9 +335,9 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 
 	rna_def_property_subdivision_common(srna, "simple");
 
-	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");
-	RNA_def_property_ui_text(prop, "Levels", "");
+	RNA_def_property_ui_text(prop, "Level", "");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
@@ -455,7 +456,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_CLIPPING);
-	RNA_def_property_ui_text(prop, "clip", "Prevents vertices from going through the mirror during transform.");
+	RNA_def_property_ui_text(prop, "Clip", "Prevents vertices from going through the mirror during transform.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);
@@ -1159,7 +1160,7 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "dynamic", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_INVERT_VGROUP);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MDEF_DYNAMIC_BIND);
 	RNA_def_property_ui_text(prop, "Dynamic", "Recompute binding dynamically on top of other deformers (slower and more memory consuming.)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
@@ -1256,12 +1257,12 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Alive);
-	RNA_def_property_ui_text(prop, "alive", "Show mesh when particles are alive.");
+	RNA_def_property_ui_text(prop, "Alive", "Show mesh when particles are alive.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Dead);
-	RNA_def_property_ui_text(prop, "dead", "Show mesh when particles are dead.");
+	RNA_def_property_ui_text(prop, "Dead", "Show mesh when particles are dead.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 

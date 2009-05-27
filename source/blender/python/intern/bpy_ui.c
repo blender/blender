@@ -179,32 +179,6 @@ static PyObject *Method_drawBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_beginPanels( PyObject * self, PyObject * args )
-{
-	bContext *C;
-	PyObject *py_context;
-	
-	if( !PyArg_ParseTuple( args, "O!i:beginPanels", &PyCObject_Type, &py_context) )
-		return NULL;
-	
-	C= PyCObject_AsVoidPtr(py_context);
-	uiBeginPanels(C, CTX_wm_region(C));
-	Py_RETURN_NONE;
-}
-
-static PyObject *Method_endPanels( PyObject * self, PyObject * args )
-{
-	bContext *C;
-	PyObject *py_context;
-	
-	if( !PyArg_ParseTuple( args, "O!:endPanels", &PyCObject_Type, &py_context) )
-		return NULL;
-	
-	C= PyCObject_AsVoidPtr(py_context);
-	uiEndPanels(C, CTX_wm_region(C));
-	Py_RETURN_NONE;
-}
-
 static PyObject *Method_popupBoundsBlock( PyObject * self, PyObject * args )
 {
 	PyObject *py_block;
@@ -249,18 +223,6 @@ static PyObject *Method_blockSetFlag( PyObject * self, PyObject * args )
 	
 	uiBlockSetFlag(PyCObject_AsVoidPtr(py_block), flag);
 	Py_RETURN_NONE;
-}
-
-static PyObject *Method_newPanel( PyObject * self, PyObject * args )
-{
-	PyObject *py_context, *py_area, *py_block;
-	char *panelname, *tabname;
-	int ofsx, ofsy, sizex, sizey;
-	
-	if( !PyArg_ParseTuple( args, "O!O!O!ssiiii:newPanel", &PyCObject_Type, &py_context, &PyCObject_Type, &py_area, &PyCObject_Type, &py_block, &panelname, &tabname, &ofsx, &ofsy, &sizex, &sizey))
-		return NULL;
-	
-	return PyLong_FromSsize_t(uiNewPanel(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_area), PyCObject_AsVoidPtr(py_block), panelname, tabname, ofsx, ofsy, sizex, sizey));
 }
 
 /* similar to Draw.c */
@@ -341,17 +303,9 @@ static PyObject *Method_registerKey( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-/* internal use only */
-static bContext *get_py_context__internal(void)
-{
-	PyObject *globals = PyEval_GetGlobals();
-	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__"); /* borrow ref */
-	return PyCObject_AsVoidPtr(val);
-}
-
 static PyObject *Method_getRegonPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	ARegion *ar = CTX_wm_region(C);
 	return PyCObject_FromVoidPtr(ar, NULL);
@@ -359,7 +313,7 @@ static PyObject *Method_getRegonPtr( PyObject * self )
 
 static PyObject *Method_getAreaPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	ScrArea *area = CTX_wm_area(C);
 	return PyCObject_FromVoidPtr(area, NULL);
@@ -367,7 +321,7 @@ static PyObject *Method_getAreaPtr( PyObject * self )
 
 static PyObject *Method_getScreenPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	bScreen *screen= CTX_wm_screen(C);
 	return PyCObject_FromVoidPtr(screen, NULL);
@@ -375,7 +329,7 @@ static PyObject *Method_getScreenPtr( PyObject * self )
 
 static PyObject *Method_getSpacePtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	SpaceLink *sl= CTX_wm_space_data(C);
 	return PyCObject_FromVoidPtr(sl, NULL);
@@ -383,7 +337,7 @@ static PyObject *Method_getSpacePtr( PyObject * self )
 
 static PyObject *Method_getWindowPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	wmWindow *window= CTX_wm_window(C);
 	return PyCObject_FromVoidPtr(window, NULL);
@@ -402,9 +356,6 @@ static struct PyMethodDef ui_methods[] = {
 	{"blockBeginAlign", (PyCFunction)Method_blockBeginAlign, METH_VARARGS, ""},
 	{"blockEndAlign", (PyCFunction)Method_blockEndAlign, METH_VARARGS, ""},
 	{"blockSetFlag", (PyCFunction)Method_blockSetFlag, METH_VARARGS, ""},
-	{"newPanel", (PyCFunction)Method_newPanel, METH_VARARGS, ""},
-	{"beginPanels", (PyCFunction)Method_beginPanels, METH_VARARGS, ""},
-	{"endPanels", (PyCFunction)Method_endPanels, METH_VARARGS, ""},
 	
 	{"register", (PyCFunction)Method_register, METH_VARARGS, ""}, // XXX not sure about this - registers current script with the ScriptSpace, like Draw.Register()
 	{"registerKey", (PyCFunction)Method_registerKey, METH_VARARGS, ""}, // XXX could have this in another place too
@@ -447,7 +398,6 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( mod, "BLOCK_NUMSELECT", PyLong_FromSsize_t(UI_BLOCK_NUMSELECT) );
 	PyModule_AddObject( mod, "BLOCK_ENTER_OK", PyLong_FromSsize_t(UI_BLOCK_ENTER_OK) );
 	PyModule_AddObject( mod, "BLOCK_NOSHADOW", PyLong_FromSsize_t(UI_BLOCK_NOSHADOW) );
-	PyModule_AddObject( mod, "BLOCK_NO_HILITE", PyLong_FromSsize_t(UI_BLOCK_NO_HILITE) );
 	PyModule_AddObject( mod, "BLOCK_MOVEMOUSE_QUIT", PyLong_FromSsize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
 	PyModule_AddObject( mod, "BLOCK_KEEP_OPEN", PyLong_FromSsize_t(UI_BLOCK_KEEP_OPEN) );
 	PyModule_AddObject( mod, "BLOCK_POPUP", PyLong_FromSsize_t(UI_BLOCK_POPUP) );

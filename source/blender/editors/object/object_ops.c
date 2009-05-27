@@ -100,6 +100,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_primitive_add);
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
+	WM_operatortype_append(OBJECT_OT_multires_subdivide);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

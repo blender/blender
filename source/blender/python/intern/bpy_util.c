@@ -29,6 +29,13 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
 
+
+#include "BKE_context.h"
+bContext*	__py_context = NULL;
+bContext*	BPy_GetContext(void) { return __py_context; };
+void		BPy_SetContext(bContext *C) { __py_context= C; };
+
+
 PyObject *BPY_flag_to_list(struct BPY_flag_def *flagdef, int flag)
 {
 	PyObject *list = PyList_New(0);

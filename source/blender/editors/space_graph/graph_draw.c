@@ -782,11 +782,20 @@ static short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
 	if (fcu->modifiers.first == NULL) 
 		return 0;
 	
-	/* if there's an active modifier - don't draw if it is cycles modifier, since
-	 * that basically still shows the original points
+	/* if there's an active modifier - don't draw if it doesn't drastically
+	 * alter the curve...
 	 */
-	if ((fcm) && (fcm->type == FMODIFIER_TYPE_CYCLES))
-		return 0;
+	if (fcm) {
+		switch (fcm->type) {
+			/* clearly harmless */
+			case FMODIFIER_TYPE_CYCLES:
+				return 0;
+				
+			/* borderline... */
+			case FMODIFIER_TYPE_NOISE:
+				return 0;
+		}
+	}
 	
 	/* if only one modifier - don't draw if it is muted or disabled */
 	if (fcu->modifiers.first == fcu->modifiers.last) {
@@ -853,8 +862,10 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}
 			else {
-				/* set whatever color the curve has set */
-				glColor3fv(fcu->color);
+				/* set whatever color the curve has set 
+				 *	- unselected curves draw less opaque to help distinguish the selected ones
+				 */
+				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], ((sel) ? 1.0f : 0.5f));
 			}
 			
 			/* anti-aliased lines for less jagged appearance */
