@@ -1366,15 +1366,11 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyObject *item;
 	
 	Py_INCREF(newclass);
-
-	/* Something fishy is going on here, the pointer is set many times but never free'd
-	 * It also is almost always the same type so it looks like the same point is
-	 * being reused when it should not be - must look into this further */
-#if 0
+	
 	if (RNA_struct_py_type_get(srna))
-		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));	
-	Py_XDECREF(RNA_struct_py_type_get(srna)); // TODO - why does this crash???
-#endif
+		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
+	
+	Py_XDECREF(RNA_struct_py_type_get(srna));
 	
 	RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
@@ -1930,6 +1926,10 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 static void bpy_class_free(void *pyob_ptr)
 {
+	if(G.f&G_DEBUG) {
+		if(((PyObject *)pyob_ptr)->ob_refcnt > 1)
+			PyObSpit("zombie class - ref should be 1", (PyObject *)pyob_ptr);
+	}
 	Py_DECREF((PyObject *)pyob_ptr);
 }
 

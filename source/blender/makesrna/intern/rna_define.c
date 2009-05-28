@@ -559,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
+		srna->py_type= NULL;
 
 		if(DefRNA.preprocess) {
 			srna->base= srnafrom;
@@ -567,7 +568,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		else
 			srna->base= srnafrom;
 	}
-
+	
 	srna->identifier= identifier;
 	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description= "";
