@@ -44,6 +44,7 @@ class SCA_Joystick
 
 {
 	static SCA_Joystick *m_instance[JOYINDEX_MAX];
+	static int m_joynum;
 	static int m_refCount;
 
 	class PrivateData;
@@ -66,11 +67,6 @@ class SCA_Joystick
 	 * Precision or range of the axes
 	 */
 	int 			m_prec;
-
-	/* 
-	 *	button values stored here 
-	 */
-	int 			m_buttonnum;
 
 	/*
 	 * max # of buttons avail
@@ -146,7 +142,6 @@ public:
 	bool aAxisIsPositive(int axis_single); /* check a single axis only */
 
 	bool aAnyButtonPressIsPositive(void);
-	bool aAnyButtonReleaseIsPositive(void);
 	bool aButtonPressIsPositive(int button);
 	bool aButtonReleaseIsPositive(int button);
 	bool aHatIsPositive(int hatnum, int dir);
@@ -159,10 +154,6 @@ public:
 
 	int GetAxisPosition(int index){
 		return m_axis_array[index];
-	}
-	
-	int GetButton(void){
-		return m_buttonnum;
 	}
 
 	int GetHat(int index){

@@ -38,7 +38,6 @@ SCA_Joystick::SCA_Joystick(short int index)
 	:
 	m_joyindex(index),
 	m_prec(3200),
-	m_buttonnum(-2),
 	m_axismax(-1),
 	m_buttonmax(-1),
 	m_hatmax(-1),
@@ -68,6 +67,7 @@ SCA_Joystick::~SCA_Joystick()
 }
 
 SCA_Joystick *SCA_Joystick::m_instance[JOYINDEX_MAX];
+int SCA_Joystick::m_joynum = 0;
 int SCA_Joystick::m_refCount = 0;
 
 SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
@@ -88,6 +88,9 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}
+		
+		m_joynum = SDL_NumJoysticks();
+		
 		for (i=0; i<JOYINDEX_MAX; i++) {
 			m_instance[i] = new SCA_Joystick(i);
 			m_instance[i]->CreateJoystickDevice();
@@ -155,12 +158,13 @@ bool SCA_Joystick::aAxisIsPositive(int axis_single)
 
 bool SCA_Joystick::aAnyButtonPressIsPositive(void)
 {
-	return (m_buttonnum==-2) ? false : true;
-}
-
-bool SCA_Joystick::aAnyButtonReleaseIsPositive(void)
-{
-	return (m_buttonnum==-2) ? true : false;
+	/* this is needed for the "all events" option
+	 * so we know if there are no buttons pressed */
+	for (int i=0; i<m_buttonmax; i++)
+		if (SDL_JoystickGetButton(m_private->m_joystick, i))
+			return true;
+		
+	return false;
 }
 
 bool SCA_Joystick::aButtonPressIsPositive(int button)
@@ -217,7 +221,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 	return false;
 #else
 	if(m_isinit == false){
-		if (m_joyindex>=SDL_NumJoysticks()) {
+		if (m_joyindex>=m_joynum) {
 			// don't print a message, because this is done anyway
 			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
 			

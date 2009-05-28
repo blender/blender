@@ -106,6 +106,8 @@ static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
 static PyObject *World_getTextures( BPy_World * self );
 static int 		 World_setTextures( BPy_World * self, PyObject * value );
+static PyObject *World_getGravity( BPy_World * self );
+static int 	  World_setGravity( BPy_World * self, PyObject * value );
 static PyObject *World_copy( BPy_World * self );
 
 
@@ -259,6 +261,9 @@ static PyGetSetDef BPy_World_getseters[] = {
 	 "world ipo", NULL},
     {"textures", (getter)World_getTextures, (setter)World_setTextures,
      "The World's texture list as a tuple",
+     NULL},
+    {"gravity", (getter)World_getGravity, (setter)World_setGravity,
+     "Physics gravity setting",
      NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -1134,5 +1139,23 @@ static int World_setTextures( BPy_World * self, PyObject * value )
 	}
 
 	Py_DECREF(value);
+	return 0;
+}
+
+static PyObject *World_getGravity( BPy_World * self )
+{
+	return PyFloat_FromDouble(self->world->gravity);
+}
+
+static int World_setGravity( BPy_World * self, PyObject * value )
+{
+	float f = PyFloat_AsDouble(value);
+	if (f==-1 && PyErr_Occurred())
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected a float or int" );
+	
+	if (f<0.0f)f= 0.0f;
+	else if (f>25.0f)f= 25.0f;
+	
+	self->world->gravity= f;
 	return 0;
 }
