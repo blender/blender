@@ -16,7 +16,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 			row.itemM(context, "OUTLINER_MT_view")
 			
 		row = layout.row(align=True)
-		row.itemR(so, "display_mode")
+		row.itemR(so, "display_mode", text="")
 
 class OUTLINER_MT_view(bpy.types.Menu):
 	__space_type__ = "OUTLINER"

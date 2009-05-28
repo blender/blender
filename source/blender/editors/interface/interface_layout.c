@@ -655,7 +655,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(type == PROP_STRING)
+	if(ELEM(type, PROP_STRING, PROP_ENUM))
 		w += 10*UI_UNIT_X;
 
 	/* increase height for arrays */
