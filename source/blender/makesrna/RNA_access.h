@@ -246,6 +246,7 @@ extern StructRNA RNA_Space;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceTextEditor;
+extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_SpotLamp;
 extern StructRNA RNA_StringProperty;
