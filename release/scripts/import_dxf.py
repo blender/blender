@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.05.26 by migius'
+__version__ = '1.12 - 2009.05.27 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -110,6 +110,9 @@ History:
  -- bug: Registry recall from hd_cache ?? only win32 bug??
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
+
+ v1.12 - 2009.05.27 by migius
+ d6 todo: bugfix negative scaled INSERTs - isLeftHand(Matrix) check
 
  v1.12 - 2009.05.26 by migius
  d5 changed to the new 2.49 method Vector.cross()
@@ -311,7 +314,7 @@ History:
 
 import Blender
 from Blender import Mathutils, BezTriple, Draw, Registry, sys,\
-Text3d, Window, Mesh, Material, Group
+Text3d, Window, Mesh, Material, Group, Curve
 #from Blender.Mathutils import Vector, Matrix
 #import bpy #not used yet
 #import BPyMessages
@@ -392,7 +395,15 @@ ALIGN = BezTriple.HandleTypes.ALIGN
 
 UI_MODE = True #activates UI-popup-print, if not multiple files imported
 
-
+#TODO:---patch for pre2.49-------------
+if 0:
+	print Blender.Get('version')
+	#def Mathutil_CrossVecs(v1,v2):
+	az = Mathutils.Vector((0,0.5,0.4))
+	print dir(az)
+	ax = WORLDZ.cross(az)
+	print ax
+	
 #-------- DWG support ------------------------------------------
 extCONV_OK = True
 extCONV = 'DConvertCon.exe'
