@@ -258,10 +258,9 @@ class SCA_IController(SCA_ILogicBrick):
 						- note: the sensors are not necessarily owned by the same object.
 						- note: when objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 	@type actuators: sequence supporting index/string lookups and iteration.
-	@ivar bookmark: the bookmark option.
-	                If set, the controller executes always before all other non-bookmarked controllers.
-	                note: Order of execution between bookmarked controllers is not guaranteed.
-	@type bookmark: bool
+	@ivar useHighPriority: When set the controller executes always before all other controllers that dont have this set.
+	                note: Order of execution between high priority controllers is not guaranteed.
+	@type useHighPriority: bool
 	"""
 #{ Deprecated
 	def getState():
@@ -2385,7 +2384,7 @@ class KX_MeshProxy(SCA_IObject):
 		and have all collision primitives in one vertex array (ie. < 65535 verts) and
 		be either a polytope or polyheder mesh.  If you don't get a warning in the
 		console when the collision type is polytope, the mesh is suitable for reinstance.
-		
+		@bug: This currently does not work.
 		@rtype: boolean
 		@return: True if reinstance succeeded, False if it failed.
 		"""
