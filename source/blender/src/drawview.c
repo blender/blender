@@ -2321,7 +2321,7 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiBlockBeginAlign(block);
 		
 		/* use real flag instead of 1 */
-		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones, (Ctrl snaps to mesh volume)");
 		uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
 		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
 		yco -= 20;
