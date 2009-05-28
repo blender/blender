@@ -716,21 +716,21 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		
 		if (ibuf->rect_float) {
 			if (rgba_fp) {
-				bilinear_interpolation_color(ibuf, NULL, rgba_fp, x, y);
+				bilinear_interpolation_color_wrap(ibuf, NULL, rgba_fp, x, y);
 			}
 			else {
 				float rgba_tmp_f[4];
-				bilinear_interpolation_color(ibuf, NULL, rgba_tmp_f, x, y);
+				bilinear_interpolation_color_wrap(ibuf, NULL, rgba_tmp_f, x, y);
 				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, rgba_tmp_f);
 			}
 		}
 		else {
 			if (rgba) {
-				bilinear_interpolation_color(ibuf, rgba, NULL, x, y);
+				bilinear_interpolation_color_wrap(ibuf, rgba, NULL, x, y);
 			}
 			else {
 				unsigned char rgba_tmp[4];
-				bilinear_interpolation_color(ibuf, rgba_tmp, NULL, x, y);
+				bilinear_interpolation_color_wrap(ibuf, rgba_tmp, NULL, x, y);
 				IMAPAINT_CHAR_RGBA_TO_FLOAT(rgba_fp, rgba_tmp);
 			}
 		}
@@ -1342,10 +1342,10 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 	
 	
 	if (ibuf_other->rect_float) { /* from float to float */
-		bilinear_interpolation_color(ibuf_other, NULL, rgba_f, x, y);
+		bilinear_interpolation_color_wrap(ibuf_other, NULL, rgba_f, x, y);
 	}
 	else { /* from char to float */
-		bilinear_interpolation_color(ibuf_other, rgba_ub, NULL, x, y);
+		bilinear_interpolation_color_wrap(ibuf_other, rgba_ub, NULL, x, y);
 	}
 		
 }
