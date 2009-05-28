@@ -700,16 +700,24 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		}
 	}
 
+	// load some characterists that are not 
+	btRigidBody* oldbody = GetRigidBody();
 	m_object = 0;
 	CreateRigidbody();
-
 	btRigidBody* body = GetRigidBody();
-
 	if (body)
 	{
 		if (m_cci.m_mass)
 		{
 			body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		}
+
+		if (oldbody)
+		{
+			body->setLinearFactor(oldbody->getLinearFactor());
+			body->setAngularFactor(oldbody->getAngularFactor());
+			if (oldbody->getActivationState() == DISABLE_DEACTIVATION)
+				body->setActivationState(DISABLE_DEACTIVATION);
 		}
 	}	
 	// sensor object are added when needed
