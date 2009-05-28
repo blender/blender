@@ -126,6 +126,7 @@ struct uiLayout {
 	uiItem item;
 
 	uiLayoutRoot *root;
+	bContextStore *context;
 	ListBase items;
 
 	int x, y, w, h;
@@ -1731,6 +1732,11 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 	bitem->item.type= ITEM_BUTTON;
 	bitem->but= but;
 	BLI_addtail(&layout->items, bitem);
+
+	if(layout->context) {
+		but->context= layout->context;
+		but->context->used= 1;
+	}
 }
 
 void uiLayoutContext(uiLayout *layout, int opcontext)
@@ -1769,8 +1775,9 @@ void uiBlockLayoutResolve(const bContext *C, uiBlock *block, int *x, int *y)
 	}
 }
 
-float uiBlockAspect(uiBlock *block)
+void uiLayoutSetContextPointer(uiLayout *layout, char *name, PointerRNA *ptr)
 {
-	return block->aspect; /* temporary */
+	uiBlock *block= layout->root->block;
+	layout->context= CTX_store_add(&block->contexts, name, ptr);
 }
 

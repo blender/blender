@@ -43,6 +43,7 @@ struct wmWindow;
 struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
+struct bContextStore;
 
 /* ****************** general defines ************** */
 
@@ -166,6 +167,8 @@ struct uiBut {
 	uiButHandleNFunc funcN;
 	void *func_argN;
 
+	struct bContextStore *context;
+
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
@@ -224,6 +227,8 @@ struct uiBlock {
 
 	ListBase layouts;
 	struct uiLayout *curlayout;
+
+	ListBase contexts;
 	
 	char name[UI_MAX_NAME_STR];
 	

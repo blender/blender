@@ -541,11 +541,12 @@ uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, cha
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
 void uiBlockLayoutResolve(const struct bContext *C, uiBlock *block, int *x, int *y);
-float uiBlockAspect(uiBlock *block); /* temporary */
 
 void uiLayoutContext(uiLayout *layout, int opcontext);
 void uiLayoutFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 uiBlock *uiLayoutBlock(uiLayout *layout);
+
+void uiLayoutSetContextPointer(uiLayout *layout, char *name, struct PointerRNA *ptr);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);

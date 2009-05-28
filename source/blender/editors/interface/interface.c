@@ -1692,6 +1692,8 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
+	CTX_store_free_list(&block->contexts);
+
 	BLI_freelistN(&block->saferct);
 	
 	MEM_freeN(block);
