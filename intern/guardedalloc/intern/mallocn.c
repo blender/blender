@@ -50,36 +50,6 @@
 #include "MEM_guardedalloc.h"
 
 /* --------------------------------------------------------------------- */
-/* Data definition                                                       */
-/* --------------------------------------------------------------------- */
-/* all memory chunks are put in linked lists */
-typedef struct localLink
-{
-	struct localLink *next,*prev;
-} localLink;
-
-typedef struct localListBase 
-{
-	void *first, *last;
-} localListBase;
-
-	/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
-typedef struct MemHead {
-	int tag1;
-	int len;
-	struct MemHead *next,*prev;
-	const char * name;
-	const char * nextname;
-	int tag2;
-	int mmap;	/* if true, memory was mmapped */
-} MemHead;
-
-typedef struct MemTail {
-	int tag3, pad;
-} MemTail;
-
-
-/* --------------------------------------------------------------------- */
 /* local functions                                                       */
 /* --------------------------------------------------------------------- */
 
@@ -472,35 +442,55 @@ void MEM_printmemlist_pydict( void ) {
 	MEM_printmemlist_internal(1);
 }
 
-short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
+#ifdef MEM_freeN
+#undef MEM_freeN
+#endif
+
+short MEM_freeN(void *vmemh)
+{
+	return _MEM_freeN(vmemh, "(called through C stub function)", -1);
+}
+
+short WMEM_freeN(void *vmemh)
+{
+	return _MEM_freeN(vmemh, "(called through C stub function)", -1);
+}
+
+/*special macro-wrapped MEM_freeN that keeps track of where MEM_freeN is called.*/
+short _MEM_freeN(void *vmemh, char *file, int line)		/* anders compileertie niet meer */
 {
 	short error = 0;
 	MemTail *memt;
 	MemHead *memh= vmemh;
 	const char *name;
-
+	char str1[90];
+	
 	if (memh == NULL){
-		MemorY_ErroR("free","attempt to free NULL pointer");
+		sprintf(str1, "Error in %s on line %d: attempt to free NULL pointer", file, line);
+		MemorY_ErroR("free", str1);
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
 	}
 
 	if(sizeof(intptr_t)==8) {
 		if (((intptr_t) memh) & 0x7) {
-			MemorY_ErroR("free","attempt to free illegal pointer");
+			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
+			MemorY_ErroR("free", str1);
 			return(-1);
 		}
 	}
 	else {
 		if (((intptr_t) memh) & 0x3) {
-			MemorY_ErroR("free","attempt to free illegal pointer");
+			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
+			MemorY_ErroR("free", str1);
 			return(-1);
 		}
 	}
 	
 	memh--;
 	if(memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
-		MemorY_ErroR(memh->name,"double free");
+		sprintf(str1, "Error in %s on line %d: double free", file, line);
+		MemorY_ErroR(memh->name, str1);
 		return(-1);
 	}
 
@@ -524,15 +514,19 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 		MemorY_ErroR(memh->name,"end corrupt");
 		name = check_memlist(memh);
 		if (name != 0){
-			if (name != memh->name) MemorY_ErroR(name,"is also corrupt");
+			sprintf(str1, "Error in %s on line %d: %s is also corrupt", file, line, name);
+			if (name != memh->name) MemorY_ErroR(name, str1);
 		}
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0)
-			MemorY_ErroR("free","pointer not in memlist");
-		else
-			MemorY_ErroR(name,"error in header");
+		if (name == 0) {
+			sprintf(str1, "Error in %s on line %d: pointer not in memlist", file, line);
+			MemorY_ErroR("free", str1);
+		} else {
+			sprintf(str1, "Error in %s on line %d: error in header", file, line);
+			MemorY_ErroR(name, str1);
+		}
 	}
 
 	totblock--;
