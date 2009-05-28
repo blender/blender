@@ -1,7 +1,7 @@
 
 import bpy
  
-class DataButtonsPanel(bpy.types.Panel):
+class BoneButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
 	__context__ = "bone"
@@ -10,8 +10,8 @@ class DataButtonsPanel(bpy.types.Panel):
 		ob = context.active_object
 		return (ob and ob.type == 'ARMATURE')
 
-class DATA_PT_bone(DataButtonsPanel):
-	__idname__ = "DATA_PT_bone"
+class BONE_PT_bone(BoneButtonsPanel):
+	__idname__ = "BONE_PT_bone"
 	__label__ = "Bone"
 
 	def draw(self, context):
@@ -49,16 +49,5 @@ class DATA_PT_bone(DataButtonsPanel):
 		
 		sub.itemR(bone, "cyclic_offset")
 
-class DATA_PT_constraints(DataButtonsPanel):
-	__idname__ = "DATA_PT_constraints"
-	__label__ = "Constraints"
-	
-	def draw(self, context):
-		bone = context.active_object.data.bones[0]
-		layout = self.layout
-		split = layout.split()
-		
-		sub = split.column()
+bpy.types.register(BONE_PT_bone)
 
-bpy.types.register(DATA_PT_bone)
-#bpy.types.register(DATA_PT_constraints)

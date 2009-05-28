@@ -18,7 +18,6 @@ class OUTLINER_HT_header(bpy.types.Header):
 		row = layout.row(align=True)
 		row.itemR(so, "display_mode")
 
-
 class OUTLINER_MT_view(bpy.types.Menu):
 	__space_type__ = "OUTLINER"
 	__label__ = "View"
@@ -30,7 +29,6 @@ class OUTLINER_MT_view(bpy.types.Menu):
 		layout.column()
 		row.itemR(so, "show_restriction_columns")
 		#layout.itemO("TEXT_OT_new")
-		
 
 bpy.types.register(OUTLINER_HT_header)
 bpy.types.register(OUTLINER_MT_view)

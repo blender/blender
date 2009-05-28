@@ -10,6 +10,16 @@ class TextureButtonsPanel(bpy.types.Panel):
 		try:	return (context.active_object.active_material.active_texture.texture != None)
 		except:return False
 
+class TEXTURE_PT_preview(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_preview"
+	__label__ = "Preview"
+
+	def draw(self, context):
+		layout = self.layout
+
+		tex = context.active_object.active_material.active_texture.texture
+		layout.template_preview(tex)
+
 class TEXTURE_PT_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_texture"
 	__label__ = "Texture"
@@ -330,6 +340,7 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		sub = split.column()
 		sub.itemR(tex, "nabla")	
 
+bpy.types.register(TEXTURE_PT_preview)
 bpy.types.register(TEXTURE_PT_texture)
 bpy.types.register(TEXTURE_PT_clouds)
 bpy.types.register(TEXTURE_PT_wood)
@@ -344,3 +355,4 @@ bpy.types.register(TEXTURE_PT_envmap)
 bpy.types.register(TEXTURE_PT_musgrave)
 bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
+

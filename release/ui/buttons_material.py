@@ -9,6 +9,16 @@ class MaterialButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		ob = context.active_object
 		return (ob and ob.active_material)
+
+class MATERIAL_PT_preview(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_preview"
+	__label__ = "Preview"
+
+	def draw(self, context):
+		layout = self.layout
+
+		mat = context.active_object.active_material
+		layout.template_preview(mat)
 	
 class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"
@@ -188,8 +198,10 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 			sub.itemR(halo, "flare_seed", text="Seed")
 			sub.itemR(halo, "flares_sub", text="Sub")
 				
+bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
+

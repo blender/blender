@@ -77,9 +77,10 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 	def draw(self, context):
 		scene = context.scene
-		layout = self.layout
-
 		rd = scene.render_data
+
+		layout = self.layout
+		layout.active = rd.antialiasing
 
 		split = layout.split()
 		
@@ -182,9 +183,10 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 
 	def draw(self, context):
 		scene = context.scene
-		layout = self.layout
-
 		rd = scene.render_data
+
+		layout = self.layout
+		layout.active = rd.stamp
 
 		split = layout.split()
 		
@@ -212,3 +214,4 @@ bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_output)
 bpy.types.register(RENDER_PT_stamp)
+

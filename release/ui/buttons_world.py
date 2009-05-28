@@ -8,6 +8,15 @@ class WorldButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		return (context.scene.world != None)
+
+class WORLD_PT_preview(WorldButtonsPanel):
+	__label__ = "Preview"
+
+	def draw(self, context):
+		layout = self.layout
+
+		world = context.scene.world
+		layout.template_preview(world)
 	
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
@@ -49,6 +58,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
+		layout.active = world.mist.enabled
 
 		flow = layout.column_flow()
 		flow.itemR(world.mist, "start")
@@ -71,6 +81,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
+		layout.active = world.stars.enabled
 
 		flow = layout.column_flow()
 		flow.itemR(world.stars, "size")
@@ -89,9 +100,9 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
 	def draw(self, context):
 		world = context.scene.world
-		layout = self.layout
-
 		ao = world.ambient_occlusion
+		layout = self.layout
+		layout.active = ao.enabled
 		
 		layout.itemR(ao, "gather_method", expand=True)
 		
@@ -126,8 +137,10 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		col.row().itemR(ao, "color", expand=True)
 		col.itemR(ao, "energy")
 	
+bpy.types.register(WORLD_PT_preview)
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 bpy.types.register(WORLD_PT_color_correction)
+
