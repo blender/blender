@@ -1370,7 +1370,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	if (RNA_struct_py_type_get(srna))
 		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
 	
-	Py_XDECREF(RNA_struct_py_type_get(srna));
+	Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
 	
 	RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
