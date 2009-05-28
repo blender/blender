@@ -1144,7 +1144,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	if(state & UI_BUT_DISABLED) {
+	if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE)) {
 		wt->wcol.text[0]= 0.5f*(wt->wcol.text[0]+wt->wcol.text_sel[0]);
 		wt->wcol.text[1]= 0.5f*(wt->wcol.text[1]+wt->wcol.text_sel[1]);
 		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
@@ -1877,7 +1877,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
 		wt->text(fstyle, &wt->wcol, but, rect);
 		
-		if(state & UI_BUT_DISABLED)
+		if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE))
 			if(but->dt!=UI_EMBOSSP)
 				widget_disabled(&disablerect);
 	}

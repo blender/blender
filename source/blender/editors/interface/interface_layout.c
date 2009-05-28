@@ -130,8 +130,14 @@ struct uiLayout {
 	ListBase items;
 
 	int x, y, w, h;
-	int space;
-	int align;
+	float scale;
+	short space;
+	char align;
+	char active;
+	char enabled;
+	char redalert;
+	char keepaspect;
+	char alignment;
 };
 
 typedef struct uiLayoutItemFlow {
@@ -946,7 +952,7 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiLayoutContext(layout, WM_OP_EXEC_REGION_WIN);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	uiItemsEnumO(layout, lvl->opname, lvl->propname);
 }
 
@@ -977,7 +983,7 @@ static void menu_item_enum_rna_menu(bContext *C, uiLayout *layout, void *arg)
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiLayoutContext(layout, lvl->opcontext);
+	uiLayoutSetOperatorContext(layout, lvl->opcontext);
 	uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
 }
 
@@ -1435,6 +1441,9 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 	litem->item.type= ITEM_LAYOUT_ROW;
 	litem->root= layout->root;
 	litem->align= align;
+	litem->active= 1;
+	litem->enabled= 1;
+	litem->context= layout->context;
 	litem->space= (align)? 0: layout->root->style->buttonspacex;
 	BLI_addtail(&layout->items, litem);
 
@@ -1451,6 +1460,9 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	litem->item.type= ITEM_LAYOUT_COLUMN;
 	litem->root= layout->root;
 	litem->align= align;
+	litem->active= 1;
+	litem->enabled= 1;
+	litem->context= layout->context;
 	litem->space= (litem->align)? 0: layout->root->style->buttonspacey;
 	BLI_addtail(&layout->items, litem);
 
@@ -1467,6 +1479,9 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	flow->litem.item.type= ITEM_LAYOUT_COLUMN_FLOW;
 	flow->litem.root= layout->root;
 	flow->litem.align= align;
+	flow->litem.active= 1;
+	flow->litem.enabled= 1;
+	flow->litem.context= layout->context;
 	flow->litem.space= (flow->litem.align)? 0: layout->root->style->columnspace;
 	flow->number= number;
 	BLI_addtail(&layout->items, flow);
@@ -1483,6 +1498,9 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 	box= MEM_callocN(sizeof(uiLayoutItemBx), "uiLayoutItemBx");
 	box->litem.item.type= ITEM_LAYOUT_BOX;
 	box->litem.root= layout->root;
+	box->litem.active= 1;
+	box->litem.enabled= 1;
+	box->litem.context= layout->context;
 	box->litem.space= layout->root->style->columnspace;
 	BLI_addtail(&layout->items, box);
 
@@ -1501,6 +1519,9 @@ uiLayout *uiLayoutFree(uiLayout *layout, int align)
 	litem->item.type= ITEM_LAYOUT_FREE;
 	litem->root= layout->root;
 	litem->align= align;
+	litem->active= 1;
+	litem->enabled= 1;
+	litem->context= layout->context;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -1512,7 +1533,7 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout)
 {
 	uiBlock *block;
 
-	block= uiLayoutBlock(layout);
+	block= uiLayoutGetBlock(layout);
 	uiLayoutFree(layout, 0);
 
 	return block;
@@ -1530,6 +1551,66 @@ uiLayout *uiLayoutSplit(uiLayout *layout)
 	uiBlockSetCurLayout(layout->root->block, litem);
 
 	return litem;
+}
+
+void uiLayoutSetActive(uiLayout *layout, int active)
+{
+	layout->active= active;
+}
+
+void uiLayoutSetEnabled(uiLayout *layout, int enabled)
+{
+	layout->enabled= enabled;
+}
+
+void uiLayoutSetRedAlert(uiLayout *layout, int redalert)
+{
+	layout->redalert= redalert;
+}
+
+void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect)
+{
+	layout->keepaspect= keepaspect;
+}
+
+void uiLayoutSetAlignment(uiLayout *layout, int alignment)
+{
+	layout->alignment= alignment;
+}
+
+void uiLayoutSetScale(uiLayout *layout, float scale)
+{
+	layout->scale= scale;
+}
+
+int uiLayoutGetActive(uiLayout *layout)
+{
+	return layout->active;
+}
+
+int uiLayoutGetEnabled(uiLayout *layout)
+{
+	return layout->enabled;
+}
+
+int uiLayoutGetRedAlert(uiLayout *layout)
+{
+	return layout->redalert;
+}
+
+int uiLayoutGetKeepAspect(uiLayout *layout)
+{
+	return layout->keepaspect;
+}
+
+int uiLayoutGetAlignment(uiLayout *layout)
+{
+	return layout->alignment;
+}
+
+float uiLayoutGetScale(uiLayout *layout)
+{
+	return layout->scale;
 }
 
 /********************** Layout *******************/
@@ -1585,7 +1666,8 @@ static void ui_item_align(uiLayout *litem, int nr)
 		if(item->type == ITEM_BUTTON) {
 			bitem= (uiButtonItem*)item;
 			if(ui_but_can_align(bitem->but))
-				bitem->but->alignnr= nr;
+				if(!bitem->but->alignnr)
+					bitem->but->alignnr= nr;
 		}
 		else if(item->type == ITEM_LAYOUT_FREE);
 		else if(item->type == ITEM_LAYOUT_BOX) {
@@ -1596,6 +1678,21 @@ static void ui_item_align(uiLayout *litem, int nr)
 		}
 		else
 			ui_item_align((uiLayout*)item, nr);
+	}
+}
+
+static void ui_item_flag(uiLayout *litem, int flag)
+{
+	uiItem *item;
+	uiButtonItem *bitem;
+
+	for(item=litem->items.last; item; item=item->prev) {
+		if(item->type == ITEM_BUTTON) {
+			bitem= (uiButtonItem*)item;
+			bitem->but->flag |= flag;
+		}
+		else
+			ui_item_flag((uiLayout*)item, flag);
 	}
 }
 
@@ -1611,6 +1708,10 @@ static void ui_item_layout(uiItem *item)
 
 		if(litem->align)
 			ui_item_align(litem, ++litem->root->block->alignnr);
+		if(!litem->active)
+			ui_item_flag(litem, UI_BUT_INACTIVE);
+		if(!litem->enabled)
+			ui_item_flag(litem, UI_BUT_DISABLED);
 
 		switch(litem->item.type) {
 			case ITEM_LAYOUT_COLUMN:
@@ -1694,6 +1795,9 @@ uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int siz
 	layout->y= y;
 	layout->root= root;
 	layout->space= style->templatespace;
+	layout->active= 1;
+	layout->enabled= 1;
+	layout->context= NULL;
 
 	if(type == UI_LAYOUT_MENU)
 		layout->space= 0;
@@ -1714,7 +1818,7 @@ uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int siz
 	return layout;
 }
 
-uiBlock *uiLayoutBlock(uiLayout *layout)
+uiBlock *uiLayoutGetBlock(uiLayout *layout)
 {
 	return layout->root->block;
 }
@@ -1739,12 +1843,12 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 	}
 }
 
-void uiLayoutContext(uiLayout *layout, int opcontext)
+void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext)
 {
 	layout->root->opcontext= opcontext;
 }
 
-void uiLayoutFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
+void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
 {
 	layout->root->handlefunc= handlefunc;
 	layout->root->argv= argv;

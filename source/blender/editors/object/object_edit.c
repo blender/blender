@@ -2611,7 +2611,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */

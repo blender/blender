@@ -262,18 +262,18 @@ uiBlock *info_externalfiles(bContext *C, ARegion *ar, void *arg_unused)
 static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_read_homefile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_open_mainfile"); 
 //	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
 //	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiItemS(layout);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_mainfile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
 
 #if 0

@@ -730,7 +730,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 		return NULL;
 	}
 	
-	uiBlockSetButLock(uiLayoutBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
+	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	/* find modifier and draw it */
 	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex);
@@ -935,7 +935,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		proxy_protected= 0;
 
 	/* unless button has own callback, it adds this callback to button */
-	block= uiLayoutBlock(layout);
+	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_constraint_panels, NULL);
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 
@@ -2110,7 +2110,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 		return NULL;
 	}
 	
-	uiBlockSetButLock(uiLayoutBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
+	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 
 	/* hrms, the temporal constraint should not draw! */
 	if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
