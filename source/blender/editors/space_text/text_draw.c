@@ -119,8 +119,8 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 		if(olen) fs->len*= 2;
 		else fs->len= 256;
 		
-		nbuf= MEM_mallocN(sizeof(*fs->buf)*fs->len, "fs->buf");
-		naccum= MEM_mallocN(sizeof(*fs->accum)*fs->len, "fs->accum");
+		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
+		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
 		
 		if(olen) {
 			memcpy(nbuf, fs->buf, olen);
