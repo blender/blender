@@ -599,9 +599,17 @@ StructRNA *RNA_property_pointer_type(PropertyRNA *prop)
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)rna_ensure_property(prop);
+	int tot;
 
-	*item= eprop->item;
-	*totitem= eprop->totitem;
+	if(eprop->itemf) {
+		*item= eprop->itemf(ptr);
+		for(tot=0; (*item)[tot].identifier; tot++);
+		*totitem= tot;
+	}
+	else {
+		*item= eprop->item;
+		*totitem= eprop->totitem;
+	}
 }
 
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
@@ -1182,6 +1190,23 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 		printf("RNA_property_pointer_add %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
 }
 
+void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop)
+{
+	IDProperty *idprop, *group;
+
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		group= RNA_struct_idproperties(ptr, 0);
+		
+		if(group) {
+			IDP_RemFromGroup(group, idprop);
+			IDP_FreeProperty(idprop);
+			MEM_freeN(idprop);
+		}
+	}
+	else
+		printf("RNA_property_pointer_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
+}
+
 static void rna_property_collection_get_idp(CollectionPropertyIterator *iter)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
@@ -1307,6 +1332,33 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 		else
 			memset(r_ptr, 0, sizeof(*r_ptr));
 	}
+}
+
+void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
+{
+	IDProperty *idprop;
+
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		IDProperty tmp, *array;
+		int len;
+
+		len= idprop->len;
+		array= IDP_IDPArray(idprop);
+
+		if(key >= 0 && key < len) {
+			if(key+1 < len) {
+				/* move element to be removed to the back */
+				memcpy(&tmp, &array[key], sizeof(IDProperty));
+				memmove(array+key, array+key+1, sizeof(IDProperty)*(len-key+1));
+				memcpy(&array[len-1], &tmp, sizeof(IDProperty));
+			}
+
+			IDP_ResizeIDPArray(idprop, len-1);
+		}
+	}
+	else if(prop->flag & PROP_IDPROPERTY);
+	else
+		printf("RNA_property_collection_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
 }
 
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)

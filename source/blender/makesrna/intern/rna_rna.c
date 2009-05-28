@@ -667,13 +667,13 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Type", "Data type of the property.");
 
 	prop= RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, subtype_items);
-	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
 
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);

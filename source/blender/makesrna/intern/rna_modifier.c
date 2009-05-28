@@ -293,18 +293,6 @@ static void modifier_object_set(Object **ob_p, int type, PointerRNA value)
 		*ob_p= ob;
 }
 
-static void modifier_ID_set(ID **id_p, PointerRNA value)
-{
-	ID *id= value.data;
-
-	if(*id_p)
-		id_us_min(*id_p);
-	if(id)
-		id_us_plus(id);
-
-	*id_p = id;
-}
-
 static void rna_LatticeModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	modifier_object_set(&((LatticeModifierData*)ptr->data)->object, OB_LATTICE, value);
@@ -358,21 +346,6 @@ static void rna_ArrayModifier_start_cap_set(PointerRNA *ptr, PointerRNA value)
 static void rna_ArrayModifier_curve_set(PointerRNA *ptr, PointerRNA value)
 {
 	modifier_object_set(&((ArrayModifierData*)ptr->data)->curve_ob, OB_CURVE, value);
-}
-
-static void rna_WaveModifier_texture_set(PointerRNA *ptr, PointerRNA value)
-{
-	modifier_ID_set((ID**)&((WaveModifierData*)ptr->data)->texture, value);
-}
-
-static void rna_DisplaceModifier_texture_set(PointerRNA *ptr, PointerRNA value)
-{
-	modifier_ID_set((ID**)&((DisplaceModifierData*)ptr->data)->texture, value);
-}
-
-static void rna_UVProjectModifier_image_set(PointerRNA *ptr, PointerRNA value)
-{
-	modifier_ID_set((ID**)&((UVProjectModifierData*)ptr->data)->image, value);
 }
 
 #else
@@ -714,7 +687,6 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture for modulating the wave.");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_WaveModifier_texture_set");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
@@ -1045,7 +1017,6 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Texture", "");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_DisplaceModifier_texture_set");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
@@ -1107,7 +1078,6 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_UVProjectModifier_image_set");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 

@@ -1678,7 +1678,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	}
 }
 
-void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1693,6 +1693,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 
 			if(get) eprop->get= (PropEnumGetFunc)get;
 			if(set) eprop->set= (PropEnumSetFunc)set;
+			if(item) eprop->itemf= (PropEnumItemFunc)item;
 			break;
 		}
 		default:

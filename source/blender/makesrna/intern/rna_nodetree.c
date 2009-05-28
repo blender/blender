@@ -333,6 +333,7 @@ static void def_sh_texture(BlenderRNA *brna, int id)
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Texture");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "");
 	
 	prop= RNA_def_property(srna, "node_output", PROP_INT, PROP_NONE);
@@ -350,6 +351,7 @@ static void def_sh_material(BlenderRNA *brna, int id)
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "");
 
 	prop= RNA_def_property(srna, "diffuse", PROP_BOOLEAN, PROP_NONE);

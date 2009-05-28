@@ -108,6 +108,7 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
 
 	prop= RNA_def_property(srna, "map_to_color", PROP_BOOLEAN, PROP_NONE);
