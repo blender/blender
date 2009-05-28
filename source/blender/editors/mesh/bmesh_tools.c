@@ -441,32 +441,29 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 /* extrudes individual vertices */
 short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 {
+	BMOperator bmop;
 	BMIter iter;
-	BMVert *v, **verts = NULL;
-	V_DECLARE(verts);
-	int i=0;
+	BMOIter siter;
+	BMVert *v;
 
-	/*kindof hackish way of deselecting the original vertices, but
-	  oh well.*/
-	v = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for ( ; v; v=BMIter_Step(&iter)) {
-		if (BM_TestHFlag(v, BM_SELECT)) {
-			V_GROW(verts);
-			verts[i++] = v;
-		}
+	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", flag);
+
+	/*deselect original verts*/
+	v = BMO_IterNew(&siter, em->bm, &bmop, "verts");
+	for (; v; v=BMO_IterStep(&siter)) {
+		BM_Select(em->bm, v, 0);
 	}
 
-	EDBM_CallOpf(em, op, "extrude_vert_indiv verts=%hv", flag);
-	
-	i--;
-	while (i >= 0) {
-		BM_Select(em->bm, verts[i], 0);
-		i--;
+	BMO_Exec_Op(em->bm, &bmop);
+
+	v = BMO_IterNew(&siter, em->bm, &bmop, "vertout");
+	for (; v; v=BMO_IterStep(&siter)) {
+		BM_Select(em->bm, v, 1);
 	}
 
-	V_FREE(verts);
+	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
 
-	return 'g';	// g is grab
+	return 'g'; // g is grab
 }
 
 short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
@@ -475,6 +472,7 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 	BMIter iter;
 	BMOIter siter;
 	BMOperator extop;
+	BMVert *vert;
 	BMEdge *edge;
 	BMFace *f;
 	void *el;
@@ -499,12 +497,16 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
 		               flag, BM_VERT|BM_EDGE|BM_FACE);
 
-	for (edge=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); edge; edge=BMIter_Step(&iter)) {
-		BM_Select_Edge(bm, edge, 0);
+	BM_ITER(vert, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_Select(bm, vert, 0);
 	}
 
-	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
-		BM_Select_Face(bm, f, 0);
+	BM_ITER(edge, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_Select(bm, edge, 0);
+	}
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_Select(bm, f, 0);
 	}
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
@@ -557,11 +559,9 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 		}
 	}
 
-
 	BMO_Exec_Op(bm, &extop);
 
-	el =  BMO_IterNew(&siter, bm, &extop, "geomout");
-	for (; el; el=BMO_IterStep(&siter)) {
+	BMO_ITER(el, &siter, bm, &extop, "geomout") {
 		BM_Select(bm, el, 1);
 	}
 
@@ -813,4 +813,40 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+/* ******************** (de)select all operator **************** */
+
+void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
+{
+	if(em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel)
+		EDBM_clear_flag_all(em, SELECT);
+	else 
+		EDBM_set_flag_all(em, SELECT);
+}
+
+static int toggle_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	
+	EDBM_toggle_select_all(em);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_all_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select or Deselect All";
+	ot->idname= "MESH_OT_select_all_toggle";
+	
+	/* api callbacks */
+	ot->exec= toggle_select_all_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

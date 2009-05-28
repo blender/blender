@@ -247,34 +247,49 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOperator triop;
 	BMFace *face;
-	BMIter iter;
+	BMIter iter, liter;
 	BMEdge *edge;
+	BMLoop *l, *nl;
 	BMOpSlot *eout;
-	int i;
+	int i, trifan = BMO_Get_Int(op, "trifan");
 
-	BMO_Init_Op(&triop, "triangulate");
+	if (!trifan) BMO_Init_Op(&triop, "triangulate");
 	
+	/*instead of properly tesselate, just make a triangle fan, this
+	  should make bmesh -> editmesh -> bmesh conversions always properly
+	  work.*/
 	for (face = BMIter_New(&iter, bmesh, BM_FACES_OF_MESH, NULL); face; face=BMIter_Step(&iter)) {
 		if (face->len > 4) {
 			BMO_SetFlag(bmesh, face, FACE_NGON);
+			if (trifan) {
+				while (face->len > 4) {
+					BM_Split_Face(bmesh, face, 
+						face->loopbase->v, 
+						((BMLoop*)face->loopbase->head.next->next)->v,
+						&nl, NULL);
+					BM_SetHFlag(nl->e, BM_FGON);
+				}
+			}
 		}
 	}
 
-	BMO_Flag_To_Slot(bmesh, &triop, "faces", FACE_NGON, BM_FACE);
-	BMO_Exec_Op(bmesh, &triop);
+	if (!trifan) {
+		BMO_Flag_To_Slot(bmesh, &triop, "faces", FACE_NGON, BM_FACE);
+		BMO_Exec_Op(bmesh, &triop);
 
-	eout = BMO_GetSlot(&triop, "edgeout");
-	for (i=0; i<eout->len; i++) {
-		edge = ((BMEdge**)eout->data.buf)[i];
-		edge->head.flag |= BM_FGON;
-		face = BMIter_New(&iter, bmesh, BM_FACES_OF_EDGE, edge);
-		
-		for (; face; face=BMIter_Step(&iter)) {
-			face->head.flag |= BM_NONORMCALC;
+		eout = BMO_GetSlot(&triop, "edgeout");
+		for (i=0; i<eout->len; i++) {
+			edge = ((BMEdge**)eout->data.buf)[i];
+			edge->head.flag |= BM_FGON;
+			face = BMIter_New(&iter, bmesh, BM_FACES_OF_EDGE, edge);
+			
+			for (; face; face=BMIter_Step(&iter)) {
+				face->head.flag |= BM_NONORMCALC;
+			}
 		}
-	}
 
-	BMO_Finish_Op(bmesh, &triop);
+		BMO_Finish_Op(bmesh, &triop);
+	}
 }
 
 EditMesh *bmesh_to_editmesh(BMesh *bmesh)
@@ -284,6 +299,7 @@ EditMesh *bmesh_to_editmesh(BMesh *bmesh)
 	
 	/*first fgon-afy the mesh*/
 	BMO_Init_Op(&makefgon, "makefgon");
+	BMO_Set_Int(&makefgon, "trifan", 1);
 	BMO_Exec_Op(bmesh, &makefgon);
 	BMO_Finish_Op(bmesh, &makefgon);
 

@@ -255,7 +255,7 @@ void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 	  BMOIter oiter;
 	  BMFace *f;
 
-	  f = BMO_IterNew(&oiter, bm, some_operator, SOME_SLOT_CODE);
+	  f = BMO_IterNew(&oiter, bm, some_operator, "slotname");
 	  for (; f; f=BMO_IterStep(&oiter)) {
 		/do something with the face
 	  }
@@ -265,7 +265,7 @@ void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 	  void *key;
 	  void *val;
 
-	  key = BMO_IterNew(&oiter, bm, some_operator, SOME_SLOT_CODE);
+	  key = BMO_IterNew(&oiter, bm, some_operator, "slotname");
 	  for (; key; key=BMO_IterStep(&oiter)) {
 		val = BMO_IterMapVal(&oiter);
 		//do something with the key/val pair
@@ -295,5 +295,9 @@ void *BMO_IterStep(BMOIter *iter);
 /*returns a pointer to the key value when iterating over mappings.
   remember for pointer maps this will be a pointer to a pointer.*/
 void *BMO_IterMapVal(BMOIter *iter);
+
+#define BMO_ITER(ele, iter, bm, op, slotname) \
+	ele = BMO_IterNew(iter, bm, op, slotname); \
+	for ( ; ele; ele=BMO_IterStep(iter))
 
 #endif /* _BMESH_OPERATOR_H */

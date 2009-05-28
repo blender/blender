@@ -54,7 +54,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	
 	/*if one flagged face is bordered by an unflagged face, then we delete
 	  original geometry.*/
-	for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);e;e=BMIter_Step(&iter)) {
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, e, EXT_INPUT)) continue;
 
 		found = 0;
@@ -71,21 +71,21 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*calculate verts to delete*/
-	for (v = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v=BMIter_Step(&iter)) {
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		found = 0;
 
-		l = BMIter_New(&viter, bm, BM_LOOPS_OF_VERT, v);
-		for (; l; l=BMIter_Step(&viter)) {
-			if (!BMO_TestFlag(bm, l->e, EXT_INPUT)) {
+		BM_ITER(e, &viter, bm, BM_EDGES_OF_VERT, v) {
+			if (!BMO_TestFlag(bm, e, EXT_INPUT)) {
 				found = 1;
 				break;
 			}
-			if (!BMO_TestFlag(bm, l->f, EXT_INPUT)) {
+		}
+		
+		BM_ITER(f, &viter, bm, BM_FACES_OF_VERT, v) {
+			if (!BMO_TestFlag(bm, f, EXT_INPUT)) {
 				found = 1;
 				break;
 			}
-
-			if (found) break;
 		}
 
 		if (!found) {
@@ -93,7 +93,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	for (f=BMIter_New(&fiter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&fiter)) {
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, f, EXT_INPUT))
 			BMO_SetFlag(bm, f, EXT_DEL);
 	}

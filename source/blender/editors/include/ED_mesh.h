@@ -76,8 +76,9 @@ struct BMFace;
 
 /* bmeshutils.c */
 
-/*recalculate tesselations for ngons*/
+/*this function is currently defunct, dead*/
 void EDBM_Tesselate(struct EditMesh *em);
+void EDBM_RecalcNormals(struct BMEditMesh *em);
 void EDBM_MakeEditBMesh(struct Scene *scene, struct Object *ob);
 void EDBM_FreeEditBMesh(struct BMEditMesh *tm);
 void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob);

@@ -1295,3 +1295,139 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 }
+
+static void EDBM_strip_selections(BMEditMesh *em)
+{
+	BMEditSelection *ese, *nextese;
+
+	if(!(em->selectmode & SCE_SELECT_VERTEX)){
+		ese = em->selected.first;
+		while(ese){
+			nextese = ese->next; 
+			if(ese->type == BM_VERT) BLI_freelinkN(&(em->selected),ese);
+			ese = nextese;
+		}
+	}
+	if(!(em->selectmode & SCE_SELECT_EDGE)){
+		ese=em->selected.first;
+		while(ese){
+			nextese = ese->next;
+			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->selected), ese);
+			ese = nextese;
+		}
+	}
+	if(!(em->selectmode & SCE_SELECT_FACE)){
+		ese=em->selected.first;
+		while(ese){
+			nextese = ese->next;
+			if(ese->type == BM_FACE) BLI_freelinkN(&(em->selected), ese);
+			ese = nextese;
+		}
+	}
+}
+
+/* when switching select mode, makes sure selection is consistant for editing */
+/* also for paranoia checks to make sure edge or face mode works */
+void EDBM_selectmode_set(BMEditMesh *em)
+{
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+	
+	em->bm->selectmode = em->selectmode;
+
+	EDBM_strip_selections(em); /*strip BMEditSelections from em->selected that are not relevant to new mode*/
+	
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		BMIter iter;
+		
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		
+		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);
+
+		EDBM_selectmode_flush(em);
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		/* deselect vertices, and select again based on edge select */
+		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+		for ( ; eve; eve=BMIter_Step(&iter)) BM_Select(em->bm, eve, 0);
+		
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) {
+			if (BM_TestHFlag(eed, BM_SELECT))
+				BM_Select(em->bm, eed, 1);
+		}
+		
+		/* selects faces based on edge status */
+		EDBM_selectmode_flush(em);
+	}
+	else if(em->selectmode & SCE_SELECT_FACE) {
+		/* deselect eges, and select again based on face select */
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		
+		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+		for ( ; efa; efa=BMIter_Step(&iter)) {
+			if (BM_TestHFlag(efa, BM_SELECT))
+				BM_Select(em->bm, efa, 1);
+		}
+	}
+}
+
+void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
+{
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+
+	/*have to find out what the selectionmode was previously*/
+	if(oldmode == SCE_SELECT_VERTEX) {
+		if(selectmode == SCE_SELECT_EDGE) {
+			/*select all edges associated with every selected vertex*/
+			eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+			for ( ; eed; eed=BMIter_Step(&iter)) {
+				if(BM_TestHFlag(eed->v1, BM_SELECT)) BM_Select(em->bm, eed, 1);
+				else if(BM_TestHFlag(eed->v2, BM_SELECT)) BM_Select(em->bm, eed, 1);
+			}
+		}		
+		else if(selectmode == SCE_SELECT_FACE) {
+			BMIter liter;
+			BMLoop *l;
+
+			/*select all faces associated with every selected vertex*/
+			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+			for ( ; efa; efa=BMIter_Step(&iter)) {
+				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BMIter_Step(&liter)) {
+					if (BM_TestHFlag(l->v, BM_SELECT)) {
+						BM_Select(em->bm, efa, 1);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	if(oldmode == SCE_SELECT_EDGE){
+		if(selectmode == SCE_SELECT_FACE) {
+			BMIter liter;
+			BMLoop *l;
+
+			/*select all faces associated with every selected vertex*/
+			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
+			for ( ; efa; efa=BMIter_Step(&iter)) {
+				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
+				for (; l; l=BMIter_Step(&liter)) {
+					if (BM_TestHFlag(l->v, BM_SELECT)) {
+						BM_Select(em->bm, efa, 1);
+						break;
+					}
+				}
+			}
+		}
+	}
+}

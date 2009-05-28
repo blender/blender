@@ -73,7 +73,9 @@ BMOpDefine def_extrudefaceregion = {
 
 BMOpDefine def_makefgonsop = {
 	"makefgon",
-	{{0} /*null-terminating sentinel*/},
+	{{BMOP_OPSLOT_INT, "trifan"}, /*use triangle fans instead of 
+				        real interpolation*/
+	 {0} /*null-terminating sentinel*/},
 	bmesh_make_fgons_exec,
 	0
 };

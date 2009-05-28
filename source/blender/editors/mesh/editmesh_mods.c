@@ -2698,43 +2698,6 @@ void MESH_OT_select_invert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 	
-/* ******************** (de)select all operator **************** */
-
-void EM_toggle_select_all(EditMesh *em) /* exported for UV */
-{
-	if(EM_nvertices_selected(em))
-		EM_clear_flag_all(em, SELECT);
-	else 
-		EM_set_flag_all(em, SELECT);
-}
-
-static int toggle_select_all_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	EM_toggle_select_all(em);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);	
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_select_all_toggle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "MESH_OT_select_all_toggle";
-	
-	/* api callbacks */
-	ot->exec= toggle_select_all_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 static int bmesh_test_exec(bContext *C, wmOperator *op)
 {
 	return OPERATOR_FINISHED;

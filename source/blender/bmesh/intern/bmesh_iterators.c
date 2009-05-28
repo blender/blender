@@ -319,51 +319,6 @@ static void *loop_of_face_step(BMIter *iter)
 }
 
 /*
- * LOOPS OF VERT CALLBACKS
- *
- */
-/*
-	BMEdge *current = iter->nextedge;
-
-	if(iter->nextedge)
-		iter->nextedge = bmesh_disk_nextedge(iter->nextedge, iter->vdata);
-	
-	if(iter->nextedge == iter->firstedge) iter->nextedge = NULL; 
-
-	return current;
-*/
-	
-
-static void loop_of_vert_begin(BMIter *iter)
-{
-	init_iterator(iter);
-	iter->firstedge = iter->vdata->edge;
-	if (!iter->vdata->edge) return NULL;
-
-	iter->firstloop = iter->nextloop = iter->vdata->edge->loop;
-	iter->l = iter->firstloop;
-}
-
-static void *loop_of_vert_step(BMIter *iter)
-{
-	BMLoop *current = iter->nextloop;
-
-	if(iter->nextloop) {
-		iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
-		if (iter->nextloop == iter->l) {
-			iter->nextloop = bmesh_disk_nextedge(iter->nextloop->e, 
-			                                    iter->vdata)->loop;
-			iter->l = iter->nextloop;
-
-			if (iter->nextloop->e == iter->firstedge)
-				iter->nextloop = NULL;
-		}
-	}
-	
-	return current;
-}
-
-/*
  * BMESH ITERATOR INIT
  *
  * Takes a bmesh iterator structure and fills
@@ -423,11 +378,6 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 			iter->begin = loop_of_face_begin;
 			iter->step = loop_of_face_step;
 			iter->pdata = data;
-			break;
-		case BM_LOOPS_OF_VERT:
-			iter->begin = loop_of_vert_begin;
-			iter->step = loop_of_vert_step;
-			iter->vdata = data;
 			break;
 		case BM_LOOPS_OF_LOOP:
 			iter->begin = loops_of_loop_begin;

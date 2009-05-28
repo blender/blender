@@ -684,15 +684,15 @@ static void addedgeface_mesh(Mesh *me, BMEditMesh *bem, wmOperator *op)
 		BMesh *bm = bem->bm;
 		BMOperator bmop;
 		int len, ok;
-
-		BMO_InitOpf(bm, &bmop, "connectverts verts=%hv", BM_SELECT);
-		BMO_Exec_Op(bm, &bmop);
-		BMO_Finish_Op(bm, &bmop);
-
-		ok = EDBM_Finish(bm, bem, op, 1);
-		if (!ok) return OPERATOR_CANCELLED;
+		
+		EDBM_InitOpf(bem, &bmop, op, "connectverts verts=%hv", BM_SELECT);
+		BMO_Exec_Op(bem->bm, &bmop);
 
 		len = BMO_GetSlot(&bmop, "edgeout")->len;		
+
+		ok = EDBM_FinishOp(bem, &bmop, op, 1);
+		if (!ok) return OPERATOR_CANCELLED;
+
 		if (len) return;	
 	}
 
@@ -701,20 +701,20 @@ static void addedgeface_mesh(Mesh *me, BMEditMesh *bem, wmOperator *op)
 	  bmeshafied eventually, but until then
 	  hacks like this to integrate with it
 	  are necassary.*/
-	{
+	if (bem->selectmode & SCE_SELECT_VERTEX) {
 		BMesh *bm = bem->bm;
 		BMOperator bmop;
 		int len, ok;
-
-		BMO_InitOpf(bm, &bmop, "dissolvefaces faces=%hf", BM_SELECT);
-		BMO_Exec_Op(bm, &bmop);
-		BMO_Finish_Op(bm, &bmop);
-
-		ok = EDBM_Finish(bm, bem, op, 1);
-		if (!ok) return OPERATOR_CANCELLED;
+		
+		EDBM_InitOpf(bem, &bmop, op, "dissolvefaces faces=%hf", BM_SELECT);
+		BMO_Exec_Op(bem->bm, &bmop);
 
 		len = BMO_GetSlot(&bmop, "regionout")->len;		
-		if (len) return;
+		
+		ok = EDBM_FinishOp(bem, &bmop, op, 1);
+		if (!ok) return OPERATOR_CANCELLED;
+
+		if (len) return;	
 	}
 
 	em = BKE_mesh_get_editmesh(me);

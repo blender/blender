@@ -144,6 +144,54 @@ void EDBM_Tesselate(EditMesh *em)
 	}
 }
 
+int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ...)
+{
+	BMesh *bm = em->bm;
+	va_list list;
+
+	va_start(list, fmt);
+
+	if (!BMO_VInitOpf(bm, bmop, fmt, list)) {
+		BKE_report(op->reports, RPT_ERROR,
+			   "Parse error in EDBM_CallOpf");
+		va_end(list);
+		return 0;
+	}
+
+	va_end(list);
+}
+
+
+/*returns 0 on error, 1 on success.  executes and finishes a bmesh operator*/
+int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) {
+	char *errmsg;
+	
+	BMO_Finish_Op(em->bm, bmop);
+
+	if (BMO_GetError(em->bm, &errmsg, NULL)) {
+		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
+		/*BMESH_TODOwe should really undo here or something, back 
+		  out of the failed op :/*/
+		return 0;
+	}
+
+	return 1;
+}
+
+/*returns 0 on error, 1 on success*/
+static int finalize_bmop(BMesh *bm, BMEditMesh *em, wmOperator *op, int report) {
+	char *errmsg;
+
+	if (BMO_GetError(bm, &errmsg, NULL)) {
+		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
+		/*BMESH_TODOwe should really undo here or something, back 
+		  out of the failed op :/*/
+		return 0;
+	}
+
+	return 1;
+}
+
 int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 {
 	BMesh *bm = em->bm;
@@ -164,7 +212,7 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 
 	va_end(list);
 
-	return EDBM_Finish(bm, em, op, 1);
+	return finalize_bmop(bm, em, op, 1);
 }
 
 int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
@@ -185,21 +233,7 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 
 	va_end(list);
 
-	return EDBM_Finish(bm, em, NULL, 0);
-}
-
-/*returns 0 on error, 1 on success*/
-int EDBM_Finish(BMesh *bm, BMEditMesh *em, wmOperator *op, int report) {
-	char *errmsg;
-
-	if (BMO_GetError(bm, &errmsg, NULL)) {
-		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
-		/*BMESH_TODOwe should really undo here or something, back 
-		  out of the failed op :/*/
-		return 0;
-	}
-
-	return 1;
+	return finalize_bmop(bm, em, NULL, 0);
 }
 
 void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
@@ -392,53 +426,6 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 	return 1;
 }
 
-/* ********* Selection History ************ */
-static int EDBM_check_selection(BMEditMesh *em, void *data)
-{
-	BMEditSelection *ese;
-	
-	for(ese = em->selected.first; ese; ese = ese->next){
-		if(ese->data == data) return 1;
-	}
-	
-	return 0;
-}
-
-void EDBM_remove_selection(BMEditMesh *em, void *data)
-{
-	BMEditSelection *ese;
-	for(ese=em->selected.first; ese; ese = ese->next){
-		if(ese->data == data){
-			BLI_freelinkN(&(em->selected),ese);
-			break;
-		}
-	}
-}
-
-void EDBM_store_selection(BMEditMesh *em, void *data)
-{
-	BMEditSelection *ese;
-	if(!EDBM_check_selection(em, data)){
-		ese = (BMEditSelection*) MEM_callocN( sizeof(BMEditSelection), "BMEdit Selection");
-		ese->type = ((BMHeader*)data)->type;
-		ese->data = data;
-		BLI_addtail(&(em->selected),ese);
-	}
-}
-
-void EDBM_validate_selections(BMEditMesh *em)
-{
-	BMEditSelection *ese, *nextese;
-
-	ese = em->selected.first;
-
-	while(ese){
-		nextese = ese->next;
-		if (!BM_TestHFlag(ese->data, BM_SELECT)) BLI_freelinkN(&(em->selected), ese);
-		ese = nextese;
-	}
-}
-
 void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 {
 	BMIter iter;
@@ -465,272 +452,31 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 	}
 }
 
-static void EDBM_strip_selections(BMEditMesh *em)
+
+void EDBM_set_flag_all(BMEditMesh *em, int flag)
 {
-	BMEditSelection *ese, *nextese;
-
-	if(!(em->selectmode & SCE_SELECT_VERTEX)){
-		ese = em->selected.first;
-		while(ese){
-			nextese = ese->next; 
-			if(ese->type == BM_VERT) BLI_freelinkN(&(em->selected),ese);
-			ese = nextese;
-		}
-	}
-	if(!(em->selectmode & SCE_SELECT_EDGE)){
-		ese=em->selected.first;
-		while(ese){
-			nextese = ese->next;
-			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->selected), ese);
-			ese = nextese;
-		}
-	}
-	if(!(em->selectmode & SCE_SELECT_FACE)){
-		ese=em->selected.first;
-		while(ese){
-			nextese = ese->next;
-			if(ese->type == BM_FACE) BLI_freelinkN(&(em->selected), ese);
-			ese = nextese;
-		}
-	}
-}
-
-
-/* when switching select mode, makes sure selection is consistant for editing */
-/* also for paranoia checks to make sure edge or face mode works */
-void EDBM_selectmode_set(BMEditMesh *em)
-{
-	BMVert *eve;
-	BMEdge *eed;
-	BMFace *efa;
 	BMIter iter;
-	
-	em->bm->selectmode = em->selectmode;
+	BMHeader *ele;
+	int i, type;
 
-	EDBM_strip_selections(em); /*strip BMEditSelections from em->selected that are not relevant to new mode*/
-	
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		BMIter iter;
-		
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
-		
-		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);
-
-		EDBM_selectmode_flush(em);
-	}
-	else if(em->selectmode & SCE_SELECT_EDGE) {
-		/* deselect vertices, and select again based on edge select */
-		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-		for ( ; eve; eve=BMIter_Step(&iter)) BM_Select(em->bm, eve, 0);
-		
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) {
-			if (BM_TestHFlag(eed, BM_SELECT))
-				BM_Select(em->bm, eed, 1);
+	for (i=0; i<3; i++) {
+		switch (i) {
+			case 0:
+				type = BM_VERTS_OF_MESH;
+				break;
+			case 1:
+				type = BM_EDGES_OF_MESH;
+				break;
+			case 2:
+				type = BM_FACES_OF_MESH;
+				break;
 		}
-		
-		/* selects faces based on edge status */
-		EDBM_selectmode_flush(em);
-	}
-	else if(em->selectmode & SCE_SELECT_FACE) {
-		/* deselect eges, and select again based on face select */
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
-		
-		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; efa; efa=BMIter_Step(&iter)) {
-			if (BM_TestHFlag(efa, BM_SELECT))
-				BM_Select(em->bm, efa, 1);
+		ele = BMIter_New(&iter, em->bm, type, NULL);
+		for ( ; ele; ele=BMIter_Step(&iter)) {
+			if (flag & BM_SELECT) BM_Select(em->bm, ele, 1);
+			BM_SetHFlag(ele, flag);
 		}
 	}
-}
-
-void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
-{
-	BMVert *eve;
-	BMEdge *eed;
-	BMFace *efa;
-	BMIter iter;
-
-	/*have to find out what the selectionmode was previously*/
-	if(oldmode == SCE_SELECT_VERTEX) {
-		if(selectmode == SCE_SELECT_EDGE) {
-			/*select all edges associated with every selected vertex*/
-			eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-			for ( ; eed; eed=BMIter_Step(&iter)) {
-				if(BM_TestHFlag(eed->v1, BM_SELECT)) BM_Select(em->bm, eed, 1);
-				else if(BM_TestHFlag(eed->v2, BM_SELECT)) BM_Select(em->bm, eed, 1);
-			}
-		}		
-		else if(selectmode == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
-
-			/*select all faces associated with every selected vertex*/
-			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for ( ; efa; efa=BMIter_Step(&iter)) {
-				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l=BMIter_Step(&liter)) {
-					if (BM_TestHFlag(l->v, BM_SELECT)) {
-						BM_Select(em->bm, efa, 1);
-						break;
-					}
-				}
-			}
-		}
-	}
-	
-	if(oldmode == SCE_SELECT_EDGE){
-		if(selectmode == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
-
-			/*select all faces associated with every selected vertex*/
-			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for ( ; efa; efa=BMIter_Step(&iter)) {
-				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l=BMIter_Step(&liter)) {
-					if (BM_TestHFlag(l->v, BM_SELECT)) {
-						BM_Select(em->bm, efa, 1);
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-
-/* generic way to get data from an EditSelection type 
-These functions were written to be used by the Modifier widget when in Rotate about active mode,
-but can be used anywhere.
-EM_editselection_center
-EM_editselection_normal
-EM_editselection_plane
-*/
-void EDBM_editselection_center(BMEditMesh *em, float *center, BMEditSelection *ese)
-{
-	if (ese->type==BM_VERT) {
-		BMVert *eve= ese->data;
-		VecCopyf(center, eve->co);
-	} else if (ese->type==BM_EDGE) {
-		BMEdge *eed= ese->data;
-		VecAddf(center, eed->v1->co, eed->v2->co);
-		VecMulf(center, 0.5);
-	} else if (ese->type==BM_FACE) {
-		BMFace *efa= ese->data;
-		BM_Compute_Face_Center(em->bm, efa, center);
-	}
-}
-
-void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
-{
-	if (ese->type==BM_VERT) {
-		BMVert *eve= ese->data;
-		VecCopyf(normal, eve->no);
-	} else if (ese->type==BM_EDGE) {
-		BMEdge *eed= ese->data;
-		float plane[3]; /* need a plane to correct the normal */
-		float vec[3]; /* temp vec storage */
-		
-		VecAddf(normal, eed->v1->no, eed->v2->no);
-		VecSubf(plane, eed->v2->co, eed->v1->co);
-		
-		/* the 2 vertex normals will be close but not at rightangles to the edge
-		for rotate about edge we want them to be at right angles, so we need to
-		do some extra colculation to correct the vert normals,
-		we need the plane for this */
-		Crossf(vec, normal, plane);
-		Crossf(normal, plane, vec); 
-		Normalize(normal);
-		
-	} else if (ese->type==BM_FACE) {
-		BMFace *efa= ese->data;
-		VecCopyf(normal, efa->no);
-	}
-}
-
-/* Calculate a plane that is rightangles to the edge/vert/faces normal
-also make the plane run allong an axis that is related to the geometry,
-because this is used for the manipulators Y axis.*/
-void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
-{
-	if (ese->type==BM_VERT) {
-		BMVert *eve= ese->data;
-		float vec[3]={0,0,0};
-		
-		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
-			EDBM_editselection_center(em, vec, ese->prev);
-			VecSubf(plane, vec, eve->co);
-		} else {
-			/* make a fake  plane thats at rightangles to the normal
-			we cant make a crossvec from a vec thats the same as the vec
-			unlikely but possible, so make sure if the normal is (0,0,1)
-			that vec isnt the same or in the same direction even.*/
-			if (eve->no[0]<0.5)		vec[0]=1;
-			else if (eve->no[1]<0.5)	vec[1]=1;
-			else				vec[2]=1;
-			Crossf(plane, eve->no, vec);
-		}
-	} else if (ese->type==BM_EDGE) {
-		BMEdge *eed= ese->data;
-
-		/*the plane is simple, it runs allong the edge
-		however selecting different edges can swap the direction of the y axis.
-		this makes it less likely for the y axis of the manipulator
-		(running along the edge).. to flip less often.
-		at least its more pradictable */
-		if (eed->v2->co[1] > eed->v1->co[1]) /*check which to do first */
-			VecSubf(plane, eed->v2->co, eed->v1->co);
-		else
-			VecSubf(plane, eed->v1->co, eed->v2->co);
-		
-	} else if (ese->type==BM_FACE) {
-		BMFace *efa= ese->data;
-		float vec[3] = {0.0f, 0.0f, 0.0f};
-		
-		/*for now, use face normal*/
-
-		/* make a fake  plane thats at rightangles to the normal
-		we cant make a crossvec from a vec thats the same as the vec
-		unlikely but possible, so make sure if the normal is (0,0,1)
-		that vec isnt the same or in the same direction even.*/
-		if (efa->no[0]<0.5)		vec[0]=1.0f;
-		else if (efa->no[1]<0.5)	vec[1]=1.0f;
-		else				vec[2]=1.0f;
-		Crossf(plane, efa->no, vec);
-#if 0
-
-		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
-			float vecA[3], vecB[3];
-			VecSubf(vecA, efa->v4->co, efa->v3->co);
-			VecSubf(vecB, efa->v1->co, efa->v2->co);
-			VecAddf(plane, vecA, vecB);
-			
-			VecSubf(vecA, efa->v1->co, efa->v4->co);
-			VecSubf(vecB, efa->v2->co, efa->v3->co);
-			VecAddf(vec, vecA, vecB);						
-			/*use the biggest edge length*/
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
-		} else {
-			/*start with v1-2 */
-			VecSubf(plane, efa->v1->co, efa->v2->co);
-			
-			/*test the edge between v2-3, use if longer */
-			VecSubf(vec, efa->v2->co, efa->v3->co);
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
-			
-			/*test the edge between v1-3, use if longer */
-			VecSubf(vec, efa->v3->co, efa->v1->co);
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				VecCopyf(plane, vec);
-		}
-#endif
-	}
-	Normalize(plane);
 }
 
 /**************-------------- Undo ------------*****************/

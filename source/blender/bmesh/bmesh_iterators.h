@@ -38,12 +38,11 @@
 #define BM_FACEVERTS_OF_FACE 			8
 #define BM_EDGES_OF_FACE 			9
 #define BM_LOOPS_OF_FACE 			10
-#define BM_LOOPS_OF_VERT			11
 
 /*iterate through loops around this loop, which are fetched
   from the other faces in the radial cycle surrounding the
   input loop's edge.*/
-#define BM_LOOPS_OF_LOOP		12
+#define BM_LOOPS_OF_LOOP		11
 
 
 /*Iterator Structure*/

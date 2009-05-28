@@ -62,12 +62,16 @@ int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
 /*same as above, but doesn't report errors.*/
 int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);
 
-/*called after bmesh tool exec.  checks for errors and does conversions.
-  if any errors are raised by bmesh, it displays the error to the user and
-  returns 0 (and does not convert).  otherwise, it converts the bmesh back
-  into the editmesh, and returns 1.*/
-int EDBM_Finish(struct BMesh *bm, struct BMEditMesh *em, 
-                struct wmOperator *op, int report);
+/*these next two functions are the split version of EDBM_CallOpf, so you can
+  do stuff with a bmesh operator, after initializing it but before executing
+  it.
+  
+  execute the operator with BM_Exec_Op*/
+int EDBM_InitOpf(struct BMEditMesh *em, struct BMOperator *bmop,
+		struct wmOperator *op, char *fmt, ...);
+/*cleans up after a bmesh operator*/
+int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
+		struct wmOperator *op, int report);
 
 void EDBM_clear_flag_all(struct BMEditMesh *em, int flag);
 void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);

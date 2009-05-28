@@ -1364,7 +1364,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	ima= CTX_data_edit_image(C);
 	
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		EM_toggle_select_all(em);
+		EDBM_toggle_select_all(((Mesh*)obedit->data)->edit_btmesh);
 	}
 	else {
 		sel= 0;

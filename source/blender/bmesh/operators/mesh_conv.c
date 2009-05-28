@@ -144,7 +144,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	  do most the work, then layer in ngon data, hehehe*/
 	
 	bmtess = BM_Copy_Mesh(bm);
-	BMO_CallOpf(bmtess, "makefgon");
+	BMO_CallOpf(bmtess, "makefgon trifan=%i", 0);
 	
 	/* new Vertex block */
 	if(bm->totvert==0) mvert= NULL;
