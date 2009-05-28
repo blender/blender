@@ -583,6 +583,7 @@ void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA 
 	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
+void uiTemplatePreview(uiLayout *layout, struct ID *id);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

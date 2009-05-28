@@ -699,7 +699,6 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	}
 
 	if (md->error) {
-
 		row = uiLayoutRow(uiLayoutBox(column), 0);
 
 		/* XXX uiBlockSetCol(block, color); */
@@ -1239,17 +1238,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", xco+((width/2)+10), yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
 					// XXX uiButSetFunc(but, childof_const_clearinv, con, NULL);
 				uiBlockEndAlign(block);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data = con->data;
-				
-				result= uiLayoutColumn(box, 0);
-
-				/* constraint space settings */
-				block= uiLayoutFreeBlock(box);
-				draw_constraint_spaceselect(block, con, 0, 0, is_armature_owner(ob), is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
@@ -2074,16 +2062,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			break;
 		}
 	}
-
-	if (ELEM(con->type, CONSTRAINT_TYPE_NULL, CONSTRAINT_TYPE_RIGIDBODYJOINT)==0) {
-		box= uiLayoutBox(col);
-		block= uiLayoutFreeBlock(box);
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_CONSTRAINT_INF, "Influence ", xco, yco, width, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
-		uiBlockEndAlign(block);
-
-		// XXX Show/Key buttons, functionaly can be replaced with right click menu?
-	} 
 	
 	/* clear any locks set up for proxies/lib-linking */
 	uiBlockClearButLock(block);
@@ -2120,5 +2098,154 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 	}
 
 	return draw_constraint(layout, ob, con);
+}
+
+/************************* Group Template ***************************/
+
+#if 0
+static void do_add_groupmenu(void *arg, int event)
+{
+	Object *ob= OBACT;
+	
+	if(ob) {
+		
+		if(event== -1) {
+			Group *group= add_group( "Group" );
+			add_to_group(group, ob);
+		}
+		else
+			add_to_group(BLI_findlink(&G.main->group, event), ob);
+			
+		ob->flag |= OB_FROMGROUP;
+		BASACT->flag |= OB_FROMGROUP;
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}		
+}
+
+static uiBlock *add_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	Group *group;
+	short xco=0, yco= 0, index=0;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
+
+	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
+	for(group= G.main->group.first; group; group= group->id.next, index++) {
+		
+		/*if(group->id.lib) strcpy(str, "L  ");*/ /* we cant allow adding objects inside linked groups, it wont be saved anyway */
+		if(group->id.lib==0) {
+			strcpy(str, "   ");
+			strcat(str, group->id.name+2);
+			uiDefBut(block, BUTM, B_NOP, str,	xco*160, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, index, "");
+			
+			yco++;
+			if(yco>24) {
+				yco= 0;
+				xco++;
+			}
+		}
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);	
+	
+	return block;
+}
+
+static void group_ob_rem(void *gr_v, void *ob_v)
+{
+	Object *ob= OBACT;
+	
+	if(rem_from_group(gr_v, ob) && find_group(ob, NULL)==NULL) {
+		ob->flag &= ~OB_FROMGROUP;
+		BASACT->flag &= ~OB_FROMGROUP;
+	}
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+
+}
+
+static void group_local(void *gr_v, void *unused)
+{
+	Group *group= gr_v;
+	
+	group->id.lib= NULL;
+	
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
+
+uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
+{
+	uiSetButLock(1, NULL);
+	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
+
+	/* all groups */
+	if(group->id.lib) {
+		uiLayoutRow()
+		uiBlockBeginAlign(block);
+		uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
+		uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 100, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+		uiClearButLock();
+		
+		but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 110, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+		uiButSetFunc(but, group_local, group, NULL);
+		uiBlockEndAlign(block);
+	} else {
+		but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 120, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+		uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
+	}
+	
+	xco = 290;
+	if(group->id.lib==0) { /* cant remove objects from linked groups */
+		but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+		uiButSetFunc(but, group_ob_rem, group, ob);
+	}
+}
+#endif
+
+/************************* Preview Template ***************************/
+
+#include "DNA_material_types.h"
+
+#define B_MATPRV 1
+
+void uiTemplatePreview(uiLayout *layout, ID *id)
+{
+	uiLayout *row, *col;
+	uiBlock *block;
+	Material *ma;
+
+	if(!id || !ELEM3(GS(id->name), ID_MA, ID_TE, ID_WO)) {
+		printf("uiTemplatePreview: expected ID of type material, texture or world.\n");
+		return;
+	}
+
+	block= uiLayoutGetBlock(layout);
+
+	row= uiLayoutRow(layout, 0);
+
+	col= uiLayoutColumn(row, 0);
+	uiLayoutSetKeepAspect(col, 1);
+	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(GS(id->name) == ID_MA) {
+		ma= (Material*)id;
+
+		uiLayoutColumn(row, 1);
+
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+	}
+
 }
 

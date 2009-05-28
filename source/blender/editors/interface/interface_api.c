@@ -209,5 +209,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "template_preview", "uiTemplatePreview");
+	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 }
 
