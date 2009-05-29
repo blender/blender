@@ -851,7 +851,7 @@ int BPY_run_script(Script *script)
 		pyarg = Py_None;
 	} else {
 		if (!BLI_exists(script->scriptname)) {
-			printf( "Script does not exit %s\n", script->scriptname );
+			printf( "Script does not exist %s\n", script->scriptname );
 			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
