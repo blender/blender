@@ -23,11 +23,12 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		sub.itemR(rd, "render_envmaps", text="Environment Map")
 		#	sub.itemR(rd, "render_radiosity", text="Radio")
 		
-		sub = split.column()
-		sub.itemR(rd, "render_raytracing", text="Ray Tracing")
-		if (rd.render_raytracing):
-			sub.itemR(rd, "octree_resolution", text="Octree")
-		sub.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		col = split.column()
+		colsub = col.column()
+		colsub.active = rd.render_raytracing
+		colsub.itemR(rd, "render_raytracing", text="Ray Tracing")
+		colsub.itemR(rd, "octree_resolution", text="Octree")
+		col.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		
 class RENDER_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
