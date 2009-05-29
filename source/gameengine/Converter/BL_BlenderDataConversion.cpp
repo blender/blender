@@ -1338,8 +1338,9 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 				ctrl->setNewClientInfo(gameobj->getClientInfo());
 				ctrl->setLocalAabb(localAabbMin, localAabbMax);
 				if (isActive) {
-					// add first, this will create the proxy handle
-					env->addCcdGraphicController(ctrl);
+					// add first, this will create the proxy handle, only if the object is visible
+					if (gameobj->GetVisible())
+						env->addCcdGraphicController(ctrl);
 					// update the mesh if there is a deformer, this will also update the bounding box for modifiers
 					RAS_Deformer* deformer = gameobj->GetDeformer();
 					if (deformer)
