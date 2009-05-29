@@ -694,7 +694,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{ 
 
-				if( RE_rayobject_raycast(face,is) )
+				if( RE_rayobject_intersect(face,is) )
 					if(isect.labda<is->labda) {
 						*is= isect;
 						found= 1;
