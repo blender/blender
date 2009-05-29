@@ -5205,8 +5205,15 @@ class SCA_PythonController(SCA_IController):
 	
 	Properties:
 	
-	@ivar script: the Python script this controller executes
+	@ivar script: The value of this variable depends on the execution methid.
+		- When 'Script' execution mode is set this value contains the entire python script as a single string (not the script name as you might expect) which can be modified to run different scripts.
+		- When 'Module' execution mode is set this value will contain a single line string - module name and function "module.func" or "package.modile.func" where the module names are python textblocks or external scripts.
+		note: once this is set the script name given for warnings will remain unchanged.
 	@type script: string
+	@ivar mode: the execution mode for this controller (read-only).
+		- Script: 0, Execite the L{script} as a python code.
+		- Module: 1, Execite the L{script} as a module and function.
+	@type mode: int
 	
 	@group Deprecated: getScript, setScript
 	"""
@@ -5222,17 +5229,17 @@ class SCA_PythonController(SCA_IController):
 		"""
 	def getScript():
 		"""
-		Gets the Python script this controller executes.
+		Gets the Python script body this controller executes.
 		
 		@deprecated: Use the L{script} attribute instead.
 		@rtype: string
 		"""
-	def setScript(script):
+	def setScript(script_body):
 		"""
-		Sets the Python script this controller executes.
+		Sets the Python script string this controller executes.
 		
 		@deprecated: Use the L{script} attribute instead.
-		@type script: string.
+		@type script_body: string.
 		"""
 
 class SCA_RandomActuator(SCA_IActuator):

@@ -147,6 +147,11 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 		Py_DECREF(m_pythondictionary);
 	}
 	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
+	
+	/* Without __file__ set the sys.argv[0] is used for the filename
+	 * which ends up with lines from the blender binary being printed in the console */
+	PyDict_SetItemString(m_pythondictionary, "__file__", PyString_FromString(m_scriptName.Ptr()));
+	
 }
 
 int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
@@ -266,6 +271,7 @@ PyMethodDef SCA_PythonController::Methods[] = {
 
 PyAttributeDef SCA_PythonController::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("script", SCA_PythonController, pyattr_get_script, pyattr_set_script),
+	KX_PYATTRIBUTE_INT_RO("mode", SCA_PythonController, m_mode),
 	{ NULL }	//Sentinel
 };
 

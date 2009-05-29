@@ -2780,7 +2780,11 @@ static PyObject *RunPython( Text * text, PyObject * globaldict )
 		}
 
 	}
-
+	
+	/* Without __file__ set the sys.argv[0] is used for the filename
+	 * which ends up with lines from the blender binary being printed in the console */
+	PyDict_SetItemString(globaldict, "__file__", PyString_FromString(text->id.name+2));
+	
 	return PyEval_EvalCode( text->compiled, globaldict, globaldict );
 }
 
