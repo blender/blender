@@ -69,9 +69,10 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceView3D;
 		case SPACE_IPO:
 			return &RNA_SpaceGraphEditor;
+		*/
 		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
-		case SPACE_BUTS:
+		/* case SPACE_BUTS:
 			return &RNA_SpaceButtonsWindow;
 		case SPACE_FILE:
 			return &RNA_SpaceFileBrowser;*/
@@ -250,6 +251,40 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Live Unwrap", "Continuously unwrap the selected UV island while transforming pinned vertices.");
 }
 
+static void rna_def_space_outliner(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem display_mode_items[] = {
+		{0, "ALL_SCENES", "All Scenes", ""},
+		{1, "CURRENT_SCENE", "Current Scene", ""},
+		{2, "VISIBLE_LAYERS", "Visible Layers", ""},
+		{3, "SELECTED", "Selected", ""},
+		{4, "ACTIVE", "Active", ""},
+		{5, "SAME_TYPES", "Same Types", ""},
+		{6, "GROUPS", "Groups", ""},
+		{7, "LIBRARIES", "Libraries", ""},
+		{10, "SEQUENCE", "Sequence", ""},
+		{11, "DATABLOCKS", "Datablocks", ""},
+		{12, "USER_PREFERENCES", "User Preferences", ""},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SpaceOutliner", "Space");
+	RNA_def_struct_sdna(srna, "SpaceOops");
+	RNA_def_struct_ui_text(srna, "Space Outliner", "Outliner space data.");
+	
+	prop= RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "outlinevis");
+	RNA_def_property_enum_items(prop, display_mode_items);
+	RNA_def_property_ui_text(prop, "Display Mode", "Type of information to display");
+
+	prop= RNA_def_property(srna, "show_restriction_columns", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SO_HIDE_RESTRICTCOLS);
+	RNA_def_property_ui_text(prop, "Show Restriction Columns", "Show colum");
+
+}
+
 static void rna_def_space_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -260,6 +295,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 		{SI_USE_ALPHA, "COLOR_ALPHA", "Color and Alpha", "Draw image with RGB colors and alpha transparency."},
 		{SI_SHOW_ALPHA, "ALPHA", "Alpha", "Draw alpha transparency channel."},
 		{SI_SHOW_ZBUF, "Z_BUFFER", "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."},
+		{SI_COLOR_CORRECTION, "COLOR_CORRECTED", "Color Corrected", "Display color corrected image."},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceImageEditor", "Space");
@@ -399,6 +435,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space(brna);
 	rna_def_space_image(brna);
 	rna_def_space_text(brna);
+	rna_def_space_outliner(brna);
 }
 
 #endif

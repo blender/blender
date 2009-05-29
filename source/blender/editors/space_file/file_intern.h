@@ -68,5 +68,9 @@ int file_cancel_exec(bContext *C, struct wmOperator *unused);
 int file_parent_exec(bContext *C, struct wmOperator *unused);
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my);
 
+/* filesel.c */
+float file_string_width(const char* str);
+float file_font_pointsize();
+
 #endif /* ED_FILE_INTERN_H */
 

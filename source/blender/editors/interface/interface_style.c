@@ -90,7 +90,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	BLI_strncpy(style->name, name, MAX_STYLE_NAME);
 	
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
-	style->paneltitle.points= 14;
+	style->paneltitle.points= 13;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;
 	style->paneltitle.shady= -2;
@@ -121,6 +121,8 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->boxspace= 5;
 	style->buttonspacex= 5;
 	style->buttonspacey= 2;
+	style->panelspace= 8;
+	style->panelouter= 4;
 	
 	return style;
 }

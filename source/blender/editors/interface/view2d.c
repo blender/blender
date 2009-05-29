@@ -155,23 +155,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
 	
-	/* XXX always set state vars for buttonsview, this is hardcoded */
-	switch (type) {
-			/* panels view, with free/horizontal/vertical align */
-		case V2D_COMMONVIEW_PANELS_UI:
-		{
-			/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-			v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
-			v2d->minzoom= 0.5f;
-			v2d->maxzoom= 2.0f;
-			
-			v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-			v2d->keeptot= V2D_KEEPTOT_BOUNDS;
-		}
-			break;
-	}
-	
-	
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
@@ -249,28 +232,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 			
-			/* ui listviews, tries to wrap 'tot' inside region width */
-			case V2D_COMMONVIEW_LIST_UI:
-			{
-				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
-				v2d->minzoom= 0.5f;
-				v2d->maxzoom= 2.0f;
-				
-				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
-				
-				v2d->tot.xmin= 0.0f;
-				v2d->tot.xmax= 336.f; // XXX 320 width + 2 x PNL_DIST
-				
-				v2d->tot.ymax= 0.0f;
-				v2d->tot.ymin= -336.0f*((float)winy)/(float)winx;
-				
-				v2d->cur= v2d->tot;
-			}
-				break;
-
-			/* panels view, with free/horizontal/vertical align */
+			/* panels view, with horizontal/vertical align */
 			case V2D_COMMONVIEW_PANELS_UI:
 			{
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
@@ -465,18 +427,28 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		
 		/* resize from centerpoint */
 		if (width != curwidth) {
-			temp= (cur->xmax + cur->xmin) * 0.5f;
-			dh= width * 0.5f;
-			
-			cur->xmin = temp - dh;
-			cur->xmax = temp + dh;
+			if (v2d->keepofs & V2D_LOCKOFS_X) {
+				cur->xmax += width - (cur->xmax - cur->xmin);
+			}
+			else {
+				temp= (cur->xmax + cur->xmin) * 0.5f;
+				dh= width * 0.5f;
+				
+				cur->xmin = temp - dh;
+				cur->xmax = temp + dh;
+			}
 		}
 		if (height != curheight) {
-			temp= (cur->ymax + cur->ymin) * 0.5f;
-			dh= height * 0.5f;
-			
-			cur->ymin = temp - dh;
-			cur->ymax = temp + dh;
+			if (v2d->keepofs & V2D_LOCKOFS_Y) {
+				cur->ymax += height - (cur->ymax - cur->ymin);
+			}
+			else {
+				temp= (cur->ymax + cur->ymin) * 0.5f;
+				dh= height * 0.5f;
+				
+				cur->ymin = temp - dh;
+				cur->ymax = temp + dh;
+			}
 		}
 	}
 	
@@ -872,8 +844,13 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	 * but only applied where requsted
 	 */
 	/* XXX ton: fix this! */
-	xofs= 0.0f; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
-	yofs= 0.0f; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+	xofs= 0.0; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
+	yofs= 0.0; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+
+	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
+	 * pixel rounding is effectively random due to float inaccuracy */
+	xofs= 0.001f;
+	yofs= 0.001f;
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);

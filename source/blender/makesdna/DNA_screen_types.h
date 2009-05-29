@@ -91,16 +91,17 @@ typedef struct ScrEdge {
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
 
-	struct PanelType *type;		/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
+	struct PanelType *type;			/* runtime */
+	struct uiLayout *layout;		/* runtime for drawing */
 
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
 	short ofsx, ofsy, sizex, sizey;
+	short labelofs, pad;
 	short flag, runtime_flag;
 	short control;
 	short snap;
-	int sortorder, pad;			/* panels are aligned according to increasing sortorder */
+	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
 } Panel;

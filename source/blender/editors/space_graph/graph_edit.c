@@ -116,19 +116,21 @@ static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xm
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= NULL; //ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
-			float tmin, tmax;
+			float txmin, txmax, tymin, tymax;
 			
 			/* get range and apply necessary scaling before */
-			calc_fcurve_bounds(fcu, &tmin, &tmax, ymin, ymax);
+			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
 			if (nob) {
-				tmin= get_action_frame_inv(nob, tmin);
-				tmax= get_action_frame_inv(nob, tmax);
+				txmin= get_action_frame_inv(nob, txmin);
+				txmax= get_action_frame_inv(nob, txmax);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
-			if (xmin) *xmin= MIN2(*xmin, tmin);
-			if (xmax) *xmax= MAX2(*xmax, tmax);
+			if ((xmin) && (txmin < *xmin)) 		*xmin= txmin;
+			if ((xmax) && (txmax > *xmax)) 		*xmax= txmax;
+			if ((ymin) && (tymin < *ymin)) 		*ymin= tymin;
+			if ((ymax) && (tymax > *ymax)) 		*ymax= tymax;
 		}
 		
 		/* free memory */

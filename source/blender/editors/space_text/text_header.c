@@ -323,7 +323,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	if(text) {
-		pup= uiPupMenuBegin("Text", 0);
+		pup= uiPupMenuBegin(C, "Text", 0);
 		if(txt_has_sel(text)) {
 			uiItemO(layout, NULL, 0, "TEXT_OT_cut");
 			uiItemO(layout, NULL, 0, "TEXT_OT_copy");
@@ -337,7 +337,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 		uiPupMenuEnd(C, pup);
 	}
 	else {
-		pup= uiPupMenuBegin("File", 0);
+		pup= uiPupMenuBegin(C, "File", 0);
 		uiItemO(layout, NULL, 0, "TEXT_OT_new");
 		uiItemO(layout, NULL, 0, "TEXT_OT_open");
 		uiPupMenuEnd(C, pup);
@@ -349,7 +349,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup= uiPupMenuBegin("Edit", 0);
+	pup= uiPupMenuBegin(C, "Edit", 0);
 	uiItemO(layout, NULL, 0, "TEXT_OT_cut");
 	uiItemO(layout, NULL, 0, "TEXT_OT_copy");
 	uiItemO(layout, NULL, 0, "TEXT_OT_paste");
@@ -362,7 +362,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	if(text) {
-		pup= uiPupMenuBegin("Text", 0);
+		pup= uiPupMenuBegin(C, "Text", 0);
 		uiItemO(layout, NULL, 0, "TEXT_OT_new");
 		uiItemO(layout, NULL, 0, "TEXT_OT_open");
 		uiItemO(layout, NULL, 0, "TEXT_OT_save");
@@ -371,7 +371,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 		uiPupMenuEnd(C, pup);
 	}
 	else {
-		pup= uiPupMenuBegin("File", 0);
+		pup= uiPupMenuBegin(C, "File", 0);
 		uiItemO(layout, NULL, 0, "TEXT_OT_new");
 		uiItemO(layout, NULL, 0, "TEXT_OT_open");
 		uiPupMenuEnd(C, pup);
@@ -383,7 +383,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 
 	uiPopupMenu *pup;
 
-	pup= uiPupMenuBegin("Text", 0);
+	pup= uiPupMenuBegin(C, "Text", 0);
 	uiItemEnumO(layout, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
 	uiItemEnumO(layout, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
 	uiItemEnumO(layout, "Page Up", 0, "TEXT_OT_move", "type", PREV_PAGE);

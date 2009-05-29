@@ -1287,7 +1287,7 @@ static int mapping_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup= uiPupMenuBegin("UV Mapping", 0);
+	pup= uiPupMenuBegin(C, "UV Mapping", 0);
 	layout= uiPupMenuLayout(pup);
 
 	uiItemO(layout, NULL, 0, "UV_OT_unwrap");

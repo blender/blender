@@ -87,7 +87,7 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
 	IDProperty *idprop= (IDProperty*)data;
 	PropertyRNA *prop;
-	StructRNA *ptype= iter->parent.type;
+	StructRNA *ptype= iter->builtin_parent.type;
 
 	/* function to skip any id properties that are already known by RNA,
 	 * for the second loop where we go over unknown id properties */
@@ -177,7 +177,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= rna_idproperties_get(&iter->parent, 0);
+			group= RNA_struct_idproperties(&iter->builtin_parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
@@ -243,7 +243,7 @@ static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 }
 
 /* Builtin properties iterator re-uses the Struct properties iterator, only
- * difference is that we need to see the ptr data to the type of the struct
+ * difference is that we need to set the ptr data to the type of the struct
  * whose properties we want to iterate over. */
 
 void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -260,6 +260,7 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
 		newptr.id.data= NULL;
 
 	iter->parent= newptr;
+	iter->builtin_parent = *ptr;
 
 	rna_Struct_properties_begin(iter, &newptr);
 }
@@ -666,13 +667,13 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Type", "Data type of the property.");
 
 	prop= RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, subtype_items);
-	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
 
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);

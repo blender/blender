@@ -599,6 +599,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				resetTransRestrictions(t); 
 				restoreTransObjects(t);
 				initTranslation(t);
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;
@@ -608,6 +609,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				resetTransRestrictions(t); 
 				restoreTransObjects(t);
 				initResize(t);
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;
@@ -625,6 +627,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initRotation(t);
 				}
+				initSnapping(t, NULL); // need to reinit after mode change
 				t->redraw = 1;
 			}
 			break;

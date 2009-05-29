@@ -1709,7 +1709,7 @@ static int scroll_exec(bContext *C, wmOperator *op)
 
 	screen_skip(st, lines*U.wheellinescroll);
 
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, st->text);
+	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -2540,7 +2540,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		case 1:
 			if(text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */
-				pup= uiPupMenuBegin("File Modified Outside and Inside Blender", 0);
+				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", 0);
 				layout= uiPupMenuLayout(pup);
 				uiItemEnumO(layout, "Reload from disk (ignore local changes)", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO(layout, "Save to disk (ignore outside changes)", 0, op->type->idname, "resolution", RESOLVE_SAVE);
@@ -2548,7 +2548,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				uiPupMenuEnd(C, pup);
 			}
 			else {
-				pup= uiPupMenuBegin("File Modified Outside Blender", 0);
+				pup= uiPupMenuBegin(C, "File Modified Outside Blender", 0);
 				layout= uiPupMenuLayout(pup);
 				uiItemEnumO(layout, "Reload from disk", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
 				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
@@ -2557,7 +2557,7 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			break;
 		case 2:
-			pup= uiPupMenuBegin("File Deleted Outside Blender", 0);
+			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", 0);
 			layout= uiPupMenuLayout(pup);
 			uiItemEnumO(layout, "Make text internal", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
 			uiItemEnumO(layout, "Recreate file", 0, op->type->idname, "resolution", RESOLVE_SAVE);

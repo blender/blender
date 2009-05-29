@@ -35,6 +35,7 @@ struct bAnimListElem;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;
+struct ARegionType;
 struct View2DGrid;
 
 /* internal exports only */
@@ -137,7 +138,7 @@ void GRAPHEDIT_OT_ghost_curves_clear(struct wmOperatorType *ot);
 /* ***************************************** */
 /* graph_buttons.c */
 void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
-void graph_region_buttons(const struct bContext *C, struct ARegion *ar);
+void graph_buttons_register(struct ARegionType *art);
 
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 

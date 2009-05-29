@@ -29,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -68,6 +69,7 @@ bAction *verify_adt_action (ID *id, short add)
 		adt= BKE_id_add_animdata(id);
 	if (adt == NULL) { 
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+		printf("ERROR: Couldn't add AnimData (ID = %s) \n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
 		
@@ -726,8 +728,23 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		float curval= 0.0f;
 		
 		/* set additional flags for the F-Curve (i.e. only integer values) */
-		if (RNA_property_type(prop) != PROP_FLOAT)
-			fcu->flag |= FCURVE_INT_VALUES;
+		fcu->flag &= ~(FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);
+		switch (RNA_property_type(prop)) {
+			case PROP_FLOAT:
+				/* do nothing */
+				break;
+			case PROP_INT:
+				/* do integer (only 'whole' numbers) interpolation between all points */
+				fcu->flag |= FCURVE_INT_VALUES;
+				break;
+			default:
+				/* do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
+				 * values at all) interpolation between all points
+				 *	- however, we must also ensure that evaluated values are only integers still
+				 */
+				fcu->flag |= (FCURVE_DISCRETE_VALUES|FCURVE_INT_VALUES);
+				break;
+		}
 		
 		/* apply special time tweaking */
 			// XXX check on this stuff...
@@ -792,6 +809,9 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			return 1;
 		}
 	}
+	
+	/* no F-Curve to add keyframes to */
+	printf("ERROR: no F-Curve to add keyframes to \n");
 	
 	/* return failure */
 	return 0;
@@ -993,7 +1013,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	uiLayout *layout;
 	int i = 0;
 	
-	pup= uiPupMenuBegin("Insert Keyframe", 0);
+	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
 	layout= uiPupMenuLayout(pup);
 	
 	/* active Keying Set */
@@ -1203,11 +1223,11 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
-	if(ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+	if ((ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
-		if(path) {
-			if(all) {
+		if (path) {
+			if (all) {
 				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
@@ -1216,14 +1236,23 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			else
 				length= 1;
 			
-			for(a=0; a<length; a++)
+			for (a=0; a<length; a++)
 				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}
+		else {
+			if (G.f & G_DEBUG)
+				printf("Button Insert-Key: no path to property \n");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead.");
+		}
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
+		printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
 	}
 	
-	if(success) {
+	if (success) {
 		/* send updates */
 		ED_anim_dag_flush_update(C);	
 		
@@ -1267,11 +1296,11 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
-	if(ptr.data && prop) {
+	if (ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
-		if(path) {
-			if(all) {
+		if (path) {
+			if (all) {
 				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
@@ -1280,11 +1309,16 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			else
 				length= 1;
 			
-			for(a=0; a<length; a++)
+			for (a=0; a<length; a++)
 				success+= delete_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}
+		else if (G.f & G_DEBUG)
+			printf("Button Delete-Key: no path to property \n");
+	}
+	else if (G.f & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p \n", ptr.data, prop);
 	}
 	
 	

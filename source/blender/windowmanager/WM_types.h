@@ -169,7 +169,7 @@ typedef struct wmNotifier {
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
 #define ND_SCREENCAST		(2<<16)
-
+#define ND_ANIMPLAY			(3<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -196,6 +196,7 @@ typedef struct wmNotifier {
 #define ND_MODIFIER			(23<<16)
 #define ND_KEYS				(24<<16)
 #define ND_GEOM_DATA		(25<<16)
+#define ND_CONSTRAINT		(26<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
@@ -276,7 +277,8 @@ typedef struct wmTabletData {
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
 	double timestep;		/* set by timer user */
-	int event_type;			/* set by timer user */
+	int event_type;			/* set by timer user, goes to event system */
+	void *customdata;		/* set by timer user, to allow custom values */
 	
 	double duration;		/* total running time in seconds */
 	double delta;			/* time since previous step in seconds */

@@ -502,10 +502,10 @@ void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 		return;
 
 	for(but=block->buttons.first; but; but=but->next) {
-		if(but->opname) {
+		if(but->optype) {
 			prop= (but->opptr)? but->opptr->data: NULL;
 
-			if(WM_key_event_operator_string(C, but->opname, but->opcontext, prop, buf, sizeof(buf))) {
+			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
 				butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
 				strcpy(butstr, but->str);
 				strcat(butstr, "|");
@@ -535,8 +535,8 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 			ui_check_but(but);
 		
 		/* temp? Proper check for greying out */
-		if(but->opname) {
-			wmOperatorType *ot= WM_operatortype_find(but->opname);
+		if(but->optype) {
+			wmOperatorType *ot= but->optype;
 			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
@@ -559,6 +559,8 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	}
 
 	/* handle pending stuff */
+	if(block->layouts.first) uiBlockLayoutResolve(C, block, NULL, NULL);
+	ui_block_do_align(block);
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
 	/* after keymaps! */
@@ -598,7 +600,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	
 	getsizex= ar->winx;
 	getsizey= ar->winy;
-	
+
 	gx= (but?but->x1:block->minx) + (block->panel?block->panel->ofsx:0.0f);
 	gy= (but?but->y1:block->miny) + (block->panel?block->panel->ofsy:0.0f);
 	
@@ -610,6 +612,7 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	
 	rect->xmax= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
 	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+
 }
 
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
@@ -676,7 +679,7 @@ static void ui_is_but_sel(uiBut *but)
 
 	value= ui_get_but_val(but);
 
-	if( but->type==TOGN  || but->type==ICONTOGN) true= 0;
+	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) true= 0;
 
 	if( but->bit ) {
 		lvalue= (int)value;
@@ -697,10 +700,12 @@ static void ui_is_but_sel(uiBut *but)
 		case TOG3:
 		case BUT_TOGDUAL:
 		case ICONTOG:
+		case OPTION:
 			if(value!=but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
+		case OPTIONN:
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
@@ -1506,7 +1511,12 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				 * custom collection too for bones, vertex groups, .. */
 				ui_rna_ID_collection(C, but, &ptr, &prop);
 
-				if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
+				if(str == NULL || str[0] == '\0') {
+					memset(&rptr, 0, sizeof(rptr));
+					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+					return 11;
+				}
+				else if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
 					return 1;
 				}
@@ -1682,6 +1692,8 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
+	CTX_store_free_list(&block->contexts);
+
 	BLI_freelistN(&block->saferct);
 	
 	MEM_freeN(block);
@@ -1716,21 +1728,18 @@ void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
 	}
 }
 
-uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, short dt)
+void uiBlockSetRegion(uiBlock *block, ARegion *region)
 {
 	ListBase *lb;
-	uiBlock *block, *oldblock= NULL;
-	wmWindow *window;
-	int getsizex, getsizey;
+	uiBlock *oldblock= NULL;
 
-	window= CTX_wm_window(C);
 	lb= &region->uiblocks;
 	
 	/* each listbase only has one block with this name, free block
 	 * if is already there so it can be rebuilt from scratch */
 	if(lb) {
 		for (oldblock= lb->first; oldblock; oldblock= oldblock->next)
-			if (BLI_streq(oldblock->name, name))
+			if (BLI_streq(oldblock->name, block->name))
 				break;
 
 		if (oldblock) {
@@ -1738,20 +1747,32 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 			oldblock->panel= NULL;
 		}
 	}
-	
-	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
+
 	block->oldblock= oldblock;
-	block->active= 1;
-	block->dt= dt;
 
 	/* at the beginning of the list! for dynamical menus/blocks */
 	if(lb)
 		BLI_addhead(lb, block);
+}
 
+uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, short dt)
+{
+	uiBlock *block;
+	wmWindow *window;
+	int getsizex, getsizey;
+
+	window= CTX_wm_window(C);
+
+	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
+	block->active= 1;
+	block->dt= dt;
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
+	if(region)
+		uiBlockSetRegion(block, region);
+
 	/* window matrix and aspect */
-	if(region->swinid) {
+	if(region && region->swinid) {
 		wm_subwindow_getmatrix(window, region->swinid, block->winmat);
 		wm_subwindow_getsize(window, region->swinid, &getsizex, &getsizey);
 
@@ -1952,7 +1973,9 @@ void uiBlockBeginAlign(uiBlock *block)
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
 
 	block->flag |= UI_BUT_ALIGN_DOWN;	
-	/* buttons declared after this call will this align flag */
+	block->alignnr++;
+
+	/* buttons declared after this call will get this align nr */ // XXX flag?
 }
 
 static int buts_are_horiz(uiBut *but1, uiBut *but2)
@@ -1968,36 +1991,38 @@ static int buts_are_horiz(uiBut *but1, uiBut *but2)
 
 void uiBlockEndAlign(uiBlock *block)
 {
+	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
+}
+
+int ui_but_can_align(uiBut *but)
+{
+	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
+}
+
+static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
+{
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
 	
-	/* auto align:
-		- go back to first button of align start (ALIGN_DOWN)
-		- compare triples, and define flags
-	*/
-	prev= block->buttons.last;
-	while(prev) {
-		if( (prev->flag & UI_BUT_ALIGN_DOWN)) but= prev;
-		else break;
-		
-		if(but && but->next) {
+	/* auto align */
+
+	for(but=first; but && but->alignnr == nr; but=but->next) {
+		if(but->next && but->next->alignnr == nr) {
 			if(buts_are_horiz(but, but->next)) cols++;
 			else rows++;
 		}
-		
-		prev= prev->prev;
 	}
-	if(but==NULL) return;
-	
+
 	/* rows==0: 1 row, cols==0: 1 collumn */
 	
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
-	prev= NULL;
-	while(but) {
+	for(but=first, prev=NULL; but && but->alignnr == nr; prev=but, but=but->next) {
 		next= but->next;
-		
+		if(next && next->alignnr != nr)
+			next= NULL;
+
 		/* clear old flag */
-		but->flag &= ~UI_BUT_ALIGN_DOWN;
+		but->flag &= ~UI_BUT_ALIGN;
 		
 		if(flag==0) {	/* first case */
 			if(next) {
@@ -2026,15 +2051,16 @@ void uiBlockEndAlign(uiBlock *block)
 		else if(buts_are_horiz(but, next)) {
 			/* check if this is already second row */
 			if( prev && buts_are_horiz(prev, but)==0) {
+				flag &= ~UI_BUT_ALIGN_LEFT;
 				flag |= UI_BUT_ALIGN_TOP;
 				/* exception case: bottom row */
 				if(rows>0) {
 					uiBut *bt= but;
-					while(bt) {
-						if(bt->next && buts_are_horiz(bt, bt->next)==0 ) break; 
+					while(bt && bt->alignnr == nr) {
+						if(bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next)==0 ) break; 
 						bt= bt->next;
 					}
-					if(bt==0) flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT;
+					if(bt==0 || bt->alignnr != nr) flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT;
 				}
 			}
 			else flag |= UI_BUT_ALIGN_LEFT;
@@ -2044,6 +2070,10 @@ void uiBlockEndAlign(uiBlock *block)
 				flag |= UI_BUT_ALIGN_TOP;
 			}
 			else {	/* next button switches to new row */
+				
+				if(prev && buts_are_horiz(prev, but))
+				   flag |= UI_BUT_ALIGN_LEFT;
+				
 				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
 					if(prev)
 						flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
@@ -2086,35 +2116,30 @@ void uiBlockEndAlign(uiBlock *block)
 				}
 			}
 		}
-		
-		prev= but;
-		but= next;
 	}
-	
-	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
 
-#if 0
-static void uiBlockEndAligno(uiBlock *block)
+void ui_block_do_align(uiBlock *block)
 {
 	uiBut *but;
-	
-	/* correct last defined button */
-	but= block->buttons.last;
-	if(but) {
-		/* vertical align case */
-		if( (block->flag & UI_BUT_ALIGN) == (UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_DOWN) ) {
-			but->flag &= ~UI_BUT_ALIGN_DOWN;
+	int nr;
+
+	/* align buttons with same align nr */
+	for(but=block->buttons.first; but;) {
+		if(but->alignnr) {
+			nr= but->alignnr;
+			ui_block_do_align_but(block, but, nr);
+
+			/* skip with same number */
+			for(; but && but->alignnr == nr; but=but->next);
+
+			if(!but)
+				break;
 		}
-		/* horizontal align case */
-		if( (block->flag & UI_BUT_ALIGN) == (UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT) ) {
-			but->flag &= ~UI_BUT_ALIGN_RIGHT;
-		}
-		/* else do nothing, manually provided flags */
+		else
+			but= but->next;
 	}
-	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
-#endif
 
 /*
 ui_def_but is the function that draws many button types
@@ -2171,6 +2196,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->aspect= 1.0f; //XXX block->aspect;
 	but->block= block;		// pointer back, used for frontbuffer status, and picker
 
+	if((block->flag & UI_BUT_ALIGN) && ui_but_can_align(but))
+		but->alignnr= block->alignnr;
+
 	but->func= block->func;
 	but->func_arg1= block->func_arg1;
 	but->func_arg2= block->func_arg2;
@@ -2202,8 +2230,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
-	if(block->flag & UI_BLOCK_NO_HILITE)
-		but->flag |= UI_NO_HILITE;
 
 	if (but->lock) {
 		if (but->lockstr) {
@@ -2211,12 +2237,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if(but->type == ROUNDBOX) {
-		but->flag |= UI_NO_HILITE;
-		BLI_addhead(&block->buttons, but);
-	}
-	else
-		BLI_addtail(&block->buttons, but);
+	BLI_addtail(&block->buttons, but);
+	
+	if(block->curlayout)
+		ui_layout_add_but(block->curlayout, but);
 
 	return but;
 }
@@ -2374,7 +2398,7 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);
-	but->opname= opname;
+	but->optype= ot;
 	but->opcontext= opcontext;
 
 	if(!ot) {
@@ -2894,9 +2918,9 @@ int uiButGetRetVal(uiBut *but)
 
 PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 {
-	if(but->opname && !but->opptr) {
+	if(but->optype && !but->opptr) {
 		but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
-		WM_operator_properties_create(but->opptr, but->opname);
+		WM_operator_properties_create(but->opptr, but->optype->idname);
 	}
 
 	return but->opptr;
@@ -2977,7 +3001,7 @@ uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char 
 
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
-	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	but->menu_create_func= func;
 	ui_check_but(but);
 	return but;
@@ -2985,7 +3009,7 @@ uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str,
 
 uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
-	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 
 	but->icon= (BIFIconID) icon;
 	but->flag|= UI_HAS_ICON;

@@ -26,11 +26,11 @@ run this script from blenders root path once you have compiled blender
 This will generate rna.py and bpyoperator.py in "./source/blender/python/doc/"
 Generate html docs  by running...
 
-	epydoc source/blender/python/doc/*.py -v \
-			-o source/blender/python/doc/html \
-			--inheritance=included \
-			--no-sourcecode \
-			--graph=classtree \
+	epydoc source/blender/python/doc/*.py -v \\
+			-o source/blender/python/doc/html \\
+			--inheritance=included \\
+			--no-sourcecode \\
+			--graph=classtree \\
 			--graph-font-size=8
 
 '''
@@ -523,7 +523,7 @@ def op2epy(target_path):
 
 if __name__ == '__main__':
 	if 'bpy' not in dir():
-		print("\nError, this script must run from inside blender.")
+		print("\nError, this script must run from inside blender2.5")
 		print(script_help_msg)
 		
 	else:

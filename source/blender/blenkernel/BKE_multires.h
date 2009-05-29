@@ -60,12 +60,12 @@ void multires_force_update(struct Object *ob);
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, struct DerivedMesh*,
 						    struct Mesh *, int, int);
 
+struct MultiresModifierData *find_multires_modifier(struct Object *ob);
 int multiresModifier_switch_level(struct Object *, const int);
 void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int distance,
 				int updateblock, int simple);
-void multiresModifier_setLevel(void *mmd_v, void *ob_v);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
 
 /* Related to the old multires */

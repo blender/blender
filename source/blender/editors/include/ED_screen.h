@@ -53,6 +53,10 @@ void	ED_region_pixelspace(struct ARegion *ar);
 void	ED_region_init(struct bContext *C, struct ARegion *ar);
 void	ED_region_tag_redraw(struct ARegion *ar);
 void	ED_region_tag_redraw_partial(struct ARegion *ar, struct rcti *rct);
+void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
+void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context);
+void	ED_region_header_init(struct ARegion *ar);
+void	ED_region_header(const struct bContext *C, struct ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);
@@ -85,7 +89,7 @@ void	ED_screen_set(struct bContext *C, struct bScreen *sc);
 void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
-void	ED_screen_animation_timer(struct bContext *C, int enable);
+void	ED_screen_animation_timer(struct bContext *C, int redraws, int enable);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C);
 

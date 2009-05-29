@@ -160,7 +160,7 @@ static AdrBit2Path ma_mode_bits[]= {
 // 	...
 	{MA_RAYTRANSP, "raytrace_transparency.enabled", 0},
 	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
-	{MA_HALO, "halo.enabled", 0}
+//	{MA_HALO, "type", MA_TYPE_HALO}
 };
 
 /* ----------------- */
@@ -1169,7 +1169,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
 		/* add the 'only int values' flag */
-		fcu->flag |= FCURVE_INT_VALUES;		
+		fcu->flag |= (FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);		
 		
 		/* for each bit we have to remap + check for:
 		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),

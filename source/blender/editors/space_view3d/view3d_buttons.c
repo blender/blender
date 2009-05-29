@@ -947,7 +947,7 @@ void selectTransformOrientation_func(bContext *C, void *target, void *unused)
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
 
-static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short cntrl)
+static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -956,13 +956,10 @@ static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short 
 	TransformOrientation *ts = transform_spaces->first;
 	uiBlock *block;
 	uiBut *but;
-	int xco = 20, yco = 70, height = 140;
+	int xco = 20, yco = 70;
 	int index;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_transform", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Transform Orientations", "View3d", 1000, 0, 318, height)==0) return;
-
-	uiNewPanelHeight(block, height);
+	block= uiLayoutFreeBlock(pa->layout);
 
 	uiBlockBeginAlign(block);
 	
@@ -999,9 +996,6 @@ static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short 
 		yco -= 25;
 	}
 	uiBlockEndAlign(block);
-	
-	if(yco < 0) uiNewPanelHeight(block, height-yco);
-	uiEndBlock(C, block);
 }
 
 static void weight_paint_buttons(Scene *scene, uiBlock *block)
@@ -1103,19 +1097,23 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 	}
 }
 
-static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
+static int view3d_panel_brush_poll(const bContext *C, PanelType *pt)
+{
+	Brush **brp = current_brush_source(CTX_data_scene(C));
+
+	return ((G.f & (G_SCULPTMODE|G_TEXTUREPAINT|G_VERTEXPAINT|G_WEIGHTPAINT)) && brp);
+}
+
+static void view3d_panel_brush(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
 	short w = 268, h = 400, cx = 10, cy = h;
 	rctf rect;
 
-	if(!brp)
-		return;
 	br = *brp;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_brush", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Brush", "View3d", 340, 10, 318, h)==0) return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	uiBlockBeginAlign(block);
@@ -1151,8 +1149,8 @@ static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
 	uiBlockBeginAlign(block);
 
 	uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx,cy,w/3,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
-	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
-	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
 	cy-= 20;
 	uiDefButBitS(block, TOG, BRUSH_SPACE, B_NOP, "Space", cx,cy,w/3,19, &br->flag,0,0,0,0, "");
 	uiDefButF(block,NUMSLI,B_NOP,"Spacing: ",cx+w/3,cy,w*2.0/3,19,&br->spacing,1.0,500,0,0,"");
@@ -1164,8 +1162,6 @@ static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
 	uiBlockBeginAlign(block);
 	curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
 	uiBlockEndAlign(block);
-	
-	uiEndBlock(C, block);
 }
 
 static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
@@ -1203,12 +1199,12 @@ static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsign
 }
 
 
-static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_OBJECT
+static void view3d_panel_object(const bContext *C, Panel *pa)
 {
+	uiBlock *block;
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	uiBlock *block;
 	uiBut *bt;
 	Object *ob= OBACT;
 	TransformProperties *tfp;
@@ -1222,19 +1218,8 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	tfp= v3d->properties_storage;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_object", UI_EMBOSS);
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-	
-	if((G.f & G_SCULPTMODE) && !obedit) {
-		if(!uiNewPanel(C, ar, block, "Transform Properties", "View3d", 10, 230, 318, 234))
-			return;
-	} else if(G.f & G_PARTICLEEDIT && !obedit){
-		if(!uiNewPanel(C, ar, block, "Transform Properties", "View3d", 10, 230, 318, 234))
-			return;
-	} else {
-		if(!uiNewPanel(C, ar, block, "Transform Properties", "View3d", 10, 230, 318, 204))
-			return;
-	}
 
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
@@ -1269,24 +1254,24 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 		v3d_posearmature_buts(block, v3d, ob, lim);
 	}
 	else if(G.f & G_WEIGHTPAINT) {
-		uiNewPanelTitle(block, "Weight Paint Properties");
+		BLI_strncpy(pa->drawname, "Weight Paint Properties", sizeof(pa->drawname));
 		weight_paint_buttons(scene, block);
 	}
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		static float hsv[3], old[3];	// used as temp mem for picker
 		Brush **br = current_brush_source(scene);
 
-		uiNewPanelTitle(block, "Paint Properties");
+		BLI_strncpy(pa->drawname, "Paint Properties", sizeof(pa->drawname));
 		if(br && *br)
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
 	}
 	else if(G.f & G_SCULPTMODE) {
-		uiNewPanelTitle(block, "Sculpt Properties");
+		BLI_strncpy(pa->drawname, "Sculpt Properties", sizeof(pa->drawname));
 		sculptmode_draw_interface_tools(scene, block, 10, 150);
 	} 
 	else if(G.f & G_PARTICLEEDIT){
-		uiNewPanelTitle(block, "Particle Edit Properties");
+		BLI_strncpy(pa->drawname, "Particle Edit Properties", sizeof(pa->drawname));
 // XXX		particle_edit_buttons(block);
 	} 
 	else {
@@ -1364,17 +1349,14 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 			uiBlockEndAlign(block);
 		}
 	}
-// XXX	uiClearButLock();
-	uiEndBlock(C, block);
 }
 
-static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_BACKGROUND
+static void view3d_panel_background(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_background", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	if(v3d->flag & V3D_DISPBGPIC) {
@@ -1403,11 +1385,10 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 		ED_image_uiblock_panel(C, block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
 		uiBlockEndAlign(block);
 	}
-	uiEndBlock(C, block);
 }
 
 
-static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_SETTINGS
+static void view3d_panel_properties(const bContext *C, Panel *pa)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *arlast;
@@ -1417,12 +1398,8 @@ static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)
 	uiBlock *block;
 	float *curs;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_properties", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "View Properties", "View3d", 340, 30, 318, 254)==0) return;
+	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-
-	/* to force height */
-	uiNewPanelHeight(block, 264);
 
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -1497,8 +1474,6 @@ static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)
 //		uiDefButBitS(block, TOGN, ANIMFILTER_NOSKEY, B_REDR, "ShapeKey",235, -42, 75, 19, &v3d->keyflags, 0, 0, 0, 0, "Show keyframes for any available Shape Keys");
 //	}
 	uiBlockEndAlign(block);	
-	
-	uiEndBlock(C, block);
 }
 
 #if 0
@@ -1527,13 +1502,13 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
-static void view3d_panel_gpencil(const bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_GREASEPENCIL
+#if 0
+static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_gpencil", UI_EMBOSS);
-	if (uiNewPanel(C, ar, block, "Grease Pencil", "View3d", 100, 30, 318, 204)==0) return;
+	block= uiLayoutFreeBlock(pa->layout);
 
 	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
 	if (v3d->flag2 & V3D_DISPGP) {
@@ -1543,25 +1518,16 @@ static void view3d_panel_gpencil(const bContext *C, ARegion *ar, short cntrl)	//
 	
 	if (v3d->flag2 & V3D_DISPGP) {
 // XXX		bGPdata *gpd= v3d->gpd;
-		short newheight;
-		
-		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
-		/* so first we make it default height */
-		uiNewPanelHeight(block, 204);
 		
 		/* draw button for showing gpencil settings and drawings */
 		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View (draw using Shift-LMB)");
-		
-		/* extend the panel if the contents won't fit */
-//		newheight= draw_gpencil_panel(block, gpd, ar); 
-		uiNewPanelHeight(block, newheight);
 	}
 	else {
 		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
 		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
-	uiEndBlock(C, block);
 }
+#endif
 
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
@@ -1578,126 +1544,123 @@ static void assign_template_sketch_armature(bContext *C, void *arg1, void *arg2)
 	int index = *(int*)arg1;
 	BIF_setTemplate(C, index);
 }
-static void view3d_panel_bonesketch_spaces(const bContext *C, ARegion *ar, short cntrl)
+
+static int view3d_panel_bonesketch_spaces_poll(const bContext *C, PanelType *pt)
 {
 	Object *obedit = CTX_data_edit_object(C);
+
+	/* replace with check call to sketching lib */
+	return (obedit && obedit->type == OB_ARMATURE);
+}
+static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
+{
 	Scene *scene = CTX_data_scene(C);
 	static int template_index;
 	static char joint_label[128];
 	uiBlock *block;
 	uiBut *but;
 	char *bone_name;
-	int yco = 130, height = 140;
+	int yco = 130;
 	int nb_joints;
+	static char subdiv_tooltip[4][64] = {
+		"Subdivide arcs based on a fixed number of bones",
+		"Subdivide arcs in bones of equal length",
+		"Subdivide arcs based on correlation",
+		"Retarget template to stroke"
+		};
 
-	/* replace with check call to sketching lib */
-	if (obedit && obedit->type == OB_ARMATURE)
+	
+	block= uiLayoutFreeBlock(pa->layout);
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
+
+	uiBlockBeginAlign(block);
+	
+	/* use real flag instead of 1 */
+	uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+	uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
+	uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+	yco -= 20;
+	
+	but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,100,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+	uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
+
+	but = uiDefBut(block, BUT, B_REDR, "Delete", 110,yco,100,20, 0, 0, 0, 0, 0, "Delete sketch");
+	uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+	yco -= 20;
+	
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	
+	uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x1|Adaptative%x2|Fixed%x0|Template%x3", 10,yco,60,19, &scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)scene->toolsettings->bone_sketching_convert]);
+
+	switch(scene->toolsettings->bone_sketching_convert)
 	{
-		static char subdiv_tooltip[4][64] = {
-			"Subdivide arcs based on a fixed number of bones",
-			"Subdivide arcs in bones of equal length",
-			"Subdivide arcs based on correlation",
-			"Retarget template to stroke"
-			};
-
-		
-		block= uiBeginBlock(C, ar, "view3d_panel_bonesketch_spaces", UI_EMBOSS);
-		if(uiNewPanel(C, ar, block, "Bone Sketching", "View3d", 340, 10, 318, height)==0) return;
-		uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-	
-		uiNewPanelHeight(block, height);
-	
-		uiBlockBeginAlign(block);
-		
-		/* use real flag instead of 1 */
-		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
-		uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
-		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+	case SK_CONVERT_CUT_LENGTH:
+		uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
 		yco -= 20;
-		
-		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,100,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
-		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
-
-		but = uiDefBut(block, BUT, B_REDR, "Delete", 110,yco,100,20, 0, 0, 0, 0, 0, "Delete sketch");
-		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+		break;
+	case SK_CONVERT_CUT_ADAPTATIVE:
+		uiDefButF(block, NUM, B_REDR, 					"Thres:",			70, yco, 140, 19, &scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
 		yco -= 20;
-		
+		break;
+	default:
+	case SK_CONVERT_CUT_FIXED:
+		uiDefButC(block, NUM, B_REDR, 					"Num:",		70, yco, 140, 19, &scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
+		yco -= 20;
+		break;
+	case SK_CONVERT_RETARGET:
+		uiDefButC(block, ROW, B_NOP, "No",			70,  yco, 40,19, &scene->toolsettings->skgen_retarget_roll, 0, 0, 0, 0,									"No special roll treatment");
+		uiDefButC(block, ROW, B_NOP, "View",		110,  yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_VIEW, 0, 0,				"Roll bones perpendicular to view");
+		uiDefButC(block, ROW, B_NOP, "Joint",		160, yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_JOINT, 0, 0,				"Roll bones relative to joint bend");
+		yco -= 30;
+
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		
-		uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x1|Adaptative%x2|Fixed%x0|Template%x3", 10,yco,60,19, &scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)scene->toolsettings->bone_sketching_convert]);
+		/* button here to select what to do (copy or not), template, ...*/
 
-		switch(scene->toolsettings->bone_sketching_convert)
+		BIF_makeListTemplates(C);
+		template_index = BIF_currentTemplate(C);
+		
+		but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(C), 10,yco,200,19, &template_index, 0, 0, 0, 0, "Template");
+		uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
+		
+		yco -= 20;
+		
+		uiDefButF(block, NUM, B_NOP, 							"A:",			10, yco, 66,19, &scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+		uiDefButF(block, NUM, B_NOP, 							"L:",			76, yco, 67,19, &scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+		uiDefButF(block, NUM, B_NOP, 							"D:",		143,yco, 67,19, &scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+		yco -= 20;
+		
+		uiDefBut(block, TEX,B_REDR,"S:",							10,  yco, 90, 20, scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
+		uiDefBut(block, TEX,B_REDR,"N:",							100, yco, 90, 20, scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
+		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_NOP, ICON_AUTO,190,yco,20,20, &scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+		yco -= 20;
+
+		/* auto renaming magic */
+		uiBlockEndAlign(block);
+		
+		nb_joints = BIF_nbJointsTemplate(C);
+
+		if (nb_joints == -1)
 		{
-		case SK_CONVERT_CUT_LENGTH:
-			uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
-			yco -= 20;
-			break;
-		case SK_CONVERT_CUT_ADAPTATIVE:
-			uiDefButF(block, NUM, B_REDR, 					"Thres:",			70, yco, 140, 19, &scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
-			yco -= 20;
-			break;
-		default:
-		case SK_CONVERT_CUT_FIXED:
-			uiDefButC(block, NUM, B_REDR, 					"Num:",		70, yco, 140, 19, &scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
-			yco -= 20;
-			break;
-		case SK_CONVERT_RETARGET:
-			uiDefButC(block, ROW, B_NOP, "No",			70,  yco, 40,19, &scene->toolsettings->skgen_retarget_roll, 0, 0, 0, 0,									"No special roll treatment");
-			uiDefButC(block, ROW, B_NOP, "View",		110,  yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_VIEW, 0, 0,				"Roll bones perpendicular to view");
-			uiDefButC(block, ROW, B_NOP, "Joint",		160, yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_JOINT, 0, 0,				"Roll bones relative to joint bend");
-			yco -= 30;
-
-			uiBlockEndAlign(block);
-
-			uiBlockBeginAlign(block);
-			/* button here to select what to do (copy or not), template, ...*/
-
-			BIF_makeListTemplates(C);
-			template_index = BIF_currentTemplate(C);
-			
-			but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(C), 10,yco,200,19, &template_index, 0, 0, 0, 0, "Template");
-			uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
-			
-			yco -= 20;
-			
-			uiDefButF(block, NUM, B_NOP, 							"A:",			10, yco, 66,19, &scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
-			uiDefButF(block, NUM, B_NOP, 							"L:",			76, yco, 67,19, &scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
-			uiDefButF(block, NUM, B_NOP, 							"D:",		143,yco, 67,19, &scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
-			yco -= 20;
-			
-			uiDefBut(block, TEX,B_REDR,"S:",							10,  yco, 90, 20, scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
-			uiDefBut(block, TEX,B_REDR,"N:",							100, yco, 90, 20, scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
-			uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_NOP, ICON_AUTO,190,yco,20,20, &scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
-			yco -= 20;
-	
-			/* auto renaming magic */
-			uiBlockEndAlign(block);
-			
-			nb_joints = BIF_nbJointsTemplate(C);
-	
-			if (nb_joints == -1)
-			{
-				//XXX
-				//nb_joints = G.totvertsel;
-			}
-			
-			bone_name = BIF_nameBoneTemplate(C);
-			
-			BLI_snprintf(joint_label, 32, "%i joints: %s", nb_joints, bone_name);
-			
-			uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
-			yco -= 20;
-			break;
+			//XXX
+			//nb_joints = G.totvertsel;
 		}
-
-		uiBlockEndAlign(block);
 		
-		uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
-
-		if(yco < 0) uiNewPanelHeight(block, height-yco);
+		bone_name = BIF_nameBoneTemplate(C);
+		
+		BLI_snprintf(joint_label, 32, "%i joints: %s", nb_joints, bone_name);
+		
+		uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
+		yco -= 20;
+		break;
 	}
+
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 }
 
 
@@ -1719,16 +1682,14 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	}
 }
 
-static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cntrl)
+static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op;
 	PointerRNA ptr;
 	uiBlock *block;
-	int height = 0;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_operator_redo", UI_EMBOSS);
-	if(uiNewPanel(C, ar, block, "Last Operator", "View3d", 340, 10, 318, height)==0) return;
+	block= uiLayoutGetBlock(pa->layout);
 
 	/* only for operators that are registered and did an undo push */
 	for(op= wm->operators.last; op; op= op->prev)
@@ -1746,35 +1707,65 @@ static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cnt
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	height= uiDefAutoButsRNA(C, block, &ptr);
-	
-	uiNewPanelHeight(block, height);
-	
-	uiEndBlock(C, block);
+	uiDefAutoButsRNA(C, pa->layout, &ptr);
 }
 
-
-void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
+void view3d_buttons_register(ARegionType *art)
 {
-	uiBeginPanels(C, ar);
-	
-	view3d_panel_object(C, ar, 0);
-	view3d_panel_properties(C, ar, 0);
-	view3d_panel_background(C, ar, 0);
-	if(G.f & (G_SCULPTMODE|G_TEXTUREPAINT|G_VERTEXPAINT|G_WEIGHTPAINT))
-		view3d_panel_brush(C, ar, 0);
-	// XXX view3d_panel_preview(C, ar, 0);
-	view3d_panel_transform_spaces(C, ar, 0);
-	if(0)
-		view3d_panel_gpencil(C, ar, 0);
-	
-	view3d_panel_bonesketch_spaces(C, ar, 0);
-	
-	view3d_panel_operator_redo(C, ar, 0);
-	
-	uiEndPanels(C, ar);
-}
+	PanelType *pt;
 
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
+	strcpy(pt->idname, "VIEW3D_PT_object");
+	strcpy(pt->label, "Transform Properties");
+	pt->draw= view3d_panel_object;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");
+	strcpy(pt->idname, "VIEW3D_PT_properties");
+	strcpy(pt->label, "View Properties");
+	pt->draw= view3d_panel_properties;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel background");
+	strcpy(pt->idname, "VIEW3D_PT_background");
+	strcpy(pt->label, "Background Image");
+	pt->draw= view3d_panel_background;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel brush");
+	strcpy(pt->idname, "VIEW3D_PT_brush");
+	strcpy(pt->label, "Brush");
+	pt->draw= view3d_panel_brush;
+	pt->poll= view3d_panel_brush_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel transform spaces");
+	strcpy(pt->idname, "VIEW3D_PT_transform spaces");
+	strcpy(pt->label, "Transform Orientations");
+	pt->draw= view3d_panel_transform_spaces;
+	BLI_addtail(&art->paneltypes, pt);
+
+	/*pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
+	strcpy(pt->idname, "VIEW3D_PT_gpencil");
+	strcpy(pt->label, "Greas Pencil");
+	pt->draw= view3d_panel_gpencil;
+	BLI_addtail(&art->paneltypes, pt);*/
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel bonesketch spaces");
+	strcpy(pt->idname, "VIEW3D_PT_bonesketch_spaces");
+	strcpy(pt->label, "Bone Sketching");
+	pt->draw= view3d_panel_bonesketch_spaces;
+	pt->poll= view3d_panel_bonesketch_spaces_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel redo");
+	strcpy(pt->idname, "VIEW3D_PT_redo");
+	strcpy(pt->label, "Last Operator");
+	pt->draw= view3d_panel_operator_redo;
+	BLI_addtail(&art->paneltypes, pt);
+
+	// XXX view3d_panel_preview(C, ar, 0);
+}
 
 static int view3d_properties(bContext *C, wmOperator *op)
 {

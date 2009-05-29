@@ -57,7 +57,8 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Camera types.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	/* Number values */
 
 	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_NONE);
@@ -157,6 +158,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 }

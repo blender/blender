@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -624,6 +625,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
+	handle->region= ar;
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_block_region_draw;
@@ -631,22 +633,28 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	UI_add_region_handlers(&ar->handlers);
 
-	handle->region= ar;
-	ar->regiondata= handle;
-
 	/* create ui block */
 	if(create_func)
 		block= create_func(C, handle->region, arg);
 	else
 		block= handle_create_func(C, handle, arg);
-	block->handle= handle;
+	
+	if(block->handle) {
+		memcpy(block->handle, handle, sizeof(uiPopupBlockHandle));
+		MEM_freeN(handle);
+		handle= block->handle;
+	}
+	else
+		block->handle= handle;
+
+	ar->regiondata= handle;
 
 	if(!block->endblock)
 		uiEndBlock(C, block);
 
 	/* if this is being created from a button */
 	if(but) {
-		if(ELEM3(but->type, BLOCK, PULLDOWN, HMENU))
+		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
 		/* only used for automatic toolbox, so can set the shift flag */
@@ -1047,18 +1055,17 @@ static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
 /* callback to copy from/to palette */
 static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
+	wmWindow *win= CTX_wm_window(C);
 	uiBut *but1= (uiBut *)bt1;
 	float *col= (float *)col1;
 	float *fp, hsv[3];
 	
 	fp= (float *)but1->poin;
 	
-	/* XXX 2.50 bad access, how to solve?
-	 *
-	if( (get_qual() & LR_CTRLKEY) ) {
+	if(win->eventstate->ctrl) {
 		VECCOPY(fp, col);
 	}
-	else*/ {
+	else {
 		VECCOPY(col, fp);
 	}
 	
@@ -1198,8 +1205,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	// palette
 	
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
 	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, col);
 	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
@@ -1214,8 +1219,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	}
 	uiBlockEndAlign(block);
 	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
@@ -1267,6 +1270,90 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	return block;
 }
+
+/* ******************** Color band *************** */
+
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+	
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			/* if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0); */	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(C, coba, NULL);
+//	BIF_undo_push("Add colorband");
+	
+}
+
+static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+//	BIF_undo_push("Delete colorband");
+//	BIF_preview_changed(ID_TE);
+}
+
+void uiBlockColorbandButtons(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, 0, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit, butr->ymin+20.0f, 2.0f*unit, 20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	
+	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+			  xs + 10.0f*unit, butr->ymin+20.0f, unit*4.0f, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+	
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs, butr->ymin, butr->xmax-butr->xmin, 20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+}
+
 
 /* ******************** PUPmenu ****************** */
 
@@ -1625,28 +1712,9 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 /* prototype */
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info);
 
-#define MAX_MENU_STR	64
-
-/* type, internal */
-#define MENU_ITEM_TITLE				0
-#define MENU_ITEM_ITEM				1
-#define MENU_ITEM_SEPARATOR			2
-#define MENU_ITEM_OPNAME			10
-#define MENU_ITEM_OPNAME_BOOL		11
-#define MENU_ITEM_OPNAME_ENUM		12
-#define MENU_ITEM_OPNAME_INT		13
-#define MENU_ITEM_OPNAME_FLOAT		14
-#define MENU_ITEM_OPNAME_STRING		15
-#define MENU_ITEM_RNA_BOOL			20
-#define MENU_ITEM_RNA_ENUM			21
-#define MENU_ITEM_LEVEL				30
-#define MENU_ITEM_LEVEL_OPNAME_ENUM	31
-#define MENU_ITEM_LEVEL_RNA_ENUM	32
-
 struct uiPopupMenu {
+	uiBlock *block;
 	uiLayout *layout;
-	int icon;
-	char name[MAX_MENU_STR];
 };
 
 typedef struct uiMenuInfo {
@@ -1694,46 +1762,26 @@ typedef struct MenuItemLevel {
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
 {
 	uiBlock *block;
-	uiBut *but;
 	uiMenuInfo *info= arg_info;
 	uiPopupMenu *pup;
 	ScrArea *sa;
 	ARegion *ar;
-	static int counter= 0;
-	char str[16];
 	
 	pup= info->pup;
+	block= pup->block;
 	
 	/* block stuff first, need to know the font */
-	sprintf(str, "tb %d", counter++);
-	block= uiBeginBlock(C, handle->region, str, UI_EMBOSSP);
+	uiBlockSetRegion(block, handle->region);
 	block->direction= UI_DOWN;
 
-	/* here we go! */
-	if(pup->name[0]) {
-		char titlestr[256];
-		
-		if(pup->icon) {
-			sprintf(titlestr, " %s", pup->name);
-			uiDefIconTextBut(block, LABEL, 0, pup->icon, titlestr, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-		}
-		else {
-			but= uiDefBut(block, LABEL, 0, pup->name, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-			but->flag= UI_TEXT_LEFT;
-		}
-		
-		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-	}
-	
-	block->handle= handle;
-	uiLayoutEnd(C, block, pup->layout, NULL, NULL);
+	uiBlockLayoutResolve(C, block, NULL, NULL);
 
 	if(info->popup) {
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 		uiBlockSetDirection(block, UI_DOWN);
 
 		/* here we set an offset for the mouse position */
-		uiMenuPopupBoundsBlock(block, 1, 0, MENU_BUTTON_HEIGHT/2);
+		uiMenuPopupBoundsBlock(block, 1, 0, 1.5*MENU_BUTTON_HEIGHT);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
@@ -1769,9 +1817,12 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiMenuInfo info;
 	
 	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
-	uiLayoutContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
-	uiLayoutColumn(pup->layout);
+	pup->block= uiBeginBlock(C, NULL, "ui_popup_menu_create", UI_EMBOSSP);
+	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
+
+	/* create in advance so we can let buttons point to retval already */
+	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 
 	menu_func(C, pup->layout, arg);
 	
@@ -1792,20 +1843,35 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 /*************************** Popup Menu API **************************/
 
 /* only return handler, and set optional title */
-uiPopupMenu *uiPupMenuBegin(const char *title, int icon)
+uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 {
 	uiStyle *style= U.uistyles.first;
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "menu start");
+	uiBut *but;
 	
-	pup->icon= icon;
-	pup->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
-	uiLayoutContext(pup->layout, WM_OP_EXEC_REGION_WIN);
-	uiLayoutColumn(pup->layout);
+	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
+	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
+
+	/* create in advance so we can let buttons point to retval already */
+	pup->block->handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 	
-	/* NULL is no title */
-	if(title)
-		BLI_strncpy(pup->name, title, MAX_MENU_STR);
-	
+	/* create title button */
+	if(title && title[0]) {
+		char titlestr[256];
+		
+		if(icon) {
+			sprintf(titlestr, " %s", title);
+			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+		}
+		else {
+			but= uiDefBut(pup->block, LABEL, 0, (char*)title, 0, 0, 200, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+			but->flag= UI_TEXT_LEFT;
+		}
+		
+		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
+	}
+
 	return pup;
 }
 
@@ -1916,7 +1982,7 @@ void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 	va_list ap;
 	char titlestr[256];
 
-	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
+	sprintf(titlestr, "OK? %%i%d", ICON_QUESTION);
 
 	va_start(ap, str);
 	vconfirm_opname(C, opname, titlestr, str, ap);
@@ -2002,7 +2068,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	
 	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup= 1;
-	handle->opname= opname;
+	handle->optype= (opname)? WM_operatortype_find(opname): NULL;
 	handle->opcontext= opcontext;
 	
 	UI_add_popup_handlers(C, &window->handlers, handle);
@@ -2014,3 +2080,20 @@ void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 	uiPupBlockO(C, func, arg, NULL, 0);
 }
 
+void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int opcontext)
+{
+	wmWindow *window= CTX_wm_window(C);
+	uiPopupBlockHandle *handle;
+	
+	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, op);
+	handle->popup= 1;
+	handle->retvalue= 1;
+
+	handle->popup_arg= op;
+	handle->popup_func= operator_cb;
+	handle->cancel_func= confirm_cancel_operator;
+	handle->opcontext= opcontext;
+	
+	UI_add_popup_handlers(C, &window->handlers, handle);
+	WM_event_add_mousemove(C);
+}

@@ -419,7 +419,7 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 	return texid;
 }
 
-void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
+void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, void *rect, float scaleX, float scaleY)
 {
 	unsigned char *uc_rect= (unsigned char*) rect;
 	float *f_rect= (float *)rect;
@@ -460,13 +460,13 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 			glVertex2f(rast_x, rast_y);
 
 			glTexCoord2f((float) (subpart_w-1)/tex_w, 0);
-			glVertex2f(rast_x+subpart_w*xzoom, rast_y);
+			glVertex2f(rast_x+subpart_w*xzoom*scaleX, rast_y);
 
 			glTexCoord2f((float) (subpart_w-1)/tex_w, (float) (subpart_h-1)/tex_h);
-			glVertex2f(rast_x+subpart_w*xzoom, rast_y+subpart_h*yzoom);
+			glVertex2f(rast_x+subpart_w*xzoom*scaleX, rast_y+subpart_h*yzoom*scaleY);
 
 			glTexCoord2f(0, (float) (subpart_h-1)/tex_h);
-			glVertex2f(rast_x, rast_y+subpart_h*yzoom);
+			glVertex2f(rast_x, rast_y+subpart_h*yzoom*scaleY);
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
 		}
@@ -475,6 +475,11 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glBindTexture(GL_TEXTURE_2D, ltexid);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+}
+
+void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
+{
+	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, rect, 1.0f, 1.0f);
 }
 
 void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf)
@@ -586,8 +591,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 
 void glaDefine2DArea(rcti *screen_rect)
 {
-	int sc_w= screen_rect->xmax - screen_rect->xmin;
-	int sc_h= screen_rect->ymax - screen_rect->ymin;
+	int sc_w= screen_rect->xmax - screen_rect->xmin + 1;
+	int sc_h= screen_rect->ymax - screen_rect->ymin + 1;
 
 	glViewport(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 	glScissor(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);

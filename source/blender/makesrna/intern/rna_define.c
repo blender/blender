@@ -559,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
+		srna->py_type= NULL;
 
 		if(DefRNA.preprocess) {
 			srna->base= srnafrom;
@@ -567,7 +568,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		else
 			srna->base= srnafrom;
 	}
-
+	
 	srna->identifier= identifier;
 	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description= "";
@@ -722,6 +723,16 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	}
 
 	if(refine) srna->refine= (StructRefineFunc)refine;
+}
+
+void RNA_def_struct_idproperties_func(StructRNA *srna, const char *idproperties)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_idproperties_func: only during preprocessing.\n");
+		return;
+	}
+
+	if(idproperties) srna->idproperties= (IDPropertiesFunc)idproperties;
 }
 
 void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg)
@@ -1667,7 +1678,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	}
 }
 
-void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1682,6 +1693,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 
 			if(get) eprop->get= (PropEnumGetFunc)get;
 			if(set) eprop->set= (PropEnumSetFunc)set;
+			if(item) eprop->itemf= (PropEnumItemFunc)item;
 			break;
 		}
 		default:

@@ -164,7 +164,7 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	/* check paths of curves, then array indices... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
 		/* simple string-compare (this assumes that they have the same root...) */
-		if (strcmp(fcu->rna_path, rna_path) == 0) {
+		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
 			/* now check indicies */
 			if (fcu->array_index == array_index)
 				return fcu;
@@ -210,8 +210,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				BezTriple *bezt;
 				
 				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-					yminv= MIN2(yminv, bezt->vec[1][1]);
-					ymaxv= MAX2(ymaxv, bezt->vec[1][1]);
+					if (bezt->vec[1][1] < yminv)
+						yminv= bezt->vec[1][1];
+					if (bezt->vec[1][1] > ymaxv)
+						ymaxv= bezt->vec[1][1];
 				}
 			}
 		}
@@ -227,8 +229,10 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				FPoint *fpt;
 				
 				for (fpt=fcu->fpt, i=0; i < fcu->totvert; fpt++, i++) {
-					yminv= MIN2(yminv, fpt->vec[1]);
-					ymaxv= MAX2(ymaxv, fpt->vec[1]);
+					if (fpt->vec[1] < yminv)
+						yminv= fpt->vec[1];
+					if (fpt->vec[1] > ymaxv)
+						ymaxv= fpt->vec[1];
 				}
 			}
 		}
@@ -1044,17 +1048,22 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 	lastbezt= prevbezt + a;
 	
 	/* evaluation time at or past endpoints? */
-	if (prevbezt->vec[1][0] >= evaltime) {
+	if (prevbezt->vec[1][0] >= evaltime) 
+	{
 		/* before or on first keyframe */
-		if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (prevbezt->ipo != BEZT_IPO_CONST)) {
+		if ( (fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (prevbezt->ipo != BEZT_IPO_CONST) &&
+			!(fcu->flag & FCURVE_DISCRETE_VALUES) ) 
+		{
 			/* linear or bezier interpolation */
-			if (prevbezt->ipo==BEZT_IPO_LIN) {
+			if (prevbezt->ipo==BEZT_IPO_LIN) 
+			{
 				/* Use the next center point instead of our own handle for
 				 * linear interpolated extrapolate 
 				 */
 				if (fcu->totvert == 1) 
 					cvalue= prevbezt->vec[1][1];
-				else {
+				else 
+				{
 					bezt = prevbezt+1;
 					dx= prevbezt->vec[1][0] - evaltime;
 					fac= bezt->vec[1][0] - prevbezt->vec[1][0];
@@ -1068,7 +1077,8 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 						cvalue= prevbezt->vec[1][1];
 				}
 			} 
-			else {
+			else 
+			{
 				/* Use the first handle (earlier) of first BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime
 				 */
@@ -1084,24 +1094,30 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 					cvalue= prevbezt->vec[1][1];
 			}
 		}
-		else {
+		else 
+		{
 			/* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, 
 			 * so just extend first keyframe's value 
 			 */
 			cvalue= prevbezt->vec[1][1];
 		}
 	}
-	else if (lastbezt->vec[1][0] <= evaltime) {
+	else if (lastbezt->vec[1][0] <= evaltime) 
+	{
 		/* after or on last keyframe */
-		if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (lastbezt->ipo != BEZT_IPO_CONST)) {
+		if ( (fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (lastbezt->ipo != BEZT_IPO_CONST) &&
+			!(fcu->flag & FCURVE_DISCRETE_VALUES) ) 
+		{
 			/* linear or bezier interpolation */
-			if (lastbezt->ipo==BEZT_IPO_LIN) {
+			if (lastbezt->ipo==BEZT_IPO_LIN) 
+			{
 				/* Use the next center point instead of our own handle for
 				 * linear interpolated extrapolate 
 				 */
 				if (fcu->totvert == 1) 
 					cvalue= lastbezt->vec[1][1];
-				else {
+				else 
+				{
 					prevbezt = lastbezt - 1;
 					dx= evaltime - lastbezt->vec[1][0];
 					fac= lastbezt->vec[1][0] - prevbezt->vec[1][0];
@@ -1115,7 +1131,8 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 						cvalue= lastbezt->vec[1][1];
 				}
 			} 
-			else {
+			else 
+			{
 				/* Use the gradient of the second handle (later) of last BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime
 				 */
@@ -1131,24 +1148,30 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 					cvalue= lastbezt->vec[1][1];
 			}
 		}
-		else {
+		else 
+		{
 			/* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, 
 			 * so just extend last keyframe's value 
 			 */
 			cvalue= lastbezt->vec[1][1];
 		}
 	}
-	else {
+	else 
+	{
 		/* evaltime occurs somewhere in the middle of the curve */
-		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) {  
+		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) 
+		{  
 			/* evaltime occurs within the interval defined by these two keyframes */
-			if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
+			if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) 
+			{
 				/* value depends on interpolation mode */
-				if (prevbezt->ipo == BEZT_IPO_CONST) {
+				if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES))
+				{
 					/* constant (evaltime not relevant, so no interpolation needed) */
 					cvalue= prevbezt->vec[1][1];
 				}
-				else if (prevbezt->ipo == BEZT_IPO_LIN) {
+				else if (prevbezt->ipo == BEZT_IPO_LIN) 
+				{
 					/* linear - interpolate between values of the two keyframes */
 					fac= bezt->vec[1][0] - prevbezt->vec[1][0];
 					
@@ -1160,7 +1183,8 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 					else
 						cvalue= prevbezt->vec[1][1];
 				}
-				else {
+				else 
+				{
 					/* bezier interpolation */
 						/* v1,v2 are the first keyframe and its 2nd handle */
 					v1[0]= prevbezt->vec[1][0];

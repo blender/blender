@@ -36,6 +36,7 @@ struct FunctionRNA;
 struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
+struct IDProperty;
 
 #define RNA_MAX_ARRAY 32
 
@@ -43,6 +44,7 @@ struct bContext;
 
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
+typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int create);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
@@ -65,6 +67,7 @@ typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct PointerRNA *ptr);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
 typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
@@ -211,6 +214,7 @@ typedef struct EnumPropertyRNA {
 
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
+	PropEnumItemFunc itemf;
 
 	const EnumPropertyItem *item;
 	int totitem;
@@ -286,6 +290,9 @@ struct StructRNA {
 	/* function to register/unregister subclasses */
 	StructRegisterFunc reg; 
 	StructUnregisterFunc unreg; 
+
+	/* callback to get id properties */
+	IDPropertiesFunc idproperties;
 
 	/* functions of this struct */
 	ListBase functions; 

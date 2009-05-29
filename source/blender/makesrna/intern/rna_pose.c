@@ -41,10 +41,23 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 
 static void rna_Pose_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+}
+
+IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
+{
+	bPoseChannel *pchan= ptr->data;
+
+	if(create && !pchan->prop) {
+		IDPropertyTemplate val = {0};
+		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseChannel group");
+	}
+
+	return pchan->prop;
 }
 
 #else
@@ -66,9 +79,9 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PoseChannel", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
 	RNA_def_struct_ui_text(srna, "Pose Channel", "Channel defining pose data for a bone in a Pose.");
+	RNA_def_struct_idproperties_func(srna, "rna_PoseChannel_idproperties");
 
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "constraints", NULL);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
 

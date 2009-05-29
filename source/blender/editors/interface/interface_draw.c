@@ -819,7 +819,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glTranslatef(rect->xmin + 0.5f*(rect->xmax-rect->xmin), rect->ymin+ 0.5f*(rect->ymax-rect->ymin), 0.0f);
 	size= (rect->xmax-rect->xmin)/200.f;
 	glScalef(size, size, size);
-			 
+	
 	if(displist==0) {
 		GLUquadricObj	*qobj;
 		
@@ -838,13 +838,22 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	else glCallList(displist);
 	
 	/* restore */
-	glPopMatrix();
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diff); 
-	
 	glDisable(GL_LIGHT7);
 	
+	/* AA circle */
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH );
+	glColor3ubv(wcol->inner);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, 100.0f, 32);
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH );
+
+	/* matrix after circle */
+	glPopMatrix();
+
 	/* enable blender light */
 	for(a=0; a<8; a++) {
 		if(old[a])

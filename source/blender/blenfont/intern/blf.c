@@ -138,7 +138,7 @@ int BLF_load(char *name)
 
 	filename= blf_dir_search(name);
 	if (!filename) {
-		printf("Can't found font: %s\n", name);
+		printf("Can't find font: %s\n", name);
 		return(-1);
 	}
 

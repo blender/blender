@@ -49,17 +49,27 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
 
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "object_intern.h"
 
@@ -589,55 +599,6 @@ void ob_clear_constraints (Scene *scene)
 	BIF_undo_push("Clear Constraint(s)");
 }
 
-/* Rename the given constraint 
- *	- con already has the new name 
- */
-void rename_constraint (Object *ob, bConstraint *con, char *oldname)
-{
-	bConstraint *tcon;
-	ListBase *conlist= NULL;
-	int from_object= 0;
-	char *channame="";
-	
-	/* get context by searching for con (primitive...) */
-	for (tcon= ob->constraints.first; tcon; tcon= tcon->next) {
-		if (tcon==con)
-			break;
-	}
-	
-	if (tcon) {
-		conlist= &ob->constraints;
-		channame= "Object";
-		from_object= 1;
-	}
-	else if (ob->pose) {
-		bPoseChannel *pchan;
-		
-		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-			for (tcon= pchan->constraints.first; tcon; tcon= tcon->next) {
-				if (tcon==con)
-					break;
-			}
-			if (tcon) 
-				break;
-		}
-		
-		if (tcon) {
-			conlist= &pchan->constraints;
-			channame= pchan->name;
-		}
-	}
-	
-	if (conlist==NULL) {
-		printf("rename constraint failed\n");	/* should not happen in UI */
-		return;
-	}
-	
-	/* first make sure it's a unique name within context */
-	unique_constraint_name (con, conlist);
-}
-
-
 /* ------------- Constraint Sanity Testing ------------------- */
 
 /* checks validity of object pointers, and NULLs,
@@ -889,3 +850,237 @@ void childof_const_clearinv (void *conv, void *unused)
 	/* simply clear the matrix */
 	Mat4One(data->invmat);
 }
+
+/***************************** BUTTONS ****************************/
+
+/* Rename the given constraint, con already has the new name */
+void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
+{
+	bConstraint *tcon;
+	ListBase *conlist= NULL;
+	int from_object= 0;
+	char *channame="";
+	
+	/* get context by searching for con (primitive...) */
+	for (tcon= ob->constraints.first; tcon; tcon= tcon->next) {
+		if (tcon==con)
+			break;
+	}
+	
+	if (tcon) {
+		conlist= &ob->constraints;
+		channame= "Object";
+		from_object= 1;
+	}
+	else if (ob->pose) {
+		bPoseChannel *pchan;
+		
+		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+			for (tcon= pchan->constraints.first; tcon; tcon= tcon->next) {
+				if (tcon==con)
+					break;
+			}
+			if (tcon) 
+				break;
+		}
+		
+		if (tcon) {
+			conlist= &pchan->constraints;
+			channame= pchan->name;
+		}
+	}
+	
+	if (conlist==NULL) {
+		printf("rename constraint failed\n");	/* should not happen in UI */
+		return;
+	}
+	
+	/* first make sure it's a unique name within context */
+	unique_constraint_name (con, conlist);
+}
+
+
+
+
+void ED_object_constraint_set_active(Object *ob, bConstraint *con)
+{
+	ListBase *lb;
+	bConstraint *origcon= con;
+	
+	/* lets be nice and escape if its active already */
+	if(con && (con->flag & CONSTRAINT_ACTIVE))
+		return ;
+	
+	lb= get_active_constraints(ob);
+	if(lb == NULL)
+		return;
+	
+	for(con= lb->first; con; con= con->next) {
+		if(con==origcon) con->flag |= CONSTRAINT_ACTIVE;
+		else con->flag &= ~CONSTRAINT_ACTIVE;
+	}
+
+	/* make sure ipowin and buttons shows it */
+	if(ob->ipowin==ID_CO) {
+		// XXX allqueue(REDRAWIPO, ID_CO);
+		// XXX allspace(REMAKEIPO, 0);
+		// XXX allqueue(REDRAWNLA, 0);
+	}
+	// XXX allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+int ED_object_constraint_delete(ReportList *reports, Object *ob, bConstraint *con)
+{
+	bConstraintChannel *chan;
+	ListBase *lb;
+	
+	/* remove ipo channel */
+	lb= NULL; // XXX get_active_constraint_channels(ob, 0);
+	if(lb) {
+		chan = NULL; // XXX get_constraint_channel(lb, con->name);
+		if(chan) {
+			if(chan->ipo) chan->ipo->id.us--;
+			BLI_freelinkN(lb, chan);
+		}
+	}
+
+	/* remove constraint itself */
+	lb= get_active_constraints(ob);
+	free_constraint_data(con);
+	BLI_freelinkN(lb, con);
+	
+	ED_object_constraint_set_active(ob, NULL);
+
+	return 1;
+}
+
+int ED_object_constraint_move_down(ReportList *reports, Object *ob, bConstraint *constr)
+{
+	bConstraint *con;
+	ListBase *conlist;
+	
+	if(constr->next) {
+		conlist = get_active_constraints(ob);
+		for(con= conlist->first; con; con= con->next) {
+			if(con==constr) {
+				BLI_remlink(conlist, con);
+				BLI_insertlink(conlist, con->next, con);
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+int ED_object_constraint_move_up(ReportList *reports, Object *ob, bConstraint *constr)
+{
+	bConstraint *con;
+	ListBase *conlist;
+	
+	if(constr->prev) {
+		conlist = get_active_constraints(ob);
+		for(con= conlist->first; con; con= con->next) {
+			if(con==constr) {
+				BLI_remlink(conlist, con);
+				BLI_insertlink(conlist, con->prev->prev, con);
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/***************************** OPERATORS ****************************/
+
+/************************ add constraint operator *********************/
+
+static int constraint_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+    Object *ob = CTX_data_active_object(C);
+	bConstraint *con;
+	ListBase *list= get_active_constraints(ob);
+	bPoseChannel *pchan= get_active_posechannel(ob);
+	int type= RNA_enum_get(op->ptr, "type");
+
+	con = add_new_constraint(type);
+
+	if(list) {
+		unique_constraint_name(con, list);
+		BLI_addtail(list, con);
+		
+		if(proxylocked_constraints_owner(ob, pchan))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
+		
+		con->flag |= CONSTRAINT_ACTIVE;
+		for(con= con->prev; con; con= con->prev)
+			con->flag &= ~CONSTRAINT_ACTIVE;
+	}
+	
+	switch(type) {
+		case CONSTRAINT_TYPE_CHILDOF:
+			{
+				/* if this constraint is being added to a posechannel, make sure
+				 * the constraint gets evaluated in pose-space */
+				if(ob->flag & OB_POSEMODE) {
+					con->ownspace = CONSTRAINT_SPACE_POSE;
+					con->flag |= CONSTRAINT_SPACEONCE;
+				}
+			}
+			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			{
+				bRigidBodyJointConstraint *data;
+
+				/* set selected first object as target - moved from new_constraint_data */
+				data = (bRigidBodyJointConstraint*)con->data;
+
+				CTX_DATA_BEGIN(C, Object*, selob, selected_objects) {
+					if(selob != ob) {
+						data->tar= selob;
+						break;
+					}
+				}
+				CTX_DATA_END;
+			}
+			break;
+		default:
+			break;
+	}
+
+	object_test_constraints(ob);
+	
+	if(ob->pose)
+		update_pose_constraint_flags(ob->pose);
+	
+	if(ob->type==OB_ARMATURE)
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
+	else
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_constraint_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Constraint";
+	ot->description = "Add a constraint to the active object.";
+	ot->idname= "OBJECT_OT_constraint_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= constraint_add_exec;
+	
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+}
+

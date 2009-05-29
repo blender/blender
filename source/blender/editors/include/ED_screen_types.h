@@ -29,29 +29,29 @@
 #ifndef ED_SCREEN_TYPES_H__
 #define ED_SCREEN_TYPES_H__
 
+/* for animplayer */
+typedef struct ScreenAnimData {
+	ARegion *ar;	/* do not read from this, only for comparing if region exists */
+	int redraws;
+} ScreenAnimData;
+
+
 typedef struct AZone {
 	struct AZone *next, *prev;
+	ARegion *ar;
 	int type;
-	short flag;
+	/* region-azone, which of the edges */
+	short edge;
+	/* internal */
 	short do_draw;
-	int pos;
-	short x1, y1, x2, y2;
+	/* for draw */
+	short x1, y1, x2, y2, x3, y3;
+	/* for clip */
+	rcti rect;	
 } AZone;
 
 /* actionzone type */
-#define	AZONE_TRI			1
-#define AZONE_QUAD			2
-
-/* actionzone flag */
-
-/* actionzone pos */
-#define AZONE_S				1
-#define AZONE_SW			2
-#define AZONE_W				3
-#define AZONE_NW			4
-#define AZONE_N				5
-#define AZONE_NE			6
-#define AZONE_E				7
-#define AZONE_SE			8
+#define	AZONE_AREA			1
+#define AZONE_REGION		2
 
 #endif /* ED_SCREEN_TYPES_H__ */

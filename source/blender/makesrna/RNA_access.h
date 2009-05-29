@@ -246,6 +246,7 @@ extern StructRNA RNA_Space;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceTextEditor;
+extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_SpotLamp;
 extern StructRNA RNA_StringProperty;
@@ -340,6 +341,8 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
+struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 
@@ -427,7 +430,9 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
+void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
 
 /* Path

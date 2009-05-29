@@ -72,8 +72,9 @@ static int error() {return 0;}
 
 /* ************************ header area region *********************** */
 
-#define B_STOPRENDER 1
-#define B_STOPCAST 2
+#define B_STOPRENDER	1
+#define B_STOPCAST		2
+#define B_STOPANIM		3
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
@@ -261,18 +262,18 @@ uiBlock *info_externalfiles(bContext *C, ARegion *ar, void *arg_unused)
 static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_read_homefile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_open_mainfile"); 
 //	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
 //	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiItemS(layout);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_mainfile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
 
 #if 0
@@ -327,6 +328,9 @@ static void do_info_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_STOPCAST:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+			break;
+		case B_STOPANIM:
+			ED_screen_animation_timer(C, 0, 0);
 			break;
 	}
 }
@@ -442,6 +446,10 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	}
 	if(WM_jobs_test(CTX_wm_manager(C), CTX_wm_screen(C))) {
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		xco+= 90;
+	}
+	if(screen->animtimer) {
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 		xco+= 90;
 	}
 	

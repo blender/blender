@@ -704,7 +704,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 			for(sample=0; sample<totsample; sample++) {
 				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
 				float *rgbrect = rlpp[sample]->rectf + 4*od;
-				float rgb[3];
+				float rgb[3] = {0};
 				int done= 0;
 				
 				for(go=R.lights.first; go; go= go->next) {

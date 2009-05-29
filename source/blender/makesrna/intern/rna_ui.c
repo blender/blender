@@ -30,6 +30,8 @@
 #include "rna_internal.h"
 #include "RNA_enum_types.h"
 
+#include "UI_interface.h"
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -43,8 +45,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-
-#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -111,6 +111,22 @@ static void panel_draw(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(list);
 }
 
+static void panel_draw_header(const bContext *C, Panel *pnl)
+{
+	PointerRNA ptr;
+	ParameterList *list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
+	func= RNA_struct_find_function(&ptr, "draw_header");
+
+	list= RNA_parameter_list_create(&ptr, func);
+	RNA_parameter_set_lookup(list, "context", &C);
+	pnl->type->py_call(&ptr, func, list);
+
+	RNA_parameter_list_free(list);
+}
+
 static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 {
 	ARegionType *art;
@@ -135,7 +151,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	PanelType *pt, dummypt = {0};
 	Panel dummypanel= {0};
 	PointerRNA dummyptr;
-	int have_function[2];
+	int have_function[3];
 
 	/* setup dummy panel & panel type to store static properties in */
 	dummypanel.type= &dummypt;
@@ -169,6 +185,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 
 	pt->poll= (have_function[0])? panel_poll: NULL;
 	pt->draw= (have_function[1])? panel_draw: NULL;
+	pt->draw_header= (have_function[2])? panel_draw_header: NULL;
 
 	BLI_addtail(&art->paneltypes, pt);
 
@@ -391,15 +408,101 @@ static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
 	return (hdr->type)? hdr->type->py_srna: &RNA_Menu;
 }
 
+static int rna_UILayout_active_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetActive(ptr->data);
+}
+
+static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetActive(ptr->data, value);
+}
+
+static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetEnabled(ptr->data);
+}
+
+static void rna_UILayout_enabled_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetEnabled(ptr->data, value);
+}
+
+static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetRedAlert(ptr->data);
+}
+
+static void rna_UILayout_red_alert_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetRedAlert(ptr->data, value);
+}
+
+static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetKeepAspect(ptr->data);
+}
+
+static void rna_UILayout_keep_aspect_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetKeepAspect(ptr->data, value);
+}
+
+static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetAlignment(ptr->data);
+}
+
+static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetAlignment(ptr->data, value);
+}
+
+static float rna_UILayout_scale_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetScale(ptr->data);
+}
+
+static void rna_UILayout_scale_set(struct PointerRNA *ptr, float value)
+{
+	return uiLayoutSetScale(ptr->data, value);
+}
+
 #else
 
 static void rna_def_ui_layout(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem alignment_items[] = {
+		{UI_LAYOUT_ALIGN_LEFT, "LEFT", "Left", ""},
+		{UI_LAYOUT_ALIGN_CENTER, "CENTER", "Center", ""},
+		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", "RIght", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
 	RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header.");
+
+	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
+
+	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
+
+	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
+
+	prop= RNA_def_property(srna, "alignment", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, alignment_items);
+	RNA_def_property_enum_funcs(prop, "rna_UILayout_alignment_get", "rna_UILayout_alignment_set", NULL);
+
+	prop= RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
+
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_get", "rna_UILayout_scale_set", NULL);
 
 	RNA_api_ui_layout(srna);
 }
@@ -426,6 +529,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw buttons into the panel UI layout.");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	func= RNA_def_function(srna, "draw_header", NULL);
+	RNA_def_function_ui_description(func, "Draw buttons into the panel header UI layout.");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 

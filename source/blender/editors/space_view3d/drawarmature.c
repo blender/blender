@@ -1805,8 +1805,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ba
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-							BLF_draw_default(vec[0], vec[1], vec[2], " ");
-							BLF_draw_default(vec[0] + BLF_width_default(" "), vec[1], vec[2], pchan->name);
+							view3d_object_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
@@ -1991,8 +1990,7 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 						if (arm->flag & ARM_DRAWNAMES) {
 							VecMidf(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							BLF_draw_default(vec[0], vec[1], vec[2], " ");
-							BLF_draw_default(vec[0] + BLF_width_default(" "), vec[1], vec[2], eBone->name);
+							view3d_object_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
@@ -2154,12 +2152,12 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
 						if (a == 0) {
 							sprintf(str, "  %d\n", (a+sfra));
-							BLF_draw_default(fp[0], fp[1], fp[2], str);
+							view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 						}
 						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
 								sprintf(str, "  %d\n", (a+sfra));
-								BLF_draw_default(fp[0], fp[1], fp[2], str);
+								view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 							}
 						}
 					}
@@ -2202,7 +2200,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 									char str[32];
 									
 									sprintf(str, "  %d\n", (a+sfra));
-									BLF_draw_default(fp[0], fp[1], fp[2], str);
+									view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 								}
 							}
 						}
