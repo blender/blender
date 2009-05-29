@@ -8131,7 +8131,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->ticrate = 60;
 			wrld->maxlogicstep = 5;
 			wrld->physubstep = 1;
-			wrld->maxphystep = 1;
+			wrld->maxphystep = 5;
 		}
 	}
 

@@ -112,7 +112,7 @@ World *add_world(char *name)
 	wrld->ticrate = 60;
 	wrld->maxlogicstep = 5;
 	wrld->physubstep = 1;
-	wrld->maxphystep = 1;
+	wrld->maxphystep = 5;
 
 	return wrld;
 }
