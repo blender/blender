@@ -1186,7 +1186,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = 
-		(isbulletsensor) ? KX_ClientObjectInfo::OBSENSOR : 
+		(isbulletsensor) ? ((isActor) ? KX_ClientObjectInfo::OBACTORSENSOR : KX_ClientObjectInfo::OBSENSOR) :
 		(isActor) ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC;
 	// store materialname in auxinfo, needed for touchsensors
 	if (meshobj)

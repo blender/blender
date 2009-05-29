@@ -3355,11 +3355,12 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 	if (ob->gameflag & OB_COLLISION) {
 
 		if (ob->gameflag & OB_SENSOR) {
-			uiBlockEndAlign(block);
+			uiDefButBitI(block, TOG, OB_ACTOR, 0, "Detect Actor",
+						110, 205, 100, 19, &ob->gameflag, 0, 0, 0, 0,
+						"Sensor should detect only the objects with Actor option enabled. Unset to detect all objects");
 			uiDefBlockBut(block, advanced_bullet_menu, ob, 
 						  "Advanced", 
 						  270, 205, 80, 19, "Display collision advanced settings");
-			uiBlockBeginAlign(block);
 		} else {
 			uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
 						110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
@@ -3379,7 +3380,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 			//uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 
-
+		uiBlockBeginAlign(block);
 		if(ob->gameflag & OB_DYNAMIC) {
 
 			if (!(ob->gameflag & OB_SOFT_BODY))
