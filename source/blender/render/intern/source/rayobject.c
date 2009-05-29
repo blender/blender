@@ -233,8 +233,8 @@ static int intersect_rayface(RayFace *face, Isect *is)
 				if(a->v1==b->v1 || a->v2==b->v1 || a->v3==b->v1 || a->v4==b->v1
 				|| a->v1==b->v2 || a->v2==b->v2 || a->v3==b->v2 || a->v4==b->v2
 				|| a->v1==b->v3 || a->v2==b->v3 || a->v3==b->v3 || a->v4==b->v3
-				|| a->v1==b->v4 || a->v2==b->v4 || a->v3==b->v4 || (a->v4 && a->v4==b->v4))
-				if(!intersection2((VlakRen*)b, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]))
+				|| (b->v4 && (a->v1==b->v4 || a->v2==b->v4 || a->v3==b->v4 || a->v4==b->v4)))
+				if(intersection2((VlakRen*)b, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]))
 				{
 					return 0;
 				}
