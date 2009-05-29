@@ -81,7 +81,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_motionblurvalue(-1.0),
 	m_texco_num(0),
 	m_attrib_num(0),
-	m_last_blendmode(GPU_BLEND_SOLID),
+	//m_last_blendmode(GPU_BLEND_SOLID),
 	m_last_frontface(true),
 	m_materialCachingInfo(0)
 {
@@ -118,7 +118,8 @@ bool RAS_OpenGLRasterizer::Init()
 
 	glDisable(GL_BLEND);
 	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
+	//m_last_blendmode = GPU_BLEND_SOLID;
+	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
 
 	glFrontFace(GL_CCW);
 	m_last_frontface = true;
@@ -288,7 +289,8 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 
 	glDisable(GL_BLEND);
 	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
+	//m_last_blendmode = GPU_BLEND_SOLID;
+	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
 
 	glFrontFace(GL_CCW);
 	m_last_frontface = true;
@@ -787,7 +789,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 				GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat), &current_gpu_attribs);
 			else
 				memset(&current_gpu_attribs, 0, sizeof(current_gpu_attribs));
+			// DM draw can mess up blending mode, restore at the end
+			int current_blend_mode = GPU_get_material_blend_mode();
 			ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
+			GPU_set_material_blend_mode(current_blend_mode);
 		} else {
 			ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
 		}
@@ -1096,6 +1101,8 @@ void RAS_OpenGLRasterizer::DisableMotionBlur()
 
 void RAS_OpenGLRasterizer::SetBlendingMode(int blendmode)
 {
+	GPU_set_material_blend_mode(blendmode);
+/*
 	if(blendmode == m_last_blendmode)
 		return;
 
@@ -1122,6 +1129,7 @@ void RAS_OpenGLRasterizer::SetBlendingMode(int blendmode)
 	}
 
 	m_last_blendmode = blendmode;
+*/
 }
 
 void RAS_OpenGLRasterizer::SetFrontFace(bool ccw)

@@ -460,17 +460,16 @@ void KX_GameObject::AddMeshUser()
 {
 	for (size_t i=0;i<m_meshes.size();i++)
 	{
-		m_meshes[i]->AddMeshUser(this, &m_meshSlots);
+		m_meshes[i]->AddMeshUser(this, &m_meshSlots, GetDeformer());
 	}
 	// set the part of the mesh slot that never change
 	double* fl = GetOpenGLMatrixPtr()->getPointer();
-	RAS_Deformer *deformer = GetDeformer();
 
 	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+	RAS_MeshSlot* ms;
 	for(mit.begin(); !mit.end(); ++mit)
 	{
 		(*mit)->m_OpenGLMatrix = fl;
-		(*mit)->SetDeformer(deformer);
 	}
 	UpdateBuckets(false);
 }

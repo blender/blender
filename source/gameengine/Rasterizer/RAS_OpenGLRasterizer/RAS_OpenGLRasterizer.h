@@ -100,7 +100,7 @@ protected:
 	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
 	int				m_texco_num;
 	int				m_attrib_num;
-	int				m_last_blendmode;
+	//int				m_last_blendmode;
 	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
