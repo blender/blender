@@ -513,6 +513,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
+	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");

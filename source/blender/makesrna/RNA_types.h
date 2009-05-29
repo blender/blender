@@ -99,6 +99,9 @@ typedef enum PropertyFlag {
 	PROP_REGISTER = 16,
 	PROP_REGISTER_OPTIONAL = 16|32,
 
+	/* pointers */
+	PROP_ID_REFCOUNT = 64,
+
 	/* internal flags */
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,
@@ -172,12 +175,13 @@ typedef struct FunctionRNA FunctionRNA;
 /* Struct */
 
 typedef enum StructFlag {
-	/* indicates that this struct is an ID struct */
+	/* indicates that this struct is an ID struct, and to use refcounting */
 	STRUCT_ID = 1,
+	STRUCT_ID_REFCOUNT = 2,
 
 	/* internal flags */
-	STRUCT_RUNTIME = 2,
-	STRUCT_GENERATED = 4
+	STRUCT_RUNTIME = 4,
+	STRUCT_GENERATED = 8
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

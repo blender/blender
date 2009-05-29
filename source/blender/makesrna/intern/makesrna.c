@@ -509,17 +509,15 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "	%s(ptr, value);\n", manualfunc);
 			}
 			else {
-				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-				StructRNA *type= rna_find_struct((char*)pprop->type);
-
 				rna_print_data_get(f, dp);
 
-				if(type && (type->flag & STRUCT_ID) && strcmp(type->identifier, "Object")!=0) {
+				if(prop->flag & PROP_ID_REFCOUNT) {
 					fprintf(f, "\n	if(data->%s)\n", dp->dnaname);
 					fprintf(f, "		id_us_min((ID*)data->%s);\n", dp->dnaname);
 					fprintf(f, "	if(value.data)\n");
 					fprintf(f, "		id_us_plus((ID*)value.data);\n\n");
 				}
+
 				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
 
 			}
@@ -1212,9 +1210,16 @@ static void rna_auto_types()
 			if(dp->dnatype) {
 				if(dp->prop->type == PROP_POINTER) {
 					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
+					StructRNA *type;
 
 					if(!pprop->type && !pprop->get)
 						pprop->type= (StructRNA*)rna_find_type(dp->dnatype);
+
+					if(pprop->type) {
+						type= rna_find_struct((char*)pprop->type);
+						if(type && (type->flag & STRUCT_ID_REFCOUNT))
+							pprop->property.flag |= PROP_ID_REFCOUNT;
+					}
 				}
 				else if(dp->prop->type== PROP_COLLECTION) {
 					CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;

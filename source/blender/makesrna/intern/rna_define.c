@@ -712,7 +712,12 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 
 void RNA_def_struct_flag(StructRNA *srna, int flag)
 {
-	srna->flag= flag;
+	srna->flag |= flag;
+}
+
+void RNA_def_struct_clear_flag(StructRNA *srna, int flag)
+{
+	srna->flag &= ~flag;
 }
 
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
@@ -1059,6 +1064,10 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 			pprop->type = type;
+
+			if(type && (type->flag & STRUCT_ID_REFCOUNT))
+				prop->flag |= PROP_ID_REFCOUNT;
+
 			break;
 		}
 		case PROP_COLLECTION: {
