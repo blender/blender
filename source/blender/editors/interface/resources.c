@@ -501,7 +501,10 @@ void ui_theme_init_userdef(void)
 	btheme->tact= btheme->tipo;
 	SETCOL(btheme->tact.strip, 			12, 10, 10, 128); 
 	SETCOL(btheme->tact.strip_select, 	255, 140, 0, 255); 
-
+	
+	/* space nla */
+	btheme->tnla= btheme->tact;
+	
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
@@ -517,20 +520,6 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tfile.movie,	250, 250, 250, 255);
 	SETCOL(btheme->tfile.scene,	250, 250, 250, 255);
 
-	
-	
-
-	/* space nla */
-	btheme->tnla= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
-	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
-	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
-	SETCOL(btheme->tnla.hilite,  17, 27, 60, 100);	// bar
-	SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
-	SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;

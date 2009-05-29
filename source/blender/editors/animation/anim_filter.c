@@ -244,7 +244,7 @@ static short nlaedit_get_context (bAnimContext *ac, SpaceNla *snla)
 {
 	/* init dopesheet data if non-existant (i.e. for old files) */
 	if (snla->ads == NULL)
-		snla->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+		snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 	
 	/* sync settings with current view status, then return appropriate data */
 	/* update scene-pointer (no need to check for pinning yet, as not implemented) */
@@ -357,6 +357,9 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	{\
 		if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
 			if (ANIMDATA_HAS_NLA(id)) {\
+				nlaOk\
+			}\
+			else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) {\
 				nlaOk\
 			}\
 		}\
@@ -566,6 +569,13 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_NLASTRIP;
 			}
 				break;
+			case ANIMTYPE_NLAACTION:
+			{
+				/* nothing to include for now... nothing editable from NLA-perspective here */
+				ale->key_data= NULL;
+				ale->datatype= ALE_NONE;
+			}
+				break;
 		}
 	}
 	
@@ -594,7 +604,6 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
-						/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
 						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
 						
 						if (ale) {
@@ -682,10 +691,49 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 	return items;
 }
 
-static int animdata_filter_nla (ListBase *anim_data, NlaTrack *first, int filter_mode, void *owner, short ownertype, ID *owner_id)
+static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
-	// FIXME
-	return 0;
+	bAnimListElem *ale;
+	NlaTrack *nlt;
+	int items = 0;
+	
+	/* loop over NLA Tracks - assume that the caller of this has already checked that these should be included */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		/* only work with this channel and its subchannels if it is editable */
+		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
+			/* only include this track if selected in a way consistent with the filtering requirements */
+			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
+				/* only include if this track is active */
+				// XXX keep this?
+				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
+					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner, ownertype, owner_id);
+						
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+		}
+	}
+	
+	/* if showing channels, include active action */
+	if (filter_mode & ANIMFILTER_CHANNELS) {
+		/* there isn't really anything editable here, so skip if need editable */
+		// TODO: currently, selection isn't checked since it doesn't matter
+		if ((filter_mode & ANIMFILTER_FOREDIT) == 0) { 
+			/* just add the action track now */
+			ale= make_new_animlistelem(adt->action, ANIMTYPE_NLAACTION, owner, ownertype, owner_id);
+				
+			if (ale) {
+				BLI_addtail(anim_data, ale);
+				items++;
+			}
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
 }
 
 static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode, void *owner, short ownertype, ID *owner_id)
@@ -881,7 +929,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			/* add material's animation data */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 				ANIMDATA_FILTER_CASES(ma, 
-					items += animdata_filter_nla(anim_data, ma->adt->nla_tracks.first, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
+					items += animdata_filter_nla(anim_data, ma->adt, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
 					items += animdata_filter_fcurves(anim_data, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);, 
 					items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);)
 			}
@@ -946,7 +994,7 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 		/* filtering for channels - nla, drivers, keyframes */
 		ANIMDATA_FILTER_CASES(iat, 
-			items+= animdata_filter_nla(anim_data, iat->adt->nla_tracks.first, filter_mode, iat, type, (ID *)iat);,
+			items+= animdata_filter_nla(anim_data, iat->adt, filter_mode, iat, type, (ID *)iat);,
 			items+= animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, iat, type, filter_mode, (ID *)iat);, 
 			items += animdata_filter_action(anim_data, iat->adt->action, filter_mode, iat, type, (ID *)iat);)
 	}
@@ -997,8 +1045,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 #endif
 				
 				/* add NLA tracks */
-				if (/*EXPANDED_NLTD(adt) ||*/ !(filter_mode & ANIMFILTER_CHANNELS))
-					items += animdata_filter_nla(anim_data, adt->nla_tracks.first, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
 			{ /* drivers */
 				/* include drivers-expand widget? */
@@ -1053,8 +1100,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 #endif
 				
 				/* add NLA tracks */
-				if (/*EXPANDED_NLTD(adt) ||*/ !(filter_mode & ANIMFILTER_CHANNELS))
-					items += animdata_filter_nla(anim_data, adt->nla_tracks.first, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
 			{ /* drivers */
 				/* include shapekey-expand widget? */
@@ -1179,8 +1225,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 #endif
 				
 				/* add NLA tracks */
-				if (/*EXPANDED_NLTD(adt) ||*/ !(filter_mode & ANIMFILTER_CHANNELS))
-					items += animdata_filter_nla(anim_data, adt->nla_tracks.first, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce);
+				items += animdata_filter_nla(anim_data, adt, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce);
 			},
 			{ /* drivers */
 				/* include drivers-expand widget? */
@@ -1233,8 +1278,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 #endif
 				
 				/* add NLA tracks */
-				if (/*EXPANDED_NLTD(adt) ||*/ !(filter_mode & ANIMFILTER_CHANNELS))
-					items += animdata_filter_nla(anim_data, adt->nla_tracks.first, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo);
+				items += animdata_filter_nla(anim_data, adt, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo);
 			},
 			{ /* drivers */
 				/* include world-expand widget? */
@@ -1508,6 +1552,7 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 			case ANIMCONT_DOPESHEET:
 			case ANIMCONT_FCURVES:
 			case ANIMCONT_DRIVERS:
+			case ANIMCONT_NLA:
 				items= animdata_filter_dopesheet(anim_data, data, filter_mode);
 				break;
 		}

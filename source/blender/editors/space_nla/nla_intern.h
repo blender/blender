@@ -30,8 +30,30 @@
 
 /* internal exports only */
 
+/* -------------- NLA Channel Defines -------------- */
 
+/* NLA channel heights */
+#define NLACHANNEL_FIRST			-16
+#define	NLACHANNEL_HEIGHT			24
+#define NLACHANNEL_HEIGHT_HALF	12
+#define	NLACHANNEL_SKIP			2
+#define NLACHANNEL_STEP			(NLACHANNEL_HEIGHT + NLACHANNEL_SKIP)
+
+/* channel widths */
+#define NLACHANNEL_NAMEWIDTH		200
+
+/* channel toggle-buttons */
+#define NLACHANNEL_BUTTON_WIDTH	16
+
+
+/* **************************************** */
+/* nla_draw.c */
+
+void draw_nla_channel_list(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
+
+/* **************************************** */
 /* nla_header.c */
+
 void nla_header_buttons(const bContext *C, ARegion *ar);
 
 

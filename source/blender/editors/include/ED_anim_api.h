@@ -131,6 +131,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_GPLAYER,
 	
 	ANIMTYPE_NLATRACK,
+	ANIMTYPE_NLAACTION,
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */

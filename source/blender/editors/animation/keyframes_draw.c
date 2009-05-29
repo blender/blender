@@ -412,8 +412,6 @@ void scene_to_keylist(Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *
 		/* get filterflag */
 		if (ads)
 			filterflag= ads->filterflag;
-		else if ((aki) && (aki->actmode == -1)) /* only set like this by NLA */
-			filterflag= ADS_FILTER_NLADUMMY;
 		else
 			filterflag= 0;
 			

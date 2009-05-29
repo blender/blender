@@ -288,9 +288,10 @@ typedef struct bDopeSheet {
 /* DopeSheet filter-flag */
 typedef enum DOPESHEET_FILTERFLAG {
 		/* general filtering */
-	ADS_FILTER_ONLYSEL			= (1<<0),
-	ADS_FILTER_ONLYDRIVERS		= (1<<1),
-	ADS_FILTER_ONLYNLA			= (1<<2),
+	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
+	
+	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
+	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
@@ -301,9 +302,11 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NOWOR			= (1<<14),
 	ADS_FILTER_NOSCE			= (1<<15),
 	
+		/* NLA-specific filters */
+	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
+	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR),
-	ADS_FILTER_NLADUMMY = (ADS_FILTER_NOSHAPEKEYS|ADS_FILTER_NOOBDATA),
 } DOPESHEET_FILTERFLAG;	
 
 /* DopeSheet general flags */

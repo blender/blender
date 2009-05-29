@@ -192,7 +192,7 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 	SpaceIpo *sipon= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	//sipon->ipokey.first= sipon->ipokey.last= NULL;
+	BLI_duplicatelist(&sipon->ghostCurves, &((SpaceIpo *)sl)->ghostCurves);
 	sipon->ads= MEM_dupallocN(sipon->ads);
 	
 	return (SpaceLink *)sipon;
