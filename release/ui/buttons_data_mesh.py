@@ -1,4 +1,4 @@
-		
+
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -12,7 +12,7 @@ class DataButtonsPanel(bpy.types.Panel):
 
 class DATA_PT_surface(DataButtonsPanel):
 		__idname__ = "DATA_PT_surface"
-		__label__ = "Surface"
+		__label__ = "Mesh"
 
 		def draw(self, context):
 			mesh = context.active_object.data
@@ -20,13 +20,15 @@ class DATA_PT_surface(DataButtonsPanel):
 
 			split = layout.split()
 		
-			sub = split.column()
-			sub.itemR(mesh, "autosmooth")
-			sub.itemR(mesh, "autosmooth_angle", text="Angle")
+			col = split.column()
+			col.itemR(mesh, "autosmooth")
+			colsub = col.column()
+			colsub.active = mesh.autosmooth
+			colsub.itemR(mesh, "autosmooth_angle", text="Angle")
 			sub = split.column()
 			sub.itemR(mesh, "vertex_normal_flip")
 			sub.itemR(mesh, "double_sided")
 			
 			layout.itemR(mesh, "texco_mesh")			
 						
-bpy.types.register(DATA_PT_surface)		
+bpy.types.register(DATA_PT_surface)

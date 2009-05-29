@@ -22,14 +22,16 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 							
 			split = layout.split()
 		
-			sub = split.column()
-			sub.itemL(text="Caps:")
-			sub.itemR(curve, "front")
-			sub.itemR(curve, "back")
+			col = split.column()
+			colsub = col.column()
+			colsub.active = curve.curve_2d
+			colsub.itemL(text="Caps:")
+			colsub.itemR(curve, "front")
+			colsub.itemR(curve, "back")
 			
-			sub.itemL(text="Textures:")
-			sub.itemR(curve, "uv_orco")
-			sub.itemR(curve, "auto_texspace")
+			col.itemL(text="Textures:")
+			col.itemR(curve, "uv_orco")
+			col.itemR(curve, "auto_texspace")
 			
 			sub = split.column()	
 			sub.itemL(text="Resolution:")
@@ -68,12 +70,17 @@ class DATA_PT_geometry(DataButtonsPanel):
 class DATA_PT_pathanim(DataButtonsPanel):
 		__idname__ = "DATA_PT_pathanim"
 		__label__ = "Path Animation"
+		
+		def draw_header(self, context):
+			curve = context.active_object.data
+
+			layout = self.layout
+			layout.itemR(curve, "path", text="")
 
 		def draw(self, context):
 			curve = context.active_object.data
 			layout = self.layout
-
-			layout.itemR(curve, "path", text="Enable")
+			layout.active = curve.path	
 			
 			split = layout.split()		
 			
@@ -102,9 +109,6 @@ class DATA_PT_current_curve(DataButtonsPanel):
 			sub.itemL(text="Order:")
 			sub.itemR(currentcurve, "order_u", text="U")
 			sub.itemR(currentcurve, "order_v", text="V")
-			sub.itemL(text="Point Count:")			
-			sub.itemR(currentcurve, "point_count_u", text="U")
-			sub.itemR(currentcurve, "point_count_v", text="V")
 			sub.itemL(text="Endpoints:")
 			sub.itemR(currentcurve, "endpoint_u", text="U")
 			sub.itemR(currentcurve, "endpoint_v", text="V")

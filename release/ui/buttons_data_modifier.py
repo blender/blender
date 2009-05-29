@@ -151,10 +151,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "start")
 		layout.itemR(md, "length")
 
+		layout.itemR(md, "randomize")
 		row = layout.row()
-		row.itemR(md, "randomize")
-		if md.randomize:
-			row.itemR(md, "seed")
+		row.active = md.randomize
+		row.itemR(md, "seed")
 			
 	def cast(self, layout, md):
 		layout.itemR(md, "cast_type")
@@ -196,8 +196,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	
 	def edgesplit(self, layout, md):
 		layout.itemR(md, "use_edge_angle", text="Edge Angle")
-		if (md.use_edge_angle):
-			layout.itemR(md, "split_angle")
+		row = layout.row()
+		row.active = md.use_edge_angle
+		row.itemR(md, "split_angle")
 		layout.itemR(md, "use_sharp", text="Sharp Edges")
 		
 	def explode(self, layout, md):
@@ -353,13 +354,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		sub.itemR(md, "y")
 		sub.itemR(md, "cyclic")
 		
-		sub = split.column()
-		sub.itemR(md, "normals")
-		if md.normals:
-			row = sub.row(align=True)
-			row.itemR(md, "x_normal", text="X", toggle=True)
-			row.itemR(md, "y_normal", text="Y", toggle=True)
-			row.itemR(md, "z_normal", text="Z", toggle=True)
+		col = split.column()
+		col.itemR(md, "normals")
+		colsub = col.row(align=True)
+		colsub.active = md.normals
+		colsub.itemR(md, "x_normal", text="X", toggle=True)
+		colsub.itemR(md, "y_normal", text="Y", toggle=True)
+		colsub.itemR(md, "z_normal", text="Z", toggle=True)
 		
 		col = layout.column_flow()
 		col.itemR(md, "time_offset")
@@ -385,4 +386,3 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
-

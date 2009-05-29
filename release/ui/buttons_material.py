@@ -54,6 +54,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		sss = context.active_object.active_material.subsurface_scattering
+		layout.active = sss.enabled	
 		
 		flow = layout.column_flow()
 		flow.itemR(sss, "error_tolerance")
@@ -87,7 +88,7 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		raym = context.active_object.active_material.raytrace_mirror
-
+		layout.active = raym.enabled	
 		split = layout.split()
 		
 		sub = split.column()
@@ -124,6 +125,7 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		rayt = context.active_object.active_material.raytrace_transparency
+		layout.active = rayt.enabled	
 		
 		split = layout.split()
 		
@@ -173,35 +175,31 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		col.itemR(halo, "soft")
 
 		col = split.column()
-		sub = col.column(align=True)
-		sub.itemL(text="Elements:")
-		sub.itemR(halo, "ring")
-		sub.itemR(halo, "lines")
-		sub.itemR(halo, "star")
-		sub.itemR(halo, "flare_mode")
-		
-		sub = col.column()
-		if (halo.ring):
-			sub.itemR(halo, "rings")
-		if (halo.lines):
-			sub.itemR(halo, "line_number")
-		if (halo.ring or halo.lines):
-			sub.itemR(halo, "seed")
-		if (halo.star):
-			sub.itemR(halo, "star_tips")
-		if (halo.flare_mode):
-			sub = col.column(align=True)
-			sub.itemL(text="Flare:")
-			sub.itemR(halo, "flare_size", text="Size")
-			sub.itemR(halo, "flare_subsize", text="Subsize")
-			sub.itemR(halo, "flare_boost", text="Boost")
-			sub.itemR(halo, "flare_seed", text="Seed")
-			sub.itemR(halo, "flares_sub", text="Sub")
-				
+		col = col.column(align=True)
+		col.itemR(halo, "ring")
+		colsub = col.column()
+		colsub.active = halo.ring
+		colsub.itemR(halo, "rings")
+		col.itemR(halo, "lines")
+		colsub = col.column()
+		colsub.active = halo.lines
+		colsub.itemR(halo, "line_number", text="Lines")
+		col.itemR(halo, "star")
+		colsub = col.column()
+		colsub.active = halo.star
+		colsub.itemR(halo, "star_tips")
+		col.itemR(halo, "flare_mode")
+		colsub = col.column()
+		colsub.active = halo.flare_mode
+		colsub.itemR(halo, "flare_size", text="Size")
+		colsub.itemR(halo, "flare_subsize", text="Subsize")
+		colsub.itemR(halo, "flare_boost", text="Boost")
+		colsub.itemR(halo, "flare_seed", text="Seed")
+		colsub.itemR(halo, "flares_sub", text="Sub")
+
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
-
