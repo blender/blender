@@ -167,14 +167,14 @@ static SpaceLink *nla_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	//ListBase *keymap;
+	ListBase *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STACK, ar->winx, ar->winy);
 	
 	/* own keymap */
 	// TODO: cannot use generic copy, need special NLA version
-	//keymap= WM_keymap_listbase(wm, "Animation_Channels", 0, 0);	/* XXX weak? */
-	//WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 /* draw entirely, view changes should be handled here */
@@ -216,7 +216,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "NLA", SPACE_NLA, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -271,15 +271,6 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-void nla_operatortypes(void)
-{
-	
-}
-
-void nla_keymap(struct wmWindowManager *wm)
-{
-	
-}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_header_area_init(wmWindowManager *wm, ARegion *ar)

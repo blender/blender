@@ -217,6 +217,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 					if (ale->flag & FCURVE_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
+				case ANIMTYPE_NLATRACK:
+					if (ale->flag & NLATRACK_SELECTED)
+						sel= ACHANNEL_SETFLAG_CLEAR;
+					break;
 			}
 		}
 	}
@@ -261,6 +265,14 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				
 				ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
 				fcu->flag &= ~FCURVE_ACTIVE;
+			}
+				break;
+			case ANIMTYPE_NLATRACK:
+			{
+				NlaTrack *nlt= (NlaTrack *)ale->data;
+				
+				ACHANNEL_SET_FLAG(nlt, sel, NLATRACK_SELECTED);
+				nlt->flag &= ~NLATRACK_ACTIVE;
 			}
 				break;
 		}

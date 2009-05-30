@@ -51,10 +51,12 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -63,12 +65,9 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_markers.h"
-
 #include "nla_intern.h"	// own include
 
 /* *********************************************** */
-
 
 /* *********************************************** */
 

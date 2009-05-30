@@ -85,8 +85,10 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 /* *********************************************** */
 /* Strips */
 
-static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
+	char name[128];
+	
 	/* draw extrapolation info first (as backdrop) */
 	// TODO...
 	
@@ -125,6 +127,15 @@ static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float y
 		glColor3f(0.0f, 0.0f, 0.0f);
 	}
 	gl_round_box(GL_LINES, strip->start, yminc, strip->end, ymaxc, 9);
+	
+	/* draw some identifying info on the strip (index and name of action if there's room) */
+	// XXX for now, just the index
+	if (strip->flag & NLASTRIP_FLAG_SELECT)
+		UI_ThemeColor(TH_TEXT_HI);
+	else
+		UI_ThemeColor(TH_TEXT);
+	sprintf(name, "%d |", index);
+	UI_DrawString(strip->start, yminc+8, name);
 } 
 
 /* ---------------------- */
@@ -174,17 +185,18 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					NlaStrip *strip;
+					int index;
 					
 					/* draw backdrop? */
 					// TODO...
 					
 					/* draw each strip in the track */
-					for (strip= nlt->strips.first; strip; strip= strip->next) {
+					for (strip=nlt->strips.first, index=1; strip; strip= strip->next, index++) {
 						/* only draw if at least part of the strip is within view */
 						if ( IN_RANGE(v2d->cur.xmin, strip->start, strip->end) ||
 							 IN_RANGE(v2d->cur.xmax, strip->start, strip->end) )
 						{
-							nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
+							nla_draw_strip(nlt, strip, index, v2d, yminc, ymaxc);
 						}
 					}
 				}
@@ -601,6 +613,16 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			/* draw action 'push-down' */
 			if (ale->type == ANIMTYPE_NLAACTION) {
 				offset += 16;
+				
+				/* XXX firstly draw a little rect to help identify that it's different from the toggles */
+				glBegin(GL_LINES);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+7);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7;
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+7);
+				glEnd(); // GL_LINES
+				
+				/* now draw the icon */
 				UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
 			}
 			

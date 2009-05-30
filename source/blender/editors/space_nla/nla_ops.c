@@ -54,16 +54,14 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "RNA_access.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "ED_markers.h"
 
 #include "nla_intern.h"	// own include
 
@@ -72,20 +70,46 @@
 
 void nla_operatortypes(void)
 {
-	//WM_operatortype_append();
+	/* channels */
+	WM_operatortype_append(NLA_OT_channels_click);
 	
+	/* select */
+	// ...
 }
 
 /* ************************** registration - keymaps **********************************/
 
 static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 {
-	//wmKeymapItem *kmi;
+	/* NLA-specific (different to standard channels keymap) -------------------------- */
+	/* selection */
+		/* click-select */
+		// XXX for now, only leftmouse.... 
+	WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	
+	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
+		/* deselect all */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
+		/* borderselect */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
 	
-	/* transform system */
-	//transform_keymap_for_space(wm, keymap, SPACE_NLA);
+	/* settings */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_disable", WKEY, KM_PRESS, KM_ALT, 0);
+	
+	/* settings - specialised hotkeys */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
+	
+	/* expand/collapse */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, 0, 0);
+	
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
 }
 
 static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
@@ -111,11 +135,11 @@ void nla_keymap(wmWindowManager *wm)
 	 *
 	 * However, those operations which involve clicking on channels and/or the placement of them in the view are implemented here instead
 	 */
-	keymap= WM_keymap_listbase(wm, "NLA_Channels", SPACE_NLA, 0);
+	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);
 	nla_keymap_channels(wm, keymap);
 	
 	/* data */
-	keymap= WM_keymap_listbase(wm, "NLA_Data", SPACE_NLA, 0);
+	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);
 	nla_keymap_main(wm, keymap);
 }
 

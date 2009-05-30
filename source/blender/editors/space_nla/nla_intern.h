@@ -57,6 +57,23 @@ void draw_nla_channel_list(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
 
 void nla_header_buttons(const bContext *C, ARegion *ar);
 
+/* **************************************** */
+/* nla_select.c */
+
+
+/* **************************************** */
+/* nla_edit.c */
+
+/* **************************************** */
+/* nla_channels.c */
+
+void NLA_OT_channels_click(wmOperatorType *ot);
+
+/* **************************************** */
+/* nla_ops.c */
+
+void nla_operatortypes(void);
+void nla_keymap(wmWindowManager *wm);
 
 #endif /* ED_NLA_INTERN_H */
 
