@@ -722,8 +722,12 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 		/* there isn't really anything editable here, so skip if need editable */
 		// TODO: currently, selection isn't checked since it doesn't matter
 		if ((filter_mode & ANIMFILTER_FOREDIT) == 0) { 
-			/* just add the action track now */
-			ale= make_new_animlistelem(adt->action, ANIMTYPE_NLAACTION, owner, ownertype, owner_id);
+			/* just add the action track now (this MUST appear for drawing)
+			 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
+			 *	  overwrite this with the real value - REVIEW THIS...
+			 */
+			ale= make_new_animlistelem((void *)(&adt->action), ANIMTYPE_NLAACTION, owner, ownertype, owner_id);
+			ale->data= (adt->action) ? adt->action : NULL;
 				
 			if (ale) {
 				BLI_addtail(anim_data, ale);
@@ -1388,6 +1392,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				
 				/* check filters for datatypes */
 					/* object */
+				actOk= 0;
+				keyOk= 0;
 				ANIMDATA_FILTER_CASES(ob, 
 					actOk= 1;, 
 					actOk= 1;, 
@@ -1427,6 +1433,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
 						Camera *ca= (Camera *)ob->data;
+						dataOk= 0;
 						ANIMDATA_FILTER_CASES(ca, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
@@ -1436,6 +1443,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					case OB_LAMP: /* ---------- Lamp ----------- */
 					{
 						Lamp *la= (Lamp *)ob->data;
+						dataOk= 0;
 						ANIMDATA_FILTER_CASES(la, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 

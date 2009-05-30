@@ -452,9 +452,6 @@ void BKE_nla_action_pushdown (AnimData *adt)
 		adt->action= NULL;
 	}
 	
-	// TEMP DEBUG...
-	printf("BKE_nla_action_pushdown(): NLA strip added.. done \n");
-	
 	// TODO: set any other flags necessary here...
 }
 

@@ -627,14 +627,14 @@ static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 	strip->blendout= (float)fabs(strip->blendout);
 	
 	/* result depends on where frame is in respect to blendin/out values */
-	// TODO: are the fabs() tests needed here?
+	// the +0.0001 factors are to combat rounding errors
 	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
 		/* there is some blend-in */
-		return (float)fabs(cframe - strip->start) / (strip->blendin);
+		return (float)(fabs(cframe - strip->start) + 0.0001) / (strip->blendin);
 	}
 	else if (IS_EQ(strip->blendout, 0)==0 && (cframe >= (strip->end - strip->blendout))) {
 		/* there is some blend-out */
-		return (float)fabs(strip->end - cframe) / (strip->blendout);
+		return (float)(fabs(strip->end - cframe) + 0.0001) / (strip->blendout);
 	}
 	else {
 		/* in the middle of the strip, we should be full strength */

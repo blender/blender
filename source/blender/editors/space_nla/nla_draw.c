@@ -81,14 +81,13 @@
 
 /* XXX */
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 
 /* *********************************************** */
 /* Strips */
 
-static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
-	char name[128];
-	
 	/* draw extrapolation info first (as backdrop) */
 	// TODO...
 	
@@ -115,7 +114,7 @@ static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v
 		UI_ThemeColor(TH_STRIP);
 	}
 	uiSetRoundBox(15); /* all corners rounded */
-	gl_round_box(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 9);
+	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
 	/* draw strip outline */
 	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
@@ -126,16 +125,7 @@ static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v
 		/* strip should appear to stand out, so draw a dark border around it */
 		glColor3f(0.0f, 0.0f, 0.0f);
 	}
-	gl_round_box(GL_LINES, strip->start, yminc, strip->end, ymaxc, 9);
-	
-	/* draw some identifying info on the strip (index and name of action if there's room) */
-	// XXX for now, just the index
-	if (strip->flag & NLASTRIP_FLAG_SELECT)
-		UI_ThemeColor(TH_TEXT_HI);
-	else
-		UI_ThemeColor(TH_TEXT);
-	sprintf(name, "%d |", index);
-	UI_DrawString(strip->start, yminc+8, name);
+	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 } 
 
 /* ---------------------- */
@@ -147,6 +137,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
+	float viewWidth = v2d->cur.xmax - v2d->cur.xmin;
 	float y= 0.0f;
 	int items, height;
 	
@@ -185,19 +176,33 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					NlaStrip *strip;
-					int index;
 					
 					/* draw backdrop? */
 					// TODO...
 					
 					/* draw each strip in the track */
-					for (strip=nlt->strips.first, index=1; strip; strip= strip->next, index++) {
-						/* only draw if at least part of the strip is within view */
-						if ( IN_RANGE(v2d->cur.xmin, strip->start, strip->end) ||
-							 IN_RANGE(v2d->cur.xmax, strip->start, strip->end) )
+					for (strip=nlt->strips.first; strip; strip= strip->next) {
+						float stripLen= strip->end - strip->start;
+						
+						/* only draw if at least part of the strip is within view 
+						 *	- first 2 cases cover when the strip length is less than the viewable area
+						 *	- second 2 cases cover when the strip length is greater than the viewable area
+						 */
+						if ( (stripLen < viewWidth) && 
+							 !(IN_RANGE(strip->start, v2d->cur.xmin, v2d->cur.xmax) ||
+							   IN_RANGE(strip->end, v2d->cur.xmin, v2d->cur.xmax)) )
 						{
-							nla_draw_strip(nlt, strip, index, v2d, yminc, ymaxc);
+							continue;
 						}
+						if ( (stripLen > viewWidth) && 
+							 !(IN_RANGE(v2d->cur.xmin, strip->start, strip->end) ||
+							   IN_RANGE(v2d->cur.xmax, strip->start, strip->end)) )
+						{
+							continue;
+						}
+						
+						/* we're still here, so ok... */
+						nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
 					}
 				}
 					break;
@@ -521,7 +526,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
 					uiSetRoundBox((expand == ICON_TRIA_UP)? (8):(1|8));
-					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 8);
+					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 10);
 				}
 				else {
 					/* sub-object folders - lighter */
@@ -547,7 +552,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
 					
 				offset += 7 * indent;
-				uiSetRoundBox(15);
+				uiSetRoundBox((1|2)); // only on top two corners, to show that this channel sits on top of the preceeding ones
 				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 8);
 				
 				/* clear group value, otherwise we cause errors... */
@@ -610,16 +615,16 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, mute);
 			}
 			
-			/* draw action 'push-down' */
-			if (ale->type == ANIMTYPE_NLAACTION) {
+			/* draw action 'push-down' - only for NLA-Action lines, and only when there's an action */
+			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
 				offset += 16;
 				
 				/* XXX firstly draw a little rect to help identify that it's different from the toggles */
-				glBegin(GL_LINES);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+7);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+7);
+				glBegin(GL_LINE_LOOP);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-8);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+8);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-8);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+8);
 				glEnd(); // GL_LINES
 				
 				/* now draw the icon */
