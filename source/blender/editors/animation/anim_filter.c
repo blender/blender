@@ -1334,22 +1334,18 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
-		short sceOk, worOk;
+		short sceOk= 0, worOk= 0;
 		
 		/* check filtering-flags if ok */
-		if (ads->filterflag) {
-			if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
-				sceOk= (ANIMDATA_HAS_DRIVERS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE));
-				worOk= ((sce->world) && ANIMDATA_HAS_DRIVERS(sce->world) && !(ads->filterflag & ADS_FILTER_NOWOR));
-			}
-			else {
-				sceOk= (ANIMDATA_HAS_KEYS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE));
-				worOk= ((sce->world) && ANIMDATA_HAS_KEYS(sce->world) && !(ads->filterflag & ADS_FILTER_NOWOR));
-			}
-		}
-		else {
-			sceOk= (ANIMDATA_HAS_KEYS(sce));
-			worOk= ((sce->world) && ANIMDATA_HAS_KEYS(sce->world));
+		ANIMDATA_FILTER_CASES(sce, 
+			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);, 
+			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);, 
+			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);)
+		if (sce->world) {
+			ANIMDATA_FILTER_CASES(sce->world, 
+				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
+				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
+				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
 		}
 		
 		/* check if not all bad (i.e. so there is something to show) */
@@ -1391,13 +1387,17 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				}
 				
 				/* check filters for datatypes */
-				if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
-					actOk= (ANIMDATA_HAS_DRIVERS(ob));
-					keyOk= ((key) && ANIMDATA_HAS_DRIVERS(key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
-				}
-				else {
-					actOk= ANIMDATA_HAS_KEYS(ob);
-					keyOk= ((key) && ANIMDATA_HAS_KEYS(key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
+					/* object */
+				ANIMDATA_FILTER_CASES(ob, 
+					actOk= 1;, 
+					actOk= 1;, 
+					actOk= 1;)
+				if (key) {
+					/* shapekeys */
+					ANIMDATA_FILTER_CASES(key, 
+						keyOk= 1;, 
+						keyOk= 1;, 
+						keyOk= 1;)
 				}
 				
 				/* materials - only for geometric types */
@@ -1412,18 +1412,13 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						Material *ma= give_current_material(ob, a);
 						
 						/* if material has relevant animation data, break */
-						if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
-							if (ANIMDATA_HAS_DRIVERS(ma)) {
-								matOk= 1;
-								break;
-							}
-						}
-						else {
-							if (ANIMDATA_HAS_KEYS(ma)) {
-								matOk= 1;
-								break;
-							}
-						}
+						ANIMDATA_FILTER_CASES(ma, 
+							matOk= 1;, 
+							matOk= 1;, 
+							matOk= 1;)
+							
+						if (matOk) 
+							break;
 					}
 				}
 				
@@ -1432,19 +1427,19 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
 						Camera *ca= (Camera *)ob->data;
-						if (ads->filterflag & ADS_FILTER_ONLYDRIVERS)
-							dataOk= (ANIMDATA_HAS_DRIVERS(ca) && !(ads->filterflag & ADS_FILTER_NOCAM));
-						else
-							dataOk= (ANIMDATA_HAS_KEYS(ca) && !(ads->filterflag & ADS_FILTER_NOCAM));						
+						ANIMDATA_FILTER_CASES(ca, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);)
 					}
 						break;
 					case OB_LAMP: /* ---------- Lamp ----------- */
 					{
 						Lamp *la= (Lamp *)ob->data;
-						if (ads->filterflag & ADS_FILTER_ONLYDRIVERS)
-							dataOk= (ANIMDATA_HAS_DRIVERS(la) && !(ads->filterflag & ADS_FILTER_NOLAM));
-						else
-							dataOk= (ANIMDATA_HAS_KEYS(la) && !(ads->filterflag & ADS_FILTER_NOLAM));	
+						ANIMDATA_FILTER_CASES(la, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);)
 					}
 						break;
 					default: /* --- other --- */

@@ -618,7 +618,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				glBegin(GL_LINES);
 					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
 					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+7);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7;
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
 					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+7);
 				glEnd(); // GL_LINES
 				

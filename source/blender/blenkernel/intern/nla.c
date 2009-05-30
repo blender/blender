@@ -427,8 +427,10 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	 * as that will cause us grief down the track
 	 */
 	// TODO: what about modifiers?
-	if (action_has_motion(adt->action) == 0)
+	if (action_has_motion(adt->action) == 0) {
+		printf("BKE_nla_action_pushdown(): action has no data \n");
 		return;
+	}
 		
 	/* add a new NLA track to house this action 
 	 *	- we could investigate trying to fit the action into an appropriately
@@ -436,8 +438,10 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	 *	  changes in blending behaviour...
 	 */
 	nlt= add_nlatrack(adt);
-	if (nlt == NULL)
+	if (nlt == NULL) {
+		printf("BKE_nla_action_pushdown(): no NLA-track added \n");
 		return;
+	}
 	
 	/* add a new NLA strip to the track, which references the active action */
 	strip= add_nlastrip(nlt, adt->action);
@@ -447,6 +451,9 @@ void BKE_nla_action_pushdown (AnimData *adt)
 		adt->action->id.us--;
 		adt->action= NULL;
 	}
+	
+	// TEMP DEBUG...
+	printf("BKE_nla_action_pushdown(): NLA strip added.. done \n");
 	
 	// TODO: set any other flags necessary here...
 }
