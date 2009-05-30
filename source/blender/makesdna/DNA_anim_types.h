@@ -444,6 +444,8 @@ enum {
 	NLASTRIP_FLAG_SELECT		= (1<<1),
 //	NLASTRIP_FLAG_SELECT_L		= (1<<2),	// left handle selected
 //	NLASTRIP_FLAG_SELECT_R		= (1<<3),	// right handle selected
+		/* NLA strip uses the same action that the action being tweaked uses (not set for the twaking one though) */
+	NLASTRIP_FLAG_TWEAKUSER		= (1<<4),
 	
 	/* controls driven by local F-Curves */
 		/* strip influence is controlled by local F-Curve */

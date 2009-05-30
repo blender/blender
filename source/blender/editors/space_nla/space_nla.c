@@ -246,7 +246,7 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		//draw_channel_strips(&ac, saction, ar);
+		draw_nla_main_data(&ac, snla, ar);
 	}
 	
 	/* current frame */

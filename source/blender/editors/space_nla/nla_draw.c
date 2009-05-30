@@ -83,6 +83,144 @@
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *********************************************** */
+/* Strips */
+
+static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+{
+	/* draw extrapolation info first (as backdrop) */
+	// TODO...
+	
+	/* draw 'inside' of strip itself */
+		/* set color of strip - color is used to indicate status here */
+	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
+		/* tweaking strip should be drawn green when it is acting as the tweaking strip */
+		// FIXME: hardcoded temp-hack colors
+		glColor3f(0.3f, 0.95f, 0.1f);
+	}
+	else if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
+		/* alert user that this strip is also used by the tweaking track (this is set when going into
+		 * 'editmode' for that strip), since the edits made here may not be what the user anticipated
+		 */
+		// FIXME: hardcoded temp-hack colors
+		glColor3f(0.85f, 0.0f, 0.0f);
+	}
+	else if (strip->flag & NLASTRIP_FLAG_SELECT) {
+		/* selected strip - use theme color for selected */
+		UI_ThemeColor(TH_STRIP_SELECT);
+	}
+	else {
+		/* normal, unselected strip - use standard strip theme color */
+		UI_ThemeColor(TH_STRIP);
+	}
+	uiSetRoundBox(15); /* all corners rounded */
+	gl_round_box(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 9);
+	
+	/* draw strip outline */
+	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
+		/* strip should appear 'sunken', so draw a light border around it */
+		glColor3f(0.9f, 1.0f, 0.9f); // FIXME: hardcoded temp-hack colors
+	}
+	else {
+		/* strip should appear to stand out, so draw a dark border around it */
+		glColor3f(0.0f, 0.0f, 0.0f);
+	}
+	gl_round_box(GL_LINES, strip->start, yminc, strip->end, ymaxc, 9);
+} 
+
+/* ---------------------- */
+
+void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ar->v2d;
+	float y= 0.0f;
+	int items, height;
+	
+	/* build list of channels to draw */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+		/* don't use totrect set, as the width stays the same 
+		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+		 */
+		v2d->tot.ymax= (float)(height);
+	}
+	
+	/* loop through channels, and set up drawing depending on their type  */	
+	y= (float)(-NLACHANNEL_FIRST);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
+		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+		
+		/* check if visible */
+		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+		{
+			/* data to draw depends on the type of channel */
+			switch (ale->type) {
+				case ANIMTYPE_NLATRACK:
+				{
+					NlaTrack *nlt= (NlaTrack *)ale->data;
+					NlaStrip *strip;
+					
+					/* draw backdrop? */
+					// TODO...
+					
+					/* draw each strip in the track */
+					for (strip= nlt->strips.first; strip; strip= strip->next) {
+						/* only draw if at least part of the strip is within view */
+						if ( IN_RANGE(v2d->cur.xmin, strip->start, strip->end) ||
+							 IN_RANGE(v2d->cur.xmax, strip->start, strip->end) )
+						{
+							nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
+						}
+					}
+				}
+					break;
+					
+				case ANIMTYPE_NLAACTION:
+				{
+					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data */
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glEnable(GL_BLEND);
+					
+					if (ale->data)
+						glColor4f(0.8f, 0.2f, 0.0f, 0.4f);	// reddish color - hardcoded for now 
+					else
+						glColor4f(0.6f, 0.5f, 0.5f, 0.3f); 	// greyish-red color - hardcoded for now
+						
+					glBegin(GL_QUADS);
+						glVertex2f(v2d->cur.xmin, yminc);
+						glVertex2f(v2d->cur.xmin, ymaxc);
+						glVertex2f(v2d->cur.xmax, ymaxc);
+						glVertex2f(v2d->cur.xmax, yminc);
+					glEnd();
+					
+					glDisable(GL_BLEND);
+				}
+					break;
+			}
+		}
+		
+		/* adjust y-position for next one */
+		y += NLACHANNEL_STEP;
+	}
+	
+	/* free tempolary channels */
+	BLI_freelistN(&anim_data);
+}
 
 /* *********************************************** */
 /* Channel List */

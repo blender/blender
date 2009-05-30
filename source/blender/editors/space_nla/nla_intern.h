@@ -49,6 +49,7 @@
 /* **************************************** */
 /* nla_draw.c */
 
+void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
 void draw_nla_channel_list(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
 
 /* **************************************** */
