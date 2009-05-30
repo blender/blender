@@ -309,6 +309,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
 		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
+		wm_clear_default_size(C);
 	}
 	
 	/* match the read WM with current WM */
