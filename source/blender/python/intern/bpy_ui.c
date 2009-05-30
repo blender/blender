@@ -303,17 +303,9 @@ static PyObject *Method_registerKey( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-/* internal use only */
-static bContext *get_py_context__internal(void)
-{
-	PyObject *globals = PyEval_GetGlobals();
-	PyObject *val= PyDict_GetItemString(globals, "__bpy_context__"); /* borrow ref */
-	return PyCObject_AsVoidPtr(val);
-}
-
 static PyObject *Method_getRegonPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	ARegion *ar = CTX_wm_region(C);
 	return PyCObject_FromVoidPtr(ar, NULL);
@@ -321,7 +313,7 @@ static PyObject *Method_getRegonPtr( PyObject * self )
 
 static PyObject *Method_getAreaPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	ScrArea *area = CTX_wm_area(C);
 	return PyCObject_FromVoidPtr(area, NULL);
@@ -329,7 +321,7 @@ static PyObject *Method_getAreaPtr( PyObject * self )
 
 static PyObject *Method_getScreenPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	bScreen *screen= CTX_wm_screen(C);
 	return PyCObject_FromVoidPtr(screen, NULL);
@@ -337,7 +329,7 @@ static PyObject *Method_getScreenPtr( PyObject * self )
 
 static PyObject *Method_getSpacePtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	SpaceLink *sl= CTX_wm_space_data(C);
 	return PyCObject_FromVoidPtr(sl, NULL);
@@ -345,7 +337,7 @@ static PyObject *Method_getSpacePtr( PyObject * self )
 
 static PyObject *Method_getWindowPtr( PyObject * self )
 {
-	bContext *C= get_py_context__internal();
+	bContext *C= BPy_GetContext();
 	
 	wmWindow *window= CTX_wm_window(C);
 	return PyCObject_FromVoidPtr(window, NULL);
@@ -395,7 +387,7 @@ PyObject *BPY_ui_module( void )
 #if PY_VERSION_HEX >= 0x03000000
 	submodule= PyModule_Create(&ui_module);
 #else /* Py2.x */
-	submodule= Py_InitModule3( "bpyui", ui_methods, "" );
+	submodule= Py_InitModule3( "bpy.ui", ui_methods, "" );
 #endif
 	
 	/* uiBlock->flag (controls) */
@@ -566,8 +558,10 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( mod, "TIME", PyLong_FromSsize_t(SPACE_TIME) );
 	PyModule_AddObject( mod, "NODE", PyLong_FromSsize_t(SPACE_NODE) );
 	
-	
-	
+	/* INCREF since its its assumed that all these functions return the
+	 * module with a new ref like PyDict_New, since they are passed to
+	  * PyModule_AddObject which steals a ref */
+	Py_INCREF(submodule);
 	
 	return submodule;
 }

@@ -1364,7 +1364,14 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
 	PyObject *item;
-
+	
+	Py_INCREF(newclass);
+	
+	if (RNA_struct_py_type_get(srna))
+		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
+	
+	Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
+	
 	RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
 	/* Not 100% needed but useful,
@@ -1919,6 +1926,10 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 static void bpy_class_free(void *pyob_ptr)
 {
+	if(G.f&G_DEBUG) {
+		if(((PyObject *)pyob_ptr)->ob_refcnt > 1)
+			PyObSpit("zombie class - ref should be 1", (PyObject *)pyob_ptr);
+	}
 	Py_DECREF((PyObject *)pyob_ptr);
 }
 
@@ -1968,10 +1979,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_PRINT);
@@ -1985,8 +1993,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 
 	BKE_reports_clear(&reports);
 
-	pyrna_subtype_set_rna(py_class, srna);
-	Py_INCREF(py_class);
+	pyrna_subtype_set_rna(py_class, srna); /* takes a ref to py_class */
 
 	Py_RETURN_NONE;
 }
@@ -2031,10 +2038,8 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
+	
 
 	/* call unregister */
 	unreg(C, py_srna->ptr.data);

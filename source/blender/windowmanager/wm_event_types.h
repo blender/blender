@@ -195,7 +195,9 @@
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
-#define EVT_ACTIONZONE	0x5001
+#define EVT_ACTIONZONE_AREA		0x5000
+#define EVT_ACTIONZONE_REGION	0x5001
+
 		/* tweak events, for L M R mousebuttons */
 #define EVT_TWEAK_L		0x5002
 #define EVT_TWEAK_M		0x5003

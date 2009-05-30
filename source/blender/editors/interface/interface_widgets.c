@@ -1144,7 +1144,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	if(state & UI_BUT_DISABLED) {
+	if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE)) {
 		wt->wcol.text[0]= 0.5f*(wt->wcol.text[0]+wt->wcol.text_sel[0]);
 		wt->wcol.text[1]= 0.5f*(wt->wcol.text[1]+wt->wcol.text_sel[1]);
 		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
@@ -1811,11 +1811,13 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
 			case TOGBUT:
-				wt= widget_type(UI_WTYPE_TOGGLE);
-				break;
 			case TOG:
 			case TOGN:
 			case TOG3:
+				wt= widget_type(UI_WTYPE_TOGGLE);
+				break;
+			case OPTION:
+			case OPTIONN:
 				if (!(but->flag & UI_HAS_ICON)) {
 					wt= widget_type(UI_WTYPE_OPTION);
 					but->flag |= UI_TEXT_LEFT;
@@ -1875,7 +1877,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
 		wt->text(fstyle, &wt->wcol, but, rect);
 		
-		if(state & UI_BUT_DISABLED)
+		if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE))
 			if(but->dt!=UI_EMBOSSP)
 				widget_disabled(&disablerect);
 	}

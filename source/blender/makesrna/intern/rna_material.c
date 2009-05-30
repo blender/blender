@@ -160,6 +160,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
@@ -735,7 +736,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "material_type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Material type defining how the object is rendered.");
-	RNA_def_property_enum_funcs(prop, NULL, "rna_Material_type_set");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Material_type_set", NULL);
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
 	
 	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_NONE);
@@ -777,6 +778,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "light_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Light Group", "Limit lighting to lamps in this Group.");
 	
 	/* flags */

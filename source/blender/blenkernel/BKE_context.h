@@ -72,12 +72,34 @@ typedef struct bContextDataResult bContextDataResult;
 typedef int (*bContextDataCallback)(const bContext *C,
 	const char *member, bContextDataResult *result);
 
+typedef struct bContextStoreEntry {
+	struct bContextStoreEntry *next, *prev;
+
+	char name[128];
+	PointerRNA ptr;
+} bContextStoreEntry;
+
+typedef struct bContextStore {
+	struct bContextStore *next, *prev;
+
+	ListBase entries;
+	int used;
+} bContextStore;
+
 /* Context */
 
 bContext *CTX_create(void);
 void CTX_free(bContext *C);
 
 bContext *CTX_copy(const bContext *C);
+
+/* Stored Context */
+
+bContextStore *CTX_store_add(ListBase *contexts, char *name, PointerRNA *ptr);
+void CTX_store_set(bContext *C, bContextStore *store);
+bContextStore *CTX_store_copy(bContextStore *store);
+void CTX_store_free(bContextStore *store);
+void CTX_store_free_list(ListBase *contexts);
 
 /* Window Manager Context */
 

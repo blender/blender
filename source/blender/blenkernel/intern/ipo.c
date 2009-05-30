@@ -1169,7 +1169,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
 		/* add the 'only int values' flag */
-		fcu->flag |= FCURVE_INT_VALUES;		
+		fcu->flag |= (FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);		
 		
 		/* for each bit we have to remap + check for:
 		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),

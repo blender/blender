@@ -30,6 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GHOST_C-api.h"
+
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
@@ -119,6 +121,28 @@ void wm_check(bContext *C)
 		ED_screens_initialize(wm);
 		wm->initialized= 1;
 	}
+}
+
+void wm_clear_default_size(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win;
+	
+	/* wm context */
+	if(wm==NULL) {
+		wm= CTX_data_main(C)->wm.first;
+		CTX_wm_manager_set(C, wm);
+	}
+	if(wm==NULL) return;
+	if(wm->windows.first==NULL) return;
+	
+	for(win= wm->windows.first; win; win= win->next) {
+		win->sizex = 0;
+		win->sizey = 0;
+		win->posx = 0;
+		win->posy = 0;
+	}
+
 }
 
 /* on startup, it adds all data, for matching */

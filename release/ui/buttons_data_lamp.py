@@ -18,11 +18,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
-		row = layout.row()
-		row.itemR(lamp, "type", expand=True)
+		layout.itemR(lamp, "type", expand=True)
 		
 		split = layout.split()
 		
@@ -64,41 +60,39 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		return (ob.type == 'LAMP' and ob.data.type == 'SUN')
 
 	def draw(self, context):
-		lamp = context.active_object.data
+		lamp = context.active_object.data.sky
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		row = layout.row()
 		row.itemR(lamp, "sky")
 		row.itemR(lamp, "atmosphere")
 		
-		if lamp.sky or lamp.atmosphere:
-			layout.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
+		row = layout.row()
+		row.active = lamp.sky or lamp.atmosphere
+		row.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
 			
-			split = layout.split()
-			
-			col = split.column()
-			if lamp.sky:
-				sub = col.column()
-				sub.itemR(lamp, "sky_blend_type", text="Blend Type")
-				sub.itemR(lamp, "sky_blend")
-				sub.itemR(lamp, "sky_color_space", text="Color Space")
-				sub.itemR(lamp, "sky_exposure")
-				sub = col.column()
-				sub.itemR(lamp, "horizon_brightness", text="Hor Bright")
-				sub.itemR(lamp, "spread", text="Hor Spread")
-				sub.itemR(lamp, "sun_brightness", text="Sun Bright")
-				sub.itemR(lamp, "sun_size")
-				sub.itemR(lamp, "backscattered_light", text="Back Light")
+		split = layout.split()
+
+		col = split.column()
+		
+		sub = col.column()
+		sub.active = lamp.sky
+		sub.itemR(lamp, "sky_blend_type", text="Blend Type")
+		sub.itemR(lamp, "sky_blend")
+		sub.itemR(lamp, "sky_color_space", text="Color Space")
+		sub.itemR(lamp, "sky_exposure")
+		sub.itemR(lamp, "horizon_brightness", text="Hor Bright")
+		sub.itemR(lamp, "spread", text="Hor Spread")
+		sub.itemR(lamp, "sun_brightness", text="Sun Bright")
+		sub.itemR(lamp, "sun_size")
+		sub.itemR(lamp, "backscattered_light", text="Back Light")
 				
-			sub = split.column()
-			if lamp.atmosphere:
-				sub.itemR(lamp, "sun_intensity", text="Sun Intens")
-				sub.itemR(lamp, "atmosphere_inscattering", text="Inscattering")
-				sub.itemR(lamp, "atmosphere_extinction", text="Extinction")
-				sub.itemR(lamp, "atmosphere_distance_factor", text="Distance")
+		sub = split.column()
+		sub.active = lamp.atmosphere
+		sub.itemR(lamp, "sun_intensity", text="Sun Intens")
+		sub.itemR(lamp, "atmosphere_inscattering", text="Inscattering")
+		sub.itemR(lamp, "atmosphere_extinction", text="Extinction")
+		sub.itemR(lamp, "atmosphere_distance_factor", text="Distance")
 				
 class DATA_PT_shadow(DataButtonsPanel):
 	__idname__ = "DATA_PT_shadow"
@@ -112,9 +106,6 @@ class DATA_PT_shadow(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
 		if lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW'):
@@ -194,9 +185,6 @@ class DATA_PT_spot(DataButtonsPanel):
 		lamp = context.active_object.data
 		layout = self.layout
 
-		if not lamp:
-			return
-		
 		split = layout.split()
 		
 		sub = split.column()
@@ -204,12 +192,13 @@ class DATA_PT_spot(DataButtonsPanel):
 		sub.itemR(lamp, "spot_blend", text="Blend")
 		sub.itemR(lamp, "square")
 		
-		sub = split.column()
-		sub.itemR(lamp, "halo")
-		if lamp.halo:
-			sub.itemR(lamp, "halo_intensity", text="Intensity")
-			if lamp.shadow_method == 'BUFFER_SHADOW':
-				sub.itemR(lamp, "halo_step", text="Step")
+		col = split.column()
+		col.itemR(lamp, "halo")
+		colsub = col.column()
+		colsub.active = lamp.halo
+		colsub.itemR(lamp, "halo_intensity", text="Intensity")
+		if lamp.shadow_method == 'BUFFER_SHADOW':
+			colsub.itemR(lamp, "halo_step", text="Step")
 
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)

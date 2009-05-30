@@ -323,24 +323,78 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 	return sa;
 }
 
+/* quick poll to save operators to be created and handled */
+static int actionzone_area_poll(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa= CTX_wm_area(C);
+	
+	if(sa && win) {
+		AZone *az;
+		int x= win->eventstate->x;
+		int y= win->eventstate->y;
+		
+		for(az= sa->actionzones.first; az; az= az->next)
+			if(BLI_in_rcti(&az->rect, x, y))
+			   return 1;
+	}	
+	return 0;
+}
 
 AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 {
 	AZone *az= NULL;
-	int i= 0;
 	
-	for(az= sa->actionzones.first, i= 0; az; az= az->next, i++) {
-		if(az->type == AZONE_TRI) {
-			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
-				break;
-		}
-		if(az->type == AZONE_QUAD) {
-			if(az->x1 < x && x < az->x2 && az->y1 < y && y < az->y2) 
-				break;
+	for(az= sa->actionzones.first; az; az= az->next) {
+		if(BLI_in_rcti(&az->rect, x, y)) {
+			if(az->type == AZONE_AREA) {
+				if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
+					break;
+			}
+			else if(az->type == AZONE_REGION) {
+				float v1[2], v2[2], v3[2], pt[2];
+				
+				v1[0]= az->x1; v1[1]= az->y1;
+				v2[0]= az->x2; v2[1]= az->y2;
+				v3[0]= az->x3; v3[1]= az->y3;
+				pt[0]= x; pt[1]=y;
+
+				if(IsPointInTri2D(v1, v2, v3, pt)) 
+					break;
+			}
 		}
 	}
 	
 	return az;
+}
+
+
+static void actionzone_exit(bContext *C, wmOperator *op)
+{
+	if(op->customdata)
+		MEM_freeN(op->customdata);
+	op->customdata= NULL;
+}
+
+/* send EVT_ACTIONZONE event */
+static void actionzone_apply(bContext *C, wmOperator *op, int type)
+{
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	sActionzoneData *sad= op->customdata;
+	
+	sad->modifier= RNA_int_get(op->ptr, "modifier");
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	if(type==AZONE_AREA)
+		event.type= EVT_ACTIONZONE_AREA;
+	else
+		event.type= EVT_ACTIONZONE_REGION;
+	event.customdata= op->customdata;
+	event.customdatafree= TRUE;
+	op->customdata= NULL;
+	
+	wm_event_add(win, &event);
 }
 
 static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -358,40 +412,26 @@ static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sad->az= az;
 	sad->x= event->x; sad->y= event->y;
 	
-	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
-	
-	return OPERATOR_RUNNING_MODAL;
+	/* region azone directly reacts on mouse clicks */
+	if(sad->az->type==AZONE_REGION) {
+		actionzone_apply(C, op, AZONE_REGION);
+		actionzone_exit(C, op);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* add modal handler */
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
 
-static void actionzone_exit(bContext *C, wmOperator *op)
-{
-	if(op->customdata)
-		MEM_freeN(op->customdata);
-	op->customdata= NULL;
-}
-
-/* send EVT_ACTIONZONE event */
-static void actionzone_apply(bContext *C, wmOperator *op)
-{
-	wmEvent event;
-	wmWindow *win= CTX_wm_window(C);
-	sActionzoneData *sad= op->customdata;
-	sad->modifier= RNA_int_get(op->ptr, "modifier");
-	
-	event= *(win->eventstate);	/* XXX huh huh? make api call */
-	event.type= EVT_ACTIONZONE;
-	event.customdata= op->customdata;
-	event.customdatafree= TRUE;
-	op->customdata= NULL;
-	
-	wm_event_add(win, &event);
-}
 
 static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sActionzoneData *sad= op->customdata;
 	int deltax, deltay;
+	int mindelta= sad->az->type==AZONE_REGION?1:12;
 	
 	switch(event->type) {
 		case MOUSEMOVE:
@@ -400,30 +440,33 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 			deltay= (event->y - sad->y);
 			
 			if(deltay > ABS(deltax))
-				sad->gesture_dir= AZONE_N;
+				sad->gesture_dir= 'n';
 			else if(deltax > ABS(deltay))
-				sad->gesture_dir= AZONE_E;
+				sad->gesture_dir= 'e';
 			else if(deltay < -ABS(deltax))
-				sad->gesture_dir= AZONE_S;
+				sad->gesture_dir= 's';
 			else
-				sad->gesture_dir= AZONE_W;
+				sad->gesture_dir= 'w';
 			
 			/* gesture is large enough? */
-			if(ABS(deltax) > 12 || ABS(deltay) > 12) {
+			if(ABS(deltax) > mindelta || ABS(deltay) > mindelta) {
 				
 				/* second area, for join */
 				sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 				/* apply sends event */
-				actionzone_apply(C, op);
+				actionzone_apply(C, op, sad->az->type);
 				actionzone_exit(C, op);
 				
 				return OPERATOR_FINISHED;
 			}
 				break;
 		case ESCKEY:
-		case LEFTMOUSE:
 			actionzone_exit(C, op);
 			return OPERATOR_CANCELLED;
+		case LEFTMOUSE:				
+			actionzone_exit(C, op);
+			return OPERATOR_CANCELLED;
+
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -438,7 +481,7 @@ void SCREEN_OT_actionzone(wmOperatorType *ot)
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= actionzone_area_poll;
 	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
 }
 
@@ -544,7 +587,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void SCREEN_OT_area_swap(wmOperatorType *ot)
+static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
 	ot->name= "Swap areas";
 	ot->idname= "SCREEN_OT_area_swap";
@@ -598,7 +641,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_area_dupli(wmOperatorType *ot)
+static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Area into New Window";
 	ot->idname= "SCREEN_OT_area_dupli";
@@ -1015,7 +1058,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sAreaSplitData *sd;
 	
-	if(event->type==EVT_ACTIONZONE) {
+	if(event->type==EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad= event->customdata;
 		int dir;
 
@@ -1036,7 +1079,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* prepare operator state vars */
-		if(sad->gesture_dir==AZONE_N || sad->gesture_dir==AZONE_S) {
+		if(sad->gesture_dir=='n' || sad->gesture_dir=='s') {
 			dir= 'h';
 			RNA_float_set(op->ptr, "factor", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
 		}
@@ -1159,6 +1202,119 @@ void SCREEN_OT_area_split(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, "Factor", "", 0.0, 1.0);
 }
+
+
+
+/* ************** scale region edge operator *********************************** */
+
+typedef struct RegionMoveData {
+	ARegion *ar;
+	int bigger, smaller, origval;
+	int origx, origy;
+	char edge;
+	
+} RegionMoveData;
+
+static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	sActionzoneData *sad= event->customdata;
+	AZone *az= sad->az;
+	
+	if(az->ar) {
+		RegionMoveData *rmd= MEM_callocN(sizeof(RegionMoveData), "RegionMoveData");
+		
+		op->customdata= rmd;
+		
+		rmd->ar= az->ar;
+		rmd->edge= az->edge;
+		rmd->origx= event->x;
+		rmd->origy= event->y;
+		if(rmd->edge=='l' || rmd->edge=='r') 
+			rmd->origval= rmd->ar->type->minsizex;
+		else
+			rmd->origval= rmd->ar->type->minsizey;
+		
+		/* add temp handler */
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	RegionMoveData *rmd= op->customdata;
+	int delta;
+	
+	/* execute the events */
+	switch(event->type) {
+		case MOUSEMOVE:
+			
+			if(rmd->edge=='l' || rmd->edge=='r') {
+				delta= event->x - rmd->origx;
+				if(rmd->edge=='l') delta= -delta;
+				rmd->ar->type->minsizex= rmd->origval + delta;
+				CLAMP(rmd->ar->type->minsizex, 0, 1000);
+				if(rmd->ar->type->minsizex < 10) {
+					rmd->ar->type->minsizex= 10;
+					rmd->ar->flag |= RGN_FLAG_HIDDEN;
+				}
+				else
+					rmd->ar->flag &= ~RGN_FLAG_HIDDEN;
+			}
+			else {
+				delta= event->y - rmd->origy;
+				if(rmd->edge=='b') delta= -delta;
+				rmd->ar->type->minsizey= rmd->origval + delta;
+				CLAMP(rmd->ar->type->minsizey, 0, 1000);
+				if(rmd->ar->type->minsizey < 10) {
+					rmd->ar->type->minsizey= 10;
+					rmd->ar->flag |= RGN_FLAG_HIDDEN;
+				}
+				else
+					rmd->ar->flag &= ~RGN_FLAG_HIDDEN;
+			}
+			
+			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+					
+			break;
+			
+		case LEFTMOUSE:
+			if(event->val==0) {
+				
+				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
+					rmd->ar->flag ^= RGN_FLAG_HIDDEN;
+					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+				}				
+				MEM_freeN(op->customdata);
+				op->customdata = NULL;
+
+				return OPERATOR_FINISHED;
+			}
+			break;
+			
+		case ESCKEY:
+			;
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+static void SCREEN_OT_region_scale(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Scale Region Size";
+	ot->idname= "SCREEN_OT_region_scale";
+	
+	ot->invoke= region_scale_invoke;
+	ot->modal= region_scale_modal;
+	
+	ot->poll= ED_operator_areaactive;
+}
+
 
 /* ************** frame change operator ***************************** */
 
@@ -1387,7 +1543,7 @@ static int area_join_exec(bContext *C, wmOperator *op)
 static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 
-	if(event->type==EVT_ACTIONZONE) {
+	if(event->type==EVT_ACTIONZONE_AREA) {
 		sActionzoneData *sad= event->customdata;
 
 		if(sad->modifier>0) {
@@ -1821,7 +1977,7 @@ static void testfunc(bContext *C, void *argv, int arg)
 
 static void newlevel1(bContext *C, uiLayout *layout, void *arg)
 {
-	uiLayoutFunc(layout, testfunc, NULL);
+	uiLayoutSetFunc(layout, testfunc, NULL);
 	
 	uiItemV(layout, "First", ICON_PROP_ON, 1);
 	uiItemV(layout, "Second", ICON_PROP_CON, 2);
@@ -1834,7 +1990,7 @@ static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Hello world", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemO(layout, NULL, ICON_PROP_ON, "SCREEN_OT_region_flip");
 	uiItemO(layout, NULL, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
 	uiItemO(layout, NULL, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
@@ -2498,6 +2654,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_split);
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
 	WM_operatortype_append(SCREEN_OT_region_flip);
+	WM_operatortype_append(SCREEN_OT_region_scale);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_screenshot);
@@ -2531,11 +2688,14 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", 2);
 	
 	/* screen tools */
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE_AREA, 0, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE_AREA, 0, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli", EVT_ACTIONZONE_AREA, 0, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_region_scale", EVT_ACTIONZONE_REGION, 0, 0, 0);
+			/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli", EVT_ACTIONZONE, 0, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE, 0, KM_ALT, 0);
+	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);

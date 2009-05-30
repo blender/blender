@@ -90,9 +90,7 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	Py_DECREF(item);
 	
 	// XXX - evil, need to access context
-	item = PyCObject_FromVoidPtr( C, NULL );
-	PyDict_SetItemString( dict, "__bpy_context__", item );
-	Py_DECREF(item);
+	BPy_SetContext(C);
 	
 	// XXX - put somewhere more logical
 	{
@@ -386,6 +384,8 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	PySys_SetObject("path", sys_path_new);
 	Py_DECREF(sys_path_new);
 	
+	// XXX - evil, need to access context
+	BPy_SetContext(C);
 	
 	while((de = readdir(dir)) != NULL) {
 		/* We could stat the file but easier just to let python

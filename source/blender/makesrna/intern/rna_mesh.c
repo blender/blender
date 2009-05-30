@@ -467,6 +467,23 @@ static int rna_Mesh_string_layers_length(PointerRNA *ptr)
 	return rna_CustomDataLayer_length(ptr, CD_PROP_STR);
 }
 
+static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
+{
+	MTFace *tf= (MTFace*)ptr->data;
+	ID *id= value.data;
+
+	if(id) {
+		/* special exception here, individual faces don't count
+		 * as reference, but we do ensure the refcount is not zero */
+		if(id->us == 0)
+			id_us_plus(id);
+		else
+			id_lib_extern(id);
+	}
+
+	tf->tpage= (struct Image*)id;
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -747,9 +764,11 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh Texture Face", "UV mapping, texturing and game engine data for a face.");
 	RNA_def_struct_path_func(srna, "rna_MeshTextureFace_path");
 
-	/* prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_ui_text(prop, "Image", ""); */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
 
 	prop= RNA_def_property(srna, "tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
@@ -1093,6 +1112,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "texco_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture Space Mesh", "Derive texture coordinates from another mesh");
 
 	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);

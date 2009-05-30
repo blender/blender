@@ -1709,7 +1709,7 @@ static int scroll_exec(bContext *C, wmOperator *op)
 
 	screen_skip(st, lines*U.wheellinescroll);
 
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, st->text);
+	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 }

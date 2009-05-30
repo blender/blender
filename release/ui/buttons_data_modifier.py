@@ -18,17 +18,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		ob = context.active_object
 		layout = self.layout
 
-		if not ob:
-			return
-
 		row = layout.row()
 		row.item_menu_enumO("OBJECT_OT_modifier_add", "type")
 		row.itemL();
 
 		for md in ob.modifiers:
-			box = layout.template_modifier(context, md)
+			box = layout.template_modifier(md)
 
-			if md.expanded:
+			if box:
 				if md.type == 'ARMATURE':
 					self.armature(box, md)
 				if md.type == 'ARRAY':
@@ -106,26 +103,33 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.fit_type == 'FIT_LENGTH':
 			layout.itemR(md, "length")
 		if md.fit_type == 'FIT_CURVE':
-				layout.itemR(md, "curve")
+			layout.itemR(md, "curve")
 		
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.column()
-		sub.itemR(md, "constant_offset")
-		sub.itemR(md, "constant_offset_displacement", text="Displacement")
-		sub = col.column()
+		col = col.column()
+		col.itemR(md, "constant_offset")
+		colsub = col.column()
+		colsub.active = md.constant_offset
+		colsub.itemR(md, "constant_offset_displacement", text="Displacement")
 		sub = col.row().itemR(md, "merge_adjacent_vertices", text="Merge")
-		sub = col.row().itemR(md, "merge_end_vertices", text="First Last")
-		sub = col.itemR(md, "merge_distance", text="Distance")
+		colsub = col.column()
+		colsub.active = md.merge_adjacent_vertices
+		colsub.itemR(md, "merge_end_vertices", text="First Last")
+		colsub.itemR(md, "merge_distance", text="Distance")
 		
 		col = split.column()
-		sub = col.column()
-		sub.itemR(md, "relative_offset")
-		sub.itemR(md, "relative_offset_displacement", text="Displacement")
-		sub = col.column()
-		sub.itemR(md, "add_offset_object")
-		sub.itemR(md, "offset_object")
+		col = col.column()
+		col.itemR(md, "relative_offset")
+		colsub = col.column()
+		colsub.active = md.relative_offset
+		colsub.itemR(md, "relative_offset_displacement", text="Displacement")
+		col = col.column()
+		col.itemR(md, "add_offset_object")
+		colsub = col.column()
+		colsub.active = md.add_offset_object
+		colsub.itemR(md, "offset_object")
 		
 		col = layout.column()
 		col.itemR(md, "start_cap")
@@ -151,11 +155,19 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "object")
 		
 	def build(self, layout, md):
-		layout.itemR(md, "start")
-		layout.itemR(md, "length")
-		layout.itemR(md, "randomize")
-		if md.randomize:
-			layout.itemR(md, "seed")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(md, "start")
+		col.itemR(md, "length")
+
+		col = split.column()
+		col.itemR(md, "randomize")
+		colsub = col.column()
+		colsub.active = md.randomize
+		colsub.itemR(md, "seed")
+			
+		
 			
 	def cast(self, layout, md):
 		layout.itemR(md, "cast_type")
@@ -176,7 +188,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemL(text="See Collision panel.")
 		
 	def curve(self, layout, md):
-		layout.itemR(md, "curve")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "deform_axis")
 		
@@ -196,10 +208,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "uv_layer")
 	
 	def edgesplit(self, layout, md):
-		layout.itemR(md, "use_edge_angle", text="Edge Angle")
-		if (md.use_edge_angle):
-			layout.itemR(md, "split_angle")
-		layout.itemR(md, "use_sharp", text="Sharp Edges")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(md, "use_edge_angle", text="Edge Angle")
+		colsub = col.column()
+		colsub.active = md.use_edge_angle
+		colsub.itemR(md, "split_angle")
+		col = split.column()
+		col.itemR(md, "use_sharp", text="Sharp Edges")
 		
 	def explode(self, layout, md):
 		layout.itemR(md, "vertex_group")
@@ -221,7 +238,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		# Missing: "Reset" and "Recenter"
 		
 	def lattice(self, layout, md):
-		layout.itemR(md, "lattice")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		
 	def mask(self, layout, md):
@@ -233,7 +250,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "inverse")
 		
 	def meshdeform(self, layout, md):
-		layout.itemR(md, "mesh")
+		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "invert")
 		layout.itemR(md, "precision")
@@ -249,6 +266,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		sub.itemR(md, "y")
 		sub.itemR(md, "z")
 		sub = split.column()
+		sub.itemL(text="Textures:")
 		sub.itemR(md, "mirror_u")
 		sub.itemR(md, "mirror_v")
 		sub = split.column()
@@ -330,9 +348,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def subsurf(self, layout, md):
 		layout.itemR(md, "subdivision_type")
 		col = layout.column_flow()
-		col.itemR(md, "levels")
-		col.itemR(md, "render_levels")
-		col.itemR(md, "optimal_draw")
+		col.itemR(md, "levels", text="Preview")
+		col.itemR(md, "render_levels", text="Render")
+		col.itemR(md, "optimal_draw", text="Optimal Display")
 		col.itemR(md, "subsurf_uv")
 	
 	def uvproject(self, layout, md):
@@ -355,10 +373,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(md, "normals")
-		if md.normals:
-			sub.itemR(md, "x_normal", text="X")
-			sub.itemR(md, "y_normal", text="Y")
-			sub.itemR(md, "z_normal", text="Z")
+		row = sub.row(align=True)
+		row.active = md.normals
+		row.itemR(md, "x_normal", text="X", toggle=True)
+		row.itemR(md, "y_normal", text="Y", toggle=True)
+		row.itemR(md, "z_normal", text="Z", toggle=True)
 		
 		col = layout.column_flow()
 		col.itemR(md, "time_offset")
@@ -384,4 +403,3 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
-
