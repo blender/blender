@@ -136,12 +136,12 @@ void wm_clear_default_size(bContext *C)
 	if(wm==NULL) return;
 	if(wm->windows.first==NULL) return;
 	
-	win = wm->windows.first;
-	win->sizex = 0;
-	win->sizey = 0;
-	win->posx = 0;
-	win->posy = 0;
-	win->windowstate= GHOST_kWindowStateMaximized;
+	for(win= wm->windows.first; win; win= win->next) {
+		win->sizex = 0;
+		win->sizey = 0;
+		win->posx = 0;
+		win->posy = 0;
+	}
 
 }
 
