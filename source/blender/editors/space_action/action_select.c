@@ -174,7 +174,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
 	return OPERATOR_FINISHED;
 }
@@ -766,6 +766,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	if (ale == NULL) {
 		/* channel not found */
 		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+		BLI_freelistN(&anim_data);
 		return;
 	}
 	else {

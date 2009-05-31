@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung.
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -60,6 +60,18 @@ void nla_header_buttons(const bContext *C, ARegion *ar);
 /* **************************************** */
 /* nla_select.c */
 
+/* defines for left-right select tool */
+enum {
+	NLAEDIT_LRSEL_TEST	= -1,
+	NLAEDIT_LRSEL_NONE,
+	NLAEDIT_LRSEL_LEFT,
+	NLAEDIT_LRSEL_RIGHT,
+} eNlaEdit_LeftRightSelect_Mode;
+
+/* --- */
+
+void NLAEDIT_OT_select_all_toggle(wmOperatorType *ot);
+void NLAEDIT_OT_click_select(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_edit.c */
@@ -67,6 +79,7 @@ void nla_header_buttons(const bContext *C, ARegion *ar);
 /* **************************************** */
 /* nla_channels.c */
 
+void NLA_OT_channels_select_border(wmOperatorType *ot);
 void NLA_OT_channels_click(wmOperatorType *ot);
 
 /* **************************************** */

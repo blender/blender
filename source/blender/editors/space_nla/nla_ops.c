@@ -72,9 +72,11 @@ void nla_operatortypes(void)
 {
 	/* channels */
 	WM_operatortype_append(NLA_OT_channels_click);
+	WM_operatortype_append(NLA_OT_channels_select_border);
 	
 	/* select */
-	// ...
+	WM_operatortype_append(NLAEDIT_OT_click_select);
+	WM_operatortype_append(NLAEDIT_OT_select_all_toggle);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -88,13 +90,13 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	
+	/* borderselect */ 
+	WM_keymap_add_item(keymap, "NLA_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
+	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
-	
-		/* borderselect */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
 	
 	/* settings */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
@@ -114,8 +116,19 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 
 static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 {
-	//wmKeymapItem *kmi;
+	wmKeymapItem *kmi;
 	
+	/* selection */
+		/* click select */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
+	kmi= WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "left_right", NLAEDIT_LRSEL_TEST);	
+	
+		/* deselect all */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 	
 	/* transform system */

@@ -105,12 +105,12 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.tot.xmin= 1.0f;
 	ar->v2d.tot.ymin=	0.0f;
 	ar->v2d.tot.xmax= 1000.0f;
-	ar->v2d.tot.ymax= 1000.0f;
+	ar->v2d.tot.ymax= 500.0f;
 	
 	ar->v2d.cur.xmin= -5.0f;
 	ar->v2d.cur.ymin= 0.0f;
 	ar->v2d.cur.xmax= 65.0f;
-	ar->v2d.cur.ymax= 1000.0f;
+	ar->v2d.cur.ymax= 250.0f;
 	
 	ar->v2d.min[0]= 0.0f;
 	ar->v2d.min[1]= 0.0f;

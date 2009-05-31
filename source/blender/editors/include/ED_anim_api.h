@@ -317,9 +317,34 @@ void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short re
 /* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
 void ANIM_nla_mapping_apply_fcurve(struct Object *ob, struct FCurve *fcu, short restore, short only_keys);
 
-/* ------------- xxx macros ----------------------- */
+/* ------------- Utility macros ----------------------- */
 
+/* checks if the given BezTriple is selected */
 #define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
+
+/* set/clear/toggle macro 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
+		else 									(channel)->flag &= ~(sflag); \
+	}
+	
+/* set/clear/toggle macro, where the flag is negative 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
+		else 									(channel)->flag |= (sflag); \
+	}
 
 
 /* --------- anim_deps.c, animation updates -------- */

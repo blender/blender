@@ -137,7 +137,6 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	float viewWidth = v2d->cur.xmax - v2d->cur.xmin;
 	float y= 0.0f;
 	int items, height;
 	
@@ -180,29 +179,10 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* draw backdrop? */
 					// TODO...
 					
-					/* draw each strip in the track */
+					/* draw each strip in the track (if visible) */
 					for (strip=nlt->strips.first; strip; strip= strip->next) {
-						float stripLen= strip->end - strip->start;
-						
-						/* only draw if at least part of the strip is within view 
-						 *	- first 2 cases cover when the strip length is less than the viewable area
-						 *	- second 2 cases cover when the strip length is greater than the viewable area
-						 */
-						if ( (stripLen < viewWidth) && 
-							 !(IN_RANGE(strip->start, v2d->cur.xmin, v2d->cur.xmax) ||
-							   IN_RANGE(strip->end, v2d->cur.xmin, v2d->cur.xmax)) )
-						{
-							continue;
-						}
-						if ( (stripLen > viewWidth) && 
-							 !(IN_RANGE(v2d->cur.xmin, strip->start, strip->end) ||
-							   IN_RANGE(v2d->cur.xmax, strip->start, strip->end)) )
-						{
-							continue;
-						}
-						
-						/* we're still here, so ok... */
-						nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
+						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax))
+							nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
 					}
 				}
 					break;

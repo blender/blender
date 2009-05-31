@@ -87,32 +87,6 @@
 /* ************************************************************************** */
 /* CHANNELS API */
 
-/* -------------------------- Internal Macros ------------------------------- */
-
-/* set/clear/toggle macro 
- *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
- *	- sflag - bitflag to set
- */
-#define ACHANNEL_SET_FLAG(channel, smode, sflag) \
-	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
-		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
-		else 									(channel)->flag &= ~(sflag); \
-	}
-	
-/* set/clear/toggle macro, where the flag is negative 
- *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
- *	- sflag - bitflag to set
- */
-#define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
-	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
-		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
-		else 									(channel)->flag |= (sflag); \
-	}
-
 /* -------------------------- Exposed API ----------------------------------- */
 
 /* Set the given animation-channel as the active one for the active context */

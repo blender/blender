@@ -455,6 +455,37 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 
 /* NLA Strips -------------------------------------- */
 
+/* Does the given NLA-strip fall within the given bounds (times)? */
+short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
+{
+	const float stripLen= (strip) ? strip->end - strip->start : 0.0f;
+	const float boundsLen= (float)fabs(max - min);
+	
+	/* sanity checks */
+	if ((strip == NULL) || IS_EQ(stripLen, 0.0f) || IS_EQ(boundsLen, 0.0f))
+		return 0;
+	
+	/* only ok if at least part of the strip is within the bounding window
+	 *	- first 2 cases cover when the strip length is less than the bounding area
+	 *	- second 2 cases cover when the strip length is greater than the bounding area
+	 */
+	if ( (stripLen < boundsLen) && 
+		 !(IN_RANGE(strip->start, min, max) ||
+		   IN_RANGE(strip->end, min, max)) )
+	{
+		return 0;
+	}
+	if ( (stripLen > boundsLen) && 
+		 !(IN_RANGE(min, strip->start, strip->end) ||
+		   IN_RANGE(max, strip->start, strip->end)) )
+	{
+		return 0;
+	}
+	
+	/* should be ok! */
+	return 1;
+}
+
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
 // TODO: make this an api method if necesary, but need to add prefix first
 short nlastrip_is_first (AnimData *adt, NlaStrip *strip)

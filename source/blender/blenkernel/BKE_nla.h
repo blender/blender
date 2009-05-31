@@ -59,6 +59,8 @@ void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
 short BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
 void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
+short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
+
 void BKE_nla_action_pushdown(struct AnimData *adt);
 
 #endif
