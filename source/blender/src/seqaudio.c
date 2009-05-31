@@ -546,9 +546,9 @@ static void audio_fill(void *mixdown, uint8_t *sstream, int len)
 	}
        
 	audio_pos += len;    
-	if (audio_scrub) { 
-		audio_scrub--;
-		if (!audio_scrub) {
+	if (audio_scrub > 0) { 
+		audio_scrub-= len;
+		if (audio_scrub <= 0) {
 			audiostream_stop();
 		}
 	}
@@ -690,7 +690,7 @@ void audiostream_play(int startframe, uint32_t duration, int mixdown)
 
 	/* if audio already is playing, just reseek, otherwise
 	   remember scrub-duration */
-	if (!(audio_playing && !audio_scrub)) {
+	if (!(audio_playing && !(audio_scrub > 0))) {
 		audio_scrub = duration;
 	}
 	if (!mixdown) {
@@ -707,7 +707,7 @@ void audiostream_start(int frame)
 
 void audiostream_scrub(int frame)
 {
-	if (U.mixbufsize) audiostream_play(frame, 4096/U.mixbufsize, 0);
+	if (U.mixbufsize) audiostream_play(frame, 4096, 0);
 }
 
 void audiostream_stop(void)
