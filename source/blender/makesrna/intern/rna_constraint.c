@@ -1425,17 +1425,17 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint"); 
-	RNA_def_struct_ui_text(srna, "Shrinkwrap Constraint", "Creates constraint-based shrinkwrap relationship."); 
-	RNA_def_struct_sdna_from(srna, "bShrinkwrapConstraint", "data");
 	
 	static EnumPropertyItem type_items[] = {
 		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", "Nearest Surface Point", ""},
 		{MOD_SHRINKWRAP_PROJECT, "PROJECT", "Project", ""},
 		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", "Nearest Vertex", ""},
 		{0, NULL, NULL, NULL}};
-		
+	
+	srna= RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint"); 
+	RNA_def_struct_ui_text(srna, "Shrinkwrap Constraint", "Creates constraint-based shrinkwrap relationship."); 
+	RNA_def_struct_sdna_from(srna, "bShrinkwrapConstraint", "data");
+	
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
