@@ -215,19 +215,45 @@ void copy_nladata (ListBase *dst, ListBase *src)
 
 /* Adding ------------------------------------------- */
 
-/* Add a NLA Strip referencing the given Action, to the given NLA Track */
-// TODO: any extra parameters to control how this is done?
-NlaStrip *add_nlastrip (NlaTrack *nlt, bAction *act)
+/* Add a NLA Track to the given AnimData */
+NlaTrack *add_nlatrack (AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	/* sanity checks */
+	if (adt == NULL)
+		return NULL;
+		
+	/* allocate new track */
+	nlt= MEM_callocN(sizeof(NlaTrack), "NlaTrack");
+	
+	/* set settings requiring the track to not be part of the stack yet */
+	nlt->flag = NLATRACK_SELECTED;
+	nlt->index= BLI_countlist(&adt->nla_tracks);
+	
+	/* add track to stack, and make it the active one */
+	BLI_addtail(&adt->nla_tracks, nlt);
+	BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
+	
+	/* must have unique name, but we need to seed this */
+	sprintf(nlt->name, "NlaTrack");
+	BLI_uniquename(&adt->nla_tracks, nlt, "NlaTrack", '.', offsetof(NlaTrack, name), 64);
+	
+	/* return the new track */
+	return nlt;
+}
+
+/* Add a NLA Strip referencing the given Action */
+NlaStrip *add_nlastrip (bAction *act)
 {
 	NlaStrip *strip;
 	
 	/* sanity checks */
-	if ELEM(NULL, nlt, act)
+	if (act == NULL)
 		return NULL;
 		
 	/* allocate new strip */
 	strip= MEM_callocN(sizeof(NlaStrip), "NlaStrip");
-	BLI_addtail(&nlt->strips, strip);
 	
 	/* generic settings 
 	 *	- selected flag to highlight this to the user
@@ -259,32 +285,54 @@ NlaStrip *add_nlastrip (NlaTrack *nlt, bAction *act)
 	return strip;
 }
 
-/* Add a NLA Track to the given AnimData */
-NlaTrack *add_nlatrack (AnimData *adt)
+/* Add new NLA-strip to the top of the NLA stack - i.e. into the last track if space, or a new one otherwise */
+NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 {
+	NlaStrip *strip, *ns;
 	NlaTrack *nlt;
+	short not_added = 1;
 	
 	/* sanity checks */
-	if (adt == NULL)
+	if ELEM(NULL, adt, act)
 		return NULL;
-		
-	/* allocate new track */
-	nlt= MEM_callocN(sizeof(NlaTrack), "NlaTrack");
 	
-	/* set settings requiring the track to not be part of the stack yet */
-	nlt->flag = NLATRACK_SELECTED;
-	nlt->index= BLI_countlist(&adt->nla_tracks);
+	/* create a new NLA strip */
+	strip= add_nlastrip(act);
+	if (strip == NULL)
+		return NULL;
 	
-	/* add track to stack, and make it the active one */
-	BLI_addtail(&adt->nla_tracks, nlt);
-	BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
+	/* check if the last NLA-track (if it exists) has any space for this strip:
+	 *	- if so, add this strip to that track
+	 */
+	if ( (adt->nla_tracks.last == NULL) || 
+		 (BKE_nlatrack_has_space(adt->nla_tracks.last, strip->start, strip->end)==0) ) 
+	{
+		/* no space, so add to a new track... */
+		nlt= add_nlatrack(adt);
+	}
+	else 
+	{
+		/* there's some space, so add to this track... */
+		nlt= adt->nla_tracks.last;
+	}
 	
-	/* must have unique name, but we need to seed this */
-	sprintf(nlt->name, "NlaTrack");
-	BLI_uniquename(&adt->nla_tracks, nlt, "NlaTrack", '.', offsetof(NlaTrack, name), 64);
+	/* find the right place to add the strip to the nominated track */
+	for (ns= nlt->strips.first; ns; ns= ns->next) {
+		/* if current strip occurs after the new strip, add it before */
+		if (ns->start > strip->end) {
+			BLI_insertlinkbefore(&nlt->strips, ns, strip);
+			not_added= 0;
+			break;
+		}
+	}
+	if (not_added) {
+		/* just add to the end of the list of the strips then... */
+		BLI_addtail(&nlt->strips, strip);
+	}
 	
-	/* return the new track */
-	return nlt;
+	
+	/* returns the strip added */
+	return strip;
 }
 
 /* *************************************************** */
@@ -404,7 +452,39 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 	nlt->strips.first= tmp.first;
 	nlt->strips.last= tmp.last;
 }
- 
+
+/* NLA Strips -------------------------------------- */
+
+/* Is the given NLA-strip the first one to occur for the given AnimData block */
+// TODO: make this an api method if necesary, but need to add prefix first
+short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
+{
+	NlaTrack *nlt;
+	NlaStrip *ns;
+	
+	/* sanity checks */
+	if ELEM(NULL, adt, strip)
+		return 0;
+		
+	/* check if strip has any strips before it */
+	if (strip->prev)
+		return 0;
+		
+	/* check other tracks to see if they have a strip that's earlier */
+	// TODO: or should we check that the strip's track is also the first?
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		/* only check the first strip, assuming that they're all in order */
+		ns= nlt->strips.first;
+		if (ns) {
+			if (ns->start < strip->start)
+				return 0;
+		}
+	}	
+	
+	/* should be first now */
+	return 1;
+}
+
 /* Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA
@@ -415,7 +495,6 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 // TODO: maybe we should have checks for this too...
 void BKE_nla_action_pushdown (AnimData *adt)
 {
-	NlaTrack *nlt;
 	NlaStrip *strip;
 	
 	/* sanity checks */
@@ -431,28 +510,27 @@ void BKE_nla_action_pushdown (AnimData *adt)
 		printf("BKE_nla_action_pushdown(): action has no data \n");
 		return;
 	}
-		
-	/* add a new NLA track to house this action 
-	 *	- we could investigate trying to fit the action into an appropriately
-	 *	  sized gap in the existing tracks, however, this may result in unexpected 
-	 *	  changes in blending behaviour...
-	 */
-	nlt= add_nlatrack(adt);
-	if (nlt == NULL) {
-		printf("BKE_nla_action_pushdown(): no NLA-track added \n");
-		return;
-	}
 	
 	/* add a new NLA strip to the track, which references the active action */
-	strip= add_nlastrip(nlt, adt->action);
+	strip= add_nlastrip_to_stack(adt, adt->action);
 	
-	/* clear reference to action now that we've pushed it onto the stack */
+	/* do other necessary work on strip */	
 	if (strip) {
+		/* clear reference to action now that we've pushed it onto the stack */
 		adt->action->id.us--;
 		adt->action= NULL;
+		
+		/* if the strip is the first one in the track it lives in, check if there
+		 * are strips in any other tracks that may be before this, and set the extend
+		 * mode accordingly
+		 */
+		if (nlastrip_is_first(adt, strip) == 0) {
+			/* not first, so extend mode can only be NLASTRIP_EXTEND_HOLD_FORWARD not NLASTRIP_EXTEND_HOLD,
+			 * so that it doesn't override strips in previous tracks
+			 */
+			strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
+		}
 	}
-	
-	// TODO: set any other flags necessary here...
 }
 
 /* *************************************************** */

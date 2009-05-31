@@ -149,6 +149,13 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 				ACHANNEL_SET_FLAG(fcu, ACHANNEL_SETFLAG_CLEAR, FCURVE_ACTIVE);
 			}
 				break;
+			case ANIMTYPE_NLATRACK:
+			{
+				NlaTrack *nlt= (NlaTrack *)ale->data;
+				
+				ACHANNEL_SET_FLAG(nlt, ACHANNEL_SETFLAG_CLEAR, NLATRACK_ACTIVE);
+			}
+				break;
 		}
 	}
 	
@@ -165,6 +172,13 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 			{
 				FCurve *fcu= (FCurve *)channel_data;
 				fcu->flag |= FCURVE_ACTIVE;
+			}
+				break;
+			case ANIMTYPE_NLATRACK:
+			{
+				NlaTrack *nlt= (NlaTrack *)channel_data;
+				
+				ACHANNEL_SET_FLAG(nlt, ACHANNEL_SETFLAG_CLEAR, NLATRACK_ACTIVE);
 			}
 				break;
 		}

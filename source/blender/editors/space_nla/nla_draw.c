@@ -296,7 +296,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					indent= 0;
 					
 					special= ICON_SCENE_DATA;
-						
+					
 					/* only show expand if there are any channels */
 					if (EXPANDED_SCEC(sce))
 						expand= ICON_TRIA_UP;
@@ -484,6 +484,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					else
 						protect = ICON_LOCKED;
 						
+					sel = SEL_NLT(nlt);
 					strcpy(name, nlt->name);
 				}
 					break;
@@ -621,10 +622,10 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				
 				/* XXX firstly draw a little rect to help identify that it's different from the toggles */
 				glBegin(GL_LINE_LOOP);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-8);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+8);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-8);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+8);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+9);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+9);
+					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
 				glEnd(); // GL_LINES
 				
 				/* now draw the icon */
