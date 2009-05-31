@@ -33,8 +33,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				self.copy_scale(box, con)
 			#elif con.type == "SCRIPT":
 			#	self.script(box, con)
-			#elif con.type == "ACTION":
-			#	self.action(box, con)
+			elif con.type == "ACTION":
+				self.action(box, con)
 			elif con.type == "LOCKED_TRACK":
 				self.locked_track(box, con)
 			elif con.type == "LIMIT_DISTANCE":
@@ -87,23 +87,26 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	
 	def child_of(self, layout, con):
 		self.target_template(layout, con)
+
+		split = layout.split()
 		
-		layout.itemL(text="Use Channel(s):")
+		sub = split.column()
+		sub.itemL(text="Location:")
+		sub.itemR(con, "locationx", text="X")
+		sub.itemR(con, "locationy", text="Y")
+		sub.itemR(con, "locationz", text="Z")
 		
-		row = layout.row(align=True)
-		row.itemR(con, "locationx", text="Loc X", toggle=True)
-		row.itemR(con, "locationy", text="Loc Y", toggle=True)
-		row.itemR(con, "locationz", text="Loc Z", toggle=True)
+		sub = split.column()
+		sub.itemL(text="Rotation:")
+		sub.itemR(con, "rotationx", text="X")
+		sub.itemR(con, "rotationy", text="Y")
+		sub.itemR(con, "rotationz", text="Z")
 		
-		row = layout.row(align=True)
-		row.itemR(con, "rotationx", text="Rot X", toggle=True)
-		row.itemR(con, "rotationy", text="Rot X", toggle=True)
-		row.itemR(con, "rotationz", text="Rot X", toggle=True)
-		
-		row = layout.row(align=True)
-		row.itemR(con, "sizex", text="Scale X", toggle=True)
-		row.itemR(con, "sizey", text="Scale X", toggle=True)
-		row.itemR(con, "sizez", text="Scale X", toggle=True)
+		sub = split.column()
+		sub.itemL(text="Scale:")
+		sub.itemR(con, "sizex", text="X")
+		sub.itemR(con, "sizey", text="Y")
+		sub.itemR(con, "sizez", text="Z")
 		
 		# Missing
 		row = layout.row()
@@ -114,14 +117,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		row = layout.row()
-		row.itemL(text="Align:")
-		row.itemR(con, "target_z", toggle=True)
-		
-		row = layout.row()
 		row.itemL(text="To:")
 		row.itemR(con, "track", expand=True)
-		row.itemL(text="Up:")
-		row.itemR(con, "up", expand=True)
+		
+		row = layout.row()
+		row.itemR(con, "up", text="Up")
+		row.itemR(con, "target_z")
 		
 		self.space_template(layout, con)
 		
@@ -137,27 +138,38 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row = layout.row()
 		row.itemL(text="Forward:")
 		row.itemR(con, "forward", expand=True)
-		row.itemL(text="Up:")
-		row.itemR(con, "up", expand=True)
-		
-	def limit_rotation(self, layout, con):
-		row = layout.row(align=True)
-		row.itemR(con, "use_limit_x", toggle=True)
-		row.itemR(con, "minimum_x", text="Min")
-		row.itemR(con, "maximum_x", text="Max")
-		
-		row = layout.row(align=True)
-		row.itemR(con, "use_limit_y", toggle=True)
-		row.itemR(con, "minimum_y", text="Min")
-		row.itemR(con, "maximum_y", text="Max")
-		
-		row = layout.row(align=True)
-		row.itemR(con, "use_limit_z", toggle=True)
-		row.itemR(con, "minimum_z", text="Min")
-		row.itemR(con, "maximum_z", text="Max")
 		
 		row = layout.row()
-		row.itemR(con, "limit_transform", toggle=True)
+		row.itemR(con, "up", text="Up")
+		row.itemL()
+		
+	def limit_rotation(self, layout, con):
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(con, "use_limit_x")
+		colsub = col.column()
+		colsub.active = con.use_limit_x
+		colsub.itemR(con, "minimum_x", text="Min")
+		colsub.itemR(con, "maximum_x", text="Max")
+		
+		col = split.column()
+		col.itemR(con, "use_limit_y")
+		colsub = col.column()
+		colsub.active = con.use_limit_y
+		colsub.itemR(con, "minimum_y", text="Min")
+		colsub.itemR(con, "maximum_y", text="Max")
+		
+		col = split.column()
+		col.itemR(con, "use_limit_z")
+		colsub = col.column()
+		colsub.active = con.use_limit_z
+		colsub.itemR(con, "minimum_z", text="Min")
+		colsub.itemR(con, "maximum_z", text="Max")
+		
+		row = layout.row()
+		row.itemR(con, "limit_transform")
 		row.itemL()
 		
 		row = layout.row()
@@ -168,29 +180,37 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_x", toggle=True)
-		sub.itemR(con, "minimum_x", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_y", toggle=True)
-		sub.itemR(con, "minimum_y", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_z", toggle=True)
-		sub.itemR(con, "minimum_z", text="")
+		col.itemR(con, "use_minimum_x")
+		colsub = col.column()
+		colsub.active = con.use_minimum_x
+		colsub.itemR(con, "minimum_x", text="")
+		col.itemR(con, "use_maximum_x")
+		colsub = col.column()
+		colsub.active = con.use_maximum_x
+		colsub.itemR(con, "maximum_x", text="")
 		
 		col = split.column()
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_x", toggle=True)
-		sub.itemR(con, "maximum_x", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_y", toggle=True)
-		sub.itemR(con, "maximum_y", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_z", toggle=True)
-		sub.itemR(con, "maximum_z", text="")
+		col.itemR(con, "use_minimum_y")
+		colsub = col.column()
+		colsub.active = con.use_minimum_y
+		colsub.itemR(con, "minimum_y", text="")
+		col.itemR(con, "use_maximum_y")
+		colsub = col.column()
+		colsub.active = con.use_maximum_y
+		colsub.itemR(con, "maximum_y", text="")
 		
+		col = split.column()
+		col.itemR(con, "use_minimum_z")
+		colsub = col.column()
+		colsub.active = con.use_minimum_z
+		colsub.itemR(con, "minimum_z", text="")
+		col.itemR(con, "use_maximum_z")
+		colsub = col.column()
+		colsub.active = con.use_maximum_z
+		colsub.itemR(con, "maximum_z", text="")
+	
 		row = layout.row()
-		row.itemR(con, "limit_transform", toggle=True)
+		row.itemR(con, "limit_transform")
 		row.itemL()
 		
 		row = layout.row()
@@ -199,31 +219,39 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 	def limit_scale(self, layout, con):
 		split = layout.split()
+
+		col = split.column()
+		col.itemR(con, "use_minimum_x")
+		colsub = col.column()
+		colsub.active = con.use_minimum_x
+		colsub.itemR(con, "minimum_x", text="")
+		col.itemR(con, "use_maximum_x")
+		colsub = col.column()
+		colsub.active = con.use_maximum_x
+		colsub.itemR(con, "maximum_x", text="")
 		
 		col = split.column()
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_x", toggle=True)
-		sub.itemR(con, "minimum_x", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_y", toggle=True)
-		sub.itemR(con, "minimum_y", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_minimum_z", toggle=True)
-		sub.itemR(con, "minimum_z", text="")
+		col.itemR(con, "use_minimum_y")
+		colsub = col.column()
+		colsub.active = con.use_minimum_y
+		colsub.itemR(con, "minimum_y", text="")
+		col.itemR(con, "use_maximum_y")
+		colsub = col.column()
+		colsub.active = con.use_maximum_y
+		colsub.itemR(con, "maximum_y", text="")
 		
 		col = split.column()
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_x", toggle=True)
-		sub.itemR(con, "maximum_x", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_y", toggle=True)
-		sub.itemR(con, "maximum_y", text="")
-		sub = col.row(align=True)
-		sub.itemR(con, "use_maximum_z", toggle=True)
-		sub.itemR(con, "maximum_z", text="")
+		col.itemR(con, "use_minimum_z")
+		colsub = col.column()
+		colsub.active = con.use_minimum_z
+		colsub.itemR(con, "minimum_z", text="")
+		col.itemR(con, "use_maximum_z")
+		colsub = col.column()
+		colsub.active = con.use_maximum_z
+		colsub.itemR(con, "maximum_z", text="")
 		
 		row = layout.row()
-		row.itemR(con, "limit_transform", toggle=True)
+		row.itemR(con, "limit_transform")
 		row.itemL()
 		
 		row = layout.row()
@@ -233,47 +261,90 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	def copy_rotation(self, layout, con):
 		self.target_template(layout, con)
 		
-		row = layout.row(align=True)
-		row.itemR(con, "rotate_like_x", text="X", toggle=True)
-		row.itemR(con, "invert_x", text="-", toggle=True)
-		row.itemR(con, "rotate_like_y", text="Y", toggle=True)
-		row.itemR(con, "invert_y", text="-", toggle=True)
-		row.itemR(con, "rotate_like_z", text="Z", toggle=True)
-		row.itemR(con, "invert_z", text="-", toggle=True)
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(con, "rotate_like_x", text="X")
+		colsub = col.column()
+		colsub.active = con.rotate_like_x
+		colsub.itemR(con, "invert_x", text="Invert")
+		
+		col = split.column()
+		col.itemR(con, "rotate_like_y", text="Y")
+		colsub = col.column()
+		colsub.active = con.rotate_like_y
+		colsub.itemR(con, "invert_y", text="Invert")
+		
+		col = split.column()
+		col.itemR(con, "rotate_like_z", text="Z")
+		colsub = col.column()
+		colsub.active = con.rotate_like_z
+		colsub.itemR(con, "invert_z", text="Invert")
 
-		layout.itemR(con, "offset", toggle=True)
+		layout.itemR(con, "offset")
 		
 		self.space_template(layout, con)
 		
 	def copy_location(self, layout, con):
 		self.target_template(layout, con)
 		
-		row = layout.row(align=True)
-		row.itemR(con, "locate_like_x", text="X", toggle=True)
-		row.itemR(con, "invert_x", text="-", toggle=True)
-		row.itemR(con, "locate_like_y", text="Y", toggle=True)
-		row.itemR(con, "invert_y", text="-", toggle=True)
-		row.itemR(con, "locate_like_z", text="Z", toggle=True)
-		row.itemR(con, "invert_z", text="-", toggle=True)
-
-		layout.itemR(con, "offset", toggle=True)
+		split = layout.split()
 		
+		col = split.column()
+		col.itemR(con, "locate_like_x", text="X")
+		colsub = col.column()
+		colsub.active = con.locate_like_x
+		colsub.itemR(con, "invert_x", text="Invert")
+		
+		col = split.column()
+		col.itemR(con, "locate_like_y", text="Y")
+		colsub = col.column()
+		colsub.active = con.locate_like_y
+		colsub.itemR(con, "invert_y", text="Invert")
+		
+		col = split.column()
+		col.itemR(con, "locate_like_z", text="Z")
+		colsub = col.column()
+		colsub.active = con.locate_like_z
+		colsub.itemR(con, "invert_z", text="Invert")
+
+		layout.itemR(con, "offset")
+			
 		self.space_template(layout, con)
 		
 	def copy_scale(self, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row(align=True)
-		row.itemR(con, "size_like_x", text="X", toggle=True)
-		row.itemR(con, "size_like_y", text="Y", toggle=True)
-		row.itemR(con, "size_like_z", text="Z", toggle=True)
+		row.itemR(con, "size_like_x", text="X")
+		row.itemR(con, "size_like_y", text="Y")
+		row.itemR(con, "size_like_z", text="Z")
 
-		layout.itemR(con, "offset", toggle=True)
+		layout.itemR(con, "offset")
 		
 		self.space_template(layout, con)
 		
-	#def sctipt(self, layout, con):
-	#def action(self, layout, con):
+	#def script(self, layout, con):
+	
+	def action(self, layout, con):
+		self.target_template(layout, con)
+		
+		layout.itemR(con, "action")
+		layout.itemR(con, "transform_channel")
+
+		split = layout.split()
+	
+		col = split.column(align=True)
+		col.itemR(con, "start_frame", text="Start")
+		col.itemR(con, "end_frame", text="End")
+		
+		col = split.column(align=True)
+		col.itemR(con, "minimum", text="Min")
+		col.itemR(con, "maximum", text="Max")
+		
+		row = layout.row()
+		row.itemL(text="Convert:")
+		row.itemR(con, "owner_space", text="")
 	
 	def locked_track(self, layout, con):
 		self.target_template(layout, con)
@@ -281,6 +352,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row = layout.row()
 		row.itemL(text="To:")
 		row.itemR(con, "track", expand=True)
+		
+		row = layout.row()
 		row.itemL(text="Lock:")
 		row.itemR(con, "locked", expand=True)
 		
@@ -312,8 +385,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		row = layout.row()
-		row.itemR(con, "sticky", toggle=True)
-		row.itemR(con, "use_rotation", toggle=True)
+		row.itemR(con, "sticky")
+		row.itemR(con, "use_rotation")
 		
 		layout.itemR(con, "offset")
 		
@@ -331,15 +404,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "main_axis", expand=True)
 		
 		row = layout.row()
-		row.itemL(text="Options")
-		row.itemR(con, "cyclic", toggle=True)
+		row.itemR(con, "cyclic")
 		
 	def transform(self, layout, con):
 		self.target_template(layout, con)
 		
-		row = layout.row()
-		row.itemR(con, "extrapolate_motion", text="Extrapolate")
-		row.itemL()
+		layout.itemR(con, "extrapolate_motion", text="Extrapolate")
 		
 		split = layout.split()
 		
@@ -361,6 +431,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		sub.itemL(text="Z:")
 		sub.itemR(con, "from_min_z", text="")
 		sub.itemR(con, "from_max_z", text="")
+		
+		split = layout.split()
 		
 		col = split.column()
 		col.itemL(text="Destination:")
@@ -391,9 +463,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		if con.shrinkwrap_type == "PROJECT":
 			row = layout.row(align=True)
-			row.itemR(con, "axis_x", toggle=True)
-			row.itemR(con, "axis_y", toggle=True)
-			row.itemR(con, "axis_z", toggle=True)
+			row.itemR(con, "axis_x")
+			row.itemR(con, "axis_y")
+			row.itemR(con, "axis_z")
 		
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "OBJECT_PT_constraints"

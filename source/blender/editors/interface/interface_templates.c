@@ -1128,61 +1128,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break;
 #endif /* DISABLE_PYTHON */
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data = con->data;
-				float minval, maxval;
-				
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco+65, yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				/* Draw target parameters */
-				uiBlockBeginAlign(block);
-					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+120, yco-24, 135, 18, &data->tar, "Target Object"); 
-					
-					if (is_armature_target(data->tar)) {
-						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+120, yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-					}
-					else {
-						strcpy(data->subtarget, "");
-					}
-				
-				uiBlockEndAlign(block);
-				
-				/* Draw action/type buttons */
-				uiBlockBeginAlign(block);
-					uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, B_CONSTRAINT_TEST, "AC:",	xco+((width/2)-117), yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
-					uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Key on%t|Loc X%x20|Loc Y%x21|Loc Z%x22|Rot X%x0|Rot Y%x1|Rot Z%x2|Size X%x10|Size Y%x11|Size Z%x12", xco+((width/2)-117), yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
-				uiBlockEndAlign(block);
-				
-				/* Draw start/end frame buttons */
-				uiBlockBeginAlign(block);
-					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "Start:", xco+((width/2)-36), yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
-					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "End:", xco+((width/2)-36), yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
-				uiBlockEndAlign(block);
-				
-				/* Draw minimum/maximum transform range buttons */
-				uiBlockBeginAlign(block);
-					if (data->type < 10) { /* rotation */
-						minval = -180.0f;
-						maxval = 180.0f;
-					}
-					else if (data->type < 20) { /* scaling */
-						minval = 0.0001f;
-						maxval = 1000.0f;
-					}
-					else { /* location */
-						minval = -1000.0f;
-						maxval = 1000.0f;
-					}
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Min:", xco+((width/2)+45), yco-64, 78, 18, &data->min, minval, maxval, 0, 0, "Minimum value for target channel range");
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Max:", xco+((width/2)+45), yco-84, 78, 18, &data->max, minval, maxval, 0, 0, "Maximum value for target channel range");
-				uiBlockEndAlign(block);
-				
-				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, xco, yco-104, -1, is_armature_target(data->tar));
-			}
-			break;
 		/*case CONSTRAINT_TYPE_CHILDOF:
 			{
 				// Inverse options 
