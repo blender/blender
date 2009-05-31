@@ -107,9 +107,15 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		layout.itemR(ao, "gather_method", expand=True)
 		
 		if ao.gather_method == 'RAYTRACE':
-			row = layout.row()
-			row.itemR(ao, "samples")
-			row.itemR(ao, "distance")
+			split = layout.split()
+			col = split.column()
+			col.itemR(ao, "samples")
+			col.itemR(ao, "distance")
+			col = split.column()
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			
 			layout.itemR(ao, "sample_method")
 			if ao.sample_method == 'ADAPTIVE_QMC':
@@ -122,16 +128,18 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 				row.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			col = layout.column_flow()
+			split = layout.split()
+			col = split.column()
 			col.itemR(ao, "passes")
 			col.itemR(ao, "error_tolerance", text="Error")
 			col.itemR(ao, "correction")
+			col = split.column() 
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			col.itemR(ao, "pixel_cache")
 
-		row = layout.row()
-		row.itemR(ao, "falloff")	
-		row.itemR(ao, "strength")
-		
 		col = layout.column()
 		col.row().itemR(ao, "blend_mode", expand=True)
 		col.row().itemR(ao, "color", expand=True)
@@ -143,4 +151,3 @@ bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 bpy.types.register(WORLD_PT_color_correction)
-

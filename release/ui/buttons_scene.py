@@ -45,9 +45,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 		
 		col = split.column()
 		col.itemR(rd, "file_format", text="Format")
-		colsub = col.column()
-		colsub.active = rd.file_format in ("AVIJPEG", "JPEG")
-		colsub.itemR(rd, "quality", slider=True)
+		if rd.file_format in ("AVIJPEG", "JPEG"):
+			col.itemR(rd, "quality", slider=True)
 		
 		sub = split.column()
 		sub.itemR(rd, "color_mode")
