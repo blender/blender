@@ -4091,12 +4091,14 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
-					
-					if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-					else sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
+					if(sipo->blocktype==ID_SEQ) 
+						sipo->from= find_sequence_from_ipo_helper(newmain, sipo->ipo);
+					else 
+						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
 					
 					// not free sipo->ipokey, creates dependency with src/
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->editipo) MEM_freeN(sipo->editipo);
 					sipo->editipo= NULL;
 				}
