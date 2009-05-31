@@ -45,6 +45,7 @@ void RE_rayobject_free(RayObject *r);
 
 /* RayObject constructors */
 RayObject* RE_rayobject_octree_create(int ocres, int size);
+RayObject* RE_rayobject_bvh_create(int size);
 
 //RayObject* RayObject_derivedmesh_create(struct DerivedMesh*, void *ob);
 RayObject* RE_rayobject_mesh_create(struct Mesh*, void *ob);
@@ -54,9 +55,12 @@ struct Isect
 {
 	float start[3];
 	float vec[3];
+	float labda;
+	
+	float dist; /* length of vec, configured by RE_rayobject_raycast */
 /*	float end[3];			 - not used */
 
-	float labda, u, v;
+	float u, v;
 	
 	struct
 	{

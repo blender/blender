@@ -122,6 +122,7 @@ void makeraytree(Render *re)
 	double lasttime= PIL_check_seconds_timer();
 	int v, totv = 0, totface = 0;
 	RayFace *faces, *cur_face;
+	int tot_quads = 0;
 
 	//TODO (for now octree only supports RayFaces so we need to create them)
 	//
@@ -144,7 +145,9 @@ void makeraytree(Render *re)
 		}
 	}
 	
-	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
+	printf("RE_rayobject_*_create( %d )\n", totface);
+//	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
+	re->raytree = RE_rayobject_bvh_create( totface );
 	
 	//Fill rayfaces
 	re->rayfaces = (RayObject*)MEM_callocN(totface*sizeof(RayFace), "render faces");
@@ -182,7 +185,7 @@ void makeraytree(Render *re)
 					cur_face->v1 = vlr->v1->co;
 					cur_face->v2 = vlr->v2->co;
 					cur_face->v3 = vlr->v3->co;
-					cur_face->v4 = vlr->v4 ? vlr->v4->co : NULL;
+					cur_face->v4 = vlr->v4 ? tot_quads++, vlr->v4->co : NULL;
 					
 					cur_face->ob   = (void*)obi;
 					cur_face->face = vlr;
@@ -194,7 +197,9 @@ void makeraytree(Render *re)
 		}
 	}
 
+	printf("call RE_rayobject_done( %dtri, %dquads )\n", totface-tot_quads, tot_quads);
 	RE_rayobject_done( re->raytree );
+	printf("return RE_rayobject_done( )\n");
 //TODO	vlr_face_coords, vlr_check_intersect, vlr_get_transform, re);
 
 	re->i.infostr= NULL;

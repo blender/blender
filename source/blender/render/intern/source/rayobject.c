@@ -27,8 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <assert.h>
+#include <stdio.h>
 
 #include "BKE_utildefines.h"
+#include "BLI_arithb.h"
 
 #include "RE_raytrace.h"
 #include "render_types.h"
@@ -264,6 +266,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
+		is->last_hit = (RayObject*)face;
 		return 1;
 	}
 
@@ -272,6 +275,19 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 int RE_rayobject_raycast(RayObject *r, Isect *i)
 {
+	static int casted_rays = 0;
+	
+	if(casted_rays++ % (1<<20) == 0)
+		printf("Casting %d rays\n", casted_rays);
+
+	i->vec[0] *= i->labda;
+	i->vec[1] *= i->labda;
+	i->vec[2] *= i->labda;
+	i->labda = 1.0f; //RE_RAYTRACE_MAXDIST; //len;
+	i->dist = VecLength(i->vec);
+	
+		
+	assert(i->mode==RE_RAY_SHADOW);
 	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
 		return 1;
 
@@ -280,27 +296,14 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
-	assert(i->mode==RE_RAY_SHADOW);
 	if(RayObject_isFace(r))
 	{
 		return intersect_rayface( (RayFace*) r, i);
 	}
 	else
 	{
-		//TODO should be done somewhere else
-//		float len = Normalize( i->vec );
-		int hit;
-		i->vec[0] *= i->labda;
-		i->vec[1] *= i->labda;
-		i->vec[2] *= i->labda;
-		i->labda = 1.0f; //RE_RAYTRACE_MAXDIST; //len;
-		
 		r = RayObject_align( r );
-
-		hit = r->api->raycast( r, i );
-//		i->labda /= len;
-		
-		return hit;
+		return r->api->raycast( r, i );
 	}
 }
 
