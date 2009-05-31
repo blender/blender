@@ -77,8 +77,13 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	if (PyString_Check(pyindex))
 	{
 		CValue *item = ((CListValue*) list)->FindValue(PyString_AsString(pyindex));
-		if (item)
-			return item->GetProxy();
+		if (item) {
+			PyObject* pyobj = item->ConvertValueToPython();
+			if(pyobj)
+				return pyobj;
+			else
+				return item->GetProxy();
+		}
 	}
 	else if (PyInt_Check(pyindex))
 	{
@@ -575,9 +580,13 @@ PyObject* CListValue::Pyget(PyObject *args)
 		return NULL;
 	
 	CValue *item = FindValue((const char *)key);
-	if (item)
-		return item->GetProxy();
-	
+	if (item) {	
+		PyObject* pyobj = item->ConvertValueToPython();
+		if (pyobj)
+			return pyobj;
+		else
+			return item->GetProxy();
+	}
 	Py_INCREF(def);
 	return def;
 }

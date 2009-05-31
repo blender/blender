@@ -2758,8 +2758,13 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 	
 	if(PyString_Check(key)) {
 		CValue *item = GetProperty(PyString_AsString(key));
-		if (item)
-			return item->GetProxy();
+		if (item) {
+			ret = item->ConvertValueToPython();
+			if(ret)
+				return ret;
+			else
+				return item->GetProxy();
+		}
 	}
 	
 	if (m_attr_dict && (ret=PyDict_GetItem(m_attr_dict, key))) {
