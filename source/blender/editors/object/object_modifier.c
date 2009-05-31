@@ -284,7 +284,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		}
 
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
 
 		converted = 1;
