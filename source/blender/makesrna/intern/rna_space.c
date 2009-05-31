@@ -29,7 +29,9 @@
 
 #include "rna_internal.h"
 
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
 #include "WM_types.h"
 
@@ -65,9 +67,9 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 	SpaceLink *space= (SpaceLink*)ptr->data;
 
 	switch(space->spacetype) {
-		/*case SPACE_VIEW3D:
-			return &RNA_SpaceView3D;
-		case SPACE_IPO:
+		case SPACE_VIEW3D:
+			return &RNA_Space3DView;
+		/*case SPACE_IPO:
 			return &RNA_SpaceGraphEditor;
 		*/
 		case SPACE_OUTLINER:
@@ -278,11 +280,195 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "outlinevis");
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display Mode", "Type of information to display");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "show_restriction_columns", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SO_HIDE_RESTRICTCOLS);
 	RNA_def_property_ui_text(prop, "Show Restriction Columns", "Show colum");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
+}
+
+static void rna_def_background_image(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "BackgroundImage", NULL);
+	RNA_def_struct_sdna(srna, "BGpic");
+	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background.");
+
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ima");
+	RNA_def_property_ui_text(prop, "Image", "Image displayed and edited in this space.");
+
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	
+	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "xof");
+	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the view center");
+	
+	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "yof");
+	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image vertically from the view center");
+	
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Size", "Scaling factor for the background image.");
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	
+	prop= RNA_def_property(srna, "transparency", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "blend");
+	RNA_def_property_ui_text(prop, "Transparency", "Amount to blend the image against the background color.");
+	RNA_def_property_range(prop, 0.0, 1.0);
+
+}
+
+static void rna_def_space_3dview(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem viewport_shading_items[] = {
+		{OB_BOUNDBOX, "BOUNDBOX", "Bounding Box", "Display the object's local bounding boxes only"},
+		{OB_WIRE, "WIREFRAME", "Wireframe", "Display the object as wire edges"},
+		{OB_SOLID, "SOLID", "Solid", "Display the object solid, lit with default OpenGL lights"},
+		{OB_SHADED, "SHADED", "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
+		{OB_TEXTURE, "TEXTURED", "Textured", "Display the object solid, with face-assigned textures"},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", "Bounding Box Center", ""},
+		{V3D_CURSOR, "CURSOR", "3D Cursor", ""},
+		{V3D_LOCAL, "INDIVIDUAL_CENTERS", "Individual Centers", ""},
+		{V3D_CENTROID, "MEDIAN_POINT", "Median Point", ""},
+		{V3D_ACTIVE, "ACTIVE_ELEMENT", "Active Element", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem transform_orientation_items[] = {
+		{V3D_MANIP_GLOBAL, "ORIENT_GLOBAL", "Global", "Align the transformation axes to world space"},
+		{V3D_MANIP_LOCAL, "ORIENT_LOCAL", "Local", "Align the transformation axes to the selected objects' local space"},
+		{V3D_MANIP_NORMAL, "ORIENT_NORMAL", "Normal", "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"},
+		{V3D_MANIP_VIEW, "ORIENT_VIEW", "View", "Align the transformation axes to the window"},
+		{V3D_MANIP_CUSTOM, "ORIENT_CUSTOM", "Custom", "Use a custom transform orientation"},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "Space3DView", "Space");
+	RNA_def_struct_sdna(srna, "View3D");
+	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
+	
+	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "camera");
+	RNA_def_property_ui_text(prop, "Camera", "Active camera used in this view (when unlocked from the scene's active camera).");
+	
+	prop= RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
+	RNA_def_property_ui_text(prop, "Lock Object", "3D View center is locked to this object's position");
+	
+	prop= RNA_def_property(srna, "background_image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "bgpic");
+	RNA_def_property_ui_text(prop, "Background Image", "Image and settings to display in the 3D View background");
+
+	prop= RNA_def_property(srna, "viewport_shading", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
+	RNA_def_property_enum_items(prop, viewport_shading_items);
+	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View.");
+
+	prop= RNA_def_property(srna, "localview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "localview", 0);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility.");
+
+	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "lens");
+	RNA_def_property_ui_text(prop, "Lens", "Lens angle (mm) in perspective view.");
+	RNA_def_property_range(prop, 1.0f, 250.0f);
+	
+	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "near");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance.");
+
+	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "far");
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance.");
+	
+	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "grid");
+	RNA_def_property_ui_text(prop, "Grid Spacing", "The distance between 3D View grid lines.");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	
+	prop= RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "gridlines");
+	RNA_def_property_ui_text(prop, "Grid Lines", "The number of grid lines to display in perspective view.");
+	RNA_def_property_range(prop, 0, 1024);
+	
+	prop= RNA_def_property(srna, "grid_subdivisions", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "gridsubdiv");
+	RNA_def_property_ui_text(prop, "Grid Subdivisions", "The number of subdivisions between grid lines.");
+	RNA_def_property_range(prop, 1, 1024);
+	
+	prop= RNA_def_property(srna, "display_floor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
+	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view.");
+	
+	prop= RNA_def_property(srna, "display_x_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_X);
+	RNA_def_property_ui_text(prop, "Display X Axis", "Show the X axis line in perspective view.");
+	
+	prop= RNA_def_property(srna, "display_y_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Y);
+	RNA_def_property_ui_text(prop, "Display Y Axis", "Show the Y axis line in perspective view.");
+	
+	prop= RNA_def_property(srna, "display_z_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Z);
+	RNA_def_property_ui_text(prop, "Display Z Axis", "Show the Z axis line in perspective view.");
+	
+	prop= RNA_def_property(srna, "outline_selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SELECT_OUTLINE);
+	RNA_def_property_ui_text(prop, "Outline Selected", "Show an outline highlight around selected objects in non-wireframe views.");
+	
+	prop= RNA_def_property(srna, "all_object_centers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DRAW_CENTERS);
+	RNA_def_property_ui_text(prop, "All Object Centers", "Show the object center dot for all (selected and unselected) objects.");
+
+	prop= RNA_def_property(srna, "relationship_lines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_HIDE_HELPLINES);
+	RNA_def_property_ui_text(prop, "Relationship Lines", "Show dashed lines indicating parent or constraint relationships.");
+	
+	prop= RNA_def_property(srna, "textured_solid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SOLID_TEX);
+	RNA_def_property_ui_text(prop, "Textured Solid", "Display face-assigned textures in solid view");
+	
+	prop= RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling.");
+	
+	prop= RNA_def_property(srna, "manipulator", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
+	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms.");
+	
+	prop= RNA_def_property(srna, "manipulator_translate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_TRANSLATE);
+	RNA_def_property_ui_text(prop, "Manipulator Translate", "Use the manipulator for movement transformations.");
+	
+	prop= RNA_def_property(srna, "manipulator_rotate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_ROTATE);
+	RNA_def_property_ui_text(prop, "Manipulator Rotate", "Use the manipulator for rotation transformations.");
+	
+	prop= RNA_def_property(srna, "manipulator_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "twtype", V3D_MANIP_SCALE);
+	RNA_def_property_ui_text(prop, "Manipulator Scale", "Use the manipulator for scale transformations.");
+	
+	prop= RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "twmode");
+	RNA_def_property_enum_items(prop, transform_orientation_items);
+	RNA_def_property_ui_text(prop, "Transform Orientation", "The alignment of manipulator handles.");
+	
 }
 
 static void rna_def_space_image(BlenderRNA *brna)
@@ -436,6 +622,8 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_image(brna);
 	rna_def_space_text(brna);
 	rna_def_space_outliner(brna);
+	rna_def_background_image(brna);
+	rna_def_space_3dview(brna);
 }
 
 #endif
