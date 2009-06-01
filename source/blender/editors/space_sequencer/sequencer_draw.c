@@ -517,6 +517,7 @@ static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
 /* draw info text on a sequence strip */
 static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float y1, float y2, char *background_col)
 {
+	rctf rect;
 	char str[32 + FILE_MAXDIR+FILE_MAXFILE];
 	
 	if(seq->name[2]) {
@@ -564,7 +565,11 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		cpack(0);
 	}
 	
-	UI_view2d_text_cache_add(v2d, x1, y1+SEQ_STRIP_OFSBOTTOM, str);
+	rect.xmin= x1;
+	rect.ymin= y1;
+	rect.xmax= x2;
+	rect.ymax= y2;
+	UI_view2d_text_cache_rectf(v2d, &rect, str);
 }
 
 /* draws a shaded strip, made from gradient + flat color + gradient */

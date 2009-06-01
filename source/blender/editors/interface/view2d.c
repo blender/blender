@@ -1949,6 +1949,7 @@ typedef struct View2DString {
 	float col[4];
 	char str[128]; 
 	short mval[2];
+	rcti rect;
 } View2DString;
 
 
@@ -1959,6 +1960,7 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y, char *str)
 	UI_view2d_view_to_region(v2d, x, y, mval, mval+1);
 	
 	if(mval[0]!=V2D_IS_CLIPPED && mval[1]!=V2D_IS_CLIPPED) {
+		/* use calloc, rect has to be zeroe'd */
 		View2DString *v2s= MEM_callocN(sizeof(View2DString), "View2DString");
 		
 		BLI_addtail(&strings, v2s);
@@ -1969,6 +1971,20 @@ void UI_view2d_text_cache_add(View2D *v2d, float x, float y, char *str)
 	}
 }
 
+/* no clip (yet) */
+void UI_view2d_text_cache_rectf(View2D *v2d, rctf *rect, char *str)
+{
+	View2DString *v2s= MEM_callocN(sizeof(View2DString), "View2DString");
+	
+	UI_view2d_to_region_no_clip(v2d, rect->xmin, rect->ymin, &v2s->rect.xmin, &v2s->rect.ymin);
+	UI_view2d_to_region_no_clip(v2d, rect->xmax, rect->ymax, &v2s->rect.xmax, &v2s->rect.ymax);
+	
+	BLI_addtail(&strings, v2s);
+	BLI_strncpy(v2s->str, str, 128);
+	glGetFloatv(GL_CURRENT_COLOR, v2s->col);
+}
+
+
 void UI_view2d_text_cache_draw(ARegion *ar)
 {
 	View2DString *v2s;
@@ -1978,7 +1994,21 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	
 	for(v2s= strings.first; v2s; v2s= v2s->next) {
 		glColor3fv(v2s->col);
-		BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str);
+		if(v2s->rect.xmin==v2s->rect.xmax)
+			BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str);
+		else {
+			int xofs=0, yofs;
+			
+			yofs= ceil( 0.5f*(v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
+			if(yofs<1) yofs= 1;
+			
+			BLF_clipping(v2s->rect.xmin-4, v2s->rect.ymin-4, v2s->rect.xmax+4, v2s->rect.ymax+4);
+			BLF_enable(BLF_CLIPPING);
+			
+			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, v2s->str);
+
+			BLF_disable(BLF_CLIPPING);
+		}
 	}
 	
 	//	wmPopMatrix();
