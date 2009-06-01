@@ -838,10 +838,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	//float rt; TODO:find where rt is used - can't find it in UI
 
-	prop= RNA_def_property(srna, "total_particles", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "totpart");
 	RNA_def_property_range(prop, 0, 100000);
-	RNA_def_property_ui_text(prop, "Particle Amount", "The total number of particles.");
+	RNA_def_property_ui_text(prop, "Amount", "Total number of particles.");
 
 	prop= RNA_def_property(srna, "userjit", PROP_INT, PROP_UNSIGNED);//TODO: can we get a better name for userjit?
 	RNA_def_property_int_sdna(prop, NULL, "userjit");

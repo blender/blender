@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 
 static void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
@@ -200,6 +201,13 @@ static void rna_Object_active_material_link_set(PointerRNA *ptr, int value)
 		ob->colbits |= (1<<(ob->actcol));
 	else
 		ob->colbits &= ~(1<<(ob->actcol));
+}
+
+static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ParticleSystem *psys= psys_get_current(ob);
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, psys);
 }
 
 static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
@@ -719,6 +727,11 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "particlesystem", NULL);
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object.");
+
+	prop= RNA_def_property(srna, "active_particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL);
+	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
 
 	/* restrict */
 
