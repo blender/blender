@@ -118,6 +118,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
 	setGamePythonPath(G.sce);
 
 	// Acquire Python's GIL (global interpreter lock)

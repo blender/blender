@@ -2093,3 +2093,10 @@ void setGamePythonPath(char *path)
 		BLI_strncpy(gp_GamePythonPathOrig, path, sizeof(gp_GamePythonPathOrig));
 }
 
+// we need this so while blender is open (not blenderplayer)
+// loading new blendfiles will reset this on starting the
+// engine but loading blend files within the BGE wont overwrite gp_GamePythonPathOrig
+void resetGamePythonPath()
+{
+	gp_GamePythonPathOrig[0] == '\0';
+}
