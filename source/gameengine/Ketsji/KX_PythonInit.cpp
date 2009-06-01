@@ -1508,9 +1508,11 @@ static void initPySysObjects__append(PyObject *sys_path, char *filename)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	
 	BLI_split_dirfile_basic(filename, expanded, NULL); /* get the dir part of filename only */
-	BLI_convertstringcode(expanded, gp_GamePythonPath);
-	
+	BLI_convertstringcode(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
+	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
 	item= PyString_FromString(expanded);
+	
+//	printf("SysPath - '%s', '%s', '%s'\n", expanded, filename, gp_GamePythonPath);
 	
 	if(PySequence_Index(sys_path, item) == -1) {
 		PyErr_Clear(); /* PySequence_Index sets a ValueError */
@@ -1535,7 +1537,9 @@ static void initPySysObjects(Main *maggie)
 	Library *lib= (Library *)maggie->library.first;
 	
 	while(lib) {
-		initPySysObjects__append(sys_path, lib->name);
+		/* lib->name wont work in some cases (on win32),
+		 * even when expanding with gp_GamePythonPath, using lib->filename is less trouble */
+		initPySysObjects__append(sys_path, lib->filename);
 		lib= (Library *)lib->id.next;
 	}
 	
@@ -2083,6 +2087,7 @@ void pathGamePythonConfig( char *path )
 void setGamePythonPath(char *path)
 {
 	BLI_strncpy(gp_GamePythonPath, path, sizeof(gp_GamePythonPath));
+	BLI_cleanup_file(NULL, gp_GamePythonPath); /* not absolutely needed but makes resolving path problems less confusing later */
 	
 	if (gp_GamePythonPathOrig[0] == '\0')
 		BLI_strncpy(gp_GamePythonPathOrig, path, sizeof(gp_GamePythonPathOrig));
