@@ -1939,3 +1939,55 @@ short UI_view2d_mouse_in_scrollers (const bContext *C, View2D *v2d, int x, int y
 	return 0;
 }
 
+/* ******************* view2d text drawing cache ******************** */
+
+/* assumes caches are used correctly, so for time being no local storage in v2d */
+static ListBase strings= {NULL, NULL};
+
+typedef struct View2DString {
+	struct View2DString *next, *prev;
+	float col[4];
+	char str[128]; 
+	short mval[2];
+} View2DString;
+
+
+void UI_view2d_text_cache_add(View2D *v2d, float x, float y, char *str)
+{
+	int mval[2];
+	
+	UI_view2d_view_to_region(v2d, x, y, mval, mval+1);
+	
+	if(mval[0]!=V2D_IS_CLIPPED && mval[1]!=V2D_IS_CLIPPED) {
+		View2DString *v2s= MEM_callocN(sizeof(View2DString), "View2DString");
+		
+		BLI_addtail(&strings, v2s);
+		BLI_strncpy(v2s->str, str, 128);
+		v2s->mval[0]= mval[0];
+		v2s->mval[1]= mval[1];
+		glGetFloatv(GL_CURRENT_COLOR, v2s->col);
+	}
+}
+
+void UI_view2d_text_cache_draw(ARegion *ar)
+{
+	View2DString *v2s;
+	
+	//	wmPushMatrix();
+	ED_region_pixelspace(ar);
+	
+	for(v2s= strings.first; v2s; v2s= v2s->next) {
+		glColor3fv(v2s->col);
+		BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str);
+	}
+	
+	//	wmPopMatrix();
+	
+	if(strings.first) 
+		BLI_freelistN(&strings);
+}
+
+
+/* ******************************************************** */
+
+
