@@ -954,6 +954,11 @@ void BL_ConvertActuators(char* maggiename,
 					= (bRandomActuator *) bact->data;
 				
 				unsigned long seedArg = randAct->seed;
+				if (seedArg == 0)
+				{
+					seedArg = (int)(ketsjiEngine->GetRealTime()*100000.0);
+					seedArg ^= (intptr_t)randAct;
+				}
 				SCA_RandomActuator::KX_RANDOMACT_MODE modeArg 
 					= SCA_RandomActuator::KX_RANDOMACT_NODEF;
 				SCA_RandomActuator *tmprandomact;
