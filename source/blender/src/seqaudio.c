@@ -629,7 +629,6 @@ static int audiostream_play_seq(Sequence * seq, int startframe)
 					      * 4 ));
 		}
 		if ((seq->type == SEQ_HD_SOUND)) {
-			have_sound = 1;
 			if (!seq->hdaudio) {
 				strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
 				strncat(name, seq->strip->stripdata->name, 
