@@ -63,12 +63,6 @@
 #include "RE_pipeline.h"
 #include "radio.h"
 
-#ifndef DISABLE_YAFRAY
-/* yafray: include for yafray export/render */
-#include "YafRay_Api.h"
-
-#endif /* disable yafray */
-
 /* internal */
 #include "render_types.h"
 #include "renderpipeline.h"
@@ -2209,69 +2203,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->ddh, re->result, NULL);
 }
 
-#ifndef DISABLE_YAFRAY
-/* yafray: main yafray render/export call */
-static void yafrayRender(Render *re)
-{
-	RE_FreeRenderResult(re->result);
-	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	
-	// need this too, for aspect/ortho/etc info
-	RE_SetCamera(re, re->scene->camera);
-
-	// switch must be done before prepareScene()
-	if (!re->r.YFexportxml)
-		YAF_switchFile();
-	else
-		YAF_switchPlugin();
-	
-	printf("Starting scene conversion.\n");
-	RE_Database_FromScene(re, re->scene, 1);
-	printf("Scene conversion done.\n");
-	
-	re->i.starttime = PIL_check_seconds_timer();
-	
-	YAF_exportScene(re);
-
-	/* also needed for yafray border render, straight copy from do_render_fields_blur_3d() */
-	/* when border render, check if we have to insert it in black */
-	if(re->result) {
-		if(re->r.mode & R_BORDER) {
-			if((re->r.mode & R_CROP)==0) {
-				RenderResult *rres;
-				
-				/* sub-rect for merge call later on */
-				re->result->tilerect= re->disprect;
-				
-				/* this copying sequence could become function? */
-				re->disprect.xmin= re->disprect.ymin= 0;
-				re->disprect.xmax= re->winx;
-				re->disprect.ymax= re->winy;
-				re->rectx= re->winx;
-				re->recty= re->winy;
-				
-				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-				
-				merge_render_result(rres, re->result);
-				RE_FreeRenderResult(re->result);
-				re->result= rres;
-				
-				re->display_init(re->dih, re->result);
-				re->display_draw(re->ddh, re->result, NULL);
-			}
-		}
-	}
-
-	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(re->sdh, &re->i);
-	
-	RE_Database_Free(re);
-}
-
-
-
-#endif /* disable yafray */
-
 static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
@@ -2300,14 +2231,7 @@ static void do_render_all_options(Render *re)
 		
 	}
 	else {
-#ifndef DISABLE_YAFRAY
-		if(re->r.renderer==R_YAFRAY)
-			yafrayRender(re);
-		else
-			do_render_composite_fields_blur_3d(re);
-#else
 		do_render_composite_fields_blur_3d(re);
-#endif
 	}
 	
 	/* for UI only */
