@@ -291,6 +291,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Slider Widget Colors", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
+	prop= RNA_def_property(srna, "wcol_box", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_box");
+	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
+	RNA_def_property_ui_text(prop, "Box Backdrop Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
 	prop= RNA_def_property(srna, "wcol_menu", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "wcol_menu");
 	RNA_def_property_struct_type(prop, "ThemeWidgetColors");

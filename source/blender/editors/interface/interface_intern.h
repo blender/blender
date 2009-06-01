@@ -77,7 +77,8 @@ typedef enum {
 	UI_WTYPE_ICON,
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
-	UI_WTYPE_NORMAL
+	UI_WTYPE_NORMAL,
+	UI_WTYPE_BOX
 	
 } uiWidgetTypeEnum;
 
