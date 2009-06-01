@@ -564,7 +564,7 @@ static int audio_init(SDL_AudioSpec *desired)
 
 	obtained = (SDL_AudioSpec*)MEM_mallocN(sizeof(SDL_AudioSpec), 
 					       "SDL_AudioSpec");
-
+	audio_initialised = 0;
 	desired->callback=audio_fill;
 
 	if ( SDL_OpenAudio(desired, obtained) < 0 ) {
@@ -670,16 +670,18 @@ void audiostream_play(int startframe, uint32_t duration, int mixdown)
 		sound_init_audio();
 	}
 
-   	if (U.mixbufsize && !audio_initialised && !mixdown) {
+   	if (U.mixbufsize && 
+	    (!audio_initialised 
+	     || desired.freq != audio_scene->audio.mixrate
+	     || desired.samples != U.mixbufsize) 
+	    && !mixdown) {
    		desired.freq=audio_scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
    		desired.samples=U.mixbufsize;
    		desired.userdata=0;
 
-   		if (audio_init(&desired)==0) {
-   			U.mixbufsize = 0;	/* no audio */
-   		}
+   		audio_init(&desired);
    	}
 
 	audio_startframe = startframe;
@@ -706,7 +708,7 @@ void audiostream_start(int frame)
 
 void audiostream_scrub(int frame)
 {
-	if (U.mixbufsize) audiostream_play(frame, 4096, 0);
+	audiostream_play(frame, 4096, 0);
 }
 
 void audiostream_stop(void)
@@ -721,7 +723,7 @@ int audiostream_pos(void)
 {
 	int pos;
 
-	if (U.mixbufsize && audio_scene) {
+	if (audio_initialised && audio_scene) {
 		pos = (int) (((double)(audio_pos-U.mixbufsize)
 			      / ( audio_scene->audio.mixrate*4 ))
 			     * FPS );
