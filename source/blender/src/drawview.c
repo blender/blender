@@ -3683,9 +3683,8 @@ int update_time(int cfra)
 	static double ltime;
 	double time;
 
-	if ((audiostream_pos() != cfra)
-	    && (G.scene->audio.flag & AUDIO_SYNC)) {
-		return 0;
+	if ((G.scene->audio.flag & AUDIO_SYNC) != 0) {
+		return (audiostream_pos() == cfra);
 	}
 
 	time = PIL_check_seconds_timer();
