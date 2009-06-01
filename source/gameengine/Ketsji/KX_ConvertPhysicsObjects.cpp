@@ -1115,15 +1115,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		shapeInfo->Release();
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
-	if (isbulletsensor)
-	{
-		// use a different callback function for sensor object, 
-		// bullet will not synchronize, we must do it explicitely
-		SG_Callbacks& callbacks = gameobj->GetSGNode()->GetCallBackFunctions();
-		callbacks.m_updatefunc = KX_GameObject::SynchronizeTransformFunc;
-	} 
 	// don't add automatically sensor object, they are added when a collision sensor is registered
-	else if (objprop->m_in_active_layer)
+	if (!isbulletsensor && objprop->m_in_active_layer)
 	{
 		env->addCcdPhysicsController( physicscontroller);
 	}

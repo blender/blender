@@ -92,7 +92,13 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 	gameobj->SetPhysicsController(this,gameobj->IsDynamic());
 	CcdPhysicsController::setNewClientInfo(gameobj->getClientInfo());
 
-
+	if (m_bSensor)
+	{
+		// use a different callback function for sensor object, 
+		// bullet will not synchronize, we must do it explicitely
+		SG_Callbacks& callbacks = gameobj->GetSGNode()->GetCallBackFunctions();
+		callbacks.m_updatefunc = KX_GameObject::SynchronizeTransformFunc;
+	} 
 }
 
 MT_Scalar KX_BulletPhysicsController::GetRadius()
