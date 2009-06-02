@@ -221,7 +221,8 @@ bool CopyPose::popPose(CacheTS timestamp)
 			// We must get the pose from the scene using the callback. Hopefully the constraint
 			// are updated after the objects, so we can trust the object position
 			getExternalPose(m_internalPose);
-            m_poseCTs = timestamp;
+			updateJacobian();
+			m_poseCTs = timestamp;
 			return true;
         }
     }
