@@ -246,7 +246,11 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
+		/* strips and backdrops */
 		draw_nla_main_data(&ac, snla, ar);
+		
+		/* text draw cached, in pixelspace now */
+		UI_view2d_text_cache_draw(ar);
 	}
 	
 	/* current frame */

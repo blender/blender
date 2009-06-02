@@ -48,6 +48,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
+#include "DNA_vec_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -128,6 +129,36 @@ static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float y
 	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 } 
 
+/* add the relevant text to the cache of text-strings to draw in pixelspace */
+static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+{
+	char str[256];
+	rctf rect;
+	
+	/* for now, just init the string with a fixed-format */
+	if (strip->act)
+		sprintf(str, "%d | Act: %s | %.2f <-> %.2f", index, strip->act->id.name+2, strip->start, strip->end);
+	else
+		sprintf(str, "%d | Act: <NONE>", index);
+	
+	/* set text colour - if colours (see above) are light, draw black text, otherwise draw white */
+	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))
+		glColor3f(0.0f, 0.0f, 0.0f);
+	else
+		glColor3f(1.0f, 1.0f, 1.0f);
+	
+	/* set bounding-box for text 
+	 *	- padding of 2 'units' on either side
+	 */
+	rect.xmin= strip->start + 2;
+	rect.ymin= yminc;
+	rect.xmax= strip->end - 2;
+	rect.ymax= ymaxc;
+	
+	/* add this string to the cache of texts to draw*/
+	UI_view2d_text_cache_rectf(v2d, &rect, str);
+}
+
 /* ---------------------- */
 
 void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
@@ -175,14 +206,20 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					NlaStrip *strip;
+					int index;
 					
 					/* draw backdrop? */
 					// TODO...
 					
 					/* draw each strip in the track (if visible) */
-					for (strip=nlt->strips.first; strip; strip= strip->next) {
-						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax))
+					for (strip=nlt->strips.first, index=1; strip; strip=strip->next, index++) {
+						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
+							/* draw the visualisation of the strip */
 							nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
+							
+							/* add the text for this strip to the cache */
+							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);
+						}
 					}
 				}
 					break;
