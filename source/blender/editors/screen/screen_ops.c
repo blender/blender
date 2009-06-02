@@ -242,7 +242,8 @@ int ED_operator_uvmap(bContext *C)
 		return 1;
 	}
 
-	BKE_mesh_end_editmesh(obedit->data, em);
+	if(obedit)
+		BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 
