@@ -1141,101 +1141,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break; 
 		*/
-		case CONSTRAINT_TYPE_KINEMATIC:
+		
+		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
-				bKinematicConstraint *data = con->data;
-
-				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco, yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				/* Draw target parameters */
-				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco, yco-44, 137, 19, &data->tar, "Target Object"); 
-
-				if (is_armature_target(data->tar)) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco, yco-62,137,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target(data->tar)) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco, yco-62,137,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
-				uiBlockEndAlign(block);
-				
-				/* Settings */
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", xco, yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", xco, yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
-				
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", xco+147, yco-92, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", xco+147, yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "W ", xco+187, yco-112, 97, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
-				
-				uiBlockBeginAlign(block);
-				
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", xco, yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
-				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", xco+147, yco-137, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
-				uiBlockEndAlign(block);
-				
-				/* Pole Vector */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Pole Target:", xco+147, yco-24, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+147, yco-44, 137, 19, &data->poletar, "Pole Target Object"); 
-				if (is_armature_target(data->poletar)) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+147, yco-62,137,19, &data->polesubtarget, 0, 24, 0, 0, "Pole Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->poletar);
-				}
-				else if (is_geom_target(data->poletar)) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+147, yco-62,137,18, &data->polesubtarget, 0, 24, 0, 0, "Name of Vertex Group defining pole 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
-				}
-				else {
-					strcpy(data->polesubtarget, "");
-				}
-				
-				if (data->poletar) {
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", xco, yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
-				}
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data = con->data;
-				float extremeLin = 999.f;
-				float extremeAngX = 180.f;
-				float extremeAngY = 45.f;
-				float extremeAngZ = 45.f;
-				int togButWidth = 70;
-				int offsetY = 150;
-				int textButWidth = ((width/2)-togButWidth);
-				
-				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Generic 6DOF%x12",//|Extra Force%x6",
-				//uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic 6DOF%x12",//|Extra Force%x6",
-												xco, yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
-
-				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Collision", xco+155, yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
-
-
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", xco, yco-50, 130, 18, &data->tar, "Child Object");
-				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", xco+135, yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
-				
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", xco, yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", xco, yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", xco, yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
-				
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", xco+135, yco-75, 130, 18, &data->axX, -360, 360, 1500, 0.0, "Rotate pivot on X Axis (in degrees)");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", xco+135, yco-100, 130, 18, &data->axY, -360, 360, 1500, 0.0, "Rotate pivot on Y Axis (in degrees)");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", xco+135, yco-125, 130, 18, &data->axZ, -360, 360, 1500, 0.0, "Rotate pivot on Z Axis (in degrees)");
-				
 				if (data->type==CONSTRAINT_RB_GENERIC6DOF) {
-					/* Draw Pairs of LimitToggle+LimitValue */
+					// Draw Pairs of LimitToggle+LimitValue 
 					uiBlockBeginAlign(block); 
 						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
@@ -1270,7 +1180,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 					offsetY += 20;
 				}
 				if ((data->type==CONSTRAINT_RB_GENERIC6DOF) || (data->type==CONSTRAINT_RB_CONETWIST)) {
-					/* Draw Pairs of LimitToggle+LimitValue */
+					// Draw Pairs of LimitToggle+LimitValue /
 					uiBlockBeginAlign(block); 
 						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
@@ -1305,6 +1215,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				
 			}
 			break;
+			*/
 
 		case CONSTRAINT_TYPE_NULL:
 			{
