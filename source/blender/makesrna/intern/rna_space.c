@@ -74,9 +74,9 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		*/
 		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
-		/* case SPACE_BUTS:
+		case SPACE_BUTS:
 			return &RNA_SpaceButtonsWindow;
-		case SPACE_FILE:
+		/* case SPACE_FILE:
 			return &RNA_SpaceFileBrowser;*/
 		case SPACE_IMAGE:
 			return &RNA_SpaceImageEditor;
@@ -471,6 +471,45 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	
 }
 
+static void rna_def_space_buttons(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem buttons_context_items[] = {
+		{BCONTEXT_SCENE, "SCENE", "Scene", ""},
+		{BCONTEXT_WORLD, "WORLD", "World", ""},
+		{BCONTEXT_OBJECT, "OBJECT", "Object", ""},
+		{BCONTEXT_DATA, "DATA", "Data", ""},
+		{BCONTEXT_MATERIAL, "MATERIAL", "Material", ""},
+		{BCONTEXT_TEXTURE, "TEXTURE", "Texture", ""},
+		{BCONTEXT_PARTICLE, "PARTICLE", "Particle", ""},
+		{BCONTEXT_PHYSICS, "PHYSICS", "Physics", ""},
+		{BCONTEXT_GAME, "GAME", "Game", ""},
+		{BCONTEXT_BONE, "BONE", "Bone", ""},
+		{BCONTEXT_MODIFIER, "MODIFIER", "Modifier", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem panel_alignment_items[] = {
+		{1, "HORIZONTAL", "Horizontal", ""},
+		{2, "VERTICAL", "Vertical", ""},
+		{0, NULL, NULL, NULL}};
+		
+	srna= RNA_def_struct(brna, "SpaceButtonsWindow", "Space");
+	RNA_def_struct_sdna(srna, "SpaceButs");
+	RNA_def_struct_ui_text(srna, "Buttons Space", "Buttons Window space data");
+	
+	prop= RNA_def_property(srna, "buttons_context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mainb");
+	RNA_def_property_enum_items(prop, buttons_context_items);
+	RNA_def_property_ui_text(prop, "Buttons Context", "The type of active data to display and edit in the buttons window");
+	
+	prop= RNA_def_property(srna, "panel_alignment", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "align");
+	RNA_def_property_enum_items(prop, panel_alignment_items);
+	RNA_def_property_ui_text(prop, "Panel Alignment", "Arrangement of the panels within the buttons window");
+}
+
 static void rna_def_space_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -624,6 +663,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_outliner(brna);
 	rna_def_background_image(brna);
 	rna_def_space_3dview(brna);
+	rna_def_space_buttons(brna);
 }
 
 #endif

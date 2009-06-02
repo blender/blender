@@ -245,6 +245,7 @@ extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
+extern StructRNA RNA_SpaceButtonsWindow;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceTextEditor;

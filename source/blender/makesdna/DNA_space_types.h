@@ -463,6 +463,22 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_SOUND		3
 #define TAB_SCENE_SEQUENCER	4
 
+
+/* warning: the values of these defines are used in sbuts->tabs[8] */
+/* buts->mainb new */
+#define BCONTEXT_SCENE		0
+#define BCONTEXT_WORLD		1
+#define BCONTEXT_OBJECT		2
+#define BCONTEXT_DATA		3
+#define BCONTEXT_MATERIAL	4
+#define BCONTEXT_TEXTURE	5
+#define BCONTEXT_PARTICLE	6
+#define BCONTEXT_PHYSICS	7
+#define BCONTEXT_GAME		8
+#define BCONTEXT_BONE		9
+#define BCONTEXT_MODIFIER	10
+
+
 /* sbuts->flag */
 #define SB_PRV_OSA			1
 
