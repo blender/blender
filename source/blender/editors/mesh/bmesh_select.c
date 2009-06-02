@@ -1055,7 +1055,6 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
 {
-#if 0 //BMESH_TODO
 	ViewContext vc;
 	BMEditMesh *em;
 	BMEdge *eed;
@@ -1067,11 +1066,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	vc.mval[1]= mval[1];
 	em= vc.em;
 	
-	eed= findnearestedge(&vc, &dist);
+	eed= EDBM_findnearestedge(&vc, &dist);
 	if(eed) {
-		if(extend==0) EM_clear_flag_all(em, SELECT);
+		if(extend==0) EDBM_clear_flag_all(em, BM_SELECT);
 	
-		if((eed->f & SELECT)==0) select=1;
+		if(BM_TestHFlag(em, BM_SELECT)==0) select=1;
 		else if(extend) select=0;
 
 		if(em->selectmode & SCE_SELECT_FACE) {
@@ -1090,12 +1089,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 				edgeloop_select(em, eed, select);
 		}
 
-		EM_selectmode_flush(em);
+		EDBM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 	}
-#endif
 }
 
 static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
