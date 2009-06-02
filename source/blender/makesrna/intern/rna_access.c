@@ -99,6 +99,17 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 	r_ptr->id.data= id;
 	r_ptr->type= type;
 	r_ptr->data= data;
+
+	if(data) {
+		while(r_ptr->type && r_ptr->type->refine) {
+			StructRNA *rtype= r_ptr->type->refine(r_ptr);
+
+			if(rtype == r_ptr->type)
+				break;
+			else
+				r_ptr->type= rtype;
+		}
+	}
 }
 
 static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerRNA *ptr)

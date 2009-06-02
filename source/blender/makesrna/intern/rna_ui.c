@@ -199,7 +199,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
 {
 	Panel *hdr= (Panel*)ptr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Panel;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Panel;
 }
 
 /* Header */
@@ -290,7 +290,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 static StructRNA* rna_Header_refine(struct PointerRNA *htr)
 {
 	Header *hdr= (Header*)htr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Header;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Header;
 }
 
 /* Menu */
@@ -405,7 +405,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
 {
 	Menu *hdr= (Menu*)mtr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Menu;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Menu;
 }
 
 static int rna_UILayout_active_get(struct PointerRNA *ptr)

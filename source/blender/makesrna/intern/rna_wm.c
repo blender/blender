@@ -56,7 +56,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 	if(op)
 		return op->type->srna;
 	else
-		return &RNA_OperatorProperties;
+		return ptr->type;
 }
 
 IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
