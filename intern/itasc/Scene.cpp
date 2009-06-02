@@ -217,6 +217,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 		return false;
 	Timestamp ts;
 	ts.realTimestamp = timestamp;
+	// initially we start with the full timestep to allow velocity estimation over the full interval
 	ts.realTimestep = timestep;
 	setCacheTimestamp(ts);
 	ts.substep = 0;
@@ -399,15 +400,14 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 			}
 		}
 		if (numsubstep > 1) {
-			// change timestep so that for next substep, updateControlOutput() will have
-			// the correct timestep (although it is not using it)
-			ts.realTimestep = timesubstep;
 			ts.substep = 1;
 		} else {
 			// set substep to false for last iteration so that controlled output 
 			// can be updated in updateKinematics() and model_update)() before next call to Secne::update()
 			ts.substep = 0;
 		}
+		// change timestep so that integration is done correctly
+		ts.realTimestep = timesubstep;
 
 		//Update the Objects
 		for(ObjectMap::iterator it=objects.begin();it!=objects.end();++it){

@@ -376,6 +376,19 @@ static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
     }
 }
 
+static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
+{
+	if (fabs(R(0,2)) > 1.0 - KDL::epsilon ) {
+        X = KDL::sign(R(0,2)) * KDL::atan2(-R(1,0), R(1,1));
+        Y = KDL::sign(R(0,2)) * KDL::PI / 2;
+        Z = 0.0 ;
+    } else {
+        X = KDL::atan2(-R(1,2), R(2,2));
+        Y = KDL::atan2(R(0,2), sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,1))));
+        Z = KDL::atan2(-R(0,1), R(0,0));
+    }
+}
+
 static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
 {
 	IK_Target* target = (IK_Target*)param;
@@ -595,19 +608,19 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			break;
 		case IK_XDOF|IK_YDOF|IK_ZDOF:
 			// RX+RZ+RY
-			GetEulerXZY(bonerot, X, Z, Y);
+			GetEulerXYZ(bonerot, X, Y, Z);
 			joint += ":RX";
 			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X);
 			if (ret) {
 				parent = joint;
 				joint = bone->name;
-				joint += ":RZ";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z);
+				joint += ":RY";
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y);
 				if (ret) {
 					parent = joint;
 					joint = bone->name;
-					joint += ":RY";
-					ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y, tip);
+					joint += ":RZ";
+					ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z, tip);
 				}
 			}
 			break;
@@ -802,7 +815,7 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	if (ikscene->cache) {
 		iTaSC::CacheTS sts, cts, dts;
 		sts = cts = (iTaSC::CacheTS)(timestamp*1000.0);
-		if (ikscene->cache->getPreviousCacheItem(NULL, 0, &cts) == NULL || cts == 0) {
+		if (ikscene->cache->getPreviousCacheItem(ikscene->armature, 0, &cts) == NULL || cts == 0) {
 			// the cache is empty before this time, reiterate
 			reiterate = true;
 		} else {

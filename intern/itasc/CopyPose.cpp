@@ -132,8 +132,8 @@ void CopyPose::initCache(Cache *_cache)
     if (m_cache) {
         // create one channel for the coordinates
         m_poseCCh = m_cache->addChannel(this, "Xf", m_poseCacheSize);
-        // save initial constraint in cache position 0
-        pushPose(0);
+        // don't save initial value, it will be recomputed from external pose
+        //pushPose(0);
     }
 }
 
@@ -198,33 +198,40 @@ double* CopyPose::restoreValues(double* item, ConstraintValues* _values, Control
 	return item;
 }
 
-bool CopyPose::popPose(CacheTS timestamp)
+bool CopyPose::popPose(CacheTS timestamp, bool& found)
 {
+	found = false;
     if (m_poseCCh >= 0) {
         double *item = (double*)m_cache->getPreviousCacheItem(this, m_poseCCh, &timestamp);
-        if (item && timestamp != m_poseCTs) {
-			int i=0;
-			if (m_outputControl & CTL_POSITION) {
-				if (m_outputDynamic & CTL_POSITION) {
-					item = restoreValues(item, &m_values[i], &m_pos, CTL_POSITIONX);
+		if (item) {
+			found = true;
+			if (timestamp != m_poseCTs) {
+				int i=0;
+				if (m_outputControl & CTL_POSITION) {
+					if (m_outputDynamic & CTL_POSITION) {
+						item = restoreValues(item, &m_values[i], &m_pos, CTL_POSITIONX);
+					}
+					i++;
 				}
-				i++;
-			}
-			if (m_outputControl & CTL_ROTATION) {
-				if (m_outputDynamic & CTL_ROTATION) {
-					item = restoreValues(item, &m_values[i], &m_rot, CTL_ROTATIONX);
+				if (m_outputControl & CTL_ROTATION) {
+					if (m_outputDynamic & CTL_ROTATION) {
+						item = restoreValues(item, &m_values[i], &m_rot, CTL_ROTATIONX);
+					}
+					i++;
 				}
-				i++;
+				m_poseCTs = timestamp;
+				item = NULL;
 			}
-			// The time is not contiguous, should also load the joint.
+        }
+		if (!item) {
+			// The time is not contiguous or cache is empty, should also load the joint.
 			// But this constraint has no joint, only a full rotation matrix that we don't save. 
 			// We must get the pose from the scene using the callback. Hopefully the constraint
 			// are updated after the objects, so we can trust the object position
 			getExternalPose(m_internalPose);
 			updateJacobian();
-			m_poseCTs = timestamp;
 			return true;
-        }
+		}
     }
     return false;
 }
@@ -402,9 +409,10 @@ void CopyPose::updateControlOutput(const Timestamp& timestamp)
 {
     //IMO this should be done, no idea if it is enough (wrt Distance impl)
 	Twist y = diff(m_internalPose,F_identity);
+	bool found = true;
 	if (!timestamp.substep) {
 		if (!timestamp.reiterate) {
-			if (popPose(timestamp.cacheTimestamp))
+			if (popPose(timestamp.cacheTimestamp, found))
 				// pose updated, recalculate the rotation
 				y = diff(m_internalPose,F_identity);
 		}
@@ -418,7 +426,7 @@ void CopyPose::updateControlOutput(const Timestamp& timestamp)
 				updateValues(y.rot, &m_values[i++], &m_rot, CTL_ROTATIONX);
 			}
 			if ((*m_constraintCallback)(timestamp, m_values, m_nvalues, m_constraintParam)) {
-				setControlParameters(m_values, m_nvalues, timestamp.realTimestep);
+				setControlParameters(m_values, m_nvalues, (found)?timestamp.realTimestep:0.0);
 			}
 		}
 	}

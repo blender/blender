@@ -36,8 +36,8 @@ void MovingFrame::initCache(Cache *_cache)
 	m_poseCCh = -1;
 	if (m_cache) {
 		m_poseCCh = m_cache->addChannel(this,"pose",frameCacheSize);
-		// add the initial position at timestamp 0
-		pushInternalFrame(0);
+		// don't store the initial pose, it's causing unnecessary large velocity on the first step
+		//pushInternalFrame(0);
 	}
 }
 

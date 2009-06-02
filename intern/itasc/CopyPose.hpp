@@ -81,7 +81,7 @@ private:
 	} m_rot, m_pos;
 
     void pushPose(CacheTS timestamp);
-    bool popPose(CacheTS timestamp);
+    bool popPose(CacheTS timestamp, bool& found);
 	int nBitsOn(unsigned int v)
 		{ int n=0; while(v) { if (v&1) n++; v>>=1; } return n; }
 	double* restoreValues(double* item, ConstraintValues* _values, ControlState* _state, unsigned int mask);
