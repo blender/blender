@@ -49,7 +49,7 @@ static void rna_Object_update(bContext *C, PointerRNA *ptr)
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
-static void rna_Object_scene_update(bContext *C, PointerRNA *ptr)
+static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 	DAG_scene_sort(CTX_data_scene(C));
@@ -774,7 +774,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
 	RNA_def_property_enum_items(prop, dupli_items);
 	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_scene_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);

@@ -151,7 +151,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	PanelType *pt, dummypt = {0};
 	Panel dummypanel= {0};
 	PointerRNA dummyptr;
-	int have_function[2];
+	int have_function[3];
 
 	/* setup dummy panel & panel type to store static properties in */
 	dummypanel.type= &dummypt;

@@ -368,6 +368,8 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
 }
 
+/****************** multires subdivide operator *********************/
+
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
