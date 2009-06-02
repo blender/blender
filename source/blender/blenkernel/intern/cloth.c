@@ -157,7 +157,7 @@ BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
-	Cloth *cloth = clmd->clothObject;
+	Cloth *cloth;
 	ClothVertex *verts;
 	MFace *mfaces;
 	float co[12];
@@ -198,7 +198,7 @@ BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
-	Cloth *cloth = clmd->clothObject;
+	Cloth *cloth;
 	ClothVertex *verts;
 	MFace *mfaces;
 	float co[12];
