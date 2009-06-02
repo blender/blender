@@ -35,18 +35,19 @@ will be exported as mesh data.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 59 Temple Place - Suite 330, Boston, MA	 02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
 
 import bpy
+import BPySys
 
 # import Blender
 # from Blender import Mesh, Scene, Window, sys, Image, Draw
@@ -56,7 +57,7 @@ import bpy
 # import BPyMessages
 
 # Returns a tuple - path,extension.
-# 'hello.obj' >  ('hello', '.obj')
+# 'hello.obj' >	 ('hello', '.obj')
 def splitExt(path):
 	dotidx = path.rfind('.')
 	if dotidx == -1:
@@ -95,7 +96,7 @@ def write_mtl(filename):
 		
 		if mat:
 			file.write('Ns %.6f\n' % ((mat.getHardness()-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's 
-			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.amb for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Ka %.6f %.6f %.6f\n' %	tuple([c*mat.amb for c in worldAmb])  ) # Ambient, uses mirror colour,
 			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.ref for c in mat.rgbCol]) ) # Diffuse
 			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.spec for c in mat.specCol]) ) # Specular
 			file.write('Ni %.6f\n' % mat.IOR) # Refraction index
@@ -112,14 +113,14 @@ def write_mtl(filename):
 		else:
 			#write a dummy material here?
 			file.write('Ns 0\n')
-			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Ka %.6f %.6f %.6f\n' %	tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
 			file.write('Kd 0.8 0.8 0.8\n')
 			file.write('Ks 0.8 0.8 0.8\n')
 			file.write('d 1\n') # No alpha
 			file.write('illum 2\n') # light normaly
 		
 		# Write images!
-		if img:  # We have an image on the face!
+		if img:	 # We have an image on the face!
 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
 		
 		elif mat: # No face image. if we havea material search for MTex image.
@@ -183,11 +184,12 @@ def copy_images(dest_dir):
 				copyCount+=1
 	print '\tCopied %d images' % copyCount
 
-def write(filename, objects,\
-EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
-EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
-EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
-EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False):
+def write(filename, objects,
+		  EXPORT_TRI=False,	 EXPORT_EDGES=False,
+		  EXPORT_NORMALS=False,	 EXPORT_NORMALS_HQ=False,
+		  EXPORT_UV=True,  EXPORT_MTL=True,	 EXPORT_COPY_IMAGES=False,
+		  EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,
+		  EXPORT_GROUP_BY_OB=False,	 EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False):
 	'''
 	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
@@ -409,9 +411,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 				
 				# MAKE KEY
 				if faceuv and f_image: # Object is always true.
-					key = materialNames[f_mat],  f_image.name
+					key = materialNames[f_mat],	 f_image.name
 				else:
-					key = materialNames[f_mat],  None # No image, use None instead.
+					key = materialNames[f_mat],	 None # No image, use None instead.
 				
 				# CHECK FOR CONTEXT SWITCH
 				if key == contextMat:
@@ -528,7 +530,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=Fal
 	print "OBJ Export time: %.2f" % (sys.time() - time1)
 	
 
-# converted: 0%
+# replaced by do_export
 def write_ui(filename):
 	
 	if not filename.lower().endswith('.obj'):
@@ -787,5 +789,122 @@ def write_ui(filename):
 	Window.WaitCursor(0)
 
 
-if __name__ == '__main__':
-	Window.FileSelector(write_ui, 'Export Wavefront OBJ', sys.makename(ext='.obj'))
+def do_export(filename, context):
+#	Window.EditMode(0)
+#	Window.WaitCursor(1)
+	
+	EXPORT_APPLY_MODIFIERS = True
+	EXPORT_ROTX90 = True
+	EXPORT_TRI = False
+	EXPORT_EDGES = False
+	EXPORT_NORMALS = False
+	EXPORT_NORMALS_HQ = False
+	EXPORT_UV = True
+	EXPORT_MTL = True
+	EXPORT_SEL_ONLY = True
+	EXPORT_ALL_SCENES = False # XXX not working atm
+	EXPORT_ANIMATION = False
+	EXPORT_COPY_IMAGES = False
+	EXPORT_BLEN_OBS = True
+	EXPORT_GROUP_BY_OB = False
+	EXPORT_GROUP_BY_MAT = False
+	EXPORT_KEEP_VERT_ORDER = False
+
+	base_name, ext = splitExt(filename)
+	context_name = [base_name, '', '', ext] # Base name, scene name, frame number, extension
+	
+	orig_scene = context.scene
+
+#	if EXPORT_ALL_SCENES:
+#		export_scenes = bpy.data.scenes
+#	else:
+#		export_scenes = [orig_scene]
+
+	# XXX only exporting one scene atm since changing 
+	# current scene is not possible.
+	# Brecht says that ideally in 2.5 we won't need such a function,
+	# allowing multiple scenes open at once.
+	export_scenes = [orig_scene]
+
+	# Export all scenes.
+	for scn in export_scenes:
+#		scn.makeCurrent() # If already current, this is not slow.
+#		context = scn.getRenderingContext()
+		orig_frame = scn.current_frame
+		
+		if EXPORT_ALL_SCENES: # Add scene name into the context_name
+			context_name[1] = '_%s' % BPySys.cleanName(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
+		
+		# Export an animation?
+		if EXPORT_ANIMATION:
+			scene_frames = xrange(scn.start_frame, context.end_frame+1) # Up to and including the end frame.
+		else:
+			scene_frames = [orig_frame] # Dont export an animation.
+		
+		# Loop through all frames in the scene and export.
+		for frame in scene_frames:
+			if EXPORT_ANIMATION: # Add frame to the filename.
+				context_name[2] = '_%.6d' % frame
+			
+			scn.current_frame = frame
+			if EXPORT_SEL_ONLY:
+				export_objects = context.selected_objects
+			else:	
+				export_objects = scn.objects
+			
+			full_path= ''.join(context_name)
+			
+			# erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
+			# EXPORT THE FILE.
+#			write(full_path, export_objects,
+#					EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,
+#					EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,
+#					EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,
+#					EXPORT_ROTX90, EXPORT_BLEN_OBS,
+#					EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER)
+		
+		scn.current_frame = orig_frame
+	
+	# Restore old active scene.
+#	orig_scene.makeCurrent()
+#	Window.WaitCursor(0)
+
+
+class SCRIPT_OT_export_obj(bpy.types.Operator):
+	'''
+	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	'''
+	__label__ = 'My Operator'
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	__props__ = [
+		#		bpy.types.FloatProperty(attr="setting_1", name="Example 1",
+		#		default=10.0, min=0, max=10, description="Add info here"),
+		#		bpy.types.IntProperty(attr="setting_2", default=2),
+		#		bpy.types.BoolProperty(attr="toggle", default=True)
+		]
+	
+	def execu(self, context):
+		print("Selected: " + context.active_object.name)
+
+		do_export("/tmp/test.obj", context)
+
+		return 'FINISHED'
+	
+	def invoke(self, event):
+		print("Invoke")
+		return 'FINISHED'
+	
+	def poll(self, context): # Poll isnt working yet
+		print("Poll")
+		return True
+
+if (hasattr(bpy.ops, "SCRIPT_OT_export_obj")):
+	bpy.ops.remove(bpy.ops.SCRIPT_OT_export_obj)
+
+bpy.ops.add(SCRIPT_OT_export_obj)
+
+bpy.ops.SCRIPT_OT_export_obj()
+
+bpy.ops.remove(bpy.ops.SCRIPT_OT_export_obj)

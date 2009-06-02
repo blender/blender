@@ -35,6 +35,8 @@
 
 #include "BPY_extern.h"
 
+static void bpy_init_syspath();
+
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
@@ -126,14 +128,14 @@ void BPY_start_python( int argc, char **argv )
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 	
-	
 	/* bpy.* and lets us import it */
 	bpy_init_modules(); 
 
+	/* init sys.path */
+	bpy_init_syspath();
 	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
-	
 }
 
 void BPY_end_python( void )
@@ -146,6 +148,56 @@ void BPY_end_python( void )
 	Py_Finalize(  );
 	
 	return;
+}
+
+void syspath_append(char *dirname)
+{
+	PyObject *mod_sys= NULL, *dict= NULL, *path= NULL, *dir= NULL;
+	short ok=1;
+
+	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
+	
+	if (mod_sys) {
+		dict = PyModule_GetDict( mod_sys );	/* borrowed ref */
+		path = PyDict_GetItemString( dict, "path" );	/* borrowed ref */
+		if ( !PyList_Check( path ) ) {
+			ok = 0;
+		}
+	} else {
+		/* cant get the sys module */
+		/* PyErr_Clear(); is called below */
+		ok = 0;
+	}
+	
+	dir = PyString_FromString( dirname );
+	
+	if (ok && PySequence_Contains(path, dir)==0) { /* Only add if we need to */
+		if (PyList_Append( path, dir ) != 0) /* decref below */
+			ok = 0; /* append failed */
+	}
+	
+	if( (ok==0) || PyErr_Occurred(  ) )
+		fprintf(stderr, "Warning: could import or build sys.path\n" );
+	
+	PyErr_Clear();
+	Py_DECREF( dir );
+	Py_XDECREF( mod_sys );
+}
+
+/* Adds bpymodules to sys.path */
+static void bpy_init_syspath()
+{
+	char *dir;
+	char mod_dir[FILE_MAX];
+
+	// make path to [home]/scripts/bpymodules
+	dir = BLI_gethome_folder("scripts");
+	BLI_make_file_string("/", mod_dir, dir, "bpymodules");
+
+	if (BLI_exists(mod_dir)) {
+		syspath_append(mod_dir);
+		fprintf(stderr, "'%s' has been added to sys.path\n", mod_dir);
+	}
 }
 
 /* Can run a file or text block */
