@@ -8,6 +8,15 @@ class WorldButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		return (context.scene.world != None)
+
+class WORLD_PT_preview(WorldButtonsPanel):
+	__label__ = "Preview"
+
+	def draw(self, context):
+		layout = self.layout
+
+		world = context.scene.world
+		layout.template_preview(world)
 	
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
@@ -49,6 +58,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
+		layout.active = world.mist.enabled
 
 		flow = layout.column_flow()
 		flow.itemR(world.mist, "start")
@@ -71,6 +81,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
 	def draw(self, context):
 		world = context.scene.world
 		layout = self.layout
+		layout.active = world.stars.enabled
 
 		flow = layout.column_flow()
 		flow.itemR(world.stars, "size")
@@ -89,16 +100,22 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 
 	def draw(self, context):
 		world = context.scene.world
-		layout = self.layout
-
 		ao = world.ambient_occlusion
+		layout = self.layout
+		layout.active = ao.enabled
 		
 		layout.itemR(ao, "gather_method", expand=True)
 		
 		if ao.gather_method == 'RAYTRACE':
-			row = layout.row()
-			row.itemR(ao, "samples")
-			row.itemR(ao, "distance")
+			split = layout.split()
+			col = split.column()
+			col.itemR(ao, "samples")
+			col.itemR(ao, "distance")
+			col = split.column()
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			
 			layout.itemR(ao, "sample_method")
 			if ao.sample_method == 'ADAPTIVE_QMC':
@@ -111,21 +128,24 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 				row.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			col = layout.column_flow()
+			split = layout.split()
+			col = split.column()
 			col.itemR(ao, "passes")
 			col.itemR(ao, "error_tolerance", text="Error")
 			col.itemR(ao, "correction")
+			col = split.column() 
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			col.itemR(ao, "pixel_cache")
 
-		row = layout.row()
-		row.itemR(ao, "falloff")	
-		row.itemR(ao, "strength")
-		
 		col = layout.column()
 		col.row().itemR(ao, "blend_mode", expand=True)
 		col.row().itemR(ao, "color", expand=True)
 		col.itemR(ao, "energy")
 	
+bpy.types.register(WORLD_PT_preview)
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)

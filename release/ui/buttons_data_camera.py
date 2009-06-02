@@ -63,11 +63,12 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		sub.itemR(cam, "show_title_safe", text="Title Safe")
 		sub.itemR(cam, "show_name", text="Name")
 			
-		sub = split.column()
-		sub.itemR(cam, "show_passepartout", text="Passepartout")
-		if (cam.show_passepartout):
-			sub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
-		sub.itemR(cam, "draw_size", text="Size")
+		col = split.column()
+		col.itemR(cam, "show_passepartout", text="Passepartout")
+		colsub = col.column()
+		colsub.active = cam.show_passepartout
+		colsub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
+		col.itemR(cam, "draw_size", text="Size")
 		
 bpy.types.register(DATA_PT_cameralens)
 bpy.types.register(DATA_PT_cameradisplay)

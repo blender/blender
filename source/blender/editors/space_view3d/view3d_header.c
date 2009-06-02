@@ -680,7 +680,7 @@ static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 
-	uiLayoutContext(layout, WM_OP_INVOKE_REGION_WIN);	
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);	
 
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_clipping");
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_zoom_border");

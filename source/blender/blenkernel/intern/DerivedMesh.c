@@ -1403,7 +1403,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 		int numVerts;
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
 
-		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
+		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0, 0);
 		dm = getMeshDerivedMesh(me, ob, deformedVerts);
 
 		MEM_freeN(deformedVerts);
@@ -1628,7 +1628,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if(!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
-				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
+				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, useRenderParams, useDeform);
 			} else {
 				break;
 			}
@@ -1709,7 +1709,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			mti->deformVerts(md, ob, dm, deformedVerts, numVerts);
+			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, useRenderParams, useDeform);
 		} else {
 			DerivedMesh *ndm;
 

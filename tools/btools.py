@@ -45,7 +45,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
 			'WITH_BF_GAMEENGINE', 'WITH_BF_SOLID', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
 			'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
-			'WITH_BF_YAFRAY',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
@@ -156,7 +155,6 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
 
 		(BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
-		(BoolVariable('WITH_BF_YAFRAY', 'Enable Yafray', True)),
 
 		(BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
 		('BF_OPENAL', 'base path for OpenAL', ''),

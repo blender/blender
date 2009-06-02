@@ -131,6 +131,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)
+#define UI_BUT_INACTIVE		(1<<23)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -532,18 +533,37 @@ uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, cha
 #define UI_LAYOUT_PANEL			0
 #define UI_LAYOUT_HEADER		1
 #define UI_LAYOUT_MENU			2
+ 
+#define UI_UNIT_X				20
+#define UI_UNIT_Y				20
 
-#define UI_UNIT_X		20
-#define UI_UNIT_Y		20
+#define UI_LAYOUT_ALIGN_LEFT	0
+#define UI_LAYOUT_ALIGN_CENTER	1
+#define UI_LAYOUT_ALIGN_RIGHT	2
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
 void uiBlockLayoutResolve(const struct bContext *C, uiBlock *block, int *x, int *y);
-float uiBlockAspect(uiBlock *block); /* temporary */
 
-void uiLayoutContext(uiLayout *layout, int opcontext);
-void uiLayoutFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
-uiBlock *uiLayoutBlock(uiLayout *layout);
+uiBlock *uiLayoutGetBlock(uiLayout *layout);
+
+void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
+void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
+void uiLayoutSetContextPointer(uiLayout *layout, char *name, struct PointerRNA *ptr);
+
+void uiLayoutSetActive(uiLayout *layout, int active);
+void uiLayoutSetEnabled(uiLayout *layout, int enabled);
+void uiLayoutSetRedAlert(uiLayout *layout, int redalert);
+void uiLayoutSetAlignment(uiLayout *layout, int alignment);
+void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
+void uiLayoutSetScale(uiLayout *layout, float scale);
+
+int uiLayoutGetActive(uiLayout *layout);
+int uiLayoutGetEnabled(uiLayout *layout);
+int uiLayoutGetRedAlert(uiLayout *layout);
+int uiLayoutGetAlignment(uiLayout *layout);
+int uiLayoutGetKeepAspect(uiLayout *layout);
+float uiLayoutGetScale(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
@@ -560,6 +580,7 @@ void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+void uiTemplatePreview(uiLayout *layout, struct ID *id);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

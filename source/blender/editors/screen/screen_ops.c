@@ -1977,7 +1977,7 @@ static void testfunc(bContext *C, void *argv, int arg)
 
 static void newlevel1(bContext *C, uiLayout *layout, void *arg)
 {
-	uiLayoutFunc(layout, testfunc, NULL);
+	uiLayoutSetFunc(layout, testfunc, NULL);
 	
 	uiItemV(layout, "First", ICON_PROP_ON, 1);
 	uiItemV(layout, "Second", ICON_PROP_CON, 2);
@@ -1990,7 +1990,7 @@ static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Hello world", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemO(layout, NULL, ICON_PROP_ON, "SCREEN_OT_region_flip");
 	uiItemO(layout, NULL, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
 	uiItemO(layout, NULL, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");

@@ -341,163 +341,6 @@ static void modifiers_moveDown(bContext *C, void *ob_v, void *md_v)
 	BKE_reports_clear(&reports);
 }
 
-static void modifier_testLatticeObj(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for (id= bmain->object.first; id; id= id->next) {
-		if( strcmp(name, id->name+2)==0 ) {
-			if (((Object *)id)->type != OB_LATTICE) {
-				uiPupMenuError(C, "Lattice deform object must be a lattice");
-				break;
-			} 
-			*idpp= id;
-			return;
-		}
-	}
-	*idpp= 0;
-}
-
-static void modifier_testCurveObj(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for (id= bmain->object.first; id; id= id->next) {
-		if( strcmp(name, id->name+2)==0 ) {
-			if (((Object *)id)->type != OB_CURVE) {
-				uiPupMenuError(C, "Curve deform object must be a curve");
-				break;
-			} 
-			*idpp= id;
-			return;
-		}
-	}
-	*idpp= 0;
-}
-
-static void modifier_testMeshObj(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	Object *obact= CTX_data_active_object(C);
-	ID *id;
-
-	for (id= bmain->object.first; id; id= id->next) {
-		/* no boolean on its own object */
-		if(id != (ID *)obact) {
-			if( strcmp(name, id->name+2)==0 ) {
-				if (((Object *)id)->type != OB_MESH) {
-					uiPupMenuError(C, "Boolean modifier object must be a mesh");
-					break;
-				} 
-				*idpp= id;
-				return;
-			}
-		}
-	}
-	*idpp= NULL;
-}
-
-static void modifier_testArmatureObj(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for (id= bmain->object.first; id; id= id->next) {
-		if( strcmp(name, id->name+2)==0 ) {
-			if (((Object *)id)->type != OB_ARMATURE) {
-				uiPupMenuError(C, "Armature deform object must be an armature");
-				break;
-			} 
-			*idpp= id;
-			return;
-		}
-	}
-	*idpp= 0;
-}
-
-static void modifier_testTexture(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for(id = bmain->tex.first; id; id = id->next) {
-		if(strcmp(name, id->name + 2) == 0) {
-			*idpp = id;
-			/* texture gets user, objects not: delete object = clear modifier */
-			id_us_plus(id);
-			return;
-		}
-	}
-	*idpp = 0;
-}
-
-#if 0 /* this is currently unused, but could be useful in the future */
-static void modifier_testMaterial(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for(id = bmain->mat.first; id; id = id->next) {
-		if(strcmp(name, id->name + 2) == 0) {
-			*idpp = id;
-			return;
-		}
-	}
-	*idpp = 0;
-}
-#endif
-
-static void modifier_testImage(bContext *C, char *name, ID **idpp)
-{
-	Main *bmain= CTX_data_main(C);
-	ID *id;
-
-	for(id = bmain->image.first; id; id = id->next) {
-		if(strcmp(name, id->name + 2) == 0) {
-			*idpp = id;
-			return;
-		}
-	}
-	*idpp = 0;
-}
-
-/* autocomplete callback for ID buttons */
-void autocomplete_image(bContext *C, char *str, void *arg_v)
-{
-	Main *bmain= CTX_data_main(C);
-
-	/* search if str matches the beginning of an ID struct */
-	if(str[0]) {
-		AutoComplete *autocpl = autocomplete_begin(str, 22);
-		ID *id;
-
-		for(id = bmain->image.first; id; id = id->next)
-			autocomplete_do_name(autocpl, id->name+2);
-
-		autocomplete_end(autocpl, str);
-	}
-}
-
-/* autocomplete callback for ID buttons */
-void autocomplete_meshob(bContext *C, char *str, void *arg_v)
-{
-	Main *bmain= CTX_data_main(C);
-
-	/* search if str matches the beginning of an ID struct */
-	if(str[0]) {
-		AutoComplete *autocpl = autocomplete_begin(str, 22);
-		ID *id;
-
-		for(id = bmain->object.first; id; id = id->next)
-			if(((Object *)id)->type == OB_MESH)
-				autocomplete_do_name(autocpl, id->name+2);
-
-		autocomplete_end(autocpl, str);
-	}
-}
-
 static void modifiers_convertParticles(bContext *C, void *obv, void *mdv)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -557,6 +400,23 @@ static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 		}
 }
 
+static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	ModifierData *nmd = modifier_new(md->type);
+
+	modifier_copyData(md, nmd);
+	nmd->mode &= ~eModifierMode_Virtual;
+
+	BLI_addhead(&ob->modifiers, nmd);
+
+	ob->partype = PAROBJECT;
+
+	ED_undo_push(C, "Modifier convert to real");
+}
+
+#if 0
 static void modifiers_clearHookOffset(bContext *C, void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
@@ -627,103 +487,6 @@ static void modifiers_reassignHook(bContext *C, void *ob_v, void *md_v)
 	}*/
 }
 
-static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
-{
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	ModifierData *nmd = modifier_new(md->type);
-
-	modifier_copyData(md, nmd);
-	nmd->mode &= ~eModifierMode_Virtual;
-
-	BLI_addhead(&ob->modifiers, nmd);
-
-	ob->partype = PAROBJECT;
-
-	ED_undo_push(C, "Modifier convert to real");
-}
-
-static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
-                                    int *uvlayer_tmp, char *uvlayer_name)
-{
-	char strtmp[38];
-	int totuv, i;
-	CustomDataLayer *layer
-	            = &data->layers[CustomData_get_layer_index(data, CD_MTFACE)];
-
-	*uvlayer_tmp = -1;
-
-	totuv = CustomData_number_of_layers(data, CD_MTFACE);
-
-	*menu_string = MEM_callocN(sizeof(**menu_string) * (totuv * 38 + 10),
-	                           "menu_string");
-	sprintf(*menu_string, "UV Layer%%t");
-	for(i = 0; i < totuv; i++) {
-		/* assign first layer as uvlayer_name if uvlayer_name is null. */
-		if(strcmp(layer->name, uvlayer_name) == 0) *uvlayer_tmp = i + 1;
-		sprintf(strtmp, "|%s%%x%d", layer->name, i + 1);
-		strcat(*menu_string, strtmp);
-		layer++;
-	}
-
-	/* there is no uvlayer defined, or else it was deleted. Assign active
-	 * layer, then recalc modifiers.
-	 */
-	if(*uvlayer_tmp == -1) {
-		if(CustomData_get_active_layer_index(data, CD_MTFACE) != -1) {
-			*uvlayer_tmp = 1;
-			layer = data->layers;
-			for(i = 0; i < CustomData_get_active_layer_index(data, CD_MTFACE);
-			    i++, layer++) {
-				if(layer->type == CD_MTFACE) (*uvlayer_tmp)++;
-			}
-			strcpy(uvlayer_name, layer->name);
-
-			/* update the modifiers */
-			/* XXX do_modifier_panels(B_MODIFIER_RECALC);*/
-		} else {
-			/* ok we have no uv layers, so make sure menu button knows that.*/
-			*uvlayer_tmp = 0;
-		}
-	}
-}
-
-void set_wave_uvlayer(bContext *C, void *arg1, void *arg2)
-{
-	WaveModifierData *wmd=arg1;
-	CustomDataLayer *layer = arg2;
-
-	/*check we have UV layers*/
-	if (wmd->uvlayer_tmp < 1) return;
-	layer = layer + (wmd->uvlayer_tmp-1);
-	
-	strcpy(wmd->uvlayer_name, layer->name);
-}
-
-void set_displace_uvlayer(bContext *C, void *arg1, void *arg2)
-{
-	DisplaceModifierData *dmd=arg1;
-	CustomDataLayer *layer = arg2;
-
-	/*check we have UV layers*/
-	if (dmd->uvlayer_tmp < 1) return;
-	layer = layer + (dmd->uvlayer_tmp-1);
-	
-	strcpy(dmd->uvlayer_name, layer->name);
-}
-
-void set_uvproject_uvlayer(bContext *C, void *arg1, void *arg2)
-{
-	UVProjectModifierData *umd=arg1;
-	CustomDataLayer *layer = arg2;
-
-	/*check we have UV layers*/
-	if (umd->uvlayer_tmp < 1) return;
-	layer = layer + (umd->uvlayer_tmp-1);
-	
-	strcpy(umd->uvlayer_name, layer->name);
-}
-
 static void modifiers_bindMeshDeform(bContext *C, void *ob_v, void *md_v)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -784,6 +547,7 @@ void modifiers_explodeDelVg(bContext *C, void *arg1, void *arg2)
 	ExplodeModifierData *emd=arg1;
 	emd->vgroup = 0;
 }
+#endif
 
 static int modifier_is_fluid_particles(ModifierData *md)
 {
@@ -794,16 +558,14 @@ static int modifier_is_fluid_particles(ModifierData *md)
 	return 0;
 }
 
-static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
+static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
-	Object *obedit= CTX_data_edit_object(C);
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	uiBut *but;
 	uiBlock *block;
 	uiLayout *column, *row, *result= NULL;
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = 0, y = 0; // XXX , color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
-	int editing = (obedit==ob);
 	short width = 295, buttonWidth = width-120-10;
 	char str[128];
 
@@ -822,7 +584,7 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 	/* open/close icon */
 	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, ICON_TRIA_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -840,9 +602,9 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 		/* Softbody not allowed in this situation, enforce! */
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, ICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, ICON_EDITMODE_HLT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
 		}
 		uiBlockEndAlign(block);
@@ -903,8 +665,7 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 		if (!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
 
-			uiBlockBeginAlign(block);
-			if (md->type==eModifierType_ParticleSystem) {
+						if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
 	    		if(!(G.f & G_PARTICLEEDIT)) {
@@ -926,7 +687,6 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
-			uiBlockEndAlign(block);
 		}
 
 		result= uiLayoutColumn(box, 0);
@@ -934,12 +694,9 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 
 		lx = x + 10;
 		cy = y + 10 - 1;
-		// else if (md->type==eModifierType_Surface) {
-		//	uiDefBut(block, LABEL, 1, "See Fields panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 	}
 
 	if (md->error) {
-
 		row = uiLayoutRow(uiLayoutBox(column), 0);
 
 		/* XXX uiBlockSetCol(block, color); */
@@ -950,7 +707,7 @@ static uiLayout *draw_modifier(bContext *C, uiLayout *layout, Object *ob, Modifi
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
+uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob;
 	ModifierData *md, *vmd;
@@ -970,7 +727,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		return NULL;
 	}
 	
-	uiBlockSetButLock(uiLayoutBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
+	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	/* find modifier and draw it */
 	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex);
@@ -980,11 +737,769 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(C, layout, ob, md, i, cageIndex, lastCageIndex);
+			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex);
 		else if(vmd->mode&eModifierMode_Virtual)
 			i--;
 	}
 
 	return NULL;
+}
+
+/************************ Constraint Template *************************/
+
+#include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
+
+#include "BKE_action.h"
+#include "BKE_constraint.h"
+
+#define REDRAWIPO					1
+#define REDRAWNLA					2
+#define REDRAWBUTSOBJECT			3		
+#define REDRAWACTION				4
+#define B_CONSTRAINT_TEST			5
+#define B_CONSTRAINT_CHANGETARGET	6
+#define B_CONSTRAINT_INF			7
+#define REMAKEIPO					8
+#define B_DIFF						9
+
+void do_constraint_panels(bContext *C, void *arg, int event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	switch(event) {
+	case B_CONSTRAINT_TEST:
+		// XXX allqueue(REDRAWVIEW3D, 0);
+		// XXX allqueue(REDRAWBUTSOBJECT, 0);
+		// XXX allqueue(REDRAWBUTSEDIT, 0);
+		break;  // no handling
+	case B_CONSTRAINT_INF:
+		/* influence; do not execute actions for 1 dag_flush */
+		if (ob->pose)
+			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+		break;
+	case B_CONSTRAINT_CHANGETARGET:
+		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
+		DAG_scene_sort(scene);
+		break;
+	default:
+		break;
+	}
+
+	object_test_constraints(ob);
+	
+	if(ob->pose) update_pose_constraint_flags(ob->pose);
+	
+	if(ob->type==OB_ARMATURE) DAG_object_flush_update(scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	
+	// XXX allqueue(REDRAWVIEW3D, 0);
+	// XXX allqueue(REDRAWBUTSOBJECT, 0);
+	// XXX allqueue(REDRAWBUTSEDIT, 0);
+}
+
+static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
+{
+	ED_object_constraint_set_active(ob_v, con_v);
+}
+
+static void del_constraint_func (bContext *C, void *ob_v, void *con_v)
+{
+	if(ED_object_constraint_delete(NULL, ob_v, con_v))
+		ED_undo_push(C, "Delete Constraint");
+}
+
+static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
+{
+	Object *ob= CTX_data_active_object(C);
+	bConstraint *con= con_v;
+	char oldname[32];	
+	
+	if (!con)
+		return;
+	
+	/* put on the stack */
+	BLI_strncpy(oldname, (char *)name_v, 32);
+	
+	ED_object_constraint_rename(ob, con, oldname);
+	ED_object_constraint_set_active(ob, con);
+	// XXX allqueue(REDRAWACTION, 0); 
+}
+
+static void constraint_moveUp(bContext *C, void *ob_v, void *con_v)
+{
+	if(ED_object_constraint_move_up(NULL, ob_v, con_v))
+		ED_undo_push(C, "Move Constraint");
+}
+
+static void constraint_moveDown(bContext *C, void *ob_v, void *con_v)
+{
+	if(ED_object_constraint_move_down(NULL, ob_v, con_v))
+		ED_undo_push(C, "Move Constraint");
+}
+
+/* some commonly used macros in the constraints drawing code */
+#define is_armature_target(target) (target && target->type==OB_ARMATURE)
+#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+#define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
+
+/* Helper function for draw constraint - draws constraint space stuff 
+ * This function should not be called if no menus are required 
+ * owner/target: -1 = don't draw menu; 0= not posemode, 1 = posemode 
+ */
+static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short xco, short yco, short owner, short target)
+{
+	short tarx, ownx, iconx;
+	short bwidth;
+	short iconwidth = 20;
+	
+	/* calculate sizes and placement of menus */
+	if (owner == -1) {
+		bwidth = 125;
+		tarx = 120;
+		ownx = 0;
+	}
+	else if (target == -1) {
+		bwidth = 125;
+		tarx = 0;
+		ownx = 120;
+	}
+	else {
+		bwidth = 100;
+		tarx = 85;
+		iconx = tarx + bwidth + 5;
+		ownx = tarx + bwidth + iconwidth + 10;
+	}
+	
+	
+	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Convert:", xco, yco, 80,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+	/* Target-Space */
+	if (target == 1) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
+												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+	}
+	else if (target == 0) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
+										tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+	}
+	
+	if ((target != -1) && (owner != -1))
+		uiDefIconBut(block, LABEL, B_NOP, ICON_ARROW_LEFTRIGHT,
+			iconx, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "");
+	
+	/* Owner-Space */
+	if (owner == 1) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
+												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
+	}
+	else if (owner == 0) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local (Without Parent) Space %x1", 
+										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
+	}
+}
+
+/* draw panel showing settings for a constraint */
+static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
+{
+	bPoseChannel *pchan= get_active_posechannel(ob);
+	bConstraintTypeInfo *cti;
+	uiBlock *block;
+	uiLayout *result= NULL, *col, *box;
+	uiBut *but;
+	char typestr[32];
+	short width = 265;
+	short proxy_protected, xco=0, yco=0;
+	int rb_col;
+
+	/* get constraint typeinfo */
+	cti= constraint_get_typeinfo(con);
+	if (cti == NULL) {
+		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
+		if (con->type == CONSTRAINT_TYPE_NULL)
+			strcpy(typestr, "Null");
+		else
+			strcpy(typestr, "Unknown");
+	}
+	else
+		strcpy(typestr, cti->name);
+		
+	/* determine whether constraint is proxy protected or not */
+	if (proxylocked_constraints_owner(ob, pchan))
+		proxy_protected= (con->flag & CONSTRAINT_PROXY_LOCAL)==0;
+	else
+		proxy_protected= 0;
+
+	/* unless button has own callback, it adds this callback to button */
+	block= uiLayoutGetBlock(layout);
+	uiBlockSetHandleFunc(block, do_constraint_panels, NULL);
+	uiBlockSetFunc(block, constraint_active_func, ob, con);
+
+	col= uiLayoutColumn(layout, 1);
+	box= uiLayoutBox(col);
+
+	block= uiLayoutFreeBlock(box);
+		
+	/* Draw constraint header */
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	
+	/* rounded header */
+	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
+	
+	/* open/close */
+	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_TRIA_RIGHT, xco-10, yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
+	
+	/* name */	
+	if ((con->flag & CONSTRAINT_EXPAND) && (proxy_protected==0)) {
+		/* XXX if (con->flag & CONSTRAINT_DISABLE)
+			uiBlockSetCol(block, TH_REDALERT);*/
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		
+		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		
+		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", xco+120, yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
+		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
+	}	
+	else {
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+		/* XXX if (con->flag & CONSTRAINT_DISABLE)
+			uiBlockSetCol(block, TH_REDALERT);*/
+		
+		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		
+		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+	}
+
+	// XXX uiBlockSetCol(block, TH_AUTO);	
+	
+	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
+	if (proxy_protected) {
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+		/* draw a ghost icon (for proxy) and also a lock beside it, to show that constraint is "proxy locked" */
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_GHOST, xco+244, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Proxy Protected");
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_LOCKED, xco+262, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Proxy Protected");
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else {
+		short prev_proxylock, show_upbut, show_downbut;
+		
+		/* Up/Down buttons: 
+		 *	Proxy-constraints are not allowed to occur after local (non-proxy) constraints
+		 *	as that poses problems when restoring them, so disable the "up" button where
+		 *	it may cause this situation. 
+		 *
+		 * 	Up/Down buttons should only be shown (or not greyed - todo) if they serve some purpose. 
+		 */
+		if (proxylocked_constraints_owner(ob, pchan)) {
+			if (con->prev) {
+				prev_proxylock= (con->prev->flag & CONSTRAINT_PROXY_LOCAL) ? 0 : 1;
+			}
+			else
+				prev_proxylock= 0;
+		}
+		else
+			prev_proxylock= 0;
+			
+		show_upbut= ((prev_proxylock == 0) && (con->prev));
+		show_downbut= (con->next) ? 1 : 0;
+		
+		if (show_upbut || show_downbut) {
+			uiBlockBeginAlign(block);
+				uiBlockSetEmboss(block, UI_EMBOSS);
+				
+				if (show_upbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, xco+width-50, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
+					uiButSetFunc(but, constraint_moveUp, ob, con);
+				}
+				
+				if (show_downbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+					uiButSetFunc(but, constraint_moveDown, ob, con);
+				}
+			uiBlockEndAlign(block);
+		}
+		
+		
+		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+		but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, xco+262, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
+		uiButSetFunc(but, del_constraint_func, ob, con);
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	
+	/* Set but-locks for protected settings (magic numbers are used here!) */
+	if (proxy_protected)
+		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
+	
+	/* Draw constraint data */
+	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
+		(yco) -= 21;
+	}
+	else {
+		box= uiLayoutBox(col);
+		block= uiLayoutFreeBlock(box);
+
+		switch (con->type) {
+#ifndef DISABLE_PYTHON
+		case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data = con->data;
+				bConstraintTarget *ct;
+				// uiBut *but2;
+				int tarnum, theight;
+				// static int pyconindex=0;
+				// char *menustr;
+				
+				theight = (data->tarnum)? (data->tarnum * 38) : (38);
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Script:", xco+60, yco-24, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* do the scripts menu */
+				/* XXX menustr = buildmenu_pyconstraints(data->text, &pyconindex);
+				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
+				      xco+120, yco-24, 150, 20, &pyconindex,
+				      0, 0, 0, 0, "Set the Script Constraint to use");
+				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
+				MEM_freeN(menustr);	 */
+				
+				/* draw target(s) */
+				if (data->flag & PYCON_USETARGETS) {
+					/* Draw target parameters */ 
+					for (ct=data->targets.first, tarnum=1; ct; ct=ct->next, tarnum++) {
+						char tarstr[32];
+						short yoffset= ((tarnum-1) * 38);
+	
+						/* target label */
+						sprintf(tarstr, "Target %d:", tarnum);
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, xco+45, yco-(48+yoffset), 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						
+						/* target space-selector - per target */
+						if (is_armature_target(ct->tar)) {
+							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+						}
+						else {
+							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
+															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+						}
+						
+						uiBlockBeginAlign(block);
+							/* target object */
+							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+120, yco-(48+yoffset), 150, 18, &ct->tar, "Target Object"); 
+							
+							/* subtarget */
+							if (is_armature_target(ct->tar)) {
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+								uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
+							}
+							else if (is_geom_target(ct->tar)) {
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+								uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
+							}
+							else {
+								strcpy(ct->subtarget, "");
+							}
+						uiBlockEndAlign(block);
+					}
+				}
+				else {
+					/* Draw indication that no target needed */
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco+60, yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Not Applicable", xco+120, yco-48, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				}
+				
+				/* settings */
+				uiBlockBeginAlign(block);
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", xco, yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
+					// XXX uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
+					
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", xco+((width/2)+10), yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
+				uiBlockEndAlign(block);
+				
+				/* constraint space settings */
+				draw_constraint_spaceselect(block, con, xco, yco-(73+theight), is_armature_owner(ob), -1);
+			}
+			break;
+#endif /* DISABLE_PYTHON */
+		/*case CONSTRAINT_TYPE_CHILDOF:
+			{
+				// Inverse options 
+				uiBlockBeginAlign(block);
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", xco, yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
+					// XXX uiButSetFunc(but, childof_const_setinv, con, NULL);
+					
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", xco+((width/2)+10), yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
+					// XXX uiButSetFunc(but, childof_const_clearinv, con, NULL);
+				uiBlockEndAlign(block);
+			}
+			break; 
+		*/
+		case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				bKinematicConstraint *data = con->data;
+
+				/* IK Target */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco, yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco, yco-44, 137, 19, &data->tar, "Target Object"); 
+
+				if (is_armature_target(data->tar)) {
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco, yco-62,137,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target(data->tar)) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco, yco-62,137,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
+				else {
+					strcpy (data->subtarget, "");
+				}
+				
+				uiBlockEndAlign(block);
+				
+				/* Settings */
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", xco, yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", xco, yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+				
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", xco+147, yco-92, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", xco+147, yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "W ", xco+187, yco-112, 97, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
+				
+				uiBlockBeginAlign(block);
+				
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", xco, yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", xco+147, yco-137, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
+				uiBlockEndAlign(block);
+				
+				/* Pole Vector */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Pole Target:", xco+147, yco-24, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+147, yco-44, 137, 19, &data->poletar, "Pole Target Object"); 
+				if (is_armature_target(data->poletar)) {
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+147, yco-62,137,19, &data->polesubtarget, 0, 24, 0, 0, "Pole Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->poletar);
+				}
+				else if (is_geom_target(data->poletar)) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+147, yco-62,137,18, &data->polesubtarget, 0, 24, 0, 0, "Name of Vertex Group defining pole 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
+				}
+				else {
+					strcpy(data->polesubtarget, "");
+				}
+				
+				if (data->poletar) {
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", xco, yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
+				}
+			}
+			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			{
+				bRigidBodyJointConstraint *data = con->data;
+				float extremeLin = 999.f;
+				float extremeAngX = 180.f;
+				float extremeAngY = 45.f;
+				float extremeAngZ = 45.f;
+				int togButWidth = 70;
+				int offsetY = 150;
+				int textButWidth = ((width/2)-togButWidth);
+				
+				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Generic 6DOF%x12",//|Extra Force%x6",
+				//uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic 6DOF%x12",//|Extra Force%x6",
+												xco, yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
+
+				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Collision", xco+155, yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
+
+
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", xco, yco-50, 130, 18, &data->tar, "Child Object");
+				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", xco+135, yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
+				
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", xco, yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", xco, yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", xco, yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
+				
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", xco+135, yco-75, 130, 18, &data->axX, -360, 360, 1500, 0.0, "Rotate pivot on X Axis (in degrees)");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", xco+135, yco-100, 130, 18, &data->axY, -360, 360, 1500, 0.0, "Rotate pivot on Y Axis (in degrees)");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", xco+135, yco-125, 130, 18, &data->axZ, -360, 360, 1500, 0.0, "Rotate pivot on Z Axis (in degrees)");
+				
+				if (data->type==CONSTRAINT_RB_GENERIC6DOF) {
+					/* Draw Pairs of LimitToggle+LimitValue */
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
+					uiBlockEndAlign(block);
+					
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
+					uiBlockEndAlign(block);
+					
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
+					uiBlockEndAlign(block);
+					
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
+					uiBlockEndAlign(block);
+					
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
+					uiBlockEndAlign(block);
+					
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
+					uiBlockEndAlign(block);
+					offsetY += 20;
+				}
+				if ((data->type==CONSTRAINT_RB_GENERIC6DOF) || (data->type==CONSTRAINT_RB_CONETWIST)) {
+					/* Draw Pairs of LimitToggle+LimitValue */
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
+					uiBlockEndAlign(block);
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
+					uiBlockEndAlign(block);
+					
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
+					uiBlockEndAlign(block);
+					
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
+					uiBlockEndAlign(block);
+					
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
+					uiBlockEndAlign(block);
+					
+					uiBlockBeginAlign(block); 
+						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
+					uiBlockEndAlign(block);
+				}
+				
+			}
+			break;
+
+		case CONSTRAINT_TYPE_NULL:
+			{
+				uiItemL(box, "", 0);
+			}
+			break;
+		default:
+			result= box;
+			break;
+		}
+	}
+	
+	/* clear any locks set up for proxies/lib-linking */
+	uiBlockClearButLock(block);
+
+	return result;
+}
+
+uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
+{
+	Object *ob;
+	bConstraint *con;
+
+	/* verify we have valid data */
+	if(!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
+		printf("uiTemplateConstraint: expected constraint on object.\n");
+		return NULL;
+	}
+
+	ob= ptr->id.data;
+	con= ptr->data;
+
+	if(!ob || !(GS(ob->id.name) == ID_OB)) {
+		printf("uiTemplateConstraint: expected constraint on object.\n");
+		return NULL;
+	}
+	
+	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
+
+	/* hrms, the temporal constraint should not draw! */
+	if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+		bKinematicConstraint *data= con->data;
+		if(data->flag & CONSTRAINT_IK_TEMP)
+			return NULL;
+	}
+
+	return draw_constraint(layout, ob, con);
+}
+
+/************************* Group Template ***************************/
+
+#if 0
+static void do_add_groupmenu(void *arg, int event)
+{
+	Object *ob= OBACT;
+	
+	if(ob) {
+		
+		if(event== -1) {
+			Group *group= add_group( "Group" );
+			add_to_group(group, ob);
+		}
+		else
+			add_to_group(BLI_findlink(&G.main->group, event), ob);
+			
+		ob->flag |= OB_FROMGROUP;
+		BASACT->flag |= OB_FROMGROUP;
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}		
+}
+
+static uiBlock *add_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	Group *group;
+	short xco=0, yco= 0, index=0;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
+
+	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
+	for(group= G.main->group.first; group; group= group->id.next, index++) {
+		
+		/*if(group->id.lib) strcpy(str, "L  ");*/ /* we cant allow adding objects inside linked groups, it wont be saved anyway */
+		if(group->id.lib==0) {
+			strcpy(str, "   ");
+			strcat(str, group->id.name+2);
+			uiDefBut(block, BUTM, B_NOP, str,	xco*160, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, index, "");
+			
+			yco++;
+			if(yco>24) {
+				yco= 0;
+				xco++;
+			}
+		}
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);	
+	
+	return block;
+}
+
+static void group_ob_rem(void *gr_v, void *ob_v)
+{
+	Object *ob= OBACT;
+	
+	if(rem_from_group(gr_v, ob) && find_group(ob, NULL)==NULL) {
+		ob->flag &= ~OB_FROMGROUP;
+		BASACT->flag &= ~OB_FROMGROUP;
+	}
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+
+}
+
+static void group_local(void *gr_v, void *unused)
+{
+	Group *group= gr_v;
+	
+	group->id.lib= NULL;
+	
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
+
+uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
+{
+	uiSetButLock(1, NULL);
+	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
+
+	/* all groups */
+	if(group->id.lib) {
+		uiLayoutRow()
+		uiBlockBeginAlign(block);
+		uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
+		uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 100, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+		uiClearButLock();
+		
+		but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 110, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+		uiButSetFunc(but, group_local, group, NULL);
+		uiBlockEndAlign(block);
+	} else {
+		but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 120, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+		uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
+	}
+	
+	xco = 290;
+	if(group->id.lib==0) { /* cant remove objects from linked groups */
+		but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+		uiButSetFunc(but, group_ob_rem, group, ob);
+	}
+}
+#endif
+
+/************************* Preview Template ***************************/
+
+#include "DNA_material_types.h"
+
+#define B_MATPRV 1
+
+void uiTemplatePreview(uiLayout *layout, ID *id)
+{
+	uiLayout *row, *col;
+	uiBlock *block;
+	Material *ma;
+
+	if(!id || !ELEM3(GS(id->name), ID_MA, ID_TE, ID_WO)) {
+		printf("uiTemplatePreview: expected ID of type material, texture or world.\n");
+		return;
+	}
+
+	block= uiLayoutGetBlock(layout);
+
+	row= uiLayoutRow(layout, 0);
+
+	col= uiLayoutColumn(row, 0);
+	uiLayoutSetKeepAspect(col, 1);
+	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(GS(id->name) == ID_MA) {
+		ma= (Material*)id;
+
+		uiLayoutColumn(row, 1);
+
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+	}
+
 }
 

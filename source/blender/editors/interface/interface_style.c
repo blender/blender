@@ -164,7 +164,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	
 	uiStyleFontSet(fs);
 	
-	height= BLF_height("A");
+	height= BLF_height("2");	/* correct offset is on baseline, the j is below that */
 	yofs= floor( 0.5f*(rect->ymax - rect->ymin - height));
 
 	if(fs->align==UI_STYLE_TEXT_CENTER)
@@ -173,7 +173,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 		xofs= rect->xmax - rect->xmin - BLF_width(str);
 	
 	/* clip is very strict, so we give it some space */
-	BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
+	BLF_clipping(rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);
 	BLF_enable(BLF_CLIPPING);
 	
 	if(fs->shadow) 

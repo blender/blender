@@ -366,7 +366,12 @@ void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *pt
 		name= (char*)RNA_property_ui_name(prop);
 		col= uiLayoutColumn(layout, 1);
 		uiItemL(col, name, 0);
-		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0);
+		
+		/* temp hack to show normal button for spin/screw */
+		if(strcmp(name, "Axis")==0) {
+			uiDefButR(uiLayoutGetBlock(layout), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
+		}
+		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
 	}
 	
 	RNA_property_collection_end(&iter);

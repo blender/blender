@@ -38,6 +38,7 @@
 #include "RNA_access.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -58,6 +59,7 @@ struct bContext {
 		struct ScrArea *area;
 		struct ARegion *region;
 		struct ARegion *menu;
+		struct bContextStore *store;
 	} wm;
 	
 	/* data context */
@@ -95,6 +97,69 @@ bContext *CTX_copy(const bContext *C)
 void CTX_free(bContext *C)
 {
 	MEM_freeN(C);
+}
+
+/* store */
+
+bContextStore *CTX_store_add(ListBase *contexts, char *name, PointerRNA *ptr)
+{
+	bContextStoreEntry *entry;
+	bContextStore *ctx, *lastctx;
+
+	/* ensure we have a context to put the entry in, if it was already used
+	 * we have to copy the context to ensure */
+	ctx= contexts->last;
+
+	if(!ctx || ctx->used) {
+		if(ctx) {
+			lastctx= ctx;
+			ctx= MEM_dupallocN(lastctx);
+			BLI_duplicatelist(&ctx->entries, &lastctx->entries);
+		}
+		else
+			ctx= MEM_callocN(sizeof(bContextStore), "bContextStore");
+
+		BLI_addtail(contexts, ctx);
+	}
+
+	entry= MEM_callocN(sizeof(bContextStoreEntry), "bContextStoreEntry");
+	BLI_strncpy(entry->name, name, sizeof(entry->name));
+	entry->ptr= *ptr;
+
+	BLI_addtail(&ctx->entries, entry);
+
+	return ctx;
+}
+
+void CTX_store_set(bContext *C, bContextStore *store)
+{
+	C->wm.store= store;
+}
+
+bContextStore *CTX_store_copy(bContextStore *store)
+{
+	bContextStore *ctx;
+
+	ctx= MEM_dupallocN(store);
+	BLI_duplicatelist(&ctx->entries, &store->entries);
+
+	return ctx;
+}
+
+void CTX_store_free(bContextStore *store)
+{
+	BLI_freelistN(&store->entries);
+	MEM_freeN(store);
+}
+
+void CTX_store_free_list(ListBase *contexts)
+{
+	bContextStore *ctx;
+
+	while((ctx= contexts->first)) {
+		BLI_remlink(contexts, ctx);
+		CTX_store_free(ctx);
+	}
 }
 
 /* window manager context */
@@ -225,19 +290,31 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
-	if(!done && recursion < 1 && C->wm.region) {
+	if(!done && recursion < 1 && C->wm.store) {
+		bContextStoreEntry *entry;
+
 		C->data.recursion= 1;
+
+		for(entry=C->wm.store->entries.first; entry; entry=entry->next) {
+			if(strcmp(entry->name, member) == 0) {
+				result->ptr= entry->ptr;
+				done= 1;
+			}
+		}
+	}
+	if(!done && recursion < 2 && C->wm.region) {
+		C->data.recursion= 2;
 		if(C->wm.region->type && C->wm.region->type->context)
 			done= C->wm.region->type->context(C, member, result);
 	}
-	if(!done && recursion < 2 && C->wm.area) {
-		C->data.recursion= 2;
+	if(!done && recursion < 3 && C->wm.area) {
+		C->data.recursion= 3;
 		if(C->wm.area->type && C->wm.area->type->context)
 			done= C->wm.area->type->context(C, member, result);
 	}
-	if(!done && recursion < 3 && C->wm.screen) {
+	if(!done && recursion < 4 && C->wm.screen) {
 		bContextDataCallback cb= C->wm.screen->context;
-		C->data.recursion= 3;
+		C->data.recursion= 4;
 		if(cb)
 			done= cb(C, member, result);
 	}

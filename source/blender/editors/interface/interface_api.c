@@ -174,6 +174,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "itemS", "uiItemS");
 
+	/* context */
+	func= RNA_def_function(srna, "set_context_pointer", "uiLayoutSetContextPointer");
+	parm= RNA_def_string(func, "name", "", 0, "Name", "Name of entry in the context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
@@ -197,5 +204,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "template_preview", "uiTemplatePreview");
+	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 }
 

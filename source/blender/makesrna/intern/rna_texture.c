@@ -187,6 +187,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tex");
 	RNA_def_property_struct_type(prop, "Texture");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture datablock used by this texture slot.");
 
 	/* mapping */
@@ -671,7 +672,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Calculate Alpha", "Calculates an alpha channel based on RGB values in the image");
 
 	prop= RNA_def_property(srna, "invert_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NEGALPHA);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_NEGALPHA);
 	RNA_def_property_ui_text(prop, "Invert Alpha", "Inverts all the alpha values in the image");
 
 	rna_def_filter_size_common(srna);
@@ -760,6 +761,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
 	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 }
 

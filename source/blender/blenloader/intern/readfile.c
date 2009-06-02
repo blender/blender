@@ -4713,6 +4713,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, sima->gpd);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->iuser.scene= NULL;
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {

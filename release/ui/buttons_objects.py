@@ -39,15 +39,15 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 		for group in bpy.data.groups:
 			if ob in group.objects:
-				box = layout.box()
+				col = layout.column(align=True)
 
-				row = box.row()
-				row.itemR(group, "name")
+				row = col.box().row()
+				row.itemR(group, "name", text="")
 				#row.itemO("OBJECT_OT_remove_group")
 
-				row = box.row()
-				row.column().itemR(group, "layer")
-				row.column().itemR(group, "dupli_offset")
+				split = col.box().split()
+				split.column().itemR(group, "layer")
+				split.column().itemR(group, "dupli_offset")
 
 class OBJECT_PT_display(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_display"

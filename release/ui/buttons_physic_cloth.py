@@ -43,7 +43,7 @@ class Physic_PT_cloth(PhysicButtonsPanel):
 		col.itemR(cloth, "spring_damping", text="Spring")
 		col.itemR(cloth, "air_damping", text="Air")
 		
-		# Disabled for now#
+		# Disabled for now
 		"""
 		if cloth.mass_vertex_group:
 			layout.itemL(text="Goal:")
@@ -67,8 +67,10 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		md = self.cloth_modifier(context)		
+		
+		md = self.cloth_modifier(context)
 		cloth = md.collision_settings
+		layout.active = cloth.enable_collision	
 		
 		col = layout.column_flow()
 		col.itemR(cloth, "collision_quality", slider=True)
@@ -79,6 +81,7 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 		layout.itemR(cloth, "enable_self_collision", text="Self Collision")
 		
 		col = layout.column_flow()
+		col.active = cloth.enable_self_collision
 		col.itemR(cloth, "self_collision_quality", slider=True)
 		col.itemR(cloth, "self_min_distance", text="MinDistance")
 
@@ -95,8 +98,10 @@ class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = self.cloth_modifier(context)
 		cloth = md.settings
+		layout.active = cloth.stiffness_scaling	
 		
 		split = layout.split()
 		

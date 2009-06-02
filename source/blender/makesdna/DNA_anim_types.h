@@ -321,8 +321,10 @@ enum {
 	
 		/* skip evaluation, as RNA-path cannot be resolved (similar to muting, but cannot be set by user) */
 	FCURVE_DISABLED			= (1<<10),
-		/* curve can only have whole-number values (int or boolean types) */
+		/* curve can only have whole-number values (integer types) */
 	FCURVE_INT_VALUES		= (1<<11),
+		/* curve can only have certain discrete-number values (no interpolation at all, for enums/booleans) */
+	FCURVE_DISCRETE_VALUES	= (1<<12),
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */

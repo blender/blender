@@ -65,8 +65,7 @@ struct wmTimer;
 typedef struct BGpic {
     struct Image *ima;
 	struct ImageUser iuser;
-    float xof, yof, size, zoom, blend;
-    short xim, yim;
+    float xof, yof, size, blend;
 } BGpic;
 
 /* ********************************* */

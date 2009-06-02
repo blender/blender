@@ -1054,6 +1054,20 @@ static struct uiWidgetColors wcol_tool= {
 	25, -25
 };
 
+static struct uiWidgetColors wcol_box= {
+	{25, 25, 25, 255},
+	{128, 128, 128, 255},
+	{100, 100, 100, 255},
+	{25, 25, 25, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
+
 /* called for theme init (new theme) and versions */
 void ui_widget_color_init(ThemeUI *tui)
 {
@@ -1069,6 +1083,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_pulldown= wcol_pulldown;
 	tui->wcol_menu_back= wcol_menu_back;
 	tui->wcol_menu_item= wcol_menu_item;
+	tui->wcol_box= wcol_box;
 	
 	tui->iconfile[0]= 0;
 }
@@ -1144,7 +1159,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	if(state & UI_BUT_DISABLED) {
+	if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE)) {
 		wt->wcol.text[0]= 0.5f*(wt->wcol.text[0]+wt->wcol.text_sel[0]);
 		wt->wcol.text[1]= 0.5f*(wt->wcol.text[1]+wt->wcol.text_sel[1]);
 		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
@@ -1700,6 +1715,10 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.custom= widget_swatch;
 			break;
 			
+		case UI_WTYPE_BOX:
+			wt.wcol_theme= &btheme->tui.wcol_box;
+			break;
+			
 		case UI_WTYPE_RGB_PICKER:
 			break;
 			
@@ -1840,7 +1859,11 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			case COL:
 				wt= widget_type(UI_WTYPE_SWATCH);
 				break;
-			
+				
+			case ROUNDBOX:
+				wt= widget_type(UI_WTYPE_BOX);
+				break;
+				
 				 // XXX four old button types
 			case HSVCUBE:
 				ui_draw_but_HSVCUBE(but, rect);
@@ -1875,7 +1898,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
 		wt->text(fstyle, &wt->wcol, but, rect);
 		
-		if(state & UI_BUT_DISABLED)
+		if(state & (UI_BUT_DISABLED|UI_BUT_INACTIVE))
 			if(but->dt!=UI_EMBOSSP)
 				widget_disabled(&disablerect);
 	}

@@ -29,13 +29,8 @@ FILE(GLOB SRC intern/source/*.c)
 SET(INC 
   intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
   extern/include ../blenkernel ../radiosity/extern/include ../imbuf
-  ../quicktime ../include ../../kernel/gen_messaging ../yafray ../blenloader
+  ../quicktime ../include ../../kernel/gen_messaging ../blenloader
 )
-
-IF(NOT WITH_YAFRAY)
-  ADD_DEFINITIONS(-DDISABLE_YAFRAY)
-ENDIF(NOT WITH_YAFRAY)
-
 
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)

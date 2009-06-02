@@ -559,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
+		srna->py_type= NULL;
 
 		if(DefRNA.preprocess) {
 			srna->base= srnafrom;
@@ -567,7 +568,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		else
 			srna->base= srnafrom;
 	}
-
+	
 	srna->identifier= identifier;
 	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description= "";
@@ -711,7 +712,12 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 
 void RNA_def_struct_flag(StructRNA *srna, int flag)
 {
-	srna->flag= flag;
+	srna->flag |= flag;
+}
+
+void RNA_def_struct_clear_flag(StructRNA *srna, int flag)
+{
+	srna->flag &= ~flag;
 }
 
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
@@ -1058,6 +1064,10 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 			pprop->type = type;
+
+			if(type && (type->flag & STRUCT_ID_REFCOUNT))
+				prop->flag |= PROP_ID_REFCOUNT;
+
 			break;
 		}
 		case PROP_COLLECTION: {
@@ -1677,7 +1687,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	}
 }
 
-void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1692,6 +1702,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 
 			if(get) eprop->get= (PropEnumGetFunc)get;
 			if(set) eprop->set= (PropEnumSetFunc)set;
+			if(item) eprop->itemf= (PropEnumItemFunc)item;
 			break;
 		}
 		default:

@@ -187,7 +187,7 @@ static void curveModifier_updateDepgraph(
 
 static void curveModifier_deformVerts(
 				      ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -203,7 +203,7 @@ static void curveModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	curveModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+	curveModifier_deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -276,7 +276,7 @@ static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 
 static void latticeModifier_deformVerts(
 					ModifierData *md, Object *ob, DerivedMesh *derivedData,
-     float (*vertexCos)[3], int numVerts)
+     float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -295,7 +295,7 @@ static void latticeModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	latticeModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+	latticeModifier_deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -3686,7 +3686,7 @@ static void displaceModifier_do(
 
 static void displaceModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
@@ -4371,7 +4371,7 @@ static void smoothModifier_do(
 
 static void smoothModifier_deformVerts(
 				       ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	   float (*vertexCos)[3], int numVerts)
+	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
@@ -4951,7 +4951,7 @@ static void castModifier_cuboid_do(
 
 static void castModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	CastModifierData *cmd = (CastModifierData *)md;
@@ -5354,7 +5354,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 static void waveModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
@@ -5459,7 +5459,7 @@ static void armatureModifier_updateDepgraph(
 
 static void armatureModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
@@ -5580,7 +5580,7 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 static void hookModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 	float vec[3], mat[4][4];
@@ -5701,7 +5701,7 @@ static void hookModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts);
+	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -5710,7 +5710,7 @@ static void hookModifier_deformVertsEM(
 
 static void softbodyModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
@@ -5898,7 +5898,7 @@ static int collisionModifier_dependsOnTime(ModifierData *md)
 
 static void collisionModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts)
+       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	DerivedMesh *dm = NULL;
@@ -6060,7 +6060,7 @@ static int surfaceModifier_dependsOnTime(ModifierData *md)
 
 static void surfaceModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts)
+       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
 	unsigned int numverts = 0, i = 0;
@@ -6268,7 +6268,7 @@ static int is_last_displist(Object *ob)
 /* saves the current emitter state for a particle system and calculates particles */
 static void particleSystemModifier_deformVerts(
 					       ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	    float (*vertexCos)[3], int numVerts)
+	    float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
@@ -7789,7 +7789,7 @@ static void meshdeformModifier_do(
 
 static void meshdeformModifier_deformVerts(
 					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	float (*vertexCos)[3], int numVerts)
+	float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
@@ -7937,7 +7937,7 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 	walk(userData, ob, &smd->auxTarget);
 }
 
-static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = NULL;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
@@ -8051,7 +8051,7 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
 }
 
-static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = NULL;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);

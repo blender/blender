@@ -43,6 +43,7 @@ struct wmWindow;
 struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
+struct bContextStore;
 
 /* ****************** general defines ************** */
 
@@ -76,7 +77,8 @@ typedef enum {
 	UI_WTYPE_ICON,
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
-	UI_WTYPE_NORMAL
+	UI_WTYPE_NORMAL,
+	UI_WTYPE_BOX
 	
 } uiWidgetTypeEnum;
 
@@ -166,6 +168,8 @@ struct uiBut {
 	uiButHandleNFunc funcN;
 	void *func_argN;
 
+	struct bContextStore *context;
+
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
@@ -224,6 +228,8 @@ struct uiBlock {
 
 	ListBase layouts;
 	struct uiLayout *curlayout;
+
+	ListBase contexts;
 	
 	char name[UI_MAX_NAME_STR];
 	
