@@ -170,7 +170,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	if(fs->align==UI_STYLE_TEXT_CENTER)
 		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(str)));
 	else if(fs->align==UI_STYLE_TEXT_RIGHT)
-		xofs= rect->xmax - rect->xmin - BLF_width(str);
+		xofs= rect->xmax - rect->xmin - BLF_width(str) - 1;
 	
 	/* clip is very strict, so we give it some space */
 	BLF_clipping(rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);

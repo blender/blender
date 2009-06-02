@@ -127,6 +127,9 @@ typedef struct uiHandleButtonData {
 	/* menu open */
 	uiPopupBlockHandle *menu;
 	int menuretval;
+	
+	/* search box */
+	ARegion *searchbox;
 
 	/* post activate */
 	uiButtonActivateType posttype;
@@ -557,6 +560,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_BUT(C, but, data);
 			break;
 		case TEX:
+		case SEARCH_MENU:
 			ui_apply_but_TEX(C, but, data);
 			break;
 		case TOGBUT: 
@@ -1124,7 +1128,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 	return changed;
 }
 
-static void ui_textedit_begin(uiBut *but, uiHandleButtonData *data)
+static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(data->str) {
 		MEM_freeN(data->str);
@@ -1146,14 +1150,24 @@ static void ui_textedit_begin(uiBut *but, uiHandleButtonData *data)
 	but->selsta= 0;
 	but->selend= strlen(but->drawstr) - strlen(but->str);
 
+	/* optional searchbox */
+	if(but->type==SEARCH_MENU) {
+		data->searchbox= ui_searchbox_create(C, data->region, but);
+		ui_searchbox_update(C, data->searchbox, but);
+	}
+	
 	ui_check_but(but);
 }
 
-static void ui_textedit_end(uiBut *but, uiHandleButtonData *data)
+static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(but) {
 		but->editstr= 0;
 		but->pos= -1;
+		
+		if(data->searchbox)
+			ui_searchbox_free(C, data->searchbox);
+		data->searchbox= NULL;
 	}
 }
 
@@ -1316,6 +1330,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	if(changed) {
 		if(data->interactive) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
+		
+		if(data->searchbox)
+			ui_searchbox_update(C, data->searchbox, but);
 	}
 
 	if(changed || (retval == WM_UI_HANDLER_BREAK))
@@ -2702,6 +2719,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		break;
 	case TEX:
 	case IDPOIN:
+	case SEARCH_MENU:
 		retval= ui_do_but_TEX(C, block, but, data, event);
 		break;
 	case MENU:
@@ -2928,9 +2946,9 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	/* text editing */
 	if(state == BUTTON_STATE_TEXT_EDITING && data->state != BUTTON_STATE_TEXT_SELECTING)
-		ui_textedit_begin(but, data);
+		ui_textedit_begin(C, but, data);
 	else if(data->state == BUTTON_STATE_TEXT_EDITING && state != BUTTON_STATE_TEXT_SELECTING)
-		ui_textedit_end(but, data);
+		ui_textedit_end(C, but, data);
 	
 	/* number editing */
 	if(state == BUTTON_STATE_NUM_EDITING)

@@ -844,29 +844,23 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			widget_draw_icon(but, ICON_DOT, dualset?0:-100, rect);
 		}
 		
-		if(but->drawstr[0]!=0) {
+		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+		and offset the text label to accomodate it */
+		
+		if (but->flag & UI_HAS_ICON) {
+			widget_draw_icon(but, but->icon, 0, rect);
 			
-			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-			and offset the text label to accomodate it */
+			rect->xmin += UI_icon_get_width(but->icon);
 			
-			if (but->flag & UI_HAS_ICON) {
-				widget_draw_icon(but, but->icon, 0, rect);
-				
-				rect->xmin += UI_icon_get_width(but->icon);
-				
-				if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
-					rect->xmin += 5;
-			}
-			else if(but->flag & UI_TEXT_LEFT)
+			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;
-			
-			widget_draw_text(fstyle, wcol, but, rect);
-			
 		}
-		/* if there's no text label, then check to see if there's an icon only and draw it */
-		else if( but->flag & UI_HAS_ICON ) {
-			widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
-		}
+		else if(but->flag & UI_TEXT_LEFT)
+			rect->xmin += 5;
+		
+		/* always draw text for textbutton cursor */
+		widget_draw_text(fstyle, wcol, but, rect);
+
 	}
 }
 
@@ -1827,6 +1821,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				wt= widget_type(UI_WTYPE_RADIO);
 				break;
 			case TEX:
+			case SEARCH_MENU:
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
 			case TOGBUT:
@@ -1918,4 +1913,40 @@ void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 	
 }
 
+/* helper call to draw a menu item without button */
+/* state: UI_ACTIVE or 0 */
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
+{
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	rcti _rect= *rect;
+	char *cpoin;
+	
+	wt->state(wt, state);
+	wt->draw(&wt->wcol, rect, 0, 0);
+	
+	uiStyleFontSet(fstyle);
+	fstyle->align= UI_STYLE_TEXT_LEFT;
+	
+	/* text location offset */
+	rect->xmin+=5;
+
+	/* cut string in 2 parts? */
+	cpoin= strchr(name, '|');
+	if(cpoin) *cpoin= 0;		
+	
+	glColor3ubv(wt->wcol.text);
+	uiStyleFontDraw(fstyle, rect, name);
+	
+	/* part text right aligned */
+	if(cpoin) {
+		fstyle->align= UI_STYLE_TEXT_RIGHT;
+		rect->xmax-=5;
+		uiStyleFontDraw(fstyle, rect, cpoin+1);
+		*cpoin= '|';
+	}
+	
+	/* restore rect, was messed with */
+	*rect= _rect;
+
+}
 

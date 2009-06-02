@@ -1359,7 +1359,7 @@ int ui_get_but_string_max_length(uiBut *but)
 
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
-	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
 		char *buf= NULL;
 
@@ -1398,6 +1398,11 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		return;
 	}
 	else if(but->type == TEX) {
+		/* string */
+		BLI_strncpy(str, but->poin, maxlen);
+		return;
+	}
+	else if(but->type == SEARCH_MENU) {
 		/* string */
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
@@ -1491,7 +1496,7 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
-	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		if(RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -1531,6 +1536,11 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		return 1;
 	}
 	else if(but->type == TEX) {
+		/* string */
+		BLI_strncpy(but->poin, str, but->hardmax);
+		return 1;
+	}
+	else if(but->type == SEARCH_MENU) {
 		/* string */
 		BLI_strncpy(but->poin, str, but->hardmax);
 		return 1;
@@ -1817,11 +1827,11 @@ void ui_check_but(uiBut *but)
 	/* if something changed in the button */
 	double value;
 	float okwidth;
-	int transopts= ui_translate_buttons();
+//	int transopts= ui_translate_buttons();
 	
 	ui_is_but_sel(but);
 	
-	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
+//	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
 
 	/* test for min and max, icon sliders, etc */
 	switch( but->type ) {
@@ -1926,6 +1936,7 @@ void ui_check_but(uiBut *but)
 
 	case IDPOIN:
 	case TEX:
+	case SEARCH_MENU:
 		if(!but->editstr) {
 			char str[UI_MAX_DRAW_STR];
 
@@ -3064,6 +3075,29 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
 }
+
+/* arg is pointer to string/name, use callbacks below to make this work */
+uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, SEARCH_MENU, retval, "", x1, y1, x2, y2, arg, 0.0, maxlen, 0.0, 0.0, tip);
+	
+	but->icon= (BIFIconID) icon;
+	but->flag|= UI_HAS_ICON;
+	
+	but->flag|= UI_ICON_LEFT|UI_TEXT_LEFT;
+	but->flag|= UI_ICON_SUBMENU;
+	
+	ui_check_but(but);
+	
+	return but;
+}
+
+void uiButSetSearchFunc(uiBut *but, uiButSearchFunc func, void *arg)
+{
+	but->search_func= func;
+	but->search_arg= arg;
+}
+
 
 /* Program Init/Exit */
 

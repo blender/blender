@@ -177,20 +177,21 @@ typedef struct uiLayout uiLayout;
 #define INLINK	(23<<9)
 #define KEYEVT	(24<<9)
 #define ICONTEXTROW (25<<9)
-#define HSVCUBE (26<<9)
-#define PULLDOWN (27<<9)
-#define ROUNDBOX (28<<9)
-#define CHARTAB (29<<9)
+#define HSVCUBE		(26<<9)
+#define PULLDOWN	(27<<9)
+#define ROUNDBOX	(28<<9)
+#define CHARTAB		(29<<9)
 #define BUT_COLORBAND (30<<9)
-#define BUT_NORMAL (31<<9)
-#define BUT_CURVE (32<<9)
+#define BUT_NORMAL	(31<<9)
+#define BUT_CURVE	(32<<9)
 #define BUT_TOGDUAL (33<<9)
-#define ICONTOGN (34<<9)
-#define FTPREVIEW (35<<9)
-#define NUMABS	(36<<9)
-#define TOGBUT  (37<<9)
-#define OPTION  (38<<9)
-#define OPTIONN (39<<9)
+#define ICONTOGN	(34<<9)
+#define FTPREVIEW	(35<<9)
+#define NUMABS		(36<<9)
+#define TOGBUT		(37<<9)
+#define OPTION		(38<<9)
+#define OPTIONN		(39<<9)
+#define SEARCH_MENU	(40<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
@@ -401,6 +402,8 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
+uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);
+
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
 
@@ -425,15 +428,28 @@ uiBut *uiFindInlink(uiBlock *block, void *poin);
  *
  * uiButSetCompleteFunc is for tab completion.
  *
+ * uiButSearchFunc is for name buttons, showing a popup with matches
+ *
  * uiBlockSetFunc and uiButSetFunc are callbacks run when a button is used,
  * in case events, operators or RNA are not sufficient to handle the button.
  *
  * uiButSetNFunc will free the argument with MEM_freeN. */
 
+typedef struct uiSearchItems {
+	int maxitem, totitem, maxstrlen;
+	
+	char **names;
+	void **pointers;
+	
+} uiSearchItems;
+
+
 typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, char *str, uiSearchItems *items);
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
+
 
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
@@ -443,6 +459,7 @@ void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
 void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2);
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
+void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc func, void *arg);
 
 void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, uiBlock *block));
 

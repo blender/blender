@@ -387,6 +387,32 @@ static void scene_idpoin_handle(bContext *C, ID *id, int event)
 	}
 }
 
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				int len= strlen(ot->name);
+				
+				BLI_strncpy(items->names[items->totitem], ot->name, items->maxstrlen);
+				
+				/* check for hotkey */
+				if(len < items->maxstrlen-6) {
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, items->names[items->totitem]+len+1, items->maxstrlen-len-1)) {
+						items->names[items->totitem][len]= '|';
+					}
+				}
+				
+				items->totitem++;
+				if(items->totitem>=items->maxitem)
+					break;
+			}
+		}
+	}
+}
 
 void info_header_buttons(const bContext *C, ARegion *ar)
 {
@@ -452,6 +478,16 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 		xco+= 90;
 	}
+	
+	{
+		static char search[256]= "";
+		uiBut *but= uiDefSearchBut(block, search, 0, ICON_PROP_ON, 256, xco+5, yco, 120, 19, "");
+		
+		uiButSetSearchFunc(but, operator_search_cb, NULL);
+
+		xco+= 125;
+	}
+
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
