@@ -466,7 +466,7 @@ short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float
 	return 'g'; // g is grab
 }
 
-short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
+short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 {
 	BMesh *bm = em->bm;
 	BMIter iter;
@@ -475,24 +475,9 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 	BMVert *vert;
 	BMEdge *edge;
 	BMFace *f;
-	void *el;
 	ModifierData *md;
-	int flag;
+	BMHeader *el;
 	
-	switch (eflag) {
-		case SELECT:
-			flag = BM_SELECT;
-			break;
-		default:
-			flag = BM_SELECT;
-			break;
-	}
-
-	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);f;f=BMIter_Step(&iter)) {
-		add_normal_aligned(nor, f->no);
-	}
-	Normalize(nor);
-
 	BMO_Init_Op(&extop, "extrudefaceregion");
 	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
 		               flag, BM_VERT|BM_EDGE|BM_FACE);
@@ -561,9 +546,18 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 
 	BMO_Exec_Op(bm, &extop);
 
+	nor[0] = nor[1] = nor[2] = 0.0f;
+	
 	BMO_ITER(el, &siter, bm, &extop, "geomout") {
 		BM_Select(bm, el, 1);
+
+		if (el->type == BM_FACE) {
+			f = (BMFace*)el;
+			add_normal_aligned(nor, f->no);
+		};
 	}
+
+	Normalize(nor);
 
 	BMO_Finish_Op(bm, &extop);
 
@@ -573,29 +567,6 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int eflag, float *nor)
 }
 short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
 {
-		BMIter iter;
-		BMEdge *eed;
-		
-		/*ensure vert flags are consistent for edge selections*/
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) {
-			if (BM_TestHFlag(eed, flag)) {
-				BM_SetHFlag(eed->v1, flag);
-				BM_SetHFlag(eed->v2, flag);
-			} else {
-				if (BM_TestHFlag(eed->v1, flag) && BM_TestHFlag(eed->v2, flag))
-					BM_SetHFlag(eed, flag);
-			}
-		}
-
-		return EDBM_Extrude_edge(obedit, em, flag, nor);
-
-}
-
-/* generic extrude */
-short EDBM_Extrude(Object *obedit, BMEditMesh *em, short flag, float *nor)
-{
-	if(em->selectmode & SCE_SELECT_VERTEX) {
 		BMIter iter;
 		BMEdge *eed;
 		
@@ -620,18 +591,13 @@ short EDBM_Extrude(Object *obedit, BMEditMesh *em, short flag, float *nor)
 		}
 
 		return EDBM_Extrude_edge(obedit, em, flag, nor);
-	} else 
-		return EDBM_Extrude_edge(obedit, em, flag, nor);
-		
-}
 
+}
 
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
-
+	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
 		
 	int steps = RNA_int_get(op->ptr,"steps");
@@ -656,19 +622,18 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	Mat3MulVecfl(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
-		extrudeflag(obedit, em, SELECT, nor);
-		translateflag(em, SELECT, dvec);
+		EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
+		//BMO_CallOpf(em->bm, "extrudefaceregion edgefacein=%hef", BM_SELECT);
+		BMO_CallOpf(em->bm, "translate vec=%v verts=%hv", (float*)dvec, BM_SELECT);
+		//extrudeflag(obedit, em, SELECT, nor);
+		//translateflag(em, SELECT, dvec);
 	}
 	
-	recalc_editnormals(em);
-	
-	EM_fgon_flags(em);
-	
+	EDBM_RecalcNormals(em);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	EM_EndEditMesh(obedit->data, em);
-#endif
 	return OPERATOR_FINISHED;
 }
 
@@ -729,7 +694,9 @@ void EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 		
 	if(nr<1) return;
 
-	if(nr==1)  transmode= EDBM_Extrude(obedit, em, SELECT, nor);
+	if(nr==1 && em->selectmode & SCE_SELECT_VERTEX)	
+		transmode= EDBM_Extrude_vert(obedit, em, SELECT, nor);
+	else if (nr == 1) transmode= EDBM_Extrude_edge(obedit, em, SELECT, nor);
 	else if(nr==4) transmode= EDBM_Extrude_verts_indiv(em, op, SELECT, nor);
 	else if(nr==3) transmode= EDBM_Extrude_edges_indiv(em, SELECT, nor);
 	else transmode= EDBM_Extrude_face_indiv(em, SELECT, nor);
@@ -845,6 +812,129 @@ void MESH_OT_select_all_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* *************** add-click-mesh (extrude) operator ************** */
+
+static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
+{
+#if 0 //BMESH_TODO
+	ViewContext vc;
+	EditVert *eve, *v1;
+	float min[3], max[3];
+	int done= 0;
+	
+	em_setup_viewcontext(C, &vc);
+	
+	INIT_MINMAX(min, max);
+	
+	for(v1= vc.em->verts.first;v1; v1=v1->next) {
+		if(v1->f & SELECT) {
+			DO_MINMAX(v1->co, min, max);
+			done= 1;
+		}
+	}
+
+	/* call extrude? */
+	if(done) {
+		EditEdge *eed;
+		float vec[3], cent[3], mat[3][3];
+		float nor[3]= {0.0, 0.0, 0.0};
+		
+		/* check for edges that are half selected, use for rotation */
+		done= 0;
+		for(eed= vc.em->edges.first; eed; eed= eed->next) {
+			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
+				if(eed->v1->f & SELECT) VecSubf(vec, eed->v1->co, eed->v2->co);
+				else VecSubf(vec, eed->v2->co, eed->v1->co);
+				VecAddf(nor, nor, vec);
+				done= 1;
+			}
+		}
+		if(done) Normalize(nor);
+		
+		/* center */
+		VecAddf(cent, min, max);
+		VecMulf(cent, 0.5f);
+		VECCOPY(min, cent);
+		
+		Mat4MulVecfl(vc.obedit->obmat, min);	// view space
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
+		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
+		
+		VecSubf(min, min, cent);
+		
+		/* calculate rotation */
+		Mat3One(mat);
+		if(done) {
+			float dot;
+			
+			VECCOPY(vec, min);
+			Normalize(vec);
+			dot= INPR(vec, nor);
+
+			if( fabs(dot)<0.999) {
+				float cross[3], si, q1[4];
+				
+				Crossf(cross, nor, vec);
+				Normalize(cross);
+				dot= 0.5f*saacos(dot);
+				si= (float)sin(dot);
+				q1[0]= (float)cos(dot);
+				q1[1]= cross[0]*si;
+				q1[2]= cross[1]*si;
+				q1[3]= cross[2]*si;
+				
+				QuatToMat3(q1, mat);
+			}
+		}
+		
+		extrudeflag(vc.obedit, vc.em, SELECT, nor);
+		rotateflag(vc.em, SELECT, cent, mat);
+		translateflag(vc.em, SELECT, min);
+		
+		recalc_editnormals(vc.em);
+	}
+	else {
+		float mat[3][3],imat[3][3];
+		float *curs= give_cursor(vc.scene, vc.v3d);
+		
+		VECCOPY(min, curs);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		
+		eve= addvertlist(vc.em, 0, NULL);
+
+		Mat3CpyMat4(mat, vc.obedit->obmat);
+		Mat3Inv(imat, mat);
+		
+		VECCOPY(eve->co, min);
+		Mat3MulVecfl(imat, eve->co);
+		VecSubf(eve->co, eve->co, vc.obedit->obmat[3]);
+		
+		eve->f= SELECT;
+	}
+	
+	//retopo_do_all();
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit); 
+	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
+	
+	return OPERATOR_FINISHED;
+#endif
+}
+
+void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate or Extrude at 3D Cursor";
+	ot->idname= "MESH_OT_dupli_extrude_cursor";
+	
+	/* api callbacks */
+	ot->invoke= dupli_extrude_cursor;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

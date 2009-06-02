@@ -23,5 +23,7 @@ void makeprim_exec(BMesh *bm, BMOperator *op);
 void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op);
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op);
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op);
+void bmesh_translate_exec(BMesh *bm, BMOperator *op);
+void bmesh_transform_exec(BMesh *bm, BMOperator *op);
 
 #endif

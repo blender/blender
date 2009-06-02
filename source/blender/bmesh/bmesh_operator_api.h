@@ -48,6 +48,7 @@ struct GHashIterator;
 #define BMOP_OPSLOT_INT			1
 #define BMOP_OPSLOT_FLT			2
 #define BMOP_OPSLOT_PNT			3
+#define BMOP_OPSLOT_MAT			4
 #define BMOP_OPSLOT_VEC			7
 
 /*after BMOP_OPSLOT_VEC, everything is 
@@ -159,6 +160,13 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 	  %hv will do verts, etc.  must pass in at least one
 	  element type letter.
      %f[f/e/v] - same as %h.
+     %v - pointer to a float vector of length 3.
+     %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
+               corrusponding argument must be a pointer to
+	       a float matrix.
+     %s - copy a slot from another op, instead of mapping to one
+          argument, it maps to two, a pointer to an operator and
+	  a slot name.
 */
 /*executes an operator*/
 int BMO_CallOpf(BMesh *bm, char *fmt, ...);
@@ -196,6 +204,13 @@ void *BMO_Get_Pnt(BMOperator *op, char *slotname);
 void BMO_Set_Vec(struct BMOperator *op, char *slotname, float *vec);
 void BMO_Get_Vec(BMOperator *op, char *slotname, float *vec_out);
 
+/*only supports square mats*/
+/*size must be 3 or 4; this api is meant only for transformation matrices.
+  note that internally the matrix is stored in 4x4 form, and it's safe to
+  call whichever BMO_Get_Mat* function you want.*/
+void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size);
+void BMO_Get_Mat4(struct BMOperator *op, char *slotname, float mat[4][4]);
+void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3]);
 
 /*puts every element of type type (which is a bitmask) with tool flag flag,
   into a slot.*/

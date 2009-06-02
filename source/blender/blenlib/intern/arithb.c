@@ -872,7 +872,7 @@ void Mat4MulVec( float mat[][4], int *vec)
 	vec[2]=(int)(x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2]);
 }
 
-void Mat4MulVecfl( float mat[][4], float *vec)
+void Mat4MulVecfl(float mat[][4], float *vec)
 {
 	float x,y;
 

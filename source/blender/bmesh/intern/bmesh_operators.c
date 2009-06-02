@@ -1,5 +1,6 @@
 #include "MEM_guardedalloc.h"
 
+#include "BLI_arithb.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
@@ -259,6 +260,45 @@ void BMO_Set_Int(BMOperator *op, char *slotname, int i)
 	slot->data.i = i;
 }
 
+/*only supports square mats*/
+void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	if( !(slot->slottype == BMOP_OPSLOT_MAT) )
+		return 0;
+
+	slot->len = 4;
+	slot->data.p = BLI_memarena_alloc(op->arena, sizeof(float)*4*4);
+	
+	if (size == 4) {
+		memcpy(slot->data.p, mat, sizeof(float)*4*4);
+	} else if (size == 3) {
+		Mat4CpyMat3(slot->data.p, mat);
+	} else {
+		printf("yeek! invalid size in BMO_Set_Mat!\n");
+
+		memset(slot->data.p, 0, sizeof(float)*4*4);
+		return;
+	}
+}
+
+void BMO_Get_Mat4(struct BMOperator *op, char *slotname, float mat[4][4])
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	if( !(slot->slottype == BMOP_OPSLOT_MAT) )
+		return;
+
+	memcpy(mat, slot->data.p, sizeof(float)*4*4);
+}
+
+void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3])
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	if( !(slot->slottype == BMOP_OPSLOT_MAT) )
+		return;
+
+	Mat3CpyMat4(mat, slot->data.p);
+}
 
 void BMO_Set_Pnt(BMOperator *op, char *slotname, void *p)
 {
@@ -1028,6 +1068,33 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 			case '=':
 			case '%':
 				break;
+			case 'm': {
+				int size, c;
+				
+				c = nextc(fmt);
+				fmt++;
+
+				if (c == '3') size = 3;
+				else if (c == '4') size = 4;
+				else goto error;
+
+				BMO_Set_Mat(op, slotname, va_arg(vlist, void*), size);
+				state = 1;
+				break;
+			}
+			case 'v': {
+				BMO_Set_Vec(op, slotname, va_arg(vlist, float*));
+				state = 1;
+				break;
+			}
+			case 's': {
+				BMOperator *op2 = va_arg(vlist, void*);
+				char *slotname2 = va_arg(vlist, char*);
+
+				BMO_CopySlot(op2, op, slotname2, slotname);
+				state = 1;
+				break;
+			}
 			case 'i':
 			case 'd':
 				BMO_Set_Int(op, slotname, va_arg(vlist, int));

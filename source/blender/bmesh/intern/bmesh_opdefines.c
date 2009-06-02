@@ -3,15 +3,35 @@
 
 #include <stdio.h>
 
+/*applies a transform to vertices*/
+
+BMOpDefine def_translate= {
+	"translate",
+	{{BMOP_OPSLOT_VEC, "vec"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_translate_exec,
+	0,
+};
+
+
+BMOpDefine def_transform = {
+	"transform",
+	{{BMOP_OPSLOT_MAT, "mat"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_transform_exec,
+	0,
+};
+
 /*loads a bmesh into an object*/
 BMOpDefine def_object_load_bmesh = {
 	"object_load_bmesh",
-	/*pointer to a mesh struct*/
 	{{BMOP_OPSLOT_PNT, "scene"},
 	{BMOP_OPSLOT_PNT, "object"},
 	{0, /*null-terminating sentinel*/}},
 	bmesh_to_mesh_exec,
-	0
+	0,
 };
 
 
@@ -191,6 +211,8 @@ BMOpDefine *opdefines[] = {
 	&def_extrudeverts_indiv,
 	&def_mesh_to_bmesh,
 	&def_object_load_bmesh,
+	&def_transform,
+	&def_translate,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

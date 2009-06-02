@@ -478,6 +478,7 @@ void recalcData(TransInfo *t)
 				
 				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 				
+				BMEdit_RecalcTesselation(em);
 				EDBM_RecalcNormals(em);
 			}
 		}
