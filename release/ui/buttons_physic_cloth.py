@@ -59,7 +59,7 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		md = self.cloth_modifier(context)
+		md = context.cloth
 		cloth = md.collision_settings
 		layout.active = cloth.enable_collision	
 		
