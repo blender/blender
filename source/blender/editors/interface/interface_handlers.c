@@ -142,7 +142,8 @@ typedef struct uiAfterFunc {
 	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
-
+	void *func_arg3;
+	
 	uiButHandleNFunc funcN;
 	void *func_argN;
 
@@ -233,6 +234,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->func= but->func;
 		after->func_arg1= but->func_arg1;
 		after->func_arg2= but->func_arg2;
+		after->func_arg3= but->func_arg3;
 
 		after->funcN= but->funcN;
 		after->func_argN= but->func_argN;
@@ -418,9 +420,10 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	/* give butfunc the original text too */
 	/* feature used for bone renaming, channels, etc */
-	if(but->func_arg2==NULL) but->func_arg2= data->origstr;
+	/* XXX goes via uiButHandleRenameFunc now */
+//	if(but->func_arg2==NULL) but->func_arg2= data->origstr;
 	ui_apply_but_func(C, but);
-	if(but->func_arg2==data->origstr) but->func_arg2= NULL;
+//	if(but->func_arg2==data->origstr) but->func_arg2= NULL;
 
 	data->retval= but->retval;
 	data->applied= 1;
@@ -888,7 +891,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 		}
 	}
 
-	return WM_UI_HANDLER_BREAK;
+	return changed;
 }
 
 void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
@@ -1047,7 +1050,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 	else { /* backspace */
 		if(len!=0) {
 			if ((but->selend - but->selsta) > 0) {
-				ui_textedit_delete_selection(but, data);
+				changed= ui_textedit_delete_selection(but, data);
 			}
 			else if(but->pos>0) {
 				for(x=but->pos; x<len; x++)
@@ -1175,12 +1178,16 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(but) {
-		but->editstr= 0;
-		but->pos= -1;
-		
-		if(data->searchbox)
+		if(data->searchbox) {
+			if(data->cancel==0)
+				ui_searchbox_apply(but, data->searchbox);
+
 			ui_searchbox_free(C, data->searchbox);
-		data->searchbox= NULL;
+			data->searchbox= NULL;
+		}
+		
+		but->editstr= NULL;
+		but->pos= -1;
 	}
 }
 
@@ -1232,11 +1239,17 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	}
 }
 
+
 static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my, changed= 0, retval= WM_UI_HANDLER_CONTINUE;
+	int mx, my, changed= 0, inbox=0, retval= WM_UI_HANDLER_CONTINUE;
 
 	switch(event->type) {
+		case MOUSEMOVE:
+			if(data->searchbox)
+				ui_searchbox_event(data->searchbox, event);
+			
+			break;
 		case RIGHTMOUSE:
 		case ESCKEY:
 			data->cancel= 1;
@@ -1244,6 +1257,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			retval= WM_UI_HANDLER_BREAK;
 			break;
 		case LEFTMOUSE: {
+			
+			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
+			if(data->searchbox)
+				inbox= BLI_in_rcti(&data->searchbox->winrct, event->x, event->y);
+
 			if(event->val==KM_PRESS) {
 				mx= event->x;
 				my= event->y;
@@ -1257,10 +1275,14 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					button_activate_state(C, but, BUTTON_STATE_TEXT_SELECTING);
 					retval= WM_UI_HANDLER_BREAK;
 				}
-				else {
+				else if(inbox==0) {
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 					retval= WM_UI_HANDLER_BREAK;
 				}
+			}
+			else if(inbox) {
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				retval= WM_UI_HANDLER_BREAK;
 			}
 			break;
 		}
@@ -1291,11 +1313,21 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DOWNARROWKEY:
+				if(data->searchbox) {
+					ui_searchbox_event(data->searchbox, event);
+					break;
+				}
+				/* pass on purposedly */
 			case ENDKEY:
 				ui_textedit_move_end(but, data, 1, event->shift);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case UPARROWKEY:
+				if(data->searchbox) {
+					ui_searchbox_event(data->searchbox, event);
+					break;
+				}
+				/* pass on purposedly */
 			case HOMEKEY:
 				ui_textedit_move_end(but, data, 0, event->shift);
 				retval= WM_UI_HANDLER_BREAK;
@@ -1579,7 +1611,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
-		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
+		if(ELEM4(event->type, LEFTMOUSE, PADENTER, RETKEY, EVT_BUT_OPEN) && event->val==KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3013,7 +3045,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	data->interactive= but->type==BUT_CURVE?0:1; // XXX temp
+	if( ELEM(but->type, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
+	else data->interactive= 1;
+	
 	data->state = BUTTON_STATE_INIT;
 
 	/* activate button */
@@ -3115,15 +3149,34 @@ void ui_button_active_cancel(const bContext *C, uiBut *but)
 
 /************** handle activating a button *************/
 
+static uiBut *uit_but_find_open_event(ARegion *ar, wmEvent *event)
+{
+	uiBlock *block;
+	uiBut *but;
+	
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		for(but=block->buttons.first; but; but= but->next)
+			if(but==event->customdata)
+				return but;
+	}
+	return NULL;
+}
+
 static int ui_handle_button_over(bContext *C, wmEvent *event, ARegion *ar)
 {
 	uiBut *but;
 
 	if(event->type == MOUSEMOVE) {
 		but= ui_but_find_mouse_over(ar, event->x, event->y);
-
 		if(but)
 			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
+	}
+	else if(event->type == EVT_BUT_OPEN) {
+		but= uit_but_find_open_event(ar, event);
+		if(but) {
+			button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
+			ui_do_button(C, but->block, but, event);
+		}
 	}
 
 	return WM_UI_HANDLER_CONTINUE;

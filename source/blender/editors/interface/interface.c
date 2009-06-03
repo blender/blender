@@ -2963,6 +2963,11 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 	block->func_arg2= arg2;
 }
 
+void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1)
+{
+	
+}
+
 void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
 {
 	block->drawextra= func;
@@ -3083,7 +3088,7 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 	ui_check_but(but);
 }
 
-/* arg is pointer to string/name, use callbacks below to make this work */
+/* arg is pointer to string/name, use uiButSetSearchFunc() below to make this work */
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, SEARCH_MENU, retval, "", x1, y1, x2, y2, arg, 0.0, maxlen, 0.0, 0.0, tip);
@@ -3099,10 +3104,13 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 	return but;
 }
 
-void uiButSetSearchFunc(uiBut *but, uiButSearchFunc func, void *arg)
+/* arg is user value, searchfunc and handlefunc both get it as arg */
+void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc)
 {
-	but->search_func= func;
+	but->search_func= sfunc;
 	but->search_arg= arg;
+	
+	uiButSetFunc(but, bfunc, arg, NULL);
 }
 
 

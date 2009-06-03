@@ -436,31 +436,30 @@ uiBut *uiFindInlink(uiBlock *block, void *poin);
  *
  * uiButSetNFunc will free the argument with MEM_freeN. */
 
-typedef struct uiSearchItems {
-	int maxitem, totitem, maxstrlen;
-	
-	char **names;
-	void **pointers;
-	
-} uiSearchItems;
-
+typedef struct uiSearchItems uiSearchItems;
 
 typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
+typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, char *str, uiSearchItems *items);
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
+		
+		/* use inside searchfunc to add items */
+int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin);
+		/* bfunc gets search item *poin as arg2, or if NULL the old string */
+void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
 
 
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
 
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
+void	uiBlockSetRenameFunc(uiBlock *block,	uiButHandleRenameFunc func, void *arg1);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
 void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2);
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
-void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc func, void *arg);
 
 void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, uiBlock *block));
 

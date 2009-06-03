@@ -1913,6 +1913,23 @@ void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 	
 }
 
+void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
+{
+	uiWidgetType *wt= widget_type(UI_WTYPE_BOX);
+	
+	glEnable(GL_BLEND);
+	widget_softshadow(rect, 15, 5.0f, 8.0f);
+	glDisable(GL_BLEND);
+
+	wt->state(wt, 0);
+	if(block)
+		wt->draw(&wt->wcol, rect, block->flag, 15);
+	else
+		wt->draw(&wt->wcol, rect, 0, 15);
+	
+}
+
+
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
 void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
@@ -1932,7 +1949,10 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 
 	/* cut string in 2 parts? */
 	cpoin= strchr(name, '|');
-	if(cpoin) *cpoin= 0;		
+	if(cpoin) {
+		*cpoin= 0;
+		rect->xmax -= BLF_width(cpoin+1) -10;
+	}
 	
 	glColor3ubv(wt->wcol.text);
 	uiStyleFontDraw(fstyle, rect, name);
@@ -1940,7 +1960,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	/* part text right aligned */
 	if(cpoin) {
 		fstyle->align= UI_STYLE_TEXT_RIGHT;
-		rect->xmax-=5;
+		rect->xmax= _rect.xmax - 5;
 		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}
