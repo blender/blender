@@ -556,9 +556,10 @@ uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, cha
 #define UI_UNIT_X				20
 #define UI_UNIT_Y				20
 
-#define UI_LAYOUT_ALIGN_LEFT	0
-#define UI_LAYOUT_ALIGN_CENTER	1
-#define UI_LAYOUT_ALIGN_RIGHT	2
+#define UI_LAYOUT_ALIGN_EXPAND	0
+#define UI_LAYOUT_ALIGN_LEFT	1
+#define UI_LAYOUT_ALIGN_CENTER	2
+#define UI_LAYOUT_ALIGN_RIGHT	3
 
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
@@ -575,14 +576,16 @@ void uiLayoutSetEnabled(uiLayout *layout, int enabled);
 void uiLayoutSetRedAlert(uiLayout *layout, int redalert);
 void uiLayoutSetAlignment(uiLayout *layout, int alignment);
 void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
-void uiLayoutSetScale(uiLayout *layout, float scale);
+void uiLayoutSetScaleX(uiLayout *layout, float scale);
+void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
 int uiLayoutGetActive(uiLayout *layout);
 int uiLayoutGetEnabled(uiLayout *layout);
 int uiLayoutGetRedAlert(uiLayout *layout);
 int uiLayoutGetAlignment(uiLayout *layout);
 int uiLayoutGetKeepAspect(uiLayout *layout);
-float uiLayoutGetScale(uiLayout *layout);
+float uiLayoutGetScaleX(uiLayout *layout);
+float uiLayoutGetScaleY(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
