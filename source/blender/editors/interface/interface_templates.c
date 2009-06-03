@@ -1311,3 +1311,37 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 
 }
 
+/********************** ColorRamp Template **************************/
+
+void uiTemplateColorRamp(uiLayout *layout, ColorBand *coba, int expand)
+{
+	uiBlock *block;
+	rctf rect;
+
+	if(coba) {
+		rect.xmin= 0; rect.xmax= 200;
+		rect.ymin= 0; rect.ymax= 190;
+		
+		block= uiLayoutFreeBlock(layout);
+		colorband_buttons(block, coba, &rect, !expand);
+	}
+}
+
+/********************* CurveMapping Template ************************/
+
+#include "DNA_color_types.h"
+
+void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
+{
+	uiBlock *block;
+	rctf rect;
+
+	if(cumap) {
+		rect.xmin= 0; rect.xmax= 200;
+		rect.ymin= 0; rect.ymax= 190;
+		
+		block= uiLayoutFreeBlock(layout);
+		curvemap_buttons(block, cumap, type, 0, 0, &rect);
+	}
+}
+
