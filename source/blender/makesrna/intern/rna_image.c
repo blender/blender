@@ -113,6 +113,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Image", "ID");
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image.");
+	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");

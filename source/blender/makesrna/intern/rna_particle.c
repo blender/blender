@@ -435,6 +435,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ParticleSettings", "ID");
 	RNA_def_struct_ui_text(srna, "Particle Settings", "Particle settings, reusable by multiple particle systems.");
+	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	/* flag */
 	prop= RNA_def_property(srna, "react_start_end", PROP_BOOLEAN, PROP_NONE);

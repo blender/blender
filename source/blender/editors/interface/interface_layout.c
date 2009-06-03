@@ -213,7 +213,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int last, int 
 
 static int ui_layout_vary_direction(uiLayout *layout)
 {
-	return (layout->root->type == UI_LAYOUT_HEADER)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
+	return (layout->root->type == UI_LAYOUT_HEADER || layout->alignment != UI_LAYOUT_ALIGN_EXPAND)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
 }
 
 /* estimated size of text + icon */
@@ -224,9 +224,9 @@ static int ui_text_icon_width(uiLayout *layout, char *name, int icon)
 	if(icon && strcmp(name, "") == 0)
 		return UI_UNIT_X; /* icon only */
 	else if(icon)
-		return (variable)? UI_GetStringWidth(name) + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
+		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
 	else
-		return (variable)? UI_GetStringWidth(name) + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
+		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)

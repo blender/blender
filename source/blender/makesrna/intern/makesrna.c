@@ -1713,7 +1713,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	rna_print_c_string(f, srna->name);
 	fprintf(f, ", ");
 	rna_print_c_string(f, srna->description);
-	fprintf(f, ",\n");
+	fprintf(f, ",\n %d,\n", srna->icon);
 
 	prop= srna->nameproperty;
 	if(prop) {

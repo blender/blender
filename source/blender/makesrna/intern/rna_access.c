@@ -339,6 +339,14 @@ const char *RNA_struct_ui_name(StructRNA *type)
 	return type->name;
 }
 
+int RNA_struct_ui_icon(StructRNA *type)
+{
+	if(type)
+		return type->icon;
+	else
+		return ICON_DOT;
+}
+
 const char *RNA_struct_ui_description(StructRNA *type)
 {
 	return type->description;

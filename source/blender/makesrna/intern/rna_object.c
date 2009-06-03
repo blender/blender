@@ -263,6 +263,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VertexGroup", NULL);
 	RNA_def_struct_sdna(srna, "bDeformGroup");
 	RNA_def_struct_ui_text(srna, "Vertex Group", "Group of vertices, used for armature deform and other purposes.");
+	RNA_def_struct_ui_icon(srna, ICON_GROUP_VERTEX);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name.");
@@ -301,6 +302,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_nested(brna, srna, "Object");
 	RNA_def_struct_ui_text(srna, "Game Object Settings", "Game engine related settings for the object.");
+	RNA_def_struct_ui_icon(srna, ICON_GAME);
 
 	/* logic */
 
@@ -522,6 +524,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
+	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");

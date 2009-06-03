@@ -3643,7 +3643,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OBJECT_DATA);
 				break;
 			case TSE_RNA_STRUCT:
-				UI_icon_draw(x, y, UI_GetIconRNA(&te->rnaptr));
+				UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
 				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;

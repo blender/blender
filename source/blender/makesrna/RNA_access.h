@@ -331,6 +331,7 @@ void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);
 const char *RNA_struct_ui_description(StructRNA *type);
+int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);

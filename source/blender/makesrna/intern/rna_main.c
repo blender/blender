@@ -28,6 +28,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "rna_internal.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
@@ -248,6 +250,7 @@ void RNA_def_main(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Main", NULL);
 	RNA_def_struct_ui_text(srna, "Main", "Main data structure representing a .blend file and all its datablocks.");
+	RNA_def_struct_ui_icon(srna, ICON_BLENDER);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, 240);

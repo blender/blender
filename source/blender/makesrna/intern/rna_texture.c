@@ -990,6 +990,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
 	RNA_def_struct_ui_text(srna, "Texture", "Texture datablock used by materials, lamps, worlds and brushes.");
+	RNA_def_struct_ui_icon(srna, ICON_TEXTURE_DATA);
 	RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

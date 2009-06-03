@@ -1160,6 +1160,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "NodeTree", "ID");
 	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing.");
 	RNA_def_struct_sdna(srna, "bNodeTree");
+	RNA_def_struct_ui_icon(srna, ICON_NODE);
 
 	prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);

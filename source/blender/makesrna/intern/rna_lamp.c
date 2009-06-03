@@ -263,6 +263,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Lamp", "ID");
 	RNA_def_struct_refine_func(srna, "rna_Lamp_refine");
 	RNA_def_struct_ui_text(srna, "Lamp", "Lamp datablock for lighting a scene.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_DATA);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);

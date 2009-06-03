@@ -372,6 +372,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SubsurfModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subdivision surface modifier.");
 	RNA_def_struct_sdna(srna, "SubsurfModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SUBSURF);
 
 	rna_def_property_subdivision_common(srna, "subdivType");
 
@@ -407,6 +408,7 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MultiresModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Multires Modifier", "Multiresolution mesh modifier.");
 	RNA_def_struct_sdna(srna, "MultiresModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MULTIRES);
 
 	rna_def_property_subdivision_common(srna, "simple");
 
@@ -425,6 +427,7 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "LatticeModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Lattice Modifier", "Lattice deformation modifier.");
 	RNA_def_struct_sdna(srna, "LatticeModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_LATTICE);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Lattice object to deform with.");
@@ -456,6 +459,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CurveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Curve Modifier", "Curve deformation modifier.");
 	RNA_def_struct_sdna(srna, "CurveModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_CURVE);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Curve object to deform with.");
@@ -484,6 +488,7 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BuildModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Build Modifier", "Build effect modifier.");
 	RNA_def_struct_sdna(srna, "BuildModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_BUILD);
 
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 1, MAXFRAMEF);
@@ -513,6 +518,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MirrorModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Mirror Modifier", "Mirroring modifier.");
 	RNA_def_struct_sdna(srna, "MirrorModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MIRROR);
 
 	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_X);
@@ -571,6 +577,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "DecimateModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Decimate Modifier", "Decimation modifier.");
 	RNA_def_struct_sdna(srna, "DecimateModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
 
 	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percent");
@@ -599,6 +606,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "WaveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Wave Modifier", "Wave effect modifier.");
 	RNA_def_struct_sdna(srna, "WaveModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_WAVE);
 
 	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_X);
@@ -742,6 +750,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ArmatureModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Armature Modifier", "Armature deformation modifier.");
 	RNA_def_struct_sdna(srna, "ArmatureModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_ARMATURE);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Armature object to deform with.");
@@ -794,6 +803,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "HookModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Hook Modifier", "Hook modifier to modify the location of vertices.");
 	RNA_def_struct_sdna(srna, "HookModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_HOOK);
 
 	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
@@ -825,6 +835,7 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SoftbodyModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Softbody Modifier", "Softbody simulation modifier.");
 	RNA_def_struct_sdna(srna, "SoftbodyModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SOFT);
 }
 
 static void rna_def_modifier_boolean(BlenderRNA *brna)
@@ -841,6 +852,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BooleanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Boolean Modifier", "Boolean operations modifier.");
 	RNA_def_struct_sdna(srna, "BooleanModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_BOOLEAN);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Mesh object to use for boolean operation.");
@@ -868,6 +880,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ArrayModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Array Modifier", "Array duplication modifier.");
 	RNA_def_struct_sdna(srna, "ArrayModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_ARRAY);
 
 	/* Length parameters */
 	prop= RNA_def_property(srna, "fit_type", PROP_ENUM, PROP_NONE);
@@ -967,6 +980,7 @@ static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "EdgeSplitModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "EdgeSplit Modifier", "Edge splitting modifier to create sharp edges.");
 	RNA_def_struct_sdna(srna, "EdgeSplitModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
 
 	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 180);
@@ -1008,6 +1022,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "DisplaceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Displace Modifier", "Displacement modifier.");
 	RNA_def_struct_sdna(srna, "DisplaceModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
@@ -1064,6 +1079,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UVProjectModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "UVProject Modifier", "UV projection modifier to sets UVs from a projector.");
 	RNA_def_struct_sdna(srna, "UVProjectModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_UVPROJECT);
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
@@ -1109,6 +1125,7 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SmoothModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Smooth Modifier", "Smoothing effect modifier.");
 	RNA_def_struct_sdna(srna, "SmoothModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SMOOTH);
 
 	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SMOOTH_X);
@@ -1158,6 +1175,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CastModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Cast Modifier", "Cast modifier to cast to other shapes.");
 	RNA_def_struct_sdna(srna, "CastModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_CAST);
 
 	prop= RNA_def_property(srna, "cast_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1214,6 +1232,7 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MeshDeformModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "MeshDeform Modifier", "Mesh deformation modifier to deform with other meshes.");
 	RNA_def_struct_sdna(srna, "MeshDeformModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MESHDEFORM);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Mesh object to deform with.");
@@ -1252,6 +1271,7 @@ static void rna_def_modifier_particlesystem(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ParticleSystemModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleSystem Modifier", "Particle system simulation modifier.");
 	RNA_def_struct_sdna(srna, "ParticleSystemModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_PARTICLES);
 }
 
 static void rna_def_modifier_particleinstance(BlenderRNA *brna)
@@ -1262,6 +1282,7 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ParticleInstanceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleInstance Modifier", "Particle system instancing modifier.");
 	RNA_def_struct_sdna(srna, "ParticleInstanceModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_PARTICLES);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob");
@@ -1314,6 +1335,7 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ExplodeModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Explode Modifier", "Explosion effect modifier based on a particle system.");
 	RNA_def_struct_sdna(srna, "ExplodeModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_EXPLODE);
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ExplodeModifier_vgroup_get", "rna_ExplodeModifier_vgroup_length", "rna_ExplodeModifier_vgroup_set");
@@ -1353,6 +1375,7 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ClothModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Cloth Modifier", "Cloth simulation modifier.");
 	RNA_def_struct_sdna(srna, "ClothModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_CLOTH);
 	
 	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sim_parms");
@@ -1374,6 +1397,7 @@ static void rna_def_modifier_collision(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CollisionModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Collision Modifier", "Collision modifier defining modifier stack position used for collision.");
 	RNA_def_struct_sdna(srna, "CollisionModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 	
 	prop= RNA_def_property(srna, "absorption", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "absorption");
@@ -1402,6 +1426,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BevelModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Bevel Modifier", "Bevel modifier to make edges and vertices more rounded.");
 	RNA_def_struct_sdna(srna, "BevelModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_BEVEL);
 
 	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "value");
@@ -1448,6 +1473,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShrinkwrapModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Shrinkwrap Modifier", "Shrink wrapping modifier to shrink wrap and object to a target.");
 	RNA_def_struct_sdna(srna, "ShrinkwrapModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SHRINKWRAP);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
@@ -1537,6 +1563,7 @@ static void rna_def_modifier_fluidsim(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "FluidSimulationModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Fluid Simulation Modifier", "Fluid simulation modifier.");
 	RNA_def_struct_sdna(srna, "FluidsimModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
 
 	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "fss");
@@ -1556,6 +1583,7 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MaskModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Mask Modifier", "Mask modifier to hide parts of the mesh.");
 	RNA_def_struct_sdna(srna, "MaskModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MASK);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);
@@ -1596,6 +1624,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SimpleDeformModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "SimpleDeform Modifier", "Simple deformation modifier to apply effects such as twisting and bending.");
 	RNA_def_struct_sdna(srna, "SimpleDeformModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SIMPLEDEFORM);
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);

@@ -52,6 +52,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
 	RNA_def_struct_ui_text(srna, "Camera", "Camera datablock for storing camera settings.");
+	RNA_def_struct_ui_icon(srna, ICON_CAMERA_DATA);
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

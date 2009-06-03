@@ -607,6 +607,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
+	RNA_def_struct_ui_icon(srna, ICON_SCENE_DATA);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
