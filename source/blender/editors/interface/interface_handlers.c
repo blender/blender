@@ -160,6 +160,8 @@ typedef struct uiAfterFunc {
 
 	PointerRNA rnapoin;
 	PropertyRNA *rnaprop;
+
+	bContextStore *context;
 } uiAfterFunc;
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
@@ -252,6 +254,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->rnapoin= but->rnapoin;
 		after->rnaprop= but->rnaprop;
 
+		if(but->context)
+			after->context= CTX_store_copy(but->context);
+
 		but->optype= NULL;
 		but->opcontext= 0;
 		but->opptr= NULL;
@@ -273,6 +278,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 		after= *afterf; /* copy to avoid memleak on exit() */
 		BLI_freelinkN(&funcs, afterf);
 
+		if(after.context)
+			CTX_store_set(C, after.context);
+
 		if(after.func)
 			after.func(C, after.func_arg1, after.func_arg2);
 		if(after.funcN)
@@ -292,6 +300,11 @@ static void ui_apply_but_funcs_after(bContext *C)
 
 		if(after.rnapoin.data)
 			RNA_property_update(C, &after.rnapoin, after.rnaprop);
+
+		if(after.context) {
+			CTX_store_set(C, NULL);
+			CTX_store_free(after.context);
+		}
 	}
 }
 

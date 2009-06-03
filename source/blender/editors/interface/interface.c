@@ -537,10 +537,17 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		/* temp? Proper check for greying out */
 		if(but->optype) {
 			wmOperatorType *ot= but->optype;
+
+			if(but->context)
+				CTX_store_set((bContext*)C, but->context);
+
 			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
+
+			if(but->context)
+				CTX_store_set((bContext*)C, NULL);
 		}
 
 		/* only update soft range while not editing */
