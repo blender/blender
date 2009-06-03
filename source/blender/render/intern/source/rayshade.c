@@ -146,8 +146,8 @@ void makeraytree(Render *re)
 	}
 	
 	printf("RE_rayobject_*_create( %d )\n", totface);
-//	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
-	re->raytree = RE_rayobject_bvh_create( totface );
+	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
+//	re->raytree = RE_rayobject_bvh_create( totface );
 	
 	//Fill rayfaces
 	re->rayfaces = (RayObject*)MEM_callocN(totface*sizeof(RayFace), "render faces");
@@ -423,8 +423,6 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	float f, f1, fr, fg, fb;
 	float ref[3];
 	float dist_mir = origshi->mat->dist_mir;
-
-	assert(0);
 
 	/* Warning, This is not that nice, and possibly a bit slow for every ray,
 	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */

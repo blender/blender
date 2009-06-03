@@ -664,7 +664,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			RayObject *face = no->v[nr];
 			OcVal 		*ov = no->ov+nr;
 			
-			if(!face) break; //TODO? return 0;
+			if(!face) break;
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{
@@ -675,13 +675,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 	}
 	else
 	{			/* else mirror or glass or shadowtra, return closest face  */
-		Isect isect;
 		int found= 0;
-		
-		assert(0);
-		
-		is->labda= 1.0f;	/* needed? */
-		isect= *is;			/* copy for sorting */
 		
 		for(; no; no = no->next)
 		for(nr=0; nr<8; nr++)
@@ -689,16 +683,12 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			RayObject *face = no->v[nr];
 			OcVal 		*ov = no->ov+nr;
 			
-			if(!face) return 0;
+			if(!face) break;
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{ 
-
 				if( RE_rayobject_intersect(face,is) )
-					if(isect.labda<is->labda) {
-						*is= isect;
-						found= 1;
-					}
+					found= 1;
 			}
 		}
 		
@@ -848,22 +838,6 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	is->userdata= oc->userdata;
 #endif
 
-#if 0
-	/* only for shadow! */
-	if(is->mode==RE_RAY_SHADOW) {
-	
-		/* TODO check with last intersected shadow face */
-		if(is->last.face!=NULL && !(is->last.face==is->orig.face && is->last.ob==is->orig.ob)) {
-			if(checkfunc(is, is->last.ob, is->last.face)) {
-				is->ob= is->last.ob;
-				is->face= is->last.face;
-				VECSUB(is->vec, is->end, is->start);
-				if(RE_ray_face_intersection(is, oc->transformfunc, oc->coordsfunc)) return 1;
-			}
-		}
-	}
-#endif
-	
 	VECADDFAC( end, is->start, is->vec, is->labda );
 	ldx= end[0] - is->start[0];
 	u1= 0.0f;
@@ -880,6 +854,10 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 						if(cliptest(ldz, oc->max[2]-is->start[2], &u1,&u2)) {
 							c1=1;
 							if(u2<1.0f) {
+								is->vec[0] = u2*ldx;
+								is->vec[1] = u2*ldy;
+								is->vec[2] = u2*ldz;
+
 								end[0]= is->start[0]+u2*ldx;
 								end[1]= is->start[1]+u2*ldy;
 								end[2]= is->start[2]+u2*ldz;
@@ -917,16 +895,6 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	ocy2= (int)oy2;
 	ocz2= (int)oz2;
 	
-//	for(ocx1=0; ocx1<oc->ocres; ocx1++)
-//	for(ocy1=0; ocy1<oc->ocres; ocy1++)
-//	for(ocz1=0; ocz1<oc->ocres; ocz1++)
-//	{
-//		no= ocread(oc, ocx1, ocy1, ocz1);
-//		if( testnode(oc, is, no, ocval) ) return 1;
-//	}
-
-//	return 0;
-
 	if(ocx1==ocx2 && ocy1==ocy2 && ocz1==ocz2) {
 		no= ocread(oc, ocx1, ocy1, ocz1);
 		if(no) {
@@ -934,7 +902,7 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 			vec1[0]= ox1; vec1[1]= oy1; vec1[2]= oz1;
 			vec2[0]= ox2; vec2[1]= oy2; vec2[2]= oz2;
 			calc_ocval_ray(&ocval, (float)ocx1, (float)ocy1, (float)ocz1, vec1, vec2);
-//			is->ddalabda= 1.0f;
+			is->labda = 1.0f;
 			if( testnode(oc, is, no, ocval) ) return 1;
 		}
 	}
@@ -1012,8 +980,8 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 				vec2[1]= oy1-ddalabda*doy;
 				vec2[2]= oz1-ddalabda*doz;
 				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
-							   
-//				is->ddalabda= ddalabda;
+
+				is->labda= ddalabda;
 				if( testnode(oc, is, no, ocval) ) return 1;
 			}
 

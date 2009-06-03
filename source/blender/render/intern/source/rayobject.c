@@ -250,16 +250,9 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		}
 #endif
 
-/*
-		TODO
-		if(is->mode!=RE_RAY_SHADOW) {
-			/ * for mirror & tra-shadow: large faces can be filled in too often, this prevents
-			   a face being detected too soon... * /
-			if(is->labda > is->ddalabda) {
-				return 0;
-			}
-		}
-*/		
+		if(is->mode!=RE_RAY_SHADOW && labda > is->labda)
+			return 0;
+
 		is->isect= ok;	// wich half of the quad
 		is->labda= labda;
 		is->u= u; is->v= v;
@@ -280,14 +273,13 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 	if(casted_rays++ % (1<<20) == 0)
 		printf("Casting %d rays\n", casted_rays);
 
-	i->vec[0] *= i->labda;
+/*	i->vec[0] *= i->labda;
 	i->vec[1] *= i->labda;
 	i->vec[2] *= i->labda;
-	i->labda = 1.0f; //RE_RAYTRACE_MAXDIST; //len;
-	i->dist = VecLength(i->vec);
+	i->labda = 1.0f;
+*/
+//	i->dist = VecLength(i->vec);
 	
-		
-	assert(i->mode==RE_RAY_SHADOW);
 	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
 		return 1;
 
