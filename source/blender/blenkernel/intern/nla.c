@@ -455,6 +455,25 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 
 /* NLA Strips -------------------------------------- */
 
+/* Find the active NLA-strip within the given track */
+NlaStrip *BKE_nlastrip_find_active (NlaTrack *nlt)
+{
+	NlaStrip *strip;
+	
+	/* sanity check */
+	if ELEM(NULL, nlt, nlt->strips.first)
+		return NULL;
+		
+	/* try to find the first active strip */
+	for (strip= nlt->strips.first; strip; strip= strip->next) {
+		if (strip->flag & NLASTRIP_FLAG_ACTIVE)
+			return strip;
+	}
+	
+	/* none found */
+	return NULL;
+}
+
 /* Does the given NLA-strip fall within the given bounds (times)? */
 short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 {

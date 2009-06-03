@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 
 #include "DNA_listBase.h"
 #include "DNA_anim_types.h"
@@ -87,37 +88,103 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 /* *********************************************** */
 /* Strips */
 
-static void nla_draw_strip (NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float color[3])
 {
-	/* draw extrapolation info first (as backdrop) */
-	// TODO...
-	
-	/* draw 'inside' of strip itself */
-		/* set color of strip - color is used to indicate status here */
-	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
-		/* tweaking strip should be drawn green when it is acting as the tweaking strip */
+	if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
+		/* active strip should be drawn green when it is acting as the tweaking strip.
+		 * however, this case should be skipped for when not in EditMode...
+		 */
 		// FIXME: hardcoded temp-hack colors
-		glColor3f(0.3f, 0.95f, 0.1f);
+		color[0]= 0.3f;
+		color[1]= 0.95f;
+		color[2]= 0.1f;
 	}
 	else if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
 		/* alert user that this strip is also used by the tweaking track (this is set when going into
 		 * 'editmode' for that strip), since the edits made here may not be what the user anticipated
 		 */
 		// FIXME: hardcoded temp-hack colors
-		glColor3f(0.85f, 0.0f, 0.0f);
+		color[0]= 0.85f;
+		color[1]= 0.0f;
+		color[2]= 0.0f;
 	}
 	else if (strip->flag & NLASTRIP_FLAG_SELECT) {
 		/* selected strip - use theme color for selected */
-		UI_ThemeColor(TH_STRIP_SELECT);
+		UI_GetThemeColor3fv(TH_STRIP_SELECT, color);
 	}
 	else {
 		/* normal, unselected strip - use standard strip theme color */
-		UI_ThemeColor(TH_STRIP);
+		UI_GetThemeColor3fv(TH_STRIP, color);
 	}
+}
+
+static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+{
+	float color[3];
+	
+	/* get color of strip */
+	nla_strip_get_color_inside(adt, strip, color);
+	
+	/* draw extrapolation info first (as backdrop) */
+	if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+		/* enable transparency... */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		switch (strip->extendmode) {
+			/* since this does both sides, only do the 'before' side, and leave the rest to the next case */
+			case NLASTRIP_EXTEND_HOLD: 
+				/* only need to draw here if there's no strip before since 
+				 * it only applies in such a situation 
+				 */
+				if (strip->prev) {
+					/* set the drawing color to the color of the strip, but with very faint alpha */
+					glColor4f(color[0], color[1], color[2], 0.15f);
+					
+					/* draw the rect to the edge of the screen */
+					glBegin(GL_QUADS);
+						glVertex2f(v2d->cur.xmin, yminc);
+						glVertex2f(v2d->cur.xmin, ymaxc);
+						glVertex2f(strip->start, ymaxc);
+						glVertex2f(strip->start, yminc);
+					glEnd();
+				}
+				/* no break needed... */
+				
+			/* this only draws after the strip */
+			case NLASTRIP_EXTEND_HOLD_FORWARD: 
+				/* only need to try and draw if the next strip doesn't occur immediately after */
+				if ((strip->next == NULL) || (IS_EQ(strip->next->start, strip->end)==0)) {
+					/* set the drawing color to the color of the strip, but this time less faint */
+					glColor4f(color[0], color[1], color[2], 0.3f);
+					
+					/* draw the rect to the next strip or the edge of the screen */
+					glBegin(GL_QUADS);
+						glVertex2f(strip->end, yminc);
+						glVertex2f(strip->end, ymaxc);
+						
+						if (strip->next) {
+							glVertex2f(strip->next->start, ymaxc);
+							glVertex2f(strip->next->start, yminc);
+						}
+						else {
+							glVertex2f(v2d->cur.xmax, ymaxc);
+							glVertex2f(v2d->cur.xmax, yminc);
+						}
+					glEnd();
+				}
+				break;
+		}
+		
+		glDisable(GL_BLEND);
+	}
+	
+	/* draw 'inside' of strip itself */
+	glColor3fv(color);
 	uiSetRoundBox(15); /* all corners rounded */
 	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
-	/* draw strip outline */
+	/* draw strip outline - different colors are used here... */
 	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
 		/* strip should appear 'sunken', so draw a light border around it */
 		glColor3f(0.9f, 1.0f, 0.9f); // FIXME: hardcoded temp-hack colors
@@ -150,6 +217,7 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
+	// TODO: make this centered?
 	rect.xmin= strip->start + 2;
 	rect.ymin= yminc;
 	rect.xmax= strip->end - 2;
@@ -204,6 +272,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			switch (ale->type) {
 				case ANIMTYPE_NLATRACK:
 				{
+					AnimData *adt= BKE_animdata_from_id(ale->id);
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					NlaStrip *strip;
 					int index;
@@ -215,7 +284,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					for (strip=nlt->strips.first, index=1; strip; strip=strip->next, index++) {
 						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
 							/* draw the visualisation of the strip */
-							nla_draw_strip(nlt, strip, v2d, yminc, ymaxc);
+							nla_draw_strip(adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */
 							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);
@@ -235,11 +304,14 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					else
 						glColor4f(0.6f, 0.5f, 0.5f, 0.3f); 	// greyish-red color - hardcoded for now
 						
+					/* draw slightly shifted up for greater separation from standard channels,
+					 * but also slightly shorter for some more contrast when viewing the strips
+					 */
 					glBegin(GL_QUADS);
-						glVertex2f(v2d->cur.xmin, yminc);
-						glVertex2f(v2d->cur.xmin, ymaxc);
-						glVertex2f(v2d->cur.xmax, ymaxc);
-						glVertex2f(v2d->cur.xmax, yminc);
+						glVertex2f(v2d->cur.xmin, yminc+NLACHANNEL_SKIP);
+						glVertex2f(v2d->cur.xmin, ymaxc-NLACHANNEL_SKIP);
+						glVertex2f(v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
+						glVertex2f(v2d->cur.xmax, yminc+NLACHANNEL_SKIP);
 					glEnd();
 					
 					glDisable(GL_BLEND);
@@ -570,8 +642,12 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
 					
 				offset += 7 * indent;
-				uiSetRoundBox((1|2)); // only on top two corners, to show that this channel sits on top of the preceeding ones
-				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 8);
+				
+				/* only on top two corners, to show that this channel sits on top of the preceeding ones */
+				uiSetRoundBox((1|2)); 
+				
+				/* draw slightly shifted up vertically to look like it has more separtion from other channels */
+				gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)NLACHANNEL_NAMEWIDTH, ymaxc+NLACHANNEL_SKIP, 8);
 				
 				/* clear group value, otherwise we cause errors... */
 				group = 0;

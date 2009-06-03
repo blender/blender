@@ -253,6 +253,8 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 		UI_view2d_text_cache_draw(ar);
 	}
 	
+	UI_view2d_view_ortho(C, v2d);
+	
 	/* current frame */
 	if (snla->flag & SNLA_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if ((snla->flag & SNLA_NODRAWCFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;

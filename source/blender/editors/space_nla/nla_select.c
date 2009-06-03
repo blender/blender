@@ -98,10 +98,16 @@ static short selmodes_to_flagmodes (short sel)
  *	3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
+enum {
+	DESELECT_STRIPS_NOTEST = 0,
+	DESELECT_STRIPS_TEST,
+	DESELECT_STRIPS_CLEARACTIVE,
+} eDeselectNlaStrips;
+ 
 /* Deselects strips in the NLA Editor
  *	- This is called by the deselect all operator, as well as other ones!
  *
- * 	- test: check if select or deselect all
+ * 	- test: check if select or deselect all (1) or clear all active (2)
  *	- sel: how to select keyframes 
  *		0 = deselect
  *		1 = select
@@ -121,7 +127,7 @@ static void deselect_nla_strips (bAnimContext *ac, short test, short sel)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* See if we should be selecting or deselecting */
-	if (test) {
+	if (test == DESELECT_STRIPS_TEST) {
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			NlaStrip *strip;
@@ -150,9 +156,11 @@ static void deselect_nla_strips (bAnimContext *ac, short test, short sel)
 		/* apply same selection to all strips */
 		for (strip= nlt->strips.first; strip; strip= strip->next) {
 			/* set selection */
-			ACHANNEL_SET_FLAG(strip, smode, NLASTRIP_FLAG_SELECT);
+			if (test != DESELECT_STRIPS_CLEARACTIVE)
+				ACHANNEL_SET_FLAG(strip, smode, NLASTRIP_FLAG_SELECT);
 			
 			/* clear active flag */
+			// TODO: for clear active, do we want to limit this to only doing this on a certain set of tracks though?
 			strip->flag &= ~NLASTRIP_FLAG_ACTIVE;
 		}
 	}
@@ -173,9 +181,9 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_nla_strips(&ac, 0, SELECT_INVERT);
+		deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_INVERT);
 	else
-		deselect_nla_strips(&ac, 1, SELECT_ADD);
+		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_ADD);
 	
 	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
@@ -292,7 +300,8 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			
 			nlt->flag |= NLATRACK_SELECTED;
-			ANIM_set_active_channel(ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
+			if (nlt->flag & NLATRACK_SELECTED)
+				ANIM_set_active_channel(ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
 		}
 	}
 	
@@ -302,6 +311,13 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 		if (strip) {
 			select_mode= selmodes_to_flagmodes(select_mode);
 			ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
+			
+			/* if we selected it, we can make it active too
+			 *	- we always need to clear the active strip flag though... 
+			 */
+			deselect_nla_strips(ac, DESELECT_STRIPS_CLEARACTIVE, 0);
+			if (strip->flag & NLASTRIP_FLAG_SELECT)
+				strip->flag |= NLASTRIP_FLAG_ACTIVE;
 		}
 		
 		/* free this channel */
