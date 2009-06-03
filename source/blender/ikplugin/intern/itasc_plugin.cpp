@@ -78,6 +78,7 @@ struct IK_Target
 	Object*					owner;			//for auto IK
 	std::string				targetName;
 	std::string				constraintName;
+	unsigned int			controlType;
 	int						ee;				//end effector number
 	KDL::Frame				eeRest;			//end effector initial pose relative to armature
 
@@ -435,6 +436,24 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 	return true;
 }
 
+static bool constraint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintValues* const _values, unsigned int _nvalues, void* _param)
+{
+	IK_Target* iktarget =(IK_Target*)_param;
+	bKinematicConstraint *condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
+	iTaSC::ConstraintValues* values = _values;
+	if (iktarget->controlType & iTaSC::CopyPose::CTL_POSITION) {
+		values->alpha = condata->weight;
+		values->action = iTaSC::ACT_ALPHA;
+		values++;
+	}
+	if (iktarget->controlType & iTaSC::CopyPose::CTL_ROTATION) {
+		values->alpha = condata->orientweight;
+		values->action = iTaSC::ACT_ALPHA;
+		values++;
+	}
+	return true;
+}
+
 static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 {
 	PoseTree *tree = (PoseTree*)pchan->iktree.first;
@@ -725,20 +744,24 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			controltype |= iTaSC::CopyPose::CTL_ROTATION;
 		if ((condata->weight != 0.0))
 			controltype |= iTaSC::CopyPose::CTL_POSITION;
-		iktarget->constraint = new iTaSC::CopyPose(controltype);
-		iktarget->blenderConstraint = target->con;
-		// set the gain
-		if (controltype & iTaSC::CopyPose::CTL_POSITION)
-			iktarget->constraint->setControlParameter(iTaSC::CopyPose::ID_POSITION, iTaSC::ACT_ALPHA, condata->weight);
-		if (controltype & iTaSC::CopyPose::CTL_ROTATION)
-			iktarget->constraint->setControlParameter(iTaSC::CopyPose::ID_ROTATION, iTaSC::ACT_ALPHA, condata->orientweight);
-		iktarget->constraintName = pchan->bone->name;
-		iktarget->constraintName += ":C:";
-		iktarget->constraintName += target->con->name;
-		// add the constraint
-		ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[target->tip].bone);
-		if (!ret)
-			break;
+		if (controltype) {
+			iktarget->constraint = new iTaSC::CopyPose(controltype, controltype);
+			iktarget->blenderConstraint = target->con;
+			// set the gain
+			if (controltype & iTaSC::CopyPose::CTL_POSITION)
+				iktarget->constraint->setControlParameter(iTaSC::CopyPose::ID_POSITION, iTaSC::ACT_ALPHA, condata->weight);
+			if (controltype & iTaSC::CopyPose::CTL_ROTATION)
+				iktarget->constraint->setControlParameter(iTaSC::CopyPose::ID_ROTATION, iTaSC::ACT_ALPHA, condata->orientweight);
+			iktarget->constraint->registerCallback(constraint_callback, iktarget);
+			iktarget->constraintName = pchan->bone->name;
+			iktarget->constraintName += ":C:";
+			iktarget->constraintName += target->con->name;
+			iktarget->controlType = controltype;
+			// add the constraint
+			ret = scene->addConstraintSet(iktarget->constraintName, iktarget->constraint, armname, iktarget->targetName, ikscene->channels[target->tip].bone);
+			if (!ret)
+				break;
+		}
 
 		// store the rest pose of the end effector to compute enforce target
 		iktarget->eeRest.setValue(&pchan->bone->arm_mat[0][0]);
@@ -824,14 +847,17 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 			timestep = sts/1000.0;
 		}
 	}
-	ikscene->scene->update(timestamp, timestep, 0, false);
+	// don't cache if we are reiterating because we don't want to distroy the cache unnecessarily
+	ikscene->scene->update(timestamp, timestep, 0, false, (reiterate)?false:true);
 	if (reiterate) {
 		// how many times do we reiterate?
 		for (i=0; i<100; i++) {
 			if (ikscene->armature->getMaxJointChange(timestep) < 0.001)
 				break;
-			ikscene->scene->update(timestamp, timestep, 0, true);
+			ikscene->scene->update(timestamp, timestep, 0, true, false);
 		}
+		// one more iteration to cache
+		ikscene->scene->update(timestamp, timestep, 0, true, true);
 	}
 	// Apply result to bone:
 	// walk the ikscene->channels

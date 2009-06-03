@@ -171,7 +171,8 @@ void Distance::updateKinematics(const Timestamp& timestamp)
 	} else {
 		m_yd = m_nextyd;
 		m_yddot = m_nextyddot;
-		pushDist(timestamp.cacheTimestamp);
+		if (timestamp.cache)
+			pushDist(timestamp.cacheTimestamp);
 	}
 }
 

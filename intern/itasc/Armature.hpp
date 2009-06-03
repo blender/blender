@@ -93,6 +93,7 @@ private:
 	unsigned int m_neffector;
 	bool m_finalized;
 	Cache* m_cache;
+	double *m_buf;
 	int m_qCCh;
 	CacheTS m_qCTs;
 	int m_yCCh;

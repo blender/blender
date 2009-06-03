@@ -14,6 +14,7 @@
 namespace iTaSC
 {
 
+const unsigned int maxPoseCacheSize = (2*(3+3*2));
 CopyPose::CopyPose(unsigned int control_output, unsigned int dynamic_output, double accuracy, unsigned int maximum_iterations):
     ConstraintSet(),
 	m_cache(NULL),
@@ -105,7 +106,7 @@ CopyPose::CopyPose(unsigned int control_output, unsigned int dynamic_output, dou
 	}
 	assert(_nc == m_nc);
     m_Jf=e_identity_matrix(6,6);
-	m_poseCacheSize = sizeof(double)*(((nrotCache)?(3+nrotCache*2):0)+((nposCache)?(3+nposCache*2):0));
+	m_poseCacheSize = ((nrotCache)?(3+nrotCache*2):0)+((nposCache)?(3+nposCache*2):0);
 }
 
 CopyPose::~CopyPose()
@@ -131,7 +132,7 @@ void CopyPose::initCache(Cache *_cache)
     m_poseCCh = -1;
     if (m_cache) {
         // create one channel for the coordinates
-        m_poseCCh = m_cache->addChannel(this, "Xf", m_poseCacheSize);
+        m_poseCCh = m_cache->addChannel(this, "Xf", m_poseCacheSize*sizeof(double));
         // don't save initial value, it will be recomputed from external pose
         //pushPose(0);
     }
@@ -162,13 +163,16 @@ double* CopyPose::pushValues(double* item, ControlState* _state, unsigned int ma
 void CopyPose::pushPose(CacheTS timestamp)
 {
     if (m_poseCCh >= 0) {
-        double *item = (double*)m_cache->addCacheItem(this, m_poseCCh, timestamp, NULL, m_poseCacheSize);
-        if (item) {
+		if (m_poseCacheSize) {
+			double buf[maxPoseCacheSize];
+			double *item = buf;
 			if (m_outputDynamic & CTL_POSITION)
 				item = pushValues(item, &m_pos, CTL_POSITIONX);
 			if (m_outputDynamic & CTL_ROTATION)
 				item = pushValues(item, &m_rot, CTL_ROTATIONX);
-        }
+			m_cache->addCacheVectorIfDifferent(this, m_poseCCh, timestamp, buf, m_poseCacheSize, KDL::epsilon);
+		} else
+			m_cache->addCacheVectorIfDifferent(this, m_poseCCh, timestamp, NULL, 0, KDL::epsilon);
 		m_poseCTs = timestamp;
     }
 }
@@ -264,7 +268,7 @@ void CopyPose::updateKinematics(const Timestamp& timestamp)
 		interpolateOutput(&m_pos, CTL_POSITIONX, timestamp);
 	if (m_outputDynamic & CTL_ROTATION)
 		interpolateOutput(&m_rot, CTL_ROTATIONX, timestamp);
-	if (!timestamp.substep) {
+	if (!timestamp.substep && timestamp.cache) {
         pushPose(timestamp.cacheTimestamp);
 	}
 }

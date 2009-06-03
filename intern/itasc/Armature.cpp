@@ -13,7 +13,7 @@
 namespace iTaSC {
 
 // a joint constraint is characterized by 5 values: tolerance, K, alpha, yd, yddot
-static const unsigned int constraintCacheSize = sizeof(double)*5;
+static const unsigned int constraintCacheSize = 5;
 std::string Armature::m_root = "root";
 
 Armature::Armature():
@@ -24,6 +24,7 @@ Armature::Armature():
 	m_neffector(0),
 	m_finalized(false),
 	m_cache(NULL),
+	m_buf(NULL),
 	m_qCCh(-1),
 	m_qCTs(0),
 	m_yCCh(-1),
@@ -48,6 +49,8 @@ Armature::~Armature()
 		if (*it != NULL)
 			delete (*it);
 	}
+	if (m_buf)
+		delete [] m_buf;
 	m_constraints.clear();
 }
 
@@ -56,24 +59,27 @@ void Armature::initCache(Cache *_cache)
 	m_cache = _cache;
 	m_qCCh = -1;
 	m_yCCh = -1;
+	m_buf = NULL;
 	if (m_cache) {
 		// add a special channel for the joint
 		m_qCCh = m_cache->addChannel(this, "q", m_qKdl.rows()*sizeof(double));
 		// for the constraints, instead of creating many different channels, we will
 		// create a single channel for all the constraints
 		if (m_nconstraint) {
-			m_yCCh = m_cache->addChannel(this, "y", m_nconstraint*constraintCacheSize);
+			m_yCCh = m_cache->addChannel(this, "y", m_nconstraint*constraintCacheSize*sizeof(double));
 		}
+		if (m_nconstraint)
+			m_buf = new double[m_nconstraint*constraintCacheSize];
 		// store the initial cache position at timestamp 0
 		pushQ(0);
 		pushConstraints(0);
 	}
 }
-
 void Armature::pushQ(CacheTS timestamp)
 {
 	if (m_qCCh >= 0) {
-		m_cache->addCacheItem(this, m_qCCh, timestamp, &m_qKdl(0), m_qKdl.rows()*sizeof(double));
+		// try to keep the cache if the joints are the same
+		m_cache->addCacheVectorIfDifferent(this, m_qCCh, timestamp, &m_qKdl(0), m_qKdl.rows(), KDL::epsilon);
 		m_qCTs = timestamp;
 	}
 }
@@ -99,8 +105,9 @@ bool Armature::popQ(CacheTS timestamp)
 void Armature::pushConstraints(CacheTS timestamp)
 {
 	if (m_yCCh >= 0) {
-		double *item = (double*)m_cache->addCacheItem(this, m_yCCh, timestamp, NULL, m_nconstraint*constraintCacheSize);
-		if (item) {
+		double *buf = NULL;
+		if (m_nconstraint) {
+			double *item = m_buf;
 			for (unsigned int i=0; i<m_nconstraint; i++) {
 				JointConstraint_struct* pConstraint = m_constraints[i];
 				*item++ = pConstraint->values.feedback;
@@ -110,6 +117,7 @@ void Armature::pushConstraints(CacheTS timestamp)
 				*item++ = pConstraint->values.alpha;
 			}
 		}
+		m_cache->addCacheVectorIfDifferent(this, m_yCCh, timestamp, m_buf, m_nconstraint*constraintCacheSize, KDL::epsilon);
 		m_yCTs = timestamp;
 	}
 }
@@ -324,7 +332,7 @@ void Armature::updateKinematics(const Timestamp& timestamp){
         m_qdotKdl(i)=m_qdot(i)*timestamp.realTimestep;
     Add(m_qKdl,m_qdotKdl,m_qKdl);
 
-	if (!timestamp.substep) {
+	if (!timestamp.substep && timestamp.cache) {
 		pushQ(timestamp.cacheTimestamp);
 		pushConstraints(timestamp.cacheTimestamp);
 	}

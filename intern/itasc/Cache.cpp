@@ -9,6 +9,8 @@
 #include <malloc.h>
 #include "Cache.hpp"
 
+#include <math.h>
+
 namespace iTaSC {
 
 CacheEntry::~CacheEntry()
@@ -457,7 +459,7 @@ const void *Cache::getPreviousCacheItem(const void *device, int id, unsigned int
 	return CACHE_ITEM_DATA_POINTER(item);
 }
 
-const void *Cache::getCurrentCacheItem(const void *device, int id, unsigned int timestamp)
+const CacheItem *Cache::getCurrentCacheItemInternal(const void *device, int id, CacheTS timestamp)
 {
 	CacheMap::iterator it = m_cache.find(device);
 	CacheEntry *entry;
@@ -477,9 +479,35 @@ const void *Cache::getCurrentCacheItem(const void *device, int id, unsigned int 
 		return NULL;
 	if (buffer->m_firstTimestamp+item->m_timeOffset != timestamp)
 		return NULL;
-	return CACHE_ITEM_DATA_POINTER(item);
+	return item;
 }
 
+const void *Cache::getCurrentCacheItem(const void *device, int channel, unsigned int timestamp)
+{
+	const CacheItem *item = getCurrentCacheItemInternal(device, channel, timestamp);
+	return (item) ? CACHE_ITEM_DATA_POINTER(item) : NULL;
+}
 
+double *Cache::addCacheVectorIfDifferent(const void *device, int channel, CacheTS timestamp, double *newdata, unsigned int length, double threshold)
+{
+	const CacheItem *item = getCurrentCacheItemInternal(device, channel, timestamp);
+	unsigned int sizeW = CACHE_ITEM_SIZEW(item,length*sizeof(double));
+	if (!item || item->m_sizeW != sizeW)
+		return (double*)addCacheItem(device, channel, timestamp, newdata, length*sizeof(double));
+	double *olddata = (double*)CACHE_ITEM_DATA_POINTER(item);
+	if (!length)
+		return olddata;
+	double *ref = olddata;
+	double *v = newdata;
+	unsigned int i;
+	for (i=length; i>0; --i) {
+		if (fabs(*v-*ref) > threshold)
+			break;
+		*ref++ = *v++;
+	}
+	if (i) 
+		olddata = (double*)addCacheItem(device, channel, timestamp, newdata, length*sizeof(double));
+	return olddata;
+}
 
 }

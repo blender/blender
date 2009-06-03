@@ -10,7 +10,7 @@
 #include <string.h>
 namespace iTaSC{
 
-static const unsigned int frameCacheSize = sizeof(((Frame*)0)->p.data)+sizeof(((Frame*)0)->M.data);
+static const unsigned int frameCacheSize = (sizeof(((Frame*)0)->p.data)+sizeof(((Frame*)0)->M.data))/sizeof(double);
 
 MovingFrame::MovingFrame(const Frame& frame):UncontrolledObject(),
 	m_function(NULL), m_param(NULL), m_velocity(), m_poseCCh(-1), m_poseCTs(0)
@@ -35,7 +35,7 @@ void MovingFrame::initCache(Cache *_cache)
 	m_cache = _cache;
 	m_poseCCh = -1;
 	if (m_cache) {
-		m_poseCCh = m_cache->addChannel(this,"pose",frameCacheSize);
+		m_poseCCh = m_cache->addChannel(this,"pose",frameCacheSize*sizeof(double));
 		// don't store the initial pose, it's causing unnecessary large velocity on the first step
 		//pushInternalFrame(0);
 	}
@@ -44,13 +44,11 @@ void MovingFrame::initCache(Cache *_cache)
 void MovingFrame::pushInternalFrame(CacheTS timestamp)
 {
 	if (m_poseCCh >= 0) {
-		char *item;
-		item = (char *)m_cache->addCacheItem(this, m_poseCCh, timestamp, NULL, frameCacheSize);
-		if (item) {
-			memcpy(item, m_internalPose.p.data, sizeof(m_internalPose.p.data));
-			item += sizeof(m_internalPose.p.data);
-			memcpy(item, m_internalPose.M.data, sizeof(m_internalPose.M.data));
-		}
+		double buf[frameCacheSize];
+		memcpy(buf, m_internalPose.p.data, sizeof(m_internalPose.p.data));
+		memcpy(&buf[sizeof(m_internalPose.p.data)/sizeof(double)], m_internalPose.M.data, sizeof(m_internalPose.M.data));
+
+		m_cache->addCacheVectorIfDifferent(this, m_poseCCh, timestamp, buf, frameCacheSize, KDL::epsilon);
 		m_poseCTs = timestamp;
 	}
 }
@@ -123,7 +121,8 @@ void MovingFrame::updateKinematics(const Timestamp& timestamp)
 		m_internalPose.Integrate(localvel, 1.0/timestamp.realTimestep);
 	} else {
 		m_internalPose = m_nextPose;
-		pushInternalFrame(timestamp.cacheTimestamp);
+		if (timestamp.cache)
+			pushInternalFrame(timestamp.cacheTimestamp);
 	}
 	// m_internalPose is updated, recompute the jacobian
 	updateJacobian();

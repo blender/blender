@@ -22,7 +22,7 @@ namespace iTaSC {
 /* macro to get item data position, item=CacheItem pointer */
 #define CACHE_ITEM_DATA_POINTER(item)		(void*)((unsigned char*)item+sizeof(CacheItem)+CACHE_ITEM_GAPB(item))
 /* macro to get item size in 32bit words from item address and length, item=CacheItem pointer */
-#define CACHE_ITEM_SIZEW(item,length)		(unsigned int)((sizeof(CacheItem)+CACHE_ITEM_GAPB(item)+((length+3)&~0x3))>>2)
+#define CACHE_ITEM_SIZEW(item,length)		(unsigned int)((sizeof(CacheItem)+CACHE_ITEM_GAPB(item)+(((length)+3)&~0x3))>>2)
 /* macto to move from one item to the next, item=CacheItem pointer, updated by the macro */
 #define CACHE_NEXT_ITEM(item)				((item)+(item)->m_sizeW)
 #define CACHE_BLOCK_ITEM_ADDR(chan,buf,block)	(&(buf)->m_firstItem+(((unsigned int)(block)<<chan->m_positionToBlockShiftW)+(buf)->lookup[block].m_offsetW))
@@ -38,7 +38,8 @@ struct Timestamp
 	CacheTS cacheTimestamp;
 	unsigned int substep:1;
 	unsigned int reiterate:1;
-	unsigned int dummy:30;
+	unsigned int cache:1;
+	unsigned int dummy:29;
 };
 
 /* utility function to return second timestamp to millisecond */
@@ -74,6 +75,10 @@ Timestamp = rounded time in millisecond.
 */
 
 struct CacheEntry;
+struct CacheBuffer;
+struct CacheItem;
+struct CacheChannel;
+
 class Cache 
 {
 private:
@@ -81,6 +86,7 @@ private:
 	   Dynamically updated when more devices create cache channels */
 	typedef std::map<const void *, struct CacheEntry*> CacheMap;
 	CacheMap  m_cache;
+	const CacheItem *getCurrentCacheItemInternal(const void *device, int channel, CacheTS timestamp);
    
 public:
 	Cache();
@@ -103,6 +109,13 @@ public:
 	   return: error: NULL, success: pointer to item in cache */
 	void *addCacheItem(const void *device, int channel, CacheTS timestamp, void *data, unsigned int length);
 
+	/* specialized function to add a vector of double in the cache
+	   It will first check if a vector exist already in the cache for the same timestamp
+	   and compared the cached vector with the new values. 
+	   If all values are within threshold, the vector is updated but the cache is not deleted
+	   for the future timestamps. */
+	double *addCacheVectorIfDifferent(const void *device, int channel, CacheTS timestamp, double *data, unsigned int length, double threshold);
+
 	/* returns the cache item with timestamp that is just before the given timestamp.
 	   returns the data pointer or NULL if there is no cache item before timestamp.
 	   On return, timestamp is updated with the actual timestamp of the item being returned.
@@ -120,7 +133,6 @@ public:
 
 /* the following structures are not internal use only, they should not be used directly */
 
-struct CacheChannel;
 struct CacheEntry 
 {
 	CacheChannel *m_channelArray;		// array of channels, automatically resized if more channels are created
@@ -129,8 +141,6 @@ struct CacheEntry
 	~CacheEntry();
 };
 
-struct CacheBuffer;
-struct CacheItem;
 struct CacheChannel
 {
 	struct CacheBuffer *m_firstBuffer;	// first buffer of list

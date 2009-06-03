@@ -210,7 +210,7 @@ bool Scene::getConstraintPose(ConstraintSet* constraint, void *_param, KDL::Fram
 	return true;
 }
 
-bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, bool reiterate)
+bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, bool reiterate, bool cache)
 {
 	// we must have valid timestep and timestamp
 	if (timestamp < KDL::epsilon || timestep < KDL::epsilon)
@@ -224,6 +224,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 	// for reiteration don't load cache
 	// reiteration=additional iteration with same timestamp if application finds the convergence not good enough
 	ts.reiterate = (reiterate) ? 1 : 0;
+	ts.cache = (cache) ? 1 : 0;
 	bool autosubstep = (numsubstep == 0) ? true : false;
 	if (numsubstep < 1)
 		numsubstep = 1;

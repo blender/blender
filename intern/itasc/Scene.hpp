@@ -30,7 +30,7 @@ public:
     bool addSolver(Solver* _solver);
     bool addCache(Cache* _cache);
     bool initialize();
-    bool update(double timestamp, double timestep, unsigned int numsubstep=1, bool reiterate=false);
+    bool update(double timestamp, double timestep, unsigned int numsubstep=1, bool reiterate=false, bool cache=true);
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
