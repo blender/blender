@@ -43,8 +43,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				self.stretch_to(box, con)
 			elif con.type == "FLOOR":
 				self.floor(box, con)
-			#elif con.type == "RIGID_BODY_JOINT":
-			#	self.rigid_body(box, con)
+			elif con.type == "RIGID_BODY_JOINT":
+				self.rigid_body(box, con)
 			elif con.type == "CLAMP_TO":
 				self.clamp_to(box, con)
 			elif con.type == "TRANSFORM":
@@ -512,11 +512,10 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__context__ = "object"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob != None)
+		return (context.object != None)
 		
 	def draw(self, context):
-		ob = context.active_object
+		ob = context.object
 		layout = self.layout
 
 		row = layout.row()
@@ -532,12 +531,12 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 	__context__ = "bone"
 
 	def poll(self, context):
-		ob = context.active_object
+		ob = context.object
 		return (ob and ob.type == "ARMATURE")
 		
 	def draw(self, context):
-		ob = context.active_object
-		pchan = ob.pose.pose_channels[0]
+		ob = context.object
+		pchan = ob.pose.pose_channels[0] # XXX
 		layout = self.layout
 
 		#row = layout.row()
@@ -549,3 +548,4 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 
 bpy.types.register(OBJECT_PT_constraints)
 bpy.types.register(BONE_PT_constraints)
+

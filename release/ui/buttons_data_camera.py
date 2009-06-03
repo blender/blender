@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'CAMERA')
+		return (context.camera != None)
 		
 class DATA_PT_cameralens(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera"
 	__label__ = "Lens"
 
 	def draw(self, context):
-		cam = context.active_object.data
+		cam = context.camera
 		layout = self.layout
 
 		layout.itemR(cam, "type", expand=True)
@@ -52,7 +51,7 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 	__label__ = "Display"
 	
 	def draw(self, context):
-		cam = context.active_object.data
+		cam = context.camera
 		layout = self.layout
 
 		split = layout.split()

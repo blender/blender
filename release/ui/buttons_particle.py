@@ -7,8 +7,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 	__context__ = "particle"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_particle_system)
+		return (context.particle_system != None)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_particles"
@@ -17,7 +16,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		psys = context.active_object.active_particle_system
+		psys = context.particle_system
 		part = psys.settings
 
 		layout.itemR(part, "amount")

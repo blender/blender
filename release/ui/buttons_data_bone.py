@@ -7,15 +7,14 @@ class BoneButtonsPanel(bpy.types.Panel):
 	__context__ = "bone"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'ARMATURE')
+		return (context.bone != None)
 
 class BONE_PT_bone(BoneButtonsPanel):
 	__idname__ = "BONE_PT_bone"
 	__label__ = "Bone"
 
 	def draw(self, context):
-		bone = context.active_object.data.bones[0]
+		bone = context.bone
 		layout = self.layout
 
 		split = layout.split()

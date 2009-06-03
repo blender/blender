@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "modifier"
 
 	def poll(self, context):
-		ob = context.active_object
+		ob = context.object
 		return (ob and ob.type in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'LATTICE'))
 		
 class DATA_PT_modifiers(DataButtonsPanel):
@@ -15,7 +15,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	__label__ = "Modifiers"
 
 	def draw(self, context):
-		ob = context.active_object
+		ob = context.object
 		layout = self.layout
 
 		row = layout.row()
@@ -61,7 +61,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 				if md.type == 'MASK':
 					self.mask(box, md)
 				if md.type == 'MESH_DEFORM':
-					self.meshdeform(box, md)
+					self.mesh_deform(box, md)
 				if md.type == 'MIRROR':
 					self.mirror(box, md)
 				if md.type == 'MULTIRES':
@@ -104,6 +104,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "length")
 		if md.fit_type == 'FIT_CURVE':
 			layout.itemR(md, "curve")
+
+		layout.itemS()
 		
 		split = layout.split()
 		
@@ -112,7 +114,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "constant_offset")
 		colsub = col.column()
 		colsub.active = md.constant_offset
-		colsub.itemR(md, "constant_offset_displacement", text="Displacement")
+		colsub.itemR(md, "constant_offset_displacement", text="")
+
+		col.itemS()
+
 		sub = col.row().itemR(md, "merge_adjacent_vertices", text="Merge")
 		colsub = col.column()
 		colsub.active = md.merge_adjacent_vertices
@@ -124,12 +129,17 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "relative_offset")
 		colsub = col.column()
 		colsub.active = md.relative_offset
-		colsub.itemR(md, "relative_offset_displacement", text="Displacement")
+		colsub.itemR(md, "relative_offset_displacement", text="")
+
+		col.itemS()
+
 		col = col.column()
 		col.itemR(md, "add_offset_object")
 		colsub = col.column()
 		colsub.active = md.add_offset_object
-		colsub.itemR(md, "offset_object")
+		colsub.itemR(md, "offset_object", text="")
+
+		layout.itemS()
 		
 		col = layout.column()
 		col.itemR(md, "start_cap")
@@ -249,13 +259,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "vertex_group")
 		layout.itemR(md, "inverse")
 		
-	def meshdeform(self, layout, md):
+	def mesh_deform(self, layout, md):
 		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "invert")
-		layout.itemR(md, "precision")
-		layout.itemR(md, "dynamic")
-		# Missing: "Bind"
+
+		layout.itemS()
+		layout.itemO("OBJECT_OT_modifier_mdef_bind", text="Bind")
+		row = layout.row()
+		row.itemR(md, "precision")
+		row.itemR(md, "dynamic")
 		
 	def mirror(self, layout, md):
 		layout.itemR(md, "merge_limit")
