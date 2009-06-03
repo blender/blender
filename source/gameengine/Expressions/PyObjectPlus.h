@@ -141,7 +141,7 @@ typedef struct {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
-#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == py_base_dealloc)
+#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyObjectPlus::py_base_dealloc)
 
 
 								// This must be the first line of each 

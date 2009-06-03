@@ -555,15 +555,16 @@ PyAttributeDef CValue::Attributes[] = {
 
 
 PyObject*	CValue::py_getattro(PyObject *attr)
-{
-	ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
-	
+{	
 	char *attr_str= PyString_AsString(attr);
 	CValue* resultattr = GetProperty(attr_str);
 	if (resultattr)
 	{
+		/* only show the wanting here because python inspects for __class__ and KX_MeshProxy uses CValues name attr */
+		ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
+		
 		PyObject* pyconvert = resultattr->ConvertValueToPython();
-	
+		
 		if (pyconvert)
 			return pyconvert;
 		else
