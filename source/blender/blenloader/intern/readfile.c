@@ -4094,7 +4094,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 
 					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->blocktype==ID_SEQ) 
-						sipo->from= find_sequence_from_ipo_helper(newmain, sipo->ipo);
+						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
 					else 
 						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
 					

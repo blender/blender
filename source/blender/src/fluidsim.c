@@ -89,6 +89,8 @@
 #include "blendef.h"
 #include <sys/stat.h>
 
+#include "PIL_time.h" // for PIL_sleep_ms
+
 #ifdef WIN32	/* Windos */
 //#include "BLI_winstuff.h"
 #ifndef snprintf

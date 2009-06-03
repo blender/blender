@@ -197,13 +197,15 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * division by 0.0...*/
 	
 	RAS_Rect area, viewport;
+	short m_y_inv = m_kxengine->GetCanvas()->GetHeight()-m_y;
+	
 	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
 	
 	/* Check if the mouse is in the viewport */
 	if ((	m_x < viewport.m_x2 &&	// less then right
 			m_x > viewport.m_x1 &&	// more then then left
-			m_y < viewport.m_y2 &&	// below top
-			m_y > viewport.m_y1) == 0)	// above bottom
+			m_y_inv < viewport.m_y2 &&	// below top
+			m_y_inv > viewport.m_y1) == 0)	// above bottom
 	{
 		return false;
 	}
@@ -217,6 +219,10 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	MT_Vector4 frompoint;
 	MT_Vector4 topoint;
 	
+	/* m_y_inv - inverting for a bounds check is only part of it, now make relative to view bounds */
+	m_y_inv = (viewport.m_y2 - m_y_inv) + viewport.m_y1;
+	
+	
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! - see from point Z values */
 	
@@ -229,13 +235,13 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 *	behind of the near and far clip planes.
 	 */ 
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y - y_lb) / height),
+						1.0 - (2 * (m_y_inv - y_lb) / height),
 						/*cam->GetCameraData()->m_perspective ? 0.0:cdata->m_clipstart,*/ /* real clipstart is scaled in ortho for some reason, zero is ok */
 						0.0, /* nearclip, see above comments */
 						1.0 );
 	
 	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y-y_lb) / height),
+						1.0 - (2 * (m_y_inv-y_lb) / height),
 						cam->GetCameraData()->m_perspective ? 1.0:cam->GetCameraData()->m_clipend, /* farclip, see above comments */
 						1.0 );
 

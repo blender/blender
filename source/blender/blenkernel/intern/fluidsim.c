@@ -36,8 +36,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h" // N_T
 
-#include "PIL_time.h" // for PIL_sleep_ms
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 

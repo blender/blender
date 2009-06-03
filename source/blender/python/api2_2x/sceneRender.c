@@ -663,7 +663,7 @@ static PyObject *RenderData_Play( BPy_RenderData * self )
 #endif
 			system( str );
 		} else
-			sprintf( "Can't find image: %s", file );
+			printf("Can't find image: %s\n", file);
 	}
 
 	Py_RETURN_NONE;
