@@ -1137,7 +1137,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
 		if(context)
-			if(!pt->context || strcmp(context, pt->context) != 0)
+			if(pt->context[0] && strcmp(context, pt->context) != 0)
 				continue;
 
 		/* draw panel */

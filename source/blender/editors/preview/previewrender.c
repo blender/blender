@@ -586,7 +586,7 @@ void BIF_previewrender_buts(Scene *scene, SpaceButs *sbuts)
 	sbuts->lockpoin= id;
 	
 	if(sbuts->mainb==CONTEXT_SHADING) {
-		int tab= sbuts->tab[CONTEXT_SHADING];
+		int tab= TAB_SHADING_MAT; // XXX sbuts->tab[CONTEXT_SHADING];
 		
 		if(tab==TAB_SHADING_MAT) 
 			idshow = sbuts->lockpoin;

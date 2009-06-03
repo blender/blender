@@ -121,7 +121,7 @@ typedef struct SpaceButs {
 	struct RenderInfo *ri;
 
 	short cursens, curact;
-	short align, tabo;		/* align for panels, tab is old tab */
+	short align, pad;		/* align for panels */
 	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
@@ -139,8 +139,8 @@ typedef struct SpaceButs {
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
 	char flag, texact;
 	
-	char tab[8];	/* storing tabs for each context */
-		
+	void *path;		/* runtime */
+	ID *pinid;
 } SpaceButs;
 
 typedef struct SpaceSeq {

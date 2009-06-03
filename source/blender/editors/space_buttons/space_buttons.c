@@ -122,9 +122,10 @@ static void buttons_free(SpaceLink *sl)
 		if (sbuts->ri->rect) MEM_freeN(sbuts->ri->rect);
 		MEM_freeN(sbuts->ri);
 	}
-	
-}
 
+	if(sbuts->path)
+		MEM_freeN(sbuts->path);
+}
 
 /* spacetype; init callback */
 static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
@@ -146,6 +147,7 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 	
 	/* clear or remove stuff from old */
 	sbutsn->ri= NULL;
+	sbutsn->path= NULL;
 	
 	return (SpaceLink *)sbutsn;
 }
@@ -167,6 +169,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	int vertical= (sbuts->align == BUT_VERTICAL);
+
+	buttons_context_compute(C, sbuts);
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
 		ED_region_panels(C, ar, vertical, "scene");
@@ -191,7 +195,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
-	sbuts->tabo= sbuts->tab[sbuts->mainb];
 }
 
 void buttons_operatortypes(void)
@@ -282,6 +285,8 @@ void ED_spacetype_buttons(void)
 	art->listener= buttons_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
+
+	buttons_context_register(art);
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");

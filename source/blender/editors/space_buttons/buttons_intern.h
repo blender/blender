@@ -52,7 +52,9 @@ struct bContextDataResult;
 void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* buttons_context.c */
+void buttons_context_compute(const struct bContext *C, SpaceButs *sbuts);
 int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
+void buttons_context_register(struct ARegionType *art);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

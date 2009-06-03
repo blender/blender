@@ -1750,7 +1750,7 @@ static int tree_element_active_texture(Scene *scene, SpaceOops *soops, TreeEleme
 
 		if(set) {
 			if(sbuts) {
-				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
+				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 1;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
@@ -1764,7 +1764,7 @@ static int tree_element_active_texture(Scene *scene, SpaceOops *soops, TreeEleme
 		Lamp *la= (Lamp *)tselemp->id;
 		if(set) {
 			if(sbuts) {
-				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
+				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 2;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
