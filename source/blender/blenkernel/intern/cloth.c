@@ -786,15 +786,14 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	int j = 0;
 	MDeformVert *dvert = NULL;
 	Cloth *clothObj = NULL;
-	int numverts = dm->getNumVerts ( dm );
+	int numverts;
 	float goalfac = 0;
 	ClothVertex *verts = NULL;
 
+	if (!clmd || !dm) return;
+
 	clothObj = clmd->clothObject;
 
-	if ( !dm )
-		return;
-	
 	numverts = dm->getNumVerts ( dm );
 
 	verts = clothObj->verts;
