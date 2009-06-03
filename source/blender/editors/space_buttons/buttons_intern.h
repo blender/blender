@@ -31,7 +31,7 @@
 struct ARegion;
 struct ARegionType;
 struct bContext;
-
+struct bContextDataResult;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -48,8 +48,11 @@ struct bContext;
 
 /* internal exports only */
 
-/* image_header.c */
+/* buttons_header.c */
 void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
+
+/* buttons_context.c */
+int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

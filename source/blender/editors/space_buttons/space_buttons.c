@@ -272,6 +272,7 @@ void ED_spacetype_buttons(void)
 	st->duplicate= buttons_duplicate;
 	st->operatortypes= buttons_operatortypes;
 	st->keymap= buttons_keymap;
+	st->context= buttons_context;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
