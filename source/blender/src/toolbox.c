@@ -1545,10 +1545,12 @@ static void tb_do_render(void *arg, int event){
 				ca= G.vd->camera->data;
 			else return;
 				
-			if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT))
-				ca->flag &= ~CAM_SHOWPASSEPARTOUT;
-			else
-				ca->flag |= CAM_SHOWPASSEPARTOUT;
+			if (ca) {
+				if (ca->flag & CAM_SHOWPASSEPARTOUT)
+					ca->flag &= ~CAM_SHOWPASSEPARTOUT;
+				else
+					ca->flag |= CAM_SHOWPASSEPARTOUT;
+			}
 			allqueue(REDRAWVIEW3D, 0);
 		}
 			break;
