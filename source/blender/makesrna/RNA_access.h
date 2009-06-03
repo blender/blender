@@ -156,6 +156,7 @@ extern StructRNA RNA_Material;
 extern StructRNA RNA_MaterialHalo;
 extern StructRNA RNA_MaterialRaytraceMirror;
 extern StructRNA RNA_MaterialRaytraceTransparency;
+extern StructRNA RNA_MaterialSlot;
 extern StructRNA RNA_MaterialStrand;
 extern StructRNA RNA_MaterialSubsurfaceScattering;
 extern StructRNA RNA_MaterialTextureSlot;
