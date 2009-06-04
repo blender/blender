@@ -129,11 +129,12 @@ static void rna_def_field(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem field_type_items[] = {
-		{PFIELD_FORCE, "FORCE", "None", ""},
+		{0, "NONE", "None", ""},
+		{PFIELD_FORCE, "SPHERICAL", "Spherical", ""},
 		{PFIELD_VORTEX, "VORTEX", "Vortex", ""},
 		{PFIELD_MAGNET, "MAGNET", "Magnetic", ""},
 		{PFIELD_WIND, "WIND", "Wind", ""},
-		{PFIELD_GUIDE, "GUIDE", "Spherical", ""},
+		{PFIELD_GUIDE, "GUIDE", "Curve Guide", ""},
 		{PFIELD_TEXTURE, "TEXTURE", "Texture", ""},
 		{PFIELD_HARMONIC, "HARMONIC", "Harmonic", ""},
 		{PFIELD_CHARGE, "CHARGE", "Charge", ""},
@@ -144,6 +145,12 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_FALL_SPHERE, "SPHERE", "Sphere", ""},
 		{PFIELD_FALL_TUBE, "TUBE", "Tube", ""},
 		{PFIELD_FALL_CONE, "CONE", "Cone", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem texture_items[] = {
+		{PFIELD_TEX_RGB, "RGB", "RGB", ""},
+		{PFIELD_TEX_GRAD, "GRADIENT", "Gradient", ""},
+		{PFIELD_TEX_CURL, "CURL", "Curl", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
@@ -161,6 +168,11 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "falloff");
 	RNA_def_property_enum_items(prop, falloff_items);
 	RNA_def_property_ui_text(prop, "Fall-Off", "Fall-Off Shape");
+	
+	prop= RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
+	RNA_def_property_enum_items(prop, texture_items);
+	RNA_def_property_ui_text(prop, "Texture Mode", "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	
 	/* Float */
 	
@@ -203,6 +215,54 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "f_power_r");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Radial Falloff Power", "Radial falloff power (real gravitational falloff = 2)");
+
+	/* Boolean */
+	
+	prop= RNA_def_property(srna, "use_min_distance", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMIN);
+	RNA_def_property_ui_text(prop, "Use Min", "Use a minimum distance for the field's fall-off");
+	
+	prop= RNA_def_property(srna, "use_max_distance", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMAX);
+	RNA_def_property_ui_text(prop, "Use Max", "Use a maximum distance for the field to work");
+	
+	prop= RNA_def_property(srna, "use_radial_min", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMINR);
+	RNA_def_property_ui_text(prop, "Use Min", "Use a minimum radial distance for the field's fall-off");
+	// "Use a minimum angle for the field's fall-off"
+	
+	prop= RNA_def_property(srna, "use_radial_max", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMAXR);
+	RNA_def_property_ui_text(prop, "Use Max", "Use a maximum radial distance for the field to work");
+	// "Use a maximum angle for the field to work"
+	
+	prop= RNA_def_property(srna, "guide_path_add", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_ADD);
+	RNA_def_property_ui_text(prop, "Additive", "Based on distance/falloff it adds a portion of the entire path");
+	
+	prop= RNA_def_property(srna, "planar", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_PLANAR);
+	RNA_def_property_ui_text(prop, "Planar", "Create planar field");
+	
+	prop= RNA_def_property(srna, "surface", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_SURFACE);
+	RNA_def_property_ui_text(prop, "Surface", "Use closest point on surface");
+	
+	prop= RNA_def_property(srna, "positive_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_POSZ);
+	RNA_def_property_ui_text(prop, "Positive", "Effect only in direction of positive Z axis");
+	
+	prop= RNA_def_property(srna, "use_coordinates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_OBJECT);
+	RNA_def_property_ui_text(prop, "Use Coordinates", "Use object/global coordinates for texture");
+	
+	prop= RNA_def_property(srna, "force_2d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_2D);
+	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2d");
+	
+	prop= RNA_def_property(srna, "root_coords", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_ROOTCO);
+	RNA_def_property_ui_text(prop, "Root Texture Coordinates", "Texture coordinates from root particle locations");
 }
 
 static void rna_def_game_softbody(BlenderRNA *brna)
