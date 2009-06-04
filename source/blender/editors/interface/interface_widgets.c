@@ -630,7 +630,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 {
-	float xs=0, ys=0, aspect, height;
+	int xs=0, ys=0;
+	float aspect, height;
 	
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
@@ -663,33 +664,33 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 		if(but->flag & UI_ICON_LEFT) {
 			if (but->type==BUT_TOGDUAL) {
 				if (but->drawstr[0]) {
-					xs= rect->xmin-1.0;
+					xs= rect->xmin-1;
 				} else {
-					xs= (rect->xmin+rect->xmax- height)/2.0;
+					xs= (rect->xmin+rect->xmax- height)/2;
 				}
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
-				xs= rect->xmin+1.0;
+				xs= rect->xmin+1;
 			}
 			else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
-				xs= rect->xmin+3.0;
+				xs= rect->xmin+3;
 			}
 			else {
-				xs= rect->xmin+4.0;
+				xs= rect->xmin+4;
 			}
-			ys= (rect->ymin+rect->ymax- height)/2.0;
+			ys= (rect->ymin+rect->ymax- height)/2;
 		}
 		else {
-			xs= (rect->xmin+rect->xmax- height)/2.0;
-			ys= (rect->ymin+rect->ymax- height)/2.0;
+			xs= (rect->xmin+rect->xmax- height)/2;
+			ys= (rect->ymin+rect->ymax- height)/2;
 		}
 	
 		UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
 	}
 	
 	if(but->flag & UI_ICON_SUBMENU) {
-		xs= rect->xmax-17.0;
-		ys= (rect->ymin+rect->ymax- height)/2.0;
+		xs= rect->xmax-17;
+		ys= (rect->ymin+rect->ymax- height)/2;
 		
 		UI_icon_draw_aspect_blended(xs, ys, ICON_RIGHTARROW_THIN, aspect, blend);
 	}

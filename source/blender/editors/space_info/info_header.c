@@ -489,7 +489,7 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	
 	{
 		static char search[256]= "";
-		uiBut *but= uiDefSearchBut(block, search, 0, ICON_PROP_ON, 256, xco+5, yco, 120, 19, "");
+		uiBut *but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, xco+5, yco, 120, 19, "");
 		
 		uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
 
