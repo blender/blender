@@ -1,6 +1,6 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.30 - 2009.05.28"
+__version__ = "v1.31 - 2009.06.02"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
 __url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -18,28 +18,30 @@ IDEAs:
 -
 
 TODO:
-- add support for DXFr14 (new file header)
-- add support for SPLINEs, although it is DXFr14 object
+- add support for DXFr14 (needs extended file header)
+- add support for SPLINEs (possible first in DXFr14 version)
 
 History
+v1.31 - 2009.06.02 by migius
+ - modif _Entity class: added paperspace,elevation
 v1.30 - 2009.05.28 by migius
-- bugfix 3dPOLYLINE/POLYFACE: VERTEX needs x,y,z coordinates, index starts with 1 not 0
+ - bugfix 3dPOLYLINE/POLYFACE: VERTEX needs x,y,z coordinates, index starts with 1 not 0
 v1.29 - 2008.12.28 by Yorik
-- modif POLYLINE to support bulge segments
+ - modif POLYLINE to support bulge segments
 v1.28 - 2008.12.13 by Steeve/BlenderArtists
-- bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
+ - bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
 v1.27 - 2008.10.07 by migius
-- beautifying output code: keys whitespace prefix
-- refactoring DXF-strings format: NewLine moved to the end of
+ - beautifying output code: keys whitespace prefix
+ - refactoring DXF-strings format: NewLine moved to the end of
 v1.26 - 2008.10.05 by migius
-- modif POLYLINE to support POLYFACE
+ - modif POLYLINE to support POLYFACE
 v1.25 - 2008.09.28 by migius
-- modif FACE class for r12
+ - modif FACE class for r12
 v1.24 - 2008.09.27 by migius
-- modif POLYLINE class for r12
-- changing output format from r9 to r12(AC1009)
+ - modif POLYLINE class for r12
+ - changing output format from r9 to r12(AC1009)
 v1.1 (20/6/2005) by www.stani.be/python/sdxf
-- Python library to generate dxf drawings
+ - Python library to generate dxf drawings
 ______________________________________________________________
 """ % (__author__,__version__,__license__,__url__)
 
@@ -106,17 +108,21 @@ class _Call:
 #-------------------------------------------------------
 class _Entity(_Call):
 	"""Base class for _common group codes for entities."""
-	def __init__(self,color=None,extrusion=None,layer='0',
+	def __init__(self,paperspace=None,color=None,layer='0',
 				 lineType=None,lineTypeScale=None,lineWeight=None,
-				 thickness=None,parent=None):
+				 extrusion=None,elevation=None,thickness=None,
+				 parent=None):
 		"""None values will be omitted."""
+		self.paperspace	  = paperspace
 		self.color		  = color
-		self.extrusion	  = extrusion
 		self.layer		  = layer
 		self.lineType	   = lineType
 		self.lineTypeScale  = lineTypeScale
 		self.lineWeight	 = lineWeight
+		self.extrusion	  = extrusion
+		self.elevation	  = elevation
 		self.thickness	  = thickness
+		#self.visible	  = visible
 		self.parent		 = parent
 
 	def _common(self):
@@ -124,13 +130,16 @@ class _Entity(_Call):
 		if self.parent:parent=self.parent
 		else:parent=self
 		result =''
+		if parent.paperspace==1: result+='  67\n1\n'
 		if parent.layer!=None: result+='  8\n%s\n'%parent.layer
 		if parent.color!=None: result+=' 62\n%s\n'%parent.color
-		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		if parent.lineType!=None: result+='  6\n%s\n'%parent.lineType
 		#TODO: if parent.lineWeight!=None: result+='370\n%s\n'%parent.lineWeight
+		#TODO: if parent.visible!=None: result+='60\n%s\n'%parent.visible
 		if parent.lineTypeScale!=None: result+=' 48\n%s\n'%parent.lineTypeScale
+		if parent.elevation!=None: result+=' 38\n%s\n'%parent.elevation
 		if parent.thickness!=None: result+=' 39\n%s\n'%parent.thickness
+		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		return result
 
 #--------------------------
