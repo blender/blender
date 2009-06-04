@@ -2919,7 +2919,7 @@ void do_fontbuts(unsigned short event)
 	VFont *vf;
 	Object *ob;
 	ScrArea *sa;
-	char str[80];
+	char str[FILE_MAX];
 	int ctevt;
 	char *ctmenu;
 	DynStr *ds;
@@ -2988,8 +2988,8 @@ void do_fontbuts(unsigned short event)
 		break;
 	case B_LOADFONT:
 		vf= give_vfontpointer(G.buts->texnr);
-		if(vf && vf->id.prev!=vf->id.next) strcpy(str, vf->name);
-		else strcpy(str, U.fontdir);
+		if(vf && vf->id.prev!=vf->id.next) BLI_strncpy(str, vf->name, FILE_MAX);
+		else BLI_strncpy(str, U.fontdir, FILE_MAX);
 
 		sa= closest_bigger_area();
 		areawinset(sa->win);
