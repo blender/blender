@@ -1215,8 +1215,8 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	
 	/* menu is 2nd level or deeper */
 	if (flag & UI_BLOCK_POPUP) {
-		rect->ymin -= 4.0;
-		rect->ymax += 4.0;
+		//rect->ymin -= 4.0;
+		//rect->ymax += 4.0;
 	}
 	else if (direction == UI_DOWN) {
 		roundboxalign= 12;
