@@ -143,9 +143,9 @@ void BL_MeshDeformer::RecalcNormals()
 				RAS_TexVert& v3 = it.vertex[it.index[i+2]];
 				RAS_TexVert *v4 = NULL;
 
-				const float *co1 = v1.getXYZ();
-				const float *co2 = v2.getXYZ();
-				const float *co3 = v3.getXYZ();
+				const float *co1 = m_transverts[v1.getOrigIndex()];
+				const float *co2 = m_transverts[v2.getOrigIndex()];
+				const float *co3 = m_transverts[v3.getOrigIndex()];
 				const float *co4 = NULL;
 				
 				/* compute face normal */
@@ -153,7 +153,7 @@ void BL_MeshDeformer::RecalcNormals()
 
 				if(nvert == 4) {
 					v4 = &it.vertex[it.index[i+3]];
-					co4 = v4->getXYZ();
+					co4 = m_transverts[v4->getOrigIndex()];
 
 					n1[0]= co1[0]-co3[0];
 					n1[1]= co1[1]-co3[1];
