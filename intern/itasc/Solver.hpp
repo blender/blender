@@ -20,7 +20,7 @@ public:
 	// gc = grouping of constraint output , 
 	//      size of vector = nc, alternance of true / false to indicate the grouping of output
 	virtual bool init(unsigned int nq, unsigned int nc, const std::vector<bool>& gc)=0;
-    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot)=0;
+    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot, e_scalar& nlcoef)=0;
 };
 
 }

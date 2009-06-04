@@ -29,7 +29,7 @@ Scene::Scene():
 	m_ncTotal(0),m_nqTotal(0),m_nuTotal(0),m_nsets(0),
 	m_solver(NULL),m_cache(NULL) 
 {
-
+	m_minstep = 0.01;
 }
 
 Scene::~Scene() 
@@ -230,6 +230,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 		numsubstep = 1;
 	double timesubstep = timestep/numsubstep;
 	double timeleft = timestep;
+	e_scalar nlcoef;
 	// initially we keep timestep unchanged so that update function compute the velocity over
 	while (numsubstep > 0) {
 		// get objects
@@ -347,7 +348,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 		}
 
 		//Call the solver with A, Wq, Wy, ydot to solver qdot:
-		if(!m_solver->solve(m_A,m_Wy,m_ydot,m_Wq,m_qdot))
+		if(!m_solver->solve(m_A,m_Wy,m_ydot,m_Wq,m_qdot,nlcoef))
 			// this should never happen
 			return false;
 		//send result to the objects
@@ -382,6 +383,11 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 			// and joint limit gain variation
 			// We will pass the joint velocity to each object and they will recommend a maximum timestep
 			timesubstep = timeleft;
+			double maxsubstep = timestep/nlcoef;
+			if (maxsubstep < m_minstep)
+				maxsubstep = m_minstep;
+			if (timesubstep > maxsubstep)
+				timesubstep = maxsubstep;
 			for(ObjectMap::iterator it=objects.begin();it!=objects.end();++it){
 				Object_struct* os = it->second;
 				if(os->object->getType()==Object::Controlled)
@@ -391,7 +397,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 				ConstraintSet_struct* cs = it->second;
 				cs->task->getMaxTimestep(timesubstep);
 			}
-			if (timesubstep >= timeleft-KDL::epsilon) {
+			if (timesubstep >= timeleft-(m_minstep/2.0)) {
 				timesubstep = timeleft;
 				numsubstep = 1;
 				timeleft = 0.;

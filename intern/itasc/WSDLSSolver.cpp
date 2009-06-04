@@ -41,7 +41,7 @@ bool WSDLSSolver::init(unsigned int _nq, unsigned int _nc, const std::vector<boo
     return true;
 }
 
-bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot)
+bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot, e_scalar& nlcoef)
 {
 	unsigned int i, j, l;
 	e_scalar N, M;
@@ -59,12 +59,22 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 	m_Wy_ydot = Wy.cwise() * ydot;
     m_WqV = (Wq*m_V).lazy();
 	qdot.fill(e_scalar(0.));
+	e_scalar maxDeltaS = e_scalar(0.0);
+	e_scalar prevS = e_scalar(0.0);
+	e_scalar maxS = e_scalar(1.0);
 	for(i=0;i<m_ns;++i) {
 		e_scalar norm, mag, alpha, _qmax, Sinv, vmax, damp;
+		e_scalar S = m_S(i);
 		bool prev;
-		if (m_S(i) < KDL::epsilon)
+		if (S < KDL::epsilon)
 			break;
-		Sinv = e_scalar(1.)/m_S(i);
+		Sinv = e_scalar(1.)/S;
+		if (i > 0) {
+			if ((prevS-S) > maxDeltaS) {
+				maxDeltaS = (prevS-S);
+				maxS = prevS;
+			}
+		}
 		N = M = e_scalar(0.);
 		for (l=0, prev=m_ytask[0], norm=e_scalar(0.); l<m_nc; l++) {
 			if (prev == m_ytask[l]) {
@@ -100,7 +110,12 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 			damp = Sinv*alpha;
 		}
 		qdot += m_WqV.col(i)*damp;
+		prevS = S;
 	}
+	if (maxDeltaS == e_scalar(0.0))
+		nlcoef = e_scalar(1.0/KDL::epsilon);
+	else
+		nlcoef = maxS/(maxS-maxDeltaS)/e_scalar(2.0);
     return true;
 }
 

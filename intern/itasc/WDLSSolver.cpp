@@ -32,7 +32,7 @@ bool WDLSSolver::init(unsigned int nq, unsigned int nc, const std::vector<bool>&
     return true;
 }
 
-bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot){
+bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot, e_scalar& nlcoef){
 // Create the Weighted jacobian
     m_AWq = A*Wq;
 	for (int i=0; i<Wy.size(); i++)
@@ -52,10 +52,26 @@ bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& yd
     //U'*Wy'*ydot
 	m_WyUt_ydot = (m_WyU.transpose()*ydot).lazy();
     //S^-1*U'*Wy'*ydot
-    for(int i=0;i<m_WyUt_ydot.size();++i)
-        m_SinvWyUt_ydot(i) = m_WyUt_ydot(i)*m_S(i)/(m_S(i)*m_S(i)+m_lambda*m_lambda);
+	e_scalar maxDeltaS = e_scalar(0.0);
+	e_scalar prevS = e_scalar(0.0);
+	e_scalar maxS = e_scalar(1.0);
+	for(int i=0;i<m_WyUt_ydot.size();++i) {
+		e_scalar S = m_S(i);
+		if (i > 0 && S > KDL::epsilon) {
+			if ((prevS-S) > maxDeltaS) {
+				maxDeltaS = (prevS-S);
+				maxS = prevS;
+			}
+		}
+        m_SinvWyUt_ydot(i) = m_WyUt_ydot(i)*S/(S*S+m_lambda*m_lambda);
+		prevS = S;
+	}
     //qdot=Wq*V*S^-1*U'*Wy'*ydot
     qdot=(m_WqV*m_SinvWyUt_ydot).lazy();
+	if (maxDeltaS == e_scalar(0.0))
+		nlcoef = e_scalar(1.0/KDL::epsilon);
+	else
+		nlcoef = maxS/(maxS-maxDeltaS)/e_scalar(2.0);
     return true;
 }
 

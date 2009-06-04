@@ -39,7 +39,7 @@ private:
 	e_matrix6 m_Vf,m_Uf;
     e_vector m_Wy,m_ydot,m_qdot,m_xdot;
 	e_vector6 m_Sf,m_tempf;
-
+	double m_minstep;
     unsigned int m_ncTotal,m_nqTotal,m_nuTotal,m_nsets;
 	std::vector<bool> m_ytask;
 

@@ -480,6 +480,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	ikscene->scene = scene;
 	ikscene->cache = new iTaSC::Cache();;
 	ikscene->solver = new iTaSC::WSDLSSolver();
+	//ikscene->solver->setQmax(10.0);
 	ikscene->blArmature = ob;
 
 	std::string  joint;
@@ -852,7 +853,7 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	if (reiterate) {
 		// how many times do we reiterate?
 		for (i=0; i<100; i++) {
-			if (ikscene->armature->getMaxJointChange(timestep) < 0.001)
+			if (ikscene->armature->getMaxJointChange(timestep) < 0.005)
 				break;
 			ikscene->scene->update(timestamp, timestep, 0, true, false);
 		}
@@ -961,7 +962,7 @@ void itasc_execute_tree(struct Object *ob,  struct bPoseChannel *pchan, float ct
 	arm = get_armature(ob);
 	if (arm->ikdata) {
 		IK_Data* ikdata = (IK_Data*)arm->ikdata;
-		for (IK_Scene* scene = ikdata->first; scene; scene = ikdata->first) {
+		for (IK_Scene* scene = ikdata->first; scene; scene = scene->next) {
 			if (scene->channels[0].pchan == pchan) {
 				execute_scene(scene, ctime);
 				break;

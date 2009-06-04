@@ -22,6 +22,7 @@ protected:
     virtual void initCache(Cache *_cache);
     virtual void updateControlOutput(const Timestamp& timestamp);
 	virtual void CopyPose::modelUpdate(Frame& _external_pose,const Timestamp& timestamp);
+	virtual double getMaxTimestep(double& timestep);
 
 public:
     enum ID {		// constraint ID in callback and setControlParameter

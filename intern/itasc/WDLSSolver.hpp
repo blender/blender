@@ -22,7 +22,7 @@ public:
     virtual ~WDLSSolver();
 
     virtual bool init(unsigned int nq, unsigned int nc, const std::vector<bool>& gc);
-    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot);
+    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot, e_scalar& nlcoef);
 
     void setLambda(double _lambda){m_lambda=_lambda;};
 

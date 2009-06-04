@@ -24,7 +24,7 @@ public:
     virtual ~WSDLSSolver();
 
     virtual bool init(unsigned int _nq, unsigned int _nc, const std::vector<bool>& gc);
-    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot);
+    virtual bool solve(const e_matrix& A, const e_vector& Wy, const e_vector& ydot, const e_matrix& Wq, e_vector& qdot, e_scalar& nlcoef);
 
     void setQmax(double _qmax){m_qmax=_qmax;};
 
