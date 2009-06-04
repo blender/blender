@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'GameLogic Example'
-Blender: 245
+Blender: 249
 Group: 'ScriptTemplate'
 Tooltip: 'Script template with examples of how to use game logic'
 """
@@ -82,10 +82,10 @@ def main():
 	actu_collide = cont.sensors['collision_sens']
 	for ob in actu_collide.objectHitList:
 		# Check to see the object has this property
-		if hasattr(ob, 'life'):
-			own.life += ob.life
-			ob.life = 0
-	print own.life
+		if ob.has_key('life'):
+			own['life'] += ob['life']
+			ob['life'] = 0
+	print own['life']
 	"""
 
 main()

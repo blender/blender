@@ -392,6 +392,8 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* args ) {
 	}
 	m_axis = axis;
 	m_axisf = axisflag;
+	
+	CheckAxis((void *)this, NULL); /* clamp values */
 	Py_RETURN_NONE;
 }
 
@@ -533,6 +535,8 @@ PyObject* SCA_JoystickSensor::PySetHat( PyObject* args ) {
 	}
 	m_hat = hat;
 	m_hatf = hatflag;
+	
+	CheckHat((void *)this, NULL); /* clamp values */
 	Py_RETURN_NONE;
 }
 

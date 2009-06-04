@@ -1864,7 +1864,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				}
 				uiDefBut(block, LABEL, 0, "Servo",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Coefficients of the PID servo controller");
 				uiDefButF(block, NUMSLI, B_REDR, "P: ",		xco+45, yco-152, wval*3, 19, oa->forcerot, 0.00, 200.0, 100, 0, "Proportional coefficient, typical value is 60x Integral coefficient");
-				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-152, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
+				uiDefBut(block, LABEL, 0, "Slow",	xco, yco-171, 45, 19, NULL, 0, 0, 0, 0, "Low value of I coefficient correspond to slow response");
 				but = uiDefButF(block, NUMSLI, B_REDR, " I : ",		xco+45, yco-171, wval*3, 19, oa->forcerot+1, 0.0, 3.0, 1, 0, "Integral coefficient, low value (0.01) for slow response, high value (0.5) for fast response");
 				uiButSetFunc(but, update_object_actuator_PID, oa, NULL);
 				uiDefBut(block, LABEL, 0, "Fast",	xco+45+3*wval, yco-171, 45, 19, NULL, 0, 0, 0, 0, "High value of I coefficient correspond to fast response");
