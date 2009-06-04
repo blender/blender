@@ -715,6 +715,10 @@
 			Name="space_buttons"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_context.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_header.c"
 				>
 			</File>
