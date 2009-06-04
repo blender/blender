@@ -834,7 +834,7 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	}
 	
 	double timestamp = ctime * G.scene->r.frs_sec_base / G.scene->r.frs_sec;
-	double timestep = 0.040;
+	double timestep = 1.0/G.scene->r.frs_sec;
 	bool reiterate = false;
 	if (ikscene->cache) {
 		iTaSC::CacheTS sts, cts, dts;
@@ -853,7 +853,7 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	if (reiterate) {
 		// how many times do we reiterate?
 		for (i=0; i<100; i++) {
-			if (ikscene->armature->getMaxJointChange(timestep) < 0.005)
+			if (ikscene->armature->getMaxJointChange() < 0.005)
 				break;
 			ikscene->scene->update(timestamp, timestep, 0, true, false);
 		}

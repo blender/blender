@@ -30,6 +30,7 @@ Armature::Armature():
 	m_yCCh(-1),
 	m_yCTs(0),
 	m_qKdl(),
+	m_oldqKdl(),
 	m_qdotKdl(),
 	m_jac(NULL),
 	m_jacsolver(NULL),
@@ -173,13 +174,13 @@ bool Armature::getSegment(const std::string& name, const Joint* &p_joint, double
 	return true;
 }
 
-double Armature::getMaxJointChange(double timestep)
+double Armature::getMaxJointChange()
 {
 	if (!m_finalized)
 		return 0.0;
 	double maxJoint = 0.0;
 	for (unsigned int i=0; i<m_njoint; i++) {
-		double joint = fabs(m_qdot(i)*timestep);
+		double joint = fabs(m_oldqKdl(i)-m_qKdl(i));
 		if (maxJoint < joint)
 			maxJoint = joint;
 	}
@@ -313,9 +314,10 @@ void Armature::finalize()
 	m_fksolver = new KDL::TreeFkSolverPos_recursive(m_tree);
 	m_jac = new Jacobian(m_njoint);
 	m_qKdl.resize(m_njoint);
+	m_oldqKdl.resize(m_njoint);
 	m_qdotKdl.resize(m_njoint);
 	for (i=0; i<m_njoint; i++) {
-		m_qKdl(i) = m_joints[i];
+		m_oldqKdl(i) = m_qKdl(i) = m_joints[i];
 	}
 	updateJacobian();
 	m_finalized = true;
@@ -385,9 +387,15 @@ void Armature::updateControlOutput(const Timestamp& timestamp)
 	if (!m_finalized)
 		return;
 
+
 	if (!timestamp.substep && !timestamp.reiterate) {
 		popQ(timestamp.cacheTimestamp);
 		popConstraints(timestamp.cacheTimestamp);
+	}
+
+	if (!timestamp.substep) {
+		// save previous joint state for getMaxJointChange()
+		memcpy(&m_oldqKdl(0), &m_qKdl(0), sizeof(double)*m_qKdl.rows());
 	}
 
 	JointConstraintList::iterator it;
