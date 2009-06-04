@@ -22,8 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#define TODO 0
-
 /*       Tree type       Node ID                  RNA def function        Enum name         Struct name       UI Name              UI Description */
 DefNode( ShaderNode,     SH_NODE_OUTPUT,          0,                      "OUTPUT",         Output,           "Output",            ""              )
 DefNode( ShaderNode,     SH_NODE_MATERIAL,        def_sh_material,        "MATERIAL",       Material,         "Material",          ""              )
@@ -71,7 +69,7 @@ DefNode( CompositorNode, CMP_NODE_IMAGE,          def_cmp_image,          "IMAGE
 DefNode( CompositorNode, CMP_NODE_R_LAYERS,       def_cmp_render_layers,  "R_LAYERS",       RLayers,          "Render Layers",     ""              )
 DefNode( CompositorNode, CMP_NODE_COMPOSITE,      0,                      "COMPOSITE",      Composite,        "Composite",         ""              )
 DefNode( CompositorNode, CMP_NODE_OUTPUT_FILE,    def_cmp_output_file,    "OUTPUT_FILE",    OutputFile,       "Output File",       ""              )
-DefNode( CompositorNode, CMP_NODE_TEXTURE,        def_cmp_texture,        "TEXTURE",        Texture,          "Texture",           ""              )
+DefNode( CompositorNode, CMP_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode( CompositorNode, CMP_NODE_TRANSLATE,      0,                      "TRANSLATE",      Translate,        "Translate",         ""              )
 DefNode( CompositorNode, CMP_NODE_ZCOMBINE,       0,                      "ZCOMBINE",       Zcombine,         "Z Combine",         ""              )
 DefNode( CompositorNode, CMP_NODE_COMBRGBA,       0,                      "COMBRGBA",       CombRGBA,         "Combine RGBA",      ""              )
@@ -129,5 +127,4 @@ DefNode( TextureNode,    TEX_NODE_COMPOSE,        0,                      "COMPO
 DefNode( TextureNode,    TEX_NODE_DECOMPOSE,      0,                      "DECOMPOSE",      Decompose,        "Decompose",         ""              )
 DefNode( TextureNode,    TEX_NODE_VALTONOR,       0,                      "VALTONOR",       ValToNor,         "Val to Nor",        ""              )
 DefNode( TextureNode,    TEX_NODE_SCALE,          0,                      "SCALE",          Scale,            "Scale",             ""              )
-    
-#undef TODO
+
