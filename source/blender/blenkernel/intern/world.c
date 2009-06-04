@@ -109,6 +109,10 @@ World *add_world(char *name)
 	wrld->mode = WO_DBVT_CULLING;	// DBVT culling by default
 	wrld->occlusionRes = 128;
 	wrld->preview = NULL;
+	wrld->ticrate = 60;
+	wrld->maxlogicstep = 5;
+	wrld->physubstep = 1;
+	wrld->maxphystep = 5;
 
 	return wrld;
 }

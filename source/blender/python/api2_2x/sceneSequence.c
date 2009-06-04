@@ -727,7 +727,7 @@ static int Sequence_setProxyDir(BPy_Sequence * self, PyObject * value)
 	else
 	{
 		self->seq->strip->proxy = MEM_callocN(sizeof (struct StripProxy), "StripProxy");
-		strncpy(self->seq->strip->proxy->dir, name, sizeof (struct StripProxy));
+		strncpy(self->seq->strip->proxy->dir, name, 160);
 	}
 	return 0;
 }

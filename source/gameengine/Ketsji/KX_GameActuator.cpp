@@ -149,6 +149,8 @@ bool KX_GameActuator::Update()
 				} else {
 					printf("Warning: could not create marshal buffer\n");
 				}
+				if (marshal_buffer)
+					delete [] marshal_buffer;
 			}
 			break;
 		}

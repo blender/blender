@@ -93,10 +93,10 @@ protected:
 public:
 
 	enum sensortype {
-		NONE = 0,
-		TOUCH,
-		NEAR,
-		RADAR,
+		ST_NONE = 0,
+		ST_TOUCH,
+		ST_NEAR,
+		ST_RADAR,
 		// to be updated as needed
 	};
 
@@ -147,7 +147,7 @@ public:
 
 	virtual double GetNumber();
 
-	virtual sensortype GetSensorType() { return NONE; }
+	virtual sensortype GetSensorType() { return ST_NONE; }
 
 	/** Stop sensing for a while. */
 	void Suspend();

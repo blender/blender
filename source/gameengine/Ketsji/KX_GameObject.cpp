@@ -49,6 +49,8 @@ typedef unsigned long uint_ptr;
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
+#include "KX_Camera.h" // only for their ::Type
+#include "KX_Light.h"  // only for their ::Type
 #include "RAS_MeshObject.h"
 #include "KX_MeshProxy.h"
 #include "KX_PolyProxy.h"
@@ -224,7 +226,7 @@ KX_GameObject* KX_GameObject::GetParent()
 	
 }
 
-void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
+void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCompound, bool ghost)
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (obj && GetSGNode() && obj->GetSGNode() && GetSGNode()->GetSGParent() != obj->GetSGNode())
@@ -245,7 +247,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 
 		if (m_pPhysicsController1) 
 		{
-			m_pPhysicsController1->SuspendDynamics(true);
+			m_pPhysicsController1->SuspendDynamics(ghost);
 		}
 		// Set us to our new scale, position, and orientation
 		scale2[0] = 1.0/scale2[0];
@@ -266,7 +268,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 			Release();
 		// if the new parent is a compound object, add this object shape to the compound shape.
 		// step 0: verify this object has physical controller
-		if (m_pPhysicsController1)
+		if (m_pPhysicsController1 && addToCompound)
 		{
 			// step 1: find the top parent (not necessarily obj)
 			KX_GameObject* rootobj = (KX_GameObject*)obj->GetSGNode()->GetRootSGParent()->GetSGClientObject();
@@ -312,6 +314,18 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 				rootobj->m_pPhysicsController1->RemoveCompoundChild(m_pPhysicsController1);
 			}
 			m_pPhysicsController1->RestoreDynamics();
+			if (m_pPhysicsController1->IsDyna() && rootobj->m_pPhysicsController1)
+			{
+				// dynamic object should remember the velocity they had while being parented
+				MT_Point3 childPoint = GetSGNode()->GetWorldPosition();
+				MT_Point3 rootPoint = rootobj->GetSGNode()->GetWorldPosition();
+				MT_Point3 relPoint;
+				relPoint = (childPoint-rootPoint);
+				MT_Vector3 linVel = rootobj->m_pPhysicsController1->GetVelocity(relPoint);
+				MT_Vector3 angVel = rootobj->m_pPhysicsController1->GetAngularVelocity();
+				m_pPhysicsController1->SetLinearVelocity(linVel, false);
+				m_pPhysicsController1->SetAngularVelocity(angVel, false);
+			}
 		}
 		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
@@ -446,17 +460,16 @@ void KX_GameObject::AddMeshUser()
 {
 	for (size_t i=0;i<m_meshes.size();i++)
 	{
-		m_meshes[i]->AddMeshUser(this, &m_meshSlots);
+		m_meshes[i]->AddMeshUser(this, &m_meshSlots, GetDeformer());
 	}
 	// set the part of the mesh slot that never change
 	double* fl = GetOpenGLMatrixPtr()->getPointer();
-	RAS_Deformer *deformer = GetDeformer();
 
 	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
+	RAS_MeshSlot* ms;
 	for(mit.begin(); !mit.end(); ++mit)
 	{
 		(*mit)->m_OpenGLMatrix = fl;
-		(*mit)->SetDeformer(deformer);
 	}
 	UpdateBuckets(false);
 }
@@ -1160,7 +1173,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_NOARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
 	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_O},
-	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
+	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_VARARGS},
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
 	{"setOcclusion",(PyCFunction) KX_GameObject::sPySetOcclusion, METH_VARARGS},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
@@ -1176,7 +1189,11 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
-
+	
+	// dict style access for props
+	{"has_key",(PyCFunction) KX_GameObject::sPyhas_key, METH_O},
+	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
+	
 	// deprecated
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
@@ -1328,7 +1345,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		
 		if (del==0) {
 			if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" could not be set", attr_str);
-			else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key could not be set");
+			else			PyErr_SetString(PyExc_KeyError, "del gameOb[key]: KX_GameObject, key could not be deleted");
 			return -1;
 		}
 		else if (self->m_attr_dict) {
@@ -1885,16 +1902,18 @@ int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro m
 
 int	KX_GameObject::py_delattro(PyObject *attr)
 {
+	ShowDeprecationWarning("del ob.attr", "del ob['attr'] for user defined properties");
+	
 	char *attr_str= PyString_AsString(attr); 
 	
 	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	
 	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	
 	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 
@@ -2147,15 +2166,20 @@ PyObject* KX_GameObject::PyGetParent()
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PySetParent(PyObject* value)
+PyObject* KX_GameObject::PySetParent(PyObject* args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
+	PyObject* pyobj;
 	KX_GameObject *obj;
+	int addToCompound=1, ghost=1;
 	
-	if (!ConvertPythonToGameObject(value, &obj, false, "gameOb.setParent(value): KX_GameObject"))
+	if (!PyArg_ParseTuple(args,"O|ii:setParent", &pyobj, &addToCompound, &ghost)) {
+		return NULL; // Python sets a simple error
+	}
+	if (!ConvertPythonToGameObject(pyobj, &obj, true, "gameOb.setParent(obj): KX_GameObject"))
 		return NULL;
-	
-	this->SetParent(scene, obj);
+	if (obj)
+		this->SetParent(scene, obj, addToCompound, ghost);
 	Py_RETURN_NONE;
 }
 
@@ -2718,6 +2742,53 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	Py_RETURN_NONE;
 }
 
+/* dict style access */
+
+
+/* Matches python dict.get(key, [default]) */
+PyObject* KX_GameObject::Pyget(PyObject *args)
+{
+	PyObject *key;
+	PyObject* def = Py_None;
+	PyObject* ret;
+
+	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
+		return NULL;
+	
+	
+	if(PyString_Check(key)) {
+		CValue *item = GetProperty(PyString_AsString(key));
+		if (item) {
+			ret = item->ConvertValueToPython();
+			if(ret)
+				return ret;
+			else
+				return item->GetProxy();
+		}
+	}
+	
+	if (m_attr_dict && (ret=PyDict_GetItem(m_attr_dict, key))) {
+		Py_INCREF(ret);
+		return ret;
+	}
+	
+	Py_INCREF(def);
+	return def;
+}
+
+/* Matches python dict.has_key() */
+PyObject* KX_GameObject::Pyhas_key(PyObject* value)
+{
+	if(PyString_Check(value) && GetProperty(PyString_AsString(value)))
+		Py_RETURN_TRUE;
+	
+	if (m_attr_dict && PyDict_GetItem(m_attr_dict, value))
+		Py_RETURN_TRUE;
+	
+	Py_RETURN_FALSE;
+}
+
+
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header
  * --------------------------------------------------------------------- */
@@ -2739,6 +2810,7 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 		(*ait)->Relink(map_parameter);
 	}
 }
+
 
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
@@ -2770,7 +2842,10 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		}
 	}
 	
-	if (PyObject_TypeCheck(value, &KX_GameObject::Type)) {
+	if (	PyObject_TypeCheck(value, &KX_GameObject::Type)	||
+			PyObject_TypeCheck(value, &KX_LightObject::Type)	||
+			PyObject_TypeCheck(value, &KX_Camera::Type)	)
+	{
 		*object = static_cast<KX_GameObject*>BGE_PROXY_REF(value);
 		
 		/* sets the error */

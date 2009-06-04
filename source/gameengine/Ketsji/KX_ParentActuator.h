@@ -46,6 +46,9 @@ class KX_ParentActuator : public SCA_IActuator
 	/** Mode */
 	int m_mode;
 	
+	/** option */
+	bool	m_addToCompound;
+	bool	m_ghost;
 	/** Object to set as parent */
 	SCA_IObject *m_ob;
 	
@@ -63,6 +66,8 @@ class KX_ParentActuator : public SCA_IActuator
  
 	KX_ParentActuator(class SCA_IObject* gameobj,
 						int mode,
+						bool addToCompound,
+						bool ghost,
 						SCA_IObject *ob,
 						PyTypeObject* T=&Type);
 	virtual ~KX_ParentActuator();

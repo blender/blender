@@ -73,7 +73,7 @@ protected:
 	int						m_transp;
 	bool					m_alpha;
 	bool					m_zsort;
-	int						m_lightlayer;
+	//int						m_lightlayer;
 	int						m_materialindex;
 	
 	unsigned int			m_polymatid;
@@ -147,7 +147,7 @@ public:
 
 	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
-	int					GetLightLayer() const;
+	//int					GetLightLayer() const;
 	bool				IsAlpha() const;
 	bool				IsZSort() const;
 	unsigned int		hash() const;
@@ -167,7 +167,7 @@ public:
 	/*
 	 * PreCalculate texture gen
 	 */
-	virtual void OnConstruction(){}
+	virtual void OnConstruction(int layer){}
 };
 
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)

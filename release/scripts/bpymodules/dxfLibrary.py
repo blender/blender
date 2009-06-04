@@ -1,6 +1,6 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.29beta - 2008.12.28"
+__version__ = "v1.30 - 2009.05.28"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
 __url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -18,9 +18,12 @@ IDEAs:
 -
 
 TODO:
-- add support for SPLINEs, (bad idea, cause DXF r14 object :(
+- add support for DXFr14 (new file header)
+- add support for SPLINEs, although it is DXFr14 object
 
 History
+v1.30 - 2009.05.28 by migius
+- bugfix 3dPOLYLINE/POLYFACE: VERTEX needs x,y,z coordinates, index starts with 1 not 0
 v1.29 - 2008.12.28 by Yorik
 - modif POLYLINE to support bulge segments
 v1.28 - 2008.12.13 by Steeve/BlenderArtists
@@ -42,7 +45,7 @@ ______________________________________________________________
 
 # --------------------------------------------------------------------------
 # DXF Library: copyright (C) 2005 by Stani Michiels (AKA Stani)
-#                            2008 modif by Remigiusz Fiedler (AKA migius)
+#                       2008/2009 modif by Remigiusz Fiedler (AKA migius)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -85,7 +88,6 @@ def _point(x,index=0):
 def _points(plist):
 	"""Convert a list of tuples to dxf points"""
 	out = '\n'.join([_point(plist[i],i)for i in range(len(plist))])
-	#print 'deb: points=\n', out #-------------------
 	return out
 
 #---base classes----------------------------------------
@@ -326,7 +328,6 @@ class PolyLine(_Entity):
 
 	def __str__(self):
 		result= '  0\nPOLYLINE\n%s 70\n%s\n' %(self._common(),self.flag)
-		#print 'deb: self._common()', self._common() #----------
 		result+=' 66\n1\n'
 		result+='%s\n' %_point(self.org_point)
 		if self.polyface:
@@ -337,10 +338,11 @@ class PolyLine(_Entity):
 		for point in self.points:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
-			result+='%s\n' %_point(point[0:2])
 			if self.polyface:
+				result+='%s\n' %_point(point[0:3])
 				result+=' 70\n192\n'
 			elif self.polyline2d:
+				result+='%s\n' %_point(point[0:2])
 				if len(point)>4:
 					width1, width2 = point[3], point[4]
 					if width1!=None: result+=' 40\n%s\n' %width1
@@ -348,6 +350,8 @@ class PolyLine(_Entity):
 				if len(point)==6:
 					bulge = point[5]
 					if bulge: result+=' 42\n%s\n' %bulge
+			else:
+				result+='%s\n' %_point(point[0:3])
 		for face in self.faces:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer

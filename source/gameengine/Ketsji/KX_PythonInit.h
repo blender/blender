@@ -53,6 +53,7 @@ PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 void		exitGamePythonScripting();
 
 void		setGamePythonPath(char *path);
+void		resetGamePythonPath();
 void		pathGamePythonConfig( char *path );
 int			saveGamePythonConfig( char **marshal_buffer);
 int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);

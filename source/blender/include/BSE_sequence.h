@@ -68,18 +68,20 @@ char *give_seqname(struct Sequence *seq);
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 struct TStripElem *give_tstripelem(struct Sequence *seq, int cfra);
-struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
+struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel,
+			    int render_size); 
 /* chansel: render this channel. Default=0 (renders end result)*/
 struct ImBuf *give_ibuf_seq_direct(int rectx, int recty, int cfra,
-				   struct Sequence * seq);
+				   int render_size, struct Sequence * seq);
 
 /* sequence prefetch API */
 void seq_start_threads();
 void seq_stop_threads();
-void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown);
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown,
+				int render_size);
 void seq_wait_for_prefetch_ready();
 struct ImBuf * give_ibuf_seq_threaded(int rectx, int recty, int cfra, 
-				      int chanshown);
+				      int chanshown, int render_size);
 
 
 void free_imbuf_seq_except(int cfra);

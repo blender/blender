@@ -716,21 +716,21 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		
 		if (ibuf->rect_float) {
 			if (rgba_fp) {
-				bilinear_interpolation_color(ibuf, NULL, rgba_fp, x, y);
+				bilinear_interpolation_color_wrap(ibuf, NULL, rgba_fp, x, y);
 			}
 			else {
 				float rgba_tmp_f[4];
-				bilinear_interpolation_color(ibuf, NULL, rgba_tmp_f, x, y);
+				bilinear_interpolation_color_wrap(ibuf, NULL, rgba_tmp_f, x, y);
 				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, rgba_tmp_f);
 			}
 		}
 		else {
 			if (rgba) {
-				bilinear_interpolation_color(ibuf, rgba, NULL, x, y);
+				bilinear_interpolation_color_wrap(ibuf, rgba, NULL, x, y);
 			}
 			else {
 				unsigned char rgba_tmp[4];
-				bilinear_interpolation_color(ibuf, rgba_tmp, NULL, x, y);
+				bilinear_interpolation_color_wrap(ibuf, rgba_tmp, NULL, x, y);
 				IMAPAINT_CHAR_RGBA_TO_FLOAT(rgba_fp, rgba_tmp);
 			}
 		}
@@ -1342,10 +1342,10 @@ static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const 
 	
 	
 	if (ibuf_other->rect_float) { /* from float to float */
-		bilinear_interpolation_color(ibuf_other, NULL, rgba_f, x, y);
+		bilinear_interpolation_color_wrap(ibuf_other, NULL, rgba_f, x, y);
 	}
 	else { /* from char to float */
-		bilinear_interpolation_color(ibuf_other, rgba_ub, NULL, x, y);
+		bilinear_interpolation_color_wrap(ibuf_other, rgba_ub, NULL, x, y);
 	}
 		
 }
@@ -3300,6 +3300,7 @@ static void project_paint_end(ProjPaintState *ps)
 			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
 			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(arena, size);
 			memset(last_projIma->undoRect, 0, size);
+			last_projIma->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 		
 		for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
@@ -4438,6 +4439,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	BrushPainter *painter;
 	ToolSettings *settings= G.scene->toolsettings;
 	short prevmval[2], mval[2], project = 0;
+	short brush_size_orig; /* not nice hack because 1 size brushes always fail with projection paint */
 	double time;
 	float pressure;
 	int init = 1;
@@ -4472,6 +4474,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		ps.brush = s.brush;
 		ps.tool = s.tool;
 		ps.blend = s.blend;
+		
+		brush_size_orig = ps.brush->size; /* hack, fixme */
 	}
 	
 	if(texpaint) {
@@ -4535,6 +4539,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			persp(PERSP_WIN);
 			return;
 		}
+		
+		/* Dont allow brush size below 2 */
+		if (ps.brush->size<=1)
+			ps.brush->size = 2;
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -4613,6 +4621,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	brush_painter_free(painter);
 
 	if (project) {
+		ps.brush->size = brush_size_orig;
 		project_paint_end(&ps);
 	}
 	

@@ -362,12 +362,12 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		if (!PySequence_Check(value)) 
 		{
 			PyErr_Format(PyExc_TypeError, "expected a sequence for attribute \"%s\"", attrdef->m_name);
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 		if (PySequence_Size(value) != attrdef->m_length)
 		{
 			PyErr_Format(PyExc_TypeError, "incorrect number of elements in sequence for attribute \"%s\"", attrdef->m_name);
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 		switch (attrdef->m_type) 
 		{
@@ -375,7 +375,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			if (attrdef->m_setFunction == NULL) 
 			{
 				PyErr_Format(PyExc_AttributeError, "function attribute without function for attribute \"%s\", report to blender.org", attrdef->m_name);
-				return 1;
+				return PY_SET_ATTR_FAIL;
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
 		case KX_PYATTRIBUTE_TYPE_BOOL:
@@ -394,7 +394,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		default:
 			// should not happen
 			PyErr_Format(PyExc_AttributeError, "Unsupported attribute type for attribute \"%s\", report to blender.org", attrdef->m_name);
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 		// let's implement a smart undo method
 		bufferSize *= attrdef->m_length;
@@ -542,12 +542,12 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					memcpy(sourceBuffer, undoBuffer, bufferSize);
 					free(undoBuffer);
 				}
-				return 1;
+				return PY_SET_ATTR_FAIL;
 			}
 		}
 		if (undoBuffer)
 			free(undoBuffer);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	else	// simple attribute value
 	{
@@ -556,7 +556,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			if (attrdef->m_setFunction == NULL)
 			{
 				PyErr_Format(PyExc_AttributeError, "function attribute without function \"%s\", report to blender.org", attrdef->m_name);
-				return 1;
+				return PY_SET_ATTR_FAIL;
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
 		}
@@ -589,7 +589,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				break;
 			default:
 				PyErr_Format(PyExc_AttributeError, "unknown type for attribute \"%s\", report to blender.org", attrdef->m_name);
-				return 1;
+				return PY_SET_ATTR_FAIL;
 			}
 			if (bufferSize)
 			{
@@ -712,7 +712,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				if (!PySequence_Check(value) || PySequence_Size(value) != 3) 
 				{
 					PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
-					return 1;
+					return PY_SET_ATTR_FAIL;
 				}
 				MT_Vector3 *var = reinterpret_cast<MT_Vector3*>(ptr);
 				for (int i=0; i<3; i++)

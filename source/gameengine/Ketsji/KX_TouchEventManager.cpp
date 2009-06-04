@@ -99,13 +99,14 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 		}
 		break;
 	case KX_ClientObjectInfo::OBSENSOR:
+	case KX_ClientObjectInfo::OBACTORSENSOR:
 		// this object may have multiple collision sensors, 
 		// check is any of them is interested in this object
 		for(std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
 			it != info->m_sensors.end();
 			++it)
 		{
-			if ((*it)->GetSensorType() == SCA_ISensor::TOUCH) 
+			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH) 
 			{
 				KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*it);
 				if (touchsensor->BroadPhaseSensorFilterCollision(object1, object2))

@@ -511,7 +511,7 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 static void do_node_buts(unsigned short event)
 {
 	Material *ma;
-	SpaceNode *snode = curarea->spacedata.first;
+	/* SpaceNode *snode = curarea->spacedata.first; */
 	
 	/* all operations default on active material layer here */
 	/* but this also gets called for lamp and world... */

@@ -52,6 +52,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#include "../BPY_extern.h" // BPY_pyconstraint_update
 #include "IDProp.h"
 #include "Object.h"
 #include "NLA.h"
@@ -1498,6 +1499,11 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 			bConstraintTarget *ct;
 			int ok= 0;
 			
+			if (PySequence_Check(value) == 0 || PyString_Check(value)) {
+				PyErr_SetString(PyExc_TypeError, "expected a sequence of strings or blender");
+				return -1;
+			}
+			
 			if (cti) {
 				/* change space of targets */
 				if (cti->get_constraint_targets) {
@@ -1506,13 +1512,12 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 					
 					/* get targets, and extract values from the given list */
 					num_tars= cti->get_constraint_targets(self->con, &targets);
+					if ((PySequence_Size(value) != num_tars)) {
+						PyErr_Format(PyExc_TypeError, "expected sequence of strings or blender objects - %d length", num_tars);
+						return -1;
+					}
+					
 					if (num_tars) {
-						if ((PySequence_Check(value) == 0) || (PySequence_Size(value) != num_tars)) {
-							char errorstr[64];
-							sprintf(errorstr, "expected sequence of %d integer(s)", num_tars);
-							return EXPP_ReturnIntError(PyExc_TypeError, errorstr);
-						}
-						
 						for (ct=targets.first; ct; ct=ct->next, i++) {
 							PyObject *val= PySequence_ITEM(value, i);
 								
@@ -1530,10 +1535,11 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 								
 								BLI_strncpy(ct->subtarget, name, sizeof(ct->subtarget));
 							}
-							else {
+							else /* if EXPP_CONSTR_TARGET */ {
+								
 								Object *obj = (( BPy_Object * )val)->object;
 								
-								if ( !BPy_Object_Check(value) ) {
+								if ( !BPy_Object_Check(val) ) {
 									// hrm... should we break here instead?
 									ok = EXPP_ReturnIntError(PyExc_TypeError, 
 												"expected BPy object argument as member of list");
@@ -1564,6 +1570,7 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy text argument" );
 		con->text = text;
+		BPY_pyconstraint_update(self->obj, self->con);
 		return 0;
 		}
 	case EXPP_CONSTR_PROPS:

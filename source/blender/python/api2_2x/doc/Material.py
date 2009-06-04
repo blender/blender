@@ -69,6 +69,11 @@ Example::
 		- NMAP_TS      - Tangent space normal mapping.
 		- GROUP_EXCLUSIVE	- Light from this group even if the lights are on a hidden Layer.
 
+@type ShadeModes: readonly dictionary
+@var ShadeModes: The available Material Shade Modes.
+		- CUBIC    - Use cubic interpolation of diffuse values, for smoother transitions.
+		- OBCOLOR  - Modulate result with a per object color.
+
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.
 		- DIFFUSE_LAMBERT    - Make Material use the lambert diffuse shader.
@@ -246,6 +251,8 @@ class Material:
 	
 	@ivar mode:  Mode mode bitfield.  See L{the Modes dictionary<Modes>} keys and descriptions.
 	@type mode:  int
+	@ivar shadeMode:  Shade mode bitfield.  See L{the ShadeModes dictionary<ShadeModes>} keys and descriptions.
+	@type shadeMode:  int
 	@ivar nFlares:  Number of subflares with halo.
 	Value is clamped to the range [1,32].
 	@type nFlares:  int

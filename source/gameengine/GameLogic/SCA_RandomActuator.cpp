@@ -58,7 +58,6 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 	  m_parameter2(para2),
 	  m_distribution(mode)
 {
-	// m_base is never deleted, probably a memory leak!
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
 	enforceConstraints();
@@ -68,7 +67,7 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 
 SCA_RandomActuator::~SCA_RandomActuator()
 {
-	/* intentionally empty */ 
+	m_base->Release();
 } 
 
 
@@ -79,6 +78,13 @@ CValue* SCA_RandomActuator::GetReplica()
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
 	return replica;
+}
+
+void SCA_RandomActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
+	// increment reference count so that we can release the generator at the end
+	m_base->AddRef();
 }
 
 

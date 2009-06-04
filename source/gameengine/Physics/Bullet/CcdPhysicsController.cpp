@@ -185,12 +185,12 @@ void CcdPhysicsController::CreateRigidbody()
 		rbci.m_restitution = m_cci.m_restitution;
 
 		
-		int nodecount = 0;
+
 		
-		int numtriangles = 1;
+		
 		
 		btVector3 p(0,0,0);// = getOrigin();
-		btScalar h = 1.f;
+
 		
 		btSoftRigidDynamicsWorld* softDynaWorld = (btSoftRigidDynamicsWorld*)m_cci.m_physicsEnv->getDynamicsWorld();
 
@@ -519,6 +519,8 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			body->setAngularFactor(0.f);
 		}
+		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
+
 	}
 	if (m_object && m_cci.m_do_anisotropic)
 	{
@@ -698,16 +700,24 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		}
 	}
 
+	// load some characterists that are not 
+	btRigidBody* oldbody = GetRigidBody();
 	m_object = 0;
 	CreateRigidbody();
-
 	btRigidBody* body = GetRigidBody();
-
 	if (body)
 	{
 		if (m_cci.m_mass)
 		{
 			body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		}
+
+		if (oldbody)
+		{
+			body->setLinearFactor(oldbody->getLinearFactor());
+			body->setAngularFactor(oldbody->getAngularFactor());
+			if (oldbody->getActivationState() == DISABLE_DEACTIVATION)
+				body->setActivationState(DISABLE_DEACTIVATION);
 		}
 	}	
 	// sensor object are added when needed
@@ -787,12 +797,15 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
-		btRigidBody* body = GetRigidBody();
+		// btRigidBody* body = GetRigidBody(); // not used anymore
 
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
@@ -813,9 +826,12 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 
 		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
@@ -838,10 +854,9 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
-	float orn[4];
-	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	btQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
-	mat.setRotation(quat);
+	float ori[12];
+	m_MotionState->getWorldOrientation(ori);
+	mat.setFromOpenGLSubMatrix(ori);
 }
 
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
@@ -857,9 +872,12 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required
 		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
@@ -909,9 +927,12 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 	if (m_object)
 	{
 		m_object->activate(true);
-		if (m_object->isStaticObject() && !m_cci.m_bSensor)
+		if (m_object->isStaticObject())
 		{
-			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			if (!m_cci.m_bSensor)
+				m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			// kinematic object should not set the transform, it disturbs the velocity interpolation
+			return;
 		}
 		// not required, this function is only used to update the physic controller
 		//m_MotionState->setWorldPosition(posX,posY,posZ);
@@ -1386,8 +1407,6 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	/* Convert blender geometry into bullet mesh, need these vars for mapping */
 	vector<bool> vert_tag_array(numverts, false);
 	unsigned int tot_bt_verts= 0;
-	unsigned int orig_index;
-	int i;
 
 	if (polytope)
 	{
@@ -1607,9 +1626,7 @@ bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
 btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 {
 	btCollisionShape* collisionShape = 0;
-	btTriangleMeshShape* concaveShape = 0;
-	btCompoundShape* compoundShape = 0;
-	CcdShapeConstructionInfo* nextShapeInfo;
+	btCompoundShape* compoundShape = 0;	
 
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
 		return m_shapeProxy->CreateBulletShape(margin);
@@ -1682,7 +1699,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
 					bool removeDuplicateVertices=true;
 					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
-					for(int i=0; i<m_triFaceArray.size(); i+=3) {
+					for(unsigned int i=0; i<m_triFaceArray.size(); i+=3) {
 						btScalar *bt = &m_vertexArray[3*m_triFaceArray[i]];
 						btVector3 v1(bt[0], bt[1], bt[2]);
 						bt = &m_vertexArray[3*m_triFaceArray[i+1]];

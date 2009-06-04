@@ -740,6 +740,22 @@ void seq_buttons()
 		
 		xco+= 8 + XIC*3.5;
 
+		uiDefButS(block, MENU, B_REDR, 
+			  "Render size: %t"
+			  "|R 100 %x100"
+			  "|R 75  %x75"
+			  "|R 50  %x50"
+			  "|R 25  %x25"
+			  "|R Sce %x0"
+			  "|R Off %x-1", 
+			  xco,0,3.0 * XIC, YIC, &sseq->render_size, 
+			  0,0,0,0, 
+			  "Use different (proxy) render size "
+			  "for this preview screen, use scene render size "
+			  "or disable this preview completely");
+
+		xco+= 8 + XIC*3.0;
+
 		if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 			uiDefButS(block, MENU, B_REDR, 
 				  "Show zebra: %t"

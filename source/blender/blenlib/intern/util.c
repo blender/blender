@@ -2030,7 +2030,7 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		d1++;
 		d2++;
 	}
-	
+	return 0;
 }
 
 

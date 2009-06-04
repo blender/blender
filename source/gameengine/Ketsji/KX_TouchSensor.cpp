@@ -204,6 +204,7 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 	KX_GameObject* myobj = (KX_GameObject*)GetParent();
 	KX_GameObject* myparent = myobj->GetParent();
 	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(((PHY_IPhysicsController*)obj2)->getNewClientInfo());
+	KX_ClientObjectInfo* my_client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
 	KX_GameObject* otherobj = ( client_info ? client_info->m_gameobject : NULL);
 
 	// first, decrement refcount as GetParent() increases it
@@ -214,7 +215,8 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 	// good candidate because they are transient. That must be handled at another level
 	if (!otherobj ||
 		otherobj == myparent ||		// don't interact with our parent
-		client_info->m_type != KX_ClientObjectInfo::ACTOR)	// only with actor objects
+		(my_client_info->m_type == KX_ClientObjectInfo::OBACTORSENSOR &&
+		 client_info->m_type != KX_ClientObjectInfo::ACTOR))	// only with actor objects
 		return false;
 		
 	bool found = m_touchedpropname.IsEmpty();

@@ -45,8 +45,6 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 
 PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CrossVecs(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args);
@@ -57,8 +55,6 @@ PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CrossQuats(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_DotQuats(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args);
@@ -75,6 +71,10 @@ PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CrossVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CrossQuats(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_DotQuats(PyObject * self, PyObject * args);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);

@@ -17,6 +17,22 @@ Written by: Marcus Hennix
 
 
 
+/*
+Overview:
+
+btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc).
+It is a fixed translation, 3 degree-of-freedom (DOF) rotational "joint".
+It divides the 3 rotational DOFs into swing (movement within a cone) and twist.
+Swing is divided into swing1 and swing2 which can have different limits, giving an elliptical shape.
+(Note: the cone's base isn't flat, so this ellipse is "embedded" on the surface of a sphere.)
+
+In the contraint's frame of reference:
+twist is along the x-axis,
+and swing 1 and 2 are along the z and y axes respectively.
+*/
+
+
+
 #ifndef CONETWISTCONSTRAINT_H
 #define CONETWISTCONSTRAINT_H
 
@@ -141,7 +157,18 @@ public:
 		};
 	}
 
-	void	setLimit(btScalar _swingSpan1,btScalar _swingSpan2,btScalar _twistSpan,  btScalar _softness = 1.f, btScalar _biasFactor = 0.3f, btScalar _relaxationFactor = 1.0f)
+	// setLimit(), a few notes:
+	// _softness:
+	//		0->1, recommend ~0.8->1.
+	//		describes % of limits where movement is free.
+	//		beyond this softness %, the limit is gradually enforced until the "hard" (1.0) limit is reached.
+	// _biasFactor:
+	//		0->1?, recommend 0.3 +/-0.3 or so.
+	//		strength with which constraint resists zeroth order (angular, not angular velocity) limit violation.
+	// __relaxationFactor:
+	//		0->1, recommend to stay near 1.
+	//		the lower the value, the less the constraint will fight velocities which violate the angular limits.
+	void	setLimit(btScalar _swingSpan1,btScalar _swingSpan2,btScalar _twistSpan, btScalar _softness = 1.f, btScalar _biasFactor = 0.3f, btScalar _relaxationFactor = 1.0f)
 	{
 		m_swingSpan1 = _swingSpan1;
 		m_swingSpan2 = _swingSpan2;

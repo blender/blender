@@ -1511,10 +1511,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
 
-				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
+				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Generic 6DOF%x12",//|Extra Force%x6",
+				//uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic 6DOF%x12",//|Extra Force%x6",
 												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
 
-				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Col.", *xco+155, *yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
+				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Collision", *xco+155, *yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
 
 
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
@@ -2769,7 +2770,7 @@ static void object_panel_anim(Object *ob)
 	uiBlockBeginAlign(block);
 	
 	timeoffset_ui = give_timeoffset(ob);
-	but = uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &timeoffset_ui, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	but = uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &timeoffset_ui, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for IPOs and dupligroup instances");
 	uiButSetFunc(but, object_panel_anim_timeoffset_callback, ob, &timeoffset_ui);
 	
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,35,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");

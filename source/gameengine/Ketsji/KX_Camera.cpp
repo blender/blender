@@ -42,6 +42,7 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
 					 bool frustum_culling,
+					 bool delete_node,
 					 PyTypeObject *T)
 					:
 					KX_GameObject(sgReplicationInfo,callbacks,T),
@@ -50,7 +51,8 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					m_normalized(false),
 					m_frustum_culling(frustum_culling),
 					m_set_projection_matrix(false),
-					m_set_frustum_center(false)
+					m_set_frustum_center(false),
+					m_delete_node(delete_node)
 {
 	// setting a name would be nice...
 	m_name = "cam";
@@ -64,6 +66,12 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 
 KX_Camera::~KX_Camera()
 {
+	if (m_delete_node && m_pSGNode)
+	{
+		// for shadow camera, avoids memleak
+		delete m_pSGNode;
+		m_pSGNode = NULL;
+	}
 }	
 
 
@@ -75,6 +83,13 @@ CValue*	KX_Camera::GetReplica()
 	replica->ProcessReplica();
 	
 	return replica;
+}
+
+void KX_Camera::ProcessReplica()
+{
+	KX_GameObject::ProcessReplica();
+	// replicated camera are always registered in the scene
+	m_delete_node = false;
 }
 
 MT_Transform KX_Camera::GetWorldToCamera() const
@@ -1090,7 +1105,6 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 "getScreenRay()\n"
 )
 {
-	KX_Camera* cam;
 	MT_Vector3 vect;
 	double x,y,dist;
 	char *propName = NULL;

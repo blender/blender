@@ -335,6 +335,20 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 	}
 }
 
+static PyObject *Material_ShadeModesDict( void )
+{
+	PyObject *ShadeModes = PyConstant_New(  );
+	
+	if( ShadeModes ) {
+		BPy_constant *c = ( BPy_constant * ) ShadeModes;
+		
+		PyConstant_Insert(c, "CUBIC",   PyInt_FromLong(MA_CUBIC));
+		PyConstant_Insert(c, "OBCOLOR", PyInt_FromLong(MA_OBCOLOR));
+	}
+	
+	return ShadeModes;
+}
+
 static PyObject *Material_ModesDict( void )
 {
 	PyObject *Modes = PyConstant_New(  );
@@ -454,12 +468,13 @@ static PyObject *Material_ColorRampInputDict( void )
 /*****************************************************************************/
 PyObject *Material_Init( void )
 {
-	PyObject *submodule, *Modes, *Shaders, *ColorbandInput, *ColorbandMethod;
+	PyObject *submodule, *Modes, *ShadeModes, *Shaders, *ColorbandInput, *ColorbandMethod;
 
 	if( PyType_Ready( &Material_Type ) < 0)
 		return NULL;
 
 	Modes = Material_ModesDict(  );
+	ShadeModes = Material_ShadeModesDict(  );
 	Shaders = Material_ShadersDict(  );
 	ColorbandMethod = Material_ColorRampMethodsDict(  );
 	ColorbandInput = Material_ColorRampInputDict(  );
@@ -469,6 +484,8 @@ PyObject *Material_Init( void )
 
 	if( Modes )
 		PyModule_AddObject( submodule, "Modes", Modes );
+	if( ShadeModes )
+		PyModule_AddObject( submodule, "ShadeModes", ShadeModes );
 	if( Shaders )
 		PyModule_AddObject( submodule, "Shaders", Shaders );
 	if( ColorbandMethod )
@@ -541,6 +558,7 @@ static PyObject *Matr_oldsetTranslucency( BPy_Material * self, PyObject * args )
 static int Material_setIpo( BPy_Material * self, PyObject * value );
 
 static int Material_setMode( BPy_Material * self, PyObject * value );
+static int Material_setShadeMode( BPy_Material * self, PyObject * value );
 static int Material_setRGBCol( BPy_Material * self, PyObject * value );
 static int Material_setSpecCol( BPy_Material * self, PyObject * value );
 static int Material_setMirCol( BPy_Material * self, PyObject * value );
@@ -620,6 +638,7 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 /*****************************************************************************/
 static PyObject *Material_getIpo( BPy_Material * self );
 static PyObject *Material_getMode( BPy_Material * self );
+static PyObject *Material_getShadeMode( BPy_Material * self );
 static PyObject *Material_getRGBCol( BPy_Material * self );
 /*static PyObject *Material_getAmbCol(BPy_Material *self);*/
 static PyObject *Material_getSpecCol( BPy_Material * self );
@@ -1098,6 +1117,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getMode, (setter)Material_setMode,
 	 "Material mode bitmask",
 	 NULL},
+	{"shadeMode",
+	 (getter)Material_getShadeMode, (setter)Material_setShadeMode,
+	 "Material shade mode bitmask",
+	 NULL},
 	{"nFlares",
 	 (getter)Material_getNFlares, (setter)Material_setNFlares,
 	 "Number of subflares with halo",
@@ -1493,6 +1516,11 @@ static PyObject *Material_getIpo( BPy_Material * self )
 static PyObject *Material_getMode( BPy_Material * self )
 {
 	return PyInt_FromLong( ( long ) self->material->mode );
+}
+
+static PyObject *Material_getShadeMode( BPy_Material * self )
+{
+	return PyInt_FromLong( ( long ) self->material->shade_flag );
 }
 
 static PyObject *Material_getRGBCol( BPy_Material * self )
@@ -1966,6 +1994,24 @@ static int Material_setMode( BPy_Material * self, PyObject * value )
 
 	self->material->mode &= ( MA_RAMP_COL | MA_RAMP_SPEC );
 	self->material->mode |= param & ~( MA_RAMP_COL | MA_RAMP_SPEC );
+
+	return 0;
+}
+
+static int Material_setShadeMode( BPy_Material * self, PyObject * value )
+{
+	int param;
+
+	if( !PyInt_Check( value ) ) {
+		char errstr[128];
+		sprintf ( errstr , "expected int bitmask of 0x%08x", (MA_CUBIC | MA_OBCOLOR) );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+	param = PyInt_AS_LONG ( value );
+	if ( ( param & (MA_CUBIC | MA_OBCOLOR) ) != param )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+						"invalid bit(s) set in mask" );
+	self->material->shade_flag |= param;
 
 	return 0;
 }
@@ -3476,4 +3522,3 @@ static int Material_setColorbandSpecularInput ( BPy_Material * self, PyObject * 
 	return EXPP_setIValueClamped(value, &self->material->rampin_spec,
 			MA_RAMP_IN_SHADER, MA_RAMP_IN_RESULT, 'b');
 }
-

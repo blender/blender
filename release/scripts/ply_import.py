@@ -149,6 +149,7 @@ def read(filename):
 		      'uint8': 'B',
 		      'int16': 'h',
 		      'uint16': 'H',
+		      'ushort': 'H',
 		      'int': 'i',
 		      'int32': 'i',
 		      'uint': 'I',
@@ -156,6 +157,7 @@ def read(filename):
 		      'float': 'f',
 		      'float32': 'f',
 		      'float64': 'd',
+		      'double': 'd',
 		      'string': 's'}
 	obj_spec = object_spec()
 

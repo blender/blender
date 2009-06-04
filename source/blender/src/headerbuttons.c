@@ -896,10 +896,10 @@ void do_global_buttons(unsigned short event)
 				}
 			}
 			if(G.qual & LR_CTRLKEY) {
-				activate_databrowse_imasel((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
+				activate_databrowse_imasel(id, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			else {
-				activate_databrowse((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
+				activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			return;
 		}

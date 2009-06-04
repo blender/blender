@@ -545,7 +545,11 @@ int main(int argc, char **argv)
 		_putenv_s("SDL_VIDEODRIVER", "dummy");
 #endif
 #else
+#ifdef __sgi
+		putenv("SDL_VIDEODRIVER=dummy");
+#else
 		setenv("SDL_VIDEODRIVER", "dummy", 1); /* initializing the video driver can cause crashes on some systems - Campbell */
+#endif
 #endif
 #ifdef __linux__
 		/* On linux the default SDL driver dma often would not play

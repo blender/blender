@@ -51,7 +51,9 @@ PyObject *Vector_Resize2D( VectorObject * self );
 PyObject *Vector_Resize3D( VectorObject * self );
 PyObject *Vector_Resize4D( VectorObject * self );
 PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args );
-PyObject *Vector_reflect( VectorObject * self, PyObject * value );
+PyObject *Vector_Reflect( VectorObject * self, PyObject * value );
+PyObject *Vector_Cross( VectorObject * self, VectorObject * value );
+PyObject *Vector_Dot( VectorObject * self, VectorObject * value );
 PyObject *Vector_copy( VectorObject * self );
 PyObject *newVectorObject(float *vec, int size, int type);
 

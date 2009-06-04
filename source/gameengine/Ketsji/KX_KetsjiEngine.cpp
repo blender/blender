@@ -77,6 +77,8 @@
 
 #include "RAS_FramingManager.h"
 #include "stdio.h"
+#include "DNA_world_types.h"
+#include "DNA_scene_types.h"
 
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
@@ -98,6 +100,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
 int	   KX_KetsjiEngine::m_maxLogicFrame = 5;
+int	   KX_KetsjiEngine::m_maxPhysicsFrame = 5;
 double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
@@ -393,8 +396,20 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 
 	m_firstframe = true;
 	m_bInitialized = true;
-	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-	m_maxLogicFrame = 5;
+	// there is always one scene enabled at startup
+	World* world = m_scenes[0]->GetBlenderScene()->world;
+	if (world)
+	{
+		m_ticrate = world->ticrate;
+		m_maxLogicFrame = world->maxlogicstep;
+		m_maxPhysicsFrame = world->maxphystep;
+	}
+	else
+	{
+		m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+		m_maxLogicFrame = 5;
+		m_maxPhysicsFrame = 5;
+	}
 	
 	if (m_game2ipo)
 	{
@@ -545,14 +560,13 @@ else
 //		PIL_sleep_ms(1);
 	
 	KX_SceneList::iterator sceneit;
-	int frameOut = 5;
 	
-	if (frames>frameOut)
+	if (frames>m_maxPhysicsFrame)
 	{
 	
 	//	printf("framedOut: %d\n",frames);
-		m_frameTime+=(frames-frameOut)*timestep;
-		frames = frameOut;
+		m_frameTime+=(frames-m_maxPhysicsFrame)*timestep;
+		frames = m_maxPhysicsFrame;
 	}
 	
 
@@ -1128,7 +1142,7 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 		if(m_drawingmode == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
 			/* make temporary camera */
 			RAS_CameraData camdata = RAS_CameraData();
-			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, false);
+			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, true, true);
 			cam->SetName("__shadow__cam__");
 
 			MT_Transform camtrans;
@@ -1736,6 +1750,16 @@ void KX_KetsjiEngine::SetMaxLogicFrame(int frame)
 	m_maxLogicFrame = frame;
 }
 
+int KX_KetsjiEngine::GetMaxPhysicsFrame()
+{
+	return m_maxPhysicsFrame;
+}
+
+void KX_KetsjiEngine::SetMaxPhysicsFrame(int frame)
+{
+	m_maxPhysicsFrame = frame;
+}
+
 double KX_KetsjiEngine::GetAnimFrameRate()
 {
 	return m_anim_framerate;
@@ -1744,6 +1768,11 @@ double KX_KetsjiEngine::GetAnimFrameRate()
 double KX_KetsjiEngine::GetClockTime(void) const
 {
 	return m_clockTime;
+}
+
+double KX_KetsjiEngine::GetRealTime(void) const
+{
+	return m_kxsystem->GetTimeInSeconds();
 }
 
 void KX_KetsjiEngine::SetAnimFrameRate(double framerate)

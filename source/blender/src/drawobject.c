@@ -2918,7 +2918,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
-	int a, k, k_max=0, totpart, totpoint=0, draw_as, totchild=0;
+	int a, totpart, totpoint=0, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0;
 	GLint polygonmode[2];
 	char val[32];

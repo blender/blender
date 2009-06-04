@@ -729,6 +729,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	bool skinMesh = false;
 	int lightlayer = blenderobj->lay;
 
+	if ((meshobj = converter->FindGameMesh(mesh/*, ob->lay*/)) != NULL)
+		return meshobj;
 	// Get DerivedMesh data
 	DerivedMesh *dm = CDDM_from_mesh(mesh, blenderobj);
 
@@ -1043,7 +1045,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	// pre calculate texture generation
 	for(list<RAS_MeshMaterial>::iterator mit = meshobj->GetFirstMaterial();
 		mit != meshobj->GetLastMaterial(); ++ mit) {
-		mit->m_bucket->GetPolyMaterial()->OnConstruction();
+		mit->m_bucket->GetPolyMaterial()->OnConstruction(lightlayer);
 	}
 
 	if (layers)
@@ -1057,6 +1059,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		delete kx_blmat;
 	if (kx_polymat)
 		delete kx_polymat;
+	converter->RegisterGameMesh(meshobj, mesh);
 	return meshobj;
 }
 
@@ -1335,8 +1338,9 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 				ctrl->setNewClientInfo(gameobj->getClientInfo());
 				ctrl->setLocalAabb(localAabbMin, localAabbMax);
 				if (isActive) {
-					// add first, this will create the proxy handle
-					env->addCcdGraphicController(ctrl);
+					// add first, this will create the proxy handle, only if the object is visible
+					if (gameobj->GetVisible())
+						env->addCcdGraphicController(ctrl);
 					// update the mesh if there is a deformer, this will also update the bounding box for modifiers
 					RAS_Deformer* deformer = gameobj->GetDeformer();
 					if (deformer)
@@ -1377,10 +1381,11 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	bool isCompoundChild = false;
+	bool hasCompoundChildren = !parent && (blenderobject->gameflag & OB_CHILD);
 
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
 		
-		if ((parent->gameflag & OB_CHILD) != 0)
+		if ((parent->gameflag & OB_CHILD) != 0 && (blenderobject->gameflag & OB_CHILD))
 		{
 			isCompoundChild = true;
 		} 
@@ -1406,13 +1411,24 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_lockZRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_ROT_AXIS) !=0;
 
 	objprop.m_isCompoundChild = isCompoundChild;
-	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+	objprop.m_hasCompoundChildren = hasCompoundChildren;
 	objprop.m_margin = blenderobject->margin;
+	
 	// ACTOR is now a separate feature
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	
+	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
+	if (objprop.m_angular_rigidbody || !objprop.m_dyna )
+	{
+		objprop.m_contactProcessingThreshold = blenderobject->m_contactProcessingThreshold;
+	} else
+	{
+		objprop.m_contactProcessingThreshold = 0.f;
+	}
+
 	objprop.m_sensor = (blenderobject->gameflag & OB_SENSOR) != 0;
 	
 	if (objprop.m_softbody)
@@ -1457,6 +1473,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 			objprop.m_margin = blenderobject->bsoft->margin;
+			objprop.m_contactProcessingThreshold = 0.f;
 		} else
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
@@ -1497,6 +1514,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= 16;
 			objprop.m_soft_welding = 0.f;
 			objprop.m_margin = 0.f;
+			objprop.m_contactProcessingThreshold = 0.f;
 		}
 	}
 
@@ -1571,8 +1589,8 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	
-	if (parent && (parent->gameflag & OB_DYNAMIC)) {
-		
+	if (parent/* && (parent->gameflag & OB_DYNAMIC)*/) {
+		// parented object cannot be dynamic
 		KX_GameObject *parentgameobject = converter->FindGameObject(parent);
 		objprop.m_dynamic_parent = parentgameobject;
 		//cannot be dynamic:
@@ -1711,14 +1729,9 @@ static KX_GameObject *gameobject_from_blenderobject(
 	case OB_MESH:
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
-		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
 		float center[3], extents[3];
 		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
-		
-		if (!meshobj) {
-			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
-			converter->RegisterGameMesh(meshobj, mesh);
-		}
+		RAS_MeshObject* meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
 		
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
@@ -2498,6 +2511,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (occlusion)
 			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
 	}
+	if (blenderscene->world)
+		kxscene->GetPhysicsEnvironment()->setNumTimeSubSteps(blenderscene->world->physubstep);
 
 	// now that the scenegraph is complete, let's instantiate the deformers.
 	// We need that to create reusable derived mesh and physic shapes

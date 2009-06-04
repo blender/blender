@@ -292,15 +292,13 @@ CValue* CValue::GetProperty(const char *inName)
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-const STR_String& CValue::GetPropertyText(const STR_String & inName,const char *deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName)
 {
 	const static STR_String sEmpty("");
 
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
-	else if (deftext)
-		return STR_String(deftext);
 	else
 		return sEmpty;
 }
@@ -557,13 +555,16 @@ PyAttributeDef CValue::Attributes[] = {
 
 
 PyObject*	CValue::py_getattro(PyObject *attr)
-{
+{	
 	char *attr_str= PyString_AsString(attr);
 	CValue* resultattr = GetProperty(attr_str);
 	if (resultattr)
 	{
+		/* only show the wanting here because python inspects for __class__ and KX_MeshProxy uses CValues name attr */
+		ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
+		
 		PyObject* pyconvert = resultattr->ConvertValueToPython();
-	
+		
 		if (pyconvert)
 			return pyconvert;
 		else
@@ -657,16 +658,20 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 
 int	CValue::py_delattro(PyObject *attr)
 {
+	ShowDeprecationWarning("del ob.attr", "del ob['attr']");
+	
 	char *attr_str= PyString_AsString(attr);
 	if (RemoveProperty(attr_str))
 		return 0;
 	
 	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
+	ShowDeprecationWarning("ob.attr = val", "ob['attr'] = val");
+	
 	char *attr_str= PyString_AsString(attr);
 	CValue* oldprop = GetProperty(attr_str);	
 	CValue* vallie;

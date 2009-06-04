@@ -488,7 +488,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	float k2[4] = {0.0, 0.0, 0.0, 0.0};
 	float h2[4] = {0.0, 0.0, 0.0, 0.0};
 	
-	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, newvec[2];
+	
 	if( !PyArg_ParseTuple ( args, "O!O!O!O!i",
 	  &vector_Type, &vec_k1,
 	  &vector_Type, &vec_h1,

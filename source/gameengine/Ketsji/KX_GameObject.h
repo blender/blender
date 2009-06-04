@@ -171,7 +171,7 @@ public:
 	/** 
 	 * Sets the parent of this object to a game object
 	 */			
-	void SetParent(KX_Scene *scene, KX_GameObject *obj);
+	void SetParent(KX_Scene *scene, KX_GameObject *obj, bool addToCompound=true, bool ghost=true);
 
 	/** 
 	 * Removes the parent of this object to a game object
@@ -858,7 +858,7 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject,ApplyImpulse);
 	KX_PYMETHOD_O(KX_GameObject,SetCollisionMargin);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
-	KX_PYMETHOD_O(KX_GameObject,SetParent);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
@@ -872,6 +872,11 @@ public:
 	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
+	
+	/* Dict access */
+	KX_PYMETHOD_VARARGS(KX_GameObject,get);
+	KX_PYMETHOD_O(KX_GameObject,has_key);
+	
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

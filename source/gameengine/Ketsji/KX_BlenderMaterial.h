@@ -97,7 +97,7 @@ public:
 
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
-	virtual void OnConstruction( );
+	virtual void OnConstruction(int layer);
 
 	static void	EndFrame();
 
@@ -112,7 +112,7 @@ private:
 	bool			mModified;
 	bool			mConstructed;			// if false, don't clean on exit
 
-	void SetBlenderGLSLShader();
+	void SetBlenderGLSLShader(int layer);
 
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;

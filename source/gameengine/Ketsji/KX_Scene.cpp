@@ -1452,7 +1452,7 @@ void KX_Scene::LogicEndFrame()
 {
 	m_logicmgr->EndFrame();
 	int numobj = m_euthanasyobjects->GetCount();
-	int i;
+
 	KX_GameObject* obj;
 
 	while ((numobj = m_euthanasyobjects->GetCount()) > 0)

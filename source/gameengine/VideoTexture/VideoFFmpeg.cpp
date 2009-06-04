@@ -669,15 +669,29 @@ bool VideoFFmpeg::play (void)
 }
 
 
+// pause video
+bool VideoFFmpeg::pause (void)
+{
+	try
+	{
+		if (VideoBase::pause())
+		{
+			return true;
+		}
+	}
+	CATCH_EXCP;
+	return false;
+}
+
 // stop video
 bool VideoFFmpeg::stop (void)
 {
 	try
 	{
-		if (VideoBase::stop())
-		{
-			return true;
-		}
+		VideoBase::stop();
+		// force restart when play
+		m_lastFrame = -1;
+		return true;
 	}
 	CATCH_EXCP;
 	return false;
@@ -721,6 +735,8 @@ void VideoFFmpeg::loadFrame (void)
 	{
 		// get actual time
 		double startTime = PIL_check_seconds_timer();
+		if (m_lastFrame == -1)
+			m_startTime = startTime;
 		double actTime = startTime - m_startTime;
 		// if video has ended
 		if (m_isFile && actTime * m_frameRate >= m_range[1])
@@ -886,28 +902,47 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 		if (position != m_curPosition + 1) 
 		{ 
 			double timeBase = av_q2d(m_formatCtx->streams[m_videoStream]->time_base);
-			long long pos = (long long)
-				((long long) (position - m_preseek) * AV_TIME_BASE / m_baseFrameRate);
-			long long startTs = m_formatCtx->streams[m_videoStream]->start_time;
+			int64_t pos = (int64_t)((position - m_preseek) / (m_baseFrameRate*timeBase));
+			int64_t startTs = m_formatCtx->streams[m_videoStream]->start_time;
+			int seekres;
 
 			if (pos < 0)
 				pos = 0;
 
 			if (startTs != AV_NOPTS_VALUE)
-				pos += (long long)(startTs * AV_TIME_BASE * timeBase);
+				pos += startTs;
 
 			if (position <= m_curPosition || !m_eof)
 			{
-				// no need to seek past the end of the file
-				if (av_seek_frame(m_formatCtx, -1, pos, AVSEEK_FLAG_BACKWARD) >= 0)
+#if 0
+				// Tried to make this work but couldn't: seeking on byte is ignored by the
+				// format plugin and it will generally continue to read from last timestamp.
+				// Too bad because frame seek is not always able to get the first frame
+				// of the file.
+				if (position <= m_preseek)
+				{
+					// we can safely go the begining of the file
+					if (av_seek_frame(m_formatCtx, m_videoStream, 0, AVSEEK_FLAG_BYTE) >= 0)
+					{
+						// binary seek does not reset the timestamp, must do it now
+						av_update_cur_dts(m_formatCtx, m_formatCtx->streams[m_videoStream], startTs);
+						m_curPosition = 0;
+					}
+				}
+				else
+#endif
 				{
 					// current position is now lost, guess a value. 
-					// It's not important because it will be set at this end of this function
-					m_curPosition = position - m_preseek - 1;
+					if (av_seek_frame(m_formatCtx, m_videoStream, pos, AVSEEK_FLAG_BACKWARD) >= 0)
+					{
+						// current position is now lost, guess a value. 
+						// It's not important because it will be set at this end of this function
+						m_curPosition = position - m_preseek - 1;
+					}
 				}
 			}
 			// this is the timestamp of the frame we're looking for
-			targetTs = (long long)(((double) position) / m_baseFrameRate / timeBase);
+			targetTs = (int64_t)(position / (m_baseFrameRate * timeBase));
 			if (startTs != AV_NOPTS_VALUE)
 				targetTs += startTs;
 
@@ -1097,8 +1132,9 @@ int VideoFFmpeg_setDeinterlace (PyImage * self, PyObject * value, void * closure
 // methods structure
 static PyMethodDef videoMethods[] =
 { // methods from VideoBase class
-	{"play", (PyCFunction)Video_play, METH_NOARGS, "Play video"},
-	{"stop", (PyCFunction)Video_stop, METH_NOARGS, "Stop (pause) video"},
+	{"play", (PyCFunction)Video_play, METH_NOARGS, "Play (restart) video"},
+	{"pause", (PyCFunction)Video_pause, METH_NOARGS, "pause video"},
+	{"stop", (PyCFunction)Video_stop, METH_NOARGS, "stop video (play will replay it from start)"},
 	{"refresh", (PyCFunction)Video_refresh, METH_NOARGS, "Refresh video - get its status"},
 	{NULL}
 };
@@ -1178,7 +1214,7 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	char * file = NULL;
 
 	// get parameters
-	if (!PyArg_ParseTuple(args, "s", &file))
+	if (!PyArg_ParseTuple(args, "s:ImageFFmpeg", &file))
 		return -1; 
 
 	try
@@ -1203,8 +1239,9 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 PyObject * Image_reload (PyImage * self, PyObject *args)
 {
 	char * newname = NULL;
-
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "|s", &newname))
+	if (!PyArg_ParseTuple(args, "|s:reload", &newname))
+		return NULL;
+	if (self->m_image != NULL)
 	{
 		VideoFFmpeg* video = getFFmpeg(self);
 		// check type of object

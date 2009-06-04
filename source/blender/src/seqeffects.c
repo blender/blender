@@ -1036,8 +1036,8 @@ static void do_gammacross_effect(Sequence * seq,int cfra,
 	} else {
 		do_gammacross_effect_byte(
 			facf0, facf1, x, y,
-			(char*) ibuf1->rect, (char*) ibuf2->rect,
-			(char*) out->rect);
+			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+			(unsigned char*) out->rect);
 	}
 }
 

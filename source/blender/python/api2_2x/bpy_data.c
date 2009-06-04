@@ -404,6 +404,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	float color[] = {0, 0, 0, 1};
 	short data_code = 0;
 	int user_count = 0;
+	PyObject *newOb = NULL;
 	
 	/* Load from file */
 	if ( (	self->type==ID_IM || self->type==ID_VF 		||
@@ -594,7 +595,13 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	/* set some types user count to 1, otherwise zero */
 	id->us = user_count;
 	
-	return GetPyObjectFromID(id);
+	newOb = GetPyObjectFromID(id);
+	/* if object is a mesh, set the new flag so memory can be deallocated
+     * later if the mesh is not linked to an object (consistent with the
+     * Blender.Mesh.New() method */
+	if (self->type == ID_ME)
+		((BPy_Mesh *)newOb)->new = 1;
+	return newOb;
 }
 
 

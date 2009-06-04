@@ -113,6 +113,11 @@ protected:
 	bool         m_set_frustum_center;
 
 	/**
+	 * whether the camera should delete the node itself (only for shadow camera)
+	 */
+	bool		 m_delete_node;
+
+	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
 	 */
 	void ExtractClipPlanes();
@@ -138,7 +143,7 @@ public:
 
 	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
 	
 	/** 
@@ -149,6 +154,7 @@ public:
 	virtual	CValue*				
 	GetReplica(
 	);
+	virtual void ProcessReplica();
 
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;

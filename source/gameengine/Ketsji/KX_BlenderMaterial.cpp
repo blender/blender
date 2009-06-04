@@ -158,14 +158,14 @@ void KX_BlenderMaterial::ReleaseMaterial()
 		mBlenderShader->ReloadMaterial();
 }
 
-void KX_BlenderMaterial::OnConstruction()
+void KX_BlenderMaterial::OnConstruction(int layer)
 {
 	if (mConstructed)
 		// when material are reused between objects
 		return;
 	
 	if(mMaterial->glslmat)
-		SetBlenderGLSLShader();
+		SetBlenderGLSLShader(layer);
 
 	// for each unique material...
 	int i;
@@ -714,9 +714,6 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 		mScene->GetObjectList()->FindValue(mMaterial->mapping[i].objconame);
 
 	if(!obj) return;
-	obj->Release(); /* FindValue() AddRef's */
-
-	obj->Release();
 
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR );
@@ -902,10 +899,10 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 }
 
 
-void KX_BlenderMaterial::SetBlenderGLSLShader(void)
+void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 {
 	if(!mBlenderShader)
-		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, m_lightlayer);
+		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, layer);
 
 	if(!mBlenderShader->Ok()) {
 		delete mBlenderShader;

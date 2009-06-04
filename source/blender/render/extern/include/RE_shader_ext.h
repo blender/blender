@@ -171,6 +171,7 @@ typedef struct ShadeInput
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
+	short nodes;			/* indicate node shading, temp hack to prevent recursion */
 	
 	unsigned int lay;
 	int layflag, passflag, combinedflag;

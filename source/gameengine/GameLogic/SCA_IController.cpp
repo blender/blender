@@ -244,7 +244,7 @@ PyAttributeDef SCA_IController::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_IController, pyattr_get_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors", SCA_IController, pyattr_get_sensors),
 	KX_PYATTRIBUTE_RO_FUNCTION("actuators", SCA_IController, pyattr_get_actuators),
-	KX_PYATTRIBUTE_BOOL_RW("bookmark",SCA_IController,m_bookmark),
+	KX_PYATTRIBUTE_BOOL_RW("useHighPriority",SCA_IController,m_bookmark),
 	{ NULL }	//Sentinel
 };
 

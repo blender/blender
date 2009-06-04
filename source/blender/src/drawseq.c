@@ -849,6 +849,7 @@ static void draw_image_seq(ScrArea *sa)
 	static int recursive= 0;
 	float zoom;
 	float zoomx, zoomy;
+	int render_size = 0;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -856,8 +857,16 @@ static void draw_image_seq(ScrArea *sa)
 	sseq= sa->spacedata.first;
 	if(sseq==0) return;
 
-	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+	render_size = sseq->render_size;
+	if (render_size == 0) {
+		render_size = G.scene->r.size;
+	}
+	if (render_size < 0) {
+		return;
+	}
+
+	rectx= (render_size*G.scene->r.xsch)/100;
+	recty= (render_size*G.scene->r.ysch)/100;
 
 	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
 	   this shouldn't belong in a window drawing....
@@ -870,16 +879,16 @@ static void draw_image_seq(ScrArea *sa)
 		recursive= 1;
 		if (special_seq_update) {
 			ibuf= give_ibuf_seq_direct(
-				rectx, recty, (G.scene->r.cfra),
+				rectx, recty, (G.scene->r.cfra), render_size,
 				special_seq_update);
 		} else if (!U.prefetchframes || (G.f & G_PLAYANIM) == 0) {
 			ibuf= (ImBuf *)give_ibuf_seq(
 				rectx, recty, (G.scene->r.cfra), 
-				sseq->chanshown);
+				sseq->chanshown, render_size);
 		} else {
 			ibuf= (ImBuf *)give_ibuf_seq_threaded(
 				rectx, recty, (G.scene->r.cfra), 
-				sseq->chanshown);
+				sseq->chanshown, render_size);
 		}
 		recursive= 0;
 		
@@ -930,6 +939,7 @@ static void draw_image_seq(ScrArea *sa)
 	
 	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		zoom /= render_size / 100.0;
 		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 		zoomy = zoom;
 	} else {
@@ -1111,13 +1121,21 @@ void drawprefetchseqspace(ScrArea *sa, void *spacedata)
 {
 	SpaceSeq *sseq= sa->spacedata.first;
 	int rectx, recty;
+	int render_size = sseq->render_size;
+	if (render_size == 0) {
+		render_size = G.scene->r.size;
+	}
+	if (render_size < 0) {
+		return;
+	}
 
-	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+	rectx= (render_size*G.scene->r.xsch)/100;
+	recty= (render_size*G.scene->r.ysch)/100;
 
 	if(sseq->mainb) {
 		give_ibuf_prefetch_request(
-			rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+			rectx, recty, (G.scene->r.cfra), sseq->chanshown,
+			render_size);
 	}
 }
 

@@ -51,7 +51,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 // macro for exception handling and logging
 #define CATCH_EXCP catch (Exception & exp) \
-{ exp.report(); }
+{ exp.report(); return NULL; }
 
 
 // Blender GameObject type
@@ -280,7 +280,7 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 {
 	// get parameter - refresh source
 	PyObject * param;
-	if (!PyArg_ParseTuple(args, "O", &param) || !PyBool_Check(param))
+	if (!PyArg_ParseTuple(args, "O:refresh", &param) || !PyBool_Check(param))
 	{
 		// report error
 		PyErr_SetString(PyExc_TypeError, "The value must be a bool");

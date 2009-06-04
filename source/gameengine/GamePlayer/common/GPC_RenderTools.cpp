@@ -288,10 +288,7 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int height)
 {
 	STR_String tmpstr(text);
-	int lines;
 	char* s = tmpstr.Ptr();
-	char* p;
-	
 
 	// Save and change OpenGL settings
 	int texture2D;

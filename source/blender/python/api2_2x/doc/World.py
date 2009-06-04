@@ -84,6 +84,8 @@ class World:
 	@ivar ipo: The world type ipo linked to this world object.
 	@type textures: a tuple of Blender MTex objects.
 	@ivar textures: The World's texture list.  Empty texture channels contains None.
+	@type gravity: float
+	@ivar gravity: World physics gravity setting between 0.0 and 25.0
 	"""
 
 	def getRange():

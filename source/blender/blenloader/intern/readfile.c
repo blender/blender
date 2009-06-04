@@ -1459,6 +1459,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
+			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= brush->mtex[a];
 				if(mtex)
@@ -3690,6 +3692,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				if (seq->flag & SEQ_USE_PROXY) {
 					seq->strip->proxy = newdataadr(
 						fd, seq->strip->proxy);
+					seq->strip->proxy->anim = 0;
 				} else {
 					seq->strip->proxy = 0;
 				}
@@ -4089,12 +4092,14 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
-					
-					if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-					else sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
+					if(sipo->blocktype==ID_SEQ) 
+						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
+					else 
+						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
 					
 					// not free sipo->ipokey, creates dependency with src/
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->editipo) MEM_freeN(sipo->editipo);
 					sipo->editipo= NULL;
 				}
@@ -8084,7 +8089,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Adjustments needed after Bullets update */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->damping *= 0.635f;
-			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+			ob->rdamping = 0.1 + (0.8f * ob->rdamping);
 		}
 	}
 	
@@ -8106,7 +8111,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->occlusionRes = 128;
 		}
 	}
-		
+
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
+		Object *ob;
+		World *wrld;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
+			if(ob->parent) {
+				/* check if top parent has compound shape set and if yes, set this object
+				   to compound shaper as well (was the behaviour before, now it's optional) */
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				while (parent && parent->parent != NULL) {
+					parent = newlibadr(fd, lib, parent->parent);
+				}
+				if(parent) {
+					if (parent->gameflag & OB_CHILD)
+						ob->gameflag |= OB_CHILD;
+				}
+			}
+		}
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->ticrate = 60;
+			wrld->maxlogicstep = 5;
+			wrld->physubstep = 1;
+			wrld->maxphystep = 5;
+		}
+	}
+
 	if (main->versionfile < 249) {
 		Scene *sce;
 		for (sce= main->scene.first; sce; sce= sce->id.next)

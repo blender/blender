@@ -220,7 +220,7 @@ PyAttributeDef KX_PolygonMaterial::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("tilexrep", INT_MIN, INT_MAX, true, KX_PolygonMaterial, m_tilexrep),
 	KX_PYATTRIBUTE_INT_RW("tileyrep", INT_MIN, INT_MAX, true, KX_PolygonMaterial, m_tileyrep),
 	KX_PYATTRIBUTE_INT_RW("drawingmode", INT_MIN, INT_MAX, true, KX_PolygonMaterial, m_drawingmode),	
-	KX_PYATTRIBUTE_INT_RW("lightlayer", INT_MIN, INT_MAX, true, KX_PolygonMaterial, m_lightlayer),
+	//KX_PYATTRIBUTE_INT_RW("lightlayer", INT_MIN, INT_MAX, true, KX_PolygonMaterial, m_lightlayer),
 
 	KX_PYATTRIBUTE_BOOL_RW("transparent", KX_PolygonMaterial, m_alpha),
 	KX_PYATTRIBUTE_BOOL_RW("zsort", KX_PolygonMaterial, m_zsort),

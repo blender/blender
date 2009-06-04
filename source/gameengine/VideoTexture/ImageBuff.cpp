@@ -71,10 +71,9 @@ static PyObject * load (PyImage * self, PyObject * args)
 	short width;
 	short height;
 	// parse parameters
-	if (!PyArg_ParseTuple(args, "s#hh", &buff, &buffSize, &width, &height))
+	if (!PyArg_ParseTuple(args, "s#hh:load", &buff, &buffSize, &width, &height))
 	{
 		// report error
-		PyErr_SetString(PyExc_TypeError, "Parameters are not correct");
 		return NULL;
 	}
 	// else check buffer size

@@ -851,7 +851,7 @@ int BPY_run_script(Script *script)
 		pyarg = Py_None;
 	} else {
 		if (!BLI_exists(script->scriptname)) {
-			printf( "Script does not exit %s\n", script->scriptname );
+			printf( "Script does not exist %s\n", script->scriptname );
 			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
@@ -2780,7 +2780,11 @@ static PyObject *RunPython( Text * text, PyObject * globaldict )
 		}
 
 	}
-
+	
+	/* Without __file__ set the sys.argv[0] is used for the filename
+	 * which ends up with lines from the blender binary being printed in the console */
+	PyDict_SetItemString(globaldict, "__file__", PyString_FromString(text->id.name+2));
+	
 	return PyEval_EvalCode( text->compiled, globaldict, globaldict );
 }
 

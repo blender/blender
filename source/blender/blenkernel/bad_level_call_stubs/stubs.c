@@ -57,6 +57,7 @@ struct bConstraintOb;
 struct bConstraintTarget;
 struct ListBase;
 struct EditFace;
+struct LOD_Decimation_Info;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
@@ -160,7 +161,7 @@ void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTa
 void free_oops(struct Oops *oops){}
 void exit_posemode(int freedata){}
 void error(char *str, ...){}
-int okee(char *str, ...){}
+int okee(char *str, ...){return 1;}
 
 /* anim.c */
 ListBase editNurb;

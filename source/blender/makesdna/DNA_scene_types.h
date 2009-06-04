@@ -668,6 +668,7 @@ typedef struct Scene {
 #define R_STAMP_INFO		0x4000
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
+#define R_RECURS_PROTECTION     0x20000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001

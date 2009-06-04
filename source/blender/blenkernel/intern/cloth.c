@@ -157,7 +157,7 @@ BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
-	Cloth *cloth = clmd->clothObject;
+	Cloth *cloth;
 	ClothVertex *verts;
 	MFace *mfaces;
 	float co[12];
@@ -198,7 +198,7 @@ BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	unsigned int i;
 	BVHTree *bvhtree;
-	Cloth *cloth = clmd->clothObject;
+	Cloth *cloth;
 	ClothVertex *verts;
 	MFace *mfaces;
 	float co[12];
@@ -786,15 +786,14 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	int j = 0;
 	MDeformVert *dvert = NULL;
 	Cloth *clothObj = NULL;
-	int numverts = dm->getNumVerts ( dm );
+	int numverts;
 	float goalfac = 0;
 	ClothVertex *verts = NULL;
 
+	if (!clmd || !dm) return;
+
 	clothObj = clmd->clothObject;
 
-	if ( !dm )
-		return;
-	
 	numverts = dm->getNumVerts ( dm );
 
 	verts = clothObj->verts;

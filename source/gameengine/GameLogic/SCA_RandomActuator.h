@@ -91,6 +91,7 @@ class SCA_RandomActuator : public SCA_IActuator
 	virtual bool Update();
 	
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

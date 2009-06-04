@@ -61,11 +61,6 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_rendertools->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
-
-	m_initialvalues[0] = lightobj.m_red;
-	m_initialvalues[1] = lightobj.m_green;
-	m_initialvalues[2] = lightobj.m_blue;
-	m_initialvalues[3] = lightobj.m_energy;
 };
 
 
@@ -76,8 +71,6 @@ KX_LightObject::~KX_LightObject()
 	if((lamp = GetGPULamp())) {
 		float obmat[4][4] = {{0}};
 		GPU_lamp_update(lamp, 0, obmat);
-		GPU_lamp_update_colors(lamp, m_initialvalues[0], m_initialvalues[1],
-		m_initialvalues[2], m_initialvalues[3]);
 	}
 
 	m_rendertools->RemoveLight(&m_lightobj);

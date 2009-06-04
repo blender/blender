@@ -91,7 +91,7 @@ struct RAS_MeshObject::fronttoback
 STR_String RAS_MeshObject::s_emptyname = "";
 
 RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
-	: m_lightlayer(lightlayer),
+	: //m_lightlayer(lightlayer),
 	m_bModified(true),
 	m_bMeshModified(true),
 	m_mesh(mesh),
@@ -112,10 +112,10 @@ bool RAS_MeshObject::MeshModified()
 	return m_bMeshModified;
 }
 
-unsigned int RAS_MeshObject::GetLightLayer()
-{
-	return m_lightlayer;
-}
+//unsigned int RAS_MeshObject::GetLightLayer()
+//{
+//	return m_lightlayer;
+//}
 
 
 
@@ -382,15 +382,39 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 	return NULL;
 }
 
-void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head)
+void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer)
 {
 	list<RAS_MeshMaterial>::iterator it;
+	list<RAS_MeshMaterial>::iterator mit;
 
 	for(it = m_materials.begin();it!=m_materials.end();++it) {
 		/* always copy from the base slot, which is never removed 
 		 * since new objects can be created with the same mesh data */
+		if (deformer && !deformer->UseVertexArray())
+		{
+			// HACK! 
+			// this deformer doesn't use vertex array => derive mesh
+			// we must keep only the mesh slots that have unique material id
+			// this is to match the derived mesh drawing function
+			// Need a better solution in the future: scan the derive mesh and create vertex array
+			RAS_IPolyMaterial* curmat = it->m_bucket->GetPolyMaterial();
+			if (curmat->GetFlag() & RAS_BLENDERGLSL) 
+			{
+				for(mit = m_materials.begin(); mit != it; ++mit)
+				{
+					RAS_IPolyMaterial* mat = mit->m_bucket->GetPolyMaterial();
+					if ((mat->GetFlag() & RAS_BLENDERGLSL) && 
+						mat->GetMaterialIndex() == curmat->GetMaterialIndex())
+						// no need to convert current mesh slot
+						break;
+				}
+				if (mit != it)
+					continue;
+			}
+		}
 		RAS_MeshSlot *ms = it->m_bucket->CopyMesh(it->m_baseslot);
 		ms->m_clientObj = clientobj;
+		ms->SetDeformer(deformer);
 		it->m_slots.insert(clientobj, ms);
 		head->QAddBack(ms);
 	}

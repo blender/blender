@@ -2,12 +2,12 @@
 
 """
 Name: 'Autodesk DXF (.dxf .dwg)'
-Blender: 246
+Blender: 249
 Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.04.11 by migius'
+__version__ = '1.12 - 2009.05.27 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -111,7 +111,12 @@ History:
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
+ v1.12 - 2009.05.27 by migius
+ d6 todo: bugfix negative scaled INSERTs - isLeftHand(Matrix) check
 
+ v1.12 - 2009.05.26 by migius
+ d5 changed to the new 2.49 method Vector.cross()
+ d5 bugfix WORLDY(1,1,0) to (0,1,0)
  v1.12 - 2009.04.11 by migius
  d4 added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
  v1.12 - 2009.03.14 by migius
@@ -309,7 +314,7 @@ History:
 
 import Blender
 from Blender import Mathutils, BezTriple, Draw, Registry, sys,\
-Text3d, Window, Mesh, Material, Group
+Text3d, Window, Mesh, Material, Group, Curve
 #from Blender.Mathutils import Vector, Matrix
 #import bpy #not used yet
 #import BPyMessages
@@ -343,14 +348,12 @@ if os.name != 'mac':
 	except ImportError:
 		print 'psyco not imported'
 
-#try: Curve.orderU
-
 print '\n\n\n'
 print 'DXF/DWG-Importer v%s *** start ***' %(__version__)   #---------------------
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
-WORLDY = Mathutils.Vector((1,1,0))
+WORLDY = Mathutils.Vector((0,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
 
 G_SCALE = 1.0	   #(0.0001-1000) global scaling factor for all dxf data
@@ -392,7 +395,15 @@ ALIGN = BezTriple.HandleTypes.ALIGN
 
 UI_MODE = True #activates UI-popup-print, if not multiple files imported
 
-
+#TODO:---patch for pre2.49-------------
+if 0:
+	print Blender.Get('version')
+	#def Mathutil_CrossVecs(v1,v2):
+	az = Mathutils.Vector((0,0.5,0.4))
+	print dir(az)
+	ax = WORLDZ.cross(az)
+	print ax
+	
 #-------- DWG support ------------------------------------------
 extCONV_OK = True
 extCONV = 'DConvertCon.exe'
@@ -4419,11 +4430,14 @@ def getOCS(az):  #--------------------------------------------------------------
 
 	cap = 0.015625 # square polar cap value (1/64.0)
 	if abs(az.x) < cap and abs(az.y) < cap:
-		ax = Mathutils.CrossVecs(WORLDY, az)
+		#ax = Mathutils.CrossVecs(WORLDY, az) #for<2.49
+		ax = WORLDY.cross(az)
 	else:
-		ax = Mathutils.CrossVecs(WORLDZ, az)
+		#ax = Mathutils.CrossVecs(WORLDZ, az) #for<2.49
+		ax = WORLDZ.cross(az)
 	ax = ax.normalize()
-	ay = Mathutils.CrossVecs(az, ax)
+	#ay = Mathutils.CrossVecs(az, ax) #for<2.49
+	ay = az.cross(ax)
 	ay = ay.normalize()
 	return ax, ay, az
 
@@ -6155,19 +6169,22 @@ def multi_import(DIR):
 
 
 if __name__ == "__main__":
-	UI_MODE = True
-	# recall last used DXF-file and INI-file names
-	dxffilename = check_RegistryKey('dxfFileName')
-	#print 'deb:start dxffilename:', dxffilename #----------------
-	if dxffilename: dxfFileName.val = dxffilename
+	if 'cross' not in dir(Mathutils.Vector()):
+		Draw.PupMenu('DXF importer: Abort%t|This script version works for Blender up 2.49 only!')
 	else:
-		dirname = sys.dirname(Blender.Get('filename'))
-		#print 'deb:start dirname:', dirname #----------------
-		dxfFileName.val = sys.join(dirname, '')
-	inifilename = check_RegistryKey('iniFileName')
-	if inifilename: iniFileName.val = inifilename
+		UI_MODE = True
+		# recall last used DXF-file and INI-file names
+		dxffilename = check_RegistryKey('dxfFileName')
+		#print 'deb:start dxffilename:', dxffilename #----------------
+		if dxffilename: dxfFileName.val = dxffilename
+		else:
+			dirname = sys.dirname(Blender.Get('filename'))
+			#print 'deb:start dirname:', dirname #----------------
+			dxfFileName.val = sys.join(dirname, '')
+		inifilename = check_RegistryKey('iniFileName')
+		if inifilename: iniFileName.val = inifilename
 
-	Draw.Register(draw_UI, event, bevent)
+		Draw.Register(draw_UI, event, bevent)
 
 
 """

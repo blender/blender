@@ -198,33 +198,20 @@ bool SCA_JoystickSensor::Evaluate()
 	case KX_JOYSENSORMODE_HAT:
 		{
 		/* what is what!
-			numberof = m_hat  -- max 2
+			numberof = m_hat  -- max 4
 			direction= m_hatf -- max 12
 			*/
 			
 			if (!js->IsTrigHat() && !reset) /* No events from SDL? - dont bother */
 				return false;
 			
-			if(m_hat == 1){
-				if(js->aHatIsPositive(m_hatf)){
-					m_istrig = 1;
+			if((m_bAllEvents && js->GetHat(m_hat-1)) || js->aHatIsPositive(m_hat-1, m_hatf)) {
+				m_istrig = 1;
+				result = true;
+			}else{
+				if(m_istrig){
+					m_istrig = 0;
 					result = true;
-				}else{
-					if(m_istrig){
-						m_istrig = 0;
-						result = true;
-					}
-				}
-			}
-			if(m_hat == 2){
-				if(js->aHatIsPositive(m_hatf)){
-					m_istrig = 1;
-					result = true;
-				}else{
-					if(m_istrig){
-						m_istrig = 0;
-						result = true;
-					}
 				}
 			}
 			break;
@@ -331,6 +318,8 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	KX_PYATTRIBUTE_INT_LIST_RW_CHECK("hat",0,12,true,SCA_JoystickSensor,m_hat,2,CheckHat),
 	KX_PYATTRIBUTE_RO_FUNCTION("axisValues",	SCA_JoystickSensor, pyattr_get_axis_values),
 	KX_PYATTRIBUTE_RO_FUNCTION("axisSingle", SCA_JoystickSensor, pyattr_get_axis_single),
+	KX_PYATTRIBUTE_RO_FUNCTION("hatValues",	SCA_JoystickSensor, pyattr_get_hat_values),
+	KX_PYATTRIBUTE_RO_FUNCTION("hatSingle", SCA_JoystickSensor, pyattr_get_hat_single),
 	KX_PYATTRIBUTE_RO_FUNCTION("numAxis",		SCA_JoystickSensor, pyattr_get_num_axis),
 	KX_PYATTRIBUTE_RO_FUNCTION("numButtons",	SCA_JoystickSensor, pyattr_get_num_buttons),
 	KX_PYATTRIBUTE_RO_FUNCTION("numHats",		SCA_JoystickSensor, pyattr_get_num_hats),
@@ -403,6 +392,8 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* args ) {
 	}
 	m_axis = axis;
 	m_axisf = axisflag;
+	
+	CheckAxis((void *)this, NULL); /* clamp values */
 	Py_RETURN_NONE;
 }
 
@@ -544,6 +535,8 @@ PyObject* SCA_JoystickSensor::PySetHat( PyObject* args ) {
 	}
 	m_hat = hat;
 	m_hatf = hatflag;
+	
+	CheckHat((void *)this, NULL); /* clamp values */
 	Py_RETURN_NONE;
 }
 
@@ -615,6 +608,29 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 	}
 	
 	return PyInt_FromLong(joy->GetAxisPosition(self->m_axis-1));
+}
+
+PyObject* SCA_JoystickSensor::pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
+	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
+	
+	int hat_index= joy->GetNumberOfHats();
+	PyObject *list= PyList_New(hat_index);
+	
+	while(hat_index--) {
+		PyList_SET_ITEM(list, hat_index, PyInt_FromLong(joy->GetHat(hat_index)));
+	}
+	
+	return list;
+}
+
+PyObject* SCA_JoystickSensor::pyattr_get_hat_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
+	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
+	
+	return PyInt_FromLong(joy->GetHat(self->m_hat-1));
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

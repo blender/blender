@@ -104,7 +104,7 @@ public:
 	// return value = true if collision should be checked on pair of object
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
 	virtual bool	BroadPhaseSensorFilterCollision(void*obj1,void*obj2);
-	virtual sensortype GetSensorType() { return TOUCH; }
+	virtual sensortype GetSensorType() { return ST_TOUCH; }
   
 
 	virtual bool IsPositiveTrigger() {

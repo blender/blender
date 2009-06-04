@@ -109,7 +109,9 @@ PyObject * getWeight (PyImage * self, PyObject * args)
 	short weight = 0;
 	// get arguments
 	char * id;
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "s", &id))
+	if (!PyArg_ParseTuple(args, "s:getWeight", &id))
+		return NULL;
+	if (self->m_image != NULL)
 		// get weight
 		weight = getImageMix(self)->getWeight(id);
 	// return weight
@@ -123,7 +125,9 @@ PyObject * setWeight (PyImage * self, PyObject * args)
 	// get arguments
 	char * id;
 	short weight = 0;
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "sh", &id, &weight))
+	if (!PyArg_ParseTuple(args, "sh:setWeight", &id, &weight))
+		return NULL;
+	if (self->m_image != NULL)
 		// set weight
 		if (!getImageMix(self)->setWeight(id, weight))
 		{

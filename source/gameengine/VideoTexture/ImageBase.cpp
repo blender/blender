@@ -437,7 +437,9 @@ PyObject * Image_getSource (PyImage * self, PyObject * args)
 {
 	// get arguments
 	char * id;
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "s", &id))
+	if (!PyArg_ParseTuple(args, "s:getSource", &id))
+		return NULL;
+	if (self->m_image != NULL)
 	{
 		// get source object
 		PyObject * src = reinterpret_cast<PyObject*>(self->m_image->getSource(id));
@@ -460,7 +462,9 @@ PyObject * Image_setSource (PyImage * self, PyObject * args)
 	// get arguments
 	char * id;
 	PyObject * obj;
-	if (self->m_image != NULL && PyArg_ParseTuple(args, "sO", &id, &obj))
+	if (!PyArg_ParseTuple(args, "sO:setSource", &id, &obj))
+		return NULL;
+	if (self->m_image != NULL)
 	{
 		// check type of object
 		if (pyImageTypes.in(obj->ob_type))
