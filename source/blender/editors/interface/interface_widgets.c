@@ -1951,7 +1951,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	cpoin= strchr(name, '|');
 	if(cpoin) {
 		*cpoin= 0;
-		rect->xmax -= BLF_width(cpoin+1) -10;
+		rect->xmax -= BLF_width(cpoin+1) + 10;
 	}
 	
 	glColor3ubv(wt->wcol.text);

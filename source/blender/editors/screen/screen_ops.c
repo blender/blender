@@ -608,18 +608,25 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *newsc, *sc;
 	ScrArea *sa;
 	rcti rect;
-	sActionzoneData *sad= event->customdata;
-
-	if(sad==NULL)
-		return OPERATOR_PASS_THROUGH;
 	
 	win= CTX_wm_window(C);
 	sc= CTX_wm_screen(C);
-	sa= sad->sa1;
+	sa= CTX_wm_area(C);
+	
+	/* XXX hrmf! */
+	if(event->type==EVT_ACTIONZONE_AREA) {
+		sActionzoneData *sad= event->customdata;
 
+		if(sad==NULL)
+			return OPERATOR_PASS_THROUGH;
+	
+		sa= sad->sa1;
+	}
+	
 	/*  poll() checks area context, but we don't accept full-area windows */
 	if(sc->full != SCREENNORMAL) {
-		actionzone_exit(C, op);
+		if(event->type==EVT_ACTIONZONE_AREA)
+			actionzone_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -638,7 +645,8 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* screen, areas init */
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 
-	actionzone_exit(C, op);
+	if(event->type==EVT_ACTIONZONE_AREA)
+		actionzone_exit(C, op);
 	
 	return OPERATOR_FINISHED;
 }
