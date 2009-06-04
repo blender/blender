@@ -156,7 +156,6 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 		sfilen->params= MEM_dupallocN(sfileo->params);
 	
 		filelist_setdir(sfilen->files, sfilen->params->dir);
-		filelist_settype(sfilen->files, sfilen->params->type);
 	}
 	if (sfileo->layout) {
 		sfilen->layout= MEM_dupallocN(sfileo->layout);
@@ -193,7 +192,6 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	if (!sfile->files) {
 		sfile->files = filelist_new();
 		filelist_setdir(sfile->files, params->dir);
-		filelist_settype(sfile->files, params->type);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 
