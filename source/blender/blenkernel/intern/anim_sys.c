@@ -678,14 +678,10 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	NlaEvalStrip *nes;
 	short side= 0;
 	
-	/* skip if track is muted or disabled */
-	if (nlt->flag & (NLATRACK_MUTED|NLATRACK_DISABLED)) 
-		return;
-	
 	/* loop over strips, checking if they fall within the range */
 	for (strip= nlt->strips.first; strip; strip= strip->next) {
 		/* check if current time occurs within this strip  */
-		if (IN_RANGE(ctime, strip->start, strip->end)) {
+		if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
 			/* this strip is active, so try to use it */
 			estrip= strip;
 			side= NES_TIME_WITHIN;
@@ -1013,8 +1009,21 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	NlaEvalStrip *nes;
 	
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
-	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) 
+	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) { 
+		/* if tweaking is on and this strip is the tweaking track, stop on this one */
+		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED))
+			break;
+			
+		/* skip if we're only considering a track tagged 'solo' */
+		if ((adt->flag & ADT_NLA_SOLO_TRACK) && (nlt->flag & NLATRACK_SOLO)==0)
+			continue;
+		/* skip if track is muted */
+		if (nlt->flag & NLATRACK_MUTED) 
+			continue;
+			
+		/* otherwise, get strip to evaluate for this channel */
 		nlatrack_ctime_get_strip(&estrips, nlt, track_index, ctime);
+	}
 	
 	/* only continue if there are strips to evaluate */
 	if (estrips.first == NULL)
@@ -1114,12 +1123,17 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{
+			/* evaluate NLA-stack */
 			animsys_evaluate_nla(&id_ptr, adt, ctime);
+			
+			/* evaluate 'active' Action (may be tweaking track) on top of results of NLA-evaluation 
+			 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+			 */
+			if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK))
+				animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
 		}
-		
-		/* evaluate Action data */
-		// FIXME: what if the solo track was not tweaking one, then nla-solo should be checked too?
-		if (adt->action) 
+		/* evaluate Active Action only */
+		else if (adt->action)
 			animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
 		
 		/* reset tag */

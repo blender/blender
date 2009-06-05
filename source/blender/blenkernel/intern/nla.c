@@ -359,6 +359,38 @@ NlaTrack *BKE_nlatrack_find_active (ListBase *tracks)
 	return NULL;
 }
 
+/* Toggle the 'solo' setting for the given NLA-track, making sure that it is the only one
+ * that has this status in its AnimData block.
+ */
+void BKE_nlatrack_solo_toggle (AnimData *adt, NlaTrack *nlt)
+{
+	NlaTrack *nt;
+	
+	/* sanity check */
+	if ELEM(NULL, adt, adt->nla_tracks.first)
+		return;
+		
+	/* firstly, make sure 'solo' flag for all tracks is disabled */
+	for (nt= adt->nla_tracks.first; nt; nt= nt->next) {
+		if (nt != nlt)
+			nt->flag &= ~NLATRACK_SOLO;
+	}
+		
+	/* now, enable 'solo' for the given track if appropriate */
+	if (nlt) {
+		/* toggle solo status */
+		nlt->flag ^= NLATRACK_SOLO;
+		
+		/* set or clear solo-status on AnimData */
+		if (nlt->flag & NLATRACK_SOLO)
+			adt->flag |= ADT_NLA_SOLO_TRACK;
+		else
+			adt->flag &= ~ADT_NLA_SOLO_TRACK;
+	}
+	else
+		adt->flag &= ~ADT_NLA_SOLO_TRACK;
+}
+
 /* Make the given NLA-track the active one for the given stack. If no track is provided, 
  * this function can be used to simply deactivate all the NLA tracks in the given stack too.
  */

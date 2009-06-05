@@ -326,6 +326,19 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 		case ANIMTYPE_NLATRACK:
 		{
 			NlaTrack *nlt= (NlaTrack *)ale->data;
+			AnimData *adt= BKE_animdata_from_id(ale->id);
+			short offset;
+			
+			/* offset for start of channel (on LHS of channel-list) */
+			if (ale->id) {
+				/* special exception for materials */
+				if (GS(ale->id->name) == ID_MA)
+					offset= 21 + NLACHANNEL_BUTTON_WIDTH;
+				else
+					offset= 14;
+			}
+			else
+				offset= 0;
 			
 			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection (only if there's a toggle there) */
@@ -334,6 +347,10 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			else if (x >= (NLACHANNEL_NAMEWIDTH-2*NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				nlt->flag ^= NLATRACK_MUTED;
+			}
+			else if (x <= ((NLACHANNEL_BUTTON_WIDTH*2)+offset)) {
+				/* toggle 'solo' */
+				BKE_nlatrack_solo_toggle(adt, nlt);
 			}
 			else {
 				/* set selection */
@@ -359,7 +376,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			
 			/* for now, only do something if user clicks on the 'push-down' button */
 			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
-				/* activate push-down operator */
+				/* activate push-down function */
 				// TODO: make this use the operator instead of calling the function directly
 				// 	however, calling the operator requires that we supply the args, and that works with proper buttons only
 				BKE_nla_action_pushdown(adt);

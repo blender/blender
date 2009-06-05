@@ -199,7 +199,7 @@ void NLAEDIT_OT_select_all_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= nlaedit_deselectall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -441,7 +441,7 @@ void NLAEDIT_OT_click_select (wmOperatorType *ot)
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= nlaedit_clickselect_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

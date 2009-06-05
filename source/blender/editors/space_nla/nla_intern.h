@@ -30,6 +30,9 @@
 
 /* internal exports only */
 
+/* **************************************** */
+/* Macros, etc. only used by NLA */
+
 /* -------------- NLA Channel Defines -------------- */
 
 /* NLA channel heights */
