@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -30,6 +31,7 @@
 #include "rna_internal.h"
 
 #include "DNA_customdata_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
@@ -42,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 
 static void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
@@ -174,7 +177,7 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Material, give_current_material(ob, ob->actcol));
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialSlot, ob->mat+ob->actcol);
 }
 
 #if 0
@@ -186,20 +189,75 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 }
 #endif
 
-static int rna_Object_active_material_link_get(PointerRNA *ptr)
+static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return (ob->colbits & 1<<(ob->actcol)) != 0;
+	Material *ma;
+	int index= (Material**)ptr->data - ob->mat;
+
+	ma= give_current_material(ob, index+1);
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
-static void rna_Object_active_material_link_set(PointerRNA *ptr, int value)
+static void rna_MaterialSlot_material_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob= (Object*)ptr->id.data;
+	int index= (Material**)ptr->data - ob->mat;
+
+	assign_material(ob, value.data, index+1);
+}
+
+static int rna_MaterialSlot_link_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	int index= (Material**)ptr->data - ob->mat;
+
+	return (ob->colbits & (1<<index)) != 0;
+}
+
+static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	int index= (Material**)ptr->data - ob->mat;
 	
 	if(value)
-		ob->colbits |= (1<<(ob->actcol));
+		ob->colbits |= (1<<index);
 	else
-		ob->colbits &= ~(1<<(ob->actcol));
+		ob->colbits &= ~(1<<index);
+}
+
+static int rna_MaterialSlot_name_length(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Material *ma;
+	int index= (Material**)ptr->data - ob->mat;
+
+	ma= give_current_material(ob, index+1);
+
+	if(ma)
+		return strlen(ma->id.name+2) + 10;
+	
+	return 10;
+}
+
+static void rna_MaterialSlot_name_get(PointerRNA *ptr, char *str)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Material *ma;
+	int index= (Material**)ptr->data - ob->mat;
+
+	sprintf(str, "%d: ", index+1);
+
+	ma= give_current_material(ob, index+1);
+	if(ma)
+		strcat(str, ma->id.name+2);
+}
+
+static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ParticleSystem *psys= psys_get_current(ob);
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, psys);
 }
 
 static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
@@ -255,6 +313,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VertexGroup", NULL);
 	RNA_def_struct_sdna(srna, "bDeformGroup");
 	RNA_def_struct_ui_text(srna, "Vertex Group", "Group of vertices, used for armature deform and other purposes.");
+	RNA_def_struct_ui_icon(srna, ICON_GROUP_VERTEX);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name.");
@@ -264,6 +323,42 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_VertexGroup_index_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex group.");
+}
+
+static void rna_def_material_slot(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem link_items[] = {
+		{0, "DATA", "Data", ""},
+		{1, "OBJECT", "Object", ""},
+		{0, NULL, NULL, NULL}};
+	
+	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
+	 * pointer data points to ob->mat + index, and we manually implement
+	 * get/set for the properties. */
+
+	srna= RNA_def_struct(brna, "MaterialSlot", NULL);
+	RNA_def_struct_ui_text(srna, "Material Slot", "Material slot in an object.");
+	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
+
+	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set");
+	RNA_def_property_ui_text(prop, "Material", "Material datablock used by this material slot.");
+
+	prop= RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, link_items);
+	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
+	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data.");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_MaterialSlot_name_get", "rna_MaterialSlot_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Material slot name.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_name_property(srna, prop);
 }
 
 static void rna_def_object_game_settings(BlenderRNA *brna)
@@ -293,6 +388,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_nested(brna, srna, "Object");
 	RNA_def_struct_ui_text(srna, "Game Object Settings", "Game engine related settings for the object.");
+	RNA_def_struct_ui_icon(srna, ICON_GAME);
 
 	/* logic */
 
@@ -498,11 +594,6 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_POLYH, "POLYHEDER", "Polyheder", ""},
 		{0, NULL, NULL, NULL}};
 
-	static EnumPropertyItem material_link_items[] = {
-		{0, "DATA", "Data", ""},
-		{1, "OBJECT", "Object", ""},
-		{0, NULL, NULL, NULL}};
-
 	static EnumPropertyItem dupli_items[] = {
 		{0, "NONE", "None", ""},
 		{OB_DUPLIFRAMES, "FRAMES", "Frames", "Make copy of object for every frame."},
@@ -514,6 +605,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
+	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
@@ -579,26 +671,21 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proxy Group", "Library group duplicator object this proxy object controls.");
 
 	/* materials */
-
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_struct_type(prop, "MaterialSlot");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0); /* don't dereference pointer! */
+	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_struct_type(prop, "MaterialSlot");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL);
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
 
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Object_active_material_index_range");
-	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material.");
-
-	prop= RNA_def_property(srna, "active_material_link", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, material_link_items);
-	RNA_def_property_enum_funcs(prop, "rna_Object_active_material_link_get", "rna_Object_active_material_link_set", NULL);
-	RNA_def_property_ui_text(prop, "Active Material Link", "Use material from object or data for the active material.");
+	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot.");
 
 	/* transform */
 
@@ -719,6 +806,11 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "particlesystem", NULL);
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object.");
+
+	prop= RNA_def_property(srna, "active_particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL);
+	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
 
 	/* restrict */
 
@@ -955,6 +1047,7 @@ void RNA_def_object(BlenderRNA *brna)
 	rna_def_object(brna);
 	rna_def_object_game_settings(brna);
 	rna_def_vertex_group(brna);
+	rna_def_material_slot(brna);
 }
 
 #endif

@@ -225,7 +225,8 @@ int ED_operator_uvedit(bContext *C)
 		return 1;
 	}
 
-	BKE_mesh_end_editmesh(obedit->data, em);
+	if(obedit)
+		BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 
@@ -242,7 +243,8 @@ int ED_operator_uvmap(bContext *C)
 		return 1;
 	}
 
-	BKE_mesh_end_editmesh(obedit->data, em);
+	if(obedit)
+		BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 
@@ -606,18 +608,25 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *newsc, *sc;
 	ScrArea *sa;
 	rcti rect;
-	sActionzoneData *sad= event->customdata;
-
-	if(sad==NULL)
-		return OPERATOR_PASS_THROUGH;
 	
 	win= CTX_wm_window(C);
 	sc= CTX_wm_screen(C);
-	sa= sad->sa1;
+	sa= CTX_wm_area(C);
+	
+	/* XXX hrmf! */
+	if(event->type==EVT_ACTIONZONE_AREA) {
+		sActionzoneData *sad= event->customdata;
 
+		if(sad==NULL)
+			return OPERATOR_PASS_THROUGH;
+	
+		sa= sad->sa1;
+	}
+	
 	/*  poll() checks area context, but we don't accept full-area windows */
 	if(sc->full != SCREENNORMAL) {
-		actionzone_exit(C, op);
+		if(event->type==EVT_ACTIONZONE_AREA)
+			actionzone_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -636,7 +645,8 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* screen, areas init */
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 
-	actionzone_exit(C, op);
+	if(event->type==EVT_ACTIONZONE_AREA)
+		actionzone_exit(C, op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1970,37 +1980,6 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void testfunc(bContext *C, void *argv, int arg)
-{
-	printf("arg %d\n", arg);
-}
-
-static void newlevel1(bContext *C, uiLayout *layout, void *arg)
-{
-	uiLayoutSetFunc(layout, testfunc, NULL);
-	
-	uiItemV(layout, "First", ICON_PROP_ON, 1);
-	uiItemV(layout, "Second", ICON_PROP_CON, 2);
-	uiItemV(layout, "Third", ICON_SMOOTHCURVE, 3);
-	uiItemV(layout, "Fourth", ICON_SHARPCURVE, 4);	
-}
-
-static int testing123(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Hello world", 0);
-	uiLayout *layout= uiPupMenuLayout(pup);
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemO(layout, NULL, ICON_PROP_ON, "SCREEN_OT_region_flip");
-	uiItemO(layout, NULL, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
-	uiItemO(layout, NULL, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
-	uiItemMenuF(layout, "Submenu", 0, newlevel1);
-	
-	uiPupMenuEnd(C, pup);
-	
-	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
-}
 
 void SCREEN_OT_region_flip(wmOperatorType *ot)
 {
@@ -2009,13 +1988,10 @@ void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_flip";
 	
 	/* api callbacks */
-	ot->invoke= testing123; // XXX WM_operator_confirm;
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
 	ot->flag= OPTYPE_REGISTER;
-	
-	RNA_def_int(ot->srna, "test", 0, INT_MIN, INT_MAX, "test", "", INT_MIN, INT_MAX);
 
 }
 

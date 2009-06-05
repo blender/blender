@@ -107,8 +107,6 @@ BF_SOLID_LIB = 'extern_solid'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-WITH_BF_YAFRAY = True
-
 WITH_BF_BINRELOC = False
 
 #WITH_BF_NSPR = True

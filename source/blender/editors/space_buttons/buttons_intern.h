@@ -31,20 +31,7 @@
 struct ARegion;
 struct ARegionType;
 struct bContext;
-
-/* warning: the values of these defines are used in sbuts->tabs[8] */
-/* buts->mainb new */
-#define BCONTEXT_SCENE		0
-#define BCONTEXT_WORLD		1
-#define BCONTEXT_OBJECT		2
-#define BCONTEXT_DATA		3
-#define BCONTEXT_MATERIAL	4
-#define BCONTEXT_TEXTURE	5
-#define BCONTEXT_PARTICLE	6
-#define BCONTEXT_PHYSICS	7
-#define BCONTEXT_GAME		8
-#define BCONTEXT_BONE		9
-#define BCONTEXT_MODIFIER	10
+struct bContextDataResult;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -61,8 +48,13 @@ struct bContext;
 
 /* internal exports only */
 
-/* image_header.c */
+/* buttons_header.c */
 void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
+
+/* buttons_context.c */
+void buttons_context_compute(const struct bContext *C, SpaceButs *sbuts);
+int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
+void buttons_context_register(struct ARegionType *art);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

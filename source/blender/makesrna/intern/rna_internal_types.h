@@ -265,6 +265,8 @@ struct StructRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 	
 	/* property that defines the name */
 	PropertyRNA *nameproperty;

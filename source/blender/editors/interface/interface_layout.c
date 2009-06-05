@@ -115,6 +115,7 @@ typedef enum uiItemType {
 typedef struct uiItem {
 	void *next, *prev;
 	uiItemType type;
+	int flag;
 } uiItem;
 
 typedef struct uiButtonItem {
@@ -130,7 +131,7 @@ struct uiLayout {
 	ListBase items;
 
 	int x, y, w, h;
-	float scale;
+	float scale[2];
 	short space;
 	char align;
 	char active;
@@ -177,26 +178,29 @@ static char *ui_item_name_add_colon(char *name, char namestr[UI_MAX_NAME_STR])
 	return name;
 }
 
-#define UI_FIT_EXPAND 1
-
-static int ui_item_fit(int item, int pos, int all, int available, int spacing, int last, int flag)
+static int ui_item_fit(int item, int pos, int all, int available, int last, int alignment, int *offset)
 {
 	/* available == 0 is unlimited */
-
-	if(available != 0 && all > available-spacing) {
+	if(available == 0)
+		return item;
+	
+	if(offset)
+		*offset= 0;
+	
+	if(all > available) {
 		/* contents is bigger than available space */
 		if(last)
 			return available-pos;
 		else
-			return (item*(available-spacing))/all;
+			return (item*available)/all;
 	}
 	else {
 		/* contents is smaller or equal to available space */
-		if(available != 0 && (flag & UI_FIT_EXPAND)) {
+		if(alignment == UI_LAYOUT_ALIGN_EXPAND) {
 			if(last)
 				return available-pos;
 			else
-				return (item*(available-spacing))/all;
+				return (item*available)/all;
 		}
 		else
 			return item;
@@ -209,7 +213,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int spacing, i
 
 static int ui_layout_vary_direction(uiLayout *layout)
 {
-	return (layout->root->type == UI_LAYOUT_HEADER)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
+	return (layout->root->type == UI_LAYOUT_HEADER || layout->alignment != UI_LAYOUT_ALIGN_EXPAND)? UI_ITEM_VARY_X: UI_ITEM_VARY_Y;
 }
 
 /* estimated size of text + icon */
@@ -220,9 +224,9 @@ static int ui_text_icon_width(uiLayout *layout, char *name, int icon)
 	if(icon && strcmp(name, "") == 0)
 		return UI_UNIT_X; /* icon only */
 	else if(icon)
-		return (variable)? UI_GetStringWidth(name) + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
+		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
 	else
-		return (variable)? UI_GetStringWidth(name) + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
+		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -655,9 +659,6 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(ELEM(type, PROP_STRING, PROP_ENUM))
-		w += 10*UI_UNIT_X;
-
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
 		if(strcmp(name, "") == 0 && icon == 0)
@@ -1033,14 +1034,22 @@ static void ui_litem_estimate_row(uiLayout *litem)
 	}
 }
 
+static int ui_litem_min_width(int itemw)
+{
+	return MIN2(UI_UNIT_X, itemw);
+}
+
 static void ui_litem_layout_row(uiLayout *litem)
 {
 	uiItem *item;
-	int neww, itemw, itemh, x, y, w, tot= 0, totw= 0, extra=0, available=0;
+	int x, y, w, tot, totw, neww, itemw, minw, itemh, offset;
+	int fixedw, freew, fixedx, freex, flag= 0, lastw= 0;
 
 	x= litem->x;
 	y= litem->y;
 	w= litem->w;
+	totw= 0;
+	tot= 0;
 
 	for(item=litem->items.first; item; item=item->next) {
 		ui_item_size(item, &itemw, &itemh);
@@ -1051,40 +1060,81 @@ static void ui_litem_layout_row(uiLayout *litem)
 	if(totw == 0)
 		return;
 	
-	/* two step to enforce minimum button with .. could be better */
-	for(item=litem->items.first; item; item=item->next) {
-		ui_item_size(item, &itemw, &itemh);
+	if(w != 0)
+		w -= (tot-1)*litem->space;
+	fixedw= 0;
 
-		itemw= ui_item_fit(itemw, x-litem->x, totw, w, (tot-1)*litem->space, !item->next, UI_FIT_EXPAND);
-		x += itemw;
+	/* keep clamping items to fixed minimum size until all are done */
+	do {
+		freew= 0;
+		x= 0;
+		flag= 0;
 
-		if(itemw < UI_UNIT_X)
-			extra += UI_UNIT_X - itemw;
-		else
-			available += itemw - UI_UNIT_X;
+		for(item=litem->items.first; item; item=item->next) {
+			if(item->flag)
+				continue;
 
-		if(item->next)
-			x += litem->space;
-	}
+			ui_item_size(item, &itemw, &itemh);
+			minw= ui_litem_min_width(itemw);
 
+			if(w - lastw > 0)
+				neww= ui_item_fit(itemw, x, totw, w-lastw, !item->next, litem->alignment, NULL);
+			else
+				neww= 0; /* no space left, all will need clamping to minimum size */
+
+			x += neww;
+
+			if(neww < minw && w != 0) {
+				/* fixed size */
+				item->flag= 1;
+				fixedw += minw;
+				flag= 1;
+				totw -= itemw;
+			}
+			else {
+				/* keep free size */
+				item->flag= 0;
+				freew += itemw;
+			}
+		}
+
+		lastw= fixedw;
+	} while(flag);
+
+	freex= 0;
+	fixedx= 0;
 	x= litem->x;
 
 	for(item=litem->items.first; item; item=item->next) {
 		ui_item_size(item, &itemw, &itemh);
+		minw= ui_litem_min_width(itemw);
 
-		neww= ui_item_fit(itemw, x-litem->x, totw, w, (tot-1)*litem->space, !item->next, UI_FIT_EXPAND);
-		if(neww < UI_UNIT_X) {
-			if(item->next)
-				itemw= UI_UNIT_X;
-			else
-				itemw= litem->w - (x-litem->x);
+		if(item->flag) {
+			/* fixed minimum size items */
+			itemw= ui_item_fit(minw, fixedx, fixedw, MIN2(w, fixedw), !item->next, litem->alignment, NULL);
+			fixedx += itemw;
 		}
-		else
-			itemw= ui_item_fit(itemw, x-litem->x, totw, w-extra, (tot-1)*litem->space, !item->next, UI_FIT_EXPAND);
+		else {
+			/* free size item */
+			itemw= ui_item_fit(itemw, freex, freew, w-fixedw, !item->next, litem->alignment, NULL);
+			freex += itemw;
+		}
 
-		ui_item_position(item, x, y-itemh, itemw, itemh);
+		/* align right/center */
+		offset= 0;
+		if(litem->alignment == UI_LAYOUT_ALIGN_RIGHT) {
+			if(fixedw == 0 && freew < w-fixedw)
+				offset= (w - fixedw) - freew;
+		}
+		else if(litem->alignment == UI_LAYOUT_ALIGN_CENTER) {
+			if(fixedw == 0 && freew < w-fixedw)
+				offset= ((w - fixedw) - freew)/2;
+		}
+
+		/* position item */
+		ui_item_position(item, x+offset, y-itemh, itemw, itemh);
+
 		x += itemw;
-
 		if(item->next)
 			x += litem->space;
 	}
@@ -1263,7 +1313,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 	uiLayoutItemFlow *flow= (uiLayoutItemFlow*)litem;
 	uiItem *item;
 	int col, x, y, w, emh, emy, miny, itemw, itemh;
-	int toth, totitem;
+	int toth, totitem, offset;
 
 	/* compute max needed width and total height */
 	toth= 0;
@@ -1280,18 +1330,18 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 	emy= 0;
 	miny= 0;
 
-	w= litem->w;
+	w= litem->w - (flow->totcol-1)*style->columnspace;
 	emh= toth/flow->totcol;
 
 	/* create column per column */
 	col= 0;
 	for(item=litem->items.first; item; item=item->next) {
 		ui_item_size(item, NULL, &itemh);
-		itemw= ui_item_fit(1, x-litem->x, flow->totcol, w, (flow->totcol-1)*style->columnspace, col == flow->totcol-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, x-litem->x, flow->totcol, w, col == flow->totcol-1, litem->alignment, &offset);
 	
 		y -= itemh;
 		emy -= itemh;
-		ui_item_position(item, x, y, itemw, itemh);
+		ui_item_position(item, x+offset, y, itemw, itemh);
 		y -= style->buttonspacey;
 		miny= MIN2(miny, y);
 
@@ -1578,9 +1628,14 @@ void uiLayoutSetAlignment(uiLayout *layout, int alignment)
 	layout->alignment= alignment;
 }
 
-void uiLayoutSetScale(uiLayout *layout, float scale)
+void uiLayoutSetScaleX(uiLayout *layout, float scale)
 {
-	layout->scale= scale;
+	layout->scale[0]= scale;
+}
+
+void uiLayoutSetScaleY(uiLayout *layout, float scale)
+{
+	layout->scale[1]= scale;
 }
 
 int uiLayoutGetActive(uiLayout *layout)
@@ -1608,12 +1663,40 @@ int uiLayoutGetAlignment(uiLayout *layout)
 	return layout->alignment;
 }
 
-float uiLayoutGetScale(uiLayout *layout)
+float uiLayoutGetScaleX(uiLayout *layout)
 {
-	return layout->scale;
+	return layout->scale[0];
+}
+
+float uiLayoutGetScaleY(uiLayout *layout)
+{
+	return layout->scale[0];
 }
 
 /********************** Layout *******************/
+
+static void ui_item_scale(uiLayout *litem, float scale[2])
+{
+	uiItem *item;
+	int x, y, w, h;
+
+	for(item=litem->items.last; item; item=item->prev) {
+		ui_item_size(item, &w, &h);
+		ui_item_offset(item, &x, &y);
+
+		if(scale[0] != 0.0f) {
+			x *= scale[0];
+			w *= scale[0];
+		}
+
+		if(scale[1] != 0.0f) {
+			y *= scale[1];
+			h *= scale[1];
+		}
+
+		ui_item_position(item, x, y, w, h);
+	}
+}
 
 static void ui_item_estimate(uiItem *item)
 {
@@ -1627,6 +1710,9 @@ static void ui_item_estimate(uiItem *item)
 
 		if(litem->items.first == NULL)
 			return;
+
+		if(litem->scale[0] != 0.0f || litem->scale[1] != 0.0f)
+			ui_item_scale(litem, litem->scale);
 
 		switch(litem->item.type) {
 			case ITEM_LAYOUT_COLUMN:

@@ -77,7 +77,8 @@ typedef enum {
 	UI_WTYPE_ICON,
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
-	UI_WTYPE_NORMAL
+	UI_WTYPE_NORMAL,
+	UI_WTYPE_BOX
 	
 } uiWidgetTypeEnum;
 
@@ -163,6 +164,7 @@ struct uiBut {
 	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
+	void *func_arg3;
 
 	uiButHandleNFunc funcN;
 	void *func_argN;
@@ -174,6 +176,9 @@ struct uiBut {
 
 	uiButCompleteFunc autocomplete_func;
 	void *autofunc_arg;
+	
+	uiButSearchFunc search_func;
+	void *search_arg;
 	
 	uiLink *link;
 	
@@ -350,6 +355,13 @@ uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void 
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
+/* searchbox for string button */
+ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
+void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but);
+void ui_searchbox_event(struct ARegion *ar, struct wmEvent *event);
+void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
+void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
+
 typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
 uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
@@ -388,10 +400,14 @@ extern int ui_button_is_active(struct ARegion *ar);
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+
 extern void ui_draw_but(ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 		/* theme color init */
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
+
+void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int state);
 
 /* interface_style.c */
 void uiStyleInit(void);

@@ -63,6 +63,7 @@
 #define B_SORTIMASELLIST 1
 #define B_RELOADIMASELDIR 2
 #define B_FILTERIMASELDIR 3
+#define B_HIDEDOTFILES 4
 
 /* ************************ header area region *********************** */
 
@@ -88,6 +89,14 @@ static void do_file_header_buttons(bContext *C, void *arg, int event)
 				}
 			}
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
+			break;
+		case B_HIDEDOTFILES:
+			if(sfile->params) {
+				filelist_free(sfile->files);
+				filelist_hidedot(sfile->files, sfile->params->flag & FILE_HIDE_DOT);
+				WM_event_add_notifier(C, NC_WINDOW, NULL);
+			}
+			break;
 	}
 }
 
@@ -126,15 +135,14 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 
 	xco += 5;
 	
-	if (sfile->params->type != FILE_MAIN) {
-		uiBlockBeginAlign(block);
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_SHORTDISPLAY, 0, 0, "Displays short file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_LONGDISPLAY, 0, 0, "Displays long file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_IMGDISPLAY, 0, 0, "Displays files as thumbnails");
-		uiBlockEndAlign(block);
-		
-		xco+=XIC;
-	}
+	uiBlockBeginAlign(block);
+	uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_SHORTDISPLAY, 0, 0, "Displays short file description");
+	uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_LONGDISPLAY, 0, 0, "Displays long file description");
+	uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_IMGDISPLAY, 0, 0, "Displays files as thumbnails");
+	uiBlockEndAlign(block);
+	
+	xco+=XIC;
+
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC, yco, XIC,YIC, &params->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
@@ -144,17 +152,8 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	xco+=XIC;
-
-	/* replace with consistent sub-region collapsing
-	if (sfile->params->type != FILE_MAIN) {
-		uiBlockBeginAlign(block);
-		// uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
-		uiDefIconButO(block, TOG, "FILE_OT_bookmark_toggle", WM_OP_INVOKE_DEFAULT, ICON_BOOKMARKS, xco+XIC,yco,20,20, "Toggle Bookmarks");
-		uiBlockEndAlign(block);
-		xco+=XIC;
-	}
-	 */
-	
+	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_HIDEDOTFILES, ICON_GHOST,xco+=XIC,yco,XIC,YIC, &params->flag, 0, 0, 0, 0, "Hide dot files");
+	xco+=XIC;
 	uiDefIconButBitS(block, TOG, FILE_FILTER, B_FILTERIMASELDIR, ICON_FILTER,xco+=XIC,yco,XIC,YIC, &params->flag, 0, 0, 0, 0, "Filter files");
 
 	if (params->flag & FILE_FILTER) {

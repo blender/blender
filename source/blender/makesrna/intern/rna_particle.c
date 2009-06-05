@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "limits.h"
@@ -33,6 +34,7 @@
 
 #include "DNA_particle_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -86,6 +88,29 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 	return settings->draw_line[1];
 }
+
+static int rna_ParticleSystem_name_length(PointerRNA *ptr)
+{
+	ParticleSystem *psys= ptr->data;
+
+	if(psys->part)
+		return strlen(psys->part->id.name+2) + 10;
+	
+	return 10;
+}
+
+static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
+{
+	Object *ob= ptr->id.data;
+	ParticleSystem *psys= ptr->data;
+	int index= BLI_findindex(&ob->particlesystem, psys);
+
+	sprintf(str, "%d: ", index+1);
+
+	if(psys->part)
+		strcat(str, psys->part->id.name+2);
+}
+
 #else
 
 static void rna_def_particle_hair_key(BlenderRNA *brna)
@@ -435,6 +460,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ParticleSettings", "ID");
 	RNA_def_struct_ui_text(srna, "Particle Settings", "Particle settings, reusable by multiple particle systems.");
+	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	/* flag */
 	prop= RNA_def_property(srna, "react_start_end", PROP_BOOLEAN, PROP_NONE);
@@ -838,10 +864,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	//float rt; TODO:find where rt is used - can't find it in UI
 
-	prop= RNA_def_property(srna, "total_particles", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "totpart");
 	RNA_def_property_range(prop, 0, 100000);
-	RNA_def_property_ui_text(prop, "Particle Amount", "The total number of particles.");
+	RNA_def_property_ui_text(prop, "Amount", "Total number of particles.");
 
 	prop= RNA_def_property(srna, "userjit", PROP_INT, PROP_UNSIGNED);//TODO: can we get a better name for userjit?
 	RNA_def_property_int_sdna(prop, NULL, "userjit");
@@ -1175,6 +1201,13 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ParticleSystem", NULL);
 	RNA_def_struct_ui_text(srna, "Particle System", "Particle system in an object.");
+	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleSystem_name_get", "rna_ParticleSystem_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Particle system name.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "part");

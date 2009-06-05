@@ -444,13 +444,11 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int colorid = 0;
 	short sx, sy;
 	int offset;
-	short type;
 	int i;
 	float sw, spos;
 
 	numfiles = filelist_numfiles(files);
-	type = filelist_gettype(files);	
-
+	
 	sx = ar->v2d.tot.xmin + layout->tile_border_x/2;
 	sy = ar->v2d.cur.ymax - layout->tile_border_y;
 

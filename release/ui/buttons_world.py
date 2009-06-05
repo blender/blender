@@ -7,7 +7,7 @@ class WorldButtonsPanel(bpy.types.Panel):
 	__context__ = "world"
 
 	def poll(self, context):
-		return (context.scene.world != None)
+		return (context.world != None)
 
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
@@ -15,14 +15,14 @@ class WORLD_PT_preview(WorldButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		world = context.scene.world
+		world = context.world
 		layout.template_preview(world)
 	
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
 
 	def draw(self, context):
-		world = context.scene.world
+		world = context.world
 		layout = self.layout
 		
 		row = layout.row()
@@ -32,14 +32,16 @@ class WORLD_PT_world(WorldButtonsPanel):
 		
 		row = layout.row()
 		row.column().itemR(world, "horizon_color")
-		row.column().itemR(world, "zenith_color")
+		col = row.column()
+		col.itemR(world, "zenith_color")
+		col.active = world.blend_sky
 		row.column().itemR(world, "ambient_color")
 		
 class WORLD_PT_color_correction(WorldButtonsPanel):
 	__label__ = "Color Correction"
 
 	def draw(self, context):
-		world = context.scene.world
+		world = context.world
 		layout = self.layout
 
 		row = layout.row()
@@ -50,13 +52,13 @@ class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
 
 	def draw_header(self, context):
-		world = context.scene.world
+		world = context.world
 
 		layout = self.layout
 		layout.itemR(world.mist, "enabled", text="")
 
 	def draw(self, context):
-		world = context.scene.world
+		world = context.world
 		layout = self.layout
 		layout.active = world.mist.enabled
 
@@ -73,13 +75,13 @@ class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
 
 	def draw_header(self, context):
-		world = context.scene.world
+		world = context.world
 
 		layout = self.layout
 		layout.itemR(world.stars, "enabled", text="")
 
 	def draw(self, context):
-		world = context.scene.world
+		world = context.world
 		layout = self.layout
 		layout.active = world.stars.enabled
 
@@ -93,13 +95,13 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
 
 	def draw_header(self, context):
-		world = context.scene.world
+		world = context.world
 
 		layout = self.layout
 		layout.itemR(world.ambient_occlusion, "enabled", text="")
 
 	def draw(self, context):
-		world = context.scene.world
+		world = context.world
 		ao = world.ambient_occlusion
 		layout = self.layout
 		layout.active = ao.enabled
@@ -107,9 +109,15 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		layout.itemR(ao, "gather_method", expand=True)
 		
 		if ao.gather_method == 'RAYTRACE':
-			row = layout.row()
-			row.itemR(ao, "samples")
-			row.itemR(ao, "distance")
+			split = layout.split()
+			col = split.column()
+			col.itemR(ao, "samples")
+			col.itemR(ao, "distance")
+			col = split.column()
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			
 			layout.itemR(ao, "sample_method")
 			if ao.sample_method == 'ADAPTIVE_QMC':
@@ -122,16 +130,18 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 				row.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			col = layout.column_flow()
+			split = layout.split()
+			col = split.column()
 			col.itemR(ao, "passes")
 			col.itemR(ao, "error_tolerance", text="Error")
 			col.itemR(ao, "correction")
+			col = split.column() 
+			col.itemR(ao, "falloff")
+			colsub = col.column()
+			colsub.active = ao.falloff
+			colsub.itemR(ao, "strength")
 			col.itemR(ao, "pixel_cache")
 
-		row = layout.row()
-		row.itemR(ao, "falloff")	
-		row.itemR(ao, "strength")
-		
 		col = layout.column()
 		col.row().itemR(ao, "blend_mode", expand=True)
 		col.row().itemR(ao, "color", expand=True)
@@ -143,4 +153,3 @@ bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 bpy.types.register(WORLD_PT_color_correction)
-

@@ -10,11 +10,6 @@ incs += ' ../include ../blenloader'
 
 defs = []
 
-if env['WITH_BF_YAFRAY']:
-    incs += ' ../yafray'
-else:
-    defs.append('DISABLE_YAFRAY')
-
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']

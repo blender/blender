@@ -537,10 +537,17 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		/* temp? Proper check for greying out */
 		if(but->optype) {
 			wmOperatorType *ot= but->optype;
+
+			if(but->context)
+				CTX_store_set((bContext*)C, but->context);
+
 			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
+
+			if(but->context)
+				CTX_store_set((bContext*)C, NULL);
 		}
 
 		/* only update soft range while not editing */
@@ -1359,7 +1366,7 @@ int ui_get_but_string_max_length(uiBut *but)
 
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
-	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
 		char *buf= NULL;
 
@@ -1398,6 +1405,11 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		return;
 	}
 	else if(but->type == TEX) {
+		/* string */
+		BLI_strncpy(str, but->poin, maxlen);
+		return;
+	}
+	else if(but->type == SEARCH_MENU) {
 		/* string */
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
@@ -1491,7 +1503,7 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
-	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		if(RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -1531,6 +1543,11 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		return 1;
 	}
 	else if(but->type == TEX) {
+		/* string */
+		BLI_strncpy(but->poin, str, but->hardmax);
+		return 1;
+	}
+	else if(but->type == SEARCH_MENU) {
 		/* string */
 		BLI_strncpy(but->poin, str, but->hardmax);
 		return 1;
@@ -1817,11 +1834,11 @@ void ui_check_but(uiBut *but)
 	/* if something changed in the button */
 	double value;
 	float okwidth;
-	int transopts= ui_translate_buttons();
+//	int transopts= ui_translate_buttons();
 	
 	ui_is_but_sel(but);
 	
-	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
+//	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
 
 	/* test for min and max, icon sliders, etc */
 	switch( but->type ) {
@@ -1926,6 +1943,7 @@ void ui_check_but(uiBut *but)
 
 	case IDPOIN:
 	case TEX:
+	case SEARCH_MENU:
 		if(!but->editstr) {
 			char str[UI_MAX_DRAW_STR];
 
@@ -2945,6 +2963,11 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 	block->func_arg2= arg2;
 }
 
+void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1)
+{
+	
+}
+
 void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
 {
 	block->drawextra= func;
@@ -3064,6 +3087,32 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
 }
+
+/* arg is pointer to string/name, use uiButSetSearchFunc() below to make this work */
+uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, SEARCH_MENU, retval, "", x1, y1, x2, y2, arg, 0.0, maxlen, 0.0, 0.0, tip);
+	
+	but->icon= (BIFIconID) icon;
+	but->flag|= UI_HAS_ICON;
+	
+	but->flag|= UI_ICON_LEFT|UI_TEXT_LEFT;
+	but->flag|= UI_ICON_SUBMENU;
+	
+	ui_check_but(but);
+	
+	return but;
+}
+
+/* arg is user value, searchfunc and handlefunc both get it as arg */
+void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc)
+{
+	but->search_func= sfunc;
+	but->search_arg= arg;
+	
+	uiButSetFunc(but, bfunc, arg, NULL);
+}
+
 
 /* Program Init/Exit */
 

@@ -114,18 +114,6 @@
 #include "zbuf.h"
 #include "sunsky.h"
 
-#ifndef DISABLE_YAFRAY /* disable yafray */
-
-#include "YafRay_Api.h"
-
-/* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.
- * Same is true for lamp coords & vec.
- * Duplicated data objects & dupliframe/duplivert objects are only stored once,
- * only the matrix is stored for all others, in yafray these objects are instances of the original.
- * The main changes are in RE_Database_FromScene().
- */
-
-#endif /* disable yafray */
 
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
 /* or for checking vertex normal flips */
@@ -3468,22 +3456,6 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	}
 	else lar->ray_totsamp= 0;
 	
-#ifndef DISABLE_YAFRAY
-	/* yafray: photonlight and other params */
-	if (re->r.renderer==R_YAFRAY) {
-		lar->YF_numphotons = la->YF_numphotons;
-		lar->YF_numsearch = la->YF_numsearch;
-		lar->YF_phdepth = la->YF_phdepth;
-		lar->YF_useqmc = la->YF_useqmc;
-		lar->YF_causticblur = la->YF_causticblur;
-		lar->YF_ltradius = la->YF_ltradius;
-		lar->YF_bufsize = la->YF_bufsize;
-		lar->YF_glowint = la->YF_glowint;
-		lar->YF_glowofs = la->YF_glowofs;
-		lar->YF_glowtype = la->YF_glowtype;
-	}
-#endif /* disable yafray */
-
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {
 		if(lar->spotsi>170.0) lar->spotsi= 170.0;

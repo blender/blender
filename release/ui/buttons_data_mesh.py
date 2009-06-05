@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'MESH')
+		return (context.mesh != None)
 
 class DATA_PT_surface(DataButtonsPanel):
 		__idname__ = "DATA_PT_surface"
 		__label__ = "Mesh"
 
 		def draw(self, context):
-			mesh = context.active_object.data
+			mesh = context.mesh
 			layout = self.layout
 
 			split = layout.split()
