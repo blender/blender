@@ -23,6 +23,7 @@
  */
 
 #include <float.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -30,8 +31,11 @@
 
 #include "rna_internal.h"
 
+#include "DNA_brush_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -69,6 +73,50 @@ StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 		default:
 			return &RNA_Texture;
 	}
+}
+
+static int rna_texture_slot_index(PointerRNA *ptr)
+{
+	ID *id= ptr->id.data;
+	MTex **mtex;
+	int a;
+
+	if(id) {
+		switch(GS(id->name)) {
+			case ID_MA: mtex= ((Material*)id)->mtex; break;
+			case ID_WO: mtex= ((World*)id)->mtex; break;
+			case ID_LA: mtex= ((Lamp*)id)->mtex; break;
+			case ID_BR: mtex= ((Brush*)id)->mtex; break;
+			default: return 0;
+		}
+
+		for(a=0; a<MAX_MTEX; a++)
+			if(mtex[a] == ptr->data)
+				return a;
+	}
+
+	return 0;
+}
+
+static int rna_TextureSlot_name_length(PointerRNA *ptr)
+{
+	MTex *mtex= ptr->data;
+
+	if(mtex->tex)
+		return strlen(mtex->tex->id.name+2) + 10;
+	
+	return 10;
+}
+
+static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
+{
+	MTex *mtex= ptr->data;
+	int index= rna_texture_slot_index(ptr);
+
+	sprintf(str, "%d: ", index+1);
+
+	if(mtex->tex)
+		strcat(str, mtex->tex->id.name+2);
 }
 
 #else
@@ -183,12 +231,19 @@ static void rna_def_mtex(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Texture Slot", "Texture slot defining the mapping and influence of a texture.");
+	RNA_def_struct_ui_icon(srna, ICON_TEXTURE_DATA);
 
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tex");
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture datablock used by this texture slot.");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_TextureSlot_name_get", "rna_TextureSlot_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Texture slot name.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_struct_name_property(srna, prop);
 
 	/* mapping */
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_VECTOR);
@@ -990,6 +1045,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
 	RNA_def_struct_ui_text(srna, "Texture", "Texture datablock used by materials, lamps, worlds and brushes.");
+	RNA_def_struct_ui_icon(srna, ICON_TEXTURE_DATA);
 	RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

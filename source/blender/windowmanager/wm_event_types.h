@@ -238,6 +238,7 @@
 #define EVT_FILESELECT_EXEC			3
 #define EVT_FILESELECT_CANCEL		4	
 
+#define EVT_BUT_OPEN	0x5021
 
 #endif	/* WM_EVENT_TYPES_H */
 

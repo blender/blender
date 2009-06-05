@@ -285,6 +285,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
 	RNA_def_struct_sdna(srna, "KeyBlock");
+	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
@@ -344,6 +345,7 @@ static void rna_def_key(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Key", "ID");
 	RNA_def_struct_ui_text(srna, "Key", "Shape keys datablock containing different shapes of geometric datablocks.");
+	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

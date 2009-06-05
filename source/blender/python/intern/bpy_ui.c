@@ -78,7 +78,7 @@ static PyObject *Method_defButO( PyObject * self, PyObject * args )
 	
 	/* Optional python doctionary used to set python properties, just like how keyword args are used */
 	if (py_keywords && PyDict_Size(py_keywords)) {
-		if (PYOP_props_from_dict(uiButGetOperatorPtrRNA(but), py_keywords) == -1)
+		if (pyrna_pydict_to_props(uiButGetOperatorPtrRNA(but), py_keywords, "") == -1)
 			return NULL;
 	}
 	
@@ -296,7 +296,7 @@ static PyObject *Method_registerKey( PyObject * self, PyObject * args )
 	
 	/* Optional python doctionary used to set python properties, just like how keyword args are used */
 	if (py_keywords && PyDict_Size(py_keywords)) {
-		if (PYOP_props_from_dict(km->ptr, py_keywords) == -1)
+		if (pyrna_pydict_to_props(km->ptr, py_keywords, "Registering keybinding") == -1)
 			return NULL;
 	}
 	

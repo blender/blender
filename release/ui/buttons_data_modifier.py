@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "modifier"
 
 	def poll(self, context):
-		ob = context.active_object
+		ob = context.object
 		return (ob and ob.type in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'LATTICE'))
 		
 class DATA_PT_modifiers(DataButtonsPanel):
@@ -15,7 +15,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	__label__ = "Modifiers"
 
 	def draw(self, context):
-		ob = context.active_object
+		ob = context.object
 		layout = self.layout
 
 		row = layout.row()
@@ -61,7 +61,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 				if md.type == 'MASK':
 					self.mask(box, md)
 				if md.type == 'MESH_DEFORM':
-					self.meshdeform(box, md)
+					self.mesh_deform(box, md)
 				if md.type == 'MIRROR':
 					self.mirror(box, md)
 				if md.type == 'MULTIRES':
@@ -104,25 +104,42 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "length")
 		if md.fit_type == 'FIT_CURVE':
 			layout.itemR(md, "curve")
+
+		layout.itemS()
 		
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.column()
-		sub.itemR(md, "constant_offset")
-		sub.itemR(md, "constant_offset_displacement", text="Displacement")
-		sub = col.column()
+		col = col.column()
+		col.itemR(md, "constant_offset")
+		colsub = col.column()
+		colsub.active = md.constant_offset
+		colsub.itemR(md, "constant_offset_displacement", text="")
+
+		col.itemS()
+
 		sub = col.row().itemR(md, "merge_adjacent_vertices", text="Merge")
-		sub = col.row().itemR(md, "merge_end_vertices", text="First Last")
-		sub = col.itemR(md, "merge_distance", text="Distance")
+		colsub = col.column()
+		colsub.active = md.merge_adjacent_vertices
+		colsub.itemR(md, "merge_end_vertices", text="First Last")
+		colsub.itemR(md, "merge_distance", text="Distance")
 		
 		col = split.column()
-		sub = col.column()
-		sub.itemR(md, "relative_offset")
-		sub.itemR(md, "relative_offset_displacement", text="Displacement")
-		sub = col.column()
-		sub.itemR(md, "add_offset_object")
-		sub.itemR(md, "offset_object")
+		col = col.column()
+		col.itemR(md, "relative_offset")
+		colsub = col.column()
+		colsub.active = md.relative_offset
+		colsub.itemR(md, "relative_offset_displacement", text="")
+
+		col.itemS()
+
+		col = col.column()
+		col.itemR(md, "add_offset_object")
+		colsub = col.column()
+		colsub.active = md.add_offset_object
+		colsub.itemR(md, "offset_object", text="")
+
+		layout.itemS()
 		
 		col = layout.column()
 		col.itemR(md, "start_cap")
@@ -148,13 +165,19 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "object")
 		
 	def build(self, layout, md):
-		layout.itemR(md, "start")
-		layout.itemR(md, "length")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(md, "start")
+		col.itemR(md, "length")
 
-		row = layout.row()
-		row.itemR(md, "randomize")
-		if md.randomize:
-			row.itemR(md, "seed")
+		col = split.column()
+		col.itemR(md, "randomize")
+		colsub = col.column()
+		colsub.active = md.randomize
+		colsub.itemR(md, "seed")
+			
+		
 			
 	def cast(self, layout, md):
 		layout.itemR(md, "cast_type")
@@ -195,10 +218,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "uv_layer")
 	
 	def edgesplit(self, layout, md):
-		layout.itemR(md, "use_edge_angle", text="Edge Angle")
-		if (md.use_edge_angle):
-			layout.itemR(md, "split_angle")
-		layout.itemR(md, "use_sharp", text="Sharp Edges")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(md, "use_edge_angle", text="Edge Angle")
+		colsub = col.column()
+		colsub.active = md.use_edge_angle
+		colsub.itemR(md, "split_angle")
+		col = split.column()
+		col.itemR(md, "use_sharp", text="Sharp Edges")
 		
 	def explode(self, layout, md):
 		layout.itemR(md, "vertex_group")
@@ -231,13 +259,16 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md, "vertex_group")
 		layout.itemR(md, "inverse")
 		
-	def meshdeform(self, layout, md):
+	def mesh_deform(self, layout, md):
 		layout.itemR(md, "object")
 		layout.itemR(md, "vertex_group")
 		layout.itemR(md, "invert")
-		layout.itemR(md, "precision")
-		layout.itemR(md, "dynamic")
-		# Missing: "Bind"
+
+		layout.itemS()
+		layout.itemO("OBJECT_OT_modifier_mdef_bind", text="Bind")
+		row = layout.row()
+		row.itemR(md, "precision")
+		row.itemR(md, "dynamic")
 		
 	def mirror(self, layout, md):
 		layout.itemR(md, "merge_limit")
@@ -248,6 +279,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		sub.itemR(md, "y")
 		sub.itemR(md, "z")
 		sub = split.column()
+		sub.itemL(text="Textures:")
 		sub.itemR(md, "mirror_u")
 		sub.itemR(md, "mirror_v")
 		sub = split.column()
@@ -314,10 +346,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def smooth(self, layout, md):
 		split = layout.split()
 		sub = split.column()
-		row = sub.row(align=True)
-		row.itemR(md, "x", toggle=True)
-		row.itemR(md, "y", toggle=True)
-		row.itemR(md, "z", toggle=True)
+		sub.itemR(md, "x")
+		sub.itemR(md, "y")
+		sub.itemR(md, "z")
 		sub = split.column()
 		sub.itemR(md, "factor")
 		sub.itemR(md, "repeat")
@@ -330,9 +361,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def subsurf(self, layout, md):
 		layout.itemR(md, "subdivision_type")
 		col = layout.column_flow()
-		col.itemR(md, "levels")
-		col.itemR(md, "render_levels")
-		col.itemR(md, "optimal_draw")
+		col.itemR(md, "levels", text="Preview")
+		col.itemR(md, "render_levels", text="Render")
+		col.itemR(md, "optimal_draw", text="Optimal Display")
 		col.itemR(md, "subsurf_uv")
 	
 	def uvproject(self, layout, md):
@@ -355,11 +386,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(md, "normals")
-		if md.normals:
-			row = sub.row(align=True)
-			row.itemR(md, "x_normal", text="X", toggle=True)
-			row.itemR(md, "y_normal", text="Y", toggle=True)
-			row.itemR(md, "z_normal", text="Z", toggle=True)
+		row = sub.row(align=True)
+		row.active = md.normals
+		row.itemR(md, "x_normal", text="X", toggle=True)
+		row.itemR(md, "y_normal", text="Y", toggle=True)
+		row.itemR(md, "z_normal", text="Z", toggle=True)
 		
 		col = layout.column_flow()
 		col.itemR(md, "time_offset")
@@ -385,4 +416,3 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "narrowness", slider=True)
 
 bpy.types.register(DATA_PT_modifiers)
-

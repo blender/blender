@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
+		ob = context.object
 		return (ob and ob.type == 'TEXT')
 		
 class DATA_PT_shape_text(DataButtonsPanel):
@@ -15,7 +15,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		__label__ = "Shape"
 
 		def draw(self, context):
-			curve = context.active_object.data
+			curve = context.curve
 			layout = self.layout
 
 			layout.itemR(curve, "curve_2d")			
@@ -46,7 +46,7 @@ class DATA_PT_font(DataButtonsPanel):
 	__label__ = "Font"
 
 	def draw(self, context):
-		text = context.active_object.data
+		text = context.curve
 		layout = self.layout
 
 		layout.row()
@@ -77,7 +77,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
 	__label__ = "Paragraph"
 
 	def draw(self, context):
-		text = context.active_object.data
+		text = context.curve
 		layout = self.layout
 
 		layout.itemL(text="Align:")
@@ -102,7 +102,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
 		__label__ = "Text Boxes"
 
 		def draw(self, context):
-			text = context.active_object.data
+			text = context.curve
 			layout = self.layout
 
 bpy.types.register(DATA_PT_shape_text)	

@@ -90,6 +90,7 @@ static void rna_def_bscreen(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Screen", "ID");
 	RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
 	RNA_def_struct_ui_text(srna, "Screen", "Screen datablock, defining the layout of areas in a window.");
+	RNA_def_struct_ui_icon(srna, ICON_SPLITSCREEN);
 	
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen.");

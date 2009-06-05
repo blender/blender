@@ -1,9 +1,0 @@
-#!/usr/bin/python
-Import ('env')
-
-sources = env.Glob('intern/*.cpp')
-
-incs = '#/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
-incs += ' ../imbuf ../editors/include ../render/extern/include ../render/intern/include'
-
-env.BlenderLib ( 'bf_yafray', sources, Split(incs), [], libtype=['core'], priority=[205] )

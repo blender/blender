@@ -41,73 +41,6 @@
 
 extern ListBase global_ops; /* evil, temp use */
 
-
-
-/* This function is only used by operators right now
- * Its used for taking keyword args and filling in property values */
-int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
-{
-	int error_val = 0;
-	int totkw;
-	const char *arg_name= NULL;
-	PyObject *item;
-
-	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
-
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-
-	totkw = kw ? PyDict_Size(kw):0;
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
-		arg_name= RNA_property_identifier(prop);
-
-		if (strcmp(arg_name, "rna_type")==0) continue;
-
-		if (kw==NULL) {
-			PyErr_Format( PyExc_AttributeError, "no args, expected \"%s\"", arg_name ? arg_name : "<UNKNOWN>");
-			error_val= -1;
-			break;
-		}
-
-		item= PyDict_GetItemString(kw, arg_name);
-
-		if (item == NULL) {
-			PyErr_Format( PyExc_AttributeError, "argument \"%s\" missing", arg_name ? arg_name : "<UNKNOWN>");
-			error_val = -1; /* pyrna_py_to_prop sets the error */
-			break;
-		}
-
-		if (pyrna_py_to_prop(ptr, prop, NULL, item)) {
-			error_val= -1;
-			break;
-		}
-
-		totkw--;
-	}
-
-	RNA_property_collection_end(&iter);
-
-	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
-		PyObject *key, *value;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(kw, &pos, &key, &value)) {
-			arg_name= _PyUnicode_AsString(key);
-			if (RNA_struct_find_property(ptr, arg_name) == NULL) break;
-			arg_name= NULL;
-		}
-
-		PyErr_Format( PyExc_AttributeError, "argument \"%s\" unrecognized", arg_name ? arg_name : "<UNKNOWN>");
-		error_val = -1;
-	}
-
-	return error_val;
-}
-
 static PyObject *pyop_base_dir(PyObject *self);
 static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname);
 static struct PyMethodDef pyop_base_methods[] = {
@@ -148,7 +81,7 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 	
 	WM_operator_properties_create(&ptr, opname);
 	
-	error_val= PYOP_props_from_dict(&ptr, kw);
+	error_val= pyrna_pydict_to_props(&ptr, kw, "Converting py args to operator properties: ");
 	
 	if (error_val==0) {
 		ReportList reports;

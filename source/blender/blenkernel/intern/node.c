@@ -1055,6 +1055,14 @@ bNodeTree *ntreeAddTree(int type)
 	ntree->type= type;
 	ntree->alltypes.first = NULL;
 	ntree->alltypes.last = NULL;
+
+	/* this helps RNA identify ID pointers as nodetree */
+    if(ntree->type==NTREE_SHADER)
+		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_COMPOSIT)
+		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_TEXTURE)
+		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
 	ntreeInitTypes(ntree);
 	return ntree;

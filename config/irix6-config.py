@@ -93,8 +93,6 @@ BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
-WITH_BF_YAFRAY = 'true'
-
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr

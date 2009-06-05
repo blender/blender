@@ -93,6 +93,7 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting.");
+	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
 	
 	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);

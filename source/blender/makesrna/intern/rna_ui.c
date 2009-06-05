@@ -199,7 +199,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
 {
 	Panel *hdr= (Panel*)ptr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Panel;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Panel;
 }
 
 /* Header */
@@ -290,7 +290,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 static StructRNA* rna_Header_refine(struct PointerRNA *htr)
 {
 	Header *hdr= (Header*)htr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Header;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Header;
 }
 
 /* Menu */
@@ -405,7 +405,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
 {
 	Menu *hdr= (Menu*)mtr->data;
-	return (hdr->type)? hdr->type->py_srna: &RNA_Menu;
+	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Menu;
 }
 
 static int rna_UILayout_active_get(struct PointerRNA *ptr)
@@ -458,14 +458,24 @@ static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
 	return uiLayoutSetAlignment(ptr->data, value);
 }
 
-static float rna_UILayout_scale_get(struct PointerRNA *ptr)
+static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
 {
-	return uiLayoutGetScale(ptr->data);
+	return uiLayoutGetScaleX(ptr->data);
 }
 
-static void rna_UILayout_scale_set(struct PointerRNA *ptr, float value)
+static void rna_UILayout_scale_x_set(struct PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScale(ptr->data, value);
+	return uiLayoutSetScaleX(ptr->data, value);
+}
+
+static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetScaleY(ptr->data);
+}
+
+static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
+{
+	return uiLayoutSetScaleY(ptr->data, value);
 }
 
 #else
@@ -476,6 +486,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem alignment_items[] = {
+		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", "Expand", ""},
 		{UI_LAYOUT_ALIGN_LEFT, "LEFT", "Left", ""},
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", "Center", ""},
 		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", "RIght", ""},
@@ -501,8 +512,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
 
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_get", "rna_UILayout_scale_set", NULL);
+	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
+
+	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
 
 	RNA_api_ui_layout(srna);
 }

@@ -373,6 +373,93 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
 }
 
+/* ***************** Search menu ************************* */
+static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	
+	if(ot)
+		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				char name[256];
+				int len= strlen(ot->name);
+				
+				/* display name for menu, can hold hotkey */
+				BLI_strncpy(name, ot->name, 256);
+				
+				/* check for hotkey */
+				if(len < 256-6) {
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, &name[len+1], 256-len-1))
+						name[len]= '|';
+				}
+				
+				if(0==uiSearchItemAdd(items, name, ot))
+					break;
+			}
+		}
+	}
+}
+
+static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
+{
+	static char search[256]= "";
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
+	
+	uiPopupBoundsBlock(block, 0.0f, 0, -20); /* move it downwards, mouse over button */
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+static int wm_search_menu_exec(bContext *C, wmOperator *op)
+{
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	uiPupBlock(C, wm_block_search_menu, op);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_search_menu(wmOperatorType *ot)
+{
+	ot->name= "Search Menu";
+	ot->idname= "WM_OT_search_menu";
+	
+	ot->invoke= wm_search_menu_invoke;
+	ot->exec= wm_search_menu_exec;
+	ot->poll= WM_operator_winactive;
+}
+
 
 /* ************ window / screen operator definitions ************** */
 
@@ -1437,6 +1524,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_ten_timer);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_search_menu);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -1461,6 +1549,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", FKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
 }
 

@@ -55,7 +55,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BLF_api.h"
 
 #include "ED_anim_api.h"
 #include "ED_space_api.h"
@@ -71,6 +70,7 @@
 
 #define SEQ_LEFTHANDLE		1
 #define SEQ_RIGHTHANDLE	2
+
 
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
 
@@ -329,7 +329,7 @@ static void drawseqwave(Scene *scene, View2D *v2d, Sequence *seq, float x1, floa
 }
 
 /* draw a handle, for each end of a sequence strip */
-static void draw_seq_handle(SpaceSeq *sseq, Sequence *seq, float pixelx, short direction)
+static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short direction)
 {
 	float v1[2], v2[2], v3[2], rx1=0, rx2=0; //for triangles and rect
 	float x1, x2, y1, y2;
@@ -337,15 +337,12 @@ static void draw_seq_handle(SpaceSeq *sseq, Sequence *seq, float pixelx, short d
 	float minhandle, maxhandle;
 	char str[32];
 	unsigned int whichsel=0;
-	View2D *v2d;
 	
 	x1= seq->startdisp;
 	x2= seq->enddisp;
 	
 	y1= seq->machine+SEQ_STRIP_OFSBOTTOM;
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
-	
-	v2d = &sseq->v2d;
 	
 	/* clamp handles to defined size in pixel space */
 	handsize = seq->handsize;
@@ -404,13 +401,13 @@ static void draw_seq_handle(SpaceSeq *sseq, Sequence *seq, float pixelx, short d
 		if (direction == SEQ_LEFTHANDLE) {
 			sprintf(str, "%d", seq->startdisp);
 			x1= rx1;
-			y1 -= 0.15;
+			y1 -= 0.45;
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			x1= x2 - BLF_width_default(str) * pixelx;
+			x1= x2 - handsize*0.75;
 			y1= y2 + 0.05;
 		}
-		BLF_draw_default(x1, y1, 0.0f, str);
+		UI_view2d_text_cache_add(v2d, x1, y1, str);
 	}	
 }
 
@@ -520,25 +517,13 @@ static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
 /* draw info text on a sequence strip */
 static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float y1, float y2, char *background_col)
 {
-	float v1[2], v2[2];
-	int len, size;
-	char str[32 + FILE_MAXDIR+FILE_MAXFILE], *strp;
-	int mval[2];
-	
-	v1[1]= y1;
-	v2[1]= y2;
-	
-	v1[0]= x1;
-	UI_view2d_to_region_no_clip(v2d, v1[0], v1[1], mval, mval+1);
-	x1= mval[0];
-	v2[0]= x2;
-	UI_view2d_to_region_no_clip(v2d, v2[0], v2[1], mval, mval+1);
-	x2= mval[0];
-	size= x2-x1;
+	rctf rect;
+	char str[32 + FILE_MAXDIR+FILE_MAXFILE];
 	
 	if(seq->name[2]) {
 		sprintf(str, "%d | %s: %s", seq->len, give_seqname(seq), seq->name+2);
-	}else{
+	}
+	else{
 		if(seq->type == SEQ_META) {
 			sprintf(str, "%d | %s", seq->len, give_seqname(seq));
 		}
@@ -572,19 +557,6 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		}
 	}
 	
-	strp= str;
-	// XXX
-	/* The correct thing is used a Styla and set the clipping region. */
-	while( (len= BLF_width_default(strp)) > size) {
-		if(len < 10) break;
-		if(strp[1]==0) break;
-		strp++;
-	}
-	
-	mval[0]= (x1+x2-len+1)/2;
-	mval[1]= 1;
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x1, &x2);
-	
 	if(seq->flag & SELECT){
 		cpack(0xFFFFFF);
 	}else if ((((int)background_col[0] + (int)background_col[1] + (int)background_col[2]) / 3) < 50){
@@ -592,7 +564,12 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	}else{
 		cpack(0);
 	}
-	BLF_draw_default(x1,  y1+SEQ_STRIP_OFSBOTTOM, 0.0, strp);
+	
+	rect.xmin= x1;
+	rect.ymin= y1;
+	rect.xmax= x2;
+	rect.ymax= y2;
+	UI_view2d_text_cache_rectf(v2d, &rect, str);
 }
 
 /* draws a shaded strip, made from gradient + flat color + gradient */
@@ -693,8 +670,8 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	if (!is_single_image)
 		draw_seq_extensions(scene, sseq, seq);
 	
-	draw_seq_handle(sseq, seq, pixelx, SEQ_LEFTHANDLE);
-	draw_seq_handle(sseq, seq, pixelx, SEQ_RIGHTHANDLE);
+	draw_seq_handle(v2d, seq, pixelx, SEQ_LEFTHANDLE);
+	draw_seq_handle(v2d, seq, pixelx, SEQ_RIGHTHANDLE);
 	
 	/* draw the strip outline */
 	x1= seq->startdisp;
@@ -994,8 +971,6 @@ void drawseqspace(const bContext *C, ARegion *ar)
 	float col[3];
 	int i;
 
-	
-
 	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		draw_image_seq(scene, ar, sseq);
 		return;
@@ -1081,6 +1056,9 @@ void drawseqspace(const bContext *C, ARegion *ar)
 			draw_seq_strip(scene, ar, sseq, last_seq, 120, pixelx);
 		}
 	}
+
+	/* text draw cached, in pixelspace now */
+	UI_view2d_text_cache_draw(ar);
 
 	/* Draw markers */
 //	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);

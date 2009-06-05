@@ -4190,6 +4190,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceButs *sbuts= (SpaceButs *)sl;
 						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
+						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						if(main->versionfile<132)
 							butspace_version_132(sbuts);
 					}
@@ -4391,6 +4392,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
+					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, 0);
 					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
@@ -4673,6 +4675,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					sseq->gpd= newdataadr(fd, sseq->gpd);
 					direct_link_gpencil(fd, sseq->gpd);
 				}
+			}
+			else if(sl->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= (SpaceButs *)sl;
+				sbuts->path= NULL;
 			}
 		}
 		
@@ -6744,26 +6750,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 						}
 						else if(sbuts->mainb==BUTS_MAT) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 						}
 						else if(sbuts->mainb==BUTS_TEX) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
 						}
 						else if(sbuts->mainb==BUTS_ANIM) {
 							sbuts->mainb= CONTEXT_OBJECT;
 						}
 						else if(sbuts->mainb==BUTS_WORLD) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
 						}
 						else if(sbuts->mainb==BUTS_RENDER) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
 						}
 						else if(sbuts->mainb==BUTS_GAME) {
 							sbuts->mainb= CONTEXT_LOGIC;
@@ -6773,7 +6779,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 						else if(sbuts->mainb==BUTS_RADIO) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
 						}
 						else if(sbuts->mainb==BUTS_CONSTRAINT) {
 							sbuts->mainb= CONTEXT_OBJECT;

@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'CAMERA')
+		return (context.camera != None)
 		
 class DATA_PT_cameralens(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera"
 	__label__ = "Lens"
 
 	def draw(self, context):
-		cam = context.active_object.data
+		cam = context.camera
 		layout = self.layout
 
 		layout.itemR(cam, "type", expand=True)
@@ -52,7 +51,7 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 	__label__ = "Display"
 	
 	def draw(self, context):
-		cam = context.active_object.data
+		cam = context.camera
 		layout = self.layout
 
 		split = layout.split()
@@ -63,11 +62,12 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		sub.itemR(cam, "show_title_safe", text="Title Safe")
 		sub.itemR(cam, "show_name", text="Name")
 			
-		sub = split.column()
-		sub.itemR(cam, "show_passepartout", text="Passepartout")
-		if (cam.show_passepartout):
-			sub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
-		sub.itemR(cam, "draw_size", text="Size")
+		col = split.column()
+		col.itemR(cam, "show_passepartout", text="Passepartout")
+		colsub = col.column()
+		colsub.active = cam.show_passepartout
+		colsub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
+		col.itemR(cam, "draw_size", text="Size")
 		
 bpy.types.register(DATA_PT_cameralens)
 bpy.types.register(DATA_PT_cameradisplay)

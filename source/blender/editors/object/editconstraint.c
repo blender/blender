@@ -1000,7 +1000,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
     Object *ob = CTX_data_active_object(C);
-	bConstraint *con;
+	bConstraint *con, *coniter;
 	ListBase *list= get_active_constraints(ob);
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	int type= RNA_enum_get(op->ptr, "type");
@@ -1015,8 +1015,8 @@ static int constraint_add_exec(bContext *C, wmOperator *op)
 			con->flag |= CONSTRAINT_PROXY_LOCAL;
 		
 		con->flag |= CONSTRAINT_ACTIVE;
-		for(con= con->prev; con; con= con->prev)
-			con->flag &= ~CONSTRAINT_ACTIVE;
+		for(coniter= coniter->prev; coniter; coniter= coniter->prev)
+			coniter->flag &= ~CONSTRAINT_ACTIVE;
 	}
 	
 	switch(type) {

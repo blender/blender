@@ -383,6 +383,289 @@ void ui_tooltip_free(bContext *C, ARegion *ar)
 	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
 }
 
+
+/************************* Creating Search Box **********************/
+
+struct uiSearchItems {
+	int maxitem, totitem, maxstrlen;
+	
+	char **names;
+	void **pointers;
+	
+};
+
+typedef struct uiSearchboxData {
+	rcti bbox;
+	uiFontStyle fstyle;
+	uiSearchItems items;
+	int active;
+} uiSearchboxData;
+
+#define SEARCH_ITEMS	10
+
+/* exported for use by search callbacks */
+/* returns zero if nothing to add */
+int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
+{
+	
+	if(items->totitem>=items->maxitem)
+		return 0;
+	
+	BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
+	items->pointers[items->totitem]= poin;
+	
+	items->totitem++;
+	
+	return items->totitem<items->maxitem;
+}
+
+
+/* ar is the search box itself */
+static void ui_searchbox_select(ARegion *ar, int step)
+{
+	uiSearchboxData *data= ar->regiondata;
+	
+	/* apply step */
+	data->active+= step;
+	
+	if(data->items.totitem==0)
+		data->active= 0;
+	else if(data->active> data->items.totitem)
+		data->active= 1;
+	else if(data->active < 0)
+		data->active= data->items.totitem;
+	
+	ED_region_tag_redraw(ar);
+}
+
+static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
+{
+	int buth= (data->bbox.ymax-data->bbox.ymin - 2*MENU_SEPR_HEIGHT)/SEARCH_ITEMS;
+	
+	*rect= data->bbox;
+	rect->xmin= data->bbox.xmin + 3.0f;
+	rect->xmax= data->bbox.xmax - 3.0f;
+	
+	rect->ymax= data->bbox.ymax - MENU_SEPR_HEIGHT - itemnr*buth;
+	rect->ymin= rect->ymax - buth;
+	
+}
+
+/* string validated to be of correct length (but->hardmax) */
+void ui_searchbox_apply(uiBut *but, ARegion *ar)
+{
+	uiSearchboxData *data= ar->regiondata;
+
+	but->func_arg2= NULL;
+	
+	if(data->active) {
+		char *name= data->items.names[data->active-1];
+		char *cpoin= strchr(name, '|');
+		
+		if(cpoin) cpoin[0]= 0;
+		BLI_strncpy(but->editstr, name, data->items.maxstrlen);
+		if(cpoin) cpoin[0]= '|';
+		
+		but->func_arg2= data->items.pointers[data->active-1];
+	}
+}
+
+void ui_searchbox_event(ARegion *ar, wmEvent *event)
+{
+	uiSearchboxData *data= ar->regiondata;
+	
+	switch(event->type) {
+		case UPARROWKEY:
+			ui_searchbox_select(ar, -1);
+			break;
+		case DOWNARROWKEY:
+			ui_searchbox_select(ar, 1);
+			break;
+		case MOUSEMOVE:
+			if(BLI_in_rcti(&ar->winrct, event->x, event->y)) {
+				rcti rect;
+				int a;
+				
+				for(a=0; a<data->items.totitem; a++) {
+					ui_searchbox_butrect(&rect, data, a);
+					if(BLI_in_rcti(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
+						if( data->active!= a+1) {
+							data->active= a+1;
+							ui_searchbox_select(ar, 0);
+							break;
+						}
+					}
+				}
+			}
+			break;
+	}
+}
+
+/* ar is the search box itself */
+void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but)
+{
+	uiSearchboxData *data= ar->regiondata;
+	
+	/* callback */
+	data->items.totitem= 0;
+	data->active= 0;
+	if(but->search_func)
+		but->search_func(C, but->search_arg, but->editstr, &data->items);
+	
+	/* validate selected item */
+	ui_searchbox_select(ar, 0);
+	
+	ED_region_tag_redraw(ar);
+}
+
+static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
+{
+	uiSearchboxData *data= ar->regiondata;
+	
+	/* pixel space */
+	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
+
+	ui_draw_search_back(U.uistyles.first, NULL, &data->bbox);
+	
+	/* draw text */
+	if(data->items.totitem) {
+		rcti rect;
+		int a;
+				
+		/* draw items */
+		for(a=0; a<data->items.totitem; a++) {
+			ui_searchbox_butrect(&rect, data, a);
+			
+			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], (a+1)==data->active?UI_ACTIVE:0);
+		}
+	}
+}
+
+static void ui_searchbox_region_free(ARegion *ar)
+{
+	uiSearchboxData *data= ar->regiondata;
+	int a;
+
+	/* free search data */
+	for(a=0; a<SEARCH_ITEMS; a++)
+		MEM_freeN(data->items.names[a]);
+	MEM_freeN(data->items.names);
+	MEM_freeN(data->items.pointers);
+	
+	MEM_freeN(data);
+	ar->regiondata= NULL;
+}
+
+ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
+{
+	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	static ARegionType type;
+	ARegion *ar;
+	uiSearchboxData *data;
+	float aspect= but->block->aspect;
+	float x1f, x2f, y1f, y2f;
+	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
+	
+	/* create area region */
+	ar= ui_add_temporary_region(CTX_wm_screen(C));
+	
+	memset(&type, 0, sizeof(ARegionType));
+	type.draw= ui_searchbox_region_draw;
+	type.free= ui_searchbox_region_free;
+	ar->type= &type;
+	
+	/* create searchbox data */
+	data= MEM_callocN(sizeof(uiSearchboxData), "uiSearchboxData");
+	
+	/* set font, get bb */
+	data->fstyle= style->widget; /* copy struct */
+	data->fstyle.align= UI_STYLE_TEXT_CENTER;
+	ui_fontscale(&data->fstyle.points, aspect);
+	uiStyleFontSet(&data->fstyle);
+	
+	ar->regiondata= data;
+	
+	/* compute position */
+	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
+	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
+	
+	x1f= but->x1;
+	x2f= but->x2;
+	y2f= but->y1;
+	y1f= y2f - SEARCH_ITEMS*MENU_BUTTON_HEIGHT - 2*MENU_SEPR_HEIGHT;
+	
+	/* minimal width */
+	if(x2f - x1f < 180) x2f= x1f+180; // XXX arbitrary
+	
+	/* copy to int, gets projected if possible too */
+	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
+	
+	if(butregion) {
+		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
+		}
+		
+		x1 += butregion->winrct.xmin;
+		x2 += butregion->winrct.xmin;
+		y1 += butregion->winrct.ymin;
+		y2 += butregion->winrct.ymin;
+	}
+	
+	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+	
+	if(x2 > winx) {
+		/* super size */
+		if(x2 > winx + x1) {
+			x2= winx;
+			x1= 0;
+		}
+		else {
+			x1 -= x2-winx;
+			x2= winx;
+		}
+	}
+	if(y1 < 0) {
+		y1 += 36;
+		y2 += 36;
+	}
+	
+	/* widget rect, in region coords */
+	data->bbox.xmin= MENU_SHADOW_SIDE;
+	data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
+	data->bbox.ymin= MENU_SHADOW_BOTTOM;
+	data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
+	
+	/* region bigger for shadow */
+	ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
+	ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
+	ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax= y2;
+	
+	/* adds subwindow */
+	ED_region_init(C, ar);
+	
+	/* notify change and redraw */
+	ED_region_tag_redraw(ar);
+	
+	/* prepare search data */
+	data->items.maxitem= SEARCH_ITEMS;
+	data->items.maxstrlen= but->hardmax;
+	data->items.totitem= 0;
+	data->items.names= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search names");
+	data->items.pointers= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search pointers");
+	for(x1=0; x1<SEARCH_ITEMS; x1++)
+		data->items.names[x1]= MEM_callocN(but->hardmax+1, "search pointers");
+	
+	return ar;
+}
+
+void ui_searchbox_free(bContext *C, ARegion *ar)
+{
+	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
+}
+
+
 /************************* Creating Menu Blocks **********************/
 
 /* position block relative to but, result is in window space */
@@ -703,8 +986,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	/* get winmat now that we actually have the subwindow */
 	wmSubWindowSet(window, ar->swinid);
-			// XXX ton, AA pixel space...
-	wmOrtho2(0.0, (float)ar->winrct.xmax-ar->winrct.xmin+1, 0.0, (float)ar->winrct.ymax-ar->winrct.ymin+1);
 	
 	wm_subwindow_getmatrix(window, ar->swinid, block->winmat);
 	
@@ -716,7 +997,9 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
-	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
+	/* XXX ton added, chrash on load file with popup open... need investigate */
+	if(CTX_wm_screen(C))
+		ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	MEM_freeN(handle);
 }
 

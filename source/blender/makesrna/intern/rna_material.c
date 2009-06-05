@@ -731,6 +731,7 @@ void RNA_def_material(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "Material datablock to defined the appearance of geometric objects for rendering.");
+	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 	
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "material_type");

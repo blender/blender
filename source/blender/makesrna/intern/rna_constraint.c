@@ -29,6 +29,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -55,6 +56,7 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", "Rigid Body Joint", ""},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", "Clamp To", ""},
 	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", "Transformation", ""},
+	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", "Shrinkwrap", ""},
 	{0, NULL, NULL, NULL}};
 
 
@@ -110,6 +112,8 @@ StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_LimitScaleConstraint;
 		case CONSTRAINT_TYPE_DISTLIMIT:
 			return &RNA_LimitDistanceConstraint;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			return &RNA_ShrinkwrapConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -411,18 +415,18 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem track_items[] = {
-		{TRACK_X, "TRACK_X", "Track X", ""},
-		{TRACK_Y, "TRACK_Y", "Track Y", ""},
-		{TRACK_Z, "TRACK_Z", "Track Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "Track Negative X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "Track Negative Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "Track Negative Z", ""},
+		{TRACK_X, "TRACK_X", "X", ""},
+		{TRACK_Y, "TRACK_Y", "Y", ""},
+		{TRACK_Z, "TRACK_Z", "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem up_items[] = {
-		{TRACK_X, "UP_X", "Up X", ""},
-		{TRACK_Y, "UP_Y", "Up Y", ""},
-		{TRACK_Z, "UP_Z", "Up Z", ""},
+		{TRACK_X, "UP_X", "X", ""},
+		{TRACK_Y, "UP_Y", "Y", ""},
+		{TRACK_Z, "UP_Z", "Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "TrackToConstraint", "Constraint");
@@ -584,12 +588,12 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem minmax_items[] = {
-		{LOCLIKE_X, "FLOOR_X", "Floor X", ""},
-		{LOCLIKE_Y, "FLOOR_Y", "Floor Y", ""},
-		{LOCLIKE_Z, "FLOOR_Z", "Floor Z", ""},
-		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", "Floor Negative X", ""},
-		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", "Floor Negative Y", ""},
-		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", "Floor Negative Z", ""},
+		{LOCLIKE_X, "FLOOR_X", "X", ""},
+		{LOCLIKE_Y, "FLOOR_Y", "Y", ""},
+		{LOCLIKE_Z, "FLOOR_Z", "Z", ""},
+		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", "-X", ""},
+		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", "-Y", ""},
+		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", "-Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FloorConstraint", "Constraint");
@@ -706,7 +710,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "transform_channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, transform_channel_items);
-	RNA_def_property_ui_text(prop, "Transform Channel", "Transfromation channel from the target that is used to key the Action.");
+	RNA_def_property_ui_text(prop, "Transform Channel", "Transformation channel from the target that is used to key the Action.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
@@ -746,18 +750,18 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem locktrack_items[] = {
-		{TRACK_X, "TRACK_X", "Track X", ""},
-		{TRACK_Y, "TRACK_Y", "Track Y", ""},
-		{TRACK_Z, "TRACK_Z", "Track Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "Track Negative X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "Track Negative Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "Track Negative Z", ""},
+		{TRACK_X, "TRACK_X", "X", ""},
+		{TRACK_Y, "TRACK_Y", "Y", ""},
+		{TRACK_Z, "TRACK_Z", "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem lock_items[] = {
-		{TRACK_X, "LOCK_X", "Lock X", ""},
-		{TRACK_Y, "LOCK_Y", "Lock Y", ""},
-		{TRACK_Z, "LOCK_Z", "Lock Z", ""},
+		{TRACK_X, "LOCK_X", "X", ""},
+		{TRACK_Y, "LOCK_Y", "Y", ""},
+		{TRACK_Z, "LOCK_Z", "Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LockedTrackConstraint", "Constraint");
@@ -794,18 +798,18 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem forwardpath_items[] = {
-		{TRACK_X, "FORWARD_X", "Forward X", ""},
-		{TRACK_Y, "FORWARD_Y", "Forward Y", ""},
-		{TRACK_Z, "FORWARD_Z", "Forward Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "Forward Negative X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "Forward Negative Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "Forward Negative Z", ""},
+		{TRACK_X, "FORWARD_X", "X", ""},
+		{TRACK_Y, "FORWARD_Y", "Y", ""},
+		{TRACK_Z, "FORWARD_Z", "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem pathup_items[] = {
-		{TRACK_X, "UP_X", "Up X", ""},
-		{TRACK_Y, "UP_Y", "Up Y", ""},
-		{TRACK_Z, "UP_Z", "Up Z", ""},
+		{TRACK_X, "UP_X", "X", ""},
+		{TRACK_Y, "UP_Y", "Y", ""},
+		{TRACK_Z, "UP_Z", "Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FollowPathConstraint", "Constraint");
@@ -847,15 +851,15 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem volume_items[] = {
-		{VOLUME_XZ, "VOLUME_XZX", "Volume XZ", ""},
-		{VOLUME_XZ, "VOLUME_X", "Volume Y", ""},
-		{VOLUME_XZ, "VOLUME_Z", "Volume Z", ""},
-		{NO_VOLUME, "NO_VOLUME", "No Volume", ""},
+		{VOLUME_XZ, "VOLUME_XZX", "XZ", ""},
+		{VOLUME_X, "VOLUME_X", "Y", ""},
+		{VOLUME_Z, "VOLUME_Z", "Z", ""},
+		{NO_VOLUME, "NO_VOLUME", "None", ""},
 		{0, NULL, NULL, NULL}};
 
 	static EnumPropertyItem plane_items[] = {
-		{PLANE_X, "PLANE_X", "Keep X Axis", ""},
-		{PLANE_Z, "PLANE_Z", "Keep Z Axis", ""},
+		{PLANE_X, "PLANE_X", "X", "Keep X Axis"},
+		{PLANE_Z, "PLANE_Z", "Z", "Keep Z Axis"},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "StretchToConstraint", "Constraint");
@@ -982,10 +986,10 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem clamp_items[] = {
-		{CLAMPTO_AUTO, "CLAMPTO_AUTO", "Clamp Auto", ""},
-		{CLAMPTO_X, "CLAMPTO_X", "Clamp X", ""},
-		{CLAMPTO_Y, "CLAMPTO_Y", "Clamp Y", ""},
-		{CLAMPTO_Z, "CLAMPTO_Z", "Clamp Z", ""},
+		{CLAMPTO_AUTO, "CLAMPTO_AUTO", "Auto", ""},
+		{CLAMPTO_X, "CLAMPTO_X", "X", ""},
+		{CLAMPTO_Y, "CLAMPTO_Y", "Y", ""},
+		{CLAMPTO_Z, "CLAMPTO_Z", "Z", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ClampToConstraint", "Constraint");
@@ -1016,8 +1020,8 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem transform_items[] = {
-		{0, "LOCATION", "Location", ""},
-		{1, "ROTATION", "Rotation", ""},
+		{0, "LOCATION", "Loc", ""},
+		{1, "ROTATION", "Rot", ""},
 		{2, "SCALE", "Scale", ""},
 		{0, NULL, NULL, NULL}};
 
@@ -1240,34 +1244,19 @@ static void rna_def_constraint_rotation_limit(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Limit Rotation Constraint", "Limits the rotation of the constrained object.");
 	RNA_def_struct_sdna_from(srna, "bRotLimitConstraint", "data");
 
-	prop= RNA_def_property(srna, "use_minimum_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMIN);
-	RNA_def_property_ui_text(prop, "Minimum X", "Use the minimum X value.");
+	prop= RNA_def_property(srna, "use_limit_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XROT);
+	RNA_def_property_ui_text(prop, "Limit X", "Use the minimum X value.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMIN);
-	RNA_def_property_ui_text(prop, "Minimum Y", "Use the minimum Y value.");
+	prop= RNA_def_property(srna, "use_limit_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YROT);
+	RNA_def_property_ui_text(prop, "Limit Y", "Use the minimum Y value.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMIN);
-	RNA_def_property_ui_text(prop, "Minimum Z", "Use the minimum Z value.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_maximum_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMAX);
-	RNA_def_property_ui_text(prop, "Maximum X", "Use the maximum X value.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_maximum_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMAX);
-	RNA_def_property_ui_text(prop, "Maximum Y", "Use the maximum Y value.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_maximum_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMAX);
-	RNA_def_property_ui_text(prop, "Maximum Z", "Use the maximum Z value.");
+	prop= RNA_def_property(srna, "use_limit_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZROT);
+	RNA_def_property_ui_text(prop, "Limit Z", "Use the minimum Z value.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop= RNA_def_property(srna, "minimum_x", PROP_FLOAT, PROP_NONE);
@@ -1432,6 +1421,55 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem type_items[] = {
+		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", "Nearest Surface Point", ""},
+		{MOD_SHRINKWRAP_PROJECT, "PROJECT", "Project", ""},
+		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", "Nearest Vertex", ""},
+		{0, NULL, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint"); 
+	RNA_def_struct_ui_text(srna, "Shrinkwrap Constraint", "Creates constraint-based shrinkwrap relationship."); 
+	RNA_def_struct_sdna_from(srna, "bShrinkwrapConstraint", "data");
+	
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "target");
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	prop= RNA_def_property(srna, "shrinkwrap_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Shrinkwrap Type", "Selects type of shrinkwrap algorithm for target position");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_range(prop, 0.0, 100.f);
+	RNA_def_property_ui_text(prop, "Distance", "Distance to Target.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "axis_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS);
+	RNA_def_property_ui_text(prop, "Axis X", "Projection over X Axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "axis_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS);
+	RNA_def_property_ui_text(prop, "Axis Y", "Projection over Y Axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "axis_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS);
+	RNA_def_property_ui_text(prop, "Axis Z", "Projection over Z Axis");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -1517,6 +1555,8 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_rotation_limit(brna);
 	rna_def_constraint_location_limit(brna);
 	rna_def_constraint_transform(brna);
+	rna_def_constraint_shrinkwrap(brna);
 }
 
 #endif
+

@@ -586,6 +586,7 @@ void rna_def_fcurve(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "FCurve", NULL);
 	RNA_def_struct_ui_text(srna, "F-Curve", "F-Curve defining values of a period of time.");
+	RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
 
 	/* Enums */
 	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);

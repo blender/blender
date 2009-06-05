@@ -84,6 +84,7 @@ void rna_def_action(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Action", "ID");
 	RNA_def_struct_sdna(srna, "bAction");
 	RNA_def_struct_ui_text(srna, "Action", "A collection of F-Curves for animation.");
+	RNA_def_struct_ui_icon(srna, ICON_ACTION);
 
 	prop= RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curves", NULL);

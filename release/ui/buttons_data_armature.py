@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'ARMATURE')
+		return (context.armature != None)
 
 class DATA_PT_skeleton(DataButtonsPanel):
 	__idname__ = "DATA_PT_skeleton"
 	__label__ = "Skeleton"
 
 	def draw(self, context):
-		arm = context.active_object.data
+		arm = context.armature
 		layout = self.layout
 		
 		layout.itemR(arm, "rest_position")
@@ -42,7 +41,7 @@ class DATA_PT_display(DataButtonsPanel):
 	__label__ = "Display"
 	
 	def draw(self, context):
-		arm = context.active_object.data
+		arm = context.armature
 		layout = self.layout
 
 		split = layout.split()
@@ -62,7 +61,7 @@ class DATA_PT_paths(DataButtonsPanel):
 	__label__ = "Paths"
 
 	def draw(self, context):
-		arm = context.active_object.data
+		arm = context.armature
 		layout = self.layout
 
 		split = layout.split()
@@ -90,7 +89,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
 
 	def draw(self, context):
-		arm = context.active_object.data
+		arm = context.armature
 		layout = self.layout
 
 		split = layout.split()

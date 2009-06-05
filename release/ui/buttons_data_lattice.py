@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'LATTICE')
+		return (context.lattice != None)
 	
 class DATA_PT_lattice(DataButtonsPanel):
 	__idname__ = "DATA_PT_lattice"
 	__label__ = "Lattice"
 
 	def draw(self, context):
-		lat = context.active_object.data
+		lat = context.lattice
 		layout = self.layout
 
 		row = layout.row()
