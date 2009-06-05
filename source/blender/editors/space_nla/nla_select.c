@@ -300,8 +300,7 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			
 			nlt->flag |= NLATRACK_SELECTED;
-			if (nlt->flag & NLATRACK_SELECTED)
-				ANIM_set_active_channel(ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
+			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
 		}
 	}
 	

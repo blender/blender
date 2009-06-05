@@ -137,7 +137,7 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 				/* only need to draw here if there's no strip before since 
 				 * it only applies in such a situation 
 				 */
-				if (strip->prev) {
+				if (strip->prev == NULL) {
 					/* set the drawing color to the color of the strip, but with very faint alpha */
 					glColor4f(color[0], color[1], color[2], 0.15f);
 					
@@ -563,15 +563,20 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					else
 						special= ICON_LAYER_USED;
 						
-					if (nlt->flag & NLATRACK_MUTED)
-						mute = ICON_MUTE_IPO_ON;
-					else	
-						mute = ICON_MUTE_IPO_OFF;
-						
-					if (EDITABLE_NLT(nlt))
-						protect = ICON_UNLOCKED;
-					else
-						protect = ICON_LOCKED;
+					/* if this track is active and we're tweaking it, don't draw these toggles */
+					// TODO: need a special macro for this...
+					if ( ((nlt->flag & NLATRACK_ACTIVE) && (nlt->flag & NLATRACK_DISABLED)) == 0 ) 
+					{
+						if (nlt->flag & NLATRACK_MUTED)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+							
+						if (EDITABLE_NLT(nlt))
+							protect = ICON_UNLOCKED;
+						else
+							protect = ICON_LOCKED;
+					}
 						
 					sel = SEL_NLT(nlt);
 					strcpy(name, nlt->name);
@@ -636,18 +641,29 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			}
 			else if (group == 5) {
 				/* Action Line */
-				if (ale->data)
-					glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
-				else
-					glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
-					
+				AnimData *adt= BKE_animdata_from_id(ale->id);
+				
+				// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
+				if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
+					// greenish color (same as tweaking strip) - hardcoded for now
+					glColor3f(0.3f, 0.95f, 0.1f);
+				}
+				else {
+					if (ale->data)
+						glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
+					else
+						glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
+				}
+				
 				offset += 7 * indent;
 				
 				/* only on top two corners, to show that this channel sits on top of the preceeding ones */
 				uiSetRoundBox((1|2)); 
 				
-				/* draw slightly shifted up vertically to look like it has more separtion from other channels */
-				gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)NLACHANNEL_NAMEWIDTH, ymaxc+NLACHANNEL_SKIP, 8);
+				/* draw slightly shifted up vertically to look like it has more separtion from other channels,
+				 * but we then need to slightly shorten it so that it doesn't look like it overlaps
+				 */
+				gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)NLACHANNEL_NAMEWIDTH, ymaxc+NLACHANNEL_SKIP-1, 8);
 				
 				/* clear group value, otherwise we cause errors... */
 				group = 0;
@@ -709,20 +725,29 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, mute);
 			}
 			
-			/* draw action 'push-down' - only for NLA-Action lines, and only when there's an action */
+			/* draw NLA-action line 'status-icons' - only when there's an action */
 			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
+				AnimData *adt= BKE_animdata_from_id(ale->id);
+				
 				offset += 16;
 				
-				/* XXX firstly draw a little rect to help identify that it's different from the toggles */
-				glBegin(GL_LINE_LOOP);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+9);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+9);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
-				glEnd(); // GL_LINES
-				
-				/* now draw the icon */
-				UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+				/* now draw some indicator icons  */
+				if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
+					/* 'tweaking action' - not a button */
+					UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_EDIT); 
+				}
+				else {
+					/* XXX firstly draw a little rect to help identify that it's different from the toggles */
+					glBegin(GL_LINE_LOOP);
+						glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
+						glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+9);
+						glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+9);
+						glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
+					glEnd(); // GL_LINES
+					
+					/* 'push down' icon for normal active-actions */
+					UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+				}
 			}
 			
 			glDisable(GL_BLEND);

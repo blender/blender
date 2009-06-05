@@ -68,6 +68,143 @@
 #include "nla_intern.h"	// own include
 
 /* *********************************************** */
+/* General Editing */
+
+/* ******************** Tweak-Mode Operators ***************************** */
+/* 'Tweak mode' allows the action referenced by the active NLA-strip to be edited 
+ * as if it were the normal Active-Action of its AnimData block. 
+ */
+
+static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	int ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* if no blocks, popup error? */
+	if (anim_data.first == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		return OPERATOR_CANCELLED;
+	}	
+	
+	/* for each AnimData block with NLA-data, try setting it in tweak-mode */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ale->data;
+		
+		/* try entering tweakmode if valid */
+		ok += BKE_nla_tweakmode_enter(adt);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* if we managed to enter tweakmode on at least one AnimData block, 
+	 * set the flag for this in the active scene and send notifiers
+	 */
+	if (ac.scene && ok) {
+		/* set editing flag */
+		ac.scene->flag |= SCE_NLA_EDIT_ON;
+		
+		/* set notifier that things have changed */
+		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+		WM_event_add_notifier(C, NC_SCENE, NULL);
+	}
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+ 
+void NLAEDIT_OT_tweakmode_enter (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Enter Tweak Mode";
+	ot->idname= "NLAEDIT_OT_tweakmode_enter";
+	ot->description= "Enter tweaking mode for the action referenced by the active strip.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_enable_tweakmode_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ------------- */
+
+static int nlaedit_disable_tweakmode_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* if no blocks, popup error? */
+	if (anim_data.first == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		return OPERATOR_CANCELLED;
+	}	
+	
+	/* for each AnimData block with NLA-data, try exitting tweak-mode */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ale->data;
+		
+		/* try entering tweakmode if valid */
+		BKE_nla_tweakmode_exit(adt);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* if we managed to enter tweakmode on at least one AnimData block, 
+	 * set the flag for this in the active scene and send notifiers
+	 */
+	if (ac.scene) {
+		/* clear editing flag */
+		ac.scene->flag &= ~SCE_NLA_EDIT_ON;
+		
+		/* set notifier that things have changed */
+		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+		WM_event_add_notifier(C, NC_SCENE, NULL);
+	}
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+ 
+void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Exit Tweak Mode";
+	ot->idname= "NLAEDIT_OT_tweakmode_exit";
+	ot->description= "Exit tweaking mode for the action referenced by the active strip.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_disable_tweakmode_exec;
+	ot->poll= nlaop_poll_tweakmode_on;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* *********************************************** */
 

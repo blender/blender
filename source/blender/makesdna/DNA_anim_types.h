@@ -506,6 +506,9 @@ enum {
 	NLATRACK_SOLO		= (1<<3),
 		/* track's settings (and strips) cannot be edited (to guard against unwanted changes) */
 	NLATRACK_PROTECTED	= (1<<4),
+	
+		/* track is not allowed to execute, usually as result of tweaking being enabled (internal flag) */
+	NLATRACK_DISABLED	= (1<<10),
 } eNlaTrack_Flag;
 
 
@@ -648,11 +651,15 @@ typedef struct AnimOverride {
  * blocks may override local settings.
  *
  * This datablock should be placed immediately after the ID block where it is used, so that
- * the code which retrieves this data can do so in an easier manner. See blenkernel/internal/anim_sys.c for details.
+ * the code which retrieves this data can do so in an easier manner. See blenkernel/intern/anim_sys.c for details.
  */
 typedef struct AnimData {	
 		/* active action - acts as the 'tweaking track' for the NLA */
-	bAction 	*action;		
+	bAction 	*action;	
+		/* temp-storage for the 'real' active action (i.e. the one used before the tweaking-action 
+		 * took over to be edited in the Animation Editors) 
+		 */
+	bAction 	*tmpact;
 		/* remapping-info for active action - should only be used if needed 
 		 * (for 'foreign' actions that aren't working correctly) 
 		 */

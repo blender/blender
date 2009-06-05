@@ -722,7 +722,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
 	if (fcu->flag & FCURVE_SELECTED) {
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
-		ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+		ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 	}
 }
 

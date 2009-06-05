@@ -90,14 +90,13 @@
 /* -------------------------- Exposed API ----------------------------------- */
 
 /* Set the given animation-channel as the active one for the active context */
-void ANIM_set_active_channel (void *data, short datatype, int filter, void *channel_data, short channel_type)
+void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	
 	/* try to build list of filtered items */
-	// XXX we don't need/supply animcontext for now, since in this case, there's nothing really essential there that isn't already covered
-	ANIM_animdata_filter(NULL, &anim_data, filter, data, datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
 	if (anim_data.first == NULL)
 		return;
 		
@@ -151,8 +150,7 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 			case ANIMTYPE_NLATRACK:
 			{
 				NlaTrack *nlt= (NlaTrack *)channel_data;
-				
-				ACHANNEL_SET_FLAG(nlt, ACHANNEL_SETFLAG_CLEAR, NLATRACK_ACTIVE);
+				nlt->flag |= NLATRACK_ACTIVE;
 			}
 				break;
 		}
@@ -1474,7 +1472,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				
 				/* if group is selected now, make group the 'active' one in the visible list */
 				if (agrp->flag & AGRP_SELECTED)
-					ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 			}
 		}
 			break;
@@ -1520,7 +1518,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				
 				/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
 				if (fcu->flag & FCURVE_SELECTED)
-					ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 			}
 		}
 			break;

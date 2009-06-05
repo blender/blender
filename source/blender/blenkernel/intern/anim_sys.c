@@ -118,6 +118,9 @@ void BKE_free_animdata (ID *id)
 			/* unlink action (don't free, as it's in its own list) */
 			if (adt->action)
 				adt->action->id.us--;
+			/* same goes for the temporarily displaced action */
+			if (adt->tmpact)
+				adt->tmpact->id.us--;
 				
 			/* free nla data */
 			free_nladata(&adt->nla_tracks);
@@ -151,6 +154,7 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	// XXX review this... it might not be optimal behaviour yet...
 	//id_us_plus((ID *)dadt->action);
 	dadt->action= copy_action(adt->action);
+	dadt->tmpact= copy_action(adt->action);
 	
 	/* duplicate NLA data */
 	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);
@@ -595,7 +599,7 @@ static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
 	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
 	
 	/* length of referenced action */
-	actlength = strip->actend-strip->actstart;
+	actlength = strip->actend - strip->actstart;
 	if (actlength == 0.0f) actlength = 1.0f;
 	
 	/* length of strip */
@@ -630,11 +634,11 @@ static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 	// the +0.0001 factors are to combat rounding errors
 	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
 		/* there is some blend-in */
-		return (float)(fabs(cframe - strip->start) + 0.0001) / (strip->blendin);
+		return (float)fabs(cframe - strip->start) / (strip->blendin);
 	}
 	else if (IS_EQ(strip->blendout, 0)==0 && (cframe >= (strip->end - strip->blendout))) {
 		/* there is some blend-out */
-		return (float)(fabs(strip->end - cframe) + 0.0001) / (strip->blendout);
+		return (float)fabs(strip->end - cframe) / (strip->blendout);
 	}
 	else {
 		/* in the middle of the strip, we should be full strength */
@@ -674,8 +678,8 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	NlaEvalStrip *nes;
 	short side= 0;
 	
-	/* skip if track is muted */
-	if (nlt->flag & NLATRACK_MUTED) 
+	/* skip if track is muted or disabled */
+	if (nlt->flag & (NLATRACK_MUTED|NLATRACK_DISABLED)) 
 		return;
 	
 	/* loop over strips, checking if they fall within the range */
@@ -1104,6 +1108,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
 	 *	  that overrides 'rough' work in NLA
 	 */
+	// TODO: need to double check that this all works correctly
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
  	{
 		/* evaluate NLA data */

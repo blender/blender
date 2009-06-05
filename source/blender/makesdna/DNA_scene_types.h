@@ -832,6 +832,7 @@ typedef struct Scene {
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
+#define SCE_NLA_EDIT_ON			(1<<2)
 
 
 	/* return flag next_object function */

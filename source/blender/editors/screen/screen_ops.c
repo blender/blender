@@ -164,6 +164,7 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
+// XXX rename
 int ED_operator_ipo_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
@@ -177,6 +178,11 @@ int ED_operator_sequencer_active(bContext *C)
 int ED_operator_image_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IMAGE);
+}
+
+int ED_operator_nla_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_NLA);
 }
 
 int ED_operator_object_active(bContext *C)

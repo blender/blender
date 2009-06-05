@@ -349,7 +349,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				
 				/* if NLA-Track is selected now, make NLA-Track the 'active' one in the visible list */
 				if (nlt->flag & NLATRACK_SELECTED)
-					ANIM_set_active_channel(ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
+					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
 			}
 		}
 			break;

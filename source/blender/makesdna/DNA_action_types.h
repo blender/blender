@@ -269,6 +269,7 @@ typedef enum eAction_Flags {
 		/* flags for evaluation/editing */
 	ACT_MUTED		= (1<<9),
 	ACT_PROTECTED	= (1<<10),
+	ACT_DISABLED	= (1<<11),
 } eAction_Flags;
 
 

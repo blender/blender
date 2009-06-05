@@ -343,19 +343,33 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* quick macro to test if AnimData is usable for NLA */
 #define ANIMDATA_HAS_NLA(id) ((id)->adt && (id)->adt->nla_tracks.first)
 
-/* quick macro to test for all three avove usability tests, performing the appropriate provided 
+
+/* Quick macro to test for all three avove usability tests, performing the appropriate provided 
  * action for each when the AnimData context is appropriate. 
  *
- * Priority order for this goes (most important, to least): NLA, Drivers, Keyframes
+ * Priority order for this goes (most important, to least): AnimData blocks, NLA, Drivers, Keyframes.
+ *
+ * For this to work correctly, a standard set of data needs to be available within the scope that this
+ * gets called in: 
+ *	- ListBase anim_data;
+ *	- bDopeSheet *ads;
+ *	- bAnimListElem *ale;
+ * 	- int items;
  *
  * 	- id: ID block which should have an AnimData pointer following it immediately, to use
+ *	- adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
  *	- nlaOk: line or block of code to execute for NLA case
  *	- driversOk: line or block of code to execute for Drivers case
  *	- keysOk: line or block of code for Keyframes case
  */
-#define ANIMDATA_FILTER_CASES(id, nlaOk, driversOk, keysOk) \
+#define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
 	{\
-		if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
+		if (filter_mode & ANIMFILTER_ANIMDATA) {\
+			if ((id)->adt) {\
+				adtOk\
+			}\
+		}\
+		else if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
 			if (ANIMDATA_HAS_NLA(id)) {\
 				nlaOk\
 			}\
@@ -374,6 +388,18 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 			}\
 		}\
 	}
+
+
+/* quick macro to add a pointer to an AnimData block as a channel */
+#define ANIMDATA_ADD_ANIMDATA(id) \
+	{\
+		ale= make_new_animlistelem((id)->adt, ANIMTYPE_ANIMDATA, NULL, ANIMTYPE_NONE, (ID *)id);\
+		if (ale) {\
+			BLI_addtail(anim_data, ale);\
+			items++;\
+		}\
+	}
+	
 
 
 /* quick macro to test if a anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
@@ -713,6 +739,11 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 						items++;
 					}
 				}
+				
+				/* if we're in NLA-tweakmode, if this track was active, that means that it was the last active one */
+				// FIXME: the channels after should still get drawn, just 'differently', and after an active-action channel
+				if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_ACTIVE))
+					break;
 			}
 		}
 	}
@@ -890,6 +921,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 		
 		/* check if ok */
 		ANIMDATA_FILTER_CASES(ma, 
+			{ /* AnimData blocks - do nothing... */ },
 			ok=1;, 
 			ok=1;, 
 			ok=1;)
@@ -933,6 +965,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			/* add material's animation data */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 				ANIMDATA_FILTER_CASES(ma, 
+					{ /* AnimData blocks - do nothing... */ },
 					items += animdata_filter_nla(anim_data, ma->adt, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
 					items += animdata_filter_fcurves(anim_data, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);, 
 					items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);)
@@ -998,6 +1031,7 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 		/* filtering for channels - nla, drivers, keyframes */
 		ANIMDATA_FILTER_CASES(iat, 
+			{ /* AnimData blocks - do nothing... */ },
 			items+= animdata_filter_nla(anim_data, iat->adt, filter_mode, iat, type, (ID *)iat);,
 			items+= animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, iat, type, filter_mode, (ID *)iat);, 
 			items += animdata_filter_action(anim_data, iat->adt->action, filter_mode, iat, type, (ID *)iat);)
@@ -1036,6 +1070,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	if (ob->adt) {
 		adt= ob->adt;
 		ANIMDATA_FILTER_CASES(ob,
+			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
@@ -1091,6 +1126,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 		adt= key->adt;
 		ANIMDATA_FILTER_CASES(key,
+			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
@@ -1151,6 +1187,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOCAM) == 0) {
 				ANIMDATA_FILTER_CASES(ca,
+					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
 					obdata_ok= 1;)
@@ -1163,6 +1200,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOLAM) == 0) {
 				ANIMDATA_FILTER_CASES(la,
+					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
 					obdata_ok= 1;)
@@ -1175,6 +1213,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOCUR) == 0) {
 				ANIMDATA_FILTER_CASES(cu,
+					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
 					obdata_ok= 1;)
@@ -1216,6 +1255,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	if ((ads->filterflag & ADS_FILTER_NOSCE) == 0) {
 		adt= sce->adt;
 		ANIMDATA_FILTER_CASES(sce,
+			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
@@ -1266,9 +1306,10 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	
 	/* world */
 	if ((wo && wo->adt) && !(ads->filterflag & ADS_FILTER_NOWOR)) {
-		/* Action, Drivers, or NLA  for World */
+		/* Action, Drivers, or NLA for World */
 		adt= wo->adt;
 		ANIMDATA_FILTER_CASES(wo,
+			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
@@ -1327,6 +1368,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 {
 	Scene *sce= (Scene *)ads->source;
 	Base *base;
+	bAnimListElem *ale;
 	int items = 0;
 	
 	/* check that we do indeed have a scene */
@@ -1342,11 +1384,25 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		
 		/* check filtering-flags if ok */
 		ANIMDATA_FILTER_CASES(sce, 
+			{
+				/* for the special AnimData blocks only case, we only need to add
+				 * the block if it is valid... then other cases just get skipped (hence ok=0)
+				 */
+				ANIMDATA_ADD_ANIMDATA(sce);
+				sceOk=0;
+			},
 			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);, 
 			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);, 
 			sceOk= !(ads->filterflag & ADS_FILTER_NOSCE);)
 		if (sce->world) {
 			ANIMDATA_FILTER_CASES(sce->world, 
+				{
+					/* for the special AnimData blocks only case, we only need to add
+					 * the block if it is valid... then other cases just get skipped (hence ok=0)
+					 */
+					ANIMDATA_ADD_ANIMDATA(sce->world);
+					worOk=0;
+				},
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);, 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
@@ -1395,12 +1451,26 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				actOk= 0;
 				keyOk= 0;
 				ANIMDATA_FILTER_CASES(ob, 
+					{
+						/* for the special AnimData blocks only case, we only need to add
+						 * the block if it is valid... then other cases just get skipped (hence ok=0)
+						 */
+						ANIMDATA_ADD_ANIMDATA(ob);
+						actOk=0;
+					},
 					actOk= 1;, 
 					actOk= 1;, 
 					actOk= 1;)
 				if (key) {
 					/* shapekeys */
 					ANIMDATA_FILTER_CASES(key, 
+						{
+							/* for the special AnimData blocks only case, we only need to add
+							 * the block if it is valid... then other cases just get skipped (hence ok=0)
+							 */
+							ANIMDATA_ADD_ANIMDATA(key);
+							keyOk=0;
+						},
 						keyOk= 1;, 
 						keyOk= 1;, 
 						keyOk= 1;)
@@ -1419,6 +1489,13 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						
 						/* if material has relevant animation data, break */
 						ANIMDATA_FILTER_CASES(ma, 
+							{
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(ma);
+								matOk=0;
+							},
 							matOk= 1;, 
 							matOk= 1;, 
 							matOk= 1;)
@@ -1435,6 +1512,13 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						Camera *ca= (Camera *)ob->data;
 						dataOk= 0;
 						ANIMDATA_FILTER_CASES(ca, 
+							if ((ads->filterflag & ADS_FILTER_NOCAM)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(ca);
+								dataOk=0;
+							},
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCAM);)
@@ -1445,9 +1529,33 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						Lamp *la= (Lamp *)ob->data;
 						dataOk= 0;
 						ANIMDATA_FILTER_CASES(la, 
+							if ((ads->filterflag & ADS_FILTER_NOLAM)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(la);
+								dataOk=0;
+							},
 							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOLAM);)
+					}
+						break;
+					case OB_CURVE: /* ------- Curve ---------- */
+					{
+						Curve *cu= (Curve *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(cu, 
+							if ((ads->filterflag & ADS_FILTER_NOCUR)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(cu);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCUR);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCUR);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOCUR);)
 					}
 						break;
 					default: /* --- other --- */

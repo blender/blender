@@ -107,6 +107,7 @@ typedef struct bAnimListElem {
 // XXX was ACTTYPE_*
 typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
+	ANIMTYPE_ANIMDATA,
 	ANIMTYPE_SPECIALDATA,
 	
 	ANIMTYPE_SCENE,
@@ -162,6 +163,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
 	ANIMFILTER_CURVEVISIBLE	= (1<<7),	/* F-Curve is visible for editing/viewing in Graph Editor */
 	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */  // FIXME: this is only relevant for F-Curves for now
+	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 } eAnimFilter_Flags;
 
 
@@ -254,7 +256,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
-void ANIM_set_active_channel(void *data, short datatype, int filter, void *channel_data, short channel_type);
+void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
 
 /* --------------- Settings and/or Defines -------------- */
 
@@ -307,6 +309,8 @@ void ipo_rainbow(int cur, int tot, float *out);
 
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
+
+// XXX these are soon to be depreceated?
 
 /* Obtain the Object providing NLA-scaling for the given channel if applicable */
 struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);

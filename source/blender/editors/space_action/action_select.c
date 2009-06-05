@@ -862,13 +862,13 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 				bActionGroup *agrp= ale->data;
 				
 				agrp->flag |= AGRP_SELECTED;
-				ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 			}	
 			else if (ale->type == ANIMTYPE_FCURVE) {
 				FCurve *fcu= ale->data;
 				
 				fcu->flag |= FCURVE_SELECTED;
-				ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {

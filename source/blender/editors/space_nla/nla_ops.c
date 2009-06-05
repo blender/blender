@@ -65,6 +65,51 @@
 
 #include "nla_intern.h"	// own include
 
+/* ************************** poll callbacks for operators **********************************/
+
+/* tweakmode is NOT enabled */
+int nlaop_poll_tweakmode_off (bContext *C)
+{
+	Scene *scene;
+	
+	/* for now, we check 2 things: 
+	 * 	1) active editor must be NLA
+	 *	2) tweakmode is currently set as a 'per-scene' flag 
+	 *	   so that it will affect entire NLA data-sets,
+	 *	   but not all AnimData blocks will be in tweakmode for 
+	 *	   various reasons
+	 */
+	if (ED_operator_nla_active(C) == 0)
+		return 0;
+	
+	scene= CTX_data_scene(C);
+	if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON))
+		return 0;
+	
+	return 1;
+}
+
+/* tweakmode IS enabled */
+int nlaop_poll_tweakmode_on (bContext *C)
+{
+	Scene *scene;
+	
+	/* for now, we check 2 things: 
+	 * 	1) active editor must be NLA
+	 *	2) tweakmode is currently set as a 'per-scene' flag 
+	 *	   so that it will affect entire NLA data-sets,
+	 *	   but not all AnimData blocks will be in tweakmode for 
+	 *	   various reasons
+	 */
+	if (ED_operator_nla_active(C) == 0)
+		return 0;
+	
+	scene= CTX_data_scene(C);
+	if ((scene == NULL) || !(scene->flag & SCE_NLA_EDIT_ON))
+		return 0;
+	
+	return 1;
+}
 
 /* ************************** registration - operator types **********************************/
 
@@ -77,6 +122,10 @@ void nla_operatortypes(void)
 	/* select */
 	WM_operatortype_append(NLAEDIT_OT_click_select);
 	WM_operatortype_append(NLAEDIT_OT_select_all_toggle);
+	
+	/* edit */
+	WM_operatortype_append(NLAEDIT_OT_tweakmode_enter);
+	WM_operatortype_append(NLAEDIT_OT_tweakmode_exit);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -130,6 +179,13 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
+	/* editing */
+		/* tweakmode 
+		 *	- enter and exit are separate operators with the same hotkey... 
+		 *	  This works as they use different poll()'s
+		 */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
 	//transform_keymap_for_space(wm, keymap, SPACE_NLA);

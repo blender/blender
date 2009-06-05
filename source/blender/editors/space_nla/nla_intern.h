@@ -76,6 +76,9 @@ void NLAEDIT_OT_click_select(wmOperatorType *ot);
 /* **************************************** */
 /* nla_edit.c */
 
+void NLAEDIT_OT_tweakmode_enter(wmOperatorType *ot);
+void NLAEDIT_OT_tweakmode_exit(wmOperatorType *ot);
+
 /* **************************************** */
 /* nla_channels.c */
 
@@ -84,6 +87,11 @@ void NLA_OT_channels_click(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_ops.c */
+
+int nlaop_poll_tweakmode_off(bContext *C);
+int nlaop_poll_tweakmode_on (bContext *C);
+
+/* --- */
 
 void nla_operatortypes(void);
 void nla_keymap(wmWindowManager *wm);

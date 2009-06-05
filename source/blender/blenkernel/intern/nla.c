@@ -583,4 +583,104 @@ void BKE_nla_action_pushdown (AnimData *adt)
 	}
 }
 
+
+/* Find the active strip + track combo, and set them up as the tweaking track,
+ * and return if successful or not.
+ */
+short BKE_nla_tweakmode_enter (AnimData *adt)
+{
+	NlaTrack *nlt, *activeTrack=NULL;
+	NlaStrip *strip, *activeStrip=NULL;
+	
+	/* verify that data is valid */
+	if ELEM(NULL, adt, adt->nla_tracks.first)
+		return 0;
+		
+	/* if block is already in tweakmode, just leave, but we should report 
+	 * that this block is in tweakmode (as our returncode)
+	 */
+	// FIXME: hopefully the flag is correct!
+	if (adt->flag & ADT_NLA_EDIT_ON)
+		return 1;
+		
+	/* go over the tracks, finding the active one, and its active strip
+	 * 	- if we cannot find both, then there's nothing to do
+	 */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		/* check if active */
+		if (nlt->flag & NLATRACK_ACTIVE) {
+			/* store reference to this active track */
+			activeTrack= nlt;
+			
+			/* now try to find active strip */
+			activeStrip= BKE_nlastrip_find_active(nlt);
+			break;
+		}	
+	}
+	if ELEM3(NULL, activeTrack, activeStrip, activeStrip->act) {
+		printf("NLA tweakmode enter - neither active requirement found \n");
+		return 0;
+	}
+		
+	/* go over all the tracks up to the active one, tagging each strip that uses the same 
+	 * action as the active strip, but leaving everything else alone
+	 */
+	for (nlt= activeTrack->prev; nlt; nlt= nlt->prev) {
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			if (strip->act == activeStrip->act)
+				strip->flag |= NLASTRIP_FLAG_TWEAKUSER;
+			else
+				strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER; // XXX probably don't need to clear this...
+		}
+	}
+	
+	
+	/* go over all the tracks after AND INCLUDING the active one, tagging them as being disabled 
+	 *	- the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
+	 */
+	for (nlt= activeTrack; nlt; nlt= nlt->next)
+		nlt->flag |= NLATRACK_DISABLED;
+	
+	/* handle AnimData level changes:
+	 *	- 'real' active action to temp storage (no need to change user-counts)
+	 *	- action of active strip set to be the 'active action'
+	 *	- editing-flag for this AnimData block should also get turned on (for more efficient restoring)
+	 */
+	adt->tmpact= adt->action;
+	adt->action= activeStrip->act;
+	adt->flag |= ADT_NLA_EDIT_ON;
+	
+	/* done! */
+	return 1;
+}
+
+/* Exit tweakmode for this AnimData block */
+void BKE_nla_tweakmode_exit (AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	/* verify that data is valid */
+	if ELEM(NULL, adt, adt->nla_tracks.first)
+		return;
+		
+	/* hopefully the flag is correct - skip if not on */
+	if ((adt->flag & ADT_NLA_EDIT_ON) == 0)
+		return;
+		
+	// TODO: need to sync the user-strip with the new state of the action!
+		
+	/* for all NLA-tracks, clear the 'disabled' flag */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)
+		nlt->flag &= ~NLATRACK_DISABLED;
+	
+	/* handle AnimData level changes:
+	 *	- 'real' active action is restored from storage
+	 *	- storage pointer gets cleared (to avoid having bad notes hanging around)
+	 *	- editing-flag for this AnimData block should also get turned off
+	 */
+	adt->action= adt->tmpact;
+	adt->tmpact= NULL;
+	adt->flag &= ~ADT_NLA_EDIT_ON;
+}
+
 /* *************************************************** */
