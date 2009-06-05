@@ -1505,6 +1505,7 @@ void *rna_iterator_listbase_get(CollectionPropertyIterator *iter)
 void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
+	iter->internal= NULL;
 }
 
 void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip)
@@ -1561,6 +1562,7 @@ void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter)
 void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
+	iter->internal= NULL;
 }
 
 /* RNA Path - Experiment */
@@ -2198,9 +2200,8 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 	BLI_dynstr_append(dynstr, "{");
 	
 	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
+	for(RNA_property_collection_begin(ptr, iterprop, &iter); iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
 		propname = RNA_property_identifier(prop);
 		
@@ -2211,7 +2212,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 			BLI_dynstr_append(dynstr, ", ");
 		first_time= 0;
 		
-		cstring = RNA_property_as_string(&iter.ptr, prop);
+		cstring = RNA_property_as_string(ptr, prop);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
@@ -2409,6 +2410,7 @@ ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func)
 void RNA_parameter_list_free(ParameterList *parms)
 {
 	MEM_freeN(parms->data);
+	parms->data= NULL;
 
 	parms->func= NULL;
 
