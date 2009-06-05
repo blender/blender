@@ -207,9 +207,6 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_rootnode = NULL;
 
 	m_bucketmanager=new RAS_BucketManager();
-
-	m_canvasDesignWidth = 0;
-	m_canvasDesignHeight = 0;
 	
 	m_attr_dict = PyDict_New(); /* new ref */
 }
