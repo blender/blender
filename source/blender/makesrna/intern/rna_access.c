@@ -2214,7 +2214,6 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 		cstring = RNA_property_as_string(&iter.ptr, prop);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
-		first_time= 0;
 	}
 
 	RNA_property_collection_end(&iter);

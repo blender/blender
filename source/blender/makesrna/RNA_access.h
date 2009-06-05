@@ -196,6 +196,7 @@ extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_ObstacleFluidSettings;
 extern StructRNA RNA_Operator;
+extern StructRNA RNA_OperatorFileListElement;
 extern StructRNA RNA_OperatorMousePath;
 extern StructRNA RNA_OperatorProperties;
 extern StructRNA RNA_OperatorStrokeElement;

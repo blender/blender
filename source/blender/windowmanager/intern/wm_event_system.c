@@ -826,7 +826,12 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						uiPupMenuSaveOver(C, handler->op, path);
 					}
 					else {
-						handler->op->type->exec(C, handler->op);
+						int retval= handler->op->type->exec(C, handler->op);
+						
+						if (retval & OPERATOR_FINISHED)
+							if(G.f & G_DEBUG)
+								wm_operator_print(handler->op);
+						
 						WM_operator_free(handler->op);
 					}
 					
