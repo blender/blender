@@ -53,6 +53,13 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
+
+	/* flags */
+	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKED);
+
+	prop= RNA_def_property(srna, "baking", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
 }
 
 static void rna_def_collision(BlenderRNA *brna)

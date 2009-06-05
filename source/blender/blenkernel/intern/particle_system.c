@@ -4173,10 +4173,10 @@ static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModif
 	ParticleEditSettings *pset=&scene->toolsettings->particle;
 	int distr=0,alloc=0;
 
-	if((psys->part->childtype && psys->totchild != get_psys_tot_child(scene, psys)) || psys->recalc&PSYS_ALLOC)
+	if((psys->part->childtype && psys->totchild != get_psys_tot_child(scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
 		alloc=1;
 
-	if(alloc || psys->recalc&PSYS_DISTR || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT)))
+	if(alloc || psys->recalc&PSYS_RECALC_RESET || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT)))
 		distr=1;
 
 	if(distr){
@@ -4194,8 +4194,9 @@ static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModif
 		}
 	}
 
-	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED) && (psys_in_edit_mode(scene, psys)
-		|| (part->type==PART_HAIR || part->draw_as==PART_DRAW_PATH))){
+	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED) && ( psys_in_edit_mode(scene, psys) || (part->type==PART_HAIR 
+		|| (part->ren_as == PART_DRAW_PATH && (part->draw_as == PART_DRAW_REND || psys->renderdata))))){
+
 		psys_cache_paths(scene, ob, psys, cfra, 0);
 
 		/* for render, child particle paths are computed on the fly */
@@ -4247,7 +4248,7 @@ static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd
 			pa->flag &= ~PARS_NO_DISP;
 	}
 
-	if(psys->recalc & PSYS_DISTR)
+	if(psys->recalc & PSYS_RECALC_RESET)
 		/* need this for changing subsurf levels */
 		psys_calc_dmcache(ob, psmd->dm, psys);
 
@@ -4367,16 +4368,14 @@ void psys_changed_type(ParticleSystem *psys)
 		psys->flag &= ~PSYS_KEYED;
 
 	if(part->type == PART_HAIR) {
-		part->draw_as = PART_DRAW_PATH;
-		part->rotfrom = PART_ROT_IINCR;
-	}
-	else {
-		free_hair(psys, 1);
+		if(ELEM4(part->ren_as, PART_DRAW_NOT, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR)==0)
+			part->ren_as = PART_DRAW_PATH;
 
-		if(part->draw_as == PART_DRAW_PATH)
-			if(psys->part->phystype != PART_PHYS_KEYED)
-				part->draw_as = PART_DRAW_DOT;
+		if(ELEM3(part->draw_as, PART_DRAW_NOT, PART_DRAW_REND, PART_DRAW_PATH)==0)
+			part->draw_as = PART_DRAW_REND;
 	}
+	else
+		free_hair(psys, 1);
 
 	psys->softflag= 0;
 
@@ -4574,7 +4573,7 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 		init= 1;
 	}
 
-	if(psys->recalc & PSYS_DISTR) {
+	if(psys->recalc & PSYS_RECALC_RESET) {
 		distr= 1;
 		init= 1;
 	}
@@ -4594,6 +4593,8 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 		}
 
 		if(only_children_changed==0) {
+			free_keyed_keys(psys);
+
 			initialize_all_particles(ob, psys, psmd);
 
 			if(alloc)
@@ -4747,8 +4748,8 @@ static void psys_to_softbody(Scene *scene, Object *ob, ParticleSystem *psys)
 static int hair_needs_recalc(ParticleSystem *psys)
 {
 	if((psys->flag & PSYS_EDITED)==0 &&
-		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_HAIR)) {
-		psys->recalc &= ~PSYS_RECALC_HAIR;
+		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_REDO)) {
+		psys->recalc &= ~PSYS_RECALC_REDO;
 		return 1;
 	}
 
@@ -4777,6 +4778,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	if(!psmd->dm)
 		return;
+
+	if(psys->recalc & PSYS_RECALC_TYPE)
+		psys_changed_type(psys);
 
 	/* (re-)create hair */
 	if(psys->part->type==PART_HAIR && hair_needs_recalc(psys)) {

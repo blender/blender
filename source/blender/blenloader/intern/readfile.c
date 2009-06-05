@@ -8406,7 +8406,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						part->draw_as = PART_DRAW_PATH;
 						part->type = PART_HAIR;
-						psys->recalc |= PSYS_RECALC_HAIR;
+						psys->recalc |= PSYS_RECALC_REDO;
 
 						part->normfac *= fac;
 						part->randfac *= fac;
@@ -8872,6 +8872,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		Scene *sce;
 		Tex *tx;
+		ParticleSettings *part;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -8912,6 +8913,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
 		for(me= main->mesh.first; me; me= me->id.next) {
 			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+		}
+
+		/* particle settings conversion */
+		for(part= main->particle.first; part; part= part->id.next) {
+			if(part->draw_as) {
+				if(part->draw_as == PART_DRAW_DOT) {
+					part->ren_as = PART_DRAW_HALO;
+					part->draw_as = PART_DRAW_REND;
+				}
+				else if(part->draw_as <= PART_DRAW_AXIS) {
+					part->ren_as = PART_DRAW_HALO;
+				}
+				else {
+					part->ren_as = part->draw_as;
+					part->draw_as = PART_DRAW_REND;
+				}
+			}
 		}
 	}
 

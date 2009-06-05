@@ -492,6 +492,8 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 			else
 				skip = 1;
 		}
+		else if((psys->recalc & PSYS_RECALC_RESET)==0)
+			skip = 1;
 
 		if(skip == 0) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);
