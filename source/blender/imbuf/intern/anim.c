@@ -1046,9 +1046,10 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	char head[256], tail[256];
 	unsigned short digits;
 	int pic;
-	int filter_y = (anim->ib_flags & IB_animdeinterlace);
-
+	int filter_y;
 	if (anim == NULL) return(0);
+
+	filter_y = (anim->ib_flags & IB_animdeinterlace);
 
 	if (anim->curtype == 0)	{
 		ibuf = anim_getnew(anim);
