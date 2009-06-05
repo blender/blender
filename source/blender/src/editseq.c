@@ -68,6 +68,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_ipo.h"
 
 #include "BIF_space.h"
 #include "BIF_interface.h"
@@ -2243,12 +2244,30 @@ void del_seq(void)
 static Sequence *dupli_seq(Sequence *seq) 
 {
 	Sequence *seqn = MEM_dupallocN(seq);
+	ID *id;
 
 	seq->tmp = seqn;
 		
 	seqn->strip= MEM_dupallocN(seq->strip);
 
-	if(seqn->ipo) seqn->ipo->id.us++;
+	if (seqn->ipo) {
+		if (U.dupflag & USER_DUP_IPO) {
+			id= (ID *)seqn->ipo;
+			seqn->ipo= copy_ipo(seqn->ipo);
+			/* we don't need to decrease the number
+			 * of the ipo because we never increase it,
+			 * for example, adduplicate need decrease
+			 * the number but only because copy_object
+			 * call id_us_plus for the ipo block and
+			 * single_ipo_users only work if id->us > 1.
+			 *
+			 * need call ipo_idnew here, for drivers ??
+			 * - Diego
+			 */
+		}
+		else
+			seqn->ipo->id.us++;
+	}
 
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;
