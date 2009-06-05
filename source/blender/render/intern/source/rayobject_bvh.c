@@ -55,6 +55,7 @@ typedef struct BVHObject
 {
 	RayObject rayobj;
 	BVHTree *bvh;
+	float bb[2][3];
 
 } BVHObject;
 
@@ -65,36 +66,42 @@ RayObject *RE_rayobject_bvh_create(int size)
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
-	obj->bvh = BLI_bvhtree_new(size, 0.0, 2, 6);
+	obj->bvh = BLI_bvhtree_new(size, FLT_EPSILON, 2, 6);
 	
+	INIT_MINMAX(obj->bb[0], obj->bb[1]);
 	return RayObject_unalign((RayObject*) obj);
 }
 
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	Isect *isect = (Isect*)userdata;
+	Isect *isec = (Isect*)userdata;
 	RayObject *face = (RayObject*)index;
 	
-	if(RE_rayobject_intersect(face,isect))
+	if(RE_rayobject_intersect(face,isec))
 	{
 		hit->index = index;
 
-		if(isect->mode == RE_RAY_SHADOW)
+		if(isec->mode == RE_RAY_SHADOW)
 			hit->dist = 0;
+//		TODO
+//		else
+//			hit->dist = isec->labda;
 	}
 }
 
 static int  RayObject_bvh_intersect(RayObject *o, Isect *isec)
 {
 	BVHObject *obj = (BVHObject*)o;
-//	float dir[3];
-//	VECCOPY( dir, isec->vec );
-//	Normalize( dir );
 	BVHTreeRayHit hit;
+	float dir[3];
+
+	VECCOPY(dir, isec->vec);
+	Normalize(dir);
+
 	hit.index = 0;
-	hit.dist = isec->labda*isec->dist;
+	hit.dist = FLT_MAX; //TODO isec->labda;
 	
-	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, isec->vec, 0.0, &hit, bvh_callback, isec) != 0;
+	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, isec);
 }
 
 static void RayObject_bvh_add(RayObject *o, RayObject *ob)
@@ -102,8 +109,12 @@ static void RayObject_bvh_add(RayObject *o, RayObject *ob)
 	BVHObject *obj = (BVHObject*)o;
 	float min_max[6];
 	INIT_MINMAX(min_max, min_max+3);
-	RE_rayobject_merge_bb(ob, min_max, min_max+3);	
-	BLI_bvhtree_insert(obj->bvh, (int)ob, min_max, 2 );
+	RE_rayobject_merge_bb(ob, min_max, min_max+3);
+
+	DO_MINMAX(min_max  , obj->bb[0], obj->bb[1]);
+	DO_MINMAX(min_max+3, obj->bb[0], obj->bb[1]);
+	
+	BLI_bvhtree_insert(obj->bvh, (int)ob, min_max, 2 );	
 }
 
 static void RayObject_bvh_done(RayObject *o)
@@ -124,5 +135,7 @@ static void RayObject_bvh_free(RayObject *o)
 
 static void RayObject_bvh_bb(RayObject *o, float *min, float *max)
 {
-	assert(0);
+	BVHObject *obj = (BVHObject*)o;
+	DO_MINMAX( obj->bb[0], min, max );
+	DO_MINMAX( obj->bb[1], min, max );
 }

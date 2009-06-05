@@ -146,8 +146,8 @@ void makeraytree(Render *re)
 	}
 	
 	printf("RE_rayobject_*_create( %d )\n", totface);
-	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
-//	re->raytree = RE_rayobject_bvh_create( totface );
+//	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
+	re->raytree = RE_rayobject_bvh_create( totface );
 	
 	//Fill rayfaces
 	re->rayfaces = (RayObject*)MEM_callocN(totface*sizeof(RayFace), "render faces");
@@ -433,6 +433,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	VECCOPY(isec.vec, vec );
 	isec.labda = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;

@@ -273,12 +273,12 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 	if(casted_rays++ % (1<<20) == 0)
 		printf("Casting %d rays\n", casted_rays);
 
-/*	i->vec[0] *= i->labda;
+	i->labda = 10000.0;
+	i->vec[0] *= i->labda;
 	i->vec[1] *= i->labda;
 	i->vec[2] *= i->labda;
 	i->labda = 1.0f;
-*/
-//	i->dist = VecLength(i->vec);
+	i->dist = VecLength(i->vec);
 	
 	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
 		return 1;
