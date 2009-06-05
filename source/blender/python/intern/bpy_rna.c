@@ -204,6 +204,71 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	return ret;
 }
 
+/* This function is only used by operators right now
+ * Its used for taking keyword args and filling in property values */
+int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefix)
+{
+	int error_val = 0;
+	int totkw;
+	const char *arg_name= NULL;
+	PyObject *item;
+
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+
+	totkw = kw ? PyDict_Size(kw):0;
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+
+		arg_name= RNA_property_identifier(prop);
+
+		if (strcmp(arg_name, "rna_type")==0) continue;
+
+		if (kw==NULL) {
+			PyErr_Format( PyExc_AttributeError, "%s: no keywords, expected \"%s\"", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+			error_val= -1;
+			break;
+		}
+
+		item= PyDict_GetItemString(kw, arg_name);
+
+		if (item == NULL) {
+			PyErr_Format( PyExc_AttributeError, "%s: keyword \"%s\" missing", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+			error_val = -1; /* pyrna_py_to_prop sets the error */
+			break;
+		}
+
+		if (pyrna_py_to_prop(ptr, prop, NULL, item)) {
+			error_val= -1;
+			break;
+		}
+
+		totkw--;
+	}
+
+	RNA_property_collection_end(&iter);
+
+	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(kw, &pos, &key, &value)) {
+			arg_name= _PyUnicode_AsString(key);
+			if (RNA_struct_find_property(ptr, arg_name) == NULL) break;
+			arg_name= NULL;
+		}
+
+		PyErr_Format( PyExc_AttributeError, "%s: keyword \"%s\" unrecognized", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+		error_val = -1;
+	}
+
+	return error_val;
+}
+
 static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw);
 
 PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
@@ -447,9 +512,36 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			break;
 		}
 		case PROP_COLLECTION:
-			PyErr_SetString(PyExc_AttributeError, "cant convert collections yet");
-			return -1;
+		{
+			int seq_len, i;
+			PyObject *item;
+			PointerRNA itemptr;
+			
+			/* convert a sequence of dict's into a collection */
+			if(!PySequence_Check(value)) {
+				PyErr_SetString(PyExc_TypeError, "expected a sequence of dicts for an RNA collection");
+				return -1;
+			}
+			
+			seq_len = PySequence_Length(value);
+			for(i=0; i<seq_len; i++) {
+				item= PySequence_GetItem(value, i);
+				if(item==NULL || PyDict_Check(item)==0) {
+					PyErr_SetString(PyExc_TypeError, "expected a sequence of dicts for an RNA collection");
+					Py_XDECREF(item);
+					return -1;
+				}
+				
+				RNA_property_collection_add(ptr, prop, &itemptr);
+				if(pyrna_pydict_to_props(&itemptr, item, "Converting a python list to an RNA collection")==-1) {
+					Py_DECREF(item);
+					return -1;
+				}
+				Py_DECREF(item);
+			}
+			
 			break;
+		}
 		default:
 			PyErr_SetString(PyExc_AttributeError, "unknown property type (pyrna_py_to_prop)");
 			return -1;

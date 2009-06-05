@@ -536,6 +536,7 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
+char *RNA_pointer_as_string(PointerRNA *ptr);
 
 /* Function */
 

@@ -2185,6 +2185,47 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 
 /* string representation of a property, python
  * compatible but can be used for display too*/
+char *RNA_pointer_as_string(PointerRNA *ptr)
+{
+	DynStr *dynstr= BLI_dynstr_new();
+	char *cstring;
+	
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+	const char *propname;
+	int first_time = 1;
+	
+	BLI_dynstr_append(dynstr, "{");
+	
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		propname = RNA_property_identifier(prop);
+		
+		if(strcmp(propname, "rna_type")==0)
+			continue;
+		
+		if(first_time==0)
+			BLI_dynstr_append(dynstr, ", ");
+		first_time= 0;
+		
+		cstring = RNA_property_as_string(&iter.ptr, prop);
+		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
+		MEM_freeN(cstring);
+		first_time= 0;
+	}
+
+	RNA_property_collection_end(&iter);
+	BLI_dynstr_append(dynstr, "}");	
+	
+	
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
+
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int type = RNA_property_type(prop);
@@ -2262,8 +2303,28 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	}
 	case PROP_COLLECTION:
-		BLI_dynstr_append(dynstr, "'<COLLECTION>'"); /* TODO */
+	{
+		int first_time = 1;
+		CollectionPropertyIterator collect_iter;
+		BLI_dynstr_append(dynstr, "[");
+		
+		for(RNA_property_collection_begin(ptr, prop, &collect_iter); collect_iter.valid; RNA_property_collection_next(&collect_iter)) {
+			PointerRNA itemptr= collect_iter.ptr;
+			
+			if(first_time==0)
+				BLI_dynstr_append(dynstr, ", ");
+			first_time= 0;
+			
+			/* now get every prop of the collection */
+			cstring= RNA_pointer_as_string(&itemptr);
+			BLI_dynstr_append(dynstr, cstring);
+			MEM_freeN(cstring);
+		}
+		
+		RNA_property_collection_end(&collect_iter);
+		BLI_dynstr_append(dynstr, "]");
 		break;
+	}
 	default:
 		BLI_dynstr_append(dynstr, "'<UNKNOWN TYPE>'"); /* TODO */
 		break;
