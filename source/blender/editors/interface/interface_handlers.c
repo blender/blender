@@ -1169,7 +1169,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	/* optional searchbox */
 	if(but->type==SEARCH_MENU) {
 		data->searchbox= ui_searchbox_create(C, data->region, but);
-		ui_searchbox_update(C, data->searchbox, but);
+		ui_searchbox_update(C, data->searchbox, but, 1); /* 1= reset */
 	}
 	
 	ui_check_but(but);
@@ -1247,7 +1247,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	switch(event->type) {
 		case MOUSEMOVE:
 			if(data->searchbox)
-				ui_searchbox_event(data->searchbox, event);
+				ui_searchbox_event(C, data->searchbox, but, event);
 			
 			break;
 		case RIGHTMOUSE:
@@ -1277,6 +1277,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					retval= WM_UI_HANDLER_BREAK;
 				}
 				else if(inbox==0) {
+					/* if searchbox, click outside will cancel */
+					if(data->searchbox)
+						data->cancel= data->escapecancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 					retval= WM_UI_HANDLER_BREAK;
 				}
@@ -1315,7 +1318,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 			case DOWNARROWKEY:
 				if(data->searchbox) {
-					ui_searchbox_event(data->searchbox, event);
+					ui_searchbox_event(C, data->searchbox, but, event);
 					break;
 				}
 				/* pass on purposedly */
@@ -1325,7 +1328,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 			case UPARROWKEY:
 				if(data->searchbox) {
-					ui_searchbox_event(data->searchbox, event);
+					ui_searchbox_event(C, data->searchbox, but, event);
 					break;
 				}
 				/* pass on purposedly */
@@ -1378,7 +1381,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		else ui_check_but(but);
 		
 		if(data->searchbox)
-			ui_searchbox_update(C, data->searchbox, but);
+			ui_searchbox_update(C, data->searchbox, but, 1); /* 1 = reset */
 	}
 
 	if(changed || (retval == WM_UI_HANDLER_BREAK))

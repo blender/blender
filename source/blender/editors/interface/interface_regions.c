@@ -56,6 +56,7 @@
 #include "BIF_gl.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
 #include "BLF_api.h"
@@ -389,6 +390,9 @@ void ui_tooltip_free(bContext *C, ARegion *ar)
 struct uiSearchItems {
 	int maxitem, totitem, maxstrlen;
 	
+	int offset, offset_i; /* offset for inserting in array */
+	int more;  /* flag indicating there are more items */
+	
 	char **names;
 	void **pointers;
 	
@@ -398,7 +402,8 @@ typedef struct uiSearchboxData {
 	rcti bbox;
 	uiFontStyle fstyle;
 	uiSearchItems items;
-	int active;
+	int active;		/* index in items array */
+	int noback;		/* when menu opened with enough space for this */
 } uiSearchboxData;
 
 #define SEARCH_ITEMS	10
@@ -408,20 +413,32 @@ typedef struct uiSearchboxData {
 int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
 {
 	
-	if(items->totitem>=items->maxitem)
+	if(items->totitem>=items->maxitem) {
+		items->more= 1;
 		return 0;
+	}
+	
+	/* skip first items in list */
+	if(items->offset_i > 0) {
+		items->offset_i--;
+		return 1;
+	}
 	
 	BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
 	items->pointers[items->totitem]= poin;
 	
 	items->totitem++;
 	
-	return items->totitem<items->maxitem;
+	return 1;
 }
 
+int uiSearchBoxhHeight(void)
+{
+	return SEARCH_ITEMS*MENU_BUTTON_HEIGHT + 2*MENU_TOP;
+}
 
 /* ar is the search box itself */
-static void ui_searchbox_select(ARegion *ar, int step)
+static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
 {
 	uiSearchboxData *data= ar->regiondata;
 	
@@ -430,23 +447,37 @@ static void ui_searchbox_select(ARegion *ar, int step)
 	
 	if(data->items.totitem==0)
 		data->active= 0;
-	else if(data->active> data->items.totitem)
-		data->active= 1;
-	else if(data->active < 0)
-		data->active= data->items.totitem;
+	else if(data->active > data->items.totitem) {
+		if(data->items.more) {
+			data->items.offset++;
+			data->active= data->items.totitem;
+			ui_searchbox_update(C, ar, but, 0);
+		}
+		else
+			data->active= data->items.totitem;
+	}
+	else if(data->active < 1) {
+		if(data->items.offset) {
+			data->items.offset--;
+			data->active= 1;
+			ui_searchbox_update(C, ar, but, 0);
+		}
+		else if(data->active < 0)
+			data->active= 0;
+	}
 	
 	ED_region_tag_redraw(ar);
 }
 
 static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 {
-	int buth= (data->bbox.ymax-data->bbox.ymin - 2*MENU_SEPR_HEIGHT)/SEARCH_ITEMS;
+	int buth= (data->bbox.ymax-data->bbox.ymin - 2*MENU_TOP)/SEARCH_ITEMS;
 	
 	*rect= data->bbox;
 	rect->xmin= data->bbox.xmin + 3.0f;
 	rect->xmax= data->bbox.xmax - 3.0f;
 	
-	rect->ymax= data->bbox.ymax - MENU_SEPR_HEIGHT - itemnr*buth;
+	rect->ymax= data->bbox.ymax - MENU_TOP - itemnr*buth;
 	rect->ymin= rect->ymax - buth;
 	
 }
@@ -470,16 +501,16 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 	}
 }
 
-void ui_searchbox_event(ARegion *ar, wmEvent *event)
+void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 {
 	uiSearchboxData *data= ar->regiondata;
 	
 	switch(event->type) {
 		case UPARROWKEY:
-			ui_searchbox_select(ar, -1);
+			ui_searchbox_select(C, ar, but, -1);
 			break;
 		case DOWNARROWKEY:
-			ui_searchbox_select(ar, 1);
+			ui_searchbox_select(C, ar, but, 1);
 			break;
 		case MOUSEMOVE:
 			if(BLI_in_rcti(&ar->winrct, event->x, event->y)) {
@@ -491,7 +522,7 @@ void ui_searchbox_event(ARegion *ar, wmEvent *event)
 					if(BLI_in_rcti(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
 						if( data->active!= a+1) {
 							data->active= a+1;
-							ui_searchbox_select(ar, 0);
+							ui_searchbox_select(C, ar, but, 0);
 							break;
 						}
 					}
@@ -502,18 +533,39 @@ void ui_searchbox_event(ARegion *ar, wmEvent *event)
 }
 
 /* ar is the search box itself */
-void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but)
+void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 {
 	uiSearchboxData *data= ar->regiondata;
 	
-	/* callback */
+	/* reset vars */
 	data->items.totitem= 0;
-	data->active= 0;
+	data->items.more= 0;
+	if(reset==0)
+		data->items.offset_i= data->items.offset;
+	else {
+		data->items.offset_i= data->items.offset= 0;
+		data->active= 0;
+	}
+	
+	/* callback */
 	if(but->search_func)
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 	
+	if(reset) {
+		int a;
+		/* handle case where editstr is equal to one of items */
+		for(a=0; a<data->items.totitem; a++) {
+			char *cpoin= strchr(data->items.names[a], '|');
+			
+			if(cpoin) cpoin[0]= 0;
+			if(0==strcmp(but->editstr, data->items.names[a]))
+				data->active= a+1;
+			if(cpoin) cpoin[0]= '|';
+		}
+	}
+
 	/* validate selected item */
-	ui_searchbox_select(ar, 0);
+	ui_searchbox_select(C, ar, but, 0);
 	
 	ED_region_tag_redraw(ar);
 }
@@ -525,7 +577,8 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 	/* pixel space */
 	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 
-	ui_draw_search_back(U.uistyles.first, NULL, &data->bbox);
+	if(!data->noback)
+		ui_draw_search_back(U.uistyles.first, NULL, &data->bbox);
 	
 	/* draw text */
 	if(data->items.totitem) {
@@ -537,6 +590,18 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 			ui_searchbox_butrect(&rect, data, a);
 			
 			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], (a+1)==data->active?UI_ACTIVE:0);
+			
+		}
+		/* indicate more */
+		if(data->items.more) {
+			glEnable(GL_BLEND);
+			UI_icon_draw((data->bbox.xmax-data->bbox.xmin)/2, 8, ICON_TRIA_DOWN);
+			glDisable(GL_BLEND);
+		}
+		if(data->items.offset) {
+			glEnable(GL_BLEND);
+			UI_icon_draw((data->bbox.xmax-data->bbox.xmin)/2, data->bbox.ymax-13, ICON_TRIA_UP);
+			glDisable(GL_BLEND);
 		}
 	}
 }
@@ -585,14 +650,19 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	ar->regiondata= data;
 	
+	/* special case, hardcoded feature, not draw backdrop when called from menus,
+	   assume for design that popup already added it */
+	if(but->block->flag & UI_BLOCK_LOOP)
+		data->noback= 1;
+	
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
 	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
 	
-	x1f= but->x1;
-	x2f= but->x2;
+	x1f= but->x1 - 5;	/* align text with button */
+	x2f= but->x2 + 5;	/* symmetrical */
 	y2f= but->y1;
-	y1f= y2f - SEARCH_ITEMS*MENU_BUTTON_HEIGHT - 2*MENU_SEPR_HEIGHT;
+	y1f= y2f - uiSearchBoxhHeight();
 	
 	/* minimal width */
 	if(x2f - x1f < 180) x2f= x1f+180; // XXX arbitrary

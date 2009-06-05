@@ -670,7 +670,10 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 				}
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
-				xs= rect->xmin+1;
+				if(but->type==SEARCH_MENU)
+					xs= rect->xmin+4;
+				else
+					xs= rect->xmin+1;
 			}
 			else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
 				xs= rect->xmin+3;
@@ -1468,7 +1471,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
