@@ -97,7 +97,7 @@ typedef struct uiHandleButtonData {
 
 	/* overall state */
 	uiHandleButtonState state;
-	int cancel, retval;
+	int cancel, escapecancel, retval;
 	int applied, appliedinteractive;
 	wmTimer *flashtimer;
 
@@ -1253,6 +1253,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		case RIGHTMOUSE:
 		case ESCKEY:
 			data->cancel= 1;
+			data->escapecancel= 1;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			retval= WM_UI_HANDLER_BREAK;
 			break;
@@ -1772,7 +1773,12 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
-		if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
 			if(data->dragchange)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			else
@@ -1968,7 +1974,12 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
-		if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
 			if(data->dragchange)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			else
@@ -3100,12 +3111,14 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	/* if this button is in a menu, this will set the button return
 	 * value to the button value and the menu return value to ok, the
 	 * menu return value will be picked up and the menu will close */
-	if(block->handle && !(block->flag & UI_BLOCK_KEEP_OPEN) && !data->cancel) {
-		uiPopupBlockHandle *menu;
+	if(block->handle && !(block->flag & UI_BLOCK_KEEP_OPEN)) {
+		if(!data->cancel || data->escapecancel) {
+			uiPopupBlockHandle *menu;
 
-		menu= block->handle;
-		menu->butretval= data->retval;
-		menu->menuretval= UI_RETURN_OK;
+			menu= block->handle;
+			menu->butretval= data->retval;
+			menu->menuretval= (data->cancel)? UI_RETURN_CANCEL: UI_RETURN_OK;
+		}
 	}
 
 	/* disable tooltips until mousemove */
