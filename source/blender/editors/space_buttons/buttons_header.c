@@ -180,11 +180,8 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	if((ob && (ob->type != OB_ARMATURE)) && (sbuts->mainb == (float)BCONTEXT_BONE))
 		sbuts->mainb = (float)BCONTEXT_DATA;
 	
-	 if(!ob && !ELEM(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_WORLD))
+	 if(!ob && !ELEM3(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_WORLD, (float)BCONTEXT_SEQUENCER))
 		sbuts->mainb = (float)BCONTEXT_WORLD;
-	 
-	if(!ob && !ELEM(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_SEQUENCER))
-		sbuts->mainb = (float)BCONTEXT_SEQUENCER;
 		
 	if((ob && ELEM5(ob->type, OB_EMPTY, OB_MBALL, OB_LAMP, OB_CAMERA, OB_ARMATURE)) && (sbuts->mainb == (float) BCONTEXT_MODIFIER))
 		sbuts->mainb = (float)BCONTEXT_DATA;
