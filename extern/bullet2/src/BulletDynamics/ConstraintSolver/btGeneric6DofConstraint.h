@@ -382,14 +382,21 @@ public:
 
     //! Get the relative Euler angle
     /*!
-	\pre btGeneric6DofConstraint.buildJacobian must be called previously.
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
 	*/
     btScalar getAngle(int axis_index) const;
+
+	//! Get the relative position of the constraint pivot
+    /*!
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
+	*/
+	btScalar getRelativePivotPosition(int axis_index) const;
+
 
 	//! Test angular limit.
 	/*!
 	Calculates angular correction and returns true if limit needs to be corrected.
-	\pre btGeneric6DofConstraint.buildJacobian must be called previously.
+	\pre btGeneric6DofConstraint::calculateTransforms() must be called previously.
 	*/
     bool testAngularLimitMotor(int axis_index);
 
@@ -496,11 +503,13 @@ protected:
 	bool		m_springEnabled[6];
 	btScalar	m_equilibriumPoint[6];
 	btScalar	m_springStiffness[6];
+	btScalar	m_springDamping[6]; // between 0 and 1 (1 == no damping)
 	void internalUpdateSprings(btConstraintInfo2* info);
 public: 
     btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
 	void enableSpring(int index, bool onOff);
 	void setStiffness(int index, btScalar stiffness);
+	void setDamping(int index, btScalar damping);
 	void setEquilibriumPoint(); // set the current constraint position/orientation as an equilibrium point for all DOF
 	void setEquilibriumPoint(int index);  // set the current constraint position/orientation as an equilibrium point for given DOF
 	virtual void getInfo2 (btConstraintInfo2* info);
