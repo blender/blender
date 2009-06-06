@@ -23,6 +23,7 @@ TODO:
 
 History
 v1.32 - 2009.06.06 by migius
+ - modif Style class: changed defaults to widthFactor=1.0, obliqueAngle=0.0
  - modif Text class: alignment parameter reactivated
 v1.31 - 2009.06.02 by migius
  - modif _Entity class: added paperspace,elevation
@@ -547,7 +548,7 @@ class LineType(_Call):
 #-----------------------------------------------
 class Style(_Call):
 	"""Text style"""
-	def __init__(self,name='standard',flag=0,height=0,widthFactor=40,obliqueAngle=50,
+	def __init__(self,name='standard',flag=0,height=0,widthFactor=1.0,obliqueAngle=0.0,
 				 mirror=0,lastHeight=1,font='arial.ttf',bigFont=''):
 		self.name=name
 		self.flag=flag
