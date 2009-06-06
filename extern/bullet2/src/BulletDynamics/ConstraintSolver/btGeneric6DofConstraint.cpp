@@ -731,7 +731,7 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
             J2[srow+1] = -ax1[1];
             J2[srow+2] = -ax1[2];
         }
-        if((!rotational) && limit)
+        if((!rotational))
         {
 			btVector3 ltd;	// Linear Torque Decoupling vector
 			btVector3 c = m_calculatedTransformB.getOrigin() - body0->getCenterOfMassPosition();
