@@ -154,7 +154,7 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	// XXX review this... it might not be optimal behaviour yet...
 	//id_us_plus((ID *)dadt->action);
 	dadt->action= copy_action(adt->action);
-	dadt->tmpact= copy_action(adt->action);
+	dadt->tmpact= copy_action(adt->tmpact);
 	
 	/* duplicate NLA data */
 	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);

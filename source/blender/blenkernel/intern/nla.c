@@ -675,11 +675,12 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	
 	/* handle AnimData level changes:
 	 *	- 'real' active action to temp storage (no need to change user-counts)
-	 *	- action of active strip set to be the 'active action'
+	 *	- action of active strip set to be the 'active action', and have its usercount incremented
 	 *	- editing-flag for this AnimData block should also get turned on (for more efficient restoring)
 	 */
 	adt->tmpact= adt->action;
 	adt->action= activeStrip->act;
+	id_us_plus(&activeStrip->act->id);
 	adt->flag |= ADT_NLA_EDIT_ON;
 	
 	/* done! */
@@ -706,10 +707,12 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 		nlt->flag &= ~NLATRACK_DISABLED;
 	
 	/* handle AnimData level changes:
+	 *	- 'temporary' active action needs its usercount decreased, since we're removing this reference
 	 *	- 'real' active action is restored from storage
 	 *	- storage pointer gets cleared (to avoid having bad notes hanging around)
 	 *	- editing-flag for this AnimData block should also get turned off
 	 */
+	if (adt->action) adt->action->id.us--;
 	adt->action= adt->tmpact;
 	adt->tmpact= NULL;
 	adt->flag &= ~ADT_NLA_EDIT_ON;

@@ -1896,6 +1896,7 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
 	
 	/* link action data */
 	adt->action= newlibadr_us(fd, id->lib, adt->action);
+	adt->tmpact= newlibadr_us(fd, id->lib, adt->tmpact);
 	
 	/* link drivers */
 	lib_link_fcurves(fd, id, &adt->drivers);
@@ -9406,6 +9407,7 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	
 	/* own action */
 	expand_doit(fd, mainvar, adt->action);
+	expand_doit(fd, mainvar, adt->tmpact);
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
