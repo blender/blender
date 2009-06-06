@@ -317,6 +317,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path)
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
+		case BCONTEXT_CONSTRAINT:
 		case BCONTEXT_MODIFIER:
 			found= buttons_context_path_object(path);
 			break;

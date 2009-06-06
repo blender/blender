@@ -194,6 +194,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, vertical, "bone");
 	else if(sbuts->mainb == BCONTEXT_MODIFIER)
 		ED_region_panels(C, ar, vertical, "modifier");
+	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
+		ED_region_panels(C, ar, vertical, "constraint");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;

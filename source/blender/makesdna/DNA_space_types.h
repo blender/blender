@@ -478,6 +478,7 @@ typedef struct SpaceImaSel {
 #define BCONTEXT_BONE		9
 #define BCONTEXT_MODIFIER	10
 #define BCONTEXT_SEQUENCER	11
+#define BCONTEXT_CONSTRAINT 12
 
 
 /* sbuts->flag */

@@ -839,17 +839,17 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Global Speed", "");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	
-	prop= RNA_def_property(srna, "ipo_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "curve_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
-	RNA_def_property_ui_text(prop, "IPO Velocity", "Interpret the IPO value as a velocity instead of a frame number.");
+	RNA_def_property_ui_text(prop, "F-Curve Velocity", "Interpret the F-Curve value as a velocity instead of a frame number.");
 
 	prop= RNA_def_property(srna, "frame_blending", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_BLEND);
 	RNA_def_property_ui_text(prop, "Frame Blending", "Blend two frames into the target for a smoother result.");
 
-	prop= RNA_def_property(srna, "ipo_compress_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "curve_compress_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
-	RNA_def_property_ui_text(prop, "IPO Compress Y", "Scale IPO value to get the target frame number, IPO value runs from 0.0 to 1.0.");
+	RNA_def_property_ui_text(prop, "F-Curve Compress Y", "Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0.");
 }
 
 void RNA_def_sequence(BlenderRNA *brna)

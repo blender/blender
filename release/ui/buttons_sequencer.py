@@ -5,7 +5,6 @@ def act_strip(context):
 	try:		return context.scene.sequence_editor.active_strip
 	except:	return None
 
-
 class SequencerButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
@@ -23,14 +22,11 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		row = layout.row()
-		row.itemR(strip, "name")
+		layout.itemR(strip, "name")
 		
-		row = layout.row()
-		row.itemR(strip, "blend_mode")
+		layout.itemR(strip, "blend_mode")
 		
-		row = layout.row()
-		row.itemR(strip, "blend_opacity")
+		layout.itemR(strip, "blend_opacity")
 		
 		row = layout.row()
 		row.itemR(strip, "mute")
@@ -54,18 +50,86 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		# This is a crummy way to detect effects
-		return strip.type in ('REPLACE', 'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER', 'GAMMA_ACROSS', 'MULTIPLY', 'OVER_DROP', 'PLUGIN', 'WIPE', 'GLOW', 'COLOR', 'SPEED')
-		
+		return strip.type in ('COLOR', 'WIPE', 'GLOW', 'SPEED', 'TRANSFORM')
+
 	def draw(self, context):
 		layout = self.layout
 		
 		strip = act_strip(context)
 		
 		if strip.type == 'COLOR':
+			layout.itemR(strip, "color")
+			
+		elif strip.type == 'WIPE':
 			row = layout.row()
-			row.itemR(strip, "color")
-		# More Todo - maybe give each its own panel?
+			row.itemL(text="Transition Type:")
+			row.itemL(text="Direction:")
+			
+			row = layout.row()
+			row.itemR(strip, "transition_type", text="")
+			row.itemR(strip, "direction", text="")
+			
+			row = layout.row()
+			row.itemR(strip, "blur_width")
+			if strip.transition_type in ('SINGLE', 'DOUBLE'):
+				row.itemR(strip, "angle")
+				
+		elif strip.type == 'GLOW':
+			flow = layout.column_flow()
+			flow.itemR(strip, "threshold")
+			flow.itemR(strip, "clamp")
+			flow.itemR(strip, "boost_factor")
+			flow.itemR(strip, "blur_distance")
+			
+			row = layout.row()
+			row.itemR(strip, "quality", slider=True)
+			row.itemR(strip, "only_boost")
+			
+		elif strip.type == 'SPEED':
+			layout.itemR(strip, "global_speed")
+			
+			flow = layout.column_flow()
+			flow.itemR(strip, "curve_velocity")
+			flow.itemR(strip, "curve_compress_y")
+			flow.itemR(strip, "frame_blending")
+			
+		elif strip.type == 'TRANSFORM':
+			row = layout.row()
+			row.itemL(text="Interpolation:")
+			row.itemL(text="Translation Unit:")
+			
+			row = layout.row()
+			row.itemR(strip, "interpolation", text="")
+			row.itemR(strip, "translation_unit", text="")
+			
+			split = layout.split()
+			
+			col = split.column()
+			sub = col.column(align=True) 
+			sub.itemL(text="Position X:")
+			sub.itemR(strip, "translate_start_x", text="Start")
+			sub.itemR(strip, "translate_end_x", text="End")
+			
+			sub = col.column(align=True) 
+			sub.itemL(text="Scale X:")
+			sub.itemR(strip, "scale_start_x", text="Start")
+			sub.itemR(strip, "scale_end_x", text="End")
+			
+			sub = col.column(align=True) 
+			sub.itemL(text="Rotation:")
+			sub.itemR(strip, "rotation_start", text="Start")
+			sub.itemR(strip, "rotation_end", text="End")
+			
+			col = split.column()
+			sub = col.column(align=True) 
+			sub.itemL(text="Position Y:")
+			sub.itemR(strip, "translate_start_y", text="Start")
+			sub.itemR(strip, "translate_end_y", text="End")
+			
+			sub = col.column(align=True) 
+			sub.itemL(text="Scale Y:")
+			sub.itemR(strip, "scale_start_y", text="Start")
+			sub.itemR(strip, "scale_end_y", text="End")
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
 	__label__ = "Strip Input"
@@ -83,14 +147,22 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		row = layout.row()
-		row.itemR(strip, "directory")
+		layout.itemR(strip, "directory")
 		
 		# TODO - get current element!
-		row = layout.row()
-		row.itemR(strip.elements[0], "filename")
+		layout.itemR(strip.elements[0], "filename")
 		
+		"""
+		layout.itemR(strip, "use_crop")
 		
+		flow = layout.column_flow()
+		flow.active = strip.use_crop
+		flow.itemR(strip, "top")
+		flow.itemR(strip, "left")
+		flow.itemR(strip, "bottom")
+		flow.itemR(strip, "right")
+		"""
+
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
 	__idname__ = "SEQUENCER_PT_filter"
@@ -121,10 +193,8 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		row.itemR(strip, "multiply_colors")
 		row.itemR(strip, "strobe")
 		
-		row = layout.row()
-		row.itemR(strip, "use_color_balance")
-			
-	
+		layout.itemR(strip, "use_color_balance")
+
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
 	__idname__ = "SEQUENCER_PT_proxy"
