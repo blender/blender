@@ -295,14 +295,23 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					
 				case ANIMTYPE_NLAACTION:
 				{
+					AnimData *adt= BKE_animdata_from_id(ale->id);
+					
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data */
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glEnable(GL_BLEND);
 					
-					if (ale->data)
-						glColor4f(0.8f, 0.2f, 0.0f, 0.4f);	// reddish color - hardcoded for now 
-					else
-						glColor4f(0.6f, 0.5f, 0.5f, 0.3f); 	// greyish-red color - hardcoded for now
+					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
+					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
+						// greenish color (same as tweaking strip) - hardcoded for now
+						glColor4f(0.3f, 0.95f, 0.1f, 0.3f); // FIXME: only draw the actual range of the action darker?
+					}
+					else {
+						if (ale->data)
+							glColor4f(0.8f, 0.2f, 0.0f, 0.4f);	// reddish color - hardcoded for now 
+						else
+							glColor4f(0.6f, 0.5f, 0.5f, 0.3f); 	// greyish-red color - hardcoded for now
+					}
 						
 					/* draw slightly shifted up for greater separation from standard channels,
 					 * but also slightly shorter for some more contrast when viewing the strips
