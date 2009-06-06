@@ -1206,7 +1206,7 @@ static void seq_panel_proxy()
 			uiDefBut(block, TEX, 
 				 B_SEQ_BUT_RELOAD, "Dir: ", 
 				 30,120,220,20, last_seq->strip->proxy->dir, 
-				 0.0, 160.0, 100, 0, "");
+				 0.0, (float)sizeof(last_seq->strip->proxy->dir), 100, 0, "");
 		}
 		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
@@ -1218,7 +1218,7 @@ static void seq_panel_proxy()
 			uiDefBut(block, TEX, 
 				 B_SEQ_BUT_RELOAD, "File: ", 
 				 30,100,220,20, last_seq->strip->proxy->file, 
-				 0.0, 160.0, 100, 0, "");
+				 0.0, (float)sizeof(last_seq->strip->proxy->file), 100, 0, "");
 		}
 	}
 
@@ -1307,7 +1307,7 @@ void sequencer_panels()
 static void sel_proxy_dir(char *name)
 {
 	Sequence *last_seq = get_last_seq();
-	strcpy(last_seq->strip->proxy->dir, name);
+	BLI_strncpy(last_seq->strip->proxy->dir, name, sizeof(last_seq->strip->proxy->dir));
 
 	allqueue(REDRAWBUTSSCENE, 0);
 
