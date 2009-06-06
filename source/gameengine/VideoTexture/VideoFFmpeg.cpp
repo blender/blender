@@ -117,6 +117,7 @@ bool VideoFFmpeg::release()
 	}
 	m_codec = NULL;
 	m_status = SourceStopped;
+	m_lastFrame = -1;
 	return true;
 }
 
@@ -735,7 +736,7 @@ void VideoFFmpeg::loadFrame (void)
 	{
 		// get actual time
 		double startTime = PIL_check_seconds_timer();
-		if (m_lastFrame == -1)
+		if (m_lastFrame == -1 && !m_isFile)
 			m_startTime = startTime;
 		double actTime = startTime - m_startTime;
 		// if video has ended

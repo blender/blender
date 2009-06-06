@@ -149,7 +149,7 @@ int Video_setRange (PyImage * self, PyObject * value, void * closure)
 		|| !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 0))
 		|| !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
-		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 longs");
+		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 float");
 		return -1;
 	}
 	// set range
