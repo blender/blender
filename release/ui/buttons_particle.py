@@ -6,8 +6,8 @@ def particle_panel_enabled(psys):
 	
 def particle_panel_poll(context):
 	psys = context.particle_system
-	type = psys.settings.type
-	return psys != None and (type=='EMITTER' or type=='REACTOR'or type=='HAIR')
+	if psys==None:	return False
+	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
 class ParticleButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
@@ -15,9 +15,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 	__context__ = "particle"
 
 	def poll(self, context):
-		psys = context.particle_system
-		type = psys.settings.type
-		return psys != None and (type=='EMITTER' or type=='REACTOR'or type=='HAIR')
+		return particle_panel_poll(context)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_particles"
@@ -37,9 +35,9 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		#row.itemL(text="Viewport")
 		#row.itemL(text="Render")
 		
-		type = psys.settings.type
+		ptype = psys.settings.type
 		
-		if(type!='EMITTER' and type!='REACTOR' and type!='HAIR'):
+		if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
 			layout.itemL(text="No settings for fluid particles")
 			return
 		
@@ -94,8 +92,8 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 	
 	def poll(self, context):
 		psys = context.particle_system
-		type = psys.settings.type
-		return psys != None and (type=='EMITTER' or type== 'REACTOR')
+		if psys==None:	return False
+		return psys.settings.type in ('EMITTER', 'REACTOR')
 
 	def draw(self, context):
 		layout = self.layout
