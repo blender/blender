@@ -88,6 +88,15 @@ This module provides access to the B{Particle} in Blender.
 		- Z: set Z axis for offset
 """
 
+def New(object):
+	"""
+	Create a new particle system applied to L{object}
+	@type object: string or L{Blender.Object.Object}
+	@param name: The name of an existing object.
+	@rtype: L{Particle}
+	@return: a new Particle system.
+	"""
+
 class Particle:
 	"""
 	The Particle object
