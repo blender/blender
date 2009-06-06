@@ -168,8 +168,12 @@ void syspath_append(char *dirname)
 		/* PyErr_Clear(); is called below */
 		ok = 0;
 	}
-	
+
+#if PY_MAJOR_VERSION >= 3
+	dir = PyUnicode_FromString( dirname );
+#else
 	dir = PyString_FromString( dirname );
+#endif
 	
 	if (ok && PySequence_Contains(path, dir)==0) { /* Only add if we need to */
 		if (PyList_Append( path, dir ) != 0) /* decref below */
