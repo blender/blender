@@ -1,6 +1,6 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.31 - 2009.06.02"
+__version__ = "v1.32 - 2009.06.06"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
 __url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -22,6 +22,8 @@ TODO:
 - add support for SPLINEs (possible first in DXFr14 version)
 
 History
+v1.32 - 2009.06.06 by migius
+ - modif Text class: alignment parameter reactivated
 v1.31 - 2009.06.02 by migius
  - modif _Entity class: added paperspace,elevation
 v1.30 - 2009.05.28 by migius
@@ -424,7 +426,7 @@ class Text(_Entity):
 		if self.style: result+='  7\n%s\n'%self.style
 		if self.flag: result+=' 71\n%s\n'%self.flag
 		if self.justifyhor: result+=' 72\n%s\n'%self.justifyhor
-		#TODO: if self.alignment: result+='%s\n'%_point(self.alignment,1)
+		if self.alignment: result+='%s\n'%_point(self.alignment,1)
 		if self.justifyver: result+=' 73\n%s\n'%self.justifyver
 		return result
 
