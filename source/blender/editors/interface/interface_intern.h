@@ -371,6 +371,7 @@ uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *but
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
 void ui_set_name_menu(uiBut *but, int value);
+int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
 struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
