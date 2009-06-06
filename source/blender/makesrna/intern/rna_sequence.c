@@ -250,27 +250,19 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
 		{SEQ_COLOR, "COLOR", "Color", ""}, 
 		{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
-			{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
-			{SEQ_CROSS, "CROSS", "Cross", ""}, 
-			{SEQ_ADD, "ADD", "Add", ""}, 
-			{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-			{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-			{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-			{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-			{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-			{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-			{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
-			{SEQ_WIPE, "WIPE", "Wipe", ""}, 
-			{SEQ_GLOW, "GLOW", "Glow", ""}, 
-			{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
-			{SEQ_COLOR, "COLOR", "Color", ""}, 
-			{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}
-	};
+		{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", "Cross", ""}, 
+		{SEQ_ADD, "ADD", "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
+		{0, NULL, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
