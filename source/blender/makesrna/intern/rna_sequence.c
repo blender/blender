@@ -308,9 +308,9 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MUTE);
 	RNA_def_property_ui_text(prop, "Mute", "");
 
-	prop= RNA_def_property(srna, "ipo_frame_locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_IPO_FRAME_LOCKED);
-	RNA_def_property_ui_text(prop, "IPO Frame Locked", "Lock the IPO coordinates to the global frame counter.");
+	RNA_def_property_ui_text(prop, "Frame Locked", "Lock the animation curve to the global frame counter.");
 
 	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LOCK);
@@ -385,6 +385,10 @@ void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
+	
+	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
+	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
 }
 
 static void rna_def_filter_video(StructRNA *srna)

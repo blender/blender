@@ -182,6 +182,9 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	
 	 if(!ob && !ELEM(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_WORLD))
 		sbuts->mainb = (float)BCONTEXT_WORLD;
+	 
+	if(!ob && !ELEM(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_SEQUENCER))
+		sbuts->mainb = (float)BCONTEXT_SEQUENCER;
 		
 	if((ob && ELEM5(ob->type, OB_EMPTY, OB_MBALL, OB_LAMP, OB_CAMERA, OB_ARMATURE)) && (sbuts->mainb == (float) BCONTEXT_MODIFIER))
 		sbuts->mainb = (float)BCONTEXT_DATA;
@@ -190,6 +193,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SEQUENCE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SEQUENCER, 0, 0, "Sequencer");
 	
 	// Specific panels, check on active object seletion
 	if(ob) {

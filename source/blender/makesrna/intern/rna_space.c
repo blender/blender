@@ -488,6 +488,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BCONTEXT_GAME, "GAME", "Game", ""},
 		{BCONTEXT_BONE, "BONE", "Bone", ""},
 		{BCONTEXT_MODIFIER, "MODIFIER", "Modifier", ""},
+		{BCONTEXT_SEQUENCER, "SEQUENCER", "Sequencer", ""},
 		{0, NULL, NULL, NULL}};
 		
 	static EnumPropertyItem panel_alignment_items[] = {

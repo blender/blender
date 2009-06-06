@@ -96,6 +96,16 @@ static int buttons_context_path_world(ButsContextPath *path)
 	return 0;
 }
 
+// XXX - place holder, need to get this working
+static int buttons_context_path_sequencer(ButsContextPath *path)
+{
+	PointerRNA *ptr= &path->ptr[path->len-1];
+
+	/* this one just verifies */
+	return RNA_struct_is_a(ptr->type, &RNA_Scene);
+}
+
+
 static int buttons_context_path_object(ButsContextPath *path)
 {
 	Scene *scene;
@@ -301,6 +311,9 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path)
 			break;
 		case BCONTEXT_WORLD:
 			found= buttons_context_path_world(path);
+			break;
+		case BCONTEXT_SEQUENCER:
+			found= buttons_context_path_sequencer(path); // XXX - place holder
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
