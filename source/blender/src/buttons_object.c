@@ -159,6 +159,8 @@
 
 #include "butspace.h" // own module
 
+#include "PIL_time.h"
+
 static float prspeed=0.0;
 float prlen=0.0;
 
@@ -3337,6 +3339,7 @@ static void object_panel_collision(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	
 	/* only meshes collide now */
@@ -3431,6 +3434,7 @@ static void object_panel_fields(Object *ob)
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
 		ob->pd->tex_nabla = 0.025f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	
 	if(ob->pd) {
@@ -3530,7 +3534,10 @@ static void object_panel_fields(Object *ob)
 				else if(pd->forcefield == PFIELD_HARMONIC) 
 					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
 				else if(pd->forcefield == PFIELD_WIND) 
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "Noise: ",10,120,140,20, &pd->f_noise, 0, 10, 100, 0, "Noise of the wind force");	
+				{
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Noise: ",10,120,140,20, &pd->f_noise, 0, 10, 100, 0, "Noise of the wind force");
+					uiDefButI(block, NUM, B_FIELD_CHANGE, "Seed: ",10,100,140,20, &pd->seed, 1, 128, 1, 0, "Seed of the wind noise");
+				}
 			}
 			uiBlockEndAlign(block);
 			
@@ -3839,6 +3846,7 @@ static void object_softbodies_collision(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_collision", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics"); 

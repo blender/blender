@@ -69,7 +69,7 @@ typedef struct PartDeflect {
 	struct Tex *tex;	/* Texture of the texture effector */
 	struct RNG *rng; /* random noise generator for e.g. wind */
 	float f_noise; /* noise of force (currently used for wind) */
-	int pad;
+	int seed; /* wind noise random seed */
 } PartDeflect;
 
 typedef struct PointCache {

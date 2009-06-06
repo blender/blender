@@ -162,6 +162,8 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "PIL_time.h"
+
 #include <errno.h>
 
 /*
@@ -8142,6 +8144,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next)
 			sce->r.renderer= 0;
 		
+	}
+	
+	// correct introduce of seed for wind force
+	if (main->versionfile < 249 && main->subversionfile < 1) {
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd)
+				ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+		}
+	
 	}
 	
 

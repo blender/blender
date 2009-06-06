@@ -80,7 +80,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "PIL_time.h"
 #include "RE_render_ext.h"
 
 /* fluid sim particle import */
@@ -161,8 +160,7 @@ static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 		
 		if(pd->forcefield == PFIELD_WIND)
 		{
-			pd->rng = rng_new(1);
-			rng_srandom(pd->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
+			pd->rng = rng_new(pd->seed);
 		}
 	
 		ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
@@ -286,14 +284,14 @@ static float eff_calc_visibility(Object *ob, float *co, float *dir)
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
-	int random = (rng_getInt(rng)+1) % 65535; // max 2357
+	int random = (rng_getInt(rng)+1) % 128; // max 2357
 	float force = rng_getFloat(rng) + 1.0f;
 	float ret;
 	float sign = 0;
 	
-	sign = (random > 32000.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
+	sign = ((float)random > 64.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
 	
-	ret = sign*((float)random / force)*strength/65535.0f;
+	ret = sign*((float)random / force)*strength/128.0f;
 	
 	return ret;
 }
