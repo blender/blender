@@ -234,7 +234,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 			PyTuple_SET_ITEM(args, 1, pyop_dict_from_event(event));
 		}
 		else if (mode==PYOP_EXEC) {
-			item= PyObject_GetAttrString(py_class, "execu");
+			item= PyObject_GetAttrString(py_class, "exec");
 			args = PyTuple_New(2);
 			
 			RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
@@ -334,7 +334,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
-	if (PyObject_HasAttrString(py_class, "execu"))
+	if (PyObject_HasAttrString(py_class, "exec"))
 		ot->exec= PYTHON_OT_exec;
 	if (PyObject_HasAttrString(py_class, "poll"))
 		ot->poll= PYTHON_OT_poll;
@@ -397,7 +397,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"execu",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"exec",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{"invoke",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
