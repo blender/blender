@@ -7,8 +7,7 @@ class MaterialButtonsPanel(bpy.types.Panel):
 	__context__ = "material"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material)
+		return (context.material != None)
 
 class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_preview"
@@ -17,7 +16,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		mat = context.active_object.active_material
+		mat = context.material
 		layout.template_preview(mat)
 	
 class MATERIAL_PT_material(MaterialButtonsPanel):
@@ -26,7 +25,7 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		mat = context.active_object.active_material
+		mat = context.material
 	
 		layout.itemR(mat, "type", expand=True)
 
@@ -42,18 +41,18 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material and ob.active_material.type == "SURFACE")
+		mat = context.material
+		return (mat and mat.type == "SURFACE")
 
 	def draw_header(self, context):
-		sss = context.active_object.active_material.subsurface_scattering
+		sss = context.material.subsurface_scattering
 
 		layout = self.layout
 		layout.itemR(sss, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
-		sss = context.active_object.active_material.subsurface_scattering
+		sss = context.material.subsurface_scattering
 		layout.active = sss.enabled	
 		
 		flow = layout.column_flow()
@@ -76,18 +75,18 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__label__ = "Ray Mirror"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material and ob.active_material.type == "SURFACE")
+		mat = context.material
+		return (mat and mat.type == "SURFACE")
 	
 	def draw_header(self, context):
-		raym = context.active_object.active_material.raytrace_mirror
+		raym = context.material.raytrace_mirror
 
 		layout = self.layout
 		layout.itemR(raym, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
-		raym = context.active_object.active_material.raytrace_mirror
+		raym = context.material.raytrace_mirror
 		layout.active = raym.enabled	
 		split = layout.split()
 		
@@ -113,18 +112,18 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__label__= "Ray Transparency"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material and ob.active_material.type == "SURFACE")
+		mat = context.material
+		return (mat and mat.type == "SURFACE")
 
 	def draw_header(self, context):
-		rayt = context.active_object.active_material.raytrace_transparency
+		rayt = context.material.raytrace_transparency
 
 		layout = self.layout
 		layout.itemR(rayt, "enabled", text="")
 
 	def draw(self, context):
 		layout = self.layout
-		rayt = context.active_object.active_material.raytrace_transparency
+		rayt = context.material.raytrace_transparency
 		layout.active = rayt.enabled	
 		
 		split = layout.split()
@@ -151,12 +150,12 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 	__label__= "Halo"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.active_material and ob.active_material.type == "HALO")
+		mat = context.material
+		return (mat and mat.type == "HALO")
 	
 	def draw(self, context):
 		layout = self.layout
-		mat = context.active_object.active_material
+		mat = context.material
 		halo = mat.halo
 
 		split = layout.split()
@@ -203,3 +202,4 @@ bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
+

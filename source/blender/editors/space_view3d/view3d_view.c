@@ -203,6 +203,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	struct SmoothViewStore sms;
 	
 	/* initialize sms */
+	memset(&sms,0,sizeof(struct SmoothViewStore));
 	VECCOPY(sms.new_ofs, rv3d->ofs);
 	QUATCOPY(sms.new_quat, rv3d->viewquat);
 	sms.new_dist= rv3d->dist;

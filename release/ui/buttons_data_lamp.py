@@ -7,15 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'LAMP')
+		return (context.lamp != None)
 	
 class DATA_PT_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_lamp"
 	__label__ = "Lamp"
 
 	def draw(self, context):
-		lamp = context.active_object.data
+		lamp = context.lamp
 		layout = self.layout
 
 		layout.itemR(lamp, "type", expand=True)
@@ -56,11 +55,11 @@ class DATA_PT_sunsky(DataButtonsPanel):
 	__label__ = "Sun/Sky"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob.type == 'LAMP' and ob.data.type == 'SUN')
+		lamp = context.lamp
+		return (lamp and lamp.type == 'SUN')
 
 	def draw(self, context):
-		lamp = context.active_object.data.sky
+		lamp = context.lamp.sky
 		layout = self.layout
 
 		row = layout.row()
@@ -99,11 +98,11 @@ class DATA_PT_shadow(DataButtonsPanel):
 	__label__ = "Shadow"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob.type == 'LAMP' and ob.data.type in ('POINT','SUN', 'SPOT', 'AREA'))
+		lamp = context.lamp
+		return (lamp and lamp.type in ('POINT','SUN', 'SPOT', 'AREA'))
 
 	def draw(self, context):
-		lamp = context.active_object.data
+		lamp = context.lamp
 		layout = self.layout
 
 		layout.itemR(lamp, "shadow_method", expand=True)
@@ -178,11 +177,11 @@ class DATA_PT_spot(DataButtonsPanel):
 	__label__ = "Spot"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob.type == 'LAMP' and ob.data.type == 'SPOT')
+		lamp = context.lamp
+		return (lamp and lamp.type == 'SPOT')
 
 	def draw(self, context):
-		lamp = context.active_object.data
+		lamp = context.lamp
 		layout = self.layout
 
 		split = layout.split()
@@ -200,7 +199,28 @@ class DATA_PT_spot(DataButtonsPanel):
 		if lamp.shadow_method == 'BUFFER_SHADOW':
 			colsub.itemR(lamp, "halo_step", text="Step")
 
+class DATA_PT_falloff_curve(DataButtonsPanel):
+	__idname__ = "DATA_PT_falloff_curve"
+	__label__ = "Falloff Curve"
+	
+	def poll(self, context):
+		lamp = context.lamp
+
+		if lamp and lamp.type in ('POINT', 'SPOT'):
+			if lamp.falloff_type == 'CUSTOM_CURVE':
+				return True
+
+		return False
+
+	def draw(self, context):
+		lamp = context.lamp
+		layout = self.layout
+
+		layout.template_curve_mapping(lamp.falloff_curve)
+
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)
 bpy.types.register(DATA_PT_sunsky)
 bpy.types.register(DATA_PT_spot)
+bpy.types.register(DATA_PT_falloff_curve)
+

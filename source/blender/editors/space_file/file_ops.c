@@ -480,6 +480,36 @@ int file_exec(bContext *C, wmOperator *unused)
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
+		/* some ops have multiple files to select */
+		{
+			PointerRNA itemptr;
+			int i, numfiles = filelist_numfiles(sfile->files);
+			struct direntry *file;
+			if(RNA_struct_find_property(op->ptr, "files")) {
+				for (i=0; i<numfiles; i++) {
+					file = filelist_file(sfile->files, i);
+					if(file->flags & ACTIVE) {
+						if ((file->type & S_IFDIR)==0) {
+							RNA_collection_add(op->ptr, "files", &itemptr);
+							RNA_string_set(&itemptr, "name", file->relname);
+						}
+					}
+				}
+			}
+			
+			if(RNA_struct_find_property(op->ptr, "dirs")) {
+				for (i=0; i<numfiles; i++) {
+					file = filelist_file(sfile->files, i);
+					if(file->flags & ACTIVE) {
+						if ((file->type & S_IFDIR)) {
+							RNA_collection_add(op->ptr, "dirs", &itemptr);
+							RNA_string_set(&itemptr, "name", file->relname);
+						}
+					}
+				}
+			}
+		}
+		
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
 		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
 		fsmenu_write_file(fsmenu_get(), name);

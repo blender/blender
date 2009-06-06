@@ -630,7 +630,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 {
-	float xs=0, ys=0, aspect, height;
+	int xs=0, ys=0;
+	float aspect, height;
 	
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
@@ -663,33 +664,36 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 		if(but->flag & UI_ICON_LEFT) {
 			if (but->type==BUT_TOGDUAL) {
 				if (but->drawstr[0]) {
-					xs= rect->xmin-1.0;
+					xs= rect->xmin-1;
 				} else {
-					xs= (rect->xmin+rect->xmax- height)/2.0;
+					xs= (rect->xmin+rect->xmax- height)/2;
 				}
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
-				xs= rect->xmin+1.0;
+				if(but->type==SEARCH_MENU)
+					xs= rect->xmin+4;
+				else
+					xs= rect->xmin+1;
 			}
 			else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
-				xs= rect->xmin+3.0;
+				xs= rect->xmin+3;
 			}
 			else {
-				xs= rect->xmin+4.0;
+				xs= rect->xmin+4;
 			}
-			ys= (rect->ymin+rect->ymax- height)/2.0;
+			ys= (rect->ymin+rect->ymax- height)/2;
 		}
 		else {
-			xs= (rect->xmin+rect->xmax- height)/2.0;
-			ys= (rect->ymin+rect->ymax- height)/2.0;
+			xs= (rect->xmin+rect->xmax- height)/2;
+			ys= (rect->ymin+rect->ymax- height)/2;
 		}
 	
 		UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
 	}
 	
 	if(but->flag & UI_ICON_SUBMENU) {
-		xs= rect->xmax-17.0;
-		ys= (rect->ymin+rect->ymax- height)/2.0;
+		xs= rect->xmax-17;
+		ys= (rect->ymin+rect->ymax- height)/2;
 		
 		UI_icon_draw_aspect_blended(xs, ys, ICON_RIGHTARROW_THIN, aspect, blend);
 	}
@@ -844,29 +848,23 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			widget_draw_icon(but, ICON_DOT, dualset?0:-100, rect);
 		}
 		
-		if(but->drawstr[0]!=0) {
+		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+		and offset the text label to accomodate it */
+		
+		if (but->flag & UI_HAS_ICON) {
+			widget_draw_icon(but, but->icon, 0, rect);
 			
-			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-			and offset the text label to accomodate it */
+			rect->xmin += UI_icon_get_width(but->icon);
 			
-			if (but->flag & UI_HAS_ICON) {
-				widget_draw_icon(but, but->icon, 0, rect);
-				
-				rect->xmin += UI_icon_get_width(but->icon);
-				
-				if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
-					rect->xmin += 5;
-			}
-			else if(but->flag & UI_TEXT_LEFT)
+			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;
-			
-			widget_draw_text(fstyle, wcol, but, rect);
-			
 		}
-		/* if there's no text label, then check to see if there's an icon only and draw it */
-		else if( but->flag & UI_HAS_ICON ) {
-			widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
-		}
+		else if(but->flag & UI_TEXT_LEFT)
+			rect->xmin += 5;
+		
+		/* always draw text for textbutton cursor */
+		widget_draw_text(fstyle, wcol, but, rect);
+
 	}
 }
 
@@ -1220,8 +1218,8 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	
 	/* menu is 2nd level or deeper */
 	if (flag & UI_BLOCK_POPUP) {
-		rect->ymin -= 4.0;
-		rect->ymax += 4.0;
+		//rect->ymin -= 4.0;
+		//rect->ymax += 4.0;
 	}
 	else if (direction == UI_DOWN) {
 		roundboxalign= 12;
@@ -1473,7 +1471,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
@@ -1827,6 +1825,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				wt= widget_type(UI_WTYPE_RADIO);
 				break;
 			case TEX:
+			case SEARCH_MENU:
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
 			case TOGBUT:
@@ -1918,4 +1917,60 @@ void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 	
 }
 
+void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
+{
+	uiWidgetType *wt= widget_type(UI_WTYPE_BOX);
+	
+	glEnable(GL_BLEND);
+	widget_softshadow(rect, 15, 5.0f, 8.0f);
+	glDisable(GL_BLEND);
+
+	wt->state(wt, 0);
+	if(block)
+		wt->draw(&wt->wcol, rect, block->flag, 15);
+	else
+		wt->draw(&wt->wcol, rect, 0, 15);
+	
+}
+
+
+/* helper call to draw a menu item without button */
+/* state: UI_ACTIVE or 0 */
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
+{
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	rcti _rect= *rect;
+	char *cpoin;
+	
+	wt->state(wt, state);
+	wt->draw(&wt->wcol, rect, 0, 0);
+	
+	uiStyleFontSet(fstyle);
+	fstyle->align= UI_STYLE_TEXT_LEFT;
+	
+	/* text location offset */
+	rect->xmin+=5;
+
+	/* cut string in 2 parts? */
+	cpoin= strchr(name, '|');
+	if(cpoin) {
+		*cpoin= 0;
+		rect->xmax -= BLF_width(cpoin+1) + 10;
+	}
+	
+	glColor3ubv(wt->wcol.text);
+	uiStyleFontDraw(fstyle, rect, name);
+	
+	/* part text right aligned */
+	if(cpoin) {
+		fstyle->align= UI_STYLE_TEXT_RIGHT;
+		rect->xmax= _rect.xmax - 5;
+		uiStyleFontDraw(fstyle, rect, cpoin+1);
+		*cpoin= '|';
+	}
+	
+	/* restore rect, was messed with */
+	*rect= _rect;
+
+}
 

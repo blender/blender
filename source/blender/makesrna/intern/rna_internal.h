@@ -25,6 +25,8 @@
 #ifndef RNA_INTERNAL_H
 #define RNA_INTERNAL_H
 
+#include "UI_resources.h"
+
 #include "rna_internal_types.h"
 
 #define RNA_MAGIC ((int)~0)

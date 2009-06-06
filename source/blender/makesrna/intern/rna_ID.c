@@ -30,6 +30,8 @@
 
 #include "DNA_ID.h"
 
+#include "rna_internal.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_idprop.h"
@@ -221,6 +223,7 @@ static void rna_def_library(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Library", "ID");
 	RNA_def_struct_ui_text(srna, "Library", "External .blend file from which data is linked.");
+	RNA_def_struct_ui_icon(srna, ICON_LIBRARY_DATA_DIRECT);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");

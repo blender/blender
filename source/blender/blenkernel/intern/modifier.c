@@ -6347,8 +6347,7 @@ static void particleSystemModifier_deformVerts(
 		  psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
 		/* in file read dm hasn't really changed but just wasn't saved in file */
 
-		psys->recalc |= PSYS_RECALC_HAIR;
-		psys->recalc |= PSYS_DISTR;
+		psys->recalc |= PSYS_RECALC_RESET;
 		psmd->flag |= eParticleSystemFlag_DM_changed;
 
 		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);

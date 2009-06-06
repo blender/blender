@@ -35,7 +35,6 @@ struct SpaceFile;
 #define FILE_IMGDISPLAY		3
 
 typedef struct FileSelectParams {
-	int type; /* the mode of the filebrowser, FILE_BLENDER, FILE_SPECIAL, FILE_MAIN or FILE_LOADLIB */
 	char title[24]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
@@ -96,8 +95,8 @@ typedef struct FileLayout
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile, int type, const char *title, const char *path, 
-						   short flag, short display, short filter);
+short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *path, 
+						   short flag, short display, short filter, short sort);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 

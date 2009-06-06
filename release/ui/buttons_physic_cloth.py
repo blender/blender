@@ -6,17 +6,8 @@ class PhysicButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
-	def cloth_modifier(self, context):
-		ob = context.active_object
-		for md in ob.modifiers:
-			if md.type == 'CLOTH':
-				return md
-
-		return None
-	
 	def poll(self, context):
-		md = self.cloth_modifier(context)
-		return (md != None)
+		return (context.cloth != None)
 		
 class Physic_PT_cloth(PhysicButtonsPanel):
 	__idname__ = "Physic_PT_cloth"
@@ -24,7 +15,7 @@ class Physic_PT_cloth(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		md = self.cloth_modifier(context)
+		md = context.cloth
 		cloth = md.settings
 		
 		split = layout.split()
@@ -60,7 +51,7 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 	
 	def draw_header(self, context):
 		layout = self.layout
-		md = self.cloth_modifier(context)			
+		md = context.cloth
 		cloth = md.collision_settings
 	
 		layout.itemR(cloth, "enable_collision", text="")
@@ -68,7 +59,7 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		md = self.cloth_modifier(context)
+		md = context.cloth
 		cloth = md.collision_settings
 		layout.active = cloth.enable_collision	
 		
@@ -91,7 +82,7 @@ class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
 	
 	def draw_header(self, context):
 		layout = self.layout
-		md = self.cloth_modifier(context)
+		md = context.cloth
 		cloth = md.settings
 	
 		layout.itemR(cloth, "stiffness_scaling", text="")
@@ -99,7 +90,7 @@ class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		md = self.cloth_modifier(context)
+		md = context.cloth
 		cloth = md.settings
 		layout.active = cloth.stiffness_scaling	
 		

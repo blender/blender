@@ -121,7 +121,7 @@ typedef struct SpaceButs {
 	struct RenderInfo *ri;
 
 	short cursens, curact;
-	short align, tabo;		/* align for panels, tab is old tab */
+	short align, pad;		/* align for panels */
 	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
@@ -139,8 +139,8 @@ typedef struct SpaceButs {
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
 	char flag, texact;
 	
-	char tab[8];	/* storing tabs for each context */
-		
+	void *path;		/* runtime */
+	ID *pinid;
 } SpaceButs;
 
 typedef struct SpaceSeq {
@@ -463,6 +463,22 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_ANIM		2
 #define TAB_SCENE_SOUND		3
 #define TAB_SCENE_SEQUENCER	4
+
+
+/* warning: the values of these defines are used in sbuts->tabs[8] */
+/* buts->mainb new */
+#define BCONTEXT_SCENE		0
+#define BCONTEXT_WORLD		1
+#define BCONTEXT_OBJECT		2
+#define BCONTEXT_DATA		3
+#define BCONTEXT_MATERIAL	4
+#define BCONTEXT_TEXTURE	5
+#define BCONTEXT_PARTICLE	6
+#define BCONTEXT_PHYSICS	7
+#define BCONTEXT_GAME		8
+#define BCONTEXT_BONE		9
+#define BCONTEXT_MODIFIER	10
+
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1

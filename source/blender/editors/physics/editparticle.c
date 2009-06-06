@@ -3759,7 +3759,7 @@ static int set_editable_exec(bContext *C, wmOperator *op)
 				PE_free_particle_edit(psys);
 
 			psys->flag &= ~PSYS_EDITED;
-			psys->recalc |= PSYS_RECALC_HAIR;
+			psys->recalc |= PSYS_RECALC_RESET;
 
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}

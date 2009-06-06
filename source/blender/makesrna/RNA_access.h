@@ -89,6 +89,9 @@ extern StructRNA RNA_CurveMapping;
 extern StructRNA RNA_CurveModifier;
 extern StructRNA RNA_CurvePoint;
 extern StructRNA RNA_DecimateModifier;
+extern StructRNA RNA_DefCollision;
+extern StructRNA RNA_DefField;
+extern StructRNA RNA_DefPointcache;
 extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_DisplaceModifier;
 extern StructRNA RNA_DistortedNoiseTexture;
@@ -153,6 +156,7 @@ extern StructRNA RNA_Material;
 extern StructRNA RNA_MaterialHalo;
 extern StructRNA RNA_MaterialRaytraceMirror;
 extern StructRNA RNA_MaterialRaytraceTransparency;
+extern StructRNA RNA_MaterialSlot;
 extern StructRNA RNA_MaterialStrand;
 extern StructRNA RNA_MaterialSubsurfaceScattering;
 extern StructRNA RNA_MaterialTextureSlot;
@@ -192,6 +196,7 @@ extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_ObstacleFluidSettings;
 extern StructRNA RNA_Operator;
+extern StructRNA RNA_OperatorFileListElement;
 extern StructRNA RNA_OperatorMousePath;
 extern StructRNA RNA_OperatorProperties;
 extern StructRNA RNA_OperatorStrokeElement;
@@ -245,6 +250,7 @@ extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
+extern StructRNA RNA_SpaceButtonsWindow;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceTextEditor;
@@ -327,6 +333,7 @@ void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);
 const char *RNA_struct_ui_description(StructRNA *type);
+int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
@@ -530,6 +537,7 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
+char *RNA_pointer_as_string(PointerRNA *ptr);
 
 /* Function */
 

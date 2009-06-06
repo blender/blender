@@ -4243,6 +4243,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceButs *sbuts= (SpaceButs *)sl;
 						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
+						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						if(main->versionfile<132)
 							butspace_version_132(sbuts);
 					}
@@ -4444,6 +4445,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
+					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, 0);
 					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
@@ -4731,6 +4733,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					sseq->gpd= newdataadr(fd, sseq->gpd);
 					direct_link_gpencil(fd, sseq->gpd);
 				}
+			}
+			else if(sl->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= (SpaceButs *)sl;
+				sbuts->path= NULL;
 			}
 		}
 		
@@ -6802,26 +6808,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 						}
 						else if(sbuts->mainb==BUTS_MAT) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 						}
 						else if(sbuts->mainb==BUTS_TEX) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
 						}
 						else if(sbuts->mainb==BUTS_ANIM) {
 							sbuts->mainb= CONTEXT_OBJECT;
 						}
 						else if(sbuts->mainb==BUTS_WORLD) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
 						}
 						else if(sbuts->mainb==BUTS_RENDER) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
 						}
 						else if(sbuts->mainb==BUTS_GAME) {
 							sbuts->mainb= CONTEXT_LOGIC;
@@ -6831,7 +6837,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 						else if(sbuts->mainb==BUTS_RADIO) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
 						}
 						else if(sbuts->mainb==BUTS_CONSTRAINT) {
 							sbuts->mainb= CONTEXT_OBJECT;
@@ -8458,7 +8464,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						part->draw_as = PART_DRAW_PATH;
 						part->type = PART_HAIR;
-						psys->recalc |= PSYS_RECALC_HAIR;
+						psys->recalc |= PSYS_RECALC_REDO;
 
 						part->normfac *= fac;
 						part->randfac *= fac;
@@ -8924,6 +8930,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		Scene *sce;
 		Tex *tx;
+		ParticleSettings *part;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -8964,6 +8971,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
 		for(me= main->mesh.first; me; me= me->id.next) {
 			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+		}
+
+		/* particle settings conversion */
+		for(part= main->particle.first; part; part= part->id.next) {
+			if(part->draw_as) {
+				if(part->draw_as == PART_DRAW_DOT) {
+					part->ren_as = PART_DRAW_HALO;
+					part->draw_as = PART_DRAW_REND;
+				}
+				else if(part->draw_as <= PART_DRAW_AXIS) {
+					part->ren_as = PART_DRAW_HALO;
+				}
+				else {
+					part->ren_as = part->draw_as;
+					part->draw_as = PART_DRAW_REND;
+				}
+			}
 		}
 	}
 

@@ -99,6 +99,17 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 	r_ptr->id.data= id;
 	r_ptr->type= type;
 	r_ptr->data= data;
+
+	if(data) {
+		while(r_ptr->type && r_ptr->type->refine) {
+			StructRNA *rtype= r_ptr->type->refine(r_ptr);
+
+			if(rtype == r_ptr->type)
+				break;
+			else
+				r_ptr->type= rtype;
+		}
+	}
 }
 
 static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerRNA *ptr)
@@ -326,6 +337,14 @@ const char *RNA_struct_identifier(StructRNA *type)
 const char *RNA_struct_ui_name(StructRNA *type)
 {
 	return type->name;
+}
+
+int RNA_struct_ui_icon(StructRNA *type)
+{
+	if(type)
+		return type->icon;
+	else
+		return ICON_DOT;
 }
 
 const char *RNA_struct_ui_description(StructRNA *type)
@@ -1486,6 +1505,7 @@ void *rna_iterator_listbase_get(CollectionPropertyIterator *iter)
 void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
+	iter->internal= NULL;
 }
 
 void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip)
@@ -1542,6 +1562,7 @@ void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter)
 void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
+	iter->internal= NULL;
 }
 
 /* RNA Path - Experiment */
@@ -2166,6 +2187,45 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 
 /* string representation of a property, python
  * compatible but can be used for display too*/
+char *RNA_pointer_as_string(PointerRNA *ptr)
+{
+	DynStr *dynstr= BLI_dynstr_new();
+	char *cstring;
+	
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+	const char *propname;
+	int first_time = 1;
+	
+	BLI_dynstr_append(dynstr, "{");
+	
+	iterprop= RNA_struct_iterator_property(ptr->type);
+
+	for(RNA_property_collection_begin(ptr, iterprop, &iter); iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		propname = RNA_property_identifier(prop);
+		
+		if(strcmp(propname, "rna_type")==0)
+			continue;
+		
+		if(first_time==0)
+			BLI_dynstr_append(dynstr, ", ");
+		first_time= 0;
+		
+		cstring = RNA_property_as_string(ptr, prop);
+		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
+		MEM_freeN(cstring);
+	}
+
+	RNA_property_collection_end(&iter);
+	BLI_dynstr_append(dynstr, "}");	
+	
+	
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
+
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int type = RNA_property_type(prop);
@@ -2243,8 +2303,28 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	}
 	case PROP_COLLECTION:
-		BLI_dynstr_append(dynstr, "'<COLLECTION>'"); /* TODO */
+	{
+		int first_time = 1;
+		CollectionPropertyIterator collect_iter;
+		BLI_dynstr_append(dynstr, "[");
+		
+		for(RNA_property_collection_begin(ptr, prop, &collect_iter); collect_iter.valid; RNA_property_collection_next(&collect_iter)) {
+			PointerRNA itemptr= collect_iter.ptr;
+			
+			if(first_time==0)
+				BLI_dynstr_append(dynstr, ", ");
+			first_time= 0;
+			
+			/* now get every prop of the collection */
+			cstring= RNA_pointer_as_string(&itemptr);
+			BLI_dynstr_append(dynstr, cstring);
+			MEM_freeN(cstring);
+		}
+		
+		RNA_property_collection_end(&collect_iter);
+		BLI_dynstr_append(dynstr, "]");
 		break;
+	}
 	default:
 		BLI_dynstr_append(dynstr, "'<UNKNOWN TYPE>'"); /* TODO */
 		break;
@@ -2330,6 +2410,7 @@ ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func)
 void RNA_parameter_list_free(ParameterList *parms)
 {
 	MEM_freeN(parms->data);
+	parms->data= NULL;
 
 	parms->func= NULL;
 

@@ -348,8 +348,17 @@ void free_hair(ParticleSystem *psys, int softbody)
 }
 void free_keyed_keys(ParticleSystem *psys)
 {
-	if(psys->particles && psys->particles->keys)
+	if(psys->particles && psys->particles->keys) {
+		ParticleData *pa;
+		int i, totpart=psys->totpart;
+
 		MEM_freeN(psys->particles->keys);
+
+		for(i=0, pa=psys->particles; i<totpart; i++,pa++){
+			pa->keys = NULL;
+			pa->totkey = 0;
+		}
+	}
 }
 void free_child_path_cache(ParticleSystem *psys)
 {
@@ -1739,12 +1748,12 @@ static void do_path_effectors(Scene *scene, Object *ob, ParticleSystem *psys, in
 
 	Normalize(force);
 
+	VECADDFAC(ca->co, (ca-1)->co, force, *length);
+
 	if(k < steps) {
 		VecSubf(vec, (ca+1)->co, ca->co);
 		*length = VecLength(vec);
 	}
-
-	VECADDFAC(ca->co, (ca-1)->co, force, *length);
 }
 static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *state, float max_length, float *cur_length, float length, float *dvec)
 {
@@ -3052,42 +3061,22 @@ void make_local_particlesettings(ParticleSettings *part)
 	}
 }
 
-/* should be integrated to depgraph signals */
-void psys_flush_settings(struct Scene *scene, ParticleSettings *part, int event, int hair_recalc)
+void psys_flush_particle_settings(Scene *scene, ParticleSettings *part, int recalc)
 {
-	Base *base;
-	Object *ob, *tob;
+	Base *base = scene->base.first;
 	ParticleSystem *psys;
 	int flush;
 
-	/* update all that have same particle settings */
-	for(base = scene->base.first; base; base= base->next) {
-		if(base->object->particlesystem.first) {
-			ob=base->object;
-			flush=0;
-			for(psys=ob->particlesystem.first; psys; psys=psys->next){
-				if(psys->part==part){
-					psys->recalc |= event;
-					if(hair_recalc)
-						psys->recalc |= PSYS_RECALC_HAIR;
-					flush++;
-				}
-				else if(psys->part->type==PART_REACTOR){
-					ParticleSystem *tpsys;
-					tob=psys->target_ob;
-					if(tob==0)
-						tob=ob;
-					tpsys=BLI_findlink(&tob->particlesystem,psys->target_psys-1);
-
-					if(tpsys && tpsys->part==part){
-						psys->recalc |= event;
-						flush++;
-					}
-				}
+	for(base = scene->base.first; base; base = base->next) {
+		flush = 0;
+		for(psys = base->object->particlesystem.first; psys; psys=psys->next) {
+			if(psys->part == part) {
+				psys->recalc |= recalc;
+				flush++;
 			}
-			if(flush)
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
+		if(flush)
+			DAG_object_flush_update(scene, base->object, OB_RECALC_DATA);
 	}
 }
 

@@ -837,6 +837,11 @@ void ED_region_init(bContext *C, ARegion *ar)
 	
 	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
+	
+	/* UI convention */
+	wmLoadIdentity();
+	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
+	
 }
 
 
@@ -1132,7 +1137,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
 		if(context)
-			if(!pt->context || strcmp(context, pt->context) != 0)
+			if(pt->context[0] && strcmp(context, pt->context) != 0)
 				continue;
 
 		/* draw panel */

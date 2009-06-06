@@ -7,15 +7,15 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'CURVE')
+		ob = context.object
+		return (ob and ob.type == 'CURVE' and context.curve)
 
 class DATA_PT_shape_curve(DataButtonsPanel):
 		__idname__ = "DATA_PT_shape_curve"
 		__label__ = "Shape"
 
 		def draw(self, context):
-			curve = context.active_object.data
+			curve = context.curve
 			layout = self.layout
 
 			layout.itemR(curve, "curve_2d")			
@@ -50,7 +50,7 @@ class DATA_PT_geometry(DataButtonsPanel):
 		__label__ = "Geometry"
 
 		def draw(self, context):
-			curve = context.active_object.data
+			curve = context.curve
 			layout = self.layout
 
 			split = layout.split()
@@ -72,13 +72,13 @@ class DATA_PT_pathanim(DataButtonsPanel):
 		__label__ = "Path Animation"
 		
 		def draw_header(self, context):
-			curve = context.active_object.data
+			curve = context.curve
 
 			layout = self.layout
 			layout.itemR(curve, "path", text="")
 
 		def draw(self, context):
-			curve = context.active_object.data
+			curve = context.curve
 			layout = self.layout
 			layout.active = curve.path	
 			
@@ -97,7 +97,7 @@ class DATA_PT_current_curve(DataButtonsPanel):
 		__label__ = "Current Curve"
 
 		def draw(self, context):
-			currentcurve = context.active_object.data.curves[0]
+			currentcurve = context.curve.curves[0] # XXX
 			layout = self.layout
 
 			split = layout.split()

@@ -35,6 +35,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_colortools.h"
@@ -42,6 +43,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -62,186 +64,6 @@
 #define DEF_BUT_HEIGHT		20
 
 /*************************** RNA Utilities ******************************/
-
-int UI_GetIconRNA(PointerRNA *ptr)
-{
-	StructRNA *rnatype= ptr->type;
-
-	if(rnatype == &RNA_Scene)
-		return ICON_SCENE_DATA;
-	else if(rnatype == &RNA_World)
-		return ICON_WORLD_DATA;
-	else if(rnatype == &RNA_Object)
-		return ICON_OBJECT_DATA;
-	else if(rnatype == &RNA_Mesh)
-		return ICON_MESH_DATA;
-	else if(rnatype == &RNA_MeshVertex)
-		return ICON_VERTEXSEL;
-	else if(rnatype == &RNA_MeshEdge)
-		return ICON_EDGESEL;
-	else if(rnatype == &RNA_MeshFace)
-		return ICON_FACESEL;
-	else if(rnatype == &RNA_MeshTextureFace)
-		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_VertexGroup)
-		return ICON_GROUP_VERTEX;
-	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_GROUP_VERTEX;
-	else if(rnatype == &RNA_Curve)
-		return ICON_CURVE_DATA;
-	else if(rnatype == &RNA_MetaBall)
-		return ICON_META_DATA;
-	else if(rnatype == &RNA_MetaElement)
-		return ICON_OUTLINER_DATA_META;
-	else if(rnatype == &RNA_Lattice)
-		return ICON_LATTICE_DATA;
-	else if(rnatype == &RNA_Armature)
-		return ICON_ARMATURE_DATA;
-	else if(rnatype == &RNA_Bone)
-		return ICON_BONE_DATA;
-	else if(rnatype == &RNA_Camera)
-		return ICON_CAMERA_DATA;
-	else if(rnatype == &RNA_LocalLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_AreaLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_SpotLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_SunLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_HemiLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_Lamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_Group)
-		return ICON_GROUP;
-	else if(rnatype == &RNA_ParticleSystem)
-		return ICON_PARTICLE_DATA;
-	else if(rnatype == &RNA_ParticleSettings)
-		return ICON_PARTICLE_DATA;
-	else if(rnatype == &RNA_Material)
-		return ICON_MATERIAL_DATA;
-	else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_TextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_WorldTextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_MaterialTextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_Image)
-		return ICON_IMAGE_DATA;
-	else if(rnatype == &RNA_Screen)
-		return ICON_SPLITSCREEN;
-	else if(rnatype == &RNA_NodeTree)
-		return ICON_NODE;
-	else if(rnatype == &RNA_Text)
-		return ICON_TEXT;
-	else if(rnatype == &RNA_Sound)
-		return ICON_SOUND;
-	else if(rnatype == &RNA_Brush)
-		return ICON_BRUSH_DATA;
-	else if(rnatype == &RNA_VectorFont)
-		return ICON_FONT_DATA;
-	else if(rnatype == &RNA_Library)
-		return ICON_LIBRARY_DATA_DIRECT;
-	else if(rnatype == &RNA_Action)
-		return ICON_ACTION;
-	else if(rnatype == &RNA_FCurve)
-		return ICON_ANIM_DATA;
-	//else if(rnatype == &RNA_Ipo)
-	//	return ICON_ANIM_DATA;
-	else if(rnatype == &RNA_Key)
-		return ICON_SHAPEKEY_DATA;
-	else if(rnatype == &RNA_Main)
-		return ICON_BLENDER;
-	else if(rnatype == &RNA_Struct)
-		return ICON_RNA;
-	else if(rnatype == &RNA_Property)
-		return ICON_RNA;
-	else if(rnatype == &RNA_BooleanProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_IntProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_FloatProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_StringProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumPropertyItem)
-		return ICON_RNA;
-	else if(rnatype == &RNA_PointerProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_CollectionProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_GameObjectSettings)
-		return ICON_GAME;
-	else if(rnatype == &RNA_ScriptLink)
-		return ICON_PYTHON;
-	
-	/* modifiers */
-	else if(rnatype == &RNA_SubsurfModifier)
-		return ICON_MOD_SUBSURF;
-	else if(rnatype == &RNA_ArmatureModifier)
-		return ICON_MOD_ARMATURE;
-	else if(rnatype == &RNA_LatticeModifier)
-		return ICON_MOD_LATTICE;
-	else if(rnatype == &RNA_CurveModifier)
-		return ICON_MOD_CURVE;
-	else if(rnatype == &RNA_BuildModifier)
-		return ICON_MOD_BUILD;
-	else if(rnatype == &RNA_MirrorModifier)
-		return ICON_MOD_MIRROR;
-	else if(rnatype == &RNA_DecimateModifier)
-		return ICON_MOD_DECIM;
-	else if(rnatype == &RNA_WaveModifier)
-		return ICON_MOD_WAVE;
-	else if(rnatype == &RNA_HookModifier)
-		return ICON_HOOK;
-	else if(rnatype == &RNA_SoftbodyModifier)
-		return ICON_MOD_SOFT;
-	else if(rnatype == &RNA_BooleanModifier)
-		return ICON_MOD_BOOLEAN;
-	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_ParticleSystemModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_EdgeSplitModifier)
-		return ICON_MOD_EDGESPLIT;
-	else if(rnatype == &RNA_ArrayModifier)
-		return ICON_MOD_ARRAY;
-	else if(rnatype == &RNA_UVProjectModifier)
-		return ICON_MOD_UVPROJECT;
-	else if(rnatype == &RNA_DisplaceModifier)
-		return ICON_MOD_DISPLACE;
-	else if(rnatype == &RNA_ShrinkwrapModifier)
-		return ICON_MOD_SHRINKWRAP;
-	else if(rnatype == &RNA_CastModifier)
-		return ICON_MOD_CAST;
-	else if(rnatype == &RNA_MeshDeformModifier)
-		return ICON_MOD_MESHDEFORM;
-	else if(rnatype == &RNA_BevelModifier)
-		return ICON_MOD_BEVEL;
-	else if(rnatype == &RNA_SmoothModifier)
-		return ICON_MOD_SMOOTH;
-	else if(rnatype == &RNA_SimpleDeformModifier)
-		return ICON_MOD_SIMPLEDEFORM;
-	else if(rnatype == &RNA_MaskModifier)
-		return ICON_MOD_MASK;
-	else if(rnatype == &RNA_ClothModifier)
-		return ICON_MOD_CLOTH;
-	else if(rnatype == &RNA_ExplodeModifier)
-		return ICON_MOD_EXPLODE;
-	else if(rnatype == &RNA_CollisionModifier)
-		return ICON_MOD_PHYSICS;
-	else if(rnatype == &RNA_FluidSimulationModifier)
-		return ICON_MOD_FLUIDSIM;
-	else if(rnatype == &RNA_MultiresModifier)
-		return ICON_MOD_MULTIRES;
-	else
-		return ICON_DOT;
-}
 
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
 {
@@ -295,7 +117,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)
 				pptr.type= RNA_property_pointer_type(prop);
-			icon= UI_GetIconRNA(&pptr);
+			icon= RNA_struct_ui_icon(pptr.type);
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
@@ -1096,5 +918,130 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	uiDefBut(block, BUT_CURVE, event, "", 
 			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
 			  cumap, 0.0f, 1.0f, 0, 0, "");
+}
+
+#define B_BANDCOL 1
+
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			// XXX if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(C, coba, NULL);
+	ED_undo_push(C, "Add colorband");
+}
+
+static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+	ED_undo_push(C, "Delete colorband");
+	// XXX BIF_preview_changed(ID_TE);
+}
+
+
+/* offset aligns from bottom, standard width 300, height 115 */
+static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, int redraw)
+{
+	CBData *cbd;
+	uiBut *bt;
+	
+	if(coba==NULL) return;
+	
+	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
+	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	
+	uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+		236+xoffs, 95+yoffs, 64, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+
+	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active color");
+	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
+	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active color");
+	uiBlockEndAlign(block);
+}
+
+static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+
+	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+		xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+}
+
+void colorband_buttons(uiBlock *block, ColorBand *coba, rctf *butr, int small)
+{
+	if(small)
+		colorband_buttons_small(block, coba, butr, 0);
+	else
+		colorband_buttons_large(block, coba, 0, 0, 0);
 }
 

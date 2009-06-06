@@ -572,6 +572,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	srna->identifier= identifier;
 	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description= "";
+	if(!srnafrom)
+		srna->icon= ICON_DOT;
 
 	rna_addtail(&brna->structs, srna);
 
@@ -775,6 +777,11 @@ void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *descr
 {
 	srna->name= name;
 	srna->description= description;
+}
+
+void RNA_def_struct_ui_icon(StructRNA *srna, int icon)
+{
+	srna->icon= icon;
 }
 
 /* Property Definition */

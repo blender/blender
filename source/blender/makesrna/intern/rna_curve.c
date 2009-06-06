@@ -459,6 +459,7 @@ void rna_def_curve(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Curve", "ID");
 	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS.");
+	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
 	
 	rna_def_animdata_common(srna);
 	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");

@@ -70,8 +70,7 @@ void				filelist_readdir(struct FileList* filelist);
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);
 void				filelist_setfiletypes(struct FileList* filelist, short has_quicktime);
-void				filelist_settype(struct FileList* filelist, int type);
-short				filelist_gettype(struct FileList* filelist);
+
 
 #ifdef __cplusplus
 }

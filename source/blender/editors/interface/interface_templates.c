@@ -240,33 +240,16 @@ void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 
 #define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
 
-#define B_NOP				0
-#define B_MODIFIER_RECALC	1
-#define B_MODIFIER_REDRAW	2
-#define B_CHANGEDEP			3
-#define B_ARM_RECALCDATA	4
-
 #include <string.h>
 
-#include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_bmesh.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -280,33 +263,20 @@ void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 
 #include "ED_object.h"
 
-void do_modifier_panels(bContext *C, void *arg, int event)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
-
-	switch(event) {
-	case B_MODIFIER_REDRAW:
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		break;
-
-	case B_MODIFIER_RECALC:
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		object_handle_update(scene, ob);
-		// XXX countall();
-		break;
-	}
-}
-
 static void modifiers_del(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_delete(&reports, ob_v, md_v))
+	if(ED_object_modifier_delete(&reports, ob_v, md_v)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 		ED_undo_push(C, "Delete modifier");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -315,12 +285,18 @@ static void modifiers_del(bContext *C, void *ob_v, void *md_v)
 
 static void modifiers_moveUp(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_move_up(&reports, ob_v, md_v))
+	if(ED_object_modifier_move_up(&reports, ob_v, md_v)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 		ED_undo_push(C, "Move modifier");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -329,12 +305,18 @@ static void modifiers_moveUp(bContext *C, void *ob_v, void *md_v)
 
 static void modifiers_moveDown(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_move_down(&reports, ob_v, md_v))
+	if(ED_object_modifier_move_down(&reports, ob_v, md_v)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 		ED_undo_push(C, "Move modifier");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -344,12 +326,17 @@ static void modifiers_moveDown(bContext *C, void *ob_v, void *md_v)
 static void modifiers_convertParticles(bContext *C, void *obv, void *mdv)
 {
 	Scene *scene= CTX_data_scene(C);
+	Object *ob= obv;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_convert(&reports, scene, obv, mdv))
+	if(ED_object_modifier_convert(&reports, scene, obv, mdv)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 		ED_undo_push(C, "Convert particles to mesh object(s).");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -359,12 +346,17 @@ static void modifiers_convertParticles(bContext *C, void *obv, void *mdv)
 static void modifiers_applyModifier(bContext *C, void *obv, void *mdv)
 {
 	Scene *scene= CTX_data_scene(C);
+	Object *ob= obv;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_apply(&reports, scene, obv, mdv))
+	if(ED_object_modifier_apply(&reports, scene, obv, mdv)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 		ED_undo_push(C, "Apply modifier");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -373,12 +365,17 @@ static void modifiers_applyModifier(bContext *C, void *obv, void *mdv)
 
 static void modifiers_copyModifier(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 
-	if(ED_object_modifier_copy(&reports, ob_v, md_v))
+	if(ED_object_modifier_copy(&reports, ob_v, md_v)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		ED_undo_push(C, "Copy modifier");
+	}
 	else
 		uiPupMenuReports(C, &reports);
 
@@ -387,21 +384,27 @@ static void modifiers_copyModifier(bContext *C, void *ob_v, void *md_v)
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md;
 	
 	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
 
-	for( i = 0, md=ob->modifiers.first; md; ++i, md=md->next )
-		if( md == md_v ) {
-			if( i >= cageIndex )
+	for(i = 0, md=ob->modifiers.first; md; ++i, md=md->next) {
+		if(md == md_v) {
+			if(i >= cageIndex)
 				md->mode ^= eModifierMode_OnCage;
 			break;
 		}
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 }
 
 static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md = md_v;
 	ModifierData *nmd = modifier_new(md->type);
@@ -413,169 +416,56 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 
 	ob->partype = PAROBJECT;
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
 	ED_undo_push(C, "Modifier convert to real");
 }
 
-#if 0
-static void modifiers_clearHookOffset(bContext *C, void *ob_v, void *md_v)
+static int modifier_can_delete(ModifierData *md)
 {
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-	
-	if (hmd->object) {
-		Mat4Invert(hmd->object->imat, hmd->object->obmat);
-		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-		ED_undo_push(C, "Clear hook offset");
-	}
-}
+	// deletion over the deflection panel
+	// fluid particle modifier can't be deleted here
 
-static void modifiers_cursorHookCenter(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX 
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-
-	if(G.vd) {
-		float *curs = give_cursor();
-		float bmat[3][3], imat[3][3];
-
-		where_is_object(ob);
-	
-		Mat3CpyMat4(bmat, ob->obmat);
-		Mat3Inv(imat, bmat);
-
-		curs= give_cursor();
-		hmd->cent[0]= curs[0]-ob->obmat[3][0];
-		hmd->cent[1]= curs[1]-ob->obmat[3][1];
-		hmd->cent[2]= curs[2]-ob->obmat[3][2];
-		Mat3MulVecfl(imat, hmd->cent);
-
-		ED_undo_push(C, "Hook cursor center");
-	}*/
-}
-
-static void modifiers_selectHook(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-
-	hook_select(hmd);*/
-}
-
-static void modifiers_reassignHook(bContext *C, void *ob_v, void *md_v)
-{
-	/* XXX ModifierData *md = md_v;
-	HookModifierData *hmd = (HookModifierData*) md;
-	float cent[3];
-	int *indexar, tot, ok;
-	char name[32];
-		
-	ok= hook_getIndexArray(&tot, &indexar, name, cent);
-
-	if (!ok) {
-		uiPupMenuError(C, "Requires selected vertices or active Vertex Group");
-	} else {
-		if (hmd->indexar) {
-			MEM_freeN(hmd->indexar);
-		}
-
-		VECCOPY(hmd->cent, cent);
-		hmd->indexar = indexar;
-		hmd->totindex = tot;
-	}*/
-}
-
-static void modifiers_bindMeshDeform(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md_v;
-	Object *ob = (Object*)ob_v;
-
-	if(mmd->bindcos) {
-		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
-		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
-		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
-		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
-		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
-		mmd->bindweights= NULL;
-		mmd->bindcos= NULL;
-		mmd->dyngrid= NULL;
-		mmd->dyninfluences= NULL;
-		mmd->dynverts= NULL;
-		mmd->totvert= 0;
-		mmd->totcagevert= 0;
-		mmd->totinfluence= 0;
-	}
-	else {
-		DerivedMesh *dm;
-		int mode= mmd->modifier.mode;
-
-		/* force modifier to run, it will call binding routine */
-		mmd->needbind= 1;
-		mmd->modifier.mode |= eModifierMode_Realtime;
-
-		if(ob->type == OB_MESH) {
-			dm= mesh_create_derived_view(scene, ob, 0);
-			dm->release(dm);
-		}
-		else if(ob->type == OB_LATTICE) {
-			lattice_calc_modifiers(scene, ob);
-		}
-		else if(ob->type==OB_MBALL) {
-			makeDispListMBall(scene, ob);
-		}
-		else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			makeDispListCurveTypes(scene, ob, 0);
-		}
-
-		mmd->needbind= 0;
-		mmd->modifier.mode= mode;
-	}
-}
-
-void modifiers_explodeFacepa(bContext *C, void *arg1, void *arg2)
-{
-	ExplodeModifierData *emd=arg1;
-
-	emd->flag |= eExplodeFlag_CalcFaces;
-}
-
-void modifiers_explodeDelVg(bContext *C, void *arg1, void *arg2)
-{
-	ExplodeModifierData *emd=arg1;
-	emd->vgroup = 0;
-}
-#endif
-
-static int modifier_is_fluid_particles(ModifierData *md)
-{
-	if(md->type == eModifierType_ParticleSystem) {
+	if(md->type==eModifierType_Fluidsim)
+		return 0;
+	if(md->type==eModifierType_Collision)
+		return 0;
+	if(md->type==eModifierType_Surface)
+		return 0;
+	if(md->type == eModifierType_ParticleSystem)
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
-			return 1;
-	}
-	return 0;
+			return 0;
+
+	return 1;
 }
 
 static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *column, *row, *result= NULL;
+	uiLayout *column, *row, *subrow, *result= NULL;
 	int isVirtual = md->mode&eModifierMode_Virtual;
-	int x = 0, y = 0; // XXX , color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
+	// XXX short color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
 	short width = 295, buttonWidth = width-120-10;
 	char str[128];
 
+	RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
+
 	column= uiLayoutColumn(layout, 1);
+	uiLayoutSetContextPointer(column, "modifier", &ptr);
 
 	/* rounded header */
 	/* XXX uiBlockSetCol(block, color); */
 		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
-	block= uiLayoutFreeBlock(uiLayoutBox(column));
-	uiBlockSetHandleFunc(block, do_modifier_panels, NULL);
+
+	row= uiLayoutRow(uiLayoutBox(column), 0);
+	block= uiLayoutGetBlock(row);
+
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 
 	//uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
 	//		 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, 20, ""); 
@@ -584,27 +474,27 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* open/close icon */
 	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, ICON_TRIA_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	if (isVirtual) {
 		sprintf(str, "%s parent deform", md->name);
-		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-110, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 
-		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Make Real", x+width-100, y, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
+		but = uiDefBut(block, BUT, 0, "Make Real", 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 	} else {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, buttonWidth-60, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-60, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
 		/* Softbody not allowed in this situation, enforce! */
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
-			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, ICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, 0, ICON_SCENE, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, 0, ICON_VIEW3D, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, ICON_EDITMODE_HLT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
 		}
 		uiBlockEndAlign(block);
@@ -625,26 +515,28 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 				icon = ICON_BLANK1;
 			}
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-105, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconBut(block, BUT, 0, icon, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
 		}
+	}
 
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
+
+	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
 
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, x+width-75, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+		but = uiDefIconBut(block, BUT, 0, VICON_MOVE_UP, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
 		uiButSetFunc(but, modifiers_moveUp, ob, md);
 
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-75+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+		but = uiDefIconBut(block, BUT, 0, VICON_MOVE_DOWN, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
 		uiButSetFunc(but, modifiers_moveDown, ob, md);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
-		// deletion over the deflection panel
-		// fluid particle modifier can't be deleted here
-		if(md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Collision && md->type!=eModifierType_Surface && !modifier_is_fluid_particles(md))
-		{
-			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
+		if(modifier_can_delete(md)) {
+			but = uiDefIconBut(block, BUT, 0, VICON_X, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);
 		}
 		/* XXX uiBlockSetCol(block, TH_AUTO); */
@@ -653,14 +545,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	if(!isVirtual && (md->mode&eModifierMode_Expanded)) {
-		int cy = y - 8;
-		int lx = x + width - 60 - 15;
 		uiLayout *box;
 
 		box= uiLayoutBox(column);
 		row= uiLayoutRow(box, 1);
-
-		y -= 18;
 
 		if (!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
@@ -670,13 +558,13 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 
 	    		if(!(G.f & G_PARTICLEEDIT)) {
 					if(ELEM3(psys->part->draw_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache) {
-						but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
+						but = uiDefBut(block, BUT, 0, "Convert",	0,0,60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
 						uiButSetFunc(but, modifiers_convertParticles, ob, md);
 					}
 				}
 			}
 			else{
-				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
+				but = uiDefBut(block, BUT, 0, "Apply",	0,0,60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
 				uiButSetFunc(but, modifiers_applyModifier, ob, md);
 			}
 			
@@ -684,16 +572,13 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 
 			if (md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
-				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
+				but = uiDefBut(block, BUT, 0, "Copy",	0,0,60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
 		}
 
 		result= uiLayoutColumn(box, 0);
 		block= uiLayoutFreeBlock(box);
-
-		lx = x + 10;
-		cy = y + 10 - 1;
 	}
 
 	if (md->error) {
@@ -886,7 +771,7 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	}
 	
 	if ((target != -1) && (owner != -1))
-		uiDefIconBut(block, LABEL, B_NOP, ICON_ARROW_LEFTRIGHT,
+		uiDefIconBut(block, LABEL, 0, ICON_ARROW_LEFTRIGHT,
 			iconx, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "");
 	
 	/* Owner-Space */
@@ -906,8 +791,9 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
-	uiLayout *result= NULL, *col, *box;
+	uiLayout *result= NULL, *col, *box, *row, *subrow;
 	uiBut *but;
+	PointerRNA ptr;
 	char typestr[32];
 	short width = 265;
 	short proxy_protected, xco=0, yco=0;
@@ -936,11 +822,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiBlockSetHandleFunc(block, do_constraint_panels, NULL);
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 
+	RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
+
 	col= uiLayoutColumn(layout, 1);
+	uiLayoutSetContextPointer(col, "constraint", &ptr);
+
 	box= uiLayoutBox(col);
+	row= uiLayoutRow(box, 0);
 
 	block= uiLayoutFreeBlock(box);
-		
+
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
+
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
@@ -974,6 +868,9 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	}
 
 	// XXX uiBlockSetCol(block, TH_AUTO);	
+
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1141,101 +1038,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break; 
 		*/
-		case CONSTRAINT_TYPE_KINEMATIC:
+		
+		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
-				bKinematicConstraint *data = con->data;
-
-				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco, yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				/* Draw target parameters */
-				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco, yco-44, 137, 19, &data->tar, "Target Object"); 
-
-				if (is_armature_target(data->tar)) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco, yco-62,137,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target(data->tar)) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco, yco-62,137,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
-				uiBlockEndAlign(block);
-				
-				/* Settings */
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", xco, yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", xco, yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
-				
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", xco+147, yco-92, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", xco+147, yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "W ", xco+187, yco-112, 97, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
-				
-				uiBlockBeginAlign(block);
-				
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", xco, yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
-				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", xco+147, yco-137, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
-				uiBlockEndAlign(block);
-				
-				/* Pole Vector */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Pole Target:", xco+147, yco-24, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+147, yco-44, 137, 19, &data->poletar, "Pole Target Object"); 
-				if (is_armature_target(data->poletar)) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+147, yco-62,137,19, &data->polesubtarget, 0, 24, 0, 0, "Pole Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->poletar);
-				}
-				else if (is_geom_target(data->poletar)) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+147, yco-62,137,18, &data->polesubtarget, 0, 24, 0, 0, "Name of Vertex Group defining pole 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
-				}
-				else {
-					strcpy(data->polesubtarget, "");
-				}
-				
-				if (data->poletar) {
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", xco, yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
-				}
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data = con->data;
-				float extremeLin = 999.f;
-				float extremeAngX = 180.f;
-				float extremeAngY = 45.f;
-				float extremeAngZ = 45.f;
-				int togButWidth = 70;
-				int offsetY = 150;
-				int textButWidth = ((width/2)-togButWidth);
-				
-				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Generic 6DOF%x12",//|Extra Force%x6",
-				//uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic 6DOF%x12",//|Extra Force%x6",
-												xco, yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
-
-				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Collision", xco+155, yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
-
-
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", xco, yco-50, 130, 18, &data->tar, "Child Object");
-				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", xco+135, yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
-				
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", xco, yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", xco, yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", xco, yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
-				
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", xco+135, yco-75, 130, 18, &data->axX, -360, 360, 1500, 0.0, "Rotate pivot on X Axis (in degrees)");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", xco+135, yco-100, 130, 18, &data->axY, -360, 360, 1500, 0.0, "Rotate pivot on Y Axis (in degrees)");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", xco+135, yco-125, 130, 18, &data->axZ, -360, 360, 1500, 0.0, "Rotate pivot on Z Axis (in degrees)");
-				
 				if (data->type==CONSTRAINT_RB_GENERIC6DOF) {
-					/* Draw Pairs of LimitToggle+LimitValue */
+					// Draw Pairs of LimitToggle+LimitValue 
 					uiBlockBeginAlign(block); 
 						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
@@ -1270,7 +1077,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 					offsetY += 20;
 				}
 				if ((data->type==CONSTRAINT_RB_GENERIC6DOF) || (data->type==CONSTRAINT_RB_CONETWIST)) {
-					/* Draw Pairs of LimitToggle+LimitValue */
+					// Draw Pairs of LimitToggle+LimitValue /
 					uiBlockBeginAlign(block); 
 						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
@@ -1305,6 +1112,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				
 			}
 			break;
+			*/
 
 		case CONSTRAINT_TYPE_NULL:
 			{
@@ -1501,5 +1309,39 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
 	}
 
+}
+
+/********************** ColorRamp Template **************************/
+
+void uiTemplateColorRamp(uiLayout *layout, ColorBand *coba, int expand)
+{
+	uiBlock *block;
+	rctf rect;
+
+	if(coba) {
+		rect.xmin= 0; rect.xmax= 200;
+		rect.ymin= 0; rect.ymax= 190;
+		
+		block= uiLayoutFreeBlock(layout);
+		colorband_buttons(block, coba, &rect, !expand);
+	}
+}
+
+/********************* CurveMapping Template ************************/
+
+#include "DNA_color_types.h"
+
+void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
+{
+	uiBlock *block;
+	rctf rect;
+
+	if(cumap) {
+		rect.xmin= 0; rect.xmax= 200;
+		rect.ymin= 0; rect.ymax= 190;
+		
+		block= uiLayoutFreeBlock(layout);
+		curvemap_buttons(block, cumap, type, 0, 0, &rect);
+	}
 }
 
