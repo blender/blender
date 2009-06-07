@@ -142,7 +142,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
-
+		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
@@ -150,12 +150,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRasterizer* rasterizer = NULL;
 		
 		if(displaylists) {
-			if (GLEW_VERSION_1_1)
+			if (GLEW_VERSION_1_1 && !novertexarrays)
 				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (GLEW_VERSION_1_1)
+		else if (GLEW_VERSION_1_1 && !novertexarrays)
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
