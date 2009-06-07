@@ -13,6 +13,9 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_preview"
 	__label__ = "Preview"
 
+	def poll(self, context):
+		return (context.material or context.object)
+
 	def draw(self, context):
 		layout = self.layout
 
@@ -23,18 +26,36 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"
 	__label__ = "Material"
 
+	def poll(self, context):
+		return (context.material or context.object)
+
 	def draw(self, context):
 		layout = self.layout
 		mat = context.material
-	
-		layout.itemR(mat, "type", expand=True)
+		ob = context.object
+		slot = context.material_slot
+		space = context.space_data
 
-		row = layout.row()
-		row.column().itemR(mat, "diffuse_color")
-		row.column().itemR(mat, "specular_color")
-		row.column().itemR(mat, "mirror_color")
+		split = layout.split(percentage=0.65)
+
+		if ob and slot:
+			split.template_ID(context, slot, "material", new="MATERIAL_OT_new")
+			split.itemR(ob, "active_material_index", text="Active")
+		elif mat:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if mat:
+			layout.itemS()
 		
-		layout.itemR(mat, "alpha", slider=True)
+			layout.itemR(mat, "type", expand=True)
+
+			row = layout.row()
+			row.column().itemR(mat, "diffuse_color")
+			row.column().itemR(mat, "specular_color")
+			row.column().itemR(mat, "mirror_color")
+			
+			layout.itemR(mat, "alpha", slider=True)
 			
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"

@@ -19,45 +19,85 @@ class ParticleButtonsPanel(bpy.types.Panel):
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_particles"
-	__label__ = "ParticleSystem"
+	__label__ = "Particle System"
 
 	def poll(self, context):
-		return (context.particle_system != None)
-	
+		return (context.particle_system or context.object)
+
 	def draw(self, context):
 		layout = self.layout
-
+		ob = context.object
 		psys = context.particle_system
-		part = psys.settings
+
+		split = layout.split(percentage=0.65)
+
+		if psys:
+			split.template_ID(context, psys, "settings")
+
+			#if ob:
+			#	split.itemR(ob, "active_particle_system_index", text="Active")
+
+		if psys:
+			#row = layout.row()
+			#row.itemL(text="Particle system datablock")
+			#row.itemL(text="Viewport")
+			#row.itemL(text="Render")
+			
+			part = psys.settings
+			ptype = psys.settings.type
+			
+			if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
+				layout.itemL(text="No settings for fluid particles")
+				return
+			
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemR(part, "type")
+			row.itemR(psys, "seed")
+			
+			row = layout.row()
+			if part.type=='HAIR':
+				if psys.editable==True:
+					row.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+				else:
+					row.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+				subrow = row.row()
+				subrow.enabled = particle_panel_enabled(psys)
+				subrow.itemR(part, "hair_step")
+			elif part.type=='REACTOR':
+				row.itemR(psys, "reactor_target_object")
+				row.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
-		#row = layout.row()
-		#row.itemL(text="Particle system datablock")
-		#row.itemL(text="Viewport")
-		#row.itemL(text="Render")
-		
-		ptype = psys.settings.type
-		
-		if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
-			layout.itemL(text="No settings for fluid particles")
-			return
-		
-		row = layout.row()
-		row.enabled = particle_panel_enabled(psys)
-		row.itemR(part, "type", expand=True)
-		
-		
-		row = layout.row()
-		if part.type=='HAIR':
-			if psys.editable==True:
-				row.itemO("PARTICLE_OT_editable_set", text="Free Edit")
-			else:
-				row.itemO("PARTICLE_OT_editable_set", text="Make Editable")
-			subrow = row.row()
-			subrow.enabled = particle_panel_enabled(psys)
-			subrow.itemR(part, "hair_step")
-		elif part.type=='REACTOR':
-			row.itemR(psys, "reactor_target_object")
-			row.itemR(psys, "reactor_target_particle_system", text="Particle System")
+		if psys:
+			#row = layout.row()
+			#row.itemL(text="Particle system datablock")
+			#row.itemL(text="Viewport")
+			#row.itemL(text="Render")
+			
+			part = psys.settings
+			ptype = psys.settings.type
+			
+			if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
+				layout.itemL(text="No settings for fluid particles")
+				return
+			
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemR(part, "type", expand=True)
+			
+			
+			row = layout.row()
+			if part.type=='HAIR':
+				if psys.editable==True:
+					row.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+				else:
+					row.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+				subrow = row.row()
+				subrow.enabled = particle_panel_enabled(psys)
+				subrow.itemR(part, "hair_step")
+			elif part.type=='REACTOR':
+				row.itemR(psys, "reactor_target_object")
+				row.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_emission"

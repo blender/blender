@@ -24,8 +24,21 @@ class DATA_PT_lamp(DataButtonsPanel):
 	__label__ = "Lamp"
 
 	def draw(self, context):
+		ob = context.object
 		lamp = context.lamp
+		space = context.space_data
 		layout = self.layout
+
+		split = layout.split(percentage=0.65)
+
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif lamp:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		layout.itemS()
 
 		layout.itemR(lamp, "type", expand=True)
 		

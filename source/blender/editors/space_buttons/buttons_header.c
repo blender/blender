@@ -114,6 +114,8 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_buttons_buttons(bContext *C, void *arg, int event)
 {
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+
 	switch(event) {
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, NULL);
@@ -121,18 +123,25 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 		case B_CONTEXT_SWITCH:
 		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
+
+			/* silly exception */
+			if(sbuts->mainb == BCONTEXT_WORLD)
+				sbuts->flag |= SB_WORLD_TEX;
+			else if(sbuts->mainb != BCONTEXT_TEXTURE)
+				sbuts->flag &= ~SB_WORLD_TEX;
+
 			break;
 	}
 }
-
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	Object *ob= CTX_data_active_object(C);
 	uiBlock *block;
-	int xco, yco= 3, dataicon= ICON_OBJECT_DATA;
+	int xco, yco= 3;
+
+	buttons_context_compute(C, sbuts);
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
@@ -148,70 +157,38 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		
 		xco+=xmax;
 	}
-	// DATA Icons
-	if(ob) {
-		switch(ob->type) {
-			case OB_EMPTY: dataicon= ICON_EMPTY_DATA; break;
-			case OB_MESH: dataicon= ICON_MESH_DATA; break;
-			case OB_CURVE: dataicon= ICON_CURVE_DATA; break;
-			case OB_SURF: dataicon= ICON_SURFACE_DATA; break;
-			case OB_FONT: dataicon= ICON_FONT_DATA; break;
-			case OB_MBALL: dataicon= ICON_META_DATA; break;
-			case OB_LAMP: dataicon= ICON_LAMP_DATA; break;
-			case OB_CAMERA: dataicon= ICON_CAMERA_DATA; break;
-			case OB_LATTICE: dataicon= ICON_LATTICE_DATA; break;
-			case OB_ARMATURE: dataicon= ICON_ARMATURE_DATA; break;
-			default: break;
-		}
-	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	// if object selection changed, validate button selection
-	if(ob && (ob->type == OB_LAMP) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
-		sbuts->mainb = (float)BCONTEXT_DATA;
-
-	if(ob && (ob->type == OB_EMPTY) && ELEM3(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE))
-		sbuts->mainb = (float)BCONTEXT_DATA;
-		
-	if((ob && ELEM(ob->type, OB_CAMERA, OB_ARMATURE)) && ELEM4(sbuts->mainb, (float)BCONTEXT_MATERIAL, (float)BCONTEXT_TEXTURE, (float)BCONTEXT_PARTICLE, (float)BCONTEXT_PHYSICS))
-		sbuts->mainb = (float)BCONTEXT_DATA;
-		
-	if((ob && (ob->type != OB_ARMATURE)) && (sbuts->mainb == (float)BCONTEXT_BONE))
-		sbuts->mainb = (float)BCONTEXT_DATA;
-	
-	 if(!ob && !ELEM3(sbuts->mainb, (float)BCONTEXT_SCENE, (float)BCONTEXT_WORLD, (float)BCONTEXT_SEQUENCER))
-		sbuts->mainb = (float)BCONTEXT_WORLD;
-		
-	if((ob && ELEM5(ob->type, OB_EMPTY, OB_MBALL, OB_LAMP, OB_CAMERA, OB_ARMATURE)) && (sbuts->mainb == (float) BCONTEXT_MODIFIER))
-		sbuts->mainb = (float)BCONTEXT_DATA;
+	xco -= XIC;
 	
 	// Default panels
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SEQUENCE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SEQUENCER, 0, 0, "Sequencer");
-	
-	// Specific panels, check on active object seletion
-	if(ob) {
+	if(sbuts->pathflag & (1<<BCONTEXT_SCENE))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
+	if(sbuts->pathflag & (1<<BCONTEXT_WORLD))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
+	if(sbuts->pathflag & (1<<BCONTEXT_SEQUENCER))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SEQUENCE,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SEQUENCER, 0, 0, "Sequencer");
+	if(sbuts->pathflag & (1<<BCONTEXT_OBJECT))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Constraint");
-		
-		if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE))
-			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
-		
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	dataicon,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
-		if((ob->type == OB_ARMATURE))
-			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
-		if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
-			uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
-		if(ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_LAMP))
-			uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
-		if(ELEM5(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT))
-			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
-		if(ELEM6(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_CURVE, OB_FONT, OB_EMPTY))
-			uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
-	}
+	if(sbuts->pathflag & (1<<BCONTEXT_CONSTRAINT))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Modifier");
+	if(sbuts->pathflag & (1<<BCONTEXT_DATA))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+	if(sbuts->pathflag & (1<<BCONTEXT_MODIFIER))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
+	if(sbuts->pathflag & (1<<BCONTEXT_BONE))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
+	if(sbuts->pathflag & (1<<BCONTEXT_MATERIAL))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+	if(sbuts->pathflag & (1<<BCONTEXT_TEXTURE))
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+	if(sbuts->pathflag & (1<<BCONTEXT_PARTICLE))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+	if(sbuts->pathflag & (1<<BCONTEXT_PHYSICS))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
+
 	xco+= XIC;
 	
 	uiBlockEndAlign(block);
@@ -219,11 +196,6 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	xco+=XIC;
 	uiDefButI(block, NUM, B_NEWFRAME, "",	(xco+20),yco,60,YIC, &(CTX_data_scene(C)->r.cfra), 1.0, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
-	
-// XXX	buttons_active_id(&id, &idfrom);
-//	sbuts->lockpoin= id;
-	
-	
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);

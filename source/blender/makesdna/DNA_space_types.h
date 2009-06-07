@@ -139,7 +139,8 @@ typedef struct SpaceButs {
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
 	char flag, texact;
 	
-	void *path;		/* runtime */
+	void *path;				/* runtime */
+	int pathflag, dataicon;	/* runtime */
 	ID *pinid;
 } SpaceButs;
 
@@ -464,7 +465,6 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_SEQUENCER	4
 
 
-/* warning: the values of these defines are used in sbuts->tabs[8] */
 /* buts->mainb new */
 #define BCONTEXT_SCENE		0
 #define BCONTEXT_WORLD		1
@@ -479,10 +479,12 @@ typedef struct SpaceImaSel {
 #define BCONTEXT_MODIFIER	10
 #define BCONTEXT_SEQUENCER	11
 #define BCONTEXT_CONSTRAINT 12
-
+#define BCONTEXT_TOT		13
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
+#define SB_PIN_CONTEXT		2
+#define SB_WORLD_TEX		4
 
 /* sbuts->align */
 #define BUT_FREE  		0

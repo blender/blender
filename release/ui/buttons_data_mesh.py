@@ -9,13 +9,27 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.mesh != None)
 
-class DATA_PT_surface(DataButtonsPanel):
-		__idname__ = "DATA_PT_surface"
-		__label__ = "Mesh"
+class DATA_PT_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_mesh"
+	__label__ = "Mesh"
 
-		def draw(self, context):
-			mesh = context.mesh
-			layout = self.layout
+	def draw(self, context):
+		ob = context.object
+		mesh = context.mesh
+		space = context.space_data
+		layout = self.layout
+
+		split = layout.split(percentage=0.65)
+
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif mesh:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if mesh:
+			layout.itemS()
 
 			split = layout.split()
 		
@@ -29,5 +43,5 @@ class DATA_PT_surface(DataButtonsPanel):
 			sub.itemR(mesh, "double_sided")
 			
 			layout.itemR(mesh, "texco_mesh")			
-						
-bpy.types.register(DATA_PT_surface)
+					
+bpy.types.register(DATA_PT_mesh)

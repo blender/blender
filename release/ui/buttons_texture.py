@@ -13,6 +13,9 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_preview"
 	__label__ = "Preview"
 
+	def poll(self, context):
+		return (context.texture or context.material)
+
 	def draw(self, context):
 		layout = self.layout
 
@@ -23,11 +26,40 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_texture"
 	__label__ = "Texture"
 
+	def poll(self, context):
+		return (context.texture or context.material or context.world or context.lamp)
+
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
+		ma = context.material
+		la = context.lamp
+		wo = context.world
+		space = context.space_data
+		slot = context.texture_slot
+
+		split = layout.split(percentage=0.65)
+
+		if ma or la or wo:
+			if slot:
+				split.template_ID(context, slot, "texture", new="TEXTURE_OT_new")
+			else:
+				split.itemS()
+
+			if ma:
+				split.itemR(ma, "active_texture_index", text="Active")
+			elif la:
+				split.itemR(la, "active_texture_index", text="Active")
+			elif wo:
+				split.itemR(wo, "active_texture_index", text="Active")
+		elif tex:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		layout.itemS()
 		
-		layout.itemR(tex, "type")
+		if tex:
+			layout.itemR(tex, "type")
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"

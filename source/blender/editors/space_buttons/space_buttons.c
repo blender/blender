@@ -33,6 +33,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -79,6 +80,14 @@ static SpaceLink *buttons_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+#if 0
+	/* context area */
+	ar= MEM_callocN(sizeof(ARegion), "context area for buts");
+	BLI_addtail(&sbuts->regionbase, ar);
+	ar->regiontype= RGN_TYPE_CHANNELS;
+	ar->alignment= RGN_ALIGN_TOP;
+#endif
+
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for buts");
 	
@@ -203,7 +212,9 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
-	
+	WM_operatortype_append(MATERIAL_OT_new);
+	WM_operatortype_append(TEXTURE_OT_new);
+	WM_operatortype_append(WORLD_OT_new);
 }
 
 void buttons_keymap(struct wmWindowManager *wm)
@@ -238,6 +249,58 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
+
+#if 0
+/* add handlers, stuff you only do once or on area/region changes */
+static void buttons_context_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+}
+
+#define CONTEXTY	30
+
+static void buttons_context_area_draw(const bContext *C, ARegion *ar)
+{
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	uiLayout *layout;
+	View2D *v2d= &ar->v2d;
+	float col[3];
+	int x, y, w, h;
+
+	buttons_context_compute(C, sbuts);
+
+	w= v2d->cur.xmax - v2d->cur.xmin;
+	h= v2d->cur.ymax - v2d->cur.ymin;
+	UI_view2d_view_ortho(C, v2d);
+
+	/* create UI */
+	block= uiBeginBlock(C, ar, "buttons_context", UI_EMBOSS);
+	layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_PANEL,
+		style->panelspace, h - (h-UI_UNIT_Y)/2, w, 20, style);
+
+	buttons_context_draw(C, layout);
+
+	uiBlockLayoutResolve(C, block, &x, &y);
+	uiEndBlock(C, block);
+
+	/* draw */
+	UI_SetTheme(SPACE_BUTS, RGN_TYPE_WINDOW); /* XXX */
+
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	UI_view2d_totRect_set(v2d, x, -y);
+	UI_view2d_view_ortho(C, v2d);
+
+	uiDrawBlock(C, block);
+
+	/* restore view matrix */
+	UI_view2d_view_restore(C);
+}
+#endif
 
 /* reused! */
 static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
@@ -328,17 +391,19 @@ void ED_spacetype_buttons(void)
 	art->init= buttons_header_area_init;
 	art->draw= buttons_header_area_draw;
 	BLI_addhead(&st->regiontypes, art);
-	
-	/* regions: channels */
+
+#if 0
+	/* regions: context */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
-//	art->init= buttons_channel_area_init;
-//	art->draw= buttons_channel_area_draw;
+	art->minsizey= CONTEXTY;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->init= buttons_context_area_init;
+	art->draw= buttons_context_area_draw;;
+	art->listener= buttons_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
+#endif
 	
 	BKE_spacetype_register(st);
 }
