@@ -7,7 +7,7 @@
  Tooltip: 'Export geometry to DXF/DWG-r12 (Drawing eXchange Format).'
 """
 
-__version__ = "1.34 - 2009.06.02"
+__version__ = "1.34 - 2009.06.07"
 __author__  = "Remigiusz Fiedler (AKA migius)"
 __license__ = "GPL"
 __url__  = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -34,14 +34,19 @@ TODO:
 - export dupligroups and dupliverts as blocks (option for the user to decide) 
 - optimize POLYFACE routine: remove double-vertices
 - optimize POLYFACE routine: remove loose vertices
-- support any-oriented mirrored curves(to POLYLINEs): fix blender negative-matrix.invert()
+- stable support X,Y-rotated curves(to POLYLINEs): fix blender negative-matrix.invert()
 - support hierarchies: groups, instances, parented structures
 - write drawing extends for automatic view positioning in CAD
 - mapping materials to DXF-styles
+- wip: corrected text-objects in persp-projection
+- wip: fix filter out objects from inactive(off) layers
 
 History
-v1.34 - 2009.06.02 by migius
-- support XYmirrored 2d-curves to POLYLINEs: works correct only for rotX,rotY==0.0
+v1.34 - 2009.06.07 by migius
+- cleaning code
+- fix nasty bug in getExtrusion()
+- support text-objects, also in ortho/persp-projection
+- support XYmirrored 2d-curves to 2dPOLYLINEs
 - support thickness and elevation for curve-objects
 - fix extrusion 210-code (3d orientation vector)
 - fix POLYFACE export, synchronized with dxfLibrary.py
@@ -186,7 +191,7 @@ LAB = "scroll MMB/WHEEL           . wip   .. todo" #"*) parts under construction
 M_OBJ = 0
 
 FILENAME_MAX = 180  #max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
-MAX_NAMELENGTH = 17   #max_effective_obnamelength in blender =21=17+(.001)
+NAMELENGTH_MAX = 80   #max_obnamelength in DXF, (limited to 256? )
 INIFILE_DEFAULT_NAME = 'exportDXF'
 INIFILE_EXTENSION = '.ini'
 INIFILE_HEADER = '#ExportDXF.py ver.1.0 config data'
@@ -194,7 +199,6 @@ INFFILE_HEADER = '#ExportDXF.py ver.1.0 analyze of DXF-data'
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
-#TODO: a bug? WORLDY = Mathutils.Vector((1,1,0))
 WORLDY = Mathutils.Vector((0,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
 
@@ -267,7 +271,7 @@ def updateCAMERA():
 #----------------------------------------------
 def gotoCAMERA():
 	cam =	Object.Get(CAMERAS[CAMERA-1])
-	print 'deb: CAMERA, cam',CAMERA, cam
+	#print 'deb: CAMERA, cam',CAMERA, cam
 	if cam.getType() != 'Camera':
 		sure = Draw.PupMenu("Info: %t| It is not a Camera Object.")
 	else:
@@ -278,7 +282,7 @@ def gotoCAMERA():
 		updateMenuCAMERA()
 
 
-#------- Duplicats support ----------------------------------------------
+#------- Duplicates support ----------------------------------------------
 def dupTest(object):
 	"""
 	Checks objects for duplicates enabled (any type)
@@ -296,8 +300,8 @@ def getObjectsAndDuplis(oblist,MATRICES=False,HACK=False):
 	"""
 	Return a list of real objects and duplicates and optionally their matrices
 	oblist: List of Blender Objects
-	MATRICES: Boolean - Check to also get the objects matrices default=False
-	HACK: Boolean - See note default=False
+	MATRICES: Boolean - Check to also get the objects matrices, default=False
+	HACK: Boolean - See note, default=False
 	Returns: List of objects or
 			 List of tuples of the form:(ob,matrix) if MATRICES is set to True
 	NOTE: There is an ugly hack here that excludes all objects whose name
@@ -334,7 +338,7 @@ def getObjectsAndDuplis(oblist,MATRICES=False,HACK=False):
 #-----------------------------------------------------
 def hidden_status(faces, mx, mx_n):
 	# sort out back-faces = with normals pointed away from camera
-	print 'HIDDEN_LINES: caution! not full implemented yet'
+	#print 'HIDDEN_LINES: caution! not full implemented yet'
 	front_faces = []
 	front_edges = []
 	for f in faces:
@@ -376,25 +380,6 @@ def hidden_status(faces, mx, mx_n):
 	return front_faces, front_edges
 
 
-#--------not used-------------------------------------
-def projected_co0(vec, mw):
-	# convert the world coordinates of vector to screen coordinates
-	#co = vec.co.copy().resize4D()
-	co = vec.copy().resize4D()
-	co[3] = 1.0
-	sc = co * mw
-	#print 'deb: viewprojection=', sc #---------
-	return [sc[0],sc[1],0.0]
-
-
-#--------not used---------------------------------------------
-def flatten(points, mw):
-	for i,v in enumerate(points):
-		v = projected_co(v, mw)
-		points[i]=v
-	#print 'deb: flatten points=', points #---------
-	return points
-
 #---- migration to 2.49-------------------------------------------------
 if 'cross' in dir(Mathutils.Vector()):
 	#Draw.PupMenu('DXF exporter: Abort%t|This script version works for Blender up 2.49 only!')
@@ -411,41 +396,45 @@ else:
 
 #-----------------------------------------------------
 def	getExtrusion(matrix):
-	#print 'deb:getExtrusion()  given matrix=\n', matrix #---------
+	"""calculates DXF-Extrusion = Arbitrary Xaxis and Zaxis vectors
+		
+	"""
 	AZaxis = matrix[2].copy().resize3D().normalize() # = ArbitraryZvector
 	Extrusion = [AZaxis[0],AZaxis[1],AZaxis[2]]
 	if AZaxis[2]==1.0:
 		Extrusion = None
-		AXaxis = matrix[0].copy().resize3D() # = ArbitraryZvector
+		AXaxis = matrix[0].copy().resize3D() # = ArbitraryXvector
 	else:
 		threshold = 1.0 / 64.0
-		if abs(AZaxis[0]) < threshold or abs(AZaxis[1]) < threshold:
+		if abs(AZaxis[0]) < threshold and abs(AZaxis[1]) < threshold:
 			# AXaxis is the intersection WorldPlane and ExtrusionPlane
 			AXaxis = M_CrossVecs(WORLDY,AZaxis)
 		else:
 			AXaxis = M_CrossVecs(WORLDZ,AZaxis)
-
 	#print 'deb:\n' #-------------
 	#print 'deb:getExtrusion()  Extrusion=', Extrusion #---------
-	return Extrusion, AXaxis.normalize() 
+	return Extrusion, AXaxis.normalize()
+
 
 #-----------------------------------------------------
 def	getZRotation(AXaxis, rot_matrix_invert):
-	#ZRotation = Mathutils.AngleBetweenVecs(WORLDX,AXaxis) #output in degrees
-
-	# this works: Xaxis is the obj.matrix Xaxis vector
+	"""calculates ZRotation = angle between ArbitraryXvector and obj.matrix.Xaxis
+		
+	"""
+	# this works: Xaxis is the obj.matrix-Xaxis vector
+	# but not correct for all orientations
 	#Xaxis = matrix[0].copy().resize3D() # = ArbitraryXvector
 	##Xaxis.normalize() # = ArbitraryXvector
-	#ZRotation = - d2r * Mathutils.AngleBetweenVecs(Xaxis,AXaxis) #output in degrees
+	#ZRotation = - Mathutils.AngleBetweenVecs(Xaxis,AXaxis) #output in radians
 
-	# this works too, maybe faster
+	# this works for all orientations, maybe a bit faster
 	# transform AXaxis into OCS:Object-Coord-System 
 	#rot_matrix = normalizeMat(matrix.rotationPart())
 	#rot_matrix_invert = rot_matrix.invert()
 	vec = AXaxis * rot_matrix_invert
 	##vec = AXaxis * matrix.copy().invert()
 	##vec.normalize() # not needed for atan2()
-	##print '\ndeb:getExtrusion()  vec=', vec #---------
+	#print '\ndeb:getExtrusion()  vec=', vec #---------
 	ZRotation = - atan2(vec[1],vec[0]) #output in radians
 
 	#print 'deb:ZRotation()  ZRotation=', ZRotation*r2d #---------
@@ -464,15 +453,15 @@ def normalizeMat(matrix):
 
 
 #-----------------------------------------------------
-def projected_co(verts, mx):
-	# converts world coordinates of points to screen coordinates
-	temp_verts = []
-	for v in verts:
-		#temp_verts.append(Blender.Mesh.MVert(v.co))
-		temp_verts.append(Mesh.MVert(v))
-	#print 'deb: temp_verts=', temp_verts #---------
-	for v in temp_verts:
-		v.co *= mx
+def projected_co(verts, matrix):
+	""" converts coordinates of points from OCS to WCS->ScreenCS
+	needs matrix: a projection matrix
+	needs verts: a list of vectors[x,y,z]
+	returns a list of [x,y,z]
+	"""
+	#print 'deb:projected_co()  verts=', verts #---------
+	temp_verts = [Mathutils.Vector(v)*matrix for v in verts]
+	#print 'deb:projected_co()  temp_verts=', temp_verts #---------
 
 	if GUI_A['Z_force_on'].val: locZ = GUI_A['Z_elev'].val
 	else: locZ = 0.0
@@ -481,13 +470,14 @@ def projected_co(verts, mx):
 		if PERSPECTIVE:
 			clipStart = 10.0
 			for v in temp_verts:
-				coef = - clipStart / v.co[2]
-				v.co[0] *= coef
-				v.co[1] *= coef
-				v.co[2] = locZ
+				coef = - clipStart / v[2]
+				v[0] *= coef
+				v[1] *= coef
+				v[2] = locZ
 		for v in temp_verts:
-	 		v.co[2] = locZ
-	temp_verts = [v.co[:3] for v in temp_verts]
+	 		v[2] = locZ
+	temp_verts = [v[:3] for v in temp_verts]
+	#print 'deb:projected_co()  out_verts=', temp_verts #---------
 	return temp_verts
 
 
@@ -503,10 +493,11 @@ def isLeftHand(matrix):
 
 #-----------------------------------------------------
 def	exportMesh(ob, mx, mx_n, me=None, **common):
-	global APPLY_MODIFIERS
+	"""converts Mesh-Object to desired projection and representation(DXF-Entity type)
+	"""
 	entities = []
 	#print 'deb:exportMesh() common=', common #---------
-	if me is None: # me means mesh
+	if me==None:
 		me = ob.getData(mesh=1)
 	else:
 		me.getFromObject(ob)
@@ -519,14 +510,14 @@ def	exportMesh(ob, mx, mx_n, me=None, **common):
 		#print 'deb:exportMesh() started' #---------
 		allpoints = [v.co for v in me.verts]
 		allpoints = projected_co(allpoints, mx)
-		if GUI_A['g_origin_on'].val: #TODO: scale and object orientation
+		if GUI_A['g_origin_on'].val:
 			for p in allpoints:
 				p[0] += G_ORIGIN[0]
 				p[1] += G_ORIGIN[1]
 				p[2] += G_ORIGIN[2]
 		faces=[]
 		edges=[]
-		if me.faces and HIDDEN_LINES:
+		if me.faces and PROJECTION and HIDDEN_LINES:
 			if DEBUG: print 'deb:exportMesh HIDDEN_LINES mode' #---------
 			faces, edges = hidden_status(me.faces, mx, mx_n)
 			faces = [[v.index for v in me.faces[f_nr].verts] for f_nr in faces]
@@ -562,9 +553,24 @@ def	exportMesh(ob, mx, mx_n, me=None, **common):
 				if allpoints:
 					#TODO: purge allpoints: left only vertices used by faces
 					if DEBUG: mesh_drawBlender(allpoints, None, faces) #deb: draw to scene
-					faces = [[v+1 for v in f] for f in faces]
+#					faces = [[v+1 for v in f] for f in faces]
+
+					verts_state= [0]*len(allpoints)
+					for f in faces:
+						for v in f:
+							verts_state[v]=1
+					if 0: # in verts_state: # if dirty state
+						i,new_position,newverts=0,[],[]
+						for used_i,used in enumerate(verts_state):
+							if used:
+								newverts.append(allpoints[used_i])	
+								new_position.append(i)
+								i+=1
+						allpoints = newverts
+						faces = [[new_position[v]+1 for v in f] for f in faces]
+					else:
+						faces = [[v+1 for v in f] for f in faces]
 					dxfPOLYFACE = DXF.PolyLine([allpoints, faces], flag=64, **common)
-					#dxfPOLYFACE = DXF.PolyLine([allpoints, faces], flag=64)
 					#print '\n deb: dxfPOLYFACE=',dxfPOLYFACE #-------------
 					entities.append(dxfPOLYFACE)
 			elif '3DFACEs'==c:
@@ -638,8 +644,10 @@ def curve_drawBlender(vertList, org_point=[0.0,0.0,0.0], closed=0, name="dxfCurv
 
 #-----------------------------------------------------
 def exportEmpty(ob, mx, mw, **common):
+	"""converts Empty-Object to desired projection and representation(DXF-Entity type)
+	"""
 	p =  Mathutils.Vector(ob.loc)
-	print 'is it a vector?:', p
+	#print 'deb: is it a vector?:', p #---------------
 	[p] = projected_co([p], mx)
 	if GUI_A['g_origin_on'].val: #TODO: scale and object orientation
 		p[0] += G_ORIGIN[0]
@@ -653,30 +661,112 @@ def exportEmpty(ob, mx, mw, **common):
 		entities.append(dxfPOINT)
 	return entities
 
-
 #-----------------------------------------------------
-def exportCurve(ob, mx, mw, **common):
-	entities = []
-	curve = ob.getData()
+def exportText(ob, mx, mw, **common):
+	"""converts Text-Object to desired projection and representation(DXF-Entity type)
+	"""
+	text3d = ob.getData()
+	textstr = text3d.getText()
+	WCS_loc = ob.loc # WCS_loc is object location in WorldCoordSystem
+	sizeX = ob.SizeX
+	sizeY = ob.SizeY
+	sizeZ = ob.SizeZ
+	rotX  = ob.RotX
+	rotY  = ob.RotY
+	rotZ  = ob.RotZ
+	#print 'deb: sizeX=%s, sizeY=%s' %(sizeX, sizeY) #---------
+
 	Thickness,Extrusion,ZRotation,Elevation = None,None,None,None
+
+	AXaxis = mx[0].copy().resize3D() # = ArbitraryXvector
 	if not PROJECTION:
 		#Extrusion, ZRotation, Elevation = getExtrusion(mx)
 		Extrusion, AXaxis = getExtrusion(mx)
 
-	WCS_loc = ob.loc # WCS_loc is object location in WorldCoordSystem
-	#WCS_loc = [0.0,0.0,0.0]
-	#print 'deb: WCS_loc=', WCS_loc #---------
+		# no thickness/width for TEXTs converted into ScreenCS
+		if text3d.getExtrudeDepth():
+			Thickness = text3d.getExtrudeDepth() * sizeZ
 
-	sizeX = ob.SizeX
-	sizeY = ob.SizeY
-	sizeZ = ob.SizeZ
-	rotZ  = ob.RotZ
-	#print 'deb: sizeX=%s, sizeY=%s' %(sizeX, sizeY) #---------
+	#Horizontal text justification type, code 72, (optional, default = 0)
+	# integer codes (not bit-coded)
+	#0=left, 1=center, 2=right
+	#3=aligned, 4=middle, 5=fit
+	Alignment = None
+	alignment = text3d.getAlignment().value
+	if alignment in (1,2): Alignment = alignment
 
-	#print 'deb: curve.ext1=', curve.ext1 #---------
-	if curve.ext1: Thickness = curve.ext1 * sizeZ
+	textHeight = text3d.getSize() / 1.7
+	textFlag = 0
+	if sizeX < 0.0: textFlag |= 2 # set flag for horizontal mirrored
+	if sizeZ < 0.0: textFlag |= 4 # vertical mirrored
 
-	if "POLYLINE"==curve_as_list[GUI_A['curve_as'].val]: # export as POLYLINE
+	entities = []
+	c = text_as_list[GUI_A['text_as'].val]
+
+	if c=="TEXT": # export text as TEXT
+		if not PROJECTION:
+			ZRotation,Zrotmatrix,OCS_origin,ECS_origin = getTargetOrientation(mx,Extrusion,\
+				AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ)
+			ZRotation *= r2d
+			point = ECS_origin
+		else:	#TODO: fails correct location
+			point1 = Mathutils.Vector(ob.loc)
+			[point] = projected_co([point1], mx)
+			if PERSPECTIVE:
+				clipStart = 10.0
+				coef = -clipStart / (point1*mx)[2]
+				textHeight *= coef
+				#print 'deb: coef=', coef #--------------
+	
+		#print 'deb: point=', point #--------------
+		if GUI_A['g_origin_on'].val: #TODO: scale and object orientation
+			point[0] += G_ORIGIN[0]
+			point[1] += G_ORIGIN[1]
+			point[2] += G_ORIGIN[2]
+		point2 = point
+
+		if 0: pass #DEBUG: text_drawBlender(textstr,points,OCS_origin) #deb: draw to scene
+		common['extrusion']= Extrusion
+		#common['elevation']= Elevation
+		common['thickness']= Thickness
+		#print 'deb: common=', common #------------------
+		if 0: #DEBUG
+			#linepoints = [[0,0,0], [AXaxis[0],AXaxis[1],AXaxis[2]]]
+			linepoints = [[0,0,0], point]
+			dxfLINE = DXF.Line(linepoints,**common)
+			entities.append(dxfLINE)
+
+		dxfTEXT = DXF.Text(text=textstr,point=point,alignment=point2,rotation=ZRotation,\
+			flag=textFlag,height=textHeight,justifyhor=Alignment,**common)
+		entities.append(dxfTEXT)
+		if Thickness:
+			common['thickness']= -Thickness
+			dxfTEXT = DXF.Text(text=textstr,point=point,alignment=point2,rotation=ZRotation,\
+				flag=textFlag,height=textHeight,justifyhor=Alignment,**common)
+			entities.append(dxfTEXT)
+	return entities
+
+
+#-------------------------------------------
+def euler2matrix(rx, ry, rz):
+	"""creates full 3D rotation matrix (optimized)
+	needs rx, ry, rz angles in radians
+	"""
+	#print 'rx, ry, rz: ', rx, ry, rz
+	A, B = sin(rx), cos(rx)
+	C, D = sin(ry), cos(ry)
+	E, F = sin(rz), cos(rz)
+	AC, BC = A*C, B*C
+	return Mathutils.Matrix([D*F,  D*E, -C],
+		[AC*F-B*E, AC*E+B*F, A*D],
+		[BC*F+A*E, BC*E-A*F, B*D])
+		
+	
+#-----------------------------------------------------
+def getTargetOrientation(mx,Extrusion,AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ):
+	"""given 
+	"""
+	if 1:
 		rot_matrix = normalizeMat(mx.rotationPart())
 		#TODO: workaround for blender negative-matrix.invert()
 		# partially done: works only for rotX,rotY==0.0
@@ -684,26 +774,62 @@ def exportCurve(ob, mx, mw, **common):
 		if sizeY<0.0: rot_matrix[1] *= -1
 		#if sizeZ<0.0: rot_matrix[2] *= -1
 		rot_matrix_invert = rot_matrix.invert()
-		OCS_origin = Mathutils.Vector(WCS_loc) * rot_matrix_invert
-		# OCS_origin is global origin in ObjectCoordSystem
-		#print 'deb: OCS_origin=', OCS_origin #---------
-		ZRotation = rotZ
-		if Extrusion!=None:
-			ZRotation = getZRotation(AXaxis,rot_matrix_invert)
-		#print 'deb: ZRotation=', ZRotation * r2d #--------------
-		#Zrotmatrix = Mathutils.RotationMatrix(-ZRotation, 3, "Z")
-		rs, rc = sin(ZRotation), cos(ZRotation)
-		Zrotmatrix = Mathutils.Matrix([rc, rs,0.0],[-rs,rc,0.0],[0.0,0.0,1.0])
+	else: #TODO: to check, why below rot_matrix_invert is not equal above one
+		rot_euler_matrix = euler2matrix(rotX,rotY,rotZ)
+		rot_matrix_invert = euler2matrix(-rotX,-rotY,-rotZ)
+	
+	# OCS_origin is Global_Origin in ObjectCoordSystem
+	OCS_origin = Mathutils.Vector(WCS_loc) * rot_matrix_invert
+	#print 'deb: OCS_origin=', OCS_origin #---------
 
-		ECS_origin = OCS_origin.copy()
-		#if sizeX<0.0: ECS_origin[0] *= -1
-		#if sizeY<0.0: ECS_origin[1] *= -1
-		#if sizeZ<0.0: ECS_origin[2] *= -1
-		ECS_origin = ECS_origin * Zrotmatrix
-		#print 'deb: ECS_origin=', ECS_origin #---------
-		# ECS_origin is global origin in EntityCoordSystem
-		#TODO: it doesnt work yet for negative scaled curve-objects!
+	ZRotation = rotZ
+	if Extrusion!=None:
+		ZRotation = getZRotation(AXaxis,rot_matrix_invert)
+	#Zrotmatrix = Mathutils.RotationMatrix(-ZRotation, 3, "Z")
+	rs, rc = sin(ZRotation), cos(ZRotation)
+	Zrotmatrix = Mathutils.Matrix([rc, rs,0.0],[-rs,rc,0.0],[0.0,0.0,1.0])
+	#print 'deb: Zrotmatrix=\n', Zrotmatrix #--------------
 
+	# ECS_origin is Global_Origin in EntityCoordSystem
+	ECS_origin = OCS_origin * Zrotmatrix
+	#print 'deb: ECS_origin=', ECS_origin #---------
+	#TODO: it doesnt work yet for negative scaled curve-objects!
+	return ZRotation,Zrotmatrix,OCS_origin,ECS_origin
+
+
+#-----------------------------------------------------
+def exportCurve(ob, mx, mw, **common):
+	"""converts Curve-Object to desired projection and representation(DXF-Entity type)
+	"""
+	entities = []
+	curve = ob.getData()
+	WCS_loc = ob.loc # WCS_loc is object location in WorldCoordSystem
+	#WCS_loc = [0.0,0.0,0.0]
+	#print 'deb: WCS_loc=', WCS_loc #---------
+	sizeX = ob.SizeX
+	sizeY = ob.SizeY
+	sizeZ = ob.SizeZ
+	rotX  = ob.RotX
+	rotY  = ob.RotY
+	rotZ  = ob.RotZ
+	#print 'deb: sizeX=%s, sizeY=%s' %(sizeX, sizeY) #---------
+
+	Thickness,Extrusion,ZRotation,Elevation = None,None,None,None
+	AXaxis = mx[0].copy().resize3D() # = ArbitraryXvector
+	OCS_origin = [0,0,0]
+	if not PROJECTION:
+		#Extrusion, ZRotation, Elevation = getExtrusion(mx)
+		Extrusion, AXaxis = getExtrusion(mx)
+
+		# no thickness/width for POLYLINEs converted into ScreenCS
+		#print 'deb: curve.ext1=', curve.ext1 #---------
+		if curve.ext1: Thickness = curve.ext1 * sizeZ
+		if curve.ext2 and sizeX==sizeY:
+			Width = curve.ext2 * sizeX
+		if "POLYLINE"==curve_as_list[GUI_A['curve_as'].val]: # export as POLYLINE
+			ZRotation,Zrotmatrix,OCS_origin,ECS_origin = getTargetOrientation(mx,Extrusion,\
+				AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ)
+	
 	for cur in curve:
 		#print 'deb: START cur=', cur #--------------
 		points = []
@@ -729,14 +855,18 @@ def exportCurve(ob, mx, mw, **common):
 			c = curve_as_list[GUI_A['curve_as'].val]
 
 			if c=="POLYLINE": # export Curve as POLYLINE
-				for p in points: # vectors4d
-					p[0] *= sizeX
-					p[1] *= sizeY
-					p2 = p * Zrotmatrix
-					p2[0] += ECS_origin[0]
-					p2[1] += ECS_origin[1]
-					p[0],p[1] = p2[0],p2[1]
-				#print 'deb:points', points #--------------
+				if not PROJECTION:
+					# recalculate points(2d=X,Y) into Entity-Coords-System
+					for p in points: # list of vectors
+						p[0] *= sizeX
+						p[1] *= sizeY
+						p2 = p * Zrotmatrix
+						p2[0] += ECS_origin[0]
+						p2[1] += ECS_origin[1]
+						p[0],p[1] = p2[0],p2[1]
+				else:
+					points = projected_co(points, mx)
+				#print 'deb: points', points #--------------
 
 				if cur.isCyclic(): closed = 1
 				else: closed = 0
@@ -747,15 +877,22 @@ def exportCurve(ob, mx, mw, **common):
 						p[2] += G_ORIGIN[2]
 				if DEBUG: curve_drawBlender(points,OCS_origin,closed) #deb: draw to scene
 				common['extrusion']= Extrusion
-				#common['rotation']= ZRotation
-				#common['elevation']= Elevation
+				##common['rotation']= ZRotation
+				##common['elevation']= Elevation
 				common['thickness']= Thickness
 				#print 'deb: common=', common #------------------
 
 				if 0: #DEBUG
-					linepoints = [[0,0,0], [AXaxis[0],AXaxis[1],AXaxis[2]]]
-					dxfLINE = DXF.Line(linepoints,**common)
-					entities.append(dxfLINE)
+					p=AXaxis[:3]
+					entities.append(DXF.Line([[0,0,0], p],**common))
+					p=ECS_origin[:3]
+					entities.append(DXF.Line([[0,0,0], p],**common))
+					common['color']= 5
+					p=OCS_origin[:3]
+					entities.append(DXF.Line([[0,0,0], p],**common))
+					#OCS_origin=[0,0,0] #only debug----------------
+					dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
+					entities.append(dxfPLINE)
 
 				dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
 				entities.append(dxfPLINE)
@@ -790,6 +927,7 @@ def exportCurve(ob, mx, mw, **common):
 						entities.append(dxfLINE)
 
 			elif c=="POINTs": # export Curve as multiple POINTs
+				points = projected_co(points, mx)
 				for p in points:
 					dxfPOINT = DXF.Point(points=[p],**common)
 					entities.append(dxfPOINT)
@@ -798,6 +936,10 @@ def exportCurve(ob, mx, mw, **common):
 
 #-----------------------------------------------------
 def getClipBox(camera):
+	"""calculates Field-of-View-Clipping-Box of given Camera
+	returns clip_box: a list of vertices
+	returns matr: translation matrix
+	"""
 	sce = Scene.GetCurrent()
 	context = sce.getRenderingContext()
 	#print 'deb: context=\n', context #------------------
@@ -891,6 +1033,8 @@ def getClipBox(camera):
 
 #-----------------------------------------------------
 def drawClipBox(clip_box):
+	"""debug tool: draws Clipping-Box of a Camera View
+	"""
 	min_X1, max_X1, min_Y1, max_Y1,\
 	min_X2, max_X2, min_Y2, max_Y2,\
 		min_Z, max_Z = clip_box
@@ -917,15 +1061,16 @@ def drawClipBox(clip_box):
 
 #-------------------------------------------------
 def getCommons(ob):
-	#set up common attributes for output style:
-	# color=None
-	# extrusion=None
-	# layer='0',
-	# lineType=None
-	# lineTypeScale=None
-	# lineWeight=None
-	# thickness=None
-	# parent=None
+	"""set up common attributes for output style:
+	 color=None
+	 extrusion=None
+	 layer='0',
+	 lineType=None
+	 lineTypeScale=None
+	 lineWeight=None
+	 thickness=None
+	 parent=None
+	"""
 
 	layers = ob.layers #gives a list e.g.[1,5,19]
 	if layers: ob_layer_nr = layers[0]
@@ -1012,6 +1157,7 @@ def do_export(export_list, filepath):
 
 	#add Entities --------------------
 	something_ready = 0
+	selected_len = len(export_list)
 	sce = Scene.GetCurrent()
 
 	mw = Mathutils.Matrix(  [1.0, 0.0, 0.0, 0.0],
@@ -1063,6 +1209,7 @@ def do_export(export_list, filepath):
 		entities = []
 		#mx = ob.matrix.copy()
 		#print 'deb: ob	=', ob	 #---------
+		#print 'deb: ob.type	=', ob.type	 #---------
 		#print 'deb: mx	=\n', mx	 #---------
 		#print 'deb: mw0	=\n', mw0	 #---------
 		#mx_n is trans-matrix for normal_vectors for front-side faces
@@ -1074,7 +1221,7 @@ def do_export(export_list, filepath):
 		#print 'deb: mx	=\n', mx	 #---------
 		#print 'deb: mx_inv=\n', mx_inv #---------
 
-		if ob.type in ('Mesh', 'Curve', 'Empty'):
+		if ob.type in ('Mesh', 'Curve', 'Empty', 'Text'):
 			if GUI_A['paper_space_on'].val==1: espace=1
 			else: espace=None
 			elayer,ecolor,eltype = getCommons(ob)
@@ -1096,11 +1243,15 @@ def do_export(export_list, filepath):
 			elif (ob.type == 'Empty') and GUI_B['empty'].val:
 				entities = exportEmpty(ob, mx, mw, \
 						paperspace=espace, color=ecolor, layer=elayer, lineType=eltype)
+			elif (ob.type == 'Text') and GUI_B['text'].val:
+				entities = exportText(ob, mx, mw, \
+					paperspace=espace, color=ecolor, layer=elayer, lineType=eltype)
 	
-		for e in entities:
-			d.append(e)
-			something_ready += 1
-
+			if entities:
+				something_ready += 1
+				for e in entities:
+					d.append(e)
+	
 	if something_ready:
 		if not GUI_A['outputDWG_on'].val:
 			print 'exporting to %s' % filepath
@@ -1108,8 +1259,8 @@ def do_export(export_list, filepath):
 				d.saveas(filepath)
 				Window.WaitCursor(0)
 				#print '%s objects exported to %s' %(something_ready,filepath)
-				print '%s objects exported in %.2f seconds. -----DONE-----' %(something_ready,(Blender.sys.time()-t))
-				Draw.PupMenu('DXF Exporter: job finished!| %s objects exported in %.2f sek.' %(something_ready, (Blender.sys.time()-t)))
+				print '%s/%s objects exported in %.2f seconds. -----DONE-----' %(something_ready,selected_len,(Blender.sys.time()-t))
+				Draw.PupMenu('DXF Exporter: job finished!| %s/%s objects exported in %.2f sek.' %(something_ready,selected_len, (Blender.sys.time()-t)))
 			except IOError:
 				Window.WaitCursor(0)
 				Draw.PupMenu('DXF Exporter: Write Error:     Permission denied:| %s' %filepath)
@@ -1131,7 +1282,7 @@ def do_export(export_list, filepath):
 				os.remove(filepath)
 				Window.WaitCursor(0)
 				print '  finished in %.2f seconds. -----DONE-----' % (Blender.sys.time()-t)
-				Draw.PupMenu('DWG Exporter: job finished!| %s objects exported in %.2f sek.' %(something_ready, (Blender.sys.time()-t)))
+				Draw.PupMenu('DWG Exporter: job finished!| %s/%s objects exported in %.2f sek.' %(something_ready,selected_len, (Blender.sys.time()-t)))
 	else:
 		Window.WaitCursor(0)
 		print "Abort: selected objects dont match choosen export option, nothing exported!"
@@ -1165,7 +1316,7 @@ def cleanName(name,valid):
 #------------------------------------------------------
 def validDXFr12name(str_name):
 	dxfname = str(str_name)
-	dxfname = dxfname[:MAX_NAMELENGTH].upper()
+	dxfname = dxfname[:NAMELENGTH_MAX].upper()
 	dxfname = cleanName(dxfname,validDXFr12)
 	return dxfname
 
@@ -1201,7 +1352,7 @@ def col2DXF(rgbcolor):
 # ------------#################################################-----------------
 
 class Settings:  #-----------------------------------------------------------------
-	"""A container for all the import settings and objects used by the draw functions.
+	"""A container for all the export settings and objects.
 
 	This is like a collection of globally accessable persistant properties and functions.
 	"""
@@ -1212,7 +1363,7 @@ class Settings:  #--------------------------------------------------------------
 	MAX = 3
 
 	def __init__(self, keywords, drawTypes):
-		"""initialize all the important settings used by the draw functions.
+		"""initialize all the important settings used by the export functions.
 		"""
 		self.obj_number = 1 #global object_number for progress_bar
 
@@ -1317,7 +1468,7 @@ EVENT_CAMERA = 10
 EVENT_LIGHT =11
 EVENT_DXF_DIR = 12
 EVENT_setCAMERA = 13
-EVENT_LIST = 14
+# = 14
 EVENT_ORIGIN = 15
 EVENT_SCALE = 16
 EVENT_PRESET2D = 20
@@ -1325,7 +1476,6 @@ EVENT_PRESET3D = 21
 EVENT_PRESETPLINE = 22
 EVENT_PRESETS = 23
 EVENT_EXIT = 100
-GUI_EVENT = EVENT_NONE
 
 GUI_A = {}  # GUI-buttons dictionary for parameter
 GUI_B = {}  # GUI-buttons dictionary for drawingTypes
@@ -1352,7 +1502,7 @@ surface_as_menu = prepareMenu("export to: %t", surface_as_list)
 meta_as_list  = ["..3DFACEs","..POLYFACE","..3DSOLID"]
 meta_as_menu = prepareMenu("export to: %t", meta_as_list) 
 
-text_as_list   = ["..TEXT","..MTEXT","..ATTRIBUTs"]
+text_as_list   = ["TEXT","..MTEXT","..ATTRIBUT"]
 text_as_menu = prepareMenu("export to: %t", text_as_list) 
 
 empty_as_list  = ["POINT","..INSERT","..XREF"]
@@ -1384,7 +1534,7 @@ ltype_map_menu = prepareMenu("export to: %t", ltype_map_list)
 layername_from_list = [LAYERNAME_DEF,"drawing_name","scene_name"]
 layername_from_menu = prepareMenu("defaultLAYER: %t", layername_from_list)
 
-layerltype_def_list = ["CONTINUOUS","DOT","DASH","DASH-DOT"]
+layerltype_def_list = ["CONTINUOUS","..DOT","..DASHED","..DASHDOT","..BORDER","..HIDDEN"]
 layerltype_def_menu = prepareMenu("LINETYPE set to: %t",layerltype_def_list)
 
 entitylayer_from_list = ["default_LAYER","obj.name","obj.layer","obj.material","obj.data.name","obj.data.material","..vertexgroup","..group","..map_table"]
@@ -1493,7 +1643,7 @@ drawTypes_org = {
 	'bcurve': 1,
 	'surface': 0,
 	'bmeta' : 0,
-	'text'  : 0,
+	'text'  : 1,
 	'empty' : 1,
 	'group' : 1,
 	'parent': 1,
@@ -1609,9 +1759,9 @@ def saveConfig():  #--todo-----------------------------------------------
 def loadConfig():  #remi--todo-----------------------------------------------
 	"""Load settings/config/materials from INI-file.
 
-	Read material-assignements from config-file.
+	TODO: Read material-assignements from config-file.
 	"""
-	#070724 buggy Window.FileSelector(loadConfigFile, 'Load config data from INI-file', inifilename)
+	#20070724 buggy Window.FileSelector(loadConfigFile, 'Load config data from INI-file', inifilename)
 	global iniFileName, GUI_A, GUI_B
 
 	iniFile = iniFileName.val
@@ -1711,7 +1861,7 @@ def resetDefaultConfig_3D():  #-----------------------------------------------
 	keywords3d = {
 		'projection_on' : 0,
 		'fill_on' : 0,
-		#'text_as' : 0,
+		'text_as' : 0,
 		'group_as' : 0,
 		}
 
@@ -1920,14 +2070,11 @@ def draw_UI():  #---------------------------------------------------------------
 		GUI_B['bmeta'] = Draw.Toggle('..Meta', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['bmeta'].val, "(*todo) Export Meta-Objects   on/off")
 		if GUI_B['bmeta'].val:
 			GUI_A['meta_as'] = Draw.Menu(meta_as_menu, EVENT_NONE, b1, y, b1_, 20, GUI_A['meta_as'].val, "Select target DXF-object")
-		#GUI_A['plmesh_flip'] = Draw.Toggle('N', EVENT_NONE, b1+b1_-40, y, 20, 20, GUI_A['plmesh_flip'].val, "flip DXF normals   on/off")
-		#GUI_A['normals_out'] = Draw.Toggle('N', EVENT_NONE, b1+b1_-20, y, 20, 20, GUI_A['normals_out'].val, "force Blender normals to outside   on/off")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['text'] = Draw.Toggle('..Text', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['text'].val, "(*todo) Export Text-Objects   on/off")
-		#GUI_B['mtext'] = Draw.Toggle('..MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*todo) support dxf-MTEXT   on/off")
+		GUI_B['text'] = Draw.Toggle('Text', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['text'].val, "Export Text-Objects   on/off")
 		if GUI_B['text'].val:
 			GUI_A['text_as'] = Draw.Menu(text_as_menu, EVENT_NONE, b1, y, b1_, 20, GUI_A['text_as'].val, "Select target DXF-object")
 		Draw.EndAlign()
@@ -1937,7 +2084,6 @@ def draw_UI():  #---------------------------------------------------------------
 		GUI_B['empty'] = Draw.Toggle('Empty', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['empty'].val, "Export Empty-Objects   on/off")
 		if GUI_B['empty'].val:
 			GUI_A['empty_as'] = Draw.Menu(empty_as_menu, EVENT_NONE, b1, y, b1_, 20, GUI_A['empty_as'].val, "Select target DXF-object")
-#	   Draw.Label('-->', but2c, y, but_2c, 20)
 		Draw.EndAlign()
 
 		y_down = y
@@ -1951,10 +2097,7 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 20
 		Draw.BeginAlign()
 		GUI_B['group'] = Draw.Toggle('..Group', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['group'].val, "(*todo) Export Group-Relationships   on/off")
-		#GUI_B['insert'].val = GUI_B['group'].val
 		if GUI_B['group'].val:
-			#GUI_A['block_nn'] = Draw.Toggle('n', EVENT_NONE, b1-30, y, 15, 20, GUI_A['block_nn'].val, "Export hatch/noname BLOCKs *X...   on/off")
-			#GUI_A['xref_on'] = Draw.Toggle('Xref', EVENT_NONE, b1-15, y, 35, 20, GUI_A['xref_on'].val, "Export for XREF-BLOCKs (place holders)   on/off")
 			GUI_A['group_as'] = Draw.Menu(group_as_menu, EVENT_NONE, b1, y, b1_, 20, GUI_A['group_as'].val, "Select target DXF-object")
 		Draw.EndAlign()
 
@@ -2023,7 +2166,6 @@ def draw_UI():  #---------------------------------------------------------------
 				GUI_A['g_originZ'].val
 				)
 			tmp = Draw.Label(origin_str, b1+20, y, 300, 20)
-			#GUI_A['g_origin'] = Draw.String('', EVENT_ORIGIN, b1, y, b1_, 20, GUI_A['g_origin'].val, "Global translation-vector (x,y,z) in DXF units")
 		Draw.EndAlign()
 
 		y -= 20
@@ -2100,37 +2242,11 @@ def draw_UI():  #---------------------------------------------------------------
 		y_down = y
 		# -----end material,translate,scale------------------------------------------
 
-		"""
-		b0, b0_ = but0c, but_0c + butt_margin
-		b1, b1_ = but1c, but_1c
-
-		y_top = y_down
-		y = y_top
-		y -= 10
-
-		y -= 20
-		GUI_A['group_bylayer_on'] = Draw.Toggle('Layer', EVENT_NONE, b0, y, 30, 20, GUI_A['group_bylayer_on'].val, "DXF-entities group by layer   on/off")
-
-		y_down = y
-		# -----------------------------------------------
-
-		b0, b0_ = but2c, but_2c + butt_margin
-		b1, b1_ = but3c, but_3c
-
-		y = y_top
-		y -= 10
-		y -= 20
-
-
-		if y < y_down: y_down = y
-		# -----end options --------------------------------------
-		"""
-
 
 		#--------------------------------------
 		y_top = y_down
 		y = y_top
-		#GUI_A['dummy_on'] = Draw.Toggle(' - ', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['dummy_on'].val, "reserved")
+
 		y -= 30
 		Draw.BeginAlign()
 		Draw.PushButton('INI file >', EVENT_CHOOSE_INI, but0c, y, but_0c, 20, 'Select INI-file with file selector')
@@ -2170,15 +2286,13 @@ def draw_UI():  #---------------------------------------------------------------
 	b0, b0_ = but0c, but_0c + butt_margin +but_1c
 	GUI_A['to_polyline_on'] = Draw.Toggle('POLYLINE', EVENT_PRESETPLINE, b0, y, b0_, 20, GUI_A['to_polyline_on'].val, "Export to POLYLINEs, otherwise to LINEs/3DFACEs   on/off")
 	b0, b0_ = but2c, but_2c + butt_margin + but_3c
-	Draw.BeginAlign()
 
-	#y -=20
-	GUI_A['projection_on'] = Draw.Toggle('Projection 2d', EVENT_REDRAW, b0, y+20, b0_, 20, GUI_A['projection_on'].val, "Export a 2d Projection according 3dView or Camera   on/off")
+	Draw.BeginAlign()
+	GUI_A['projection_on'] = Draw.Toggle('2d Projection', EVENT_REDRAW, b0, y+20, b0_, 20, GUI_A['projection_on'].val, "Export a 2d Projection according 3d-View or Camera-View   on/off")
 	if GUI_A['projection_on'].val:
-		#GUI_A['camera_on'] = Draw.Toggle('Camera / 3dView', EVENT_NONE, b0, y, b0_, 20, GUI_A['camera_on'].val, "get Projection from current Camera, otherwise from 3dView   on/off")
 		GUI_A['camera_on'] = Draw.Menu(MenuCAMERA, EVENT_CAMERA, b0, y, b0_-20, 20, GUI_A['camera_on'].val, 'Choose the camera to be rendered')		
 		Draw.PushButton('>', EVENT_setCAMERA, b0+b0_-20, y, 20, 20, 'switch to selected Camera - make it active')
-		GUI_A['hidden_lines_on'] = Draw.Toggle('.Hidden Lines', EVENT_NONE, b0, y-20, b0_, 20, GUI_A['hidden_lines_on'].val, "Filter out hidden lines   on/off")
+		GUI_A['hidden_lines_on'] = Draw.Toggle('Hide back-Faces', EVENT_NONE, b0, y-20, b0_, 20, GUI_A['hidden_lines_on'].val, "Filter out back-Faces   on/off")
 		#GUI_A['shadows_on'] = Draw.Toggle('..Shadows', EVENT_REDRAW, b0, y-40, but_2c, 20, GUI_A['shadows_on'].val, "(*todo) Shadow tracing   on/off")
 		#GUI_A['light_on'] = Draw.Menu(MenuLIGHT, EVENT_LIGHT, but3c, y-40, but_3c, 20, GUI_A['light_on'].val, '(*todo) Choose the light source(sun) to be rendered')		
 	Draw.EndAlign()
@@ -2187,7 +2301,6 @@ def draw_UI():  #---------------------------------------------------------------
 	b0, b0_ = but0c, but_0c + butt_margin +but_1c
 	GUI_A['apply_modifiers_on'] = Draw.Toggle('Apply Modifiers', EVENT_NONE, b0, y, b0_, 20, GUI_A['apply_modifiers_on'].val, "Apply modifier stack to mesh objects before export   on/off")
 	b0, b0_ = but2c, but_2c + butt_margin + but_3c
-	#GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['target_layer'].val, 1, 18, "target Blender-layer (<19> reserved for block_definitions)")
 
 	y -= 20
 	b0, b0_ = but0c, but_0c + butt_margin +but_1c
@@ -2202,7 +2315,6 @@ def draw_UI():  #---------------------------------------------------------------
 	GUI_A['outputDWG_on'] = Draw.Toggle('DWG*', EVENT_NONE, but2c, y+20, 40, 20, GUI_A['outputDWG_on'].val, "converts DXF to DWG (needs external converter)   on/off")
 
 	Draw.BeginAlign()
-	#Draw.PushButton('TEST', EVENT_LIST, but2c, y, 40, 20, 'DXF-Analyze-Tool: reads data from selected dxf file and writes report in project_directory/dxf_blendname.INF')
 	Draw.PushButton('START EXPORT', EVENT_START, but2c+40, y, but_2c-40+but_3c+butt_margin, 40, 'Start the export process. For Cancel go to console and hit Ctrl-C')
 	Draw.EndAlign()
 
@@ -2408,7 +2520,6 @@ def event(evt, val):
 			menu_pan = False
 
 def bevent(evt):
-#   global EVENT_NONE,EVENT_LOAD_DXF,EVENT_LOAD_INI,EVENT_SAVE_INI,EVENT_EXIT
 	global config_UI, user_preset
 	global CAMERA, GUI_A
 
@@ -2458,15 +2569,6 @@ def bevent(evt):
 		if user_preset > 5: user_preset = 0; index = ''
 		iniFileName.val = INIFILE_DEFAULT_NAME + index + INIFILE_EXTENSION
 		Draw.Redraw()
-	elif (evt==EVENT_LIST):
-		dxfFile = dxfFileName.val
-		update_RegistryKey('dxfFileName', dxfFileName.val)
-		if dxfFile.lower().endswith('.dxf') and Blender.sys.exists(dxfFile):
-			analyzeDXF(dxfFile)
-		else:
-			Draw.PupMenu('DXF-Exporter:  Alert!%t|no valid DXF-file selected!')
-			print "DXF-Exporter: error, no valid DXF-file selected! try again"
-		Draw.Redraw()
 	elif (evt==EVENT_HELP):
 		try:
 			import webbrowser
@@ -2508,9 +2610,9 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 			if Draw.PupMenu('DXF-Exporter:  OK?|will write multiple DXF-files, one for each Scene, in:|%s' % dxfFile) == 1:
 				global UI_MODE
 				UI_MODE = False
-				#multi_import(dxfFile[:-5])  # cut last 5 characters '*.dxf'
+				#TODO: multi_export(dxfFile[:-5])  # cut last 5 characters '*.dxf'
 				Draw.Redraw()
-				#Draw.Exit()
+				UI_MODE = True
 			else:
 				Draw.Redraw()
 		elif dxfFile.lower()[-4:] in ('.dxf','.dwg'): # and Blender.sys.exists(dxfFile):
@@ -2534,7 +2636,7 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 
 
 
-def multi_import(DIR):
+def multi_export(DIR): #TODO:
 	"""Imports all DXF-files from directory DIR.
 	
 	"""
@@ -2556,7 +2658,7 @@ def multi_import(DIR):
 		if ONLYSELECTED:
 			_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
 			_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
-			_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+			_dxf_file = _dxf_file[:NAMELENGTH_MAX]  #? [-NAMELENGTH_MAX:])
 			SCENE = Blender.Scene.New(_dxf_file)
 			SCENE.makeCurrent()
 			#or so? Blender.Scene.makeCurrent(_dxf_file)
