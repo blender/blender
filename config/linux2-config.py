@@ -164,6 +164,12 @@ WITH_BF_COLLADA = True
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
+BF_OPENCOLLADA = ''
+BF_OPENCOLLADA_LIB = 'OpenCollada'
+BF_OPENCOLLADA_LIBPATH = '/usr/lib'
+BF_PCRE = ''
+BF_PCRE_LIB = 'pcre'
+BF_PCRE_LIBPATH = '/usr/lib'
 
 ##
 CC = 'gcc'

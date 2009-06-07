@@ -147,6 +147,11 @@ def setup_staticlibs(lenv):
 	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 		libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
+	if lenv['WITH_BF_COLLADA']:
+		libincs += Split(lenv['BF_OPENCOLLADA_LIBPATH'])
+		libincs += Split(lenv['BF_PCRE_LIBPATH'])
+
+
 	return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -190,6 +195,9 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
 	if lenv['WITH_BF_LCMS']:
 		syslibs.append(lenv['BF_LCMS_LIB'])
+	if lenv['WITH_BF_COLLADA']:
+		syslibs.append(lenv['BF_OPENCOLLADA_LIB'])
+		syslibs.append(lenv['BF_PCRE_LIB'])
 
 
 	syslibs += lenv['LLIBS']
