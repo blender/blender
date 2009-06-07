@@ -9001,7 +9001,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
                                        
 					multires_load_old(dm, me->mr);
 
-					*MultiresDM_get_flags(dm) |= MULTIRES_DM_UPDATE_ALWAYS;
+					MultiresDM_mark_as_modified(dm);
 					dm->release(dm);
 					orig->release(orig);
 
