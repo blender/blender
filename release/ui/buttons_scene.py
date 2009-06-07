@@ -44,28 +44,58 @@ class RENDER_PT_output(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(rd, "file_format", text="Format")
-		if rd.file_format in ("AVIJPEG", "JPEG"):
-			col.itemR(rd, "quality", slider=True)
-		
-		sub = split.column()
-		sub.itemR(rd, "color_mode")
-		sub.itemR(rd, "alpha_mode")
-		
-		split = layout.split()
-		
-		sub = split.column()
-		sub.itemR(rd, "file_extensions")
-		sub.itemL(text="Distributed Rendering:")
-		sub.itemR(rd, "placeholders")
-		sub.itemR(rd, "no_overwrite")
-		
-		col = split.column()
+		col.itemR(rd, "file_extensions")		
 		col.itemR(rd, "fields", text="Fields")
 		colsub = col.column()
 		colsub.active = rd.fields
 		colsub.itemR(rd, "fields_still", text="Still")
 		colsub.row().itemR(rd, "field_order", expand=True)
+		
+		col = split.column()
+		col.itemR(rd, "color_mode")
+		col.itemR(rd, "alpha_mode")
+		col.itemL(text="Distributed Rendering:")
+		col.itemR(rd, "placeholders")
+		col.itemR(rd, "no_overwrite")
+		
+		
+		layout.itemR(rd, "file_format", text="Format")
+		
+		split = layout.split()
+		
+		col = split.column()
+		
+		if rd.file_format in ("AVIJPEG", "JPEG"):
+			col.itemR(rd, "quality", slider=True)
+			
+		elif rd.file_format in ("OPENEXR"):
+			col.itemR(rd, "exr_codec")
+			col.itemR(rd, "exr_half")
+			col = split.column()
+			col.itemR(rd, "exr_zbuf")
+			col.itemR(rd, "exr_preview")
+		
+		elif rd.file_format in ("JPEG2000"):
+			row = layout.row()
+			row.itemR(rd, "jpeg_preset")
+			split = layout.split()
+			col = split.column()
+			col.itemL(text="Depth:")
+			col.row().itemR(rd, "jpeg_depth", expand=True)
+			col = split.column()
+			col.itemR(rd, "jpeg_ycc")
+			col.itemR(rd, "exr_preview")
+			
+		elif rd.file_format in ("CINEON", "DPX"):
+			col.itemR(rd, "cineon_log", text="Convert to Log")
+			colsub = col.column()
+			colsub.active = rd.cineon_log
+			colsub.itemR(rd, "cineon_black", text="Black")
+			colsub.itemR(rd, "cineon_white", text="White")
+			colsub.itemR(rd, "cineon_gamma", text="Gamma")
+			
+		elif rd.file_format in ("TIFF"):
+			col.itemR(rd, "tiff_bit")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"

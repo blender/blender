@@ -588,49 +588,59 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);
 	RNA_def_property_ui_text(prop, "Radius", "Mean red/green/blue scattering path length.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "sss_col");
 	RNA_def_property_ui_text(prop, "Color", "Scattering color.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "error_tolerance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_error");
 	RNA_def_property_ui_range(prop, 0.0001, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Error Tolerance", "Error tolerance (low values are slower and higher quality).");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_scale");
 	RNA_def_property_ui_range(prop, 0.001, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Scale", "Object scale factor.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_ior");
 	RNA_def_property_ui_range(prop, 0.1, 2, 1, 3);
 	RNA_def_property_ui_text(prop, "IOR", "Index of refraction (higher values are denser).");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_colfac");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Factor", "Blend factor for SSS colors.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "texture_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_texfac");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Texture Factor", "Texture scatting blend factor.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "front", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_front");
 	RNA_def_property_range(prop, 0, 2);
 	RNA_def_property_ui_text(prop, "Front", "Front scattering weight.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "back", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_back");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Back", "Back scattering weight.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sss_flag", MA_DIFF_SSS);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable diffuse subsurface scatting effects in a material.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
 void rna_def_material_specularity(StructRNA *srna)
