@@ -155,7 +155,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		split = uiLayoutSplit(layout);
+		split = uiLayoutSplit(layout, 0.5f);
 
 		name= (char*)RNA_property_ui_name(prop);
 

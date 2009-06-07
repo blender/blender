@@ -147,16 +147,15 @@ typedef struct uiLayoutItemFlow {
 	int totcol;
 } uiLayoutItemFlow;
 
-typedef struct uiLayoutItemSplt {
-	uiLayout litem;
-	int number;
-	int lr;
-} uiLayoutItemSplt;
-
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
 	uiBut *roundbox;
 } uiLayoutItemBx;
+
+typedef struct uiLayoutItemSplt {
+	uiLayout litem;
+	float percentage;
+} uiLayoutItemSplt;
 
 typedef struct uiLayoutItemRoot {
 	uiLayout litem;
@@ -1084,7 +1083,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 
 			x += neww;
 
-			if(neww < minw && w != 0) {
+			if((neww < minw || itemw == minw) && w != 0) {
 				/* fixed size */
 				item->flag= 1;
 				fixedw += minw;
@@ -1450,12 +1449,12 @@ static void ui_litem_estimate_split(uiLayout *litem)
 
 static void ui_litem_layout_split(uiLayout *litem)
 {
+	uiLayoutItemSplt *split= (uiLayoutItemSplt*)litem;
 	uiItem *item;
 	int itemh, x, y, w, tot=0, colw=0;
 
 	x= litem->x;
 	y= litem->y;
-	w= litem->w;
 
 	for(item=litem->items.first; item; item=item->next)
 		tot++;
@@ -1463,7 +1462,8 @@ static void ui_litem_layout_split(uiLayout *litem)
 	if(tot == 0)
 		return;
 	
-	colw= (litem->w - (tot-1)*litem->space)/tot;
+	w= (litem->w - (tot-1)*litem->space);
+	colw= w*split->percentage;
 	colw= MAX2(colw, 0);
 
 	for(item=litem->items.first; item; item=item->next) {
@@ -1472,8 +1472,12 @@ static void ui_litem_layout_split(uiLayout *litem)
 		ui_item_position(item, x, y-itemh, colw, itemh);
 		x += colw;
 
-		if(item->next)
+		if(item->next) {
+			colw= (w - (w*split->percentage))/(tot-1);
+			colw= MAX2(colw, 0);
+
 			x += litem->space;
+		}
 	}
 
 	litem->w= x - litem->x;
@@ -1589,18 +1593,23 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout)
 	return block;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout)
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
 {
-	uiLayout *litem;
+	uiLayoutItemSplt *split;
 
-	litem= uiLayoutRow(layout, 0);
-	litem->item.type = ITEM_LAYOUT_SPLIT;
-	litem->root= layout->root;
-	litem->space= layout->root->style->columnspace;
+	split= MEM_callocN(sizeof(uiLayoutItemSplt), "uiLayoutItemSplt");
+	split->litem.item.type= ITEM_LAYOUT_SPLIT;
+	split->litem.root= layout->root;
+	split->litem.active= 1;
+	split->litem.enabled= 1;
+	split->litem.context= layout->context;
+	split->litem.space= layout->root->style->columnspace;
+	split->percentage= (percentage == 0.0f)? 0.5f: percentage;
+	BLI_addtail(&layout->items, split);
 
-	uiBlockSetCurLayout(layout->root->block, litem);
+	uiBlockSetCurLayout(layout->root->block, &split->litem);
 
-	return litem;
+	return &split->litem;
 }
 
 void uiLayoutSetActive(uiLayout *layout, int active)

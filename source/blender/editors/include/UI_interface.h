@@ -594,13 +594,13 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
-uiLayout *uiLayoutSplit(uiLayout *layout);
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
 uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
-void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
+void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);

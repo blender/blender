@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -59,7 +60,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C)
 
 /******************* Header ID Template ************************/
 
-typedef struct TemplateHeaderID {
+typedef struct TemplateID {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -69,14 +70,16 @@ typedef struct TemplateHeaderID {
 	char newop[256];
 	char openop[256];
 	char unlinkop[256];
-} TemplateHeaderID;
+	
+	short idtype;
+} TemplateID;
 
-static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
+static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
-	TemplateHeaderID *template= (TemplateHeaderID*)arg_litem;
+	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
 	ID *idtest, *id= idptr.data;
-	ListBase *lb= wich_libbase(CTX_data_main(C), ID_TXT);
+	ListBase *lb= wich_libbase(CTX_data_main(C), template->idtype);
 	int nr, event= GET_INT_FROM_POINTER(arg_event);
 	
 	if(event == UI_ID_BROWSE && template->browse == 32767)
@@ -110,9 +113,10 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			break;
 		}
-#if 0
 		case UI_ID_DELETE:
-			id= NULL;
+			memset(&idptr, 0, sizeof(idptr));
+			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+			RNA_property_update(C, &template->ptr, template->prop);
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
@@ -121,7 +125,6 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			else return;
 			break;
-#endif
 		case UI_ID_PIN:
 			break;
 		case UI_ID_ADD_NEW:
@@ -145,22 +148,26 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_header_ID(bContext *C, uiBlock *block, TemplateHeaderID *template)
+static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type)
 {
 	uiBut *but;
-	TemplateHeaderID *duptemplate;
+	TemplateID *duptemplate;
 	PointerRNA idptr;
 	ListBase *lb;
-	int x= 0, y= 0;
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	lb= wich_libbase(CTX_data_main(C), ID_TXT);
+	lb= wich_libbase(CTX_data_main(C), template->idtype);
+
+	if(idptr.type)
+		type= idptr.type;
+	if(type)
+		uiDefIconBut(block, LABEL, 0, RNA_struct_ui_icon(type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	if(template->flag & UI_ID_BROWSE) {
 		char *extrastr, *str;
 		
-		if((template->flag & UI_ID_ADD_NEW) && (template->flag && UI_ID_OPEN))
+		if((template->flag & UI_ID_ADD_NEW) && (template->flag & UI_ID_OPEN))
 			extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if(template->flag & UI_ID_ADD_NEW)
 			extrastr= "ADD NEW %x 32767";
@@ -172,9 +179,8 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateHeaderID *te
 		duptemplate= MEM_dupallocN(template);
 		IDnames_to_pupstring(&str, NULL, extrastr, lb, idptr.data, &duptemplate->browse);
 
-		but= uiDefButS(block, MENU, 0, str, x, y, UI_UNIT_X, UI_UNIT_Y, &duptemplate->browse, 0, 0, 0, 0, "Browse existing choices, or add new");
-		uiButSetNFunc(but, template_header_id_cb, duptemplate, SET_INT_IN_POINTER(UI_ID_BROWSE));
-		x+= UI_UNIT_X;
+		but= uiDefButS(block, MENU, 0, str, 0, 0, UI_UNIT_X, UI_UNIT_Y, &duptemplate->browse, 0, 0, 0, 0, "Browse existing choices, or add new");
+		uiButSetNFunc(but, template_id_cb, duptemplate, SET_INT_IN_POINTER(UI_ID_BROWSE));
 	
 		MEM_freeN(str);
 	}
@@ -183,40 +189,46 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateHeaderID *te
 	if(idptr.data) {
 		char name[64];
 
-		text_idbutton(idptr.data, name);
-		but= uiDefButR(block, TEX, 0, name, x, y, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
-		uiButSetNFunc(but, template_header_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
-		x += UI_UNIT_X*6;
+		//text_idbutton(idptr.data, name);
+		name[0]= '\0';
+		but= uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
+		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
 
 		/* delete button */
 		if(template->flag & UI_ID_DELETE) {
-			but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, x, y, UI_UNIT_X, UI_UNIT_Y, NULL);
-			x += UI_UNIT_X;
+			if(template->unlinkop[0]) {
+				but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			}
+			else {
+				but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+				uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+			}
 		}
 	}
 	uiBlockEndAlign(block);
 }
 
-void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
 {
-	TemplateHeaderID *template;
+	TemplateID *template;
 	uiBlock *block;
 	PropertyRNA *prop;
+	StructRNA *type;
 
 	if(!ptr->data)
 		return;
 
 	prop= RNA_struct_find_property(ptr, propname);
 
-	if(!prop) {
-		printf("uiTemplateHeaderID: property not found: %s\n", propname);
+	if(!prop || RNA_property_type(prop) != PROP_POINTER) {
+		printf("uiTemplateID: pointer property not found: %s\n", propname);
 		return;
 	}
 
-	template= MEM_callocN(sizeof(TemplateHeaderID), "TemplateHeaderID");
+	template= MEM_callocN(sizeof(TemplateID), "TemplateID");
 	template->ptr= *ptr;
 	template->prop= prop;
-	template->flag= UI_ID_BROWSE|UI_ID_RENAME;
+	template->flag= UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE;
 
 	if(newop) {
 		template->flag |= UI_ID_ADD_NEW;
@@ -226,13 +238,17 @@ void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		template->flag |= UI_ID_OPEN;
 		BLI_strncpy(template->openop, openop, sizeof(template->openop));
 	}
-	if(unlinkop) {
-		template->flag |= UI_ID_DELETE;
+	if(unlinkop)
 		BLI_strncpy(template->unlinkop, unlinkop, sizeof(template->unlinkop));
-	}
 
-	block= uiLayoutFreeBlock(layout);
-	template_header_ID(C, block, template);
+	type= RNA_property_pointer_type(ptr, prop);
+	template->idtype = RNA_type_to_ID_code(type);
+
+	if(template->idtype) {
+		uiLayoutRow(layout, 1);
+		block= uiLayoutGetBlock(layout);
+		template_header_ID(C, block, template, type);
+	}
 
 	MEM_freeN(template);
 }
@@ -1311,19 +1327,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 	
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
-	if(GS(id->name) == ID_MA) {
-		ma= (Material*)id;
+	if(id) {
+		if(GS(id->name) == ID_MA) {
+			ma= (Material*)id;
 
-		uiLayoutColumn(row, 1);
+			uiLayoutColumn(row, 1);
 
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+		}
 	}
-
 }
 
 /********************** ColorRamp Template **************************/
