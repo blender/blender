@@ -44,6 +44,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
@@ -634,6 +635,7 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 	char name[32];
 	
 	sprintf(name, "Preview %p", sa);
+	BLI_lock_malloc_thread();
 	RE_GetResultImage(RE_GetRender(name), &rres);
 
 	if(rres.rectf) {
@@ -648,7 +650,8 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
-	
+	BLI_unlock_malloc_thread();
+
 	/* check for spacetype... */
 	if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
 		sbuts->preview= 0;
