@@ -48,6 +48,13 @@
 /* channel toggle-buttons */
 #define NLACHANNEL_BUTTON_WIDTH	16
 
+/* **************************************** */
+/* space_nla.c / nla_buttons.c */
+
+ARegion *nla_has_buttons_region(ScrArea *sa);
+
+void nla_buttons_register(ARegionType *art);
+void NLAEDIT_OT_properties(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_draw.c */

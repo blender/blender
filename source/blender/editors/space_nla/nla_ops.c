@@ -115,6 +115,9 @@ int nlaop_poll_tweakmode_on (bContext *C)
 
 void nla_operatortypes(void)
 {
+	/* view */
+	WM_operatortype_append(NLAEDIT_OT_properties);
+	
 	/* channels */
 	WM_operatortype_append(NLA_OT_channels_click);
 	WM_operatortype_append(NLA_OT_channels_select_border);
@@ -196,6 +199,10 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 void nla_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap;
+	
+	/* keymap for all regions */
+	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	/* channels */
 	/* Channels are not directly handled by the NLA Editor module, but are inherited from the Animation module. 

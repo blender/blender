@@ -66,6 +66,39 @@
 
 #include "nla_intern.h"	// own include
 
+/* ******************** manage regions ********************* */
+
+ARegion *nla_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
+		if (ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	}
+	
+	/* add subdiv level; after main */
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
+		if (ar->regiontype==RGN_TYPE_WINDOW)
+			break;
+	}
+	
+	/* is error! */
+	if (ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for nla");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_RIGHT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
+
+
 /* ******************** default callbacks for nla space ***************** */
 
 static SpaceLink *nla_new(const bContext *C)
@@ -130,6 +163,14 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.align= V2D_ALIGN_NO_NEG_Y;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
+	/* ui buttons */
+	ar= MEM_callocN(sizeof(ARegion), "buttons area for nla");
+	
+	BLI_addtail(&snla->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_RIGHT;
+	ar->flag = RGN_FLAG_HIDDEN;
+	
 	return (SpaceLink *)snla;
 }
 
@@ -178,6 +219,8 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	// TODO: cannot use generic copy, need special NLA version
 	keymap= WM_keymap_listbase(wm, "NLA Channels", SPACE_NLA, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 /* draw entirely, view changes should be handled here */
@@ -221,6 +264,8 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "NLA Data", SPACE_NLA, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void nla_main_area_draw(const bContext *C, ARegion *ar)
@@ -308,6 +353,52 @@ static void nla_header_area_draw(const bContext *C, ARegion *ar)
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	ED_region_panels_init(wm, ar);
+	
+	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void nla_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL);
+}
+
+static void nla_region_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+				case ND_FRAME:
+				case ND_MARKERS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_KEYS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		default:
+			if(wmn->data==ND_KEYS)
+				ED_region_tag_redraw(ar);
+				
+	}
+}
+
 
 static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -438,6 +529,19 @@ void ED_spacetype_nla(void)
 	art->listener= nla_channel_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: UI buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype nla region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= 200;
+	art->keymapflag= ED_KEYMAP_UI;
+	art->listener= nla_region_listener;
+	art->init= nla_buttons_area_init;
+	art->draw= nla_buttons_area_draw;
+	
+	BLI_addhead(&st->regiontypes, art);
+
+	nla_buttons_register(art);
 	
 	
 	BKE_spacetype_register(st);
