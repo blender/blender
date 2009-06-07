@@ -1294,8 +1294,8 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 	uiBlock *block;
 	Material *ma;
 
-	if(!id || !ELEM3(GS(id->name), ID_MA, ID_TE, ID_WO)) {
-		printf("uiTemplatePreview: expected ID of type material, texture or world.\n");
+	if(!id || !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
+		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
