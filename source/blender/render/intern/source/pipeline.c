@@ -1121,8 +1121,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		make_sample_tables(re);	
 		
 		/* if preview render, we try to keep old result */
-		if(re->result && (re->r.scemode & R_NODE_PREVIEW) && 
-		   re->result->rectx==re->rectx && re->result->recty==re->recty);
+		if(re->r.scemode & R_PREVIEWBUTS) {
+			if(re->result && re->result->rectx==re->rectx && re->result->recty==re->recty);
+			else {
+				RE_FreeRenderResult(re->result);
+				re->result= NULL;
+			}
+		}
 		else {
 			
 			/* make empty render result, so display callbacks can initialize */
@@ -1288,8 +1293,11 @@ static void *do_part_thread(void *pa_v)
 				save_render_result_tile(rr, rrpart);
 			
 		}
-		else if(render_display_draw_enabled(&R))
-			merge_render_result(R.result, pa->result);
+		else if(render_display_draw_enabled(&R)) {
+			/* on break, don't merge in result for preview renders, looks nicer */
+			if(R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS));
+			else merge_render_result(R.result, pa->result);
+		}
 	}
 	
 	pa->ready= 1;
@@ -1483,14 +1491,16 @@ static void threaded_tile_processor(Render *re)
 	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
-	RE_FreeRenderResult(re->result);
+	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
 	
-	if(re->sss_points)
-		re->result= new_render_result(re, &re->disprect, 0, 0);
-	else if(re->r.scemode & R_FULL_SAMPLE)
-		re->result= new_full_sample_buffers_exr(re);
-	else
-		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+		if(re->sss_points)
+			re->result= new_render_result(re, &re->disprect, 0, 0);
+		else if(re->r.scemode & R_FULL_SAMPLE)
+			re->result= new_full_sample_buffers_exr(re);
+		else
+			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+	}
 	
 	if(re->result==NULL)
 		return;
