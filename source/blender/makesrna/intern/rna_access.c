@@ -417,7 +417,7 @@ PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 
 	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
 		/* This assumes that there can only be one user of this nested struct */
-		if (RNA_property_pointer_type(iter.ptr.data) == srna) {
+		if (RNA_property_pointer_type(ptr, iter.ptr.data) == srna) {
 			prop= iter.ptr.data;
 			break;
 		}
@@ -595,14 +595,16 @@ int RNA_property_string_maxlength(PropertyRNA *prop)
 	return sprop->maxlength;
 }
 
-StructRNA *RNA_property_pointer_type(PropertyRNA *prop)
+StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 {
 	prop= rna_ensure_property(prop);
 
 	if(prop->type == PROP_POINTER) {
 		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
-		if(pprop->type)
+		if(pprop->typef)
+			return pprop->typef(ptr);
+		else if(pprop->type)
 			return pprop->type;
 	}
 	else if(prop->type == PROP_COLLECTION) {
@@ -2670,7 +2672,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 				return -1;
 			}
 
-			ptype= RNA_property_pointer_type(prop);
+			ptype= RNA_property_pointer_type(ptr, prop);
 
 			if(ptype == &RNA_AnyType) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);

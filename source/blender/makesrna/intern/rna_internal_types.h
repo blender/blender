@@ -69,6 +69,7 @@ typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
 typedef EnumPropertyItem *(*PropEnumItemFunc)(struct PointerRNA *ptr);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
+typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
 typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
@@ -227,6 +228,7 @@ typedef struct PointerPropertyRNA {
 
 	PropPointerGetFunc get;
 	PropPointerSetFunc set;
+	PropPointerTypeFunc typef;
 
 	struct StructRNA *type;
 } PointerPropertyRNA;

@@ -116,7 +116,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)
-				pptr.type= RNA_property_pointer_type(prop);
+				pptr.type= RNA_property_pointer_type(ptr, prop);
 			icon= RNA_struct_ui_icon(pptr.type);
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);

@@ -771,7 +771,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 

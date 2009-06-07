@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -132,6 +133,16 @@ void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 
 	st->text= value.data;
 	st->top= 0;
+}
+
+StructRNA *rna_SpaceButtonsWindow_pin_id_typef(PointerRNA *ptr)
+{
+	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+
+	if(sbuts->pinid)
+		return ID_code_to_RNA_type(GS(sbuts->pinid->name));
+
+	return &RNA_ID;
 }
 
 #else
@@ -510,6 +521,13 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "align");
 	RNA_def_property_enum_items(prop, panel_alignment_items);
 	RNA_def_property_ui_text(prop, "Panel Alignment", "Arrangement of the panels within the buttons window");
+
+	/* pinned data */
+	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_SpaceButtonsWindow_pin_id_typef");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_space_image(BlenderRNA *brna)
@@ -558,7 +576,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* uv */
 	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceImage_uvedit_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceImage_uvedit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings.");
 	
 	/* paint */
@@ -603,7 +621,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set", NULL);
 	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
 
 	/* display */

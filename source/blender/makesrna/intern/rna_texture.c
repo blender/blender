@@ -77,48 +77,24 @@ StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
-static int rna_texture_slot_index(PointerRNA *ptr)
-{
-	ID *id= ptr->id.data;
-	MTex **mtex;
-	int a;
-
-	if(id) {
-		switch(GS(id->name)) {
-			case ID_MA: mtex= ((Material*)id)->mtex; break;
-			case ID_WO: mtex= ((World*)id)->mtex; break;
-			case ID_LA: mtex= ((Lamp*)id)->mtex; break;
-			case ID_BR: mtex= ((Brush*)id)->mtex; break;
-			default: return 0;
-		}
-
-		for(a=0; a<MAX_MTEX; a++)
-			if(mtex[a] == ptr->data)
-				return a;
-	}
-
-	return 0;
-}
-
 static int rna_TextureSlot_name_length(PointerRNA *ptr)
 {
 	MTex *mtex= ptr->data;
 
 	if(mtex->tex)
-		return strlen(mtex->tex->id.name+2) + 10;
+		return strlen(mtex->tex->id.name+2);
 	
-	return 10;
+	return 0;
 }
 
 static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 {
 	MTex *mtex= ptr->data;
-	int index= rna_texture_slot_index(ptr);
-
-	sprintf(str, "%d: ", index+1);
 
 	if(mtex->tex)
-		strcat(str, mtex->tex->id.name+2);
+		strcpy(str, mtex->tex->id.name+2);
+	else
+		strcpy(str, "");
 }
 
 #else

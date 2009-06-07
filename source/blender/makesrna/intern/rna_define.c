@@ -621,7 +621,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Struct");
-			RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL);
+			RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL, NULL);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -1744,7 +1744,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 	}
 }
 
-void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set, const char *typef)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1759,6 +1759,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 
 			if(get) pprop->get= (PropPointerGetFunc)get;
 			if(set) pprop->set= (PropPointerSetFunc)set;
+			if(typef) pprop->typef= (PropPointerTypeFunc)typef;
 			break;
 		}
 		default:

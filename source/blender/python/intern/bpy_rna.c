@@ -470,9 +470,9 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_POINTER:
 		{
-			StructRNA *ptype= RNA_property_pointer_type(prop);
+			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 
-			if(!BPy_StructRNA_Check(value)) {
+			if(!BPy_StructRNA_Check(value) && value != Py_None) {
 				PointerRNA tmp;
 				RNA_pointer_create(NULL, ptype, NULL, &tmp);
 				PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(tmp.type));
@@ -482,19 +482,32 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				int raise_error= 0;
 				if(data) {
 					if(ptype == &RNA_AnyType) {
-						*((PointerRNA*)data)= param->ptr;
+						if(value == Py_None)
+							memset(data, 0, sizeof(PointerRNA));
+						else
+							*((PointerRNA*)data)= param->ptr;
+					}
+					else if(value == Py_None) {
+						*((void**)data)= NULL;
 					}
 					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
 						*((void**)data)= param->ptr.data;
-					} else {
+					}
+					else {
 						raise_error= 1;
 					}
 				}
 				else {
 					/* data==NULL, assign to RNA */
-					if(RNA_struct_is_a(param->ptr.type, ptype)) {
+					if(value == Py_None) {
+						PointerRNA valueptr;
+						memset(&valueptr, 0, sizeof(valueptr));
+						RNA_property_pointer_set(ptr, prop, valueptr);
+					}
+					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
 						RNA_property_pointer_set(ptr, prop, param->ptr);
-					} else {
+					}
+					else {
 						PointerRNA tmp;
 						RNA_pointer_create(NULL, ptype, NULL, &tmp);
 						PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(tmp.type));
@@ -1162,7 +1175,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		case PROP_POINTER:
 		{
 			PointerRNA newptr;
-			StructRNA *type= RNA_property_pointer_type(prop);
+			StructRNA *type= RNA_property_pointer_type(ptr, prop);
 
 			if(type == &RNA_AnyType) {
 				/* in this case we get the full ptr */
