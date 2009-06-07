@@ -283,6 +283,12 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_WORLD:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
+		case NC_LAMP:
+			ED_area_tag_redraw(sa);
+			sbuts->preview= 1;
+		case NC_TEXTURE:
+			ED_area_tag_redraw(sa);
+			sbuts->preview= 1;
 	}
 }
 
