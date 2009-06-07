@@ -124,12 +124,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "itemO", "uiItemO");
 	api_ui_item_op_common(func);
 
-	/*func= RNA_def_function(srna, "item_enumO", "uiItemEnumO");
+	func= RNA_def_function(srna, "item_enumO", "uiItemEnumO_string");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);*/
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "items_enumO", "uiItemsEnumO");
 	parm= RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator.");

@@ -611,6 +611,7 @@ void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int ty
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
 void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
+void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname);
 void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);

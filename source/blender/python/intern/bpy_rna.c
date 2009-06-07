@@ -2059,9 +2059,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	item= PyObject_GetAttrString(py_class, "__rna__");
 
 	if(!item || !BPy_StructRNA_Check(item)) {
-		if(item) {
-			Py_DECREF(item);
-		}
+		Py_XDECREF(item);
 		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no __rna__ property).");
 		return NULL;
 	}
