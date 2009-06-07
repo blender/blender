@@ -296,26 +296,31 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable starfield generation.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starsize");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Size", "Average screen dimension of stars.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starmindist");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance to the camera for stars.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "average_separation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "stardist");
 	RNA_def_property_range(prop, 2, 1000);
 	RNA_def_property_ui_text(prop, "Average Separation", "Average distance between any two stars.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "color_randomization", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomizes star color.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 	
 	/* unused
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
@@ -383,6 +388,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "paper_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYPAPER);
 	RNA_def_property_ui_text(prop, "Paper Sky", "Flattens blend or texture coordinates.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "real_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
