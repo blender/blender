@@ -184,7 +184,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	/* NLA */
 	prop= RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nla_tracks", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType"); // XXX!
+	RNA_def_property_struct_type(prop, "NlaTrack");
 	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers).");
 	
 	/* Action */

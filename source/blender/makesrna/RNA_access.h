@@ -189,6 +189,8 @@ extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_MusgraveTexture;
 extern StructRNA RNA_NandController;
 extern StructRNA RNA_NearSensor;
+extern StructRNA RNA_NlaTrack;
+extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;

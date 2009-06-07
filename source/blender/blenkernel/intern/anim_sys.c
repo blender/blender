@@ -657,16 +657,13 @@ void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 	
 	/* now strip's evaluate F-Curves for these settings (if applicable) */
 	if (strip->fcurves.first) {
-#if 0
 		PointerRNA strip_ptr;
-		FCurve *fcu;
 		
 		/* create RNA-pointer needed to set values */
 		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 		
 		/* execute these settings as per normal */
-		animsys_evaluate_fcurves(&actstrip_ptr, &strip->fcurves, NULL, ctime);
-#endif
+		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
 	}
 }
 
