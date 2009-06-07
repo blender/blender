@@ -209,9 +209,11 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(rd, "render_stamp")
-		sub.itemR(rd, "stamp_foreground")
-		sub.itemR(rd, "stamp_background")
-		sub.itemR(rd, "stamp_font_size", text="Font Size")
+		colsub = sub.column()
+		colsub.active = rd.render_stamp
+		colsub.itemR(rd, "stamp_foreground")
+		colsub.itemR(rd, "stamp_background")
+		colsub.itemR(rd, "stamp_font_size", text="Font Size")
 
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_dimensions)
