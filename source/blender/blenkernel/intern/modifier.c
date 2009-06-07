@@ -7867,6 +7867,8 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 		}
 		CDDM_calc_normals(final);
 
+		MultiresDM_mark_as_modified(final);
+
 		MEM_freeN(mmd->undo_verts);
 		mmd->undo_signal = 0;
 		mmd->undo_verts = NULL;
