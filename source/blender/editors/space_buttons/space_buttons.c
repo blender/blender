@@ -240,15 +240,21 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* reused! */
-static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceButs *sbuts= sa->spacedata.first;
+
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+					ED_area_tag_redraw(sa);
+					break;
+					
 				case ND_OB_ACTIVE:
-					ED_region_tag_redraw(ar);
+					ED_area_tag_redraw(sa);
+					sbuts->preview= 1;
 					break;
 			}
 			break;
@@ -258,10 +264,25 @@ static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_GEOM_SELECT:
-					ED_region_tag_redraw(ar);
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
+		case NC_MATERIAL:
+			ED_area_tag_redraw(sa);
+			
+			switch(wmn->data) {
+				case ND_SHADING:
+				case ND_SHADING_DRAW:
+					/* currently works by redraws... if preview is set, it (re)starts job */
+					sbuts->preview= 1;
+					printf("shader notifier \n");
+					break;
+			}					
+			break;
+		case NC_WORLD:
+			ED_area_tag_redraw(sa);
+			sbuts->preview= 1;
 	}
 }
 
@@ -279,6 +300,7 @@ void ED_spacetype_buttons(void)
 	st->duplicate= buttons_duplicate;
 	st->operatortypes= buttons_operatortypes;
 	st->keymap= buttons_keymap;
+	st->listener= buttons_area_listener;
 	st->context= buttons_context;
 	
 	/* regions: main window */
@@ -286,7 +308,6 @@ void ED_spacetype_buttons(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
-	art->listener= buttons_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	BLI_addhead(&st->regiontypes, art);
 
@@ -300,7 +321,6 @@ void ED_spacetype_buttons(void)
 	
 	art->init= buttons_header_area_init;
 	art->draw= buttons_header_area_draw;
-	art->listener= buttons_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */

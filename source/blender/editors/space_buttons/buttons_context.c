@@ -389,7 +389,7 @@ static PointerRNA *get_pointer_type(ButsContextPath *path, StructRNA *type)
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	ButsContextPath *path= sbuts->path;
+	ButsContextPath *path= sbuts?sbuts->path:NULL;
 
 	if(!path)
 		return 0;

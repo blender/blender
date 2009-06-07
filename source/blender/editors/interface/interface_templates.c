@@ -33,6 +33,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
+#include "ED_previewrender.h"
 
 #include "RNA_access.h"
 
@@ -1277,6 +1278,16 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 
 #define B_MATPRV 1
 
+
+static void do_preview_buttons(bContext *C, void *arg, int event)
+{
+	switch(event) {
+		case B_MATPRV:
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, arg);
+			break;
+	}
+}
+
 void uiTemplatePreview(uiLayout *layout, ID *id)
 {
 	uiLayout *row, *col;
@@ -1294,8 +1305,12 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 
 	col= uiLayoutColumn(row, 0);
 	uiLayoutSetKeepAspect(col, 1);
-	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, NULL, 0.0, 0.0, 0, 0, "");
-
+	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
+	/* extra draw is tied to roundbox for now */
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw);
+	
+	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
+	
 	if(GS(id->name) == ID_MA) {
 		ma= (Material*)id;
 

@@ -255,7 +255,7 @@ struct uiBlock {
 	void *handle_func_arg;
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)();
+	void (*drawextra)(const struct bContext *C, void *idv, rcti *rect);
 
 	int afterval, flag;
 	

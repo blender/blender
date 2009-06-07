@@ -75,5 +75,6 @@ void ED_preview_free_dbase(void);
 
 void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, int sizex, int sizey);
 
+void ED_preview_draw(const struct bContext *C, void *idp, rcti *rect);
 
 #endif

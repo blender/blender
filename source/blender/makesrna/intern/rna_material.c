@@ -744,6 +744,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "amb");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Ambient", "Amount of global ambient color the material receives.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "emit", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 2);
@@ -752,6 +753,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "translucency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Translucency", "Amount of diffuse shading on the back side.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 		
 	prop= RNA_def_property(srna, "cubic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_CUBIC);
@@ -775,12 +777,14 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
 	RNA_def_property_range(prop, 0.001, 1);
 	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, only in use for Irregular Shadowbuffer.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "light_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Light Group", "Limit lighting to lamps in this Group.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	/* flags */
 	

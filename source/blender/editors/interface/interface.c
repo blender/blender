@@ -662,12 +662,16 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	else if(block->panel)
 		ui_draw_aligned_panel(ar, &style, block, &rect);
 
-	if(block->drawextra) block->drawextra(C, block);
-
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
 		ui_draw_but(ar, &style, but, &rect);
+		
+		/* temp? roundbox defines size/location of preview, and ID type */
+		if(but->type==ROUNDBOX)
+			if(block->drawextra) 
+				block->drawextra(C, but->poin, &rect);
+		
 	}
 	
 	/* restore matrix */
@@ -2968,7 +2972,7 @@ void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1
 	
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, rcti *rect))
 {
 	block->drawextra= func;
 }

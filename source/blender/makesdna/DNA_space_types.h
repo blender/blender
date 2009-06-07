@@ -121,7 +121,7 @@ typedef struct SpaceButs {
 	struct RenderInfo *ri;
 
 	short cursens, curact;
-	short align, pad;		/* align for panels */
+	short align, preview;		/* align for panels, preview is signal to refresh */
 	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */

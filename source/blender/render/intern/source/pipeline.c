@@ -1120,11 +1120,17 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
-		/* make empty render result, so display callbacks can initialize */
-		RE_FreeRenderResult(re->result);
-		re->result= MEM_callocN(sizeof(RenderResult), "new render result");
-		re->result->rectx= re->rectx;
-		re->result->recty= re->recty;
+		/* if preview render, we try to keep old result */
+		if(re->result && (re->r.scemode & R_NODE_PREVIEW) && 
+		   re->result->rectx==re->rectx && re->result->recty==re->recty);
+		else {
+			
+			/* make empty render result, so display callbacks can initialize */
+			RE_FreeRenderResult(re->result);
+			re->result= MEM_callocN(sizeof(RenderResult), "new render result");
+			re->result->rectx= re->rectx;
+			re->result->recty= re->recty;
+		}
 		
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);

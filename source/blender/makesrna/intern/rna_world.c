@@ -34,6 +34,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static PointerRNA rna_World_ambient_occlusion_get(PointerRNA *ptr)
@@ -348,11 +350,13 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "horr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon.");
-
+	RNA_def_property_update(prop, NC_WORLD, NULL);
+	
 	prop= RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "zenr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Zenith Color", "Color at the zenith.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
@@ -374,6 +378,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYBLEND);
 	RNA_def_property_ui_text(prop, "Blend Sky", "Renders background with natural progression from horizon to zenith.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	prop= RNA_def_property(srna, "paper_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYPAPER);
@@ -382,6 +387,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "real_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Renders background with a real horizon.");
+	RNA_def_property_update(prop, NC_WORLD, NULL);
 
 	/* physics */
 	prop= RNA_def_property(srna, "physics_engine", PROP_ENUM, PROP_NONE);
