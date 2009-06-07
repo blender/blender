@@ -79,6 +79,9 @@ static SpaceLink *nla_new(const bContext *C)
 	/* allocate DopeSheet data for NLA Editor */
 	snla->ads= MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
 	
+	/* set auto-snapping settings */
+	snla->autosnap = SACTSNAP_FRAME;
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for nla");
 	

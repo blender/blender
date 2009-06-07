@@ -730,6 +730,16 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	 */
 	if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED)) 
 		return;
+		
+	/* if ctime was not within the boundaries of the strip, clamp! */
+	switch (side) {
+		case NES_TIME_BEFORE: /* extend first frame only */
+			ctime= estrip->start;
+			break;
+		case NES_TIME_AFTER: /* extend last frame only */
+			ctime= estrip->end;
+			break;
+	}
 	
 	/* evaluate strip's evaluation controls  
 	 * 	- skip if no influence (i.e. same effect as muting the strip)
