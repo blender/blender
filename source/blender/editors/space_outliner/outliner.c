@@ -949,7 +949,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		
 		/* NLA Data */
 		if (adt->nla_tracks.first) {
-#if 0
 			TreeElement *tenla= outliner_add_element(soops, &te->subtree, adt, te, TSE_NLA, 0);
 			NlaTrack *nlt;
 			int a= 0;
@@ -957,17 +956,18 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			tenla->name= "NLA Tracks";
 			
 			for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-				TreeElement *tenlt= outliner_add_element(soops, &te->subtree, nlt, te, TSE_NLA_TRACK, a);
-				bActionStrip *strip;
+				TreeElement *tenlt= outliner_add_element(soops, &tenla->subtree, nlt, tenla, TSE_NLA_TRACK, a);
+				NlaStrip *strip;
 				TreeElement *ten;
 				int b= 0;
 				
-				for (strip=nlt->strips.first; strip; strip=strip->next, a++) {
-					ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
+				tenlt->name= nlt->name;
+				
+				for (strip=nlt->strips.first; strip; strip=strip->next, b++) {
+					ten= outliner_add_element(soops, &tenlt->subtree, strip->act, tenlt, TSE_NLA_ACTION, b);
 					if(ten) ten->directdata= strip;
 				}
 			}
-#endif
 		}
 	}
 	else if(type==TSE_SEQUENCE) {
@@ -3521,6 +3521,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
 				UI_icon_draw(x, y, ICON_NLA); break;
+			case TSE_NLA_TRACK:
+				UI_icon_draw(x, y, ICON_NLA); break; // XXX
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:

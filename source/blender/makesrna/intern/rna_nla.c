@@ -155,7 +155,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* struct definition */
 	srna= RNA_def_struct(brna, "NlaStrip", NULL);
 	RNA_def_struct_ui_text(srna, "NLA Strip", "A container referencing an existing Action.");
-	//RNA_def_struct_ui_icon(srna, ICON_ACTION);
+	RNA_def_struct_ui_icon(srna, ICON_NLA); // XXX
 	
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -281,7 +281,7 @@ void rna_def_nlatrack(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "NlaTrack", NULL);
 	RNA_def_struct_ui_text(srna, "NLA Track", "A animation layer containing Actions referenced as NLA strips.");
-	//RNA_def_struct_ui_icon(srna, ICON_ACTION);
+	RNA_def_struct_ui_icon(srna, ICON_NLA);
 	
 	/* strips collection */
 	prop= RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
