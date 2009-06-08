@@ -169,8 +169,6 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	if(sbuts->pathflag & (1<<BCONTEXT_WORLD))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
-	if(sbuts->pathflag & (1<<BCONTEXT_SEQUENCER))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SEQUENCE,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SEQUENCER, 0, 0, "Sequencer");
 	if(sbuts->pathflag & (1<<BCONTEXT_OBJECT))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
 	if(sbuts->pathflag & (1<<BCONTEXT_CONSTRAINT))

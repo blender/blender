@@ -251,7 +251,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
 		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
 		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_ACROSS", "Gamma Cross", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
 		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
 		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
 		{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 

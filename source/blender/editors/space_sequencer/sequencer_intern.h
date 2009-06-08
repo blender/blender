@@ -46,7 +46,7 @@ struct Scene;
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_header.c */
-void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
+// void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
 void drawseqspace(const struct bContext *C, struct ARegion *ar);

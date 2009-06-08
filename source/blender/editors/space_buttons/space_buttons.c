@@ -185,8 +185,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, vertical, "scene");
 	else if(sbuts->mainb == BCONTEXT_WORLD)
 		ED_region_panels(C, ar, vertical, "world");
-	else if(sbuts->mainb == BCONTEXT_SEQUENCER)
-		ED_region_panels(C, ar, vertical, "sequencer");
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
 		ED_region_panels(C, ar, vertical, "object");
 	else if(sbuts->mainb == BCONTEXT_DATA)

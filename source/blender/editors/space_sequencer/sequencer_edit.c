@@ -112,7 +112,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", "Alpha Under effect strip type"},
 	{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", "Gamma Cross effect strip type"},
 	{SEQ_MUL, "MULTIPLY", "Multiply", "Multiply effect strip type"},
-	{SEQ_OVERDROP, "ALPHA_OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+	{SEQ_OVERDROP, "OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
 	{SEQ_PLUGIN, "PLUGIN", "Plugin", "Plugin effect strip type"},
 	{SEQ_WIPE, "WIPE", "Wipe", "Wipe effect strip type"},
 	{SEQ_GLOW, "GLOW", "Glow", "Glow effect strip type"},

@@ -198,29 +198,12 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void sequencer_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	sequencer_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -298,7 +281,9 @@ void ED_spacetype_sequencer(void)
 	art->draw= sequencer_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* Keep as python only for now
 	sequencer_buttons_register(art);
+	*/
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
@@ -310,7 +295,6 @@ void ED_spacetype_sequencer(void)
 	art->draw= sequencer_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
-	
 	
 	BKE_spacetype_register(st);
 }
