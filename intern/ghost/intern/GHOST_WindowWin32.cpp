@@ -127,8 +127,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			s_windowClassName,			// pointer to registered class name
 			title,						// pointer to window name
 			WS_OVERLAPPEDWINDOW,		// window style
-			rect.left,						// horizontal position of window
- 			rect.top,						// vertical position of window
+			rect.left,					// horizontal position of window
+			rect.top,					// vertical position of window
 			width,						// window width
 			height,						// window height
 			0,							// handle to parent or owner window
@@ -301,9 +301,9 @@ void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 	RECT rect;
 
 	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
-	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
-		SystemParametersInfo(SPI_GETWORKAREA,0,&rect,0);
+	::GetWindowRect(m_hWnd, &rect);
 
+	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
 		bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-GetSystemMetrics(SM_CYSIZEFRAME)*2;
 		bounds.m_l = rect.left;
 		bounds.m_r = rect.right-GetSystemMetrics(SM_CYSIZEFRAME)*2;
