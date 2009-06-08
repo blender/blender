@@ -542,19 +542,19 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Material *ma= ptr->data;
 
 			if(ma)
-				CTX_data_pointer_set(result, &ma->id, &RNA_TextureSlot, ma->mtex[(int)ma->texact]);
+				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
 		}
 		else if((ptr=get_pointer_type(path, &RNA_Lamp))) {
 			Lamp *la= ptr->data;
 
 			if(la)
-				CTX_data_pointer_set(result, &la->id, &RNA_TextureSlot, la->mtex[(int)la->texact]);
+				CTX_data_pointer_set(result, &la->id, &RNA_LampTextureSlot, la->mtex[(int)la->texact]);
 		}
 		else if((ptr=get_pointer_type(path, &RNA_World))) {
 			World *wo= ptr->data;
 
 			if(wo)
-				CTX_data_pointer_set(result, &wo->id, &RNA_TextureSlot, wo->mtex[(int)wo->texact]);
+				CTX_data_pointer_set(result, &wo->id, &RNA_WorldTextureSlot, wo->mtex[(int)wo->texact]);
 		}
 		else if((ptr=get_pointer_type(path, &RNA_Brush))) { /* how to get this into context? */
 			Brush *br= ptr->data;
