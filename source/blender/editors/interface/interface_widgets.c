@@ -546,10 +546,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
 			
-			/* this is to enable drawing zero alpha masks */
-			if(wcol->inner[3]==0)
-				glDisable(GL_BLEND);
-			
 			/* filled center, solid */
 			glColor4ubv(wcol->inner);
 			glBegin(GL_POLYGON);
@@ -557,8 +553,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				glVertex2fv(wtb->inner_v[a]);
 			glEnd();
 
-			if(wcol->inner[3]==0)
-				glEnable(GL_BLEND);
 		}
 		else {
 			char col1[4], col2[4];
@@ -1625,6 +1619,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	wcol->inner[0]= wcol->inner[1]= wcol->inner[2]= wcol->inner[3]= 0;
 	wtb.outline= 0;
 	round_box_edges(&wtb, 15, rect, 5.0f);
+	glBlendFunc(GL_ONE, GL_ZERO);
 	widgetbase_draw(&wtb, wcol);
 	
 	if(but->block->drawextra) {
@@ -1636,6 +1631,9 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 		glDisable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	/* outline */
 	wtb.outline= 1;
 	wtb.inner= 0;
