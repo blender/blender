@@ -1,4 +1,4 @@
-
+		
 import bpy
 
 class TextureButtonsPanel(bpy.types.Panel):
@@ -65,6 +65,86 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 			col.itemL(text="Type:")
 			col = split.column()
 			col.itemR(tex, "type", text="")
+
+class TEXTURE_PT_map(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_map"
+	__label__ = "Map"
+
+	def draw(self, context):
+		layout = self.layout
+		tex = context.texture_slot
+
+		split = layout.split(percentage=0.3)
+		col = split.column()
+		col.itemL(text="Coordinates:")
+		col = split.column()
+		col.itemR(tex, "texture_coordinates", text="")
+		
+		split = layout.split()
+		col = split.column()
+		if tex.texture_coordinates == 'UV':
+			col.itemR(tex, "uv_layer")
+		elif tex.texture_coordinates == 'OBJECT':
+			col.itemR(tex, "object")
+			
+		col = split.column()
+		col.itemR(tex, "from_dupli")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(tex, "mapping")
+		col = split.column()
+		rowsub = col.row()
+		rowsub.itemL(text="TODO:X")
+		rowsub.itemL(text="TODO:Y")
+		rowsub.itemL(text="TODO:Z")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(tex, "offset")
+		col = split.column()
+		col.itemR(tex, "size")
+	
+		row = layout.row()
+		row.itemL(text="Affect:")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemL(text="TODO: Diffuse Color")
+		col.itemR(tex, "color_factor")
+		col.itemR(tex, "blend_type")
+		col.itemR(tex, "no_rgb")
+		colsub = col.column()
+		colsub.active = tex.no_rgb
+		colsub.itemR(tex, "color")
+		col.itemL(text="TODO: Normal")
+		col.itemR(tex, "normal_factor")
+		col.itemR(tex, "normal_map_space")
+		col.itemL(text="TODO: Warp")
+		col.itemR(tex, "warp_factor")
+		col.itemL(text="TODO: Specular Color")
+		col.itemL(text="TODO: Displacement")
+		col.itemR(tex, "displacement_factor")
+		col = split.column()
+		col.itemL(text="TODO: Mirror Color")
+		col.itemL(text="TODO: Reflection")
+		col.itemL(text="TODO: Specularity")
+		col.itemL(text="TODO: Ambient")
+		col.itemL(text="TODO: Hard")
+		col.itemL(text="TODO: Ray Mirror")
+		col.itemL(text="TODO: Alpha")
+		col.itemL(text="TODO: Emit")
+		col.itemL(text="TODO: Translucency")
+
+		col.itemR(tex, "default_value")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(tex, "stencil")
+		col = split.column()
+		col.itemR(tex, "negate", text="Negative")
+		
+
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"
@@ -415,3 +495,5 @@ bpy.types.register(TEXTURE_PT_musgrave)
 bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_colors)
+bpy.types.register(TEXTURE_PT_map)
+		
