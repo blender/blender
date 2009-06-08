@@ -120,6 +120,10 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 		WM_event_add_notifier(C, NC_SCENE, NULL);
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* done */
 	return OPERATOR_FINISHED;
