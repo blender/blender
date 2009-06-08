@@ -37,8 +37,13 @@ struct Sequence;
 struct bContext;
 struct rctf;
 struct SpaceSeq;
+struct ScrArea;
 struct ARegion;
+struct ARegionType;
 struct Scene;
+
+/* space_sequencer.c */
+struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_header.c */
 void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
@@ -139,6 +144,11 @@ struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf);
 struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
 struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf * ibuf, float perc);
 struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
+
+/* sequencer_buttons.c */
+
+void SEQUENCER_OT_properties(struct wmOperatorType *ot);
+void sequencer_buttons_register(struct ARegionType *art);
 
 #endif /* ED_SEQUENCER_INTERN_H */
 

@@ -61,6 +61,36 @@
 
 #include "sequencer_intern.h"	// own include
 
+/* ******************** manage regions ********************* */
+
+ARegion *sequencer_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	
+	/* add subdiv level; after header */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for sequencer");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_RIGHT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
+
 /* ******************** default callbacks for sequencer space ***************** */
 
 static SpaceLink *sequencer_new(const bContext *C)
@@ -81,6 +111,14 @@ static SpaceLink *sequencer_new(const bContext *C)
 	BLI_addtail(&sseq->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
+	
+	/* buttons/list view */
+	ar= MEM_callocN(sizeof(ARegion), "buttons for sequencer");
+	
+	BLI_addtail(&sseq->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_RIGHT;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for sequencer");
@@ -201,6 +239,30 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/* *********************** buttons region ************************ */
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void sequencer_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	
+	ED_region_panels_init(wm, ar);
+	
+}
+
+static void sequencer_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL);
+}
+
+static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		
+	}
+}
+/* ************************************* */
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_sequencer(void)
 {
@@ -226,6 +288,18 @@ void ED_spacetype_sequencer(void)
 
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* regions: listview/buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= 220; // XXX
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= sequencer_buttons_area_listener;
+	art->init= sequencer_buttons_area_init;
+	art->draw= sequencer_buttons_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
+	sequencer_buttons_register(art);
+
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_HEADER;
