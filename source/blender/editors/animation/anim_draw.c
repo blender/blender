@@ -83,11 +83,11 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
 	if (time) {
-		/* SMPTE timecode style:
+		/* (Pseudo) SMPTE timecode style:
 		 *	- In general, minutes and seconds should be shown, as most clips will be
 		 *	  within this length. Hours will only be included if relevant.
 		 *	- Only show frames when zoomed in enough for them to be relevant 
-		 *	  (using separator convention of ';' for frames, ala QuickTime).
+		 *	  (using separator of '+' for frames).
 		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
 		 */
 		float val= FRA2TIME(CFRA);
@@ -124,9 +124,9 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 		}
 		
 		/* print timecode to temp string buffer */
-		if (hours) sprintf(str, "   %s%02d:%02d:%02d;%02d", neg, hours, minutes, seconds, frames);
-		else if (minutes) sprintf(str, "   %s%02d:%02d;%02d", neg, minutes, seconds, frames);
-		else sprintf(str, "   %s%d;%02d", neg, seconds, frames);
+		if (hours) sprintf(str, "   %s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
+		else if (minutes) sprintf(str, "   %s%02d:%02d+%02d", neg, minutes, seconds, frames);
+		else sprintf(str, "   %s%d+%02d", neg, seconds, frames);
 	}
 	else 
 		sprintf(str, "   %d", CFRA);
