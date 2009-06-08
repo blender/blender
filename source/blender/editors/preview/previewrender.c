@@ -639,7 +639,12 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 	RE_GetResultImage(RE_GetRender(name), &rres);
 
 	if(rres.rectf) {
-		if(rres.rectx==newx && rres.recty==newy) {
+		
+		if( ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2 ) {
+			/* correct size, then black outline matches */
+			rect->xmax= rect->xmin + rres.rectx;
+			rect->ymax= rect->ymin + rres.recty;
+		
 			glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
 			ok= 1;
 		}
@@ -1039,7 +1044,8 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	}
 	/* lens adjust */
 	oldlens= ((Camera *)sce->camera->data)->lens;
-	((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sp->sizex;
+	if(sp->sizex > sp->sizey)
+		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sp->sizex;
 
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);

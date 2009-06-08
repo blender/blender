@@ -1632,6 +1632,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	widget_init(&wtb);
 	
 	if(but->block->drawextra) {
+		/* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
 		but->block->drawextra(C, but->poin, rect);
 		
 		/* make mask to draw over image */

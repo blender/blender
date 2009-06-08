@@ -130,6 +130,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 			else if(sbuts->mainb != BCONTEXT_TEXTURE)
 				sbuts->flag &= ~SB_WORLD_TEX;
 
+			sbuts->preview= 1;
 			break;
 	}
 }
