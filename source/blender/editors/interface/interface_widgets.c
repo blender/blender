@@ -279,13 +279,11 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 	return tot;
 }
 
-
-
-static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
+/* this call has 1 extra arg to allow mask outline */
+static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad, float radi)
 {
 	float vec[9][2], veci[9][2];
 	float minx= rect->xmin, miny= rect->ymin, maxx= rect->xmax, maxy= rect->ymax;
-	float radi;				  /* rad inner */
 	float minxi= minx + 1.0f; /* boundbox inner */
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
@@ -297,7 +295,8 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 	if(2.0f*rad > rect->ymax-rect->ymin)
 		rad= 0.5f*(rect->ymax-rect->ymin);
 
-	radi= rad - 1.0f;
+	if(2.0f*(radi+1.0f) > rect->ymax-rect->ymin)
+		radi= 0.5f*(rect->ymax-rect->ymin) - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -422,6 +421,12 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 	wt->totvert= tot;
 }
 
+static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
+{
+	round_box__edges(wt, roundboxalign, rect, rad, rad-1.0f);
+}
+
+
 /* based on button rect, return scaled array of triangles */
 static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
 {
@@ -534,6 +539,21 @@ static void round_box_shade_col4(char *col1, char *col2, float fac)
 	col[3]= (faci*col1[3] + facm*col2[3])>>8;
 	
 	glColor4ubv(col);
+}
+
+static void widgetbase_outline(uiWidgetBase *wtb)
+{
+	int a;
+	
+	/* outline */
+	glBegin(GL_QUAD_STRIP);
+	for(a=0; a<wtb->totvert; a++) {
+		glVertex2fv(wtb->outer_v[a]);
+		glVertex2fv(wtb->inner_v[a]);
+	}
+	glVertex2fv(wtb->outer_v[0]);
+	glVertex2fv(wtb->inner_v[0]);
+	glEnd();
 }
 
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
@@ -1366,11 +1386,12 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	/* decoration */
 	if(!(state & UI_TEXTINPUT)) {
@@ -1503,11 +1524,12 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
+		float rad= 0.5f*(rect->ymax - rect->ymin);
 		
 		widget_init(&wtb);
 		
 		/* fully rounded */
-		round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+		round_box_edges(&wtb, roundboxalign, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -1589,11 +1611,12 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	widgetbase_draw(&wtb, wcol);
 }
@@ -1601,7 +1624,6 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
 {
 	uiWidgetBase wtb;
-	uiWidgetColors *wcol= &wt->wcol;
 	char col[4];
 	
 	/* state copy! */
@@ -1609,35 +1631,22 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	
 	widget_init(&wtb);
 	
-	/* filled rect in back color, alpha 1 */
-	UI_GetThemeColor4ubv(TH_BACK, col);
-	col[3]= 255;
-	glColor4ubv(col);
-	glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-	
-	/* inner mask with alpha zero */
-	wcol->inner[0]= wcol->inner[1]= wcol->inner[2]= wcol->inner[3]= 0;
-	wtb.outline= 0;
-	round_box_edges(&wtb, 15, rect, 5.0f);
-	glBlendFunc(GL_ONE, GL_ZERO);
-	widgetbase_draw(&wtb, wcol);
-	
 	if(but->block->drawextra) {
-		//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-		//glEnable(GL_BLEND);
-		
 		but->block->drawextra(C, but->poin, rect);
 		
-		//glDisable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		/* make mask to draw over image */
+		UI_GetThemeColor3ubv(TH_BACK, col);
+		glColor3ubv(col);
+		
+		round_box__edges(&wtb, 15, rect, 0.0f, 4.0);
+		widgetbase_outline(&wtb);
 	}
 	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
 	/* outline */
+	round_box_edges(&wtb, 15, rect, 5.0f);
 	wtb.outline= 1;
 	wtb.inner= 0;
-	widgetbase_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, &wt->wcol);
 	
 }
 
