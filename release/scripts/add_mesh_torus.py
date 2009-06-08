@@ -6,7 +6,8 @@ Group: 'AddMesh'
 """
 import BPyAddMesh
 import Blender
-from math import cos, sin, pi
+try: from math import cos, sin, pi
+except: math = None
 
 def add_torus(PREF_MAJOR_RAD, PREF_MINOR_RAD, PREF_MAJOR_SEG, PREF_MINOR_SEG):
 	Vector = Blender.Mathutils.Vector
@@ -61,5 +62,8 @@ def main():
 	
 	BPyAddMesh.add_mesh_simple('Torus', verts, [], faces)
 
-main()
+if cos and sin and pi:
+    main()
+else:
+    Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
 

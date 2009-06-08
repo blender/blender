@@ -39,19 +39,20 @@ SG_IObject::
 SG_IObject(
 	void* clientobj,
 	void* clientinfo,
-	SG_Callbacks callbacks
+	SG_Callbacks& callbacks
 ): 
+	SG_QList(),
 	m_SGclientObject(clientobj),
-	m_SGclientInfo(clientinfo),
-	m_callbacks(callbacks) 
+	m_SGclientInfo(clientinfo)
 {
-	//nothing to do
+	m_callbacks = callbacks;
 }
 
 SG_IObject::
 SG_IObject(
 	const SG_IObject &other
 ) :
+	SG_QList(),
 	m_SGclientObject(other.m_SGclientObject),
 	m_SGclientInfo(other.m_SGclientInfo),
 	m_callbacks(other.m_callbacks) 
@@ -74,91 +75,16 @@ RemoveAllControllers(
 	m_SGcontrollers.clear(); 
 }
 
-/// Needed for replication
-	SGControllerList&	
-SG_IObject::
-GetSGControllerList(
-){ 
-	return m_SGcontrollers; 
-}
-
-	void*				
-SG_IObject::
-GetSGClientObject(
-){ 
-	return m_SGclientObject;
-}
-
-const 
-	void*			
-SG_IObject::
-GetSGClientObject(
-) const	{
-	return m_SGclientObject;
-}
-
-	void	
-SG_IObject::
-SetSGClientObject(
-	void* clientObject
-){
-	m_SGclientObject = clientObject;
-}
-
-
-	bool
-SG_IObject::
-ActivateReplicationCallback(
-	SG_IObject *replica
-){
-	if (m_callbacks.m_replicafunc)
-	{
-		// Call client provided replication func
-		if (m_callbacks.m_replicafunc(replica,m_SGclientObject,m_SGclientInfo) == NULL)
-			return false;
-	}
-	return true;
-};	
-
-	void
-SG_IObject::
-ActivateDestructionCallback(
-){
-	if (m_callbacks.m_destructionfunc)
-	{
-		// Call client provided destruction function on this!
-		m_callbacks.m_destructionfunc(this,m_SGclientObject,m_SGclientInfo);
-	}
-	else
-	{
-		// no callback but must still destroy the node to avoid memory leak
-		delete this;
-	}
-}
-
-	void
-SG_IObject::
-ActivateUpdateTransformCallback(
-){
-	if (m_callbacks.m_updatefunc)
-	{
-		// Call client provided update func.
-		m_callbacks.m_updatefunc(this, m_SGclientObject, m_SGclientInfo);
-	}
-}
-
-	void 
-SG_IObject::
-SetControllerTime(
-	double time
-){
+void SG_IObject::SetControllerTime(double time)
+{
 	SGControllerList::iterator contit;
-
 	for (contit = m_SGcontrollers.begin();contit!=m_SGcontrollers.end();++contit)
 	{
 		(*contit)->SetSimulatedTime(time);
 	}
 }
+
+/// Needed for replication
 
 
 SG_IObject::

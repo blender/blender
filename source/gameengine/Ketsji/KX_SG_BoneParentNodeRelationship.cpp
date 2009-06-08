@@ -125,7 +125,9 @@ UpdateChildCoordinates(
 	else {
 		child->SetWorldFromLocalTransform();
 	}
-	child->SetModified(false);
+	child->ClearModified();
+	// this node must always be updated, so reschedule it for next time
+	child->ActivateRecheduleUpdateCallback();
 	return valid_parent_transform;
 }
 

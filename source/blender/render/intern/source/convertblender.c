@@ -1760,7 +1760,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(parent->num < psmd->dm->getNumFaces(psmd->dm))
 						num = parent->num;
 
-				get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
+				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
 			}
 
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);

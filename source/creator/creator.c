@@ -497,6 +497,19 @@ int main(int argc, char **argv)
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
+#if (defined(WIN32) || defined(WIN64))
+#if defined(FREE_WINDOWS)
+		putenv("SDL_VIDEODRIVER=dummy");
+#else
+		_putenv_s("SDL_VIDEODRIVER", "dummy");
+#endif
+#else
+#ifdef __sgi
+		putenv("SDL_VIDEODRIVER=dummy");
+#else
+		setenv("SDL_VIDEODRIVER", "dummy", 1); /* initializing the video driver can cause crashes on some systems - Campbell */
+#endif
+#endif
 #ifdef __linux__
 		/* On linux the default SDL driver dma often would not play
 		 * use alsa if none is set */
@@ -616,8 +629,10 @@ int main(int argc, char **argv)
 					Scene *scene= CTX_data_scene(C);
 					
 					if (a < argc) {
-						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-						Render *re= RE_NewRender(scene->id.name);
+						int frame = atoi(argv[a]);
+						Render *re = RE_NewRender(scene->id.name);
+
+						frame = MIN2(MAXFRAME, MAX2(1, frame));
 #ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
@@ -657,8 +672,10 @@ int main(int argc, char **argv)
 				a++;
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
-					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (scene->r.sfra) = frame;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-s'.\n");
 				}
@@ -667,8 +684,10 @@ int main(int argc, char **argv)
 				a++;
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
-					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (scene->r.efra) = frame;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(scene->r.efra) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-e'.\n");
 				}
@@ -677,8 +696,10 @@ int main(int argc, char **argv)
 				a++;
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
-					int fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (scene->frame_step) = fstep;
+					if (a < argc) {
+						int frame = atoi(argv[a]);
+						(scene->frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
+					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-j'.\n");
 				}

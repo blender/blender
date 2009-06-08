@@ -25,6 +25,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 
 /// class allows check type of blender python object and access its contained object
+/// MUST ONLY BE USED FOR KX classes that are descendent of PyObjectPlus
 template <class PyObj> class BlendType
 {
 public:
@@ -48,8 +49,9 @@ public:
 		// if pointer to type is set and don't match to type of provided object, return NULL
 		else if (obj->ob_type != m_objType) 
 			return NULL;
-		// return pointer to object
-		return (PyObj*)obj;
+		// return pointer to object, this class can only be used for KX object =>
+		// the Py object is actually a proxy
+		return (PyObj*)BGE_PROXY_REF(obj);
 	}
 
 	/// parse arguments to get object

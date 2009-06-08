@@ -85,7 +85,7 @@ def imageConvertCompat(path):
 
 def vrmlFormat(data):
 	'''
-	Keep this as a valid vrml file, but format in a way we can pradict.
+	Keep this as a valid vrml file, but format in a way we can predict.
 	'''
 	# Strip all commends - # not in strings - warning multiline strings are ignored.
 	def strip_comment(l):

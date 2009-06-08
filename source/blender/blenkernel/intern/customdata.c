@@ -33,7 +33,7 @@
 */ 
 
 #include "BKE_customdata.h"
-
+#include "BKE_utildefines.h" // CLAMP
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
@@ -573,6 +573,14 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 			col.b += src->b * weight;
 		}
 	}
+	
+	/* Subdivide smooth or fractal can cause problems without clamping
+	 * although weights should also not cause this situation */
+	CLAMP(col.a, 0.0f, 255.0f);
+	CLAMP(col.r, 0.0f, 255.0f);
+	CLAMP(col.g, 0.0f, 255.0f);
+	CLAMP(col.b, 0.0f, 255.0f);
+	
 	mc->a = (int)col.a;
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
@@ -648,6 +656,14 @@ static void layerInterp_mcol(void **sources, float *weights,
 	}
 
 	for(j = 0; j < 4; ++j) {
+		
+		/* Subdivide smooth or fractal can cause problems without clamping
+		 * although weights should also not cause this situation */
+		CLAMP(col[j].a, 0.0f, 255.0f);
+		CLAMP(col[j].r, 0.0f, 255.0f);
+		CLAMP(col[j].g, 0.0f, 255.0f);
+		CLAMP(col[j].b, 0.0f, 255.0f);
+		
 		mc[j].a = (int)col[j].a;
 		mc[j].r = (int)col[j].r;
 		mc[j].g = (int)col[j].g;
@@ -783,7 +799,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			number++;
 
 		if(layer->flag & CD_FLAG_NOCOPY) continue;
-		else if(!(mask & (1 << type))) continue;
+		else if(!((int)mask & (int)(1 << (int)type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
@@ -1301,7 +1317,7 @@ void CustomData_set_only_copy(const struct CustomData *data,
 	int i;
 
 	for(i = 0; i < data->totlayer; ++i)
-		if(!(mask & (1 << data->layers[i].type)))
+		if(!((int)mask & (int)(1 << (int)data->layers[i].type)))
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 

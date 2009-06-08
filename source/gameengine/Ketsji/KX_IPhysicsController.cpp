@@ -35,9 +35,10 @@
 
 #include "PHY_DynamicTypes.h"
 
-KX_IPhysicsController::KX_IPhysicsController(bool dyna, bool compound, void* userdata)
+KX_IPhysicsController::KX_IPhysicsController(bool dyna, bool sensor, bool compound, void* userdata)
 
 :	m_bDyna(dyna),
+	m_bSensor(sensor),
 	m_bCompound(compound),
 	m_suspendDynamics(false),
 	m_userdata(userdata)

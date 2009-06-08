@@ -49,11 +49,12 @@ class KX_IPhysicsController : public SG_Controller
 {
 protected:
 	bool		m_bDyna;
+	bool		m_bSensor;
 	bool		m_bCompound;
 	bool		m_suspendDynamics;
 	void*		m_userdata;
 public:
-	KX_IPhysicsController(bool dyna,bool compound, void* userdata);
+	KX_IPhysicsController(bool dyna,bool sensor,bool compound, void* userdata);
 	virtual ~KX_IPhysicsController();
 
 
@@ -74,6 +75,7 @@ public:
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
 	virtual	void setOrientation(const MT_Matrix3x3& orn)=0;
+	virtual void SetTransform()=0;
 	//virtual	void setOrientation(const MT_Quaternion& orn)=0;
 	virtual	void setPosition(const MT_Point3& pos)=0;
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
@@ -100,8 +102,16 @@ public:
 		m_bDyna = isDynamic;
 	}
 
+	void	SetSensor(bool isSensor) {
+		m_bSensor = isSensor;
+	}
+
 	bool	IsDyna(void) {
 		return m_bDyna;
+	}
+
+	bool	IsSensor(void) {
+		return m_bSensor;
 	}
 
 	bool	IsCompound(void) {

@@ -73,6 +73,11 @@ void	KX_MotionState::getWorldOrientation(float* ori)
 	mat.getValue(ori);
 }
 	
+void	KX_MotionState::setWorldOrientation(const float* ori)
+{
+	m_node->SetLocalOrientation(ori);
+}
+	
 void	KX_MotionState::setWorldPosition(float posX,float posY,float posZ)
 {
 	m_node->SetLocalPosition(MT_Point3(posX,posY,posZ));

@@ -1667,6 +1667,42 @@ static void do_render_3d(Render *re)
 	RE_Database_Free(re);
 }
 
+/* called by blur loop, accumulate RGBA key alpha */
+static void addblur_rect_key(RenderResult *rr, float *rectf, float *rectf1, float blurfac)
+{
+	float mfac= 1.0f - blurfac;
+	int a, b, stride= 4*rr->rectx;
+	int len= stride*sizeof(float);
+	
+	for(a=0; a<rr->recty; a++) {
+		if(blurfac==1.0f) {
+			memcpy(rectf, rectf1, len);
+		}
+		else {
+			float *rf= rectf, *rf1= rectf1;
+			
+			for( b= rr->rectx; b>0; b--, rf+=4, rf1+=4) {
+				if(rf1[3]<0.01f)
+					rf[3]= mfac*rf[3];
+				else if(rf[3]<0.01f) {
+					rf[0]= rf1[0];
+					rf[1]= rf1[1];
+					rf[2]= rf1[2];
+					rf[3]= blurfac*rf1[3];
+				}
+				else {
+					rf[0]= mfac*rf[0] + blurfac*rf1[0];
+					rf[1]= mfac*rf[1] + blurfac*rf1[1];
+					rf[2]= mfac*rf[2] + blurfac*rf1[2];
+					rf[3]= mfac*rf[3] + blurfac*rf1[3];
+				}				
+			}
+		}
+		rectf+= stride;
+		rectf1+= stride;
+	}
+}
+
 /* called by blur loop, accumulate renderlayers */
 static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float blurfac, int channels)
 {
@@ -1690,8 +1726,9 @@ static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float bl
 	}
 }
 
+
 /* called by blur loop, accumulate renderlayers */
-static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac)
+static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac, int key_alpha)
 {
 	RenderLayer *rl, *rl1;
 	RenderPass *rpass, *rpass1;
@@ -1700,8 +1737,12 @@ static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float b
 	for(rl= rr->layers.first; rl && rl1; rl= rl->next, rl1= rl1->next) {
 		
 		/* combined */
-		if(rl->rectf && rl1->rectf)
-			addblur_rect(rr, rl->rectf, rl1->rectf, blurfac, 4);
+		if(rl->rectf && rl1->rectf) {
+			if(key_alpha)
+				addblur_rect_key(rr, rl->rectf, rl1->rectf, blurfac);
+			else
+				addblur_rect(rr, rl->rectf, rl1->rectf, blurfac, 4);
+		}
 		
 		/* passes are allocated in sync */
 		rpass1= rl1->passes.first;
@@ -1731,7 +1772,7 @@ static void do_render_blur_3d(Render *re)
 		
 		blurfac= 1.0f/(float)(re->r.osa-blur);
 		
-		merge_renderresult_blur(rres, re->result, blurfac);
+		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
 		if(re->test_break(re->tbh)) break;
 	}
 	

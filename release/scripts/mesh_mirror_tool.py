@@ -3,7 +3,7 @@
 Name: 'Mirror Vertex Locations & Weight'
 Blender: 241
 Group: 'Mesh'
-Tooltip: 'Snap Verticies to X mirrord locations and weights.'
+Tooltip: 'Snap Verticies to X mirrored locations and weights.'
 """
 
 __author__ = "Campbell Barton aka ideasman42"
@@ -11,11 +11,11 @@ __url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__= '1.0'
 __bpydoc__= '''\
 This script is used to mirror vertex locations and weights
-It is usefull if you have a model that was made symetrical
+It is useful if you have a model that was made symmetrical
 but has verts that have moved from their mirrored locations slightly,
-casuing blenders X-Mirror options not to work.
+causing blenders X-Mirror options not to work.
 
-Weights can be mirrored too, this is usefull if you want to model 1 side of a mesh, copy the mesh and flip it.
+Weights can be mirrored too, this is useful if you want to model 1 side of a mesh, copy the mesh and flip it.
 You can then use this script to mirror to the copy, even creating new flipped vertex groups, renaming group name left to right or .L to .R
 
 Vertex positions are mirrored by doing a locational lookup,

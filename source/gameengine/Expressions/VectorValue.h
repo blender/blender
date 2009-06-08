@@ -41,7 +41,7 @@ public:
 	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	
 	
-	CVectorValue(double vec[],STR_String name,AllocationTYPE alloctype=CValue::HEAPVALUE);
+	CVectorValue(double vec[],const char *name,AllocationTYPE alloctype=CValue::HEAPVALUE);
 	CVectorValue() {};
 
 	CVectorValue(double vec[],AllocationTYPE alloctype=CValue::HEAPVALUE);

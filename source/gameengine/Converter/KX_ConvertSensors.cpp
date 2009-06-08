@@ -95,178 +95,194 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					   KX_Scene* kxscene,
 					   KX_KetsjiEngine* kxengine,
 					   SCA_IInputDevice* keydev,
-					   int & executePriority,
 					   int activeLayerBitInfo,
 					   bool isInActiveLayer,
 					   RAS_ICanvas* canvas,
 					   KX_BlenderSceneConverter* converter
 					   )
 {
+	static bool reverseTableConverted = false;	
 	
-	
-	
-	/* The reverse table. In order to not confuse ourselves, we      */
-	/* immediately convert all events that come in to KX codes.      */
-	gReverseKeyTranslateTable[LEFTMOUSE			] =	SCA_IInputDevice::KX_LEFTMOUSE;
-	gReverseKeyTranslateTable[MIDDLEMOUSE		] =	SCA_IInputDevice::KX_MIDDLEMOUSE;
-	gReverseKeyTranslateTable[RIGHTMOUSE		] =	SCA_IInputDevice::KX_RIGHTMOUSE;
-	gReverseKeyTranslateTable[WHEELUPMOUSE		] =	SCA_IInputDevice::KX_WHEELUPMOUSE;
-	gReverseKeyTranslateTable[WHEELDOWNMOUSE	] =	SCA_IInputDevice::KX_WHEELDOWNMOUSE;
-	gReverseKeyTranslateTable[MOUSEX			] = SCA_IInputDevice::KX_MOUSEX;
-	gReverseKeyTranslateTable[MOUSEY			] =	SCA_IInputDevice::KX_MOUSEY;
-	
-	// TIMERS                                                                                                  
-	
-	gReverseKeyTranslateTable[TIMER0			] = SCA_IInputDevice::KX_TIMER0;                  
-	gReverseKeyTranslateTable[TIMER1			] = SCA_IInputDevice::KX_TIMER1;                  
-	gReverseKeyTranslateTable[TIMER2			] = SCA_IInputDevice::KX_TIMER2;                  
-	
-	// SYSTEM                                                                                                  
-	
+	if (!reverseTableConverted)
+	{
+		reverseTableConverted = true;
+		
+		/* The reverse table. In order to not confuse ourselves, we      */
+		/* immediately convert all events that come in to KX codes.      */
+		gReverseKeyTranslateTable[LEFTMOUSE			] =	SCA_IInputDevice::KX_LEFTMOUSE;
+		gReverseKeyTranslateTable[MIDDLEMOUSE		] =	SCA_IInputDevice::KX_MIDDLEMOUSE;
+		gReverseKeyTranslateTable[RIGHTMOUSE		] =	SCA_IInputDevice::KX_RIGHTMOUSE;
+		gReverseKeyTranslateTable[WHEELUPMOUSE		] =	SCA_IInputDevice::KX_WHEELUPMOUSE;
+		gReverseKeyTranslateTable[WHEELDOWNMOUSE	] =	SCA_IInputDevice::KX_WHEELDOWNMOUSE;
+		gReverseKeyTranslateTable[MOUSEX			] = SCA_IInputDevice::KX_MOUSEX;
+		gReverseKeyTranslateTable[MOUSEY			] =	SCA_IInputDevice::KX_MOUSEY;
+		
+		// TIMERS                                                                                                  
+		
+		gReverseKeyTranslateTable[TIMER0			] = SCA_IInputDevice::KX_TIMER0;                  
+		gReverseKeyTranslateTable[TIMER1			] = SCA_IInputDevice::KX_TIMER1;                  
+		gReverseKeyTranslateTable[TIMER2			] = SCA_IInputDevice::KX_TIMER2;                  
+		
+		// SYSTEM                                                                                                  
+		
 #if 0			
-	/* **** XXX **** */
-	gReverseKeyTranslateTable[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
-	gReverseKeyTranslateTable[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
-	gReverseKeyTranslateTable[REDRAW			] = SCA_IInputDevice::KX_REDRAW;                  
-	gReverseKeyTranslateTable[INPUTCHANGE		] = SCA_IInputDevice::KX_INPUTCHANGE;                  
-	gReverseKeyTranslateTable[QFULL				] = SCA_IInputDevice::KX_QFULL;                  
-	gReverseKeyTranslateTable[WINFREEZE			] = SCA_IInputDevice::KX_WINFREEZE;                  
-	gReverseKeyTranslateTable[WINTHAW			] = SCA_IInputDevice::KX_WINTHAW;                  
-	gReverseKeyTranslateTable[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;                  
-	gReverseKeyTranslateTable[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
-	gReverseKeyTranslateTable[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
-	/* **** XXX **** */
+		/* **** XXX **** */
+		gReverseKeyTranslateTable[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
+		gReverseKeyTranslateTable[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
+		gReverseKeyTranslateTable[REDRAW			] = SCA_IInputDevice::KX_REDRAW;                  
+		gReverseKeyTranslateTable[INPUTCHANGE		] = SCA_IInputDevice::KX_INPUTCHANGE;                  
+		gReverseKeyTranslateTable[QFULL				] = SCA_IInputDevice::KX_QFULL;                  
+		gReverseKeyTranslateTable[WINFREEZE			] = SCA_IInputDevice::KX_WINFREEZE;                  
+		gReverseKeyTranslateTable[WINTHAW			] = SCA_IInputDevice::KX_WINTHAW;                  
+		gReverseKeyTranslateTable[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;                  
+		gReverseKeyTranslateTable[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
+		gReverseKeyTranslateTable[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
+		/* **** XXX **** */
 #endif	
-	// standard keyboard                                                                                       
-	
-	gReverseKeyTranslateTable[AKEY				] = SCA_IInputDevice::KX_AKEY;                  
-	gReverseKeyTranslateTable[BKEY				] = SCA_IInputDevice::KX_BKEY;                  
-	gReverseKeyTranslateTable[CKEY				] = SCA_IInputDevice::KX_CKEY;                  
-	gReverseKeyTranslateTable[DKEY				] = SCA_IInputDevice::KX_DKEY;                  
-	gReverseKeyTranslateTable[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
-	gReverseKeyTranslateTable[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
-	gReverseKeyTranslateTable[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
+		
+		// standard keyboard                                                                                       
+		
+		gReverseKeyTranslateTable[AKEY				] = SCA_IInputDevice::KX_AKEY;                  
+		gReverseKeyTranslateTable[BKEY				] = SCA_IInputDevice::KX_BKEY;                  
+		gReverseKeyTranslateTable[CKEY				] = SCA_IInputDevice::KX_CKEY;                  
+		gReverseKeyTranslateTable[DKEY				] = SCA_IInputDevice::KX_DKEY;                  
+		gReverseKeyTranslateTable[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
+		gReverseKeyTranslateTable[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
+		gReverseKeyTranslateTable[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
+
 //XXX clean up
 #ifdef WIN32
 #define HKEY	'h'
 #endif
-	gReverseKeyTranslateTable[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
+		gReverseKeyTranslateTable[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
 //XXX clean up
 #ifdef WIN32
 #undef HKEY
 #endif
-	gReverseKeyTranslateTable[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
-	gReverseKeyTranslateTable[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
-	gReverseKeyTranslateTable[KKEY				] = SCA_IInputDevice::KX_KKEY;                  
-	gReverseKeyTranslateTable[LKEY				] = SCA_IInputDevice::KX_LKEY;                  
-	gReverseKeyTranslateTable[MKEY				] = SCA_IInputDevice::KX_MKEY;                  
-	gReverseKeyTranslateTable[NKEY				] = SCA_IInputDevice::KX_NKEY;                  
-	gReverseKeyTranslateTable[OKEY				] = SCA_IInputDevice::KX_OKEY;                  
-	gReverseKeyTranslateTable[PKEY				] = SCA_IInputDevice::KX_PKEY;                  
-	gReverseKeyTranslateTable[QKEY				] = SCA_IInputDevice::KX_QKEY;                  
-	gReverseKeyTranslateTable[RKEY				] = SCA_IInputDevice::KX_RKEY;                  
-	gReverseKeyTranslateTable[SKEY				] = SCA_IInputDevice::KX_SKEY;                  
-	gReverseKeyTranslateTable[TKEY				] = SCA_IInputDevice::KX_TKEY;                  
-	gReverseKeyTranslateTable[UKEY				] = SCA_IInputDevice::KX_UKEY;                  
-	gReverseKeyTranslateTable[VKEY				] = SCA_IInputDevice::KX_VKEY;                  
-	gReverseKeyTranslateTable[WKEY				] = SCA_IInputDevice::KX_WKEY;                  
-	gReverseKeyTranslateTable[XKEY				] = SCA_IInputDevice::KX_XKEY;                  
-	gReverseKeyTranslateTable[YKEY				] = SCA_IInputDevice::KX_YKEY;                  
-	gReverseKeyTranslateTable[ZKEY				] = SCA_IInputDevice::KX_ZKEY;                  
-	
-	gReverseKeyTranslateTable[ZEROKEY			] = SCA_IInputDevice::KX_ZEROKEY;                  
-	gReverseKeyTranslateTable[ONEKEY			] = SCA_IInputDevice::KX_ONEKEY;                  
-	gReverseKeyTranslateTable[TWOKEY			] = SCA_IInputDevice::KX_TWOKEY;                  
-	gReverseKeyTranslateTable[THREEKEY			] = SCA_IInputDevice::KX_THREEKEY;                  
-	gReverseKeyTranslateTable[FOURKEY			] = SCA_IInputDevice::KX_FOURKEY;                  
-	gReverseKeyTranslateTable[FIVEKEY			] = SCA_IInputDevice::KX_FIVEKEY;                  
-	gReverseKeyTranslateTable[SIXKEY			] = SCA_IInputDevice::KX_SIXKEY;                  
-	gReverseKeyTranslateTable[SEVENKEY			] = SCA_IInputDevice::KX_SEVENKEY;                  
-	gReverseKeyTranslateTable[EIGHTKEY			] = SCA_IInputDevice::KX_EIGHTKEY;                  
-	gReverseKeyTranslateTable[NINEKEY			] = SCA_IInputDevice::KX_NINEKEY;                  
-	
-	gReverseKeyTranslateTable[CAPSLOCKKEY		] = SCA_IInputDevice::KX_CAPSLOCKKEY;                  
-	
-	gReverseKeyTranslateTable[LEFTCTRLKEY		] = SCA_IInputDevice::KX_LEFTCTRLKEY;                  
-	gReverseKeyTranslateTable[LEFTALTKEY		] = SCA_IInputDevice::KX_LEFTALTKEY;                  
-	gReverseKeyTranslateTable[RIGHTALTKEY		] = SCA_IInputDevice::KX_RIGHTALTKEY;                  
-	gReverseKeyTranslateTable[RIGHTCTRLKEY		] = SCA_IInputDevice::KX_RIGHTCTRLKEY;                  
-	gReverseKeyTranslateTable[RIGHTSHIFTKEY		] = SCA_IInputDevice::KX_RIGHTSHIFTKEY;                  
-	gReverseKeyTranslateTable[LEFTSHIFTKEY		] = SCA_IInputDevice::KX_LEFTSHIFTKEY;                  
-	
-	gReverseKeyTranslateTable[ESCKEY			] = SCA_IInputDevice::KX_ESCKEY;                  
-	gReverseKeyTranslateTable[TABKEY			] = SCA_IInputDevice::KX_TABKEY;                  
-	gReverseKeyTranslateTable[RETKEY			] = SCA_IInputDevice::KX_RETKEY;                  
-	gReverseKeyTranslateTable[SPACEKEY			] = SCA_IInputDevice::KX_SPACEKEY;                  
-	gReverseKeyTranslateTable[LINEFEEDKEY		] = SCA_IInputDevice::KX_LINEFEEDKEY;                  
-	gReverseKeyTranslateTable[BACKSPACEKEY		] = SCA_IInputDevice::KX_BACKSPACEKEY;                  
-	gReverseKeyTranslateTable[DELKEY			] = SCA_IInputDevice::KX_DELKEY;                  
-	gReverseKeyTranslateTable[SEMICOLONKEY		] = SCA_IInputDevice::KX_SEMICOLONKEY;                  
-	gReverseKeyTranslateTable[PERIODKEY			] = SCA_IInputDevice::KX_PERIODKEY;                  
-	gReverseKeyTranslateTable[COMMAKEY			] = SCA_IInputDevice::KX_COMMAKEY;                  
-	gReverseKeyTranslateTable[QUOTEKEY			] = SCA_IInputDevice::KX_QUOTEKEY;                  
-	gReverseKeyTranslateTable[ACCENTGRAVEKEY	] = SCA_IInputDevice::KX_ACCENTGRAVEKEY;                  
-	gReverseKeyTranslateTable[MINUSKEY			] = SCA_IInputDevice::KX_MINUSKEY;                  
-	gReverseKeyTranslateTable[SLASHKEY			] = SCA_IInputDevice::KX_SLASHKEY;                  
-	gReverseKeyTranslateTable[BACKSLASHKEY		] = SCA_IInputDevice::KX_BACKSLASHKEY;                  
-	gReverseKeyTranslateTable[EQUALKEY			] = SCA_IInputDevice::KX_EQUALKEY;                  
-	gReverseKeyTranslateTable[LEFTBRACKETKEY	] = SCA_IInputDevice::KX_LEFTBRACKETKEY;                  
-	gReverseKeyTranslateTable[RIGHTBRACKETKEY	] = SCA_IInputDevice::KX_RIGHTBRACKETKEY;                  
-	
-	gReverseKeyTranslateTable[LEFTARROWKEY		] = SCA_IInputDevice::KX_LEFTARROWKEY;                  
-	gReverseKeyTranslateTable[DOWNARROWKEY		] = SCA_IInputDevice::KX_DOWNARROWKEY;                  
-	gReverseKeyTranslateTable[RIGHTARROWKEY		] = SCA_IInputDevice::KX_RIGHTARROWKEY;                  
-	gReverseKeyTranslateTable[UPARROWKEY		] = SCA_IInputDevice::KX_UPARROWKEY;                  
-	
-	gReverseKeyTranslateTable[PAD2				] = SCA_IInputDevice::KX_PAD2;                  
-	gReverseKeyTranslateTable[PAD4				] = SCA_IInputDevice::KX_PAD4;                  
-	gReverseKeyTranslateTable[PAD6				] = SCA_IInputDevice::KX_PAD6;                  
-	gReverseKeyTranslateTable[PAD8				] = SCA_IInputDevice::KX_PAD8;                  
-	
-	gReverseKeyTranslateTable[PAD1				] = SCA_IInputDevice::KX_PAD1;                  
-	gReverseKeyTranslateTable[PAD3				] = SCA_IInputDevice::KX_PAD3;                  
-	gReverseKeyTranslateTable[PAD5				] = SCA_IInputDevice::KX_PAD5;                  
-	gReverseKeyTranslateTable[PAD7				] = SCA_IInputDevice::KX_PAD7;                  
-	gReverseKeyTranslateTable[PAD9				] = SCA_IInputDevice::KX_PAD9;                  
-	
-	gReverseKeyTranslateTable[PADPERIOD			] = SCA_IInputDevice::KX_PADPERIOD;                  
-	gReverseKeyTranslateTable[PADSLASHKEY		] = SCA_IInputDevice::KX_PADSLASHKEY;                  
-	gReverseKeyTranslateTable[PADASTERKEY		] = SCA_IInputDevice::KX_PADASTERKEY;                  
-	
-	gReverseKeyTranslateTable[PAD0				] = SCA_IInputDevice::KX_PAD0;                  
-	gReverseKeyTranslateTable[PADMINUS			] = SCA_IInputDevice::KX_PADMINUS;                  
-	gReverseKeyTranslateTable[PADENTER			] = SCA_IInputDevice::KX_PADENTER;                  
-	gReverseKeyTranslateTable[PADPLUSKEY		] = SCA_IInputDevice::KX_PADPLUSKEY;                  
-	
-	
-	gReverseKeyTranslateTable[F1KEY				] = SCA_IInputDevice::KX_F1KEY;                  
-	gReverseKeyTranslateTable[F2KEY				] = SCA_IInputDevice::KX_F2KEY;                  
-	gReverseKeyTranslateTable[F3KEY				] = SCA_IInputDevice::KX_F3KEY;                  
-	gReverseKeyTranslateTable[F4KEY				] = SCA_IInputDevice::KX_F4KEY;                  
-	gReverseKeyTranslateTable[F5KEY				] = SCA_IInputDevice::KX_F5KEY;                  
-	gReverseKeyTranslateTable[F6KEY				] = SCA_IInputDevice::KX_F6KEY;                  
-	gReverseKeyTranslateTable[F7KEY				] = SCA_IInputDevice::KX_F7KEY;                  
-	gReverseKeyTranslateTable[F8KEY				] = SCA_IInputDevice::KX_F8KEY;                  
-	gReverseKeyTranslateTable[F9KEY				] = SCA_IInputDevice::KX_F9KEY;                  
-	gReverseKeyTranslateTable[F10KEY			] = SCA_IInputDevice::KX_F10KEY;                  
-	gReverseKeyTranslateTable[F11KEY			] = SCA_IInputDevice::KX_F11KEY;                  
-	gReverseKeyTranslateTable[F12KEY			] = SCA_IInputDevice::KX_F12KEY;                  
-	
-	gReverseKeyTranslateTable[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;                  
-	gReverseKeyTranslateTable[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;                  
-	gReverseKeyTranslateTable[HOMEKEY			] = SCA_IInputDevice::KX_HOMEKEY;                  
-	gReverseKeyTranslateTable[PAGEUPKEY			] = SCA_IInputDevice::KX_PAGEUPKEY;                  
-	gReverseKeyTranslateTable[PAGEDOWNKEY		] = SCA_IInputDevice::KX_PAGEDOWNKEY;                  
-	gReverseKeyTranslateTable[ENDKEY			] = SCA_IInputDevice::KX_ENDKEY;
-	
+
+		gReverseKeyTranslateTable[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
+		gReverseKeyTranslateTable[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
+		gReverseKeyTranslateTable[KKEY				] = SCA_IInputDevice::KX_KKEY;                  
+		gReverseKeyTranslateTable[LKEY				] = SCA_IInputDevice::KX_LKEY;                  
+		gReverseKeyTranslateTable[MKEY				] = SCA_IInputDevice::KX_MKEY;                  
+		gReverseKeyTranslateTable[NKEY				] = SCA_IInputDevice::KX_NKEY;                  
+		gReverseKeyTranslateTable[OKEY				] = SCA_IInputDevice::KX_OKEY;                  
+		gReverseKeyTranslateTable[PKEY				] = SCA_IInputDevice::KX_PKEY;                  
+		gReverseKeyTranslateTable[QKEY				] = SCA_IInputDevice::KX_QKEY;                  
+		gReverseKeyTranslateTable[RKEY				] = SCA_IInputDevice::KX_RKEY;                  
+		gReverseKeyTranslateTable[SKEY				] = SCA_IInputDevice::KX_SKEY;                  
+		gReverseKeyTranslateTable[TKEY				] = SCA_IInputDevice::KX_TKEY;                  
+		gReverseKeyTranslateTable[UKEY				] = SCA_IInputDevice::KX_UKEY;                  
+		gReverseKeyTranslateTable[VKEY				] = SCA_IInputDevice::KX_VKEY;                  
+		gReverseKeyTranslateTable[WKEY				] = SCA_IInputDevice::KX_WKEY;                  
+		gReverseKeyTranslateTable[XKEY				] = SCA_IInputDevice::KX_XKEY;                  
+		gReverseKeyTranslateTable[YKEY				] = SCA_IInputDevice::KX_YKEY;                  
+		gReverseKeyTranslateTable[ZKEY				] = SCA_IInputDevice::KX_ZKEY;                  
+		
+		gReverseKeyTranslateTable[ZEROKEY			] = SCA_IInputDevice::KX_ZEROKEY;                  
+		gReverseKeyTranslateTable[ONEKEY			] = SCA_IInputDevice::KX_ONEKEY;                  
+		gReverseKeyTranslateTable[TWOKEY			] = SCA_IInputDevice::KX_TWOKEY;                  
+		gReverseKeyTranslateTable[THREEKEY			] = SCA_IInputDevice::KX_THREEKEY;                  
+		gReverseKeyTranslateTable[FOURKEY			] = SCA_IInputDevice::KX_FOURKEY;                  
+		gReverseKeyTranslateTable[FIVEKEY			] = SCA_IInputDevice::KX_FIVEKEY;                  
+		gReverseKeyTranslateTable[SIXKEY			] = SCA_IInputDevice::KX_SIXKEY;                  
+		gReverseKeyTranslateTable[SEVENKEY			] = SCA_IInputDevice::KX_SEVENKEY;                  
+		gReverseKeyTranslateTable[EIGHTKEY			] = SCA_IInputDevice::KX_EIGHTKEY;                  
+		gReverseKeyTranslateTable[NINEKEY			] = SCA_IInputDevice::KX_NINEKEY;                  
+		
+		gReverseKeyTranslateTable[CAPSLOCKKEY		] = SCA_IInputDevice::KX_CAPSLOCKKEY;                  
+		
+		gReverseKeyTranslateTable[LEFTCTRLKEY		] = SCA_IInputDevice::KX_LEFTCTRLKEY;                  
+		gReverseKeyTranslateTable[LEFTALTKEY		] = SCA_IInputDevice::KX_LEFTALTKEY;                  
+		gReverseKeyTranslateTable[RIGHTALTKEY		] = SCA_IInputDevice::KX_RIGHTALTKEY;                  
+		gReverseKeyTranslateTable[RIGHTCTRLKEY		] = SCA_IInputDevice::KX_RIGHTCTRLKEY;                  
+		gReverseKeyTranslateTable[RIGHTSHIFTKEY		] = SCA_IInputDevice::KX_RIGHTSHIFTKEY;                  
+		gReverseKeyTranslateTable[LEFTSHIFTKEY		] = SCA_IInputDevice::KX_LEFTSHIFTKEY;                  
+		
+		gReverseKeyTranslateTable[ESCKEY			] = SCA_IInputDevice::KX_ESCKEY;                  
+		gReverseKeyTranslateTable[TABKEY			] = SCA_IInputDevice::KX_TABKEY;                  
+		gReverseKeyTranslateTable[RETKEY			] = SCA_IInputDevice::KX_RETKEY;                  
+		gReverseKeyTranslateTable[SPACEKEY			] = SCA_IInputDevice::KX_SPACEKEY;                  
+		gReverseKeyTranslateTable[LINEFEEDKEY		] = SCA_IInputDevice::KX_LINEFEEDKEY;                  
+		gReverseKeyTranslateTable[BACKSPACEKEY		] = SCA_IInputDevice::KX_BACKSPACEKEY;                  
+		gReverseKeyTranslateTable[DELKEY			] = SCA_IInputDevice::KX_DELKEY;                  
+		gReverseKeyTranslateTable[SEMICOLONKEY		] = SCA_IInputDevice::KX_SEMICOLONKEY;                  
+		gReverseKeyTranslateTable[PERIODKEY			] = SCA_IInputDevice::KX_PERIODKEY;                  
+		gReverseKeyTranslateTable[COMMAKEY			] = SCA_IInputDevice::KX_COMMAKEY;                  
+		gReverseKeyTranslateTable[QUOTEKEY			] = SCA_IInputDevice::KX_QUOTEKEY;                  
+		gReverseKeyTranslateTable[ACCENTGRAVEKEY	] = SCA_IInputDevice::KX_ACCENTGRAVEKEY;                  
+		gReverseKeyTranslateTable[MINUSKEY			] = SCA_IInputDevice::KX_MINUSKEY;                  
+		gReverseKeyTranslateTable[SLASHKEY			] = SCA_IInputDevice::KX_SLASHKEY;                  
+		gReverseKeyTranslateTable[BACKSLASHKEY		] = SCA_IInputDevice::KX_BACKSLASHKEY;                  
+		gReverseKeyTranslateTable[EQUALKEY			] = SCA_IInputDevice::KX_EQUALKEY;                  
+		gReverseKeyTranslateTable[LEFTBRACKETKEY	] = SCA_IInputDevice::KX_LEFTBRACKETKEY;                  
+		gReverseKeyTranslateTable[RIGHTBRACKETKEY	] = SCA_IInputDevice::KX_RIGHTBRACKETKEY;                  
+		
+		gReverseKeyTranslateTable[LEFTARROWKEY		] = SCA_IInputDevice::KX_LEFTARROWKEY;                  
+		gReverseKeyTranslateTable[DOWNARROWKEY		] = SCA_IInputDevice::KX_DOWNARROWKEY;                  
+		gReverseKeyTranslateTable[RIGHTARROWKEY		] = SCA_IInputDevice::KX_RIGHTARROWKEY;                  
+		gReverseKeyTranslateTable[UPARROWKEY		] = SCA_IInputDevice::KX_UPARROWKEY;                  
+		
+		gReverseKeyTranslateTable[PAD2				] = SCA_IInputDevice::KX_PAD2;                  
+		gReverseKeyTranslateTable[PAD4				] = SCA_IInputDevice::KX_PAD4;                  
+		gReverseKeyTranslateTable[PAD6				] = SCA_IInputDevice::KX_PAD6;                  
+		gReverseKeyTranslateTable[PAD8				] = SCA_IInputDevice::KX_PAD8;                  
+		
+		gReverseKeyTranslateTable[PAD1				] = SCA_IInputDevice::KX_PAD1;                  
+		gReverseKeyTranslateTable[PAD3				] = SCA_IInputDevice::KX_PAD3;                  
+		gReverseKeyTranslateTable[PAD5				] = SCA_IInputDevice::KX_PAD5;                  
+		gReverseKeyTranslateTable[PAD7				] = SCA_IInputDevice::KX_PAD7;                  
+		gReverseKeyTranslateTable[PAD9				] = SCA_IInputDevice::KX_PAD9;                  
+		
+		gReverseKeyTranslateTable[PADPERIOD			] = SCA_IInputDevice::KX_PADPERIOD;                  
+		gReverseKeyTranslateTable[PADSLASHKEY		] = SCA_IInputDevice::KX_PADSLASHKEY;                  
+		gReverseKeyTranslateTable[PADASTERKEY		] = SCA_IInputDevice::KX_PADASTERKEY;                  
+		
+		gReverseKeyTranslateTable[PAD0				] = SCA_IInputDevice::KX_PAD0;                  
+		gReverseKeyTranslateTable[PADMINUS			] = SCA_IInputDevice::KX_PADMINUS;                  
+		gReverseKeyTranslateTable[PADENTER			] = SCA_IInputDevice::KX_PADENTER;                  
+		gReverseKeyTranslateTable[PADPLUSKEY		] = SCA_IInputDevice::KX_PADPLUSKEY;                  
+		
+		
+		gReverseKeyTranslateTable[F1KEY				] = SCA_IInputDevice::KX_F1KEY;                  
+		gReverseKeyTranslateTable[F2KEY				] = SCA_IInputDevice::KX_F2KEY;                  
+		gReverseKeyTranslateTable[F3KEY				] = SCA_IInputDevice::KX_F3KEY;                  
+		gReverseKeyTranslateTable[F4KEY				] = SCA_IInputDevice::KX_F4KEY;                  
+		gReverseKeyTranslateTable[F5KEY				] = SCA_IInputDevice::KX_F5KEY;                  
+		gReverseKeyTranslateTable[F6KEY				] = SCA_IInputDevice::KX_F6KEY;                  
+		gReverseKeyTranslateTable[F7KEY				] = SCA_IInputDevice::KX_F7KEY;                  
+		gReverseKeyTranslateTable[F8KEY				] = SCA_IInputDevice::KX_F8KEY;                  
+		gReverseKeyTranslateTable[F9KEY				] = SCA_IInputDevice::KX_F9KEY;                  
+		gReverseKeyTranslateTable[F10KEY			] = SCA_IInputDevice::KX_F10KEY;                  
+		gReverseKeyTranslateTable[F11KEY			] = SCA_IInputDevice::KX_F11KEY;                  
+		gReverseKeyTranslateTable[F12KEY			] = SCA_IInputDevice::KX_F12KEY;                  
+		
+		gReverseKeyTranslateTable[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;                  
+		gReverseKeyTranslateTable[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;                  
+		gReverseKeyTranslateTable[HOMEKEY			] = SCA_IInputDevice::KX_HOMEKEY;                  
+		gReverseKeyTranslateTable[PAGEUPKEY			] = SCA_IInputDevice::KX_PAGEUPKEY;                  
+		gReverseKeyTranslateTable[PAGEDOWNKEY		] = SCA_IInputDevice::KX_PAGEDOWNKEY;                  
+		gReverseKeyTranslateTable[ENDKEY			] = SCA_IInputDevice::KX_ENDKEY;
+	}
+
+    int executePriority = 0;
 	int uniqueint = 0;
+	int count = 0;
 	bSensor* sens = (bSensor*)blenderobject->sensors.first;
 	bool pos_pulsemode = false;
 	bool neg_pulsemode = false;
 	int frequency = 0;
 	bool invert = false;
 	bool level = false;
+	bool tap = false;
 	
+	while (sens)
+	{
+		sens = sens->next;
+		count++;
+	}
+	gameobj->ReserveSensor(count);
+	sens = (bSensor*)blenderobject->sensors.first;
 	while(sens)
 	{
 		SCA_ISensor* gamesensor=NULL;
@@ -279,6 +295,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		frequency = sens->freq;
 		invert    = !(sens->invert == 0);
 		level     = !(sens->level == 0);
+		tap       = !(sens->tap == 0);
 
 		switch (sens->type)
 		{
@@ -679,6 +696,11 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					if (eventmgr)
 					{
 						int randomSeed = blenderrndsensor->seed;
+						if (randomSeed == 0)
+						{
+							randomSeed = (int)(kxengine->GetRealTime()*100000.0);
+							randomSeed ^= (intptr_t)blenderrndsensor;
+						}
 						gamesensor = new SCA_RandomSensor(eventmgr, gameobj, randomSeed);
 					}
 				}
@@ -766,7 +788,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 									 frequency);
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
-			gamesensor->SetName(STR_String(sens->name));			
+			gamesensor->SetTap(tap);
+			gamesensor->SetName(sens->name);			
 			
 			gameobj->AddSensor(gamesensor);
 			
@@ -775,7 +798,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			//if (isInActiveLayer)
 			//	gamesensor->RegisterToManager();
 			
-			
+			gamesensor->ReserveController(sens->totlinks);
 			for (int i=0;i<sens->totlinks;i++)
 			{
 				bController* linkedcont = (bController*) sens->links[i];

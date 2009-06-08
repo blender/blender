@@ -2032,7 +2032,7 @@ int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname)
 	}
 }
 
-int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value)
+int RNA_enum_value_from_id(const EnumPropertyItem *item, const char *identifier, int *value)
 {
 	for( ; item->identifier; item++) {
 		if(strcmp(item->identifier, identifier)==0) {
@@ -2044,7 +2044,7 @@ int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *
 	return 0;
 }
 
-int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier)
+int	RNA_enum_id_from_value(const EnumPropertyItem *item, int value, const char **identifier)
 {
 	for( ; item->identifier; item++) {
 		if(item->value==value) {

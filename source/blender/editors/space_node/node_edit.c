@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
@@ -211,7 +212,7 @@ void snode_handle_recalc(bContext *C, SpaceNode *snode)
 	else if(snode->treetype==NTREE_COMPOSIT)
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, snode->id);
 	else if(snode->treetype==NTREE_TEXTURE) {
-		// ntreeTexUpdatePreviews(snode->nodetree);
+		// ntreeTexUpdatePreviews(snode->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
 		// XXX BIF_preview_changed(ID_TE);
 	}
 }
@@ -573,7 +574,7 @@ void node_texture_default(Tex *tx)
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
-	ntreeTexUpdatePreviews(tx->nodetree);
+	ntreeTexUpdatePreviews(tx->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
@@ -607,13 +608,42 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		snode->nodetree= scene->nodetree;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
-		if(ob) {
-			Tex *tx= give_current_texture(ob, ob->actcol);
-			if(tx) {
-				snode->from= (ID*)ob; /* please check this; i have no idea what 'from' is. */
-				snode->id= &tx->id;
-				snode->nodetree= tx->nodetree;
+		Tex *tx= NULL;
+
+		if(snode->texfrom==SNODE_TEX_OBJECT) {
+			if(ob) {
+				tx= give_current_texture(ob, ob->actcol);
+				snode->from= (ID *)ob;
 			}
+		}
+		else if(snode->texfrom==SNODE_TEX_WORLD) {
+			tx= give_current_world_texture(scene);
+			snode->from= (ID *)scene->world;
+		}
+		else {
+			MTex *mtex= NULL;
+			
+			if(G.f & G_SCULPTMODE) {
+				Sculpt *sd= scene->toolsettings->sculpt;
+				if(sd && sd->brush)
+					if(sd->brush->texact != -1)
+						mtex= sd->brush->mtex[sd->brush->texact];
+			}
+			else {
+				Brush *br= scene->toolsettings->imapaint.brush;
+				if(br) 
+					mtex= br->mtex[br->texact];
+			}
+			
+			if(mtex) {
+				snode->from= (ID *)scene;
+				tx= mtex->tex;
+			}
+		}
+		
+		if(tx) {
+			snode->id= &tx->id;
+			snode->nodetree= tx->nodetree;
 		}
 	}
 	
@@ -1080,7 +1110,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			// XXX
 			if(snode->nodetree->type == NTREE_TEXTURE)
-				ntreeTexUpdatePreviews(snode->nodetree);
+				ntreeTexUpdatePreviews(snode->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
 				
 			ED_region_tag_redraw(ar);
 
@@ -1626,7 +1656,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 	
 	if(snode->nodetree->type==NTREE_TEXTURE) {
 		ntreeTexCheckCyclics(snode->edittree);
-		ntreeTexUpdatePreviews(snode->edittree);
+		ntreeTexUpdatePreviews(snode->edittree); /* XXX texture nodes should follow shader node methods (ton) */
 	}
 	
 	return node;

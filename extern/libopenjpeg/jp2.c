@@ -561,6 +561,7 @@ opj_image_t* jp2_decode(opj_jp2_t *jp2, opj_cio_t *cio, opj_codestream_info_t *c
 	image = j2k_decode(jp2->j2k, cio, cstr_info);
 	if(!image) {
 		opj_event_msg(cinfo, EVT_ERROR, "Failed to decode J2K image\n");
+		return NULL;
 	}
 
 	/* Set Image Color Space */

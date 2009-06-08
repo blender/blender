@@ -33,11 +33,14 @@
 #include <set>
 #include <algorithm>
 
+#include "SG_DList.h"
+
 class SCA_EventManager
 {
 protected:
 	// use a set to speed-up insertion/removal
-	std::set <class SCA_ISensor*>				m_sensors;
+	//std::set <class SCA_ISensor*>				m_sensors;
+	SG_DList		m_sensors;
 
 public:
 	enum EVENT_MANAGER_TYPE {

@@ -160,7 +160,7 @@ void set_last_seq(Scene *scene, Sequence *seq)
 	ed->act_seq= seq;
 }
 
-Sequence *get_forground_frame_seq(Scene *scene, int frame)
+Sequence *get_foreground_frame_seq(Scene *scene, int frame)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq, *best_seq=NULL;
@@ -879,12 +879,33 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 static Sequence *dupli_seq(Sequence *seq) 
 {
 	Sequence *seqn = MEM_dupallocN(seq);
+	// XXX animato: ID *id;
 
 	seq->tmp = seqn;
 		
 	seqn->strip= MEM_dupallocN(seq->strip);
 
-	if(seqn->ipo) seqn->ipo->id.us++;
+	// XXX animato
+#if 0
+	if (seqn->ipo) {
+		if (U.dupflag & USER_DUP_IPO) {
+			id= (ID *)seqn->ipo;
+			seqn->ipo= copy_ipo(seqn->ipo);
+			/* we don't need to decrease the number
+			 * of the ipo because we never increase it,
+			 * for example, adduplicate need decrease
+			 * the number but only because copy_object
+			 * call id_us_plus for the ipo block and
+			 * single_ipo_users only work if id->us > 1.
+			 *
+			 * need call ipo_idnew here, for drivers ??
+			 * - Diego
+			 */
+		}
+		else
+			seqn->ipo->id.us++;
+	}
+#endif
 
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;

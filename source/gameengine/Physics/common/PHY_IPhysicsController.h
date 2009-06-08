@@ -31,7 +31,7 @@
 
 #include "PHY_IController.h"
 
-
+class PHY_IMotionState;
 
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
@@ -53,6 +53,7 @@ class PHY_IPhysicsController : public PHY_IController
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly)=0;
 		virtual	void		WriteDynamicsToMotionState()=0;
+		virtual class PHY_IMotionState* GetMotionState() = 0;
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)=0;
 

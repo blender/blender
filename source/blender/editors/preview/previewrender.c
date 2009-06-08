@@ -252,6 +252,12 @@ void BIF_preview_changed(short id_code)
 					GPU_lamp_free(ob);
 				}
 			}
+
+			for(ma=G.main->mat.first; ma; ma=ma->id.next) {
+				if(ma->gpumaterial.first) {
+					GPU_material_free(ma);
+				}
+			}
 		} else if(OBACT) {
 			Object *ob = OBACT;
 

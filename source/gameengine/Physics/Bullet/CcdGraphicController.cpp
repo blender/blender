@@ -47,11 +47,24 @@ void CcdGraphicController::setLocalAabb(const btVector3& aabbMin,const btVector3
 
 void CcdGraphicController::setLocalAabb(const MT_Point3& aabbMin,const MT_Point3& aabbMax)
 {
-	m_localAabbMin = btVector3(aabbMin[0],aabbMin[1],aabbMin[2]);
-	m_localAabbMax = btVector3(aabbMax[0],aabbMax[1],aabbMax[2]);
+	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
+	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
 	SetGraphicTransform();
 }
 
+void CcdGraphicController::setLocalAabb(const PHY__Vector3& aabbMin,const PHY__Vector3& aabbMax)
+{
+	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
+	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
+	SetGraphicTransform();
+}
+
+void CcdGraphicController::setLocalAabb(const float* aabbMin,const float* aabbMax)
+{
+	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
+	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
+	SetGraphicTransform();
+}
 
 void CcdGraphicController::getAabb(btVector3& aabbMin, btVector3& aabbMax)
 {
@@ -105,8 +118,17 @@ PHY_IGraphicController* CcdGraphicController::GetReplica(class PHY_IMotionState*
 	replica->m_motionState = motionState;
 	replica->m_newClientInfo = NULL;
 	replica->m_handle = NULL;
-	m_phyEnv->addCcdGraphicController(replica);
+	// don't add the graphic controller now: work around a bug in Bullet with rescaling, 
+	// (the scale of the controller is not yet defined).
+	//m_phyEnv->addCcdGraphicController(replica);
 	return replica;
 }
 
+void CcdGraphicController::Activate(bool active)
+{
+	if (active)
+		m_phyEnv->addCcdGraphicController(this);
+	else
+		m_phyEnv->removeCcdGraphicController(this);
 
+}

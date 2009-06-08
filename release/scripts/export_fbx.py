@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Autodesk FBX (.fbx)...'
-Blender: 244
+Blender: 249
 Group: 'Export'
 Tooltip: 'Selection to an ASCII Autodesk FBX '
 """
 __author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
-__version__ = "1.1"
+__version__ = "1.2"
 
 __bpydoc__ = """\
 This script is an exporter to the FBX file format.
@@ -93,8 +93,8 @@ def copy_images(dest_dir, textures):
 		dest_dir += Blender.sys.sep
 	
 	image_paths = set()
-	for img in textures:
-		image_paths.add(Blender.sys.expandpath(img.filename))
+	for tex in textures:
+		image_paths.add(Blender.sys.expandpath(tex.filename))
 	
 	# Now copy images
 	copyCount = 0
@@ -157,14 +157,29 @@ def increment_string(t):
 # todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
 def sane_name(data, dct):
 	#if not data: return None
-	name = data.name
+	
+	if type(data)==tuple: # materials are paired up with images
+		data, other = data
+		use_other = True
+	else:
+		other = None
+		use_other = False
+	
+	if data:	name = data.name
+	else:		name = None
+	orig_name = name
+	
+	if other:
+		orig_name_other = other.name
+		name = '%s #%s' % (name, orig_name_other)
+	else:
+		orig_name_other = None
 	
 	# dont cache, only ever call once for each data type now,
 	# so as to avoid namespace collision between types - like with objects <-> bones
 	#try:		return dct[name]
 	#except:		pass
 	
-	orig_name = name
 	if not name:
 		name = 'unnamed' # blank string, ASKING FOR TROUBLE!
 	else:
@@ -173,7 +188,11 @@ def sane_name(data, dct):
 	
 	while name in dct.itervalues():	name = increment_string(name)
 	
-	dct[orig_name] = name
+	if use_other: # even if other is None - orig_name_other will be a string or None
+		dct[orig_name, orig_name_other] = name
+	else:
+		dct[orig_name] = name
+		
 	return name
 
 def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
@@ -511,7 +530,7 @@ def write(filename, batch_objects = None, \
 	if time:
 		curtime = time.localtime()[0:6]
 	else:
-		curtime = [0,0,0,0,0,0]
+		curtime = (0,0,0,0,0,0)
 	# 
 	file.write(\
 '''FBXHeaderExtension:  {
@@ -983,7 +1002,7 @@ def write(filename, batch_objects = None, \
 		#eDIRECTIONAL
 		#eSPOT
 		light_type = light.type
-		if light_type > 3: light_type = 0
+		if light_type > 2: light_type = 1 # hemi and area lights become directional
 		
 		mode = light.mode
 		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
@@ -1333,17 +1352,20 @@ def write(filename, batch_objects = None, \
 		me = my_mesh.blenData
 		
 		# if there are non NULL materials on this mesh
-		if [mat for mat in my_mesh.blenMaterials if mat]: 	do_materials = True
-		else:												do_materials = False
+		if my_mesh.blenMaterials:	do_materials = True
+		else:						do_materials = False
 		
 		if my_mesh.blenTextures:	do_textures = True
-		else:						do_textures = False			
+		else:						do_textures = False	
+		
+		do_uvs = me.faceUV
 		
 		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		
-		write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())
+		poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
+		pose_items.append((my_mesh.fbxName, poseMatrix))
 		
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
@@ -1385,22 +1407,18 @@ def write(filename, batch_objects = None, \
 				else:				file.write(',%i,%i,%i,%i' % fi )
 			i+=1
 		
-		ed_val = [None, None]
-		LOOSE = Blender.Mesh.EdgeFlags.LOOSE
+		file.write('\n\t\tEdges: ')
+		i=-1
 		for ed in me.edges:
-			if ed.flag & LOOSE:
-				ed_val[0] = ed.v1.index
-				ed_val[1] = -(ed.v2.index+1)
 				if i==-1:
-					file.write('%i,%i' % tuple(ed_val) )
+					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
 					i=0
 				else:
 					if i==13:
 						file.write('\n\t\t')
 						i=0
-					file.write(',%i,%i' % tuple(ed_val) )
+					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
 				i+=1
-		del LOOSE
 		
 		file.write('\n\t\tGeometryVersion: 124')
 		
@@ -1422,6 +1440,51 @@ def write(filename, batch_objects = None, \
 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
 			i+=1
 		file.write('\n\t\t}')
+		
+		# Write Face Smoothing
+		file.write('''
+		LayerElementSmoothing: 0 {
+			Version: 102
+			Name: ""
+			MappingInformationType: "ByPolygon"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
+		
+		i=-1
+		for f in me.faces:
+			if i==-1:
+				file.write('%i' % f.smooth);	i=0
+			else:
+				if i==54:
+					file.write('\n			 ');	i=0
+				file.write(',%i' % f.smooth)
+			i+=1
+		
+		file.write('\n\t\t}')
+		
+		# Write Edge Smoothing
+		file.write('''
+		LayerElementSmoothing: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "ByEdge"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
+		
+		SHARP = Blender.Mesh.EdgeFlags.SHARP
+		i=-1
+		for ed in me.edges:
+			if i==-1:
+				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
+			else:
+				if i==54:
+					file.write('\n			 ');	i=0
+				file.write(',%i' % ((ed.flag&SHARP)!=0))
+			i+=1
+		
+		file.write('\n\t\t}')
+		del SHARP
+		
 		
 		# Write VertexColor Layers
 		# note, no programs seem to use this info :/
@@ -1475,7 +1538,7 @@ def write(filename, batch_objects = None, \
 		
 		# Write UV and texture layers.
 		uvlayers = []
-		if me.faceUV:
+		if do_uvs:
 			uvlayers = me.getUVLayerNames()
 			uvlayer_orig = me.activeUVLayer
 			for uvindex, uvlayer in enumerate(uvlayers):
@@ -1538,13 +1601,13 @@ def write(filename, batch_objects = None, \
 					if len(my_mesh.blenTextures) == 1:
 						file.write('0')
 					else:
-						#texture_mapping_local = {None:0}
 						texture_mapping_local = {None:-1}
 						
 						i = 0 # 1 for dummy
 						for tex in my_mesh.blenTextures:
-							texture_mapping_local[tex] = i
-							i+=1
+							if tex: # None is set above
+								texture_mapping_local[tex] = i
+								i+=1
 						
 						i=-1
 						for f in me.faces:
@@ -1594,32 +1657,32 @@ def write(filename, batch_objects = None, \
 				file.write('0')
 			else:
 				# Build a material mapping for this 
-				#material_mapping_local = [0] * 16 # local-index : global index.
-				material_mapping_local = [-1] * 16 # local-index : global index.
-				i= 0 # 1
-				for j, mat in enumerate(my_mesh.blenMaterials):
-					if mat:
-						material_mapping_local[j] = i
-						i+=1
-					# else leave as -1
+				material_mapping_local = {} # local-mat & tex : global index.
+				
+				for j, mat_tex_pair in enumerate(my_mesh.blenMaterials):
+					material_mapping_local[mat_tex_pair] = j
 				
 				len_material_mapping_local = len(material_mapping_local)
 				
+				mats = my_mesh.blenMaterialList
+				
 				i=-1
 				for f in me.faces:
-					f_mat = f.mat
-					if f_mat >= len_material_mapping_local:
-						f_mat = 0
+					try:	mat = mats[f.mat]
+					except:mat = None
+					
+					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+					else: tex = None
 					
 					if i==-1:
 						i=0
-						file.write( '%s' % (material_mapping_local[f_mat]))
+						file.write( '%s' % (material_mapping_local[mat, tex])) # None for mat or tex is ok
 					else:
 						if i==55:
 							file.write('\n\t\t\t\t')
 							i=0
 						
-						file.write(',%s' % (material_mapping_local[f_mat]))
+						file.write(',%s' % (material_mapping_local[mat, tex]))
 					i+=1
 			
 			file.write('\n\t\t}')
@@ -1654,7 +1717,7 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if me.faceUV:
+		if do_uvs: # same as me.faceUV
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementUV"
@@ -1736,8 +1799,8 @@ def write(filename, batch_objects = None, \
 	ob_all_typegroups = [ob_meshes, ob_lights, ob_cameras, ob_arms, ob_null]
 	
 	groups = [] # blender groups, only add ones that have objects in the selections
-	materials = {}
-	textures = {}
+	materials = {} # (mat, image) keys, should be a set()
+	textures = {} # should be a set()
 	
 	tmp_ob_type = ob_type = None # incase no objects are exported, so as not to raise an error
 	
@@ -1837,29 +1900,33 @@ def write(filename, batch_objects = None, \
 					if EXP_MESH_HQ_NORMALS:
 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 					
-					for mat in mats:
-						# 2.44 use mat.lib too for uniqueness
-						if mat: materials[mat] = mat
-					
 					texture_mapping_local = {}
+					material_mapping_local = {}
 					if me.faceUV:
 						uvlayer_orig = me.activeUVLayer
 						for uvlayer in me.getUVLayerNames():
 							me.activeUVLayer = uvlayer
 							for f in me.faces:
-								img = f.image
-								textures[img] = texture_mapping_local[img] = img
+								tex = f.image
+								textures[tex] = texture_mapping_local[tex] = None
+								
+								try: mat = mats[f.mat]
+								except: mat = None
+								
+								materials[mat, tex] = material_mapping_local[mat, tex] = None # should use sets, wait for blender 2.5
+									
 							
 							me.activeUVLayer = uvlayer_orig
+					else:
+						for mat in mats:
+							# 2.44 use mat.lib too for uniqueness
+							materials[mat, None] = material_mapping_local[mat, None] = None
+						else:
+							materials[None, None] = None
 					
 					if EXP_ARMATURE:
 						armob = BPyObject.getObjectArmature(ob)
 						blenParentBoneName = None
-						
-						# Note - Fixed in BPyObject but for now just copy the function because testers wont have up to date modukes,
-						# TODO - remove this for 2.45 release since getObjectArmature has been fixed
-						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
-							armob = ob.parent
 						
 						# parent bone - special case
 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
@@ -1876,8 +1943,9 @@ def write(filename, batch_objects = None, \
 					my_mesh = my_object_generic(ob, mtx)
 					my_mesh.blenData =		me
 					my_mesh.origData = 		origData
-					my_mesh.blenMaterials =	mats
-					my_mesh.blenTextures =	texture_mapping_local.values()
+					my_mesh.blenMaterials =	material_mapping_local.keys()
+					my_mesh.blenMaterialList = mats
+					my_mesh.blenTextures =	texture_mapping_local.keys()
 					
 					# if only 1 null texture then empty the list
 					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
@@ -1996,8 +2064,8 @@ def write(filename, batch_objects = None, \
 	# Finished finding groups we use
 	
 	
-	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
-	textures =	[(sane_texname(img), img) for img in textures.itervalues()  if img]
+	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.iterkeys()]
+	textures =	[(sane_texname(tex), tex) for tex in textures.iterkeys()  if tex]
 	materials.sort() # sort by name
 	textures.sort()
 	
@@ -2126,8 +2194,8 @@ Objects:  {''')
 	
 	write_camera_default()
 	
-	for matname, mat in materials:
-		write_material(matname, mat)
+	for matname, (mat, tex) in materials:
+		write_material(matname, mat) # We only need to have a material per image pair, but no need to write any image info into the material (dumb fbx standard)
 	
 	# each texture uses a video, odd
 	for texname, tex in textures:
@@ -2247,7 +2315,7 @@ Relations:  {''')
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 	}''')
 	
-	for matname, mat in materials:
+	for matname, (mat, tex) in materials:
 		file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
 	if textures:
@@ -2299,9 +2367,14 @@ Connections:  {''')
 	if materials:
 		for my_mesh in ob_meshes:
 			# Connect all materials to all objects, not good form but ok for now.
-			for mat in my_mesh.blenMaterials:
-				if mat:
-					file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+			for mat, tex in my_mesh.blenMaterials:
+				if mat:	mat_name = mat.name
+				else:	mat_name = None
+				
+				if tex:	tex_name = tex.name
+				else:	tex_name = None
+				
+				file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat_name, tex_name], my_mesh.fbxName))
 	
 	if textures:
 		for my_mesh in ob_meshes:
@@ -2519,8 +2592,18 @@ Takes:  {''')
 						for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
 							
 							if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
-							elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
-							else:					context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+							elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+							elif	TX_CHAN=='R':
+								# Was....
+								# elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
+								# 
+								# ...but we need to use the previous euler for compatible conversion.
+								context_bone_anim_vecs = []
+								prev_eul = None
+								for mtx in context_bone_anim_mats:
+									if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
+									else:			prev_eul = mtx[1].toEuler()
+									context_bone_anim_vecs.append(prev_eul)
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							
@@ -2539,10 +2622,9 @@ Takes:  {''')
 										if frame!=act_start:
 											file.write(',')
 										
-										# Curve types are 
+										# Curve types are 'C,n' for constant, 'L' for linear
 										# C,n is for bezier? - linear is best for now so we can do simple keyframe removal
-										file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
-										#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
+										file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
 										frame+=1
 								else:
 									# remove unneeded keys, j is the frame, needed when some frames are removed.
@@ -2550,11 +2632,32 @@ Takes:  {''')
 									
 									# last frame to fisrt frame, missing 1 frame on either side.
 									# removeing in a backwards loop is faster
-									for j in xrange( (act_end-act_start)-1, 0, -1 ):
-										# Is this key reduenant?
-										if	abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
-											abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+									#for j in xrange( (act_end-act_start)-1, 0, -1 ):
+									# j = (act_end-act_start)-1
+									j = len(context_bone_anim_keys)-2
+									while j > 0 and len(context_bone_anim_keys) > 2:
+										# print j, len(context_bone_anim_keys)
+										# Is this key the same as the ones next to it?
+										
+										# co-linear horizontal...
+										if		abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
+												abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+												
 											del context_bone_anim_keys[j]
+											
+										else:
+											frame_range = float(context_bone_anim_keys[j+1][1] - context_bone_anim_keys[j-1][1])
+											frame_range_fac1 = (context_bone_anim_keys[j+1][1] - context_bone_anim_keys[j][1]) / frame_range
+											frame_range_fac2 = 1.0 - frame_range_fac1
+											
+											if abs(((context_bone_anim_keys[j-1][0]*frame_range_fac1 + context_bone_anim_keys[j+1][0]*frame_range_fac2)) - context_bone_anim_keys[j][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+												del context_bone_anim_keys[j]
+											else:
+												j-=1
+											
+										# keep the index below the list length
+										if j > len(context_bone_anim_keys)-2:
+											j = len(context_bone_anim_keys)-2
 									
 									if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
 										# This axis has no moton, its okay to skip KeyCount and Keys in this case
@@ -2567,8 +2670,7 @@ Takes:  {''')
 											if frame != context_bone_anim_keys[0][1]: # not the first
 												file.write(',')
 											# frame is alredy one less then blenders frame
-											file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
-											#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
+											file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
 								
 								if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
 								elif	i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
@@ -2734,15 +2836,16 @@ def fbx_ui_exit(e,v):
 	GLOBALS['EVENT'] = e
 
 def do_help(e,v):
-	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
-	print 'Trying to open web browser with documentation at this address...'
-	print '\t' + url
-	
-	try:
-		import webbrowser
-		webbrowser.open(url)
-	except:
-		print '...could not open a browser window.'
+    url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
+    print 'Trying to open web browser with documentation at this address...'
+    print '\t' + url
+    
+    try:
+        import webbrowser
+        webbrowser.open(url)
+    except:
+        Blender.Draw.PupMenu("Error%t|Opening a webbrowser requires a full python installation")
+        print '...could not open a browser window.'
 
 	
 
@@ -2846,7 +2949,7 @@ def fbx_ui():
 		Draw.BeginAlign()
 		GLOBALS['ANIM_OPTIMIZE'] =				Draw.Toggle('Optimize Keyframes',	EVENT_REDRAW, x+20,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE'].val,	'Remove double keyframes', do_redraw)
 		if GLOBALS['ANIM_OPTIMIZE'].val:
-			GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Number('Precission: ',			EVENT_NONE, x+180,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,	3, 16, 'Tolerence for comparing double keyframes (higher for greater accuracy)')
+			GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Number('Precission: ',			EVENT_NONE, x+180,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,	1, 16, 'Tolerence for comparing double keyframes (higher for greater accuracy)')
 		Draw.EndAlign()
 		
 		Draw.BeginAlign()
@@ -2924,7 +3027,7 @@ def write_ui():
 	# animation opts
 	GLOBALS['ANIM_ENABLE'] =				Draw.Create(1)
 	GLOBALS['ANIM_OPTIMIZE'] =				Draw.Create(1)
-	GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Create(6) # decimal places
+	GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Create(4) # decimal places
 	GLOBALS['ANIM_ACTION_ALL'] =			[Draw.Create(0), Draw.Create(1)] # not just the current action
 	
 	# batch export options

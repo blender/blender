@@ -156,6 +156,8 @@
 
 #include "readfile.h"
 
+#include "PIL_time.h"
+
 #include <errno.h>
 
 /*
@@ -611,10 +613,16 @@ static BHeadN *get_bhead(FileData *fd)
 	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
-
+	
 	if (fd) {
 		if ( ! fd->eof) {
 
+			/* not strictly needed but shuts valgrind up
+			 * since uninitialized memory gets compared */
+			memset(&bhead8, 0, sizeof(BHead8));
+			memset(&bhead4, 0, sizeof(BHead4));
+			memset(&bhead,  0, sizeof(BHead));
+			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can
 			// be a big or little endian BHead4 or BHead8 structure.
@@ -1489,6 +1497,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
+			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= brush->mtex[a];
 				if(mtex)
@@ -3146,6 +3156,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->colfaces= newdataadr(fd, lvl->colfaces);
 		}
 	}
+
+	/* Gracefully handle corrupted mesh */
+	if(mesh->mr && !mesh->mr->verts) {
+		/* If totals match, simply load the current mesh verts into multires */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		else {
+			/* Otherwise, we can't recover the data, silently remove multires */
+			multires_free(mesh->mr);
+			mesh->mr = NULL;
+		}
+	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
@@ -3337,6 +3359,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bAddObjectActuator *eoa= act->data;
 					if(eoa) eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
 					if(eoa==NULL) {
@@ -3345,6 +3371,15 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					}
+				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -3450,6 +3485,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 			smd->emCache = smd->mCache = 0;
+		}
+		else if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			
+			amd->prevCos= NULL;
 		}
 		else if (md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
@@ -3957,6 +3997,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				if (seq->flag & SEQ_USE_PROXY) {
 					seq->strip->proxy = newdataadr(
 						fd, seq->strip->proxy);
+					seq->strip->proxy->anim = 0;
 				} else {
 					seq->strip->proxy = 0;
 				}
@@ -4388,6 +4429,22 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
+				}
+				else if(sl->spacetype==SPACE_IPO) {
+					/* XXX animato */
+#if 0
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
+					if(sipo->blocktype==ID_SEQ) 
+						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
+					else 
+						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+					
+					// not free sipo->ipokey, creates dependency with src/
+					if(sipo->editipo) MEM_freeN(sipo->editipo);
+					sipo->editipo= NULL;
+#endif
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
@@ -8852,7 +8909,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Adjustments needed after Bullets update */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->damping *= 0.635f;
-			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+			ob->rdamping = 0.1 + (0.8f * ob->rdamping);
 		}
 	}
 	
@@ -8864,15 +8921,58 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->r.domeangle = 180;
 			sce->r.domemode = 1;
-			sce->r.domesize = 1.0f;
 			sce->r.domeres = 4;
 			sce->r.domeresbuf = 1.0f;
+			sce->r.dometilt = 0;
 		}
 		/* DBVT culling by default */
 		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
 			wrld->mode |= WO_DBVT_CULLING;
 			wrld->occlusionRes = 128;
 		}
+	}
+
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
+		Object *ob;
+		World *wrld;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
+			if(ob->parent) {
+				/* check if top parent has compound shape set and if yes, set this object
+				   to compound shaper as well (was the behaviour before, now it's optional) */
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				while (parent && parent->parent != NULL) {
+					parent = newlibadr(fd, lib, parent->parent);
+				}
+				if(parent) {
+					if (parent->gameflag & OB_CHILD)
+						ob->gameflag |= OB_CHILD;
+				}
+			}
+		}
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->ticrate = 60;
+			wrld->maxlogicstep = 5;
+			wrld->physubstep = 1;
+			wrld->maxphystep = 5;
+		}
+	}
+
+	if (main->versionfile < 249) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next)
+			sce->r.renderer= 0;
+		
+	}
+	
+	// correct introduce of seed for wind force
+	if (main->versionfile < 249 && main->subversionfile < 1) {
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd)
+				ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+		}
+	
 	}
 
 	if (main->versionfile < 250) {
@@ -9021,6 +9121,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -9847,6 +9948,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 				expand_doit(fd, mainvar, eoa->ob);
 				expand_doit(fd, mainvar, eoa->me);
 			}
+		}
+		else if(act->type==ACT_OBJECT) {
+			bObjectActuator *oa= act->data;
+			expand_doit(fd, mainvar, oa->reference);
 		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;

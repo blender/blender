@@ -35,6 +35,7 @@ struct bglMats;
 struct Scene;
 struct Object;
 struct Base;
+struct Text;
 struct AviCodecData;
 struct QuicktimeCodecData;
 struct RenderData;

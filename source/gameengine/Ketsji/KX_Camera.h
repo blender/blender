@@ -41,6 +41,9 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+/* utility conversion function */
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+
 class KX_Camera : public KX_GameObject
 {
 	Py_Header;
@@ -110,6 +113,11 @@ protected:
 	bool         m_set_frustum_center;
 
 	/**
+	 * whether the camera should delete the node itself (only for shadow camera)
+	 */
+	bool		 m_delete_node;
+
+	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
 	 */
 	void ExtractClipPlanes();
@@ -135,7 +143,7 @@ public:
 
 	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
 	
 	/** 
@@ -146,15 +154,7 @@ public:
 	virtual	CValue*				
 	GetReplica(
 	);
-	
-	/**
-	 * Inherited from CValue -- Makes sure any internal 
-	 * data owned by this class is deep copied. Called internally
-	 */
-	virtual	void				
-	ProcessReplica(
-		KX_Camera* replica
-	);
+	virtual void ProcessReplica();
 
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
@@ -193,6 +193,8 @@ public:
 
 	/** Gets the aperture. */
 	float				GetLens() const;
+	/** Gets the ortho scale. */
+	float				GetScale() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
@@ -277,7 +279,12 @@ public:
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
+	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
+
 	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	
 	static PyObject*	pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -289,6 +296,9 @@ public:
 	static int			pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
+	static PyObject*	pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 	static PyObject*	pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

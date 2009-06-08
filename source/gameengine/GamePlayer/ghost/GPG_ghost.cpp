@@ -703,10 +703,10 @@ int main(int argc, char** argv)
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));
+						setGamePythonPath(G.sce);
 
 						if (firstTimeRunning)
 						{
-							setGamePythonPath(G.sce);
 							firstTimeRunning = false;
 
 							if (fullScreen)

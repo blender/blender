@@ -54,7 +54,7 @@ public:
 	virtual	void		beginFrame();
 	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	bool		proceedDeltaTime(double  curTime,float timeStep);
+	virtual	bool		proceedDeltaTime(double  curTime,float timeStep,float interval);
 	virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep);
 	virtual	float		getFixedTimeStep();
 
@@ -83,11 +83,15 @@ public:
 	virtual void addSensor(PHY_IPhysicsController* ctrl);
 	virtual void removeSensor(PHY_IPhysicsController* ctrl);
 	virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
-	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
-	virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
+	virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl);
+	virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl);
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 
+	virtual float	getConstraintParam(int constraintId,int param)
+	{
+		return 0.f;
+	}
 	virtual void	setConstraintParam(int constraintId,int param,float value,float value1)
 	{
 	}

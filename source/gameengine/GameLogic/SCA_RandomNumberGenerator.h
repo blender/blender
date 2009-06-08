@@ -36,6 +36,9 @@
 
 class SCA_RandomNumberGenerator {
 
+	/* reference counted for memleak */
+	int m_refcount;
+
 	/** base seed */
 	long m_seed;
 
@@ -56,6 +59,16 @@ class SCA_RandomNumberGenerator {
 	float DrawFloat();
 	long GetSeed();
 	void SetSeed(long newseed);
+	SCA_RandomNumberGenerator* AddRef()
+	{
+		++m_refcount;
+		return this;
+	}
+	void Release()
+	{
+		if (--m_refcount == 0)
+			delete this;
+	}
 };
 
 #endif /* __KX_RANDOMNUMBERGENERATOR */

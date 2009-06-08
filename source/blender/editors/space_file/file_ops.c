@@ -105,7 +105,7 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 	int act_file;
 	short selecting = (val == LEFTMOUSE);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
-	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
+	// FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
 	int numfiles = filelist_numfiles(sfile->files);
 

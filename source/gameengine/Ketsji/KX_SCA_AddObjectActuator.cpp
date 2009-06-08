@@ -86,7 +86,7 @@ KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
 	if (m_OriginalObject)
 		m_OriginalObject->UnregisterActuator(this);
 	if (m_lastCreatedObject)
-		m_lastCreatedObject->Release();
+		m_lastCreatedObject->UnregisterActuator(this);
 } 
 
 
@@ -124,7 +124,6 @@ CValue* KX_SCA_AddObjectActuator::GetReplica()
 
 	// this will copy properties and so on...
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
 
 	return replica;
 }
@@ -143,6 +142,12 @@ bool KX_SCA_AddObjectActuator::UnlinkObject(SCA_IObject* clientobj)
 	{
 		// this object is being deleted, we cannot continue to track it.
 		m_OriginalObject = NULL;
+		return true;
+	}
+	if (clientobj == m_lastCreatedObject)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_lastCreatedObject = NULL;
 		return true;
 	}
 	return false;
@@ -166,8 +171,13 @@ void KX_SCA_AddObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SCA_AddObjectActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_SCA_AddObjectActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -231,7 +241,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 	KX_GameObject *gameobj;
 		
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_SCA_AddObjectActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_OriginalObject != NULL)
 		actuator->m_OriginalObject->UnregisterActuator(actuator);	
@@ -241,7 +251,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 	if (actuator->m_OriginalObject)
 		actuator->m_OriginalObject->RegisterActuator(actuator);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
@@ -257,6 +267,10 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 PyObject* KX_SCA_AddObjectActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_AddObjectActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_SCA_AddObjectActuator::py_setattro(PyObject *attr, PyObject* value) 
@@ -347,7 +361,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_OriginalObject->GetName());
+		return PyString_FromString(m_OriginalObject->GetName().ReadPtr());
 	else
 		return m_OriginalObject->GetProxy();
 }
@@ -455,13 +469,21 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 		// keep a copy of the last object, to allow python scripters to change it
 		if (m_lastCreatedObject)
 		{
-			//careful with destruction, it might still have outstanding collision callbacks
-			m_scene->DelayedReleaseObject(m_lastCreatedObject);
-			m_lastCreatedObject->Release();
+			//Let's not keep a reference to the object: it's bad, if the object is deleted
+			//this will force to keep a "zombie" in the game for no good reason.
+			//m_scene->DelayedReleaseObject(m_lastCreatedObject);
+			//m_lastCreatedObject->Release();
+
+			//Instead we use the registration mechanism
+			m_lastCreatedObject->UnregisterActuator(this);
+			m_lastCreatedObject = NULL;
 		}
 		
 		m_lastCreatedObject = replica;
-		m_lastCreatedObject->AddRef();
+		// no reference
+		//m_lastCreatedObject->AddRef();
+		// but registration
+		m_lastCreatedObject->RegisterActuator(this);
 		// finished using replica? then release it
 		replica->Release();
 	}

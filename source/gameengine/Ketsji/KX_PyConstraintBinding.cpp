@@ -33,6 +33,7 @@
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IVehicle.h"
+#include "MT_Matrix3x3.h"
 
 #include "PyObjectPlus.h" 
 
@@ -404,6 +405,8 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 	int physicsid=0,physicsid2 = 0,constrainttype=0,extrainfo=0;
 	int len = PyTuple_Size(args);
 	int success = 1;
+	int flag = 0;
+
 	float pivotX=1,pivotY=1,pivotZ=1,axisX=0,axisY=0,axisZ=1;
 	if (len == 3)
 	{
@@ -420,6 +423,11 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 		success = PyArg_ParseTuple(args,"iiiffffff",&physicsid,&physicsid2,&constrainttype,
 			&pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ);
 	}
+	else if (len == 10)
+	{
+		success = PyArg_ParseTuple(args,"iiiffffffi",&physicsid,&physicsid2,&constrainttype,
+			&pivotX,&pivotY,&pivotZ,&axisX,&axisY,&axisZ,&flag);
+	}
 	else if (len==4)
 	{
 		success = PyArg_ParseTuple(args,"iiii",&physicsid,&physicsid2,&constrainttype,&extrainfo);
@@ -435,7 +443,31 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
 			if (physctrl) //TODO:check for existance of this pointer!
 			{
-				int constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
+				PHY_ConstraintType ct = (PHY_ConstraintType) constrainttype;
+				int constraintid =0;
+
+				if (ct == PHY_GENERIC_6DOF_CONSTRAINT)
+				{
+					//convert from euler angle into axis
+					float radsPerDeg = 6.283185307179586232f / 360.f;
+
+					//we need to pass a full constraint frame, not just axis
+					//localConstraintFrameBasis
+					MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*axisX,radsPerDeg*axisY,radsPerDeg*axisZ));
+					MT_Vector3 axis0 = localCFrame.getColumn(0);
+					MT_Vector3 axis1 = localCFrame.getColumn(1);
+					MT_Vector3 axis2 = localCFrame.getColumn(2);
+						
+					constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,
+						pivotX,pivotY,pivotZ,
+						(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
+						(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
+						(float)axis2.x(),(float)axis2.y(),(float)axis2.z(),flag);
+
+				} else
+				{
+					constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
+				}
 				
 				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
 				
@@ -565,6 +597,19 @@ static struct PyMethodDef physicsconstraints_methods[] = {
 };
 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef PhysicsConstraints_module_def = {
+	{}, /* m_base */
+	"PhysicsConstraints",  /* m_name */
+	PhysicsConstraints_module_documentation,  /* m_doc */
+	0,  /* m_size */
+	physicsconstraints_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
 
 PyObject*	initPythonConstraintBinding()
 {
@@ -573,10 +618,24 @@ PyObject*	initPythonConstraintBinding()
   PyObject* m;
   PyObject* d;
 
-
-  m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
+	/* Use existing module where possible
+	 * be careful not to init any runtime vars after this */
+	m = PyImport_ImportModule( "PhysicsConstraints" );
+	if(m) {
+		Py_DECREF(m);
+		return m;
+	}
+	else {
+		PyErr_Clear();
+	
+#if (PY_VERSION_HEX >= 0x03000000)
+		m = PyModule_Create(&PhysicsConstraints_module_def);
+#else
+		m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
 		     PhysicsConstraints_module_documentation,
 		     (PyObject*)NULL,PYTHON_API_VERSION);
+#endif
+	}
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);

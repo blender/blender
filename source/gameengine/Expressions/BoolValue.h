@@ -28,9 +28,12 @@ class CBoolValue : public CPropValue
 	//PLUGIN_DECLARE_SERIAL(CBoolValue,CValue)	
 
 public:
+	static const STR_String sTrueString;
+	static const STR_String sFalseString;
+
 	CBoolValue();
 	CBoolValue(bool inBool);
-	CBoolValue(bool innie, STR_String name, AllocationTYPE alloctype = CValue::HEAPVALUE);
+	CBoolValue(bool innie, const char *name, AllocationTYPE alloctype = CValue::HEAPVALUE);
 
 	virtual const STR_String& GetText();
 	virtual double		GetNumber();

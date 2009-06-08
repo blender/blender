@@ -233,6 +233,10 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Noise", "Noise of the wind force");
 
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_ui_text(prop, "Seed", "Seed of the wind noise");
+
 	/* Boolean */
 	
 	prop= RNA_def_property(srna, "use_min_distance", PROP_BOOLEAN, PROP_NONE);

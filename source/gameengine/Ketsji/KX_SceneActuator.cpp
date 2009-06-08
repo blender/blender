@@ -76,9 +76,6 @@ CValue* KX_SceneActuator::GetReplica()
 {
 	KX_SceneActuator* replica = new KX_SceneActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	
 	return replica;
 }
 
@@ -226,8 +223,13 @@ KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SceneActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_SceneActuator",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -262,7 +264,7 @@ PyMethodDef KX_SceneActuator::Methods[] =
 	//Deprecated functions ------>
 	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
 	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
-	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, (PY_METHODCHAR)SetCamera_doc},
+	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_O, (PY_METHODCHAR)SetCamera_doc},
 	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_NOARGS, (PY_METHODCHAR)GetUseRestart_doc},
 	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_NOARGS, (PY_METHODCHAR)GetScene_doc},
 	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_NOARGS, (PY_METHODCHAR)GetCamera_doc},
@@ -273,12 +275,18 @@ PyMethodDef KX_SceneActuator::Methods[] =
 PyAttributeDef KX_SceneActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("scene",0,32,true,KX_SceneActuator,m_nextSceneName),
 	KX_PYATTRIBUTE_RW_FUNCTION("camera",KX_SceneActuator,pyattr_get_camera,pyattr_set_camera),
+	KX_PYATTRIBUTE_BOOL_RW("useRestart", KX_SceneActuator, m_restart),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_SCENE_NODEF+1, KX_SCENE_MAX-1, true, KX_SceneActuator, m_mode),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_SceneActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SceneActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_SceneActuator::py_setattro(PyObject *attr, PyObject *value)
@@ -300,51 +308,21 @@ int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_
 	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
 	KX_Camera *camOb;
 	
-	if(value==Py_None)
-	{
-		if (actuator->m_camera)
-			actuator->m_camera->UnregisterActuator(actuator);
-		
-		actuator->m_camera= NULL;
-		return 0;
-	}
+	if (!ConvertPythonToCamera(value, &camOb, true, "actu.camera = value: KX_SceneActuator"))
+		return PY_SET_ATTR_FAIL;
 	
-	if (PyObject_TypeCheck(value, &KX_Camera::Type)) 
-	{
-		KX_Camera *camOb= static_cast<KX_Camera*>BGE_PROXY_REF(value);
-		
-		if(camOb==NULL)
-		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
-			return 1;
-		}
-		
-		if (actuator->m_camera)
-			actuator->m_camera->UnregisterActuator(actuator);
-		
+	if (actuator->m_camera)
+		actuator->m_camera->UnregisterActuator(actuator);
+	
+	if(camOb==NULL) {
+		actuator->m_camera= NULL;
+	}
+	else {	
 		actuator->m_camera = camOb;
 		actuator->m_camera->RegisterActuator(actuator);
-		return 0;
 	}
-
-	if (PyString_Check(value))
-	{
-		char *camName = PyString_AsString(value);
-
-		camOb = actuator->FindCamera(camName);
-		if (camOb) 
-		{
-			if (actuator->m_camera)
-				actuator->m_camera->UnregisterActuator(actuator);
-			actuator->m_camera = camOb;
-			actuator->m_camera->RegisterActuator(actuator);
-			return 0;
-		}
-		PyErr_SetString(PyExc_TypeError, "not a valid camera name");
-		return 1;
-	}
-	PyErr_SetString(PyExc_TypeError, "expected a string or a camera object reference");
-	return 1;
+	
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
@@ -355,7 +333,7 @@ const char KX_SceneActuator::SetUseRestart_doc[] =
 "\tSet flag to 1 to restart the scene.\n" ;
 PyObject* KX_SceneActuator::PySetUseRestart(PyObject* args)
 {
-	ShowDeprecationWarning("setUseRestart()", "(no replacement)");
+	ShowDeprecationWarning("setUseRestart()", "the useRestart property");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i:setUseRestart", &boolArg))
@@ -376,7 +354,7 @@ const char KX_SceneActuator::GetUseRestart_doc[] =
 "\tReturn whether the scene will be restarted.\n" ;
 PyObject* KX_SceneActuator::PyGetUseRestart()
 {
-	ShowDeprecationWarning("getUseRestart()", "(no replacement)");
+	ShowDeprecationWarning("getUseRestart()", "the useRestart property");
 	return PyInt_FromLong(!(m_restart == 0));
 }
 
@@ -423,47 +401,24 @@ const char KX_SceneActuator::SetCamera_doc[] =
 "setCamera(camera)\n"
 "\t- camera: string\n"
 "\tSet the camera to switch to.\n" ;
-PyObject* KX_SceneActuator::PySetCamera(PyObject* args)
+PyObject* KX_SceneActuator::PySetCamera(PyObject* value)
 {
 	ShowDeprecationWarning("setCamera()", "the camera property");
-	PyObject *cam;
-	if (PyArg_ParseTuple(args, "O!:setCamera", &KX_Camera::Type, &cam))
-	{
-		KX_Camera *new_camera;
-		
-		new_camera = static_cast<KX_Camera*>BGE_PROXY_REF(cam);
-		if(new_camera==NULL)
-		{
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
-			return NULL;
-		}
-		
-		if (m_camera)
-			m_camera->UnregisterActuator(this);
-		
-		m_camera= new_camera;
-		
-		m_camera->RegisterActuator(this);
-		Py_RETURN_NONE;
-	}
-	PyErr_Clear();
-
-	/* one argument: a scene, ignore the rest */
-	char *camName;
-	if(!PyArg_ParseTuple(args, "s:setCamera", &camName))
-	{
+	KX_Camera *camOb;
+	
+	if (!ConvertPythonToCamera(value, &camOb, true, "actu.setCamera(value): KX_SceneActuator"))
 		return NULL;
+	
+	if (m_camera)
+		m_camera->UnregisterActuator(this);
+	
+	if(camOb==NULL) {
+		m_camera= NULL;
 	}
-
-	KX_Camera *camOb = FindCamera(camName);
-	if (camOb) 
-	{
-		if (m_camera)
-			m_camera->UnregisterActuator(this);
+	else {	
 		m_camera = camOb;
 		m_camera->RegisterActuator(this);
 	}
-
 	Py_RETURN_NONE;
 }
 

@@ -57,7 +57,7 @@ void DummyPhysicsEnvironment::endFrame()
 
 
 
-bool		DummyPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep)
+bool		DummyPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep,float interval)
 {
 	//step physics simulation, typically perform
 	

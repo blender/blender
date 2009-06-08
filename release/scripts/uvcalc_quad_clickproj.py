@@ -46,7 +46,7 @@ import BPyWindow
 
 mouseViewRay= BPyWindow.mouseViewRay
 from Blender import Mathutils, Window, Scene, Draw, sys
-from Blender.Mathutils import CrossVecs, Vector, Matrix, LineIntersect, Intersect #, AngleBetweenVecs, Intersect
+from Blender.Mathutils import Vector, Matrix, LineIntersect, Intersect #, AngleBetweenVecs, Intersect
 LMB= Window.MButs.L
 RMB= Window.MButs.R
 
@@ -229,7 +229,7 @@ def main():
 				y_axis_length = line_a_len
 				x_axis_length = (line_isect_b_pair[1]-face_corner_main).length
 			
-			proj_y_component = CrossVecs(proj_x_component, proj_z_component)
+			proj_y_component = proj_x_component.cross(proj_z_component)
 			
 			proj_y_component.length = 1/y_axis_length
 			proj_x_component.length = 1/x_axis_length

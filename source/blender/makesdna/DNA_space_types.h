@@ -155,7 +155,8 @@ typedef struct SpaceSeq {
 	View2D v2d; /* depricated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, pad;
+	short mainb;
+	short render_size;
 	short chanshown;
 	short zebra;
 	int flag;
@@ -344,7 +345,8 @@ typedef struct SpaceNode {
 	float mx, my;	/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype, pad;			/* treetype: as same nodetree->type */
+	int treetype;			/* treetype: as same nodetree->type */
+	short texfrom, pad;		/* texfrom object, world or brush */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -352,6 +354,11 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+
+/* snode->texfrom */
+#define SNODE_TEX_OBJECT	0
+#define SNODE_TEX_WORLD		1
+#define SNODE_TEX_BRUSH		2
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;

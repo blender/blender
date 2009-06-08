@@ -2702,7 +2702,7 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 	return Inpf(a, b)/clen;
 }
 
-void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, long e1, long e2, long e3)
+void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, int e1, int e2, int e3)
 {
 	/* Angle opposite e1 */
 	float t1= cotan_weight(v1->co, v2->co, v3->co) / e2;

@@ -68,8 +68,13 @@ v5.5 format.
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender
-import struct, cStringIO, operator
 import BPyMesh
+try: import struct
+except: struct = None
+try: import cStringIO
+except: cStringIO = None
+try: import operator
+except: operator = None
 
 VCOL_NAME = "\251 Per-Face Vertex Colors"
 DEFAULT_NAME = "\251 Blender Default"
@@ -95,12 +100,16 @@ def write(filename):
 	icon = "" #generate_icon()
 
 	meshes = []
+	mesh_object_name_lookup = {} # for name lookups only
+	
 	for obj in objects:
 		mesh = BPyMesh.getMeshFromObject(obj, None, True, False, scn)
 		if mesh:
 			mesh.transform(obj.matrixWorld)
 			meshes.append(mesh)
-
+			mesh_object_name_lookup[mesh] = obj.name
+	del obj
+	
 	material_names = get_used_material_names(meshes)
 	tags = generate_tags(material_names)
 	surfs = generate_surfs(material_names)
@@ -111,7 +120,7 @@ def write(filename):
 	layer_index = 0
 	
 	for mesh in meshes:
-		layr = generate_layr(obj.name, layer_index)
+		layr = generate_layr(mesh_object_name_lookup[mesh], layer_index)
 		pnts = generate_pnts(mesh)
 		bbox = generate_bbox(mesh)
 		pols = generate_pols(mesh)
@@ -149,7 +158,9 @@ def write(filename):
 		
 		layer_index += 1
 		mesh.verts = None # save some ram
-
+	
+	del mesh_object_name_lookup
+	
 	for surf in surfs:
 		chunks.append(surf)
 
@@ -345,23 +356,28 @@ def generate_vmad_vc(mesh):
 # === Generate Per-Face UV Coords (VMAD Chunk) ===
 # ================================================
 def generate_vmad_uv(mesh):
-	data = cStringIO.StringIO()
-	data.write("TXUV")                                       # type
-	data.write(struct.pack(">H", 2))                         # dimension
-	data.write(generate_nstring("Blender's UV Coordinates")) # name
+	layers = mesh.getUVLayerNames()
+	org_uv = mesh.activeUVLayer
+	for l in layers:
+		mesh.activeUVLayer = l
+		data = cStringIO.StringIO()
+		data.write("TXUV")                                       # type
+		data.write(struct.pack(">H", 2))                         # dimension
+		data.write(generate_nstring(l)) # name
+		for i, f in enumerate(mesh.faces):
+			if not i%100:
+				Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
+			
+			uv = f.uv
+			f_v = f.v
+			for j in xrange(len(f)-1, -1, -1):             # Reverse order
+				U,V = uv[j]
+				v = f_v[j].index
+				data.write(struct.pack(">H", v)) # vertex index
+				data.write(struct.pack(">H", i)) # face index
+				data.write(struct.pack(">ff", U, V))
 	
-	for i, f in enumerate(mesh.faces):
-		if not i%100:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
-		
-		uv = f.uv
-		f_v = f.v
-		for j in xrange(len(f)-1, -1, -1): 			# Reverse order
-			U,V = uv[j]
-			v = f_v[j].index
-			data.write(struct.pack(">H", v)) # vertex index
-			data.write(struct.pack(">H", i)) # face index
-			data.write(struct.pack(">ff", U, V))
+	mesh.activeUVLayer = org_uv
 	return data.getvalue()
 
 # ======================================
@@ -685,4 +701,7 @@ def fs_callback(filename):
 	if not filename.lower().endswith('.lwo'): filename += '.lwo'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export LWO", Blender.sys.makename(ext='.lwo'))
+if struct and cStringIO and operator:
+    Blender.Window.FileSelector(fs_callback, "Export LWO", Blender.sys.makename(ext='.lwo'))
+else:
+    Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
