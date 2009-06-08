@@ -59,7 +59,12 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 		layout.itemS()
 		
 		if tex:
-			layout.itemR(tex, "type")
+			split = layout.split(percentage=0.2)
+		
+			col = split.column()
+			col.itemL(text="Type:")
+			col = split.column()
+			col.itemR(tex, "type", text="")
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"
@@ -72,11 +77,14 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 		if tex.color_ramp:
 			layout.template_color_ramp(tex.color_ramp, expand=True)
 		else:
-			layout.itemR(tex, "rgb_factor")
+			split = layout.split()
+			col = split.column()
+			col.itemR(tex, "rgb_factor")
 
-		row = layout.row()
-		row.itemR(tex, "brightness")
-		row.itemR(tex, "contrast")
+		col = split.column()
+		col.itemL(text="Adjust:")
+		col.itemR(tex, "brightness")
+		col.itemR(tex, "contrast")
 
 class TEXTURE_PT_clouds(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_clouds"
@@ -112,13 +120,17 @@ class TEXTURE_PT_wood(TextureButtonsPanel):
 		layout = self.layout
 		tex = context.texture
 		
-		layout.itemR(tex, "stype", expand=True)
 		layout.itemR(tex, "noisebasis2", expand=True)
-		layout.itemL(text="Noise:")
-		layout.itemR(tex, "noise_type", text="Type", expand=True)
-		layout.itemR(tex, "noise_basis", text="Basis")
+		layout.itemR(tex, "stype", expand=True)
+		
+		col = layout.column()
+		col.active = tex.stype in ('RINGNOISE', 'BANDNOISE')
+		col.itemL(text="Noise:")
+		col.row().itemR(tex, "noise_type", text="Type", expand=True)
+		col.itemR(tex, "noise_basis", text="Basis")
 		
 		col = layout.column_flow()
+		col.active = tex.stype in ('RINGNOISE', 'BANDNOISE')
 		col.itemR(tex, "noise_size", text="Size")
 		col.itemR(tex, "turbulence")
 		col.itemR(tex, "nabla")
@@ -389,7 +401,6 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 
 bpy.types.register(TEXTURE_PT_preview)
 bpy.types.register(TEXTURE_PT_texture)
-bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_clouds)
 bpy.types.register(TEXTURE_PT_wood)
 bpy.types.register(TEXTURE_PT_marble)
@@ -403,4 +414,4 @@ bpy.types.register(TEXTURE_PT_envmap)
 bpy.types.register(TEXTURE_PT_musgrave)
 bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
-
+bpy.types.register(TEXTURE_PT_colors)
