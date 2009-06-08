@@ -1623,13 +1623,13 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	widgetbase_draw(&wtb, wcol);
 	
 	if(but->block->drawextra) {
-		glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-		glEnable(GL_BLEND);
+		//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+		//glEnable(GL_BLEND);
 		
 		but->block->drawextra(C, but->poin, rect);
 		
-		glDisable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glDisable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
