@@ -665,13 +665,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(ar, &style, but, &rect);
-		
-		/* temp? roundbox defines size/location of preview, and ID type */
-		if(but->type==ROUNDBOX)
-			if(block->drawextra) 
-				block->drawextra(C, but->poin, &rect);
-		
+		ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */

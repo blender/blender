@@ -51,8 +51,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "BIF_gl.h"
-
 #include "ED_util.h"
 #include "ED_types.h"
 #include "ED_screen.h"

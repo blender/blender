@@ -307,9 +307,15 @@ void wmMultMatrix(float mat[][4])
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->winmat);
 }
 
+static int debugpush= 0;
+
 void wmPushMatrix(void)
 {
 	if(_curswin==NULL) return;
+	
+	if(debugpush)
+		printf("wmPushMatrix error already pushed\n");
+	debugpush= 1;
 	
 	Mat4CpyMat4(_curswin->viewmat1, _curswin->viewmat);
 	Mat4CpyMat4(_curswin->winmat1, _curswin->winmat);
@@ -318,6 +324,10 @@ void wmPushMatrix(void)
 void wmPopMatrix(void)
 {
 	if(_curswin==NULL) return;
+	
+	if(debugpush==0)
+		printf("wmPopMatrix error nothing popped\n");
+	debugpush= 0;
 	
 	Mat4CpyMat4(_curswin->viewmat, _curswin->viewmat1);
 	Mat4CpyMat4(_curswin->winmat, _curswin->winmat1);

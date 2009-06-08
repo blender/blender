@@ -2432,7 +2432,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 /* general Blender frame render call */
 void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 {
-	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
+	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
 	re->result_ok= 0;
 	

@@ -640,14 +640,8 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 
 	if(rres.rectf) {
 		if(rres.rectx==newx && rres.recty==newy) {
-			glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-			glEnable(GL_BLEND);
-			
 			glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
 			ok= 1;
-			
-			glDisable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 	BLI_unlock_malloc_thread();
@@ -1083,8 +1077,15 @@ static void shader_preview_free(void *customdata)
 
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, int sizey)
 {
-	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
-	ShaderPreview *sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
+	wmJob *steve;
+	ShaderPreview *sp;
+
+	/* XXX ugly global still, but we can't do preview while rendering */
+	if(G.rendering)
+		return;
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */
 	sp->scene= CTX_data_scene(C);

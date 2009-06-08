@@ -545,12 +545,20 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	/* backdrop non AA */
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
+			
+			/* this is to enable drawing zero alpha masks */
+			if(wcol->inner[3]==0)
+				glDisable(GL_BLEND);
+			
 			/* filled center, solid */
 			glColor4ubv(wcol->inner);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++)
 				glVertex2fv(wtb->inner_v[a]);
 			glEnd();
+
+			if(wcol->inner[3]==0)
+				glEnable(GL_BLEND);
 		}
 		else {
 			char col1[4], col2[4];
@@ -1596,6 +1604,46 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 	widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
+{
+	uiWidgetBase wtb;
+	uiWidgetColors *wcol= &wt->wcol;
+	char col[4];
+	
+	/* state copy! */
+	wt->wcol= *(wt->wcol_theme);
+	
+	widget_init(&wtb);
+	
+	/* filled rect in back color, alpha 1 */
+	UI_GetThemeColor4ubv(TH_BACK, col);
+	col[3]= 255;
+	glColor4ubv(col);
+	glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	
+	/* inner mask with alpha zero */
+	wcol->inner[0]= wcol->inner[1]= wcol->inner[2]= wcol->inner[3]= 0;
+	wtb.outline= 0;
+	round_box_edges(&wtb, 15, rect, 5.0f);
+	widgetbase_draw(&wtb, wcol);
+	
+	if(but->block->drawextra) {
+		glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+		glEnable(GL_BLEND);
+		
+		but->block->drawextra(C, but->poin, rect);
+		
+		glDisable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	/* outline */
+	wtb.outline= 1;
+	wtb.inner= 0;
+	widgetbase_draw(&wtb, wcol);
+	
+}
+
+
 static void widget_disabled(rcti *rect)
 {
 	float col[4];
@@ -1774,7 +1822,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 }
 
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
+void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
 	bTheme *btheme= U.themes.first;
 	ThemeUI *tui= &btheme->tui;
@@ -1863,6 +1911,10 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				
 			case ROUNDBOX:
 				wt= widget_type(UI_WTYPE_BOX);
+				break;
+			
+			case BUT_EXTRA:
+				widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
 				break;
 				
 				 // XXX four old button types

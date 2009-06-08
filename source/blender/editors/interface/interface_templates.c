@@ -1321,8 +1321,8 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 
 	col= uiLayoutColumn(row, 0);
 	uiLayoutSetKeepAspect(col, 1);
-	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
-	/* extra draw is tied to roundbox for now */
+	
+	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
 	uiBlockSetDrawExtraFunc(block, ED_preview_draw);
 	
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
