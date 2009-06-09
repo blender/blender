@@ -1,4 +1,4 @@
-		
+
 import bpy
 
 class TextureButtonsPanel(bpy.types.Panel):
@@ -66,9 +66,9 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 			col = split.column()
 			col.itemR(tex, "type", text="")
 
-class TEXTURE_PT_map(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_map"
-	__label__ = "Map"
+class TEXTURE_PT_mapping(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_mapping"
+	__label__ = "Mapping"
 
 	def draw(self, context):
 		layout = self.layout
@@ -90,7 +90,12 @@ class TEXTURE_PT_map(TextureButtonsPanel):
 		col = split.column()
 		col.itemR(tex, "from_dupli")
 		
-		layout.itemR(tex, "mapping")
+		split = layout.split(percentage=0.3)
+		col = split.column()
+		col.itemL(text="Projection:")
+		col = split.column()
+		col.itemR(tex, "mapping", text="")
+		
 		row = layout.row()
 		row.itemR(tex, "x_mapping", text="X")
 		row.itemR(tex, "y_mapping", text="Y")
@@ -100,30 +105,46 @@ class TEXTURE_PT_map(TextureButtonsPanel):
 		row.column().itemR(tex, "offset")
 		row.column().itemR(tex, "size")
 
-		layout.itemL(text="Affect:")
+class TEXTURE_PT_influence(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_influence"
+	__label__ = "Influence"
+
+	def draw(self, context):
+		layout = self.layout
+		textype = context.texture
+		tex = context.texture_slot
 		
 		split = layout.split()
 		
 		col = split.column()
 		col.itemR(tex, "map_color")
-		col.itemR(tex, "color_factor")
-		col.itemR(tex, "blend_type")
-		col.itemR(tex, "no_rgb")
 		colsub = col.column()
-		colsub.active = tex.no_rgb
-		colsub.itemR(tex, "color")
+		colsub.active = tex.map_color
+		colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
+		colsub.itemR(tex, "blend_type")
+		if textype.type == 'IMAGE':
+			col.itemR(tex, "no_rgb")
+			
+			colsub = col.column()
+			colsub.active = tex.no_rgb
+			colsub.itemR(tex, "color")
+		else:
+			col.itemR(tex, "color")
+			
+		col.itemR(tex, "map_colorspec")
 		col.itemR(tex, "map_normal")
-		col.itemR(tex, "normal_factor")
+		colsub = col.column()
+		colsub.active = tex.map_normal
+		colsub.itemR(tex, "normal_factor", text="Amount", slider=True)
 		col.itemR(tex, "normal_map_space")
 		col.itemR(tex, "map_warp")
 		colsub = col.column()
 		colsub.active = tex.map_warp
-		colsub.itemR(tex, "warp_factor", text="Factor")
-		col.itemR(tex, "map_colorspec")
+		colsub.itemR(tex, "warp_factor", text="Amount", slider=True)	
 		col.itemR(tex, "map_displacement")
 		colsub = col.column()
 		colsub.active = tex.map_displacement
-		colsub.itemR(tex, "displacement_factor", text="Factor")
+		colsub.itemR(tex, "displacement_factor", text="Amount", slider=True)
 		col = split.column()
 		col.itemR(tex, "map_mirror")
 		col.itemR(tex, "map_reflection")
@@ -135,7 +156,9 @@ class TEXTURE_PT_map(TextureButtonsPanel):
 		col.itemR(tex, "map_emit")
 		col.itemR(tex, "map_translucency")
 
-		col.itemR(tex, "default_value")
+		colsub = col.column()
+		colsub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+		colsub.itemR(tex, "default_value", text="Amount", slider=True)
 		
 		row = layout.row()
 		row.itemR(tex, "stencil")
@@ -313,9 +336,9 @@ class TEXTURE_PT_image(TextureButtonsPanel):
 		sub.itemR(tex, "calculate_alpha")
 		sub.itemR(tex, "invert_alpha")
 
-class TEXTURE_PT_mapping(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_mapping"
-	__label__ = "Mapping"
+class TEXTURE_PT_crop(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_crop"
+	__label__ = "Crop"
 	
 	def poll(self, context):
 		tex = context.texture
@@ -483,11 +506,12 @@ bpy.types.register(TEXTURE_PT_magic)
 bpy.types.register(TEXTURE_PT_blend)
 bpy.types.register(TEXTURE_PT_stucci)
 bpy.types.register(TEXTURE_PT_image)
-bpy.types.register(TEXTURE_PT_mapping)
+bpy.types.register(TEXTURE_PT_crop)
 bpy.types.register(TEXTURE_PT_plugin)
 bpy.types.register(TEXTURE_PT_envmap)
 bpy.types.register(TEXTURE_PT_musgrave)
 bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_colors)
-bpy.types.register(TEXTURE_PT_map)
+bpy.types.register(TEXTURE_PT_mapping)
+bpy.types.register(TEXTURE_PT_influence)
