@@ -54,7 +54,10 @@ public:
 	virtual CValue*		GetReplica();
 	RAS_LightObject*	GetLightData() { return &m_lightobj;}
 
-	/* GLSL shadow */
+	/* OpenGL Light */
+	bool ApplyLight(KX_Scene *kxscene, int oblayer, int slot);
+
+	/* GLSL Light */
 	struct GPULamp *GetGPULamp();
 	bool HasShadowBuffer();
 	int GetShadowLayer();
