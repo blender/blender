@@ -2559,7 +2559,140 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	return (clipx || clipy);
 }
 
-/* ********************* ACTION/NLA EDITOR ****************** */
+/* ********************* ANIMATION EDITORS (GENERAL) ************************* */
+
+/* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
+static short FrameOnMouseSide(char side, float frame, float cframe)
+{
+	/* both sides, so it doesn't matter */
+	if (side == 'B') return 1;
+	
+	/* only on the named side */
+	if (side == 'R')
+		return (frame >= cframe) ? 1 : 0;
+	else
+		return (frame <= cframe) ? 1 : 0;
+}
+
+/* ********************* NLA EDITOR ************************* */
+
+static void createTransNlaData(bContext *C, TransInfo *t)
+{
+	Scene *scene= CTX_data_scene(C);
+	TransData *td = NULL;
+	TransDataNla *tdn = NULL;
+	
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	int count=0;
+	char side;
+	
+	/* determine what type of data we are operating on */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+		
+		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		side = 'B';
+	}
+	
+	/* loop 1: count how many strips are selected (consider each strip as 2 points) */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* only if a real NLA-track */
+		if (ale->type == ANIMTYPE_NLATRACK) {
+			NlaTrack *nlt= (NlaTrack *)ale->data;
+			NlaStrip *strip;
+			
+			/* only consider selected strips */
+			for (strip= nlt->strips.first; strip; strip= strip->next) {
+				// TODO: we can make strips have handles later on...
+				if (strip->flag & NLASTRIP_FLAG_SELECT) {
+					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
+					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
+				}
+			}
+		}
+	}
+	
+	/* stop if trying to build list if nothing selected */
+	if (count == 0) {
+		/* cleanup temp list */
+		BLI_freelistN(&anim_data);
+		return;
+	}
+	
+	/* allocate memory for data */
+	t->total= count;
+	
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(NLA Editor)");
+	td= t->data;
+	t->customData= MEM_callocN(t->total*sizeof(TransDataNla), "TransDataNla (NLA Editor)");
+	tdn= t->customData;
+	
+	/* loop 2: build transdata array */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* only if a real NLA-track */
+		if (ale->type == ANIMTYPE_NLATRACK) {
+			NlaTrack *nlt= (NlaTrack *)ale->data;
+			NlaStrip *strip;
+			
+			/* only consider selected strips */
+			for (strip= nlt->strips.first; strip; strip= strip->next) {
+				// TODO: we can make strips have handles later on...
+				if (strip->flag & NLASTRIP_FLAG_SELECT) {
+					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) 
+					{
+						/* init the 'extra' data for NLA strip handles first */
+						tdn->strip= strip;
+						tdn->val= strip->start;
+						tdn->handle= 0;
+						
+						/* now, link the transform data up to this data */
+						td->val= &tdn->val;
+						td->ival= tdn->val;
+						td->extra= tdn;
+						td++;
+						tdn++;
+					}
+					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) 
+					{	
+						/* init the 'extra' data for NLA strip handles first */
+						tdn->strip= strip;
+						tdn->val= strip->end;
+						tdn->handle= 1;
+						
+						/* now, link the transform data up to this data */
+						td->val= &tdn->val;
+						td->ival= tdn->val;
+						td->extra= tdn;
+						td++;
+						tdn++;
+					}
+				}
+			}
+		}
+	}
+	
+	/* cleanup temp list */
+	BLI_freelistN(&anim_data);
+}
+
+/* ********************* ACTION EDITOR ****************** */
 
 /* Called by special_aftertrans_update to make sure selected gp-frames replace
  * any other gp-frames which may reside on that frame (that are not selected).
@@ -2743,19 +2876,6 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 }
 
 /* ----------------------------- */
-
-/* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
-static short FrameOnMouseSide(char side, float frame, float cframe)
-{
-	/* both sides, so it doesn't matter */
-	if (side == 'B') return 1;
-	
-	/* only on the named side */
-	if (side == 'R')
-		return (frame >= cframe) ? 1 : 0;
-	else
-		return (frame <= cframe) ? 1 : 0;
-}
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
 static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
@@ -3043,8 +3163,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 }
 
 /* ********************* GRAPH EDITOR ************************* */
-
-
 
 /* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
@@ -3501,7 +3619,6 @@ void flushTransGraphData(TransInfo *t)
 			td2d->loc2d[1]= td2d->loc[1];
 	}
 }
-
 
 /* **************** IpoKey stuff, for Object TransData ********** */
 
@@ -4604,6 +4721,29 @@ void special_aftertrans_update(TransInfo *t)
 		/* make sure all F-Curves are set correctly */
 		ANIM_editkeyframes_refresh(&ac);
 	}
+	else if (t->spacetype == SPACE_NLA) {
+		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
+		Scene *scene;
+		bAnimContext ac;
+		
+		/* initialise relevant anim-context 'context' data from TransInfo data */
+		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+		memset(&ac, 0, sizeof(bAnimContext));
+		
+		scene= ac.scene= t->scene;
+		ob= ac.obact= OBACT;
+		ac.sa= t->sa;
+		ac.ar= t->ar;
+		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+		
+		if (ANIM_animdata_context_getdata(&ac) == 0)
+			return;
+		
+		// XXX check on the calls below... we need some of these sanity checks
+		//synchronize_action_strips();
+		//ANIM_editkeyframes_refresh(&ac);
+	}
 	else if (t->obedit) {
 		// TRANSFORM_FIX_ME
 //		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
@@ -4681,24 +4821,6 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	
-#if 0 // TRANSFORM_FIX_ME
-	else if (t->spacetype == SPACE_NLA) {
-		recalc_all_ipos();	// bad
-		synchronize_action_strips();
-		
-		/* cleanup */
-		for (base=t->scene->base.first; base; base=base->next)
-			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
-		
-		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
-		if ( (G.snla->flag & SNLA_NOTRANSKEYCULL)==0 && 
-			 ((cancelled == 0) || (duplicate)) )
-		{
-			posttrans_nla_clean(t);
-		}
-	}
-#endif
 	
 	clear_trans_object_base_flags(t);
 
@@ -4932,8 +5054,7 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		// TRANSFORM_FIX_ME
-		//createTransNlaData(C, t);
+		createTransNlaData(C, t);
 	}
 	else if (t->spacetype == SPACE_SEQ) {
 		t->flag |= T_POINTS|T_2D_EDIT;

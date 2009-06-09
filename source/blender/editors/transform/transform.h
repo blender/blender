@@ -161,6 +161,13 @@ typedef struct TransDataSeq {
 	
 } TransDataSeq;
 
+/* for NLA transform (stored in td->extra pointer) */
+typedef struct TransDataNla {
+	struct NlaStrip *strip;		/* NLA-strip that handle belongs to */
+	float val;					/* value for the handle that the transform tools write to */
+	int handle;					/* handle-index, 0 for start, 1 for end */
+} TransDataNla;
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */

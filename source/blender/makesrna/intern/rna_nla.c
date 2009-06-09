@@ -43,7 +43,18 @@
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	CLAMP(value, 1, data->end);
+	
+	/* clamp value to lie within valid limits 
+	 *	- cannot start past the end of the strip + some flexibility threshold
+	 *	- cannot start before the previous strip (if present) ends 
+	 *	- minimum frame is 1.0f (this can be changed)
+	 */
+	if (data->prev) {
+		CLAMP(value, data->prev->end, data->end-0.1f);
+	}
+	else {
+		CLAMP(value, 1, data->end);
+	}
 	data->start= value;
 }
 
@@ -52,8 +63,17 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 	NlaStrip *data= (NlaStrip*)ptr->data;
 	float len, actlen;
 	
-	/* clamp value to lie within valid limits - must not have zero or negative length strip */
-	CLAMP(value, data->start+0.1f, MAXFRAME);
+	/* clamp value to lie within valid limits
+	 *	- must not have zero or negative length strip, so cannot start before the first frame 
+	 *	  + some minimum-strip-length threshold
+	 *	- cannot end later than the start of the next strip (if present)
+	 */
+	if (data->next) {
+		CLAMP(value, data->start+0.1f, data->next->start);
+	}
+	else {
+		CLAMP(value, data->start+0.1f, MAXFRAME);
+	}
 	data->end= value;
 	
 	/* calculate the lengths the strip and its action (if applicable) */

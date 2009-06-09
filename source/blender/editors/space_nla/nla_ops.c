@@ -54,6 +54,8 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
+#include "BIF_transform.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -191,7 +193,7 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
-	//transform_keymap_for_space(wm, keymap, SPACE_NLA);
+	transform_keymap_for_space(wm, keymap, SPACE_NLA);
 }
 
 /* --------------- */

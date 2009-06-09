@@ -319,6 +319,9 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		else 
 			ED_area_tag_redraw(t->sa);
 	}
+	else if (t->spacetype == SPACE_NLA) {
+		ED_area_tag_redraw(t->sa); // XXX this should use a notifier instead!
+	}
 	else if(t->spacetype == SPACE_NODE)
 	{
 		//ED_area_tag_redraw(t->sa);

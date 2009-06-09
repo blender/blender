@@ -102,6 +102,8 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
+#include "RNA_access.h"
+
 #include "WM_types.h"
 
 #include "UI_resources.h"
@@ -299,61 +301,6 @@ void recalcData(TransInfo *t)
 				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
-	}	
-	else if (t->spacetype == SPACE_NLA) {
-		if (G.snla->lock) {
-			for (base=G.scene->base.first; base; base=base->next) {
-				if (base->flag & BA_HAS_RECALC_OB)
-					base->object->recalc |= OB_RECALC_OB;
-				if (base->flag & BA_HAS_RECALC_DATA)
-					base->object->recalc |= OB_RECALC_DATA;
-				
-				if (base->object->recalc) 
-					base->object->ctime= -1234567.0f;	// eveil! 
-				
-				/* recalculate scale of selected nla-strips */
-				if (base->object->nlastrips.first) {
-					Object *bob= base->object;
-					bActionStrip *strip;
-					
-					for (strip= bob->nlastrips.first; strip; strip= strip->next) {
-						if (strip->flag & ACTSTRIP_SELECT) {
-							float actlen= strip->actend - strip->actstart;
-							float len= strip->end - strip->start;
-							
-							strip->scale= len / (actlen * strip->repeat);
-						}
-					}
-				}
-			}
-			
-			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
-		}
-		else {
-			for (base=G.scene->base.first; base; base=base->next) {
-				/* recalculate scale of selected nla-strips */
-				if (base->object && base->object->nlastrips.first) {
-					Object *bob= base->object;
-					bActionStrip *strip;
-					
-					for (strip= bob->nlastrips.first; strip; strip= strip->next) {
-						if (strip->flag & ACTSTRIP_SELECT) {
-							float actlen= strip->actend - strip->actstart;
-							float len= strip->end - strip->start;
-							
-							/* prevent 'negative' scaling */
-							if (len < 0) {
-								SWAP(float, strip->start, strip->end);
-								len= fabs(len);
-							}
-							
-							/* calculate new scale */
-							strip->scale= len / (actlen * strip->repeat);
-						}
-					}
-				}
-			}
-		}
 	}
 #endif
 	if (t->obedit) {
@@ -420,6 +367,47 @@ void recalcData(TransInfo *t)
 		/* update realtime - not working? */
 		if (sipo->lock) {
 		
+		}
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		TransData *td= t->data;
+		int i;
+		
+		/* for each point we've captured, look at its 'extra' data, which is basically a wrapper around the strip 
+		 * it is for + some extra storage for the values that get set, and use RNA to set this value (performing validation
+		 * work so that we don't need to repeat it here)
+		 */
+		for (i = 0; i < t->total; i++, td++)
+		{
+			if (td->extra)
+			{
+				TransDataNla *tdn= td->extra;
+				NlaStrip *strip= tdn->strip;
+				
+				/* if we're just cancelling (i.e. the user aborted the transform), 
+				 * just restore the data by directly overwriting the values with the original 
+				 * ones (i.e. don't go through RNA), as we get some artifacts...
+				 */
+				if (t->state == TRANS_CANCEL) {
+					/* write the value set by the transform tools to the appropriate property using RNA */
+					if (tdn->handle)
+						strip->end= tdn->val;
+					else
+						strip->start= tdn->val;
+				}
+				else {
+					PointerRNA strip_ptr;
+					
+					/* make RNA-pointer */
+					RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+					
+					/* write the value set by the transform tools to the appropriate property using RNA */
+					if (tdn->handle)
+						RNA_float_set(&strip_ptr, "end_frame", tdn->val);
+					else
+						RNA_float_set(&strip_ptr, "start_frame", tdn->val);
+				}
+			}
 		}
 	}
 	else if (t->obedit) {
@@ -866,7 +854,7 @@ void postTrans (TransInfo *t)
 		if(sima->flag & SI_LIVE_UNWRAP)
 			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
-	else if(t->spacetype==SPACE_ACTION) {
+	else if(ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
 		if (t->customData)
 			MEM_freeN(t->customData);
 	}
