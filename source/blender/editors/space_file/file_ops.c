@@ -66,7 +66,7 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short y, short clamp)
 {
 	float fx,fy;
 	int active_file = -1;
@@ -77,10 +77,15 @@ static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, short x, short 
 
 	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 
-	if ( (active_file < 0) || (active_file >= numfiles) )
-	{
-		active_file = -1;
+	if(active_file < 0) {
+		if(clamp)	active_file=  0;
+		else		active_file= -1;
 	}
+	else if(active_file >= numfiles) {
+		if(clamp)	active_file=  numfiles-1;
+		else		active_file= -1;
+	}
+	
 	return active_file;
 }
 
@@ -110,8 +115,8 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
-	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
+	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax, 1);
+	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin, 1);
 	
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
@@ -125,7 +130,7 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 	}
 
 	/* make the last file active */
-	if (last_file >= 0 && last_file < numfiles) {
+	if (selecting && (last_file >= 0 && last_file < numfiles)) {
 		struct direntry* file = filelist_file(sfile->files, last_file);
 		params->active_file = last_file;
 
@@ -185,6 +190,8 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
+	BLI_isect_rctf(&(ar->v2d.mask), &rect, &rect);
+	
 	file_select(sfile, ar, &rect, val );
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
@@ -412,7 +419,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
 
-	actfile = find_file_mouse(sfile, ar, mx , my);
+	actfile = find_file_mouse(sfile, ar, mx , my, 0);
 	
 	if (params && (actfile >= 0) && (actfile < numfiles) ) {
 		params->active_file=actfile;
