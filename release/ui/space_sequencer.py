@@ -34,10 +34,6 @@ class SEQUENCER_HT_header(bpy.types.Header):
 				row.itemO("SEQUENCER_OT_reload")
 			else:
 				row.itemR(st, "display_channel") # text="Chan"
-				layout.itemS()
-				row.itemR(st, "draw_overexposed") # text="Zebra"
-				layout.itemS()
-				row.itemR(st, "draw_safe_margin")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -251,7 +247,14 @@ class SequencerButtonsPanel(bpy.types.Panel):
 	__region_type__ = "UI"
 
 	def poll(self, context):
-		return act_strip(context) != None
+		return context.space_data.display_mode == 'SEQUENCER' and act_strip(context) != None
+		
+class SequencerButtonsPanel_Output(bpy.types.Panel):
+	__space_type__ = "SEQUENCE_EDITOR"
+	__region_type__ = "UI"
+
+	def poll(self, context):
+		return context.space_data.display_mode != 'SEQUENCER'
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
 	__label__ = "Edit Strip"
@@ -264,28 +267,33 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		
 		layout.itemR(strip, "name")
 		
+		layout.itemR(strip, "type")
+		
 		layout.itemR(strip, "blend_mode")
 		
-		layout.itemR(strip, "blend_opacity")
+		layout.itemR(strip, "blend_opacity", text="Opacity", slider=True)
 		
-		row = layout.row()
-		row.itemR(strip, "mute")
-		row.itemR(strip, "lock")
-		row.itemR(strip, "frame_locked")
+		split = layout.split()
 		
-		row = layout.row()
-		row.itemR(strip, "channel")
-		row.itemR(strip, "start_frame")
+		col = split.column()
+		col.itemR(strip, "mute")
+		col.itemR(strip, "lock")
+		col.itemR(strip, "frame_locked")
 		
-		row = layout.row()
-		row.itemR(strip, "length")
-		row.itemR(strip, "type")
+		col = split.column()
+		col.itemR(strip, "channel")
+		col.itemR(strip, "start_frame")
+		col.itemR(strip, "length")
+		
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"
 	__idname__ = "SEQUENCER_PT_effect"
 
 	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
 		strip = act_strip(context)
 		if not strip:
 			return False
@@ -376,6 +384,9 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 	__idname__ = "SEQUENCER_PT_input"
 	
 	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
 		strip = act_strip(context)
 		if not strip:
 			return False
@@ -387,10 +398,18 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "directory")
+		split = layout.split(percentage=0.3)
+		sub = split.column()
+		sub.itemL(text="Directory:")
+		sub = split.column() 
+		sub.itemR(strip, "directory", text="")
 		
 		# TODO - get current element!
-		layout.itemR(strip.elements[0], "filename")
+		split = layout.split(percentage=0.3)
+		sub = split.column()
+		sub.itemL(text="File Name:")
+		sub = split.column() 
+		sub.itemR(strip.elements[0], "filename", text="")
 		
 		"""
 		layout.itemR(strip, "use_crop")
@@ -408,6 +427,9 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__idname__ = "SEQUENCER_PT_filter"
 	
 	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
 		strip = act_strip(context)
 		if not strip:
 			return False
@@ -419,19 +441,20 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		row = layout.row()
-		row.itemR(strip, "premultiply")
-		row.itemR(strip, "convert_float")
-		row.itemR(strip, "de_interlace")
+		split = layout.split()
 		
-		row = layout.row()
-		row.itemR(strip, "flip_x")
-		row.itemR(strip, "flip_y")
-		row.itemR(strip, "reverse_frames")
+		col = split.column()
+		col.itemR(strip, "premultiply")
+		col.itemR(strip, "convert_float")
+		col.itemR(strip, "de_interlace")
+		col.itemR(strip, "multiply_colors")
+		col.itemR(strip, "strobe")
 		
-		row = layout.row()
-		row.itemR(strip, "multiply_colors")
-		row.itemR(strip, "strobe")
+		col = split.column()
+		col.itemL(text="Flip:")
+		col.itemR(strip, "flip_x", text="X")
+		col.itemR(strip, "flip_y", text="Y")
+		col.itemR(strip, "reverse_frames", text="Backwards")
 		
 		layout.itemR(strip, "use_color_balance")
 
@@ -440,6 +463,9 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__idname__ = "SEQUENCER_PT_proxy"
 	
 	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
 		strip = act_strip(context)
 		if not strip:
 			return False
@@ -465,7 +491,21 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 			row.itemR(strip.proxy, "file")
 
 
-bpy.types.register(SEQUENCER_HT_header)
+class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
+	__label__ = "View Settings"
+	__idname__ = "SEQUENCER_PT_view"
+
+	def draw(self, context):
+		st = context.space_data
+
+		layout = self.layout
+
+		flow = layout.column_flow()
+		flow.itemR(st, "draw_overexposed") # text="Zebra"
+		flow.itemR(st, "draw_safe_margin")
+
+
+bpy.types.register(SEQUENCER_HT_header) # header/menu classes
 bpy.types.register(SEQUENCER_MT_view)
 bpy.types.register(SEQUENCER_MT_select)
 bpy.types.register(SEQUENCER_MT_marker)
@@ -473,9 +513,11 @@ bpy.types.register(SEQUENCER_MT_add)
 bpy.types.register(SEQUENCER_MT_add_effect)
 bpy.types.register(SEQUENCER_MT_strip)
 
-bpy.types.register(SEQUENCER_PT_edit)
+bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
 bpy.types.register(SEQUENCER_PT_effect)
 bpy.types.register(SEQUENCER_PT_input)
 bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
+
+bpy.types.register(SEQUENCER_PT_view) # view panels
 
