@@ -68,7 +68,7 @@
 #include "nla_intern.h"	// own include
 
 /* *********************************************** */
-/* General Editing */
+/* 'Special' Editing */
 
 /* ******************** Tweak-Mode Operators ***************************** */
 /* 'Tweak mode' allows the action referenced by the active NLA-strip to be edited 
@@ -211,5 +211,66 @@ void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
 }
 
 /* *********************************************** */
+/* NLA Editing Operations */
+
+/* ******************** Delete Operator ***************************** */
+/* Deletes the selected NLA-Strips */
+
+static int nlaedit_delete_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, delete all selected strips */
+	// FIXME: need to double-check that we've got tracks
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip, *nstrip;
+		
+		for (strip= nlt->strips.first; strip; strip= nstrip) {
+			nstrip= strip->next;
+			
+			/* if selected, delete */
+			if (strip->flag & NLASTRIP_FLAG_SELECT)
+				free_nlastrip(&nlt->strips, strip);
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_delete (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Strips";
+	ot->idname= "NLAEDIT_OT_delete";
+	ot->description= "Delete selected strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_delete_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* *********************************************** */

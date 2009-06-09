@@ -89,6 +89,11 @@ void NLAEDIT_OT_click_select(wmOperatorType *ot);
 void NLAEDIT_OT_tweakmode_enter(wmOperatorType *ot);
 void NLAEDIT_OT_tweakmode_exit(wmOperatorType *ot);
 
+/* --- */
+
+void NLAEDIT_OT_delete(wmOperatorType *ot);
+
+
 /* **************************************** */
 /* nla_channels.c */
 
