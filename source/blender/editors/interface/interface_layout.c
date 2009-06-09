@@ -608,7 +608,7 @@ void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, ch
 
 	WM_operator_properties_create(&ptr, opname);
 	
-	/*RNA_enum_set(&ptr, propname, value);*/
+	/* enum lookup */
 	if((prop= RNA_struct_find_property(&ptr, propname))) {
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 		if(RNA_enum_value_from_id(item, value_str, &value)==0) {
@@ -620,6 +620,8 @@ void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, ch
 		printf("uiItemEnumO_string: %s.%s not found.\n", RNA_struct_identifier(ptr.type), propname);
 		return;
 	}
+	
+	RNA_property_enum_set(&ptr, prop, value);
 	
 	/* same as uiItemEnumO */
 	if(!name)

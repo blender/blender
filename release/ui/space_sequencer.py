@@ -20,10 +20,24 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		if context.area.show_menus:
 			row = layout.row(align=True)
 			row.itemM(context, "SEQUENCER_MT_view")
-			row.itemM(context, "SEQUENCER_MT_select")
-			row.itemM(context, "SEQUENCER_MT_marker")
-			row.itemM(context, "SEQUENCER_MT_add")
-			row.itemM(context, "SEQUENCER_MT_strip")
+			
+			row.itemR(st, "display_mode")
+			
+			layout.itemS()
+			
+			if st.display_mode == 'SEQUENCER':
+				row.itemM(context, "SEQUENCER_MT_select")
+				row.itemM(context, "SEQUENCER_MT_marker")
+				row.itemM(context, "SEQUENCER_MT_add")
+				row.itemM(context, "SEQUENCER_MT_strip")
+				layout.itemS()
+				row.itemO("SEQUENCER_OT_reload")
+			else:
+				row.itemR(st, "display_channel") # text="Chan"
+				layout.itemS()
+				row.itemR(st, "draw_overexposed") # text="Zebra"
+				layout.itemS()
+				row.itemR(st, "draw_safe_margin")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -77,13 +91,11 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
 	/* Draw time or frames.*/
 	uiDefMenuSep(block);
-
-	if(sseq->flag & SEQ_DRAWFRAMES)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-
-	
+		"""
+		
+		layout.itemR(st, "draw_frames")
+		
+		"""
 	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -229,7 +241,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_mute")
 		layout.itemO("SEQUENCER_OT_unmute")
 		
-		layout.item_enumO("SEQUENCER_OT_mute", "type", 'UNSELECTED', text="Mute Deselected Strips")
+		layout.item_enumO("SEQUENCER_OT_mute", property="type", value='UNSELECTED', text="Mute Deselected Strips")
 
 
 
@@ -448,7 +460,9 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 		
 		row = layout.row()
 		row.itemR(strip, "proxy_custom_directory")
-		# row.itemR(strip.proxy, "dir") # TODO
+		if strip.proxy: # TODO - need to add this somehow
+			row.itemR(strip.proxy, "dir")
+			row.itemR(strip.proxy, "file")
 
 
 bpy.types.register(SEQUENCER_HT_header)

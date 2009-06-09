@@ -189,7 +189,11 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "dir");
-	RNA_def_property_ui_text(prop, "Directory", "");
+	RNA_def_property_ui_text(prop, "Directory", "Location to story the proxy file");
+	
+	prop= RNA_def_property(srna, "file", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "file");
+	RNA_def_property_ui_text(prop, "File", "Proxy file name");
 }
 
 static void rna_def_strip_color_balance(BlenderRNA *brna)
