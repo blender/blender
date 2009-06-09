@@ -218,6 +218,8 @@ void RNA_def_main(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
+
 	const char *lists[][5]= {
 		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
@@ -265,6 +267,13 @@ void RNA_def_main(BlenderRNA *brna)
 		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
+
+	func= RNA_def_function(srna, "add_mesh", "RNA_api_add_mesh");
+	RNA_def_function_ui_description(func, "Add a new mesh.");
+	prop= RNA_def_string(func, "name", "", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "A new mesh.");
+	RNA_def_function_return(func, prop);
 }
 
 #endif

@@ -2027,3 +2027,51 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 		vc->em= me->edit_mesh;
 	}
 }
+
+/* Python API */
+Mesh *RNA_api_add_mesh(Main *main, char *name)
+{
+	return add_mesh(name);
+}
+
+Mesh *RNA_api_mesh_copy(Mesh *me)
+{
+	return copy_mesh(me);
+}
+
+/*
+void RNA_api_mesh_copy_(Mesh *me, Object *ob, int apply_transform)
+{
+	if (ob->type != OB_MESH) {
+		return;
+	}
+
+	Mesh *src= (Mesh*)ob->data;
+
+	CustomData_free(&me->vdata, me->totvert);
+	CustomData_free(&me->edata, me->totedge);
+	CustomData_free(&me->fdata, me->totface);
+
+	CustomData_copy(&src->vdata, &me->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+	CustomData_copy(&src->edata, &me->edata, CD_MASK_MESH, CD_DUPLICATE, me->totedge);
+	CustomData_copy(&src->fdata, &me->fdata, CD_MASK_MESH, CD_DUPLICATE, me->totface);
+	mesh_update_customdata_pointers(me);
+
+	// ensure indirect linked data becomes lib-extern
+	for(i=0; i<src->fdata.totlayer; i++) {
+		if(src->fdata.layers[i].type == CD_MTFACE) {
+			tface= (MTFace*)src->fdata.layers[i].data;
+
+			for(a=0; a<src->totface; a++, tface++)
+				if(tface->tpage)
+					id_lib_extern((ID*)tface->tpage);
+		}
+	}
+	
+	me->mselect= NULL;
+	me->bb= src->bb;
+
+	//men->key= copy_key(me->key);
+	//if(men->key) men->key->from= (ID *)men;
+}
+*/

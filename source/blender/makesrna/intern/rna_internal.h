@@ -189,6 +189,8 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 /* API functions */
 
 void RNA_api_ui_layout(struct StructRNA *srna);
+struct Mesh *RNA_api_add_mesh(struct Main *main, char *name);
+struct Mesh *RNA_api_mesh_copy(struct Mesh *me);
 
 /* ID Properties */
 
