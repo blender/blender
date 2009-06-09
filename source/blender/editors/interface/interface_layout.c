@@ -1951,6 +1951,12 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout)
 	return layout->root->block;
 }
 
+int uiLayoutGetOperatorContext(uiLayout *layout)
+{
+	return layout->root->opcontext;
+}
+
+
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout)
 {
 	block->curlayout= layout;

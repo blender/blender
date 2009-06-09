@@ -32,6 +32,8 @@
 
 #include "UI_interface.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -47,7 +49,6 @@
 #include "BKE_screen.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
 {
@@ -418,6 +419,16 @@ static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
 	return uiLayoutSetActive(ptr->data, value);
 }
 
+static void rna_UILayout_op_context_set(struct PointerRNA *ptr, int value)
+{
+	return uiLayoutSetOperatorContext(ptr->data, value);
+}
+
+static int rna_UILayout_op_context_get(struct PointerRNA *ptr)
+{
+	return uiLayoutGetOperatorContext(ptr->data);
+}
+
 static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
 {
 	return uiLayoutGetEnabled(ptr->data);
@@ -478,7 +489,7 @@ static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
 	return uiLayoutSetScaleY(ptr->data, value);
 }
 
-#else
+#else // RNA_RUNTIME
 
 static void rna_def_ui_layout(BlenderRNA *brna)
 {
@@ -491,6 +502,18 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", "Center", ""},
 		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", "RIght", ""},
 		{0, NULL, NULL, NULL}};
+		
+	/* see WM_types.h */
+	static EnumPropertyItem operator_context_items[] = {
+		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", "Invoke Default", ""},
+		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", "Invoke Region Window", ""},
+		{WM_OP_INVOKE_AREA, "INVOKE_AREA", "Invoke Area", ""},
+		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", "Invoke Screen", ""},
+		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", "Exec Default", ""},
+		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", "Exec Region Window", ""},
+		{WM_OP_EXEC_AREA, "EXEC_AREA", "Exec Area", ""},
+		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", "Exec Screen", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
@@ -498,6 +521,10 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
+	
+	prop= RNA_def_property(srna, "operator_context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, operator_context_items);
+	RNA_def_property_enum_funcs(prop, "rna_UILayout_op_context_get", "rna_UILayout_op_context_set", NULL);
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
@@ -661,5 +688,5 @@ void RNA_def_ui(BlenderRNA *brna)
 	rna_def_menu(brna);
 }
 
-#endif
+#endif // RNA_RUNTIME
 

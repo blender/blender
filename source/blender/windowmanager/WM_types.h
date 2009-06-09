@@ -44,6 +44,7 @@ struct wmWindowManager;
 #define OPTYPE_UNDO			2
 
 /* context to call operator in for WM_operator_name_call */
+/* rna_ui.c contains EnumPropertyItem's of these, keep in sync */
 enum {
 	/* if there's invoke, call it, otherwise exec */
 	WM_OP_INVOKE_DEFAULT,

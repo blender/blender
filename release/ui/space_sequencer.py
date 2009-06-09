@@ -188,7 +188,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout = self.layout
 		st = context.space_data
 		
-		# uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+		layout.operator_context = 'INVOKE_REGION_WIN'
 		
 		layout.column()
 		layout.item_enumO("TFM_OT_transform", "mode", 'TRANSLATION', text="Grab/Move")

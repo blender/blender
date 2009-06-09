@@ -581,6 +581,8 @@ void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
+
+int uiLayoutGetOperatorContext(uiLayout *layout);
 int uiLayoutGetActive(uiLayout *layout);
 int uiLayoutGetEnabled(uiLayout *layout);
 int uiLayoutGetRedAlert(uiLayout *layout);
