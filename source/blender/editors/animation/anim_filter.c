@@ -730,7 +730,6 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 			/* only include this track if selected in a way consistent with the filtering requirements */
 			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
 				/* only include if this track is active */
-				// XXX keep this?
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
 					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner, ownertype, owner_id);
 						
