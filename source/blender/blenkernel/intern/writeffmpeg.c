@@ -242,8 +242,8 @@ static void write_video_frame(RenderData *rd, AVFrame* frame)
 #ifdef FFMPEG_CODEC_TIME_BASE
 	frame->pts = rd->cfra - rd->sfra;
 #endif
-	if (G.scene->r.mode & R_FIELDS) {
-		frame->top_field_first = ((G.scene->r.mode & R_ODDFIELD) != 0);
+	if (rd->mode & R_FIELDS) {
+		frame->top_field_first = ((rd->mode & R_ODDFIELD) != 0);
 	}
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
