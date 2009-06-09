@@ -120,8 +120,8 @@ static void deselect_nla_strips (bAnimContext *ac, short test, short sel)
 	int filter;
 	short smode;
 	
-	/* determine type-based settings - curvesonly eliminates all the unnecessary channels... */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY);
+	/* determine type-based settings */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
 	
 	/* filter data */
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);

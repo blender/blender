@@ -162,8 +162,9 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_CHANNELS		= (1<<5),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
 	ANIMFILTER_CURVEVISIBLE	= (1<<7),	/* F-Curve is visible for editing/viewing in Graph Editor */
-	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */  // FIXME: this is only relevant for F-Curves for now
+	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
+	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 } eAnimFilter_Flags;
 
 

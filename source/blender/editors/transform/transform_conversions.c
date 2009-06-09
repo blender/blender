@@ -2595,7 +2595,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
@@ -2613,18 +2613,15 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	
 	/* loop 1: count how many strips are selected (consider each strip as 2 points) */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		/* only if a real NLA-track */
-		if (ale->type == ANIMTYPE_NLATRACK) {
-			NlaTrack *nlt= (NlaTrack *)ale->data;
-			NlaStrip *strip;
-			
-			/* only consider selected strips */
-			for (strip= nlt->strips.first; strip; strip= strip->next) {
-				// TODO: we can make strips have handles later on...
-				if (strip->flag & NLASTRIP_FLAG_SELECT) {
-					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
-					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
-				}
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		/* only consider selected strips */
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			// TODO: we can make strips have handles later on...
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
 			}
 		}
 	}

@@ -1050,7 +1050,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	int items = 0;
 	
 	/* add this object as a channel first */
-	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
+	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
 		/* check if filtering by selection */
 		if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
@@ -1062,7 +1062,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	
 	/* if collapsed, don't go any further (unless adding keyframes only) */
-	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & ANIMFILTER_CURVESONLY) )
+	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) )
 		return items;
 	
 	/* Action, Drivers, or NLA */
@@ -1073,7 +1073,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
 					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_OBJECT, (ID *)ob);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
@@ -1129,7 +1129,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
 					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_OBJECT, (ID *)ob);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
@@ -1235,7 +1235,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	int items = 0;
 	
 	/* add scene as a channel first (even if we aren't showing scenes we still need to show the scene's sub-data */
-	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
+	if ((filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) == 0) {
 		/* check if filtering by selection */
 		if (ANIMCHANNEL_SELOK( (sce->flag & SCE_DS_SELECTED) )) {
 			ale= make_new_animlistelem(sce, ANIMTYPE_SCENE, NULL, ANIMTYPE_NONE, NULL);
@@ -1247,7 +1247,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	}
 	
 	/* if collapsed, don't go any further (unless adding keyframes only) */
-	if ( (EXPANDED_SCEC(sce) == 0) && !(filter_mode & ANIMFILTER_CURVESONLY) )
+	if ( (EXPANDED_SCEC(sce) == 0) && !(filter_mode & (ANIMFILTER_CURVESONLY|ANIMFILTER_NLATRACKS)) )
 		return items;
 		
 	/* Action, Drivers, or NLA  for Scene */
@@ -1258,7 +1258,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
 					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_SCENE (ID *)sce);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
@@ -1312,7 +1312,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 			{ /* nla */
 #if 0
 				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
 					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_DSWOR (ID *)wo);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
