@@ -114,6 +114,72 @@
 
 #include "RE_shader_ext.h"
 
+/* Utility */
+
+static int is_last_displist(Object *ob)
+{
+	Curve *cu = ob->data;
+	static int curvecount=0, totcurve=0;
+
+	if(curvecount == 0){
+		DispList *dl;
+
+		totcurve = 0;
+		for(dl=cu->disp.first; dl; dl=dl->next)
+			totcurve++;
+	}
+
+	curvecount++;
+
+	if(curvecount == totcurve){
+		curvecount = 0;
+		return 1;
+	}
+
+	return 0;
+}
+
+static DerivedMesh *get_original_dm(Object *ob, float (*vertexCos)[3], int orco)
+{
+	DerivedMesh *dm= NULL;
+
+	if(ob->type==OB_MESH) {
+		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+
+		if(vertexCos) {
+			CDDM_apply_vert_coords(dm, vertexCos);
+			//CDDM_calc_normals(dm);
+		}
+		
+		if(orco)
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+	}
+	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+		Object *tmpobj;
+		Curve *tmpcu;
+
+		if(is_last_displist(ob)) {
+			/* copies object and modifiers (but not the data) */
+			tmpobj= copy_object(ob);
+			tmpcu = (Curve *)tmpobj->data;
+			tmpcu->id.us--;
+
+			/* copies the data */
+			tmpobj->data = copy_curve((Curve *) ob->data);
+
+			makeDispListCurveTypes(tmpobj, 1);
+			nurbs_to_mesh(tmpobj);
+
+			dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
+			//CDDM_calc_normals(dm);
+
+			free_libblock_us(&G.main->object, tmpobj);
+		}
+	}
+
+	return dm;
+}
+
 /***/
 
 static int noneModifier_isDisabled(ModifierData *md)
@@ -6037,7 +6103,8 @@ static void surfaceModifier_freeData(ModifierData *md)
 			MEM_freeN(surmd->bvhtree);
 		}
 
-		surmd->dm->release(surmd->dm);
+		if(surmd->dm)
+			surmd->dm->release(surmd->dm);
 		
 		surmd->bvhtree = NULL;
 		surmd->dm = NULL;
@@ -6061,7 +6128,7 @@ static void surfaceModifier_deformVerts(
 
 	/* if possible use/create DerivedMesh */
 	if(derivedData) surmd->dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) surmd->dm = CDDM_from_mesh(ob->data, ob);
+	else surmd->dm = get_original_dm(ob, NULL, 0);
 	
 	if(!ob->pd)
 	{
@@ -6232,70 +6299,6 @@ CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
 	dataMask |= CD_MASK_ORCO;
 	
 	return dataMask;
-}
-static int is_last_displist(Object *ob)
-{
-	Curve *cu = ob->data;
-	static int curvecount=0, totcurve=0;
-
-	if(curvecount==0){
-		DispList *dl;
-
-		totcurve=0;
-		for(dl=cu->disp.first; dl; dl=dl->next){
-			totcurve++;
-		}
-	}
-
-	curvecount++;
-
-	if(curvecount==totcurve){
-		curvecount=0;
-		return 1;
-	}
-
-	return 0;
-}
-
-static DerivedMesh *get_original_dm(Object *ob, float (*vertexCos)[3], int orco)
-{
-	DerivedMesh *dm= NULL;
-
-	if(ob->type==OB_MESH) {
-		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
-
-		if(vertexCos) {
-			CDDM_apply_vert_coords(dm, vertexCos);
-			//CDDM_calc_normals(dm);
-		}
-		
-		if(orco)
-			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
-	}
-	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
-		Object *tmpobj;
-		Curve *tmpcu;
-
-		if(is_last_displist(ob)) {
-			/* copies object and modifiers (but not the data) */
-			tmpobj= copy_object(ob);
-			tmpcu = (Curve *)tmpobj->data;
-			tmpcu->id.us--;
-
-			/* copies the data */
-			tmpobj->data = copy_curve((Curve *) ob->data);
-
-			makeDispListCurveTypes(tmpobj, 1);
-			nurbs_to_mesh(tmpobj);
-
-			dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
-			//CDDM_calc_normals(dm);
-
-			free_libblock_us(&G.main->object, tmpobj);
-		}
-	}
-
-	return dm;
 }
 
 /* saves the current emitter state for a particle system and calculates particles */

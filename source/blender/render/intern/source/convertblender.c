@@ -2562,7 +2562,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	if(need_orco) orcobase= orco= get_object_orco(re, ob);
 
 	displist.first= displist.last= 0;
-	makeDispListSurf(ob, &displist, 1);
+	makeDispListSurf(ob, &displist, 1, 0);
 
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */

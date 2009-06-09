@@ -3395,12 +3395,14 @@ static void object_surface__enabletoggle ( void *ob_v, void *arg2 )
 		if(pd && (pd->flag & PFIELD_SURFACE)
 			&& ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
 		{
-			md = modifier_new ( eModifierType_Surface );
-			BLI_addtail ( &ob->modifiers, md );
-			DAG_scene_sort(G.scene);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
+			if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+				md = modifier_new ( eModifierType_Surface );
+				BLI_addtail ( &ob->modifiers, md );
+				DAG_scene_sort(G.scene);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}
 		}
 	}
 	else if(!pd || !(pd->flag & PFIELD_SURFACE)
@@ -3556,8 +3558,10 @@ static void object_panel_fields(Object *ob)
 			}
 			
 			if(particles==0 && ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ)) {
-				but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
-				uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
+				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+					but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
+					uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
+				}
 			}
 			uiBlockEndAlign(block);
 			

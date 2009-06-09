@@ -1356,7 +1356,7 @@ static void displist_surf_indices(DispList *dl)
 	
 }
 
-void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
+void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender, int forOrco)
 {
 	ListBase *nubase;
 	Nurb *nu;
@@ -1375,7 +1375,8 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 		nubase= &cu->nurb;
 	}
 
-	curve_calc_modifiers_pre(ob, nubase, forRender, &originalVerts, &deformedVerts, &numVerts);
+	if(!forOrco)
+		curve_calc_modifiers_pre(ob, nubase, forRender, &originalVerts, &deformedVerts, &numVerts);
 
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
@@ -1429,7 +1430,8 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 		tex_space_curve(cu);
 	}
 
-	curve_calc_modifiers_post(ob, nubase, dispbase, forRender, originalVerts, deformedVerts);
+	if(!forOrco)
+		curve_calc_modifiers_post(ob, nubase, dispbase, forRender, originalVerts, deformedVerts);
 }
 
 void makeDispListCurveTypes(Object *ob, int forOrco)
@@ -1445,7 +1447,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 	freedisplist(dispbase);
 	
 	if(ob->type==OB_SURF) {
-		makeDispListSurf(ob, dispbase, 0);
+		makeDispListSurf(ob, dispbase, 0, forOrco);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
 		ListBase dlbev;
