@@ -43,22 +43,23 @@ int TreeJntToJacSolver::JntToJac(const JntArray& q_in, Jacobian& jac,
         unsigned int q_nr = it->second.q_nr;
 
         //get the pose of the segment:
-        Frame T_local = it->second.segment.pose(q_in(q_nr));
+        Frame T_local = it->second.segment.pose(((JntArray&)q_in)(q_nr));
         //calculate new T_end:
         T_total = T_local * T_total;
 
         //get the twist of the segment:
-        if (it->second.segment.getJoint().getType() != Joint::None) {
-            Twist t_local = it->second.segment.twist(q_in(q_nr), 1.0);
+		int ndof = it->second.segment.getJoint().getNDof();
+		for (int dof=0; dof<ndof; dof++) {
+            Twist t_local = it->second.segment.twist(T_local.p, 1.0, dof);
             //transform the endpoint of the local twist to the global endpoint:
             t_local = t_local.RefPoint(T_total.p - T_local.p);
             //transform the base of the twist to the endpoint
             t_local = T_total.M.Inverse(t_local);
             //store the twist in the jacobian:
-            jac.twists[q_nr] = t_local;
-            //goto the parent
-            it = it->second.parent;
-        }//endif
+            jac.twists[q_nr+dof] = t_local;
+        }
+        //goto the parent
+        it = it->second.parent;
     }//endwhile
     //Change the base of the complete jacobian from the endpoint to the base
     changeBase(jac, T_total.M, jac);

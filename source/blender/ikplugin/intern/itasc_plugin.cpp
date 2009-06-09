@@ -627,7 +627,11 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			}
 			break;
 		case IK_XDOF|IK_YDOF|IK_ZDOF:
-			// RX+RZ+RY
+			// spherical joint
+			KDL::Vector rot = bonerot.GetRot();
+			joint += ":SJ";
+			ret = arm->addSegment(joint, parent, KDL::Joint::Sphere, rot(0), tip);
+			/*
 			GetEulerXYZ(bonerot, X, Y, Z);
 			joint += ":RX";
 			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X);
@@ -643,6 +647,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 					ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z, tip);
 				}
 			}
+			*/
 			break;
 		}
 		if (ret && hasstretch) {
@@ -869,7 +874,7 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	IK_Channel* ikchan;
 	iTaSC::Armature* arm = ikscene->armature;
 	KDL::Frame frame;
-	double q_rest, q;
+	double q_rest[3], q[3];
 	const KDL::Joint* joint;
 	const KDL::Frame* tip;
 	bPoseChannel* pchan;
@@ -891,13 +896,13 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 		}
 		// ikchan->frame is the tail frame relative to object
 		// get bone length
-		if (!arm->getSegment(ikchan->bone, joint, q_rest, q, tip))
+		if (!arm->getSegment(ikchan->bone, 3, joint, q_rest[0], q[0], tip))
 			break;
 		if (joint->getType() == KDL::Joint::TransY) {
 			// stretch bones have a TY joint, compute the scale
-			scale = (float)(q/q_rest);
+			scale = (float)(q[0]/q_rest[0]);
 			// the length is the joint itself
-			length = (float)q;
+			length = (float)q[0];
 		} 
 		else {
 			scale = 1.0f;

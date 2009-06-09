@@ -144,7 +144,7 @@ bool Armature::popConstraints(CacheTS timestamp)
 	return true;
 }
 
-bool Armature::addSegment(const std::string& segment_name, const std::string& hook_name, const Joint& joint, double q_rest, const Frame& f_tip, const Inertia& M)
+bool Armature::addSegment(const std::string& segment_name, const std::string& hook_name, const Joint& joint, const double& q_rest, const Frame& f_tip, const Inertia& M)
 {
 	if (m_finalized)
 		return false;
@@ -152,24 +152,27 @@ bool Armature::addSegment(const std::string& segment_name, const std::string& ho
 	Segment segment(joint, f_tip, M);
 	if (!m_tree.addSegment(segment, segment_name, hook_name))
 		return false;
-
-	if (joint.getType() != Joint::None) {
-		m_joints.push_back(q_rest);
-		m_njoint++;
+	int ndof = joint.getNDof();
+	for (int dof=0; dof<ndof; dof++) {
+		Joint_struct js((&q_rest)[dof], joint.getType(), ndof);
+		m_joints.push_back(js);
 	}
+	m_njoint+=ndof;
 	return true;
 }
 
-bool Armature::getSegment(const std::string& name, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip)
+bool Armature::getSegment(const std::string& name, const unsigned int q_size, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip)
 {
 	SegmentMap::const_iterator sit = m_tree.getSegment(name);
 	if (sit == m_tree.getSegments().end())
 		return false;
 	p_joint = &sit->second.segment.getJoint();
+	if (q_size < p_joint->getNDof())
+		return false;
 	p_tip = &sit->second.segment.getFrameToTip();
-	if (p_joint->getType() != Joint::None) {
-		q_rest = m_joints[sit->second.q_nr];
-		q = m_qKdl(sit->second.q_nr);
+	for (unsigned int dof=0; dof<p_joint->getNDof(); dof++) {
+		(&q_rest)[dof] = m_joints[sit->second.q_nr+dof].rest;
+		(&q)[dof] = m_qKdl(sit->second.q_nr+dof);
 	}
 	return true;
 }
@@ -180,6 +183,7 @@ double Armature::getMaxJointChange()
 		return 0.0;
 	double maxJoint = 0.0;
 	for (unsigned int i=0; i<m_njoint; i++) {
+		// this is a very rough calculation, it doesn't work well for spherical joint
 		double joint = fabs(m_oldqKdl(i)-m_qKdl(i));
 		if (maxJoint < joint)
 			maxJoint = joint;
@@ -190,7 +194,8 @@ double Armature::getMaxJointChange()
 int Armature::addConstraint(const std::string& segment_name, ConstraintCallback _function, void* _param, bool _freeParam, bool _substep)
 {
 	SegmentMap::const_iterator segment_it = m_tree.getSegment(segment_name);
-	if (segment_it == m_tree.getSegments().end() || segment_it->second.segment.getJoint().getType() == Joint::None) {
+	// not suitable for NDof joints
+	if (segment_it == m_tree.getSegments().end() || segment_it->second.segment.getJoint().getNDof() != 1) {
 		if (_freeParam && _param)
 			free(_param);
 		return -1;
@@ -222,7 +227,7 @@ int Armature::addConstraint(const std::string& segment_name, ConstraintCallback 
 	m_constraints.push_back(pConstraint);
 	// desired value = rest position
 	//(suitable for joint limit constraint, maybe changed by user in callback)
-	pConstraint->value.yd  = m_joints[segment_it->second.q_nr];
+	pConstraint->value.yd  = m_joints[segment_it->second.q_nr].rest;
 	return m_nconstraint++;
 }
 
@@ -260,7 +265,8 @@ bool Armature::JointLimitCallback(const Timestamp& timestamp, struct ConstraintV
 int Armature::addLimitConstraint(const std::string& segment_name, double _min, double _max, double _threshold, double _maxWeight, double _slope)
 {
 	SegmentMap::const_iterator segment_it = m_tree.getSegment(segment_name);
-	if (segment_it == m_tree.getSegments().end() || segment_it->second.segment.getJoint().getType() == Joint::None) {
+	if (segment_it == m_tree.getSegments().end() || segment_it->second.segment.getJoint().getNDof() != 1) {
+		// not suitable for NDof joints
 		return -1;
 	}
 	if (segment_it->second.segment.getJoint().getType() < Joint::TransX) {
@@ -307,6 +313,7 @@ void Armature::finalize()
 	initialize(m_njoint, m_nconstraint, m_neffector);
 	for (i=0; i<m_nconstraint; i++) {
 		JointConstraint_struct* pConstraint = m_constraints[i];
+		// constraints for 1DOF only
 		m_Cq(i,pConstraint->segment->second.q_nr) = 1.0;
 		m_Wy(i) = pConstraint->values.alpha/(pConstraint->values.tolerance*pConstraint->values.feedback);
 	}
@@ -317,7 +324,7 @@ void Armature::finalize()
 	m_oldqKdl.resize(m_njoint);
 	m_qdotKdl.resize(m_njoint);
 	for (i=0; i<m_njoint; i++) {
-		m_oldqKdl(i) = m_qKdl(i) = m_joints[i];
+		m_oldqKdl(i) = m_qKdl(i) = m_joints[i].rest;
 	}
 	updateJacobian();
 	m_finalized = true;
@@ -330,9 +337,27 @@ void Armature::updateKinematics(const Timestamp& timestamp){
 	if (!m_finalized)
 		return;
 
-    for(unsigned int i=0;i<m_nq;i++)
-        m_qdotKdl(i)=m_qdot(i)*timestamp.realTimestep;
-    Add(m_qKdl,m_qdotKdl,m_qKdl);
+	// integration, for spherical joint we must use a more sophisticated method
+	unsigned int q_nr;
+	for (q_nr=0; q_nr<m_nq; ++q_nr)
+		m_qdotKdl(q_nr)=m_qdot(q_nr);
+
+	for (unsigned int q_nr=0; q_nr<m_nq; ) {
+		Joint_struct& joint = m_joints[q_nr];
+		switch (joint.type) {
+		case KDL::Joint::Sphere:
+			{
+				double* qdot=&m_qdotKdl(q_nr);
+				double* q=&m_qKdl(q_nr);
+				(KDL::Rot(KDL::Vector(qdot)*timestamp.realTimestep)*KDL::Rot(KDL::Vector(q))).GetRot().GetValue(q);
+				break;
+			}
+		default:
+			for (unsigned int i=0; i<joint.ndof; i++)
+				m_qKdl(q_nr+i) += m_qdotKdl(q_nr+i)*timestamp.realTimestep;
+		}
+		q_nr += joint.ndof;
+	}
 
 	if (!timestamp.substep && timestamp.cache) {
 		pushQ(timestamp.cacheTimestamp);
@@ -373,13 +398,6 @@ bool Armature::getRelativeFrame(Frame& result, const std::string& segment_name, 
 	if (!m_finalized)
 		return false;
 	return (m_fksolver->JntToCart(m_qKdl,result,segment_name,base_name) < 0) ? false : true;
-}
-
-double Armature::getJoint(unsigned int joint)
-{
-	if (m_finalized && joint < m_njoint)
-		return m_qKdl(joint);
-	return 0.0;
 }
 
 void Armature::updateControlOutput(const Timestamp& timestamp)

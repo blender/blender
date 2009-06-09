@@ -150,8 +150,14 @@ public:
      //! Constructs a vector out of the three values x, y and z
      inline Vector(double x,double y, double z);
 
-     //! Assignment operator. The normal copy by value semantics.
+     //! Constructs a vector out of an array of three values x, y and z
+     inline Vector(double* xyz);
+
+	 //! Assignment operator. The normal copy by value semantics.
      inline Vector(const Vector& arg);
+
+	 //! store vector components in array
+	 inline void GetValue(double* xyz);
 
      //! Assignment operator. The normal copy by value semantics.
      inline Vector& operator = ( const Vector& arg);
@@ -348,13 +354,13 @@ public:
     //! DoRot... functions are only defined when they can be executed more efficiently
     inline void DoRotZ(double angle);
 
-    //! Along an arbitrary axes.  It is not necessary to normalize rotvec.
-    //! returns identity rotation matrix in the case that the norm of rotvec
+    //! Along an arbitrary axes.  It is not necessary to normalize rotaxis.
+    //! returns identity rotation matrix in the case that the norm of rotaxis
     //! is to small to be used.
     // @see Rot2 if you want to handle this error in another way.
-    static Rotation Rot(const Vector& rotvec,double angle);
+    static Rotation Rot(const Vector& rotaxis,double angle);
 
-    //! Along an arbitrary axes.  rotvec should be normalized.
+	//! Along an arbitrary axes.  rotvec should be normalized.
     static Rotation Rot2(const Vector& rotvec,double angle);
 	
 	// make sure the matrix is a pure rotation (no scaling)

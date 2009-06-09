@@ -57,7 +57,7 @@ namespace KDL {
 			return KDL::Frame::Identity();
 		}
 		else{
-			Frame currentFrame = currentElement.segment.pose(q_in(currentElement.q_nr));
+			Frame currentFrame = currentElement.segment.pose(((JntArray&)q_in)(currentElement.q_nr));
 			SegmentMap::const_iterator parentIt = currentElement.parent;
 			return recursiveFk(q_in, parentIt, baseit) * currentFrame;
 		}

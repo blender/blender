@@ -50,10 +50,14 @@ namespace KDL {
         return joint.pose(q)*f_tip;
     }
 
-    Twist Segment::twist(const double& q, const double& qdot)const
+    Twist Segment::twist(const double& q, const double& qdot, int dof)const
     {
-        return joint.twist(qdot).RefPoint(pose(q).p);
+        return joint.twist(qdot, dof).RefPoint(pose(q).p);
     }
 
+    Twist Segment::twist(const Vector& p, const double& qdot, int dof)const
+    {
+        return joint.twist(qdot, dof).RefPoint(p);
+    }
 }//end of namespace KDL
 

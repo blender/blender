@@ -67,8 +67,7 @@ bool Tree::addSegment(const Segment& segment, const std::string& segment_name,
     //increase number of segments
     nrOfSegments++;
     //increase number of joints
-    if (segment.getJoint().getType() != Joint::None)
-        nrOfJoints++;
+	nrOfJoints += segment.getJoint().getNDof();
     return true;
 }
 

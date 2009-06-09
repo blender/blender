@@ -38,6 +38,16 @@ IMETHOD Vector::Vector(double x,double y, double z)
         data[0]=x;data[1]=y;data[2]=z;
 }
 
+IMETHOD Vector::Vector(double* xyz)
+{
+        data[0]=xyz[0];data[1]=xyz[1];data[2]=xyz[2];
+}
+
+IMETHOD void Vector::GetValue(double* xyz)
+{
+        xyz[0]=data[0];xyz[1]=data[1];xyz[2]=data[2];
+}
+
 
 IMETHOD Vector& Vector::operator =(const Vector & arg)
 {

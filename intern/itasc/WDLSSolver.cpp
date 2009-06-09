@@ -69,9 +69,9 @@ bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& yd
     //qdot=Wq*V*S^-1*U'*Wy'*ydot
     qdot=(m_WqV*m_SinvWyUt_ydot).lazy();
 	if (maxDeltaS == e_scalar(0.0))
-		nlcoef = e_scalar(1.0/KDL::epsilon);
+		nlcoef = e_scalar(KDL::epsilon);
 	else
-		nlcoef = maxS/(maxS-maxDeltaS)/e_scalar(2.0);
+		nlcoef = (maxS-maxDeltaS)/maxS;
     return true;
 }
 

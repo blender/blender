@@ -21,14 +21,13 @@ public:
     Armature();
     virtual ~Armature();
 
-	bool addSegment(const std::string& segment_name, const std::string& hook_name, const Joint& joint, double q_rest=0.0, const Frame& f_tip=F_identity, const Inertia& M = Inertia::Zero());
+	bool addSegment(const std::string& segment_name, const std::string& hook_name, const Joint& joint, const double& q_rest, const Frame& f_tip=F_identity, const Inertia& M = Inertia::Zero());
 	// general purpose constraint on joint
 	int addConstraint(const std::string& segment_name, ConstraintCallback _function, void* _param=NULL, bool _freeParam=false, bool _substep=false);
 	// specific limit constraint on joint
 	int addLimitConstraint(const std::string& segment_name, double _min, double _max, double _threshold, double _maxWeight=1000.0, double _slope=1.0);
-	double getJoint(unsigned int joint);
 	double getMaxJointChange();
-	bool getSegment(const std::string& segment_name, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip);
+	bool getSegment(const std::string& segment_name, const unsigned int q_size, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip);
 	bool getRelativeFrame(Frame& result, const std::string& segment_name, const std::string& base_name=m_root);
 
 	virtual void finalize();
@@ -80,7 +79,15 @@ public:
 	};
 	typedef std::vector<JointConstraint_struct*> JointConstraintList;	
 
-	typedef std::vector<double> JointList;
+	struct Joint_struct {
+		double					rest;
+		KDL::Joint::JointType	type;
+		unsigned int			ndof;
+
+		Joint_struct(double _rest, KDL::Joint::JointType _type, unsigned int _ndof) :
+			rest(_rest), type(_type), ndof(_ndof) {}
+	};
+	typedef std::vector<Joint_struct> JointList;
 	
 protected:
     virtual void updateJacobian();
@@ -102,6 +109,7 @@ private:
     JntArray m_oldqKdl;
     JntArray m_qdotKdl;
     Jacobian* m_jac;
+
 	KDL::TreeJntToJacSolver* m_jacsolver;
 	KDL::TreeFkSolverPos_recursive* m_fksolver;
 	EffectorList m_effectors;

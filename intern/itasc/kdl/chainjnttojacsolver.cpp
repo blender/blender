@@ -40,27 +40,22 @@ namespace KDL
         SetToZero(t_tmp);
         int j=0;
         Frame total;
+		// this could be done much better by walking from the ee to the base
         for (unsigned int i=0;i<chain.getNrOfSegments();i++) {
+			const Segment& segment = chain.getSegment(i);
+			int ndof = segment.getJoint().getNDof();
             //Calculate new Frame_base_ee
-            if(chain.getSegment(i).getJoint().getType()!=Joint::None){
-            	//pose of the new end-point expressed in the base
-                total = T_tmp*chain.getSegment(i).pose(q_in(j));
-                //changing base of new segment's twist to base frame
-                //t_tmp = T_tmp.M*chain.getSegment(i).twist(1.0);
-                t_tmp = T_tmp.M*chain.getSegment(i).twist(q_in(j),1.0);
-            }else{
-                total = T_tmp*chain.getSegment(i).pose(0.0);
-
-            }
-
-            //Changing Refpoint of all columns to new ee
+            total = T_tmp*segment.pose(((JntArray&)q_in)(j));
+			//Changing Refpoint of all columns to new ee
             changeRefPoint(jac,total.p-T_tmp.p,jac);
 
-            //Only increase jointnr if the segment has a joint
-            if(chain.getSegment(i).getJoint().getType()!=Joint::None){
-                jac.twists[j] = t_tmp;
-                j++;
+			for (int dof=0; dof<ndof; dof++) {
+            	//pose of the new end-point expressed in the base
+                //changing base of new segment's twist to base frame
+				t_tmp = T_tmp.M*segment.twist(total.p,1.0,dof);
+                jac.twists[j+dof] = t_tmp;
             }
+			j+=ndof;
 
             T_tmp = total;
         }

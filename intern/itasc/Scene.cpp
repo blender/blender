@@ -383,7 +383,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 			// and joint limit gain variation
 			// We will pass the joint velocity to each object and they will recommend a maximum timestep
 			timesubstep = timeleft;
-			double maxsubstep = timestep/nlcoef;
+			double maxsubstep = nlcoef*0.06;
 			if (maxsubstep < m_minstep)
 				maxsubstep = m_minstep;
 			if (timesubstep > maxsubstep)
@@ -398,7 +398,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 				cs->task->getMaxTimestep(timesubstep);
 			}
 			// use substep that are dividers of timestep for more regularity
-			timesubstep = timestep/(1.0+floor((timestep/timesubstep)-0.5));
+			timesubstep = timestep/(1.0+floor((timestep/timesubstep)-0.333));
 			if (timesubstep >= timeleft-(m_minstep/2.0)) {
 				timesubstep = timeleft;
 				numsubstep = 1;

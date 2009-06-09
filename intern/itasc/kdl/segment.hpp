@@ -60,7 +60,7 @@ namespace KDL {
          * the segment, default: Frame::Identity()
          * @param M rigid body inertia of the segment, default: Inertia::Zero()
          */
-        Segment(const Joint& joint=Joint(Joint::None), const Frame& f_tip=Frame::Identity(),const Inertia& M = Inertia::Zero());
+        Segment(const Joint& joint=Joint(), const Frame& f_tip=Frame::Identity(),const Inertia& M = Inertia::Zero());
         Segment(const Segment& in);
         Segment& operator=(const Segment& arg);
 
@@ -78,14 +78,26 @@ namespace KDL {
          * Request the 6D-velocity of the tip of the segment, given
          * the joint position q and the joint velocity qdot.
          *
-         * @param q 1D position of the joint
-         * @param qdot 1D velocity of the joint
+         * @param q ND position of the joint
+         * @param qdot ND velocity of the joint
          *
          * @return 6D-velocity of the tip of the segment, expressed
          *in the base-frame of the segment(root) and with the tip of
          *the segment as reference point.
          */
-        Twist twist(const double& q,const double& qdot)const;
+        Twist twist(const double& q,const double& qdot, int dof=0)const;
+
+        /**
+         * Request the 6D-velocity at a given point p, relative to base frame of the segment
+         * givven the joint velocity qdot.
+         *
+         * @param p reference point
+         * @param qdot ND velocity of the joint
+         *
+         * @return 6D-velocity at a given point p, expressed
+         * in the base-frame of the segment(root) 
+         */
+	    Twist Segment::twist(const Vector& p, const double& qdot, int dof=0)const;
 
         /**
          * Request the joint of the segment

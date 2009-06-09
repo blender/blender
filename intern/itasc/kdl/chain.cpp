@@ -53,8 +53,7 @@ namespace KDL {
     {
         segments.push_back(segment);
         nrOfSegments++;
-        if(segment.getJoint().getType()!=Joint::None)
-            nrOfJoints++;
+		nrOfJoints += segment.getJoint().getNDof();
     }
 
     void Chain::addChain(const Chain& chain)
