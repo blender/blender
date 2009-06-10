@@ -1024,11 +1024,11 @@ static struct uiWidgetColors wcol_menu_item= {
 static struct uiWidgetColors wcol_menu_back= {
 	{0, 0, 0, 255},
 	{25, 25, 25, 230},
-	{46, 124, 217, 204},
+	{45, 45, 45, 230},
 	{255, 255, 255, 255},
 	
 	{255, 255, 255, 255},
-	{0, 0, 0, 255},
+	{255, 255, 255, 255},
 	
 	0,
 	25, -20
@@ -1263,6 +1263,71 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 }
 
 /* ************ custom buttons, old stuff ************** */
+
+static void ui_hsvcircle_to_val(float *valrad, float *valdist, rcti *rect, float mx, float my)
+{
+	/* duplication of code... well, simple is better now */
+	float centx= (float)(rect->xmin + rect->xmax)/2;
+	float centy= (float)(rect->ymin + rect->ymax)/2;
+	float radius, dist;
+	
+	if( rect->xmax-rect->xmin > rect->ymax-rect->ymin )
+		radius= (float)(rect->ymax - rect->ymin)/2; 
+	else
+		radius= (float)(rect->xmax - rect->xmin)/2; 
+
+	mx-= centx;
+	my-= centy;
+	dist= sqrt( mx*mx + my*my);
+	if(dist < radius)
+		*valdist= dist/radius;
+	else
+		*valdist= 1.0f;
+	
+	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
+}
+
+void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
+{
+	/* gouraud triangle fan */
+	float radstep, ang= 0.0f;
+	float centx, centy, radius;
+	float hsv[3], col[3], colcent[3];
+	int a, tot= 32;
+	
+	radstep= 2.0f*M_PI/(float)tot;
+	centx= (float)(rect->xmin + rect->xmax)/2;
+	centy= (float)(rect->ymin + rect->ymax)/2;
+	
+	if( rect->xmax-rect->xmin > rect->ymax-rect->ymin )
+		radius= (float)(rect->ymax - rect->ymin)/2; 
+	else
+		radius= (float)(rect->xmax - rect->xmin)/2; 
+	
+	/* color */
+	VECCOPY(hsv, but->hsv);
+	hsv[0]= hsv[1]= 0.0f;
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], colcent, colcent+1, colcent+2);
+	
+	glShadeModel(GL_SMOOTH);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glColor3fv(colcent);
+	glVertex2f( centx, centy);
+	
+	for(a=0; a<=tot; a++, ang+=radstep) {
+		float si= sin(ang);
+		float co= cos(ang);
+		
+		ui_hsvcircle_to_val(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
+		glColor3fv(col);
+		glVertex2f( centx + co*radius, centy + si*radius);
+	}
+	glEnd();
+	
+	glShadeModel(GL_FLAT);
+}
 
 /* draws in resolution of 20x4 colors */
 static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
@@ -1881,8 +1946,12 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				wt= widget_type(UI_WTYPE_RADIO);
 				break;
 			case TEX:
+				wt= widget_type(UI_WTYPE_NAME);
+				break;
 			case SEARCH_MENU:
 				wt= widget_type(UI_WTYPE_NAME);
+				if(but->block->flag & UI_BLOCK_LOOP)
+					wt->wcol_theme= &btheme->tui.wcol_menu_back;
 				break;
 			case TOGBUT:
 			case TOG:

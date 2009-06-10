@@ -602,6 +602,8 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 				data->active= a+1;
 			if(cpoin) cpoin[0]= '|';
 		}
+		if(data->items.totitem==1)
+			data->active= 1;
 	}
 
 	/* validate selected item */
@@ -669,7 +671,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiSearchboxData *data;
 	float aspect= but->block->aspect;
 	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
+	int x1, x2, y1, y2, winx, winy;
 	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
@@ -696,16 +698,27 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->noback= 1;
 	
 	/* compute position */
-	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
-	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
 	
 	x1f= but->x1 - 5;	/* align text with button */
 	x2f= but->x2 + 5;	/* symmetrical */
-	y2f= but->y1;
-	y1f= y2f - uiSearchBoxhHeight();
+	if(but->block->flag & UI_BLOCK_LOOP) {
+		/* check if button is lower half */
+		if( but->y2 < (but->block->minx+but->block->maxx)/2 ) {
+			y1f= but->y2;
+			y2f= y1f + uiSearchBoxhHeight();
+		}
+		else {
+			y2f= but->y1;
+			y1f= y2f - uiSearchBoxhHeight();
+		}
+	}
+	else {
+		y2f= but->y1;
+		y1f= y2f - uiSearchBoxhHeight();
+	}
 	
 	/* minimal width */
-	if(x2f - x1f < 180) x2f= x1f+180; // XXX arbitrary
+	if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
 	
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
@@ -1146,7 +1159,7 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 		rows++;
 		
 	/* prevent scaling up of pupmenu */
-	aspect= but->aspect;
+	aspect= but->block->aspect;
 	if(aspect < 1.0f)
 		aspect = 1.0f;
 
@@ -1169,7 +1182,7 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 		width = (but->x2 - but->x1);
 	if(width<50)
 		width=50;
-
+	
 	boxh= MENU_BUTTON_HEIGHT;
 	
 	height= rows*boxh;

@@ -399,6 +399,8 @@ uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str,
 uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *str, short x1, short y1, short x2, short y2, char *tip);
+
 uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
