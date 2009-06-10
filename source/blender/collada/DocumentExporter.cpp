@@ -28,15 +28,18 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 {
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
-
+	
+	
 	void exportGeom(Scene *sce)
 	{
+		openLibrary();
+		
 		// iterate over objects in scene
 		Base *base= (Base*) sce->base.first;
 		while(base) {
-
+			
 			Object *ob = base->object;
-
+			
 			// only meshes
 			if (ob->type == OB_MESH && ob->data) {
 
@@ -52,7 +55,8 @@ public:
 				openMesh(geom_name, "", "");
 
 				//<source>
-				createSource(sce, mSW, geom_name, dm);
+				createVertsSource(sce, mSW, geom_name, dm);
+				createNormalsSource(sce, mSW, geom_name, dm);
 
 				//<vertices>	
 				COLLADASW::Vertices verts(mSW);
@@ -74,7 +78,10 @@ public:
 
 				COLLADASW::Input input2(COLLADASW::VERTEX,
 										getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
+				COLLADASW::Input input3(COLLADASW::NORMAL,
+										getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
 				til.push_back(input2);
+				til.push_back(input3);
 							
 				tris.prepareToAppendValues();
 
@@ -136,18 +143,23 @@ public:
 		closeMesh();
 		closeGeometry();
 		*/
+		closeLibrary();
 	}
 
-	void createSource(Scene *sce, COLLADASW::StreamWriter *sw,
+	/*----------------------------------------------------------*/
+
+	//creates <source> for positions
+	void createVertsSource(Scene *sce, COLLADASW::StreamWriter *sw,
 					  std::string geom_name, DerivedMesh *dm)
 	{
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
 		
-		//Source<float, "float_array", "float"> source(sw);
+		
 		COLLADASW::FloatSourceF source(sw);
 		source.setId(getIdBySemantics(geom_name, COLLADASW::POSITION));
-		source.setArrayId(geom_name + ARRAY_ID_SUFFIX);
+		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::POSITION) +
+						  ARRAY_ID_SUFFIX);
 		source.setAccessorCount(totverts);
 		source.setAccessorStride(3);
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -161,6 +173,7 @@ public:
 		int i = 0;
 		for (i = 0; i < totverts; i++) {
 			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
+			//	source.appendValues((float)(v->no[i] / 32767.0));
 		}
 		/*closes <float_array>, adds
 		  <technique_common>
@@ -168,6 +181,63 @@ public:
 		  </source> */
 		source.finish();
 	
+	}
+
+	/*----------------------------------------------------------*/
+	
+	/*	//creates <source> for texcoords
+	void createTexcoordsSource(Scene *sce, COLLADASW::StreamWriter *sw,
+							   std::string geom_name, DerivedMesh *dm)
+	{
+		COLLADASW::FloatSourceF source(sw);
+		source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
+		source.setArrayId(geom_name + COLLADA::TEXCOORD + ARRAY_ID_SUFFIX);
+		//TODO: replace totverts to totuvs
+		source.setAccessorCount(totverts);
+		source.setAccessorStride(2);
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("X");
+		param.push_back("Y");
+	
+		source.prepareToAppendValues();
+		//appends data to <float_array>	
+		
+	}
+
+	*/
+
+	//creates <source> for normals
+	void createNormalsSource(Scene *sce, COLLADASW::StreamWriter *sw,
+							 std::string geom_name, DerivedMesh *dm)
+	{
+		int totverts = dm->getNumVerts(dm);
+		MVert *verts = dm->getVertArray(dm);
+		
+		COLLADASW::FloatSourceF source(sw);
+		source.setId(getIdBySemantics(geom_name, COLLADASW::NORMAL));
+		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::NORMAL) +
+						  ARRAY_ID_SUFFIX);
+		source.setAccessorCount(totverts);
+		source.setAccessorStride(3);
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("X");
+		param.push_back("Y");
+		param.push_back("Z");
+		
+		source.prepareToAppendValues();
+		
+		int i = 0;
+		
+		for( i = 0; i < totverts; ++i ){
+			
+			source.appendValues(float(verts[i].no[0]/32767.0),
+								float(verts[i].no[1]/32767.0),
+								float(verts[i].no[2]/32767.0));
+				
+		}
+		source.finish();
+		
+
 	}
 
 	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type) {
