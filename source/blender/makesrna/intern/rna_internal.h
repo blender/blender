@@ -190,7 +190,7 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 void RNA_api_ui_layout(struct StructRNA *srna);
 struct Mesh *RNA_api_add_mesh(struct Main *main, char *name);
-struct Mesh *RNA_api_mesh_copy(struct Mesh *me);
+void RNA_api_mesh_copy(struct Mesh *me, struct Mesh *from);
 
 /* ID Properties */
 

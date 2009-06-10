@@ -1129,9 +1129,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	func= RNA_def_function(srna, "copy", "RNA_api_mesh_copy");
-	RNA_def_function_ui_description(func, "Create a copy of this mesh.");
+	RNA_def_function_ui_description(func, "Copy mesh data.");
+	prop= RNA_def_pointer(func, "src", "Mesh", "", "A mesh to copy data from.");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	/*
 	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "A new mesh.");
 	RNA_def_function_return(func, prop);
+	*/
 }
 
 void RNA_def_mesh(BlenderRNA *brna)
