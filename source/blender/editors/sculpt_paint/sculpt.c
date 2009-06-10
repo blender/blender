@@ -1068,10 +1068,10 @@ static void sculpt_update_mesh_elements(bContext *C)
 	if((ss->multires = sculpt_multires_active(ob))) {
 		DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
 		ss->totvert = dm->getNumVerts(dm);
-		ss->totface = dm->getNumFaces(dm);
+		ss->totface = dm->getNumTessFaces(dm);
 		ss->mvert = dm->getVertDataArray(dm, CD_MVERT);
-		ss->mface = dm->getFaceDataArray(dm, CD_MFACE);
-		ss->face_normals = dm->getFaceDataArray(dm, CD_NORMAL);
+		ss->mface = dm->getTessFaceDataArray(dm, CD_MFACE);
+		ss->face_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	}
 	else {
 		Mesh *me = get_mesh(ob);

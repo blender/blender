@@ -520,10 +520,10 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		dm = mesh_get_derived_final(RE_GetScene(re), ob, dataMask);
 	
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
-	nors = dm->getFaceDataArray(dm, CD_NORMAL);
+	mface = dm->getTessFaceArray(dm);
+	nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	orco= dm->getVertDataArray(dm, CD_ORCO);
 
 	if (onlyForMesh) {

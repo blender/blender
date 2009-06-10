@@ -2035,7 +2035,7 @@ int ccgSubSurf_getNumVerts(CCGSubSurf *ss) {
 int ccgSubSurf_getNumEdges(CCGSubSurf *ss) {
 	return ss->eMap->numEntries;
 }
-int ccgSubSurf_getNumFaces(CCGSubSurf *ss) {
+int ccgSubSurf_getNumTessFaces(CCGSubSurf *ss) {
 	return ss->fMap->numEntries;
 }
 

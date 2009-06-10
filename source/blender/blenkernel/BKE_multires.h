@@ -40,7 +40,8 @@ typedef struct MultiresSubsurf {
 
 /* MultiresDM */
 struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
-struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);
+struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, 
+                                   int, int, int, int, int);
 void *MultiresDM_get_vertnorm(struct DerivedMesh *);
 void *MultiresDM_get_orco(struct DerivedMesh *);
 struct MVert *MultiresDM_get_subco(struct DerivedMesh *);

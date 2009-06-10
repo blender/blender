@@ -44,7 +44,8 @@ struct Mesh;
 struct Object;
 
 /* creates a new CDDerivedMesh */
-struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces);
+struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces,
+                             int numLoops, int numPolys);
 
 /* creates a CDDerivedMesh from the given Mesh, this will reference the
    original data in Mesh, but it is safe to apply vertex coordinates or
@@ -68,7 +69,13 @@ struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
  * elements are initialised to all zeros
  */
 struct DerivedMesh *CDDM_from_template(struct DerivedMesh *source,
-                                  int numVerts, int numEdges, int numFaces);
+                                  int numVerts, int numEdges, int numFaces,
+                                  int numLoops, int numPolys);
+
+/*converts mfaces to mpolys.  note things may break if there are not valid
+ *medges surrounding each mface.
+ */
+void CDDM_tessfaces_to_faces(struct DerivedMesh *dm);
 
 /* applies vertex coordinates or normals to a CDDerivedMesh. if the MVert
  * layer is a referenced layer, it will be duplicate to not overwrite the
@@ -99,7 +106,9 @@ void CDDM_lower_num_faces(struct DerivedMesh *dm, int numFaces);
  */
 struct MVert *CDDM_get_vert(struct DerivedMesh *dm, int index);
 struct MEdge *CDDM_get_edge(struct DerivedMesh *dm, int index);
-struct MFace *CDDM_get_face(struct DerivedMesh *dm, int index);
+struct MFace *CDDM_get_tessface(struct DerivedMesh *dm, int index);
+struct MLoop *CDDM_get_loop(struct DerivedMesh *dm, int index);
+struct MPoly *CDDM_get_face(struct DerivedMesh *dm, int index);
 
 /* vertex/edge/face array access functions - return the array holding the
  * desired data
@@ -108,6 +117,9 @@ struct MFace *CDDM_get_face(struct DerivedMesh *dm, int index);
  */
 struct MVert *CDDM_get_verts(struct DerivedMesh *dm);
 struct MEdge *CDDM_get_edges(struct DerivedMesh *dm);
-struct MFace *CDDM_get_faces(struct DerivedMesh *dm);
+struct MFace *CDDM_get_tessfaces(struct DerivedMesh *dm);
+struct MLoop *CDDM_get_loops(struct DerivedMesh *dm);
+struct MPoly *CDDM_get_faces(struct DerivedMesh *dm);
+
 #endif
 

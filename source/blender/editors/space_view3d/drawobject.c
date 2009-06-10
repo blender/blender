@@ -2327,7 +2327,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
 	if(dt!=OB_SHADED)

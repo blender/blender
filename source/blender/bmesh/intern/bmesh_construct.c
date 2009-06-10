@@ -34,6 +34,9 @@
 #include "BKE_customdata.h" 
 #include "BKE_utildefines.h"
 
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+
 #include "bmesh.h"
 #include "bmesh_private.h"
 
@@ -482,4 +485,26 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	V_FREE(edges);
 
 	return bm;
+}
+
+int BMFlags_To_MEFlags(void *element) {
+	BMHeader *h = element;
+	int f = 0;
+
+	if (h->flag & BM_HIDDEN) f |= ME_HIDE;
+
+	if (h->type == BM_FACE) {
+		if (h->flag & BM_SELECT) f |= ME_FACE_SEL;
+		if (h->flag & BM_SMOOTH) f |= ME_SMOOTH;
+	} else if (h->type == BM_EDGE) {
+		if (h->flag & BM_SELECT) f |= BM_SELECT;
+		if (h->flag & BM_SEAM) f |= ME_SEAM;
+		if (h->flag & BM_SHARP) f |= ME_SHARP;
+		if (BM_Wire_Edge(NULL, element)) f |= ME_LOOSEEDGE;
+	} else if (h->type == BM_VERT) {
+		if (h->flag & BM_SELECT) f |= BM_SELECT;
+		if (h->flag & BM_HIDDEN) f |= ME_HIDE;
+	}
+
+	return f;
 }

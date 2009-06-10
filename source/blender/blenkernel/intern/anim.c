@@ -579,9 +579,9 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		int totvert;
 		dm= editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 		
-		totface= dm->getNumFaces(dm);
+		totface= dm->getNumTessFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
-		dm->copyFaceArray(dm, mface);
+		dm->copyTessFaceArray(dm, mface);
 		totvert= dm->getNumVerts(dm);
 		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
 		dm->copyVertArray(dm, mvert);
@@ -589,8 +589,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
 		
-		totface= dm->getNumFaces(dm);
-		mface= dm->getFaceArray(dm);
+		totface= dm->getNumTessFaces(dm);
+		mface= dm->getTessFaceArray(dm);
 		mvert= dm->getVertArray(dm);
 	}
 

@@ -125,9 +125,9 @@ static MFace *dm_getFaceArray(DerivedMesh *dm)
 
 	if (!mface) {
 		mface = CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL,
-			dm->getNumFaces(dm));
+			dm->getNumTessFaces(dm));
 		CustomData_set_layer_flag(&dm->faceData, CD_MFACE, CD_FLAG_TEMPORARY);
-		dm->copyFaceArray(dm, mface);
+		dm->copyTessFaceArray(dm, mface);
 	}
 
 	return mface;
@@ -155,10 +155,10 @@ static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 
 static MFace *dm_dupFaceArray(DerivedMesh *dm)
 {
-	MFace *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumFaces(dm),
+	MFace *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumTessFaces(dm),
 	                         "dm_dupFaceArray tmp");
 
-	if(tmp) dm->copyFaceArray(dm, tmp);
+	if(tmp) dm->copyTessFaceArray(dm, tmp);
 
 	return tmp;
 }
@@ -168,27 +168,29 @@ void DM_init_funcs(DerivedMesh *dm)
 	/* default function implementations */
 	dm->getVertArray = dm_getVertArray;
 	dm->getEdgeArray = dm_getEdgeArray;
-	dm->getFaceArray = dm_getFaceArray;
+	dm->getTessFaceArray = dm_getFaceArray;
 	dm->dupVertArray = dm_dupVertArray;
 	dm->dupEdgeArray = dm_dupEdgeArray;
-	dm->dupFaceArray = dm_dupFaceArray;
+	dm->dupTessFaceArray = dm_dupFaceArray;
 
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
-	dm->getFaceData = DM_get_face_data;
+	dm->getTessFaceData = DM_get_face_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
-	dm->getFaceDataArray = DM_get_face_data_layer;
+	dm->getTessFaceDataArray = DM_get_face_data_layer;
 
 	bvhcache_init(&dm->bvhCache);
 }
 
-void DM_init(DerivedMesh *dm,
-             int numVerts, int numEdges, int numFaces)
+void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces,
+	     int numLoops, int numPoly)
 {
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
+	dm->numLoopData = numLoops;
+	dm->numPolyData = numPoly;
 
 	DM_init_funcs(dm);
 	
@@ -196,7 +198,8 @@ void DM_init(DerivedMesh *dm,
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      int numVerts, int numEdges, int numFaces)
+                      int numVerts, int numEdges, int numFaces,
+		      int numLoops, int numPolys)
 {
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numVerts);
@@ -204,10 +207,16 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 	                CD_CALLOC, numEdges);
 	CustomData_copy(&source->faceData, &dm->faceData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numFaces);
+	CustomData_copy(&source->loopData, &dm->loopData, CD_MASK_DERIVEDMESH,
+	                CD_CALLOC, numLoops);
+	CustomData_copy(&source->polyData, &dm->polyData, CD_MASK_DERIVEDMESH,
+	                CD_CALLOC, numPolys);
 
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
+	dm->numLoopData = numLoops;
+	dm->numPolyData = numPolys;
 
 	DM_init_funcs(dm);
 
@@ -222,6 +231,8 @@ int DM_release(DerivedMesh *dm)
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
 		CustomData_free(&dm->faceData, dm->numFaceData);
+		CustomData_free(&dm->loopData, dm->numLoopData);
+		CustomData_free(&dm->polyData, dm->numPolyData);
 
 		return 1;
 	}
@@ -229,28 +240,105 @@ int DM_release(DerivedMesh *dm)
 		CustomData_free_temporary(&dm->vertData, dm->numVertData);
 		CustomData_free_temporary(&dm->edgeData, dm->numEdgeData);
 		CustomData_free_temporary(&dm->faceData, dm->numFaceData);
+		CustomData_free(&dm->loopData, dm->numLoopData);
+		CustomData_free(&dm->polyData, dm->numPolyData);
 
 		return 0;
 	}
+}
+
+void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *dm, int totloop)
+{
+	DMFaceIter *iter = dm->newFaceIter(dm);
+	DMLoopIter *liter;
+	MPoly *mpoly;
+	MLoop *mloop;
+	int i;
+
+	mloop = MEM_callocN(sizeof(MLoop)*totloop, "MLoop from dm_add_polys_from_iter");
+	mpoly = MEM_callocN(sizeof(MPoly)*dm->getNumFaces(dm), "MPoly from dm_add_polys_from_iter");
+	
+	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
+	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, dm->getNumFaces(dm));
+
+	i = 0;
+	for (; !iter->done; iter->step(iter), mpoly++) {
+		mpoly->flag = iter->flags;
+		mpoly->loopstart = i;
+		mpoly->totloop = iter->len;
+		mpoly->mat_nr = iter->mat_nr;
+		
+		liter = iter->getLoopsIter(iter);
+		for (; !liter->done; liter->step(liter), mloop++, i++) {
+			mloop->v = liter->vindex;
+			mloop->e = liter->eindex;
+		}
+	}
+	iter->free(iter);
+}
+
+void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
+{
+	DMFaceIter *iter = source->newFaceIter(source);
+	DMLoopIter *liter;
+	MPoly *mpoly;
+	MLoop *mloop;
+	int i;
+
+	mloop = MEM_callocN(sizeof(MLoop)*source->numLoopData, "MLoop from dm_add_polys_from_iter");
+	mpoly = MEM_callocN(sizeof(MPoly)*source->getNumFaces(source), "MPoly from dm_add_polys_from_iter");
+	
+	CustomData_add_layer(&target->loopData, CD_MLOOP, CD_ASSIGN, mloop, source->numLoopData);
+	CustomData_add_layer(&target->polyData, CD_MPOLY, CD_ASSIGN, mpoly, source->getNumFaces(source));
+	
+	target->numLoopData = source->numLoopData;
+	target->numPolyData = source->numPolyData;
+
+	i = 0;
+	for (; !iter->done; iter->step(iter), mpoly++) {
+		mpoly->flag = iter->flags;
+		mpoly->loopstart = i;
+		mpoly->totloop = iter->len;
+		mpoly->mat_nr = iter->mat_nr;
+		
+		liter = iter->getLoopsIter(iter);
+		for (; !liter->done; liter->step(liter), mloop++, i++) {
+			mloop->v = liter->vindex;
+			mloop->e = liter->eindex;
+		}
+	}
+	iter->free(iter);
 }
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
-	int totvert, totedge, totface;
+	DMFaceIter *iter;
+	int totvert, totedge, totface, totloop, totpoly;
 
 	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
 	memset(&tmp.edata, 0, sizeof(tmp.edata));
 	memset(&tmp.fdata, 0, sizeof(tmp.fdata));
+	memset(&tmp.ldata, 0, sizeof(tmp.ldata));
+	memset(&tmp.pdata, 0, sizeof(tmp.pdata));
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
-	totface = tmp.totface = dm->getNumFaces(dm);
+	totface = tmp.totface = dm->getNumTessFaces(dm);
+	totpoly = tmp.totpoly = dm->getNumFaces(dm);
+	
+	totloop = 0;
+	for (iter=dm->newFaceIter(dm); !iter->done; iter->step(iter)) {
+		totloop += iter->len;
+	}
+	iter->free(iter);
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
 	CustomData_copy(&dm->faceData, &tmp.fdata, CD_MASK_MESH, CD_DUPLICATE, totface);
+	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
+	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
 
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
 	   we set them here in case they are missing */
@@ -259,7 +347,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	if(!CustomData_has_layer(&tmp.edata, CD_MEDGE))
 		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
 	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
-		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupFaceArray(dm), totface);
+		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupTessFaceArray(dm), totface);
+	
+	if(!CustomData_has_layer(&tmp.fdata, CD_MPOLY))
+		dm_add_polys_from_iter(&tmp.ldata, &tmp.pdata, dm, totloop);
 
 	mesh_update_customdata_pointers(&tmp);
 
@@ -357,10 +448,24 @@ void DM_copy_edge_data(DerivedMesh *source, DerivedMesh *dest,
 	                     source_index, dest_index, count);
 }
 
-void DM_copy_face_data(DerivedMesh *source, DerivedMesh *dest,
+void DM_copy_tessface_data(DerivedMesh *source, DerivedMesh *dest,
                        int source_index, int dest_index, int count)
 {
 	CustomData_copy_data(&source->faceData, &dest->faceData,
+	                     source_index, dest_index, count);
+}
+
+void DM_copy_loop_data(DerivedMesh *source, DerivedMesh *dest,
+                       int source_index, int dest_index, int count)
+{
+	CustomData_copy_data(&source->loopData, &dest->loopData,
+	                     source_index, dest_index, count);
+}
+
+void DM_copy_face_data(DerivedMesh *source, DerivedMesh *dest,
+                       int source_index, int dest_index, int count)
+{
+	CustomData_copy_data(&source->polyData, &dest->polyData,
 	                     source_index, dest_index, count);
 }
 
@@ -374,9 +479,19 @@ void DM_free_edge_data(struct DerivedMesh *dm, int index, int count)
 	CustomData_free_elem(&dm->edgeData, index, count);
 }
 
-void DM_free_face_data(struct DerivedMesh *dm, int index, int count)
+void DM_free_tessface_data(struct DerivedMesh *dm, int index, int count)
 {
 	CustomData_free_elem(&dm->faceData, index, count);
+}
+
+void DM_free_loop_data(struct DerivedMesh *dm, int index, int count)
+{
+	CustomData_free_elem(&dm->loopData, index, count);
+}
+
+void DM_free_face_data(struct DerivedMesh *dm, int index, int count)
+{
+	CustomData_free_elem(&dm->polyData, index, count);
 }
 
 void DM_interp_vert_data(DerivedMesh *source, DerivedMesh *dest,
@@ -396,7 +511,7 @@ void DM_interp_edge_data(DerivedMesh *source, DerivedMesh *dest,
 	                  weights, (float*)vert_weights, count, dest_index);
 }
 
-void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
+void DM_interp_tessface_data(DerivedMesh *source, DerivedMesh *dest,
                          int *src_indices,
                          float *weights, FaceVertWeight *vert_weights,
                          int count, int dest_index)
@@ -405,9 +520,26 @@ void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
 	                  weights, (float*)vert_weights, count, dest_index);
 }
 
-void DM_swap_face_data(DerivedMesh *dm, int index, int *corner_indices)
+
+void DM_swap_tessface_data(DerivedMesh *dm, int index, int *corner_indices)
 {
 	CustomData_swap(&dm->faceData, index, corner_indices);
+}
+
+void DM_interp_loop_data(DerivedMesh *source, DerivedMesh *dest,
+                         int *src_indices,
+                         float *weights, int count, int dest_index)
+{
+	CustomData_interp(&source->loopData, &dest->loopData, src_indices,
+	                  weights, NULL, count, dest_index);
+}
+
+void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
+                         int *src_indices,
+                         float *weights, int count, int dest_index)
+{
+	CustomData_interp(&source->polyData, &dest->polyData, src_indices,
+	                  weights, NULL, count, dest_index);
 }
 
 ///
@@ -438,9 +570,9 @@ typedef struct {
 	float (*faceNos)[3];
 } EditMeshDerivedMesh;
 
-static void emDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
+static void emDM_foreachMappedVert(void *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditVert *eve;
 	int i;
 
@@ -452,9 +584,9 @@ static void emDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData,
 		}
 	}
 }
-static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData, int index, float *v0co, float *v1co), void *userData)
+static void emDM_foreachMappedEdge(void *dm, void (*func)(void *userData, int index, float *v0co, float *v1co), void *userData)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditEdge *eed;
 	int i;
 
@@ -470,9 +602,9 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 			func(userData, i, eed->v1->co, eed->v2->co);
 	}
 }
-static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData) 
+static void emDM_drawMappedEdges(void *dm, int (*setDrawOptions)(void *userData, int index), void *userData) 
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditEdge *eed;
 	int i;
 
@@ -501,13 +633,13 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		glEnd();
 	}
 }
-static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
+static void emDM_drawEdges(void *dm, int drawLooseEdges)
 {
 	emDM_drawMappedEdges(dm, NULL, NULL);
 }
-static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData) 
+static void emDM_drawMappedEdgesInterp(void *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData) 
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditEdge *eed;
 	int i;
 
@@ -541,9 +673,9 @@ static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(vo
 	}
 }
 
-static void emDM_drawUVEdges(DerivedMesh *dm)
+static void emDM_drawUVEdges(void *dm)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditFace *efa;
 	MTFace *tf;
 
@@ -592,9 +724,9 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 		VecMulf(cent, 0.33333333333f);
 	}
 }
-static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
+static void emDM_foreachMappedFaceCenter(void *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditVert *eve;
 	EditFace *efa;
 	float cent[3];
@@ -610,9 +742,9 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 		func(userData, i, cent, emdm->vertexCos?emdm->faceNos[i]:efa->n);
 	}
 }
-static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
+static void emDM_drawMappedFaces(void *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditFace *efa;
 	int i, draw;
 
@@ -697,12 +829,12 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	}
 }
 
-static void emDM_drawFacesTex_common(DerivedMesh *dm,
+static void emDM_drawFacesTex_common(void *dm,
                int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
                int (*drawParamsMapped)(void *userData, int index),
                void *userData) 
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditMesh *em= emdm->em;
 	float (*vertexCos)[3]= emdm->vertexCos;
 	float (*vertexNos)[3]= emdm->vertexNos;
@@ -865,21 +997,21 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void emDM_drawFacesTex(void *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
 
-static void emDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void emDM_drawMappedFacesTex(void *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
 {
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
-static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
+static void emDM_drawMappedFacesGLSL(void *dm,
                int (*setMaterial)(int, void *attribs),
                int (*setDrawOptions)(void *userData, int index), void *userData) 
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditMesh *em= emdm->em;
 	float (*vertexCos)[3]= emdm->vertexCos;
 	float (*vertexNos)[3]= emdm->vertexNos;
@@ -1025,15 +1157,15 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawFacesGLSL(DerivedMesh *dm,
+static void emDM_drawFacesGLSL(void *dm,
                int (*setMaterial)(int, void *attribs))
 {
-	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
+	((DerivedMesh*)dm)->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
 
-static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+static void emDM_getMinMax(void *dm, float min_r[3], float max_r[3])
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditVert *eve;
 	int i;
 
@@ -1049,28 +1181,28 @@ static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
 	}
 }
-static int emDM_getNumVerts(DerivedMesh *dm)
+static int emDM_getNumVerts(void *dm)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 
 	return BLI_countlist(&emdm->em->verts);
 }
 
-static int emDM_getNumEdges(DerivedMesh *dm)
+static int emDM_getNumEdges(void *dm)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 
 	return BLI_countlist(&emdm->em->edges);
 }
 
-static int emDM_getNumFaces(DerivedMesh *dm)
+static int emDM_getNumTessFaces(void *dm)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 
 	return BLI_countlist(&emdm->em->faces);
 }
 
-static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
+static void emDM_getVert(void *dm, int index, MVert *vert_r)
 {
 	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
 	int i;
@@ -1088,7 +1220,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
-static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
+static void emDM_getEdge(void *dm, int index, MEdge *edge_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditEdge *ee = em->edges.first;
@@ -1123,7 +1255,7 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	}
 }
 
-static void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
+static void emDM_getFace(void *dm, int index, MFace *face_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditFace *ef = em->faces.first;
@@ -1165,7 +1297,7 @@ static void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 	test_index_face(face_r, NULL, 0, ef->v4?4:3);
 }
 
-static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
+static void emDM_copyVertArray(void *dm, MVert *vert_r)
 {
 	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
 
@@ -1183,7 +1315,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 	}
 }
 
-static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
+static void emDM_copyEdgeArray(void *dm, MEdge *edge_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditEdge *ee = em->edges.first;
@@ -1211,7 +1343,7 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	}
 }
 
-static void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void emDM_copyFaceArray(void *dm, MFace *face_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditFace *ef = em->faces.first;
@@ -1236,9 +1368,9 @@ static void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	}
 }
 
-static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
+static void *emDM_getFaceDataArray(void *dm, int type)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 	EditMesh *em= emdm->em;
 	EditFace *efa;
 	char *data, *emdata;
@@ -1259,8 +1391,8 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 			size = CustomData_sizeof(type);
 
 			DM_add_face_layer(dm, type, CD_CALLOC, NULL);
-			index = CustomData_get_layer_index(&dm->faceData, type);
-			dm->faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
+			index = CustomData_get_layer_index(&emdm->dm.faceData, type);
+			emdm->dm.faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
 
 			data = datalayer = DM_get_face_data_layer(dm, type);
 			for(efa=em->faces.first; efa; efa=efa->next, data+=size) {
@@ -1273,9 +1405,9 @@ static void *emDM_getFaceDataArray(DerivedMesh *dm, int type)
 	return datalayer;
 }
 
-static void emDM_release(DerivedMesh *dm)
+static void emDM_release(void *dm)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMeshDerivedMesh *emdm= dm;
 
 	if (DM_release(dm)) {
 		if (emdm->vertexCos) {
@@ -1294,21 +1426,22 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
 	DM_init(&emdm->dm, BLI_countlist(&em->verts),
-	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
+	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces),
+			 0, 0);
 
 	emdm->dm.getMinMax = emDM_getMinMax;
 
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumEdges = emDM_getNumEdges;
-	emdm->dm.getNumFaces = emDM_getNumFaces;
+	emdm->dm.getNumTessFaces = emDM_getNumTessFaces;
 
 	emdm->dm.getVert = emDM_getVert;
 	emdm->dm.getEdge = emDM_getEdge;
-	emdm->dm.getFace = emDM_getFace;
+	emdm->dm.getTessFace = emDM_getFace;
 	emdm->dm.copyVertArray = emDM_copyVertArray;
 	emdm->dm.copyEdgeArray = emDM_copyEdgeArray;
-	emdm->dm.copyFaceArray = emDM_copyFaceArray;
-	emdm->dm.getFaceDataArray = emDM_getFaceDataArray;
+	emdm->dm.copyTessFaceArray = emDM_copyFaceArray;
+	emdm->dm.getTessFaceDataArray = emDM_getFaceDataArray;
 
 	emdm->dm.foreachMappedVert = emDM_foreachMappedVert;
 	emdm->dm.foreachMappedEdge = emDM_foreachMappedEdge;
@@ -2377,11 +2510,11 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 	/* check we have all the needed layers */
 	totvert= dm->getNumVerts(dm);
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 
 	mvert= dm->getVertArray(dm);
-	mface= dm->getFaceArray(dm);
-	mtface= dm->getFaceDataArray(dm, CD_MTFACE);
+	mface= dm->getTessFaceArray(dm);
+	mtface= dm->getTessFaceDataArray(dm, CD_MTFACE);
 
 	if(!mtface) {
 		orco= dm->getVertDataArray(dm, CD_ORCO);

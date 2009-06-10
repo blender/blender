@@ -73,7 +73,7 @@ CCGError	ccgSubSurf_setCalcVertexNormals		(CCGSubSurf *ss, int useVertNormals, i
 
 int			ccgSubSurf_getNumVerts				(CCGSubSurf *ss);
 int			ccgSubSurf_getNumEdges				(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFaces				(CCGSubSurf *ss);
+int			ccgSubSurf_getNumTessFaces				(CCGSubSurf *ss);
 
 int			ccgSubSurf_getSubdivisionLevels		(CCGSubSurf *ss);
 int			ccgSubSurf_getEdgeSize				(CCGSubSurf *ss);

@@ -1120,7 +1120,7 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-static int delete_mesh(Object *obedit, wmOperator *op, int event)
+static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 {
 	BMEditMesh *bem = ((Mesh*)obedit->data)->edit_btmesh;
 	EditMesh *em = NULL;
@@ -1275,8 +1275,8 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event)
 		str= "Erase Only Faces";
 	}
 	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return OPERATOR_FINISHED;
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 /* Note, these values must match delete_mesh() event values */
@@ -1295,8 +1295,9 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	
-	delete_mesh(obedit, op, RNA_enum_get(op->ptr, "type"));
+	Scene *scene = CTX_data_scene(C);
+
+	delete_mesh(obedit, op, RNA_enum_get(op->ptr, "type"), scene);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	

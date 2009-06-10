@@ -1116,7 +1116,7 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, B
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumTessFaces(dm);
 	
 	if (totvert > 0) {
 		float imat[4][4];
@@ -1151,14 +1151,14 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, B
 				case SCE_SNAP_MODE_FACE:
 				{ 
 					MVert *verts = dm->getVertArray(dm);
-					MFace *faces = dm->getFaceArray(dm);
+					MFace *faces = dm->getTessFaceArray(dm);
 					int *index_array = NULL;
 					int index = 0;
 					int i;
 					
 					if (em != NULL)
 					{
-						index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+						index_array = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 						EDBM_init_index_arrays(em, 0, 0, 1);
 					}
 					
@@ -1506,7 +1506,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumTessFaces(dm);
 	
 	if (totvert > 0) {
 		float imat[4][4];
@@ -1536,7 +1536,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 		
 		if (test == 1) {
 			MVert *verts = dm->getVertArray(dm);
-			MFace *faces = dm->getFaceArray(dm);
+			MFace *faces = dm->getTessFaceArray(dm);
 			int i;
 			
 			for( i = 0; i < totface; i++) {

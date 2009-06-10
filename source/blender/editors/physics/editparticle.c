@@ -999,7 +999,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 
 	BLI_kdtree_free(edit->emitter_field);
 
-	totface=dm->getNumFaces(dm);
+	totface=dm->getNumTessFaces(dm);
 	totvert=dm->getNumVerts(dm);
 
 	edit->emitter_cosnos=MEM_callocN(totface*6*sizeof(float),"emitter cosnos");
@@ -1011,7 +1011,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 
 	mvert=dm->getVertDataArray(dm,CD_MVERT);
 	for(i=0; i<totface; i++, vec+=6, nor+=6) {
-		mface=dm->getFaceData(dm,i,CD_MFACE);
+		mface=dm->getTessFaceData(dm,i,CD_MFACE);
 
 		mvert=dm->getVertData(dm,mface->v1,CD_MVERT);
 		VECCOPY(vec,mvert->co);

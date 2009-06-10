@@ -294,7 +294,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 		return NULL;
 	}
 	
-	dm = CDDM_new(numverts, 0, numfaces);
+	dm = CDDM_new(numverts, 0, numfaces, 0, 0);
 	
 	if(!dm)
 	{
@@ -351,7 +351,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 		printf("Fluidsim: error in reading data from file.\n");
 	
 	// read triangles from file
-	mface = CDDM_get_faces(dm);
+	mface = CDDM_get_tessfaces(dm);
 	for(i=0; i<numfaces; i++) 
 	{
 		int face[4];
@@ -387,6 +387,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 	CDDM_apply_vert_normals(dm, (short (*)[3])normals);
 	MEM_freeN(normals);
 	
+	CDDM_tessfaces_to_faces(dm);
 	// CDDM_calc_normals(result);
 
 	return dm;
@@ -454,12 +455,12 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 	}
 	
 	// assign material + flags to new dm
-	mface = orgdm->getFaceArray(orgdm);
+	mface = orgdm->getTessFaceArray(orgdm);
 	mat_nr = mface[0].mat_nr;
 	flag = mface[0].flag;
 	
-	mface = dm->getFaceArray(dm);
-	numfaces = dm->getNumFaces(dm);
+	mface = dm->getTessFaceArray(dm);
+	numfaces = dm->getNumTessFaces(dm);
 	for(i=0; i<numfaces; i++) 
 	{
 		mface[i].mat_nr = mat_nr;
@@ -613,9 +614,9 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	//dm = mesh_create_derived_no_deform(ob,NULL);
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 
 	*numVertices = totvert;
 	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");

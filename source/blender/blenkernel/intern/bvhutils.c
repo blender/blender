@@ -532,7 +532,7 @@ BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 		data->mesh = mesh;
 		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
-		data->face = mesh->getFaceDataArray(mesh, CD_MFACE);
+		data->face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
 
 		data->sphere_radius = epsilon;
 	}
@@ -549,9 +549,9 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	if(tree == NULL)
 	{
 		int i;
-		int numFaces= mesh->getNumFaces(mesh);
+		int numFaces= mesh->getNumTessFaces(mesh);
 		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
-		MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
+		MFace *face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
 
 		if(vert != NULL && face != NULL)
 		{
@@ -597,7 +597,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 		data->mesh = mesh;
 		data->vert = mesh->getVertDataArray(mesh, CD_MVERT);
-		data->face = mesh->getFaceDataArray(mesh, CD_MFACE);
+		data->face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
 
 		data->sphere_radius = epsilon;
 	}

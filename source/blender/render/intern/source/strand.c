@@ -943,7 +943,7 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 	int a, totvert, totface;
 
 	totvert= dm->getNumVerts(dm);
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 
 	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next)
 		if(mesh->obr.ob == obr->ob && mesh->obr.par == obr->par
@@ -975,7 +975,7 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 		Mat4MulVecfl(mat, co[a]);
 	}
 
-	mface= dm->getFaceArray(dm);
+	mface= dm->getTessFaceArray(dm);
 	for(a=0; a<mesh->totface; a++, mface++) {
 		mesh->face[a][0]= mface->v1;
 		mesh->face[a][1]= mface->v2;

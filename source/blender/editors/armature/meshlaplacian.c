@@ -1151,8 +1151,8 @@ static void meshdeform_ray_tree_create(MeshDeformBind *mdb)
 
 	MESHDEFORM_BIND= mdb;
 
-	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
-	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+	mface= mdb->cagedm->getTessFaceArray(mdb->cagedm);
+	totface= mdb->cagedm->getNumTessFaces(mdb->cagedm);
 
 	mdb->raytree= RE_ray_tree_create(64, totface, min, max,
 		meshdeform_ray_coords_func, meshdeform_ray_check_func);
@@ -1178,8 +1178,8 @@ static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
 
 	isec->labda= 1e10;
 
-	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
-	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+	mface= mdb->cagedm->getTessFaceArray(mdb->cagedm);
+	totface= mdb->cagedm->getNumTessFaces(mdb->cagedm);
 
 	for(f=0; f<totface; f++, mface++) {
 		VECCOPY(face[0], mdb->cagecos[mface->v1]);

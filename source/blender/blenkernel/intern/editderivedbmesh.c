@@ -929,11 +929,25 @@ static int bmDM_getNumEdges(DerivedMesh *dm)
 	return bmdm->tc->bm->totedge;
 }
 
-static int bmDM_getNumFaces(DerivedMesh *dm)
+static int bmDM_getNumTessFaces(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	
 	return bmdm->tc->tottri;
+}
+
+static int bmvert_to_mvert(BMVert *ev, MVert *vert_r)
+{
+	VECCOPY(vert_r->co, ev->co);
+
+	vert_r->no[0] = (short)(ev->no[0] * 32767.0f);
+	vert_r->no[1] = (short)(ev->no[1] * 32767.0f);
+	vert_r->no[2] = (short)(ev->no[2] * 32767.0f);
+
+	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
+	vert_r->flag = BMFlags_To_MEFlags(ev);
+	vert_r->mat_nr = 0;
+	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
 static void bmDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
@@ -950,15 +964,7 @@ static void bmDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 		return;
 	}
 
-	VECCOPY(vert_r->co, ev->co);
-
-	vert_r->no[0] = (short)(ev->no[0] * 32767.0f);
-	vert_r->no[1] = (short)(ev->no[1] * 32767.0f);
-	vert_r->no[2] = (short)(ev->no[2] * 32767.0f);
-
-	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
-	vert_r->mat_nr = 0;
-	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
+	bmvert_to_mvert(ev, vert_r);
 }
 
 static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
@@ -977,8 +983,7 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	edge_r->bweight = (unsigned char) (e->bweight*255.0f);
 	/* TODO what to do with edge_r->flag? */
 	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
-	if (e->head.flag & BM_SEAM)  edge_r->flag |= ME_SEAM;
-	if (e->head.flag & BM_SHARP) edge_r->flag |= ME_SHARP;
+	edge_r->flag |= BMFlags_To_MEFlags(e);
 #if 0
 	/* this needs setup of f2 field */
 	if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
@@ -1016,9 +1021,7 @@ static void bmDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 
 	face_r->mat_nr = (unsigned char) ef->mat_nr;
 	//need to convert flags here!
-	if (ef->head.flag & BM_SELECT) face_r->flag |= ME_FACE_SEL;
-	if (ef->head.flag & BM_HIDDEN) face_r->flag |= ME_HIDE;
-	//face_r->flag = ef->head.flag;
+	face_r->flag = BMFlags_To_MEFlags(ef);
 
 	/*while it's possible to store a cache to lookup these indices faster,
 	  that would require going over the code and ensuring the cache is
@@ -1064,7 +1067,7 @@ static void bmDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 
 		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 		vert_r->mat_nr = 0;
-		vert_r->flag = 0;
+		vert_r->flag = BMFlags_To_MEFlags(ev);
 		vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 	}
 }
@@ -1173,9 +1176,153 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 	return datalayer;
 }
 
-static void bmDM_release(DerivedMesh *dm)
+typedef struct bmDM_loopIter {
+	DMLoopIter head;
+
+	BMFace *f;
+	BMLoop *l, *nextl;
+	BMIter iter;
+	BMesh *bm;
+} bmDM_loopIter;
+
+typedef struct bmDM_faceIter {
+	DMFaceIter head;
+
+	BMFace *f, *nextf;
+	BMIter iter;
+	BMesh *bm;
+
+	bmDM_loopIter loopiter;
+} bmDM_faceIter;
+
+void bmDM_faceIterStep(void *self)
 {
-	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	bmDM_faceIter *iter = self;
+	
+	iter->f = iter->nextf;
+
+	iter->head.mat_nr = iter->f->mat_nr;
+	iter->head.flags = BMFlags_To_MEFlags(iter->f);
+	iter->head.index++;
+
+	iter->nextf = BMIter_Step(&iter->iter);
+
+	if (!iter->nextf) iter->head.done = 1;
+}
+
+void *bmDM_getFaceCDData(void *self, int type, int layer)
+{
+	bmDM_faceIter *iter = self;
+
+	if (layer == -1) 
+		return CustomData_bmesh_get(&iter->bm->pdata, iter->f->data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->pdata, iter->f->data, type, layer);
+}
+
+void bmDM_loopIterStep(void *self)
+{
+	bmDM_loopIter *iter = self;
+
+	iter->l = iter->nextl;
+
+	bmvert_to_mvert(iter->l->v, &iter->head.v);
+	iter->head.index++;
+	iter->head.vindex = BMINDEX_GET(iter->l->v);
+	iter->head.eindex = BMINDEX_GET(iter->l->e);
+
+	iter->nextl = BMIter_Step(&iter->iter);
+
+	if (!iter->nextl) iter->head.done = 1;
+}
+
+void *bmDM_getLoopCDData(void *self, int type, int layer)
+{
+	bmDM_loopIter *iter = self;
+
+	if (layer == -1) 
+		return CustomData_bmesh_get(&iter->bm->ldata, iter->l->data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->ldata, iter->l->data, type, layer);
+}
+
+void *bmDM_getVertCDData(void *self, int type, int layer)
+{
+	bmDM_loopIter *iter = self;
+
+	if (layer == -1) 
+		return CustomData_bmesh_get(&iter->bm->vdata, iter->l->v->data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->vdata, iter->l->v->data, type, layer);
+}
+
+void bmDM_iterFree(void *self)
+{
+	MEM_freeN(self);
+}
+
+void bmDM_nulliterFree(void *self)
+{
+}
+
+DMLoopIter *bmDM_newLoopsIter(void *faceiter)
+{
+	bmDM_faceIter *fiter = faceiter;
+	bmDM_loopIter *iter = &fiter->loopiter;
+
+	memset(&fiter->loopiter, 0, sizeof(bmDM_loopIter));
+
+	iter->bm = fiter->bm;
+	iter->f = fiter->f;
+	iter->l = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
+
+	iter->head.step = bmDM_loopIterStep;
+	iter->head.getLoopCDData = bmDM_getLoopCDData;
+	iter->head.getVertCDData = bmDM_getVertCDData;
+
+	bmvert_to_mvert(iter->l->v, &iter->head.v);
+	iter->head.vindex = BMINDEX_GET(iter->l->v);
+	iter->head.eindex = BMINDEX_GET(iter->l->e);
+
+	return (DMLoopIter*) iter;
+}
+
+static DMFaceIter *bmDM_getFaceIter(void *dm)
+{
+	EditDerivedBMesh *bmdm= dm;
+	bmDM_faceIter *iter = MEM_callocN(sizeof(bmDM_faceIter), "bmDM_faceIter");
+	BMIter biter;
+	BMVert *v;
+	BMEdge *e;
+	int i;
+
+	iter->bm = bmdm->tc->bm;
+	iter->f = BMIter_New(&iter->iter, iter->bm, BM_FACES_OF_MESH, NULL);
+	
+	iter->head.step = bmDM_faceIterStep;
+	iter->head.free = bmDM_iterFree;
+	iter->head.getCDData = bmDM_getFaceCDData;
+	iter->head.getLoopsIter = bmDM_newLoopsIter;
+	
+	iter->head.mat_nr = iter->f->mat_nr;
+	iter->head.flags = BMFlags_To_MEFlags(iter->f);
+
+	/*set up vert/edge indices*/
+	i = 0;
+	BM_ITER(v, &biter, iter->bm, BM_VERTS_OF_MESH, NULL) {
+		BMINDEX_SET(v, i);
+		i++;
+	}
+
+	i = 0;
+	BM_ITER(e, &biter, iter->bm, BM_EDGES_OF_MESH, NULL) {
+		BMINDEX_SET(e, i);
+		i++;
+	}
+
+	return (DMFaceIter*) iter;
+}
+
+static void bmDM_release(void *dm)
+{
+	EditDerivedBMesh *bmdm= dm;
 
 	if (DM_release(dm)) {
 		if (bmdm->vertexCos) {
@@ -1196,21 +1343,24 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 
 	bmdm->tc = em;
 
-	DM_init((DerivedMesh*)bmdm, em->bm->totvert, em->bm->totedge, em->tottri);
+	DM_init((DerivedMesh*)bmdm, em->bm->totvert, em->bm->totedge, em->tottri,
+		 em->bm->totloop, em->bm->totface);
 
 	bmdm->dm.getMinMax = bmDM_getMinMax;
 
 	bmdm->dm.getNumVerts = bmDM_getNumVerts;
 	bmdm->dm.getNumEdges = bmDM_getNumEdges;
-	bmdm->dm.getNumFaces = bmDM_getNumFaces;
+	bmdm->dm.getNumTessFaces = bmDM_getNumTessFaces;
 
 	bmdm->dm.getVert = bmDM_getVert;
 	bmdm->dm.getEdge = bmDM_getEdge;
-	bmdm->dm.getFace = bmDM_getFace;
+	bmdm->dm.getTessFace = bmDM_getFace;
 	bmdm->dm.copyVertArray = bmDM_copyVertArray;
 	bmdm->dm.copyEdgeArray = bmDM_copyEdgeArray;
-	bmdm->dm.copyFaceArray = bmDM_copyFaceArray;
-	bmdm->dm.getFaceDataArray = bmDM_getFaceDataArray;
+	bmdm->dm.copyTessFaceArray = bmDM_copyFaceArray;
+	bmdm->dm.getTessFaceDataArray = bmDM_getFaceDataArray;
+
+	bmdm->dm.newFaceIter = bmDM_getFaceIter;
 
 	bmdm->dm.foreachMappedVert = bmDM_foreachMappedVert;
 	bmdm->dm.foreachMappedEdge = bmDM_foreachMappedEdge;

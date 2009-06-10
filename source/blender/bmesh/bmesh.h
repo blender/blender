@@ -319,6 +319,9 @@ BMesh *init_editmesh_to_bmesh(struct EditMesh *em, struct BMOperator *op);
 /*converts a bmesh to an editmesh*/
 struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
+/*convert between bmesh and Mesh flags*/
+int BMFlags_To_MEFlags(void *element);
+
 /*include the rest of the API*/
 #include "bmesh_filters.h"
 #include "bmesh_iterators.h"

@@ -80,9 +80,9 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceindex, int *xy, float *uv)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
-	int numfaces = dm->getNumFaces(dm), a;
+	int *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	MTFace *tface = dm->getTessFaceDataArray(dm, CD_MTFACE), *tf;
+	int numfaces = dm->getNumTessFaces(dm), a;
 	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
@@ -93,7 +93,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for(a = 0; a < numfaces; a++) {
 		if(index[a] == faceindex) {
-			dm->getFace(dm, a, &mf);
+			dm->getTessFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);
 			dm->getVert(dm, mf.v2, &mv[1]);

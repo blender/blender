@@ -2282,8 +2282,8 @@ static void write_vert_stl(Object *ob, MVert *verts, int index, FILE *fpSTL)
 static int write_derivedmesh_stl(FILE *fpSTL, Object *ob, DerivedMesh *dm)
 {
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
-	int i, numfacets = 0, totface = dm->getNumFaces(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
+	int i, numfacets = 0, totface = dm->getNumTessFaces(dm);
 	float zero[3] = {0.0f, 0.0f, 0.0f};
 
 	for (i=0; i<totface; i++, mface++) {

@@ -247,11 +247,11 @@ static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 	
 	/* first some paranoia checks */
 	if (!dm) return NULL;
-	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return NULL;
+	if (!dm->getNumVerts(dm) || !dm->getNumTessFaces(dm)) return NULL;
 	
 	pccd_M = MEM_mallocN(sizeof(ccd_Mesh),"ccd_Mesh");
 	pccd_M->totvert = dm->getNumVerts(dm);
-	pccd_M->totface = dm->getNumFaces(dm);
+	pccd_M->totface = dm->getNumTessFaces(dm);
 	pccd_M->savety  = CCD_SAVETY;
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -280,7 +280,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 		
 	}
 	/* alloc and copy faces*/
-    pccd_M->mface = dm->dupFaceArray(dm);
+    pccd_M->mface = dm->dupTessFaceArray(dm);
 	
 	/* OBBs for idea1 */
     pccd_M->mima = MEM_mallocN(sizeof(ccdf_minmax)*pccd_M->totface,"ccd_Mesh_Faces_mima");
@@ -343,10 +343,10 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
 	
 	/* first some paranoia checks */
 	if (!dm) return ;
-	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return ;
+	if (!dm->getNumVerts(dm) || !dm->getNumTessFaces(dm)) return ;
 
 	if ((pccd_M->totvert != dm->getNumVerts(dm)) ||
-		(pccd_M->totface != dm->getNumFaces(dm))) return;
+		(pccd_M->totface != dm->getNumTessFaces(dm))) return;
 
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;

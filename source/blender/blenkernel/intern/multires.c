@@ -459,7 +459,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		mrdm = multires_dm_create_from_derived(&mmd_sub, orig, me, 0, 0);
 		totsubvert = mrdm->getNumVerts(mrdm);
 		totsubedge = mrdm->getNumEdges(mrdm);
-		totsubface = mrdm->getNumFaces(mrdm);
+		totsubface = mrdm->getNumTessFaces(mrdm);
 		orig->needsFree = 1;
 		orig->release(orig);
 		
@@ -1192,7 +1192,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			final = multires_subdisp_pre(dm, totlvl - lvl, 0);
 
 			multires_subdisp(orig, me, final, lvl, totlvl, dm->getNumVerts(dm), dm->getNumEdges(dm),
-					 dm->getNumFaces(dm), 1);
+					 dm->getNumTessFaces(dm), 1);
 
 			subco_dm->release(subco_dm);
 			orig->release(orig);

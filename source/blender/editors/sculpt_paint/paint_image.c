@@ -2929,11 +2929,11 @@ static void project_paint_begin(ProjPaintState *ps)
 		return; 
 	}
 	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
-	ps->dm_mface = ps->dm->getFaceArray(ps->dm);
-	ps->dm_mtface= ps->dm->getFaceDataArray(ps->dm, CD_MTFACE);
+	ps->dm_mface = ps->dm->getTessFaceArray(ps->dm);
+	ps->dm_mtface= ps->dm->getTessFaceDataArray(ps->dm, CD_MTFACE);
 	
 	ps->dm_totvert = ps->dm->getNumVerts(ps->dm);
-	ps->dm_totface = ps->dm->getNumFaces(ps->dm);
+	ps->dm_totface = ps->dm->getNumTessFaces(ps->dm);
 	
 	/* use clone mtface? */
 	

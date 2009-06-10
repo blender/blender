@@ -274,7 +274,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 			origindex= DM_get_vert_data_layer(dm, CD_ORIGINDEX);
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
-			totdmelem= dm->getNumFaces(dm);
+			totdmelem= dm->getNumTessFaces(dm);
 			totelem= me->totface;
 			origindex= DM_get_face_data_layer(dm, CD_ORIGINDEX);
 		}
@@ -406,8 +406,8 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 		int a, a1, a2, a0mul, a1mul, a2mul, totface;
 		int amax= from==PART_FROM_FACE ? 3 : 1;
 
-		totface=dm->getNumFaces(dm);
-		mface=dm->getFaceDataArray(dm,CD_MFACE);
+		totface=dm->getNumTessFaces(dm);
+		mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 		
 		for(a=0; a<amax; a++){
 			if(a==0){ a0mul=res*res; a1mul=res; a2mul=1; }
@@ -416,7 +416,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 
 			for(a1=0; a1<size[(a+1)%3]; a1++){
 				for(a2=0; a2<size[(a+2)%3]; a2++){
-					mface=dm->getFaceDataArray(dm,CD_MFACE);
+					mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 
 					pa=psys->particles + a1*a1mul + a2*a2mul;
 					VECCOPY(co1,pa->fuv);
@@ -630,7 +630,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		MFace *mface;
 
 		pa->num = i = ctx->index[p];
-		mface = dm->getFaceData(dm,i,CD_MFACE);
+		mface = dm->getTessFaceData(dm,i,CD_MFACE);
 		
 		switch(distr){
 		case PART_DISTR_JIT:
@@ -657,7 +657,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		if(from==PART_FROM_VOLUME){
 			MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
 
-			tot=dm->getNumFaces(dm);
+			tot=dm->getNumTessFaces(dm);
 
 			psys_interpolate_face(mvert,mface,0,0,pa->fuv,co1,nor,0,0,0,0);
 
@@ -669,7 +669,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			min_d=2.0;
 			intersect=0;
 
-			for(i=0,mface=dm->getFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++){
+			for(i=0,mface=dm->getTessFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++){
 				if(i==pa->num) continue;
 
 				v1=mvert[mface->v1].co;
@@ -731,7 +731,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			return;
 		}
 
-		mf= dm->getFaceData(dm, ctx->index[p], CD_MFACE);
+		mf= dm->getTessFaceData(dm, ctx->index[p], CD_MFACE);
 
 		//switch(distr){
 		//	case PART_DISTR_JIT:
@@ -1102,7 +1102,7 @@ int psys_threads_init_distribution(ParticleThread *threads, Scene *scene, Derive
 			break;
 		case PART_FROM_VOLUME:
 		case PART_FROM_FACE:
-			tot = dm->getNumFaces(dm);
+			tot = dm->getNumTessFaces(dm);
 			break;
 		case PART_FROM_PARTICLE:
 			if(psys->target_ob)
@@ -1162,7 +1162,7 @@ int psys_threads_init_distribution(ParticleThread *threads, Scene *scene, Derive
 		orcodata= dm->getVertDataArray(dm, CD_ORCO);
 
 		for(i=0; i<tot; i++){
-			MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
+			MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
 
 			if(orcodata) {
 				VECCOPY(co1, orcodata[mf->v1]);
@@ -1231,7 +1231,7 @@ int psys_threads_init_distribution(ParticleThread *threads, Scene *scene, Derive
 			}
 			else { /* PART_FROM_FACE / PART_FROM_VOLUME */
 				for(i=0;i<tot; i++){
-					MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
+					MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
 					tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];
 				
 					if(mf->v4) {
@@ -1297,7 +1297,7 @@ int psys_threads_init_distribution(ParticleThread *threads, Scene *scene, Derive
 	/* for hair, sort by origindex, allows optimizations in rendering */
 	/* however with virtual parents the children need to be in random order */
 	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0)) {
-		COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+		COMPARE_ORIG_INDEX= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		if(COMPARE_ORIG_INDEX)
 			qsort(index, totpart, sizeof(int), compare_orig_index);
 	}
@@ -2919,8 +2919,8 @@ int psys_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm, float *vert_cos
 		VECCOPY(p_max,pa_minmax+3);
 	}
 
-	totface=dm->getNumFaces(dm);
-	mface=dm->getFaceDataArray(dm,CD_MFACE);
+	totface=dm->getNumTessFaces(dm);
+	mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 	mvert=dm->getVertDataArray(dm,CD_MVERT);
 	
 	/* lets intersect the faces */
@@ -3361,7 +3361,7 @@ static int boid_see_mesh(ListBase *lb, Scene *scene, Object *pob, ParticleSystem
 				psys_enable_all(ob);
 			}
 
-			mface=dm->getFaceDataArray(dm,CD_MFACE);
+			mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 			mface+=min_face;
 			mvert=dm->getVertDataArray(dm,CD_MVERT);
 
@@ -3876,7 +3876,7 @@ static void boid_body(Scene *scene, BoidVecFunc *bvf, ParticleData *pa, Particle
 				dm=mesh_get_derived_final(scene, zob, 0);
 				psys_enable_all(zob);
 
-				mface=dm->getFaceDataArray(dm,CD_MFACE);
+				mface=dm->getTessFaceDataArray(dm,CD_MFACE);
 				mface+=min_face;
 				mvert=dm->getVertDataArray(dm,CD_MVERT);
 

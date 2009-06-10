@@ -43,6 +43,8 @@
  */
 
 #include "DNA_customdata_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
@@ -65,32 +67,75 @@ struct BMEditMesh;
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 4
 
+/*
+note: all mface interfaces now officially operate on tesselated data.
+*/
+
+/*DM Iterators.  For now, first implement face iterators.
+  These are read-only, at least for now.*/
+
+typedef struct DMLoopIter {
+	void (*step)(void *self);
+	int done;
+
+	int index, vindex, eindex;
+	MVert v; /*copy of the associated vert's data*/	
+
+	/*note: if layer is -1, then the active layer is retrieved.
+	  loop refers to per-face-vertex data.*/
+	void *(*getLoopCDData)(void *self, int type, int layer);
+	void *(*getVertCDData)(void *self, int type, int layer);
+} DMLoopIter;
+
+typedef struct DMFaceIter {
+	void (*step)(void *self);
+	void (*free)(void *self);
+	int done;
+
+	int index;
+	int len;
+	int mat_nr;
+	int flags;
+
+	/*note: you may only use one
+	  loop iterator at a time.*/
+	DMLoopIter *(*getLoopsIter)(void *self);
+
+	/*if layer is -1, returns active layer*/
+	void *(*getCDData)(void *self, int type, int layer);
+} DMFaceIter;
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
-	CustomData vertData, edgeData, faceData;
-	int numVertData, numEdgeData, numFaceData;
+	CustomData vertData, edgeData, faceData, loopData, polyData;
+	int numVertData, numEdgeData, numFaceData, numLoopData, numPolyData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache bvhCache;
 
 	/* Misc. Queries */
+	
+	/*face iterator.  initializes iter.*/
+	DMFaceIter *(*newFaceIter)(DerivedMesh *dm);
+
+	/*recalculates mesh tesselation*/
+	void (*recalcTesselation)(DerivedMesh *dm);
 
 	/* Also called in Editmode */
 	int (*getNumVerts)(DerivedMesh *dm);
-	/* Also called in Editmode */
-	int (*getNumFaces)(DerivedMesh *dm);
-
 	int (*getNumEdges)(DerivedMesh *dm);
+	int (*getNumTessFaces)(DerivedMesh *dm);
+	int (*getNumFaces) (DerivedMesh *dm);
 
-	/* copy a single vert/edge/face from the derived mesh into
+	/* copy a single vert/edge/tesselated face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
 	 * elements (editmesh)
 	 */
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);
-	void (*getFace)(DerivedMesh *dm, int index, struct MFace *face_r);
+	void (*getTessFace)(DerivedMesh *dm, int index, struct MFace *face_r);
 
 	/* return a pointer to the entire array of verts/edges/face from the
 	 * derived mesh. if such an array does not exist yet, it will be created,
@@ -99,21 +144,21 @@ struct DerivedMesh {
 	 */
 	struct MVert *(*getVertArray)(DerivedMesh *dm);
 	struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
-	struct MFace *(*getFaceArray)(DerivedMesh *dm);
+	struct MFace *(*getTessFaceArray)(DerivedMesh *dm);
 
 	/* copy all verts/edges/faces from the derived mesh into
 	 * *{vert/edge/face}_r (must point to a buffer large enough)
 	 */
 	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
 	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
-	void (*copyFaceArray)(DerivedMesh *dm, struct MFace *face_r);
+	void (*copyTessFaceArray)(DerivedMesh *dm, struct MFace *face_r);
 
 	/* return a copy of all verts/edges/faces from the derived mesh
 	 * it is the caller's responsibility to free the returned pointer
 	 */
 	struct MVert *(*dupVertArray)(DerivedMesh *dm);
 	struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
-	struct MFace *(*dupFaceArray)(DerivedMesh *dm);
+	struct MFace *(*dupTessFaceArray)(DerivedMesh *dm);
 
 	/* return a pointer to a single element of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
@@ -121,7 +166,7 @@ struct DerivedMesh {
 	 */
 	void *(*getVertData)(DerivedMesh *dm, int index, int type);
 	void *(*getEdgeData)(DerivedMesh *dm, int index, int type);
-	void *(*getFaceData)(DerivedMesh *dm, int index, int type);
+	void *(*getTessFaceData)(DerivedMesh *dm, int index, int type);
 
 	/* return a pointer to the entire array of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
@@ -129,7 +174,7 @@ struct DerivedMesh {
 	 */
 	void *(*getVertDataArray)(DerivedMesh *dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
-	void *(*getFaceDataArray)(DerivedMesh *dm, int type);
+	void *(*getTessFaceDataArray)(DerivedMesh *dm, int type);
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
@@ -300,13 +345,15 @@ void DM_init_funcs(DerivedMesh *dm);
  * of vertices, edges and faces (doesn't allocate memory for them, just
  * sets up the custom data layers)
  */
-void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces);
+void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces,
+	     int numLoops, int numPolys);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      int numVerts, int numEdges, int numFaces);
+                      int numVerts, int numEdges, int numFaces,
+		      int numLoops, int numPolys);
 
 /* utility function to release a DerivedMesh's layers
  * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
@@ -369,6 +416,10 @@ void DM_copy_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
 void DM_copy_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
+void DM_copy_tessface_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+                       int source_index, int dest_index, int count);
+void DM_copy_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+                       int source_index, int dest_index, int count);
 void DM_copy_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
 
@@ -378,7 +429,12 @@ void DM_copy_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
  */
 void DM_free_vert_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_edge_data(struct DerivedMesh *dm, int index, int count);
+void DM_free_tessface_data(struct DerivedMesh *dm, int index, int count);
+void DM_free_loop_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_face_data(struct DerivedMesh *dm, int index, int count);
+
+/*sets up mpolys for a DM based on face iterators in source*/
+void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 /* interpolates vertex data from the vertices indexed by src_indices in the
  * source mesh using the given weights and stores the result in the vertex
@@ -409,12 +465,20 @@ void DM_interp_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
  * vert_weights[i] multiplied by weights[i].
  */
 typedef float FaceVertWeight[SUB_ELEMS_FACE][SUB_ELEMS_FACE];
-void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+void DM_interp_tessface_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                          int *src_indices,
                          float *weights, FaceVertWeight *vert_weights,
                          int count, int dest_index);
 
-void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
+void DM_swap_tessface_data(struct DerivedMesh *dm, int index, int *corner_indices);
+
+void DM_interp_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+                         int *src_indices,
+                         float *weights, int count, int dest_index);
+
+void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+                         int *src_indices,
+                         float *weights, int count, int dest_index);
 
 /* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
 void vDM_ColorBand_store(struct ColorBand *coba);
