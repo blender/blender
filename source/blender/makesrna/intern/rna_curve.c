@@ -39,6 +39,7 @@ EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_ALIGN, "ALIGNED", "Aligned", ""},
 		{HD_AUTO_ANIM, "AUTO_CLAMPED", "Auto Clamped", ""},
 		{0, NULL, NULL, NULL}};
+
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
 		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
 		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
@@ -46,6 +47,20 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 		{0, NULL, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
+
+#include "DNA_object_types.h"
+
+#include "BKE_curve.h"
+
+StructRNA *rna_Curve_refine(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->data;
+	short obtype= curve_type(cu);
+
+	if(obtype == OB_FONT) return &RNA_TextCurve;
+	else if(obtype == OB_SURF) return &RNA_SurfaceCurve;
+	else return &RNA_Curve;
+}
 
 static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
 {
@@ -391,7 +406,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Fast", "Don't fill polygons while editing.");
 }
 
-void rna_def_textbox(BlenderRNA *brna)
+static void rna_def_textbox(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -421,7 +436,7 @@ void rna_def_textbox(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Textbox Height", "");
 }
 
-void rna_def_charinfo(BlenderRNA *brna)
+static void rna_def_charinfo(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -452,7 +467,32 @@ void rna_def_charinfo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wrap", "");
 }
 
-void rna_def_curve(BlenderRNA *brna)
+static void rna_def_surface(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	
+	srna= RNA_def_struct(brna, "SurfaceCurve", "Curve");
+	RNA_def_struct_sdna(srna, "Curve");
+	RNA_def_struct_ui_text(srna, "Surface Curve", "Curve datablock used for storing surfaces.");
+	RNA_def_struct_ui_icon(srna, ICON_SURFACE_DATA);
+
+	rna_def_nurbs(brna, srna);
+}
+
+static void rna_def_text(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	
+	srna= RNA_def_struct(brna, "TextCurve", "Curve");
+	RNA_def_struct_sdna(srna, "Curve");
+	RNA_def_struct_ui_text(srna, "Text Curve", "Curve datablock used for storing text.");
+	RNA_def_struct_ui_icon(srna, ICON_FONT_DATA);
+
+	rna_def_font(brna, srna);
+	rna_def_nurbs(brna, srna);
+}
+
+static void rna_def_curve(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -460,6 +500,7 @@ void rna_def_curve(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Curve", "ID");
 	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS.");
 	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
+	RNA_def_struct_refine_func(srna, "rna_Curve_refine");
 	
 	rna_def_animdata_common(srna);
 	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
@@ -474,8 +515,6 @@ void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Curves", "Collection of curves in this curve data object.");
 
 	rna_def_path(brna, srna);
-	rna_def_nurbs(brna, srna);
-	rna_def_font(brna, srna);
 	
 	/* Number values */
 	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
@@ -548,8 +587,7 @@ void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
 }
 
-
-void rna_def_curve_nurb(BlenderRNA *brna)
+static void rna_def_curve_nurb(BlenderRNA *brna)
 {
 	static EnumPropertyItem spline_interpolation_items[] = {
 		{BEZT_IPO_CONST, "LINEAR", "Linear", ""},
@@ -666,11 +704,11 @@ void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Character Index", "the location of this character in the text data (only for text curves)");
 }
 
-
-
 void RNA_def_curve(BlenderRNA *brna)
 {
 	rna_def_curve(brna);
+	rna_def_surface(brna);
+	rna_def_text(brna);
 	rna_def_textbox(brna);
 	rna_def_charinfo(brna);
 	rna_def_bpoint(brna);

@@ -379,7 +379,10 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
   return false; //it update the worldpos
 }
  
-
+PHY_IMotionState* ODEPhysicsController::GetMotionState()
+{
+	return m_MotionState;
+}
 
 
 // kinematic methods

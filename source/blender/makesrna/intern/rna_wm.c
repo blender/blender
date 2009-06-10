@@ -107,7 +107,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");

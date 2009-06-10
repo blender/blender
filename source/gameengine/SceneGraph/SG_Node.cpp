@@ -40,12 +40,13 @@ using namespace std;
 SG_Node::SG_Node(
 	void* clientobj,
 	void* clientinfo,
-	SG_Callbacks callbacks
+	SG_Callbacks& callbacks
 
 )
 	: SG_Spatial(clientobj,clientinfo,callbacks),
 	m_SGparent(NULL)
 {
+	m_modified = true;
 }
 
 SG_Node::SG_Node(
@@ -55,7 +56,7 @@ SG_Node::SG_Node(
 	m_children(other.m_children),
 	m_SGparent(other.m_SGparent)
 {
-	// nothing to do
+	m_modified = true;
 }
 
 SG_Node::~SG_Node()
@@ -141,50 +142,12 @@ Destruct()
 	ActivateDestructionCallback();
 }
 
-
-	SG_Node*			
-SG_Node::
-GetSGParent(
-) const { 
-	return m_SGparent;
-}
-
-	void				
-SG_Node::
-SetSGParent(
-	SG_Node* parent
-){
-	m_SGparent = parent;
-}
-
 const 
 	SG_Node*	
 SG_Node::
 GetRootSGParent(
 ) const {
 	return (m_SGparent ? (const SG_Node*) m_SGparent->GetRootSGParent() : (const SG_Node*) this);
-}
-
-	bool
-SG_Node::
-IsVertexParent()
-{
-	if (m_parent_relation)
-	{
-		return m_parent_relation->IsVertexRelation();
-	}
-	return false;
-}
-
-	bool
-SG_Node::
-IsSlowParent()
-{
-	if (m_parent_relation)
-	{
-		return m_parent_relation->IsSlowRelation();
-	}
-	return false;
 }
 
 	void 
@@ -198,8 +161,6 @@ DisconnectFromParent(
 	}
 
 }
-
-
 
 void SG_Node::AddChild(SG_Node* child)
 {
@@ -228,29 +189,14 @@ void SG_Node::UpdateWorldData(double time, bool parentUpdated)
 		// to update the 
 		ActivateUpdateTransformCallback();
 
+	// The node is updated, remove it from the update list
+	Delink();
+
 	// update children's worlddata
 	for (NodeList::iterator it = m_children.begin();it!=m_children.end();++it)
 	{
 		(*it)->UpdateWorldData(time, parentUpdated);
 	}
-}
-
-
-NodeList& SG_Node::GetSGChildren()
-{
-	return this->m_children;
-}
-
-
-const NodeList& SG_Node::GetSGChildren() const
-{
-	return this->m_children;
-}
-
-
-void SG_Node::ClearSGChildren()
-{
-	m_children.clear();
 }
 
 

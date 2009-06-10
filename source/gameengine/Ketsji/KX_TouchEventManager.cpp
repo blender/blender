@@ -85,14 +85,35 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
 	KX_ClientObjectInfo* info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
 	// This call back should only be called for controllers of Near and Radar sensor
-	if (info &&
-        info->m_sensors.size() == 1 &&
-		(info->m_type == KX_ClientObjectInfo::NEAR ||
-		 info->m_type == KX_ClientObjectInfo::RADAR))
+	if (!info)
+		return true;
+
+	switch (info->m_type)
 	{
-		// only one sensor for this type of object
-		KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
-		return touchsensor->BroadPhaseFilterCollision(object1,object2);
+	case KX_ClientObjectInfo::SENSOR:
+		if (info->m_sensors.size() == 1)
+		{
+			// only one sensor for this type of object
+			KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
+			return touchsensor->BroadPhaseFilterCollision(object1,object2);
+		}
+		break;
+	case KX_ClientObjectInfo::OBSENSOR:
+	case KX_ClientObjectInfo::OBACTORSENSOR:
+		// this object may have multiple collision sensors, 
+		// check is any of them is interested in this object
+		for(std::list<SCA_ISensor*>::iterator it = info->m_sensors.begin();
+			it != info->m_sensors.end();
+			++it)
+		{
+			if ((*it)->GetSensorType() == SCA_ISensor::ST_TOUCH) 
+			{
+				KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*it);
+				if (touchsensor->BroadPhaseSensorFilterCollision(object1, object2))
+					return true;
+			}
+		}
+		return false;
 	}
 	return true;
 }
@@ -100,7 +121,7 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	if (m_sensors.insert(touchsensor).second)
+	if (m_sensors.AddBack(touchsensor))
 		// the sensor was effectively inserted, register it
 		touchsensor->RegisterSumo(this);
 }
@@ -108,7 +129,7 @@ void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	if (m_sensors.erase(touchsensor))
+	if (touchsensor->Delink())
 		// the sensor was effectively removed, unregister it
 		touchsensor->UnregisterSumo(this);
 }
@@ -117,12 +138,10 @@ void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
 
 void KX_TouchEventManager::EndFrame()
 {
-	set<SCA_ISensor*>::iterator it;
-	for ( it = m_sensors.begin();
-	!(it==m_sensors.end());it++)
+	SG_DList::iterator<KX_TouchSensor> it(m_sensors);
+	for (it.begin();!it.end();++it)
 	{
-		((KX_TouchSensor*)*it)->EndFrame();
-
+		(*it)->EndFrame();
 	}
 }
 
@@ -130,12 +149,11 @@ void KX_TouchEventManager::EndFrame()
 
 void KX_TouchEventManager::NextFrame()
 {
-	if (m_sensors.size() > 0)
+	if (!m_sensors.Empty())
 	{
-		set<SCA_ISensor*>::iterator it;
-		
-		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
-			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
+		SG_DList::iterator<KX_TouchSensor> it(m_sensors);
+		for (it.begin();!it.end();++it)
+			(*it)->SynchronizeTransform();
 		
 		for (std::set<NewCollision>::iterator cit = m_newCollisions.begin(); cit != m_newCollisions.end(); ++cit)
 		{
@@ -161,7 +179,7 @@ void KX_TouchEventManager::NextFrame()
 			
 		m_newCollisions.clear();
 			
-		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
-			(*it)->Activate(m_logicmgr,NULL);
+		for (it.begin();!it.end();++it)
+			(*it)->Activate(m_logicmgr);
 	}
 }

@@ -36,6 +36,16 @@
 
 #ifdef RNA_RUNTIME
 
+static int rna_SequenceEditor_name_length(PointerRNA *ptr)
+{
+	return strlen("Sequence Editor");
+}
+
+static void rna_SequenceEditor_name_get(PointerRNA *ptr, char *str)
+{
+	strcpy(str, "Sequence Editor");
+}
+
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -179,7 +189,11 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "dir");
-	RNA_def_property_ui_text(prop, "Directory", "");
+	RNA_def_property_ui_text(prop, "Directory", "Location to story the proxy file");
+	
+	prop= RNA_def_property(srna, "file", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "file");
+	RNA_def_property_ui_text(prop, "File", "Proxy file name");
 }
 
 static void rna_def_strip_color_balance(BlenderRNA *brna)
@@ -241,7 +255,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
 		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
 		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_ACROSS", "Gamma Cross", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
 		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
 		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
 		{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
@@ -250,27 +264,19 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
 		{SEQ_COLOR, "COLOR", "Color", ""}, 
 		{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}
-	};
+		{0, NULL, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
-			{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
-			{SEQ_CROSS, "CROSS", "Cross", ""}, 
-			{SEQ_ADD, "ADD", "Add", ""}, 
-			{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-			{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-			{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-			{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-			{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-			{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-			{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
-			{SEQ_WIPE, "WIPE", "Wipe", ""}, 
-			{SEQ_GLOW, "GLOW", "Glow", ""}, 
-			{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
-			{SEQ_COLOR, "COLOR", "Color", ""}, 
-			{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}
-	};
+		{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", "Cross", ""}, 
+		{SEQ_ADD, "ADD", "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
+		{0, NULL, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
@@ -308,9 +314,9 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MUTE);
 	RNA_def_property_ui_text(prop, "Mute", "");
 
-	prop= RNA_def_property(srna, "ipo_frame_locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_IPO_FRAME_LOCKED);
-	RNA_def_property_ui_text(prop, "IPO Frame Locked", "Lock the IPO coordinates to the global frame counter.");
+	RNA_def_property_ui_text(prop, "Frame Locked", "Lock the animation curve to the global frame counter.");
 
 	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LOCK);
@@ -373,7 +379,14 @@ void rna_def_editor(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene datablock.");
+	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
 	RNA_def_struct_sdna(srna, "Editing");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_SequenceEditor_name_get", "rna_SequenceEditor_name_length", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
@@ -385,6 +398,10 @@ void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
+	
+	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
+	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
 }
 
 static void rna_def_filter_video(StructRNA *srna)
@@ -835,17 +852,17 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Global Speed", "");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	
-	prop= RNA_def_property(srna, "ipo_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "curve_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
-	RNA_def_property_ui_text(prop, "IPO Velocity", "Interpret the IPO value as a velocity instead of a frame number.");
+	RNA_def_property_ui_text(prop, "F-Curve Velocity", "Interpret the F-Curve value as a velocity instead of a frame number.");
 
 	prop= RNA_def_property(srna, "frame_blending", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_BLEND);
 	RNA_def_property_ui_text(prop, "Frame Blending", "Blend two frames into the target for a smoother result.");
 
-	prop= RNA_def_property(srna, "ipo_compress_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "curve_compress_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
-	RNA_def_property_ui_text(prop, "IPO Compress Y", "Scale IPO value to get the target frame number, IPO value runs from 0.0 to 1.0.");
+	RNA_def_property_ui_text(prop, "F-Curve Compress Y", "Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0.");
 }
 
 void RNA_def_sequence(BlenderRNA *brna)

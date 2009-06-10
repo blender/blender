@@ -82,8 +82,6 @@ GetReplica(
 ) {
 	KX_CameraActuator* replica = new KX_CameraActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 };
 
@@ -371,8 +369,13 @@ bool KX_CameraActuator::string2axischoice(const char *axisString)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_CameraActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_CameraActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -416,13 +419,17 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("min",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_minHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_height),
-	KX_PYATTRIBUTE_BOOL_RW("xy",KX_CameraActuator,m_x),
+	KX_PYATTRIBUTE_BOOL_RW("useXY",KX_CameraActuator,m_x),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
 	{NULL}
 };
 
 PyObject* KX_CameraActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_CameraActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_CameraActuator::py_setattro(PyObject *attr, PyObject* value) {
@@ -447,7 +454,7 @@ PyObject* KX_CameraActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_ob->GetName());
+		return PyString_FromString(m_ob->GetName().ReadPtr());
 	else
 		return m_ob->GetProxy();
 }
@@ -554,7 +561,7 @@ const char KX_CameraActuator::SetXY_doc[] =
 "\t1=x, 0=y\n";
 PyObject* KX_CameraActuator::PySetXY(PyObject* args)
 {
-	ShowDeprecationWarning("setXY()", "the xy property");
+	ShowDeprecationWarning("setXY()", "the useXY property");
 	int value;
 	if(PyArg_ParseTuple(args,"i:setXY", &value))
 	{
@@ -590,7 +597,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_GameObject *gameobj;
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 	
 	if (self->m_ob)
 		self->m_ob->UnregisterActuator(self);	
@@ -598,7 +605,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if ((self->m_ob = (SCA_IObject*)gameobj))
 		self->m_ob->RegisterActuator(self);
 	
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* eof */

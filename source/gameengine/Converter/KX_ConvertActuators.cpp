@@ -38,7 +38,7 @@
 
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertActuators.h"
-
+#include "SND_Scene.h"
 // Actuators
 //SCA logiclibrary native logicbricks
 #include "SCA_PropertyActuator.h"
@@ -105,7 +105,6 @@ void BL_ConvertActuators(char* maggiename,
 						 SCA_LogicManager* logicmgr,
 						 KX_Scene* scene,
 						 KX_KetsjiEngine* ketsjiEngine,
-						 int & executePriority, 
 						 int activeLayerBitInfo,
 						 bool isInActiveLayer,
 						 RAS_IRenderTools* rendertools,
@@ -114,11 +113,20 @@ void BL_ConvertActuators(char* maggiename,
 {
 	
 	int uniqueint = 0;
+	int actcount = 0;
+	int executePriority = 0;
 	bActuator* bact = (bActuator*) blenderobject->actuators.first;
+	while (bact)
+	{
+		actcount++;
+		bact = bact->next;
+	}
+	gameobj->ReserveActuator(actcount);
+	bact = (bActuator*) blenderobject->actuators.first;
 	while(bact)
 	{
 		STR_String uniquename = bact->name;
-		STR_String objectname = gameobj->GetName();
+		STR_String& objectname = gameobj->GetName();
 		
 		SCA_IActuator* baseact = NULL;
 		switch (bact->type)
@@ -126,6 +134,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_OBJECT:
 			{
 				bObjectActuator* obact = (bObjectActuator*) bact->data;
+				KX_GameObject* obref = NULL;
 				MT_Vector3 forcevec(KX_BLENDERTRUNC(obact->forceloc[0]),
 					KX_BLENDERTRUNC(obact->forceloc[1]),
 					KX_BLENDERTRUNC(obact->forceloc[2]));
@@ -163,9 +172,13 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
 				bitLocalFlag.ServoControl = bool(obact->type == ACT_OBJECT_SERVO);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
-				
+				if (obact->reference && bitLocalFlag.ServoControl)
+				{
+					obref = converter->FindGameObject(obact->reference);
+				}
 				
 				KX_ObjectActuator* tmpbaseact = new KX_ObjectActuator(gameobj,
+					obref,
 					forcevec.getValue(),
 					torquevec.getValue(),
 					dlocvec.getValue(),
@@ -941,6 +954,11 @@ void BL_ConvertActuators(char* maggiename,
 					= (bRandomActuator *) bact->data;
 				
 				unsigned long seedArg = randAct->seed;
+				if (seedArg == 0)
+				{
+					seedArg = (int)(ketsjiEngine->GetRealTime()*100000.0);
+					seedArg ^= (intptr_t)randAct;
+				}
 				SCA_RandomActuator::KX_RANDOMACT_MODE modeArg 
 					= SCA_RandomActuator::KX_RANDOMACT_NODEF;
 				SCA_RandomActuator *tmprandomact;
@@ -1097,7 +1115,7 @@ void BL_ConvertActuators(char* maggiename,
 				buf = txt_to_buf(_2dfilter->text);
 				if (buf)
 				{
-					tmp->SetShaderText(STR_String(buf));
+					tmp->SetShaderText(buf);
 					MEM_freeN(buf);
 				}
 			}
@@ -1110,6 +1128,8 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bParentActuator *parAct = (bParentActuator *) bact->data;
 				int mode = KX_ParentActuator::KX_PARENT_NODEF;
+				bool addToCompound = true;
+				bool ghost = true;
 				KX_GameObject *tmpgob = NULL;
 
 				switch(parAct->type)
@@ -1117,6 +1137,8 @@ void BL_ConvertActuators(char* maggiename,
 					case ACT_PARENT_SET:
 						mode = KX_ParentActuator::KX_PARENT_SET;
 						tmpgob = converter->FindGameObject(parAct->ob);
+						addToCompound = !(parAct->flag & ACT_PARENT_COMPOUND);
+						ghost = !(parAct->flag & ACT_PARENT_GHOST);
 						break;
 					case ACT_PARENT_REMOVE:
 						mode = KX_ParentActuator::KX_PARENT_REMOVE;
@@ -1127,6 +1149,8 @@ void BL_ConvertActuators(char* maggiename,
 				KX_ParentActuator *tmpparact
 					= new KX_ParentActuator(gameobj,
 					mode,
+					addToCompound,
+					ghost,
 					tmpgob);
 				baseact = tmpparact;
 				break;
@@ -1144,7 +1168,7 @@ void BL_ConvertActuators(char* maggiename,
 			CIntValue* uniqueval = new CIntValue(uniqueint);
 			uniquename += uniqueval->GetText();
 			uniqueval->Release();
-			baseact->SetName(STR_String(bact->name));
+			baseact->SetName(bact->name);
 			//gameobj->SetProperty(uniquename,baseact);
 			gameobj->AddActuator(baseact);
 			

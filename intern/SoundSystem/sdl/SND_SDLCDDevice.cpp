@@ -43,6 +43,8 @@
 
 #ifndef DISABLE_SDL
 #include <SDL.h>
+#else
+#include <stdio.h>
 #endif
 
 SND_SDLCDDevice::SND_SDLCDDevice() :

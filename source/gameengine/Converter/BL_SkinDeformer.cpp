@@ -65,9 +65,10 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							BL_MeshDeformer(gameobj, bmeshobj, mesh),
 							m_armobj(arma),
 							m_lastArmaUpdate(-1),
-							m_defbase(&bmeshobj->defbase),
+							//m_defbase(&bmeshobj->defbase),
 							m_releaseobject(false),
-							m_poseApplied(false)
+							m_poseApplied(false),
+							m_recalcNormal(true)
 {
 	Mat4CpyMat4(m_obmat, bmeshobj->obmat);
 };
@@ -78,12 +79,14 @@ BL_SkinDeformer::BL_SkinDeformer(
 	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
 	class BL_SkinMeshObject *mesh,
 	bool release_object,
+	bool recalc_normal,
 	BL_ArmatureObject* arma)	:	
 		BL_MeshDeformer(gameobj, bmeshobj_old, mesh),
 		m_armobj(arma),
 		m_lastArmaUpdate(-1),
-		m_defbase(&bmeshobj_old->defbase),
-		m_releaseobject(release_object)
+		//m_defbase(&bmeshobj_old->defbase),
+		m_releaseobject(release_object),
+		m_recalcNormal(recalc_normal)
 	{
 		// this is needed to ensure correct deformation of mesh:
 		// the deformation is done with Blender's armature_deform_verts() function
@@ -105,7 +108,7 @@ void BL_SkinDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 		void **h_obj = (*map)[m_armobj];
 
 		if (h_obj)
-			SetArmature( (BL_ArmatureObject*)(*h_obj) );
+			m_armobj = (BL_ArmatureObject*)(*h_obj);
 		else
 			m_armobj=NULL;
 	}
@@ -118,45 +121,53 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	RAS_MeshSlot::iterator it;
 	RAS_MeshMaterial *mmat;
 	RAS_MeshSlot *slot;
-	size_t i;
+	size_t i, nmat, imat;
 
 	// update the vertex in m_transverts
-	Update();
+	if (!Update())
+		return false;
 
-	// The vertex cache can only be updated for this deformer:
-	// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
-	// share the same mesh (=the same cache). As the rendering is done per polymaterial
-	// cycling through the objects, the entire mesh cache cannot be updated in one shot.
-	mmat = m_pMeshObject->GetMeshMaterial(mat);
-	if(!mmat->m_slots[(void*)m_gameobj])
-		return true;
+	if (m_transverts) {
+		// the vertex cache is unique to this deformer, no need to update it
+		// if it wasn't updated! We must update all the materials at once
+		// because we will not get here again for the other material
+		nmat = m_pMeshObject->NumMaterials();
+		for (imat=0; imat<nmat; imat++) {
+			mmat = m_pMeshObject->GetMeshMaterial(imat);
+			if(!mmat->m_slots[(void*)m_gameobj])
+				continue;
 
-	slot = *mmat->m_slots[(void*)m_gameobj];
+			slot = *mmat->m_slots[(void*)m_gameobj];
 
-	// for each array
-	for(slot->begin(it); !slot->end(it); slot->next(it)) {
-		// for each vertex
-		// copy the untransformed data from the original mvert
-		for(i=it.startvertex; i<it.endvertex; i++) {
-			RAS_TexVert& v = it.vertex[i];
-			v.SetXYZ(m_transverts[v.getOrigIndex()]);
+			// for each array
+			for(slot->begin(it); !slot->end(it); slot->next(it)) {
+				// for each vertex
+				// copy the untransformed data from the original mvert
+				for(i=it.startvertex; i<it.endvertex; i++) {
+					RAS_TexVert& v = it.vertex[i];
+					v.SetXYZ(m_transverts[v.getOrigIndex()]);
+				}
+			}
 		}
 	}
-
 	return true;
 }
 
-RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
+RAS_Deformer *BL_SkinDeformer::GetReplica()
 {
 	BL_SkinDeformer *result;
 
 	result = new BL_SkinDeformer(*this);
+	/* there is m_armobj that must be fixed but we cannot do it now, it will be done in Relink */
 	result->ProcessReplica();
 	return result;
 }
 
 void BL_SkinDeformer::ProcessReplica()
 {
+	BL_MeshDeformer::ProcessReplica();
+	m_lastArmaUpdate = -1;
+	m_releaseobject = false;
 }
 
 //void where_is_pose (Object *ob);
@@ -191,14 +202,16 @@ bool BL_SkinDeformer::Update(void)
 		Mat4CpyMat4(m_objMesh->obmat, obmat);
 
 #ifdef __NLA_DEFNORMALS
-		RecalcNormals();
+		if (m_recalcNormal)
+			RecalcNormals();
 #endif
 
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
 
 		m_armobj->RestorePose();
-
+		/* dynamic vertex, cannot use display list */
+		m_bDynamic = true;
 		/* indicate that the m_transverts and normals are up to date */
 		return true;
 	}

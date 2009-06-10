@@ -30,11 +30,10 @@ FILE(GLOB SRC *.cpp)
 #SET(SRC 
 #  ${SRC}
 #  ../../../source/blender/python/api2_2x/Mathutils.c
+#  ../../../source/blender/python/api2_2x/Geometry.c
 #  ../../../source/blender/python/api2_2x/constant.c
 #  ../../../source/blender/python/api2_2x/euler.c
-#  ../../../source/blender/python/api2_2x/gen_utils.c
 #  ../../../source/blender/python/api2_2x/matrix.c
-#  ../../../source/blender/python/api2_2x/point.c
 #  ../../../source/blender/python/api2_2x/quat.c
 #  ../../../source/blender/python/api2_2x/vector.c
 #  ../../../source/blender/python/api2_2x/bpy_internal_import.c

@@ -225,6 +225,44 @@ void ui_set_name_menu(uiBut *but, int value)
 	menudata_free(md);
 }
 
+int ui_step_name_menu(uiBut *but, int step)
+{
+	MenuData *md;
+	int value= ui_get_but_val(but);
+	int i;
+	
+	md= decompose_menu_string(but->str);
+	for (i=0; i<md->nitems; i++)
+		if (md->items[i].retval==value)
+			break;
+	
+	if(step==1) {
+		/* skip separators */
+		for(; i<md->nitems-1; i++) {
+			if(md->items[i+1].retval != -1) {
+				value= md->items[i+1].retval;
+				break;
+			}
+		}
+	}
+	else {
+		if(i>0) {
+			/* skip separators */
+			for(; i>0; i--) {
+				if(md->items[i-1].retval != -1) {
+					value= md->items[i-1].retval;
+					break;
+				}
+			}
+		}
+	}
+	
+	menudata_free(md);
+		
+	return value;
+}
+
+
 /******************** Creating Temporary regions ******************/
 
 ARegion *ui_add_temporary_region(bScreen *sc)
@@ -354,8 +392,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	if(y1 < 0) {
-		y1 += 36;
-		y2 += 36;
+		y1 += 56*aspect;
+		y2 += 56*aspect;
 	}
 
 	/* widget rect, in region coords */
@@ -506,9 +544,11 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 	uiSearchboxData *data= ar->regiondata;
 	
 	switch(event->type) {
+		case WHEELUPMOUSE:
 		case UPARROWKEY:
 			ui_searchbox_select(C, ar, but, -1);
 			break;
+		case WHEELDOWNMOUSE:
 		case DOWNARROWKEY:
 			ui_searchbox_select(C, ar, but, 1);
 			break;

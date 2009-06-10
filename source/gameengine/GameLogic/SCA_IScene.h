@@ -52,7 +52,7 @@ public:
 												int lifespan=0)=0;
 	virtual void	RemoveObject(class CValue* gameobj)=0;
 	virtual void	DelayedRemoveObject(class CValue* gameobj)=0;
-	virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
+	//virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
 	
 	virtual void	ReplaceMesh(class CValue* gameobj,
 								void* meshobj)=0;

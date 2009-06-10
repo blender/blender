@@ -1741,3 +1741,4 @@ void do_versions_ipos_to_animato(Main *main)
 	
 	printf("INFO: Animato convert done \n"); // xxx debug
 }
+

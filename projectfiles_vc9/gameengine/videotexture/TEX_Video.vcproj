@@ -126,7 +126,6 @@
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\gameengine\videotexture\"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="0"
 				CompileAs="0"
 				ShowIncludes="false"
 			/>

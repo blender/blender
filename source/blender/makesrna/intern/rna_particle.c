@@ -144,21 +144,19 @@ static int rna_ParticleSystem_name_length(PointerRNA *ptr)
 	ParticleSystem *psys= ptr->data;
 
 	if(psys->part)
-		return strlen(psys->part->id.name+2) + 10;
+		return strlen(psys->part->id.name+2);
 	
-	return 10;
+	return 0;
 }
 
 static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
 {
-	Object *ob= ptr->id.data;
 	ParticleSystem *psys= ptr->data;
-	int index= BLI_findindex(&ob->particlesystem, psys);
-
-	sprintf(str, "%d: ", index+1);
 
 	if(psys->part)
-		strcat(str, psys->part->id.name+2);
+		strcpy(str, psys->part->id.name+2);
+	else
+		strcpy(str, "");
 }
 
 static EnumPropertyItem from_items[] = {

@@ -38,5 +38,11 @@ www.blender.org.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-import Blender, webbrowser
-webbrowser.open('http://www.blender.org/')
+import Blender
+try: import webbrowser
+except: webbrowser = None
+
+if webbrowser:
+    webbrowser.open('http://www.blender.org/')
+else:
+    Blender.Draw.PupMenu("Error%t|This script requires a full python installation")

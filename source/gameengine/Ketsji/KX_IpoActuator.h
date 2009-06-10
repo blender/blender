@@ -128,8 +128,6 @@ public:
 	virtual CValue* GetReplica() {
 		KX_IpoActuator* replica = new KX_IpoActuator(*this);//m_float,GetName());
 		replica->ProcessReplica();
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
 		return replica;
 	};
 
@@ -142,6 +140,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 	
 	//KX_PYMETHOD_DOC

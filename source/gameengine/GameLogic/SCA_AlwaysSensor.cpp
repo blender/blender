@@ -72,7 +72,7 @@ CValue* SCA_AlwaysSensor::GetReplica()
 {
 	CValue* replica = new SCA_AlwaysSensor(*this);//m_float,GetName());
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -86,7 +86,7 @@ bool SCA_AlwaysSensor::IsPositiveTrigger()
 
 
 
-bool SCA_AlwaysSensor::Evaluate(CValue* event)
+bool SCA_AlwaysSensor::Evaluate()
 {
 	/* Nice! :) */
 		//return true;
@@ -105,8 +105,13 @@ bool SCA_AlwaysSensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_AlwaysSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_AlwaysSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -141,6 +146,10 @@ PyAttributeDef SCA_AlwaysSensor::Attributes[] = {
 
 PyObject* SCA_AlwaysSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_AlwaysSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 /* eof */

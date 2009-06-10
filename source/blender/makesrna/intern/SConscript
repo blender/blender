@@ -24,6 +24,25 @@ makesrna_tool = env.Clone()
 rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
+defs = []
+
+if env['WITH_BF_OPENEXR']:
+	defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_OPENJPEG']:
+	defs.append('WITH_OPENJPEG')
+
+if env['WITH_BF_DDS']:
+	defs.append('WITH_DDS')
+
+if env['WITH_BF_FFMPEG']:
+	defs.append('WITH_FFMPEG')
+
+if env['WITH_BF_QUICKTIME']:
+	defs.append('WITH_QUICKTIME')
+
+makesrna_tool.Append(CPPDEFINES=defs)
+
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
 								 '../../blenlib',
 								 '../../blenkernel',

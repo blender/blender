@@ -50,10 +50,11 @@ int *MultiresDM_get_face_offsets(struct DerivedMesh *);
 int MultiresDM_get_totlvl(struct DerivedMesh *);
 int MultiresDM_get_lvl(struct DerivedMesh *);
 void MultiresDM_set_update(struct DerivedMesh *, void (*)(struct DerivedMesh*));
-int *MultiresDM_get_flags(struct DerivedMesh *);
 
-#define MULTIRES_DM_UPDATE_BLOCK 1
-#define MULTIRES_DM_UPDATE_ALWAYS 2
+/* The displacements will only be updated when
+   the MultiresDM has been marked as modified */
+void MultiresDM_mark_as_modified(struct DerivedMesh *);
+void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
 

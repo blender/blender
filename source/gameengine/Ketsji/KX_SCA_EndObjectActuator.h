@@ -65,6 +65,7 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+ 	virtual PyObject* py_getattro_dict();
 	
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 

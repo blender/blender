@@ -164,14 +164,14 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
 	bool bNegativeEvent = false;
-	int numevents = 0;
+	bool numevents = false;
 	bool bIpoStart = false;
 
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 
 	if (frame)
 	{
-		numevents = m_events.size();
+		numevents = m_posevent || m_negevent;
 		bNegativeEvent = IsNegativeEvent();
 		RemoveAllEvents();
 	}
@@ -273,7 +273,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			{
 				result = false;
 				m_bNegativeEvent = false;
-				numevents = 0;
+				numevents = false;
 			}
 			if (!m_bIpoPlaying)
 			{
@@ -413,8 +413,13 @@ int KX_IpoActuator::string2mode(char* modename) {
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_IpoActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_IpoActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -440,9 +445,8 @@ PyParentObject KX_IpoActuator::Parents[] = {
 };
 
 PyMethodDef KX_IpoActuator::Methods[] = {
-	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (PY_METHODCHAR)Set_doc},
-	
 	// deprecated 
+	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (PY_METHODCHAR)Set_doc},
 	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, METH_VARARGS, (PY_METHODCHAR)SetStart_doc},
 	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, METH_NOARGS, (PY_METHODCHAR)GetStart_doc},
@@ -460,11 +464,11 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 };
 
 PyAttributeDef KX_IpoActuator::Attributes[] = {
-	KX_PYATTRIBUTE_FLOAT_RW("startFrame", 0, 300000, KX_IpoActuator, m_startframe),
-	KX_PYATTRIBUTE_FLOAT_RW("endFrame", 0, 300000, KX_IpoActuator, m_endframe),
+	KX_PYATTRIBUTE_FLOAT_RW("frameStart", 0, 300000, KX_IpoActuator, m_startframe),
+	KX_PYATTRIBUTE_FLOAT_RW("frameEnd", 0, 300000, KX_IpoActuator, m_endframe),
 	KX_PYATTRIBUTE_STRING_RW("propName", 0, 64, false, KX_IpoActuator, m_propname),
 	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 64, false, KX_IpoActuator, m_framepropname),
-	KX_PYATTRIBUTE_INT_RW("type", KX_ACT_IPO_NODEF+1, KX_ACT_IPO_MAX-1, true, KX_IpoActuator, m_type),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_IPO_NODEF+1, KX_ACT_IPO_MAX-1, true, KX_IpoActuator, m_type),
 	KX_PYATTRIBUTE_BOOL_RW("useIpoAsForce", KX_IpoActuator, m_ipo_as_force),
 	KX_PYATTRIBUTE_BOOL_RW("useIpoAdd", KX_IpoActuator, m_ipo_add),
 	KX_PYATTRIBUTE_BOOL_RW("useIpoLocal", KX_IpoActuator, m_ipo_local),
@@ -475,6 +479,10 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 
 PyObject* KX_IpoActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_IpoActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_IpoActuator::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
@@ -492,7 +500,7 @@ const char KX_IpoActuator::Set_doc[] =
 "\tSet the properties of the actuator.\n";
 PyObject* KX_IpoActuator::PySet(PyObject* args) {
 	
-	ShowDeprecationWarning("set()", "a number properties");
+	ShowDeprecationWarning("set()", "a range properties");
 									
 	/* sets modes PLAY, PINGPONG, FLIPPER, LOOPSTOP, LOOPEND                 */
 	/* arg 1 = mode string, arg 2 = startframe, arg3 = stopframe,            */
@@ -554,7 +562,7 @@ const char KX_IpoActuator::SetStart_doc[] =
 "\tSet the frame from which the ipo starts playing.\n";
 PyObject* KX_IpoActuator::PySetStart(PyObject* args) {
 
-	ShowDeprecationWarning("setStart()", "the startFrame property");
+	ShowDeprecationWarning("setStart()", "the frameStart property");
 
 	float startArg;
 	if(!PyArg_ParseTuple(args, "f:setStart", &startArg)) {
@@ -570,7 +578,7 @@ const char KX_IpoActuator::GetStart_doc[] =
 "getStart()\n"
 "\tReturns the frame from which the ipo starts playing.\n";
 PyObject* KX_IpoActuator::PyGetStart() {
-	ShowDeprecationWarning("getStart()", "the startFrame property");
+	ShowDeprecationWarning("getStart()", "the frameStart property");
 	return PyFloat_FromDouble(m_startframe);
 }
 
@@ -580,7 +588,7 @@ const char KX_IpoActuator::SetEnd_doc[] =
 "\t - frame: last frame to use (int)\n"
 "\tSet the frame at which the ipo stops playing.\n";
 PyObject* KX_IpoActuator::PySetEnd(PyObject* args) {
-	ShowDeprecationWarning("setEnd()", "the endFrame property");
+	ShowDeprecationWarning("setEnd()", "the frameEnd property");
 	float endArg;
 	if(!PyArg_ParseTuple(args, "f:setEnd", &endArg)) {
 		return NULL;		
@@ -595,7 +603,7 @@ const char KX_IpoActuator::GetEnd_doc[] =
 "getEnd()\n"
 "\tReturns the frame at which the ipo stops playing.\n";
 PyObject* KX_IpoActuator::PyGetEnd() {
-	ShowDeprecationWarning("getEnd()", "the endFrame property");
+	ShowDeprecationWarning("getEnd()", "the frameEnd property");
 	return PyFloat_FromDouble(m_endframe);
 }
 
@@ -661,7 +669,7 @@ const char KX_IpoActuator::SetType_doc[] =
 "\t - mode: Play, PingPong, Flipper, LoopStop, LoopEnd or FromProp (string)\n"
 "\tSet the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PySetType(PyObject* args) {
-	ShowDeprecationWarning("setType()", "the type property");
+	ShowDeprecationWarning("setType()", "the mode property");
 	int typeArg;
 	
 	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
@@ -680,7 +688,7 @@ const char KX_IpoActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PyGetType() {
-	ShowDeprecationWarning("getType()", "the type property");
+	ShowDeprecationWarning("getType()", "the mode property");
 	return PyInt_FromLong(m_type);
 }
 

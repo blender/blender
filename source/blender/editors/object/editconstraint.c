@@ -1015,7 +1015,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op)
 			con->flag |= CONSTRAINT_PROXY_LOCAL;
 		
 		con->flag |= CONSTRAINT_ACTIVE;
-		for(coniter= coniter->prev; coniter; coniter= coniter->prev)
+		for(coniter= con->prev; coniter; coniter= coniter->prev)
 			coniter->flag &= ~CONSTRAINT_ACTIVE;
 	}
 	

@@ -256,6 +256,35 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 #endif
 		{R_TIFF, "TIFF", "TIFF", ""},	// XXX only with G.have_libtiff
 		{0, NULL, NULL, NULL}};
+		
+#ifdef WITH_OPENEXR	
+	static EnumPropertyItem exr_codec_items[] = {
+		{0, "NONE", "None", ""},
+		{1, "PXR24", "Pxr24 (lossy)", ""},
+		{2, "ZIP", "ZIP (lossless)", ""},
+		{3, "PIZ", "PIZ (lossless)", ""},
+		{4, "RLE", "RLE (lossless)", ""},
+		{0, NULL, NULL, NULL}};
+#endif
+
+#ifdef WITH_OPENJPEG
+	static EnumPropertyItem jp2_preset_items[] = {
+		{0, "NO_PRESET", "No Preset", ""},
+		{1, "R_JPEG2K_CINE_PRESET", "Cinema 24fps 2048x1080", ""},
+		{2, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cinema 48fps 2048x1080", ""},
+		{3, "R_JPEG2K_CINE_PRESET", "Cinema 24fps 4096x2160", ""},
+		{4, "R_JPEG2K_CINE_PRESET", "Cine-Scope 24fps 2048x858", ""},
+		{5, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cine-Scope 48fps 2048x858", ""},
+		{6, "R_JPEG2K_CINE_PRESET", "Cine-Flat 24fps 1998x1080", ""},
+		{7, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cine-Flat 48fps 1998x1080", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem jp2_depth_items[] = {
+		{0, "8", "8", ""},
+		{R_JPEG2K_12BIT, "16", "16", ""},
+		{R_JPEG2K_16BIT, "32", "32", ""},
+		{0, NULL, NULL, NULL}};
+#endif
 	
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
@@ -308,11 +337,91 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_OBJECT, NULL);
 	
+	/* JPEG and AVI JPEG */
+	
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "Quality setting for JPEG images, AVI Jpeg and SGI movies.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	/* Tiff */
+	
+	prop= RNA_def_property(srna, "tiff_bit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_TIFF_16BIT);
+	RNA_def_property_ui_text(prop, "16 Bit", "Save 16 bit per channel TIFF");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	/* Cineon and DPX */
+	
+	prop= RNA_def_property(srna, "cineon_log", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_CINEON_LOG);
+	RNA_def_property_ui_text(prop, "Log", "Convert to log color space");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "cineon_black", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "cineonblack");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "B", "Log conversion reference black");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "cineon_white", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "cineonwhite");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "W", "Log conversion reference white");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "cineon_gamma", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cineongamma");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+#ifdef WITH_OPENEXR	
+	/* OpenEXR */
+
+	prop= RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "quality");
+	RNA_def_property_enum_items(prop, exr_codec_items);
+	RNA_def_property_ui_text(prop, "Codec", "Set codec settings for OpenEXR");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "exr_half", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_HALF);
+	RNA_def_property_ui_text(prop, "Half", "Use 16 bit floats instead of 32 bit floats per channel");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "exr_zbuf", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_ZBUF);
+	RNA_def_property_ui_text(prop, "Zbuf", "Save the z-depth per pixel (32 bit unsigned int zbuffer)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "exr_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_PREVIEW_JPG);
+	RNA_def_property_ui_text(prop, "Preview", "When animation render, save JPG preview images in same directory");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+
+#ifdef WITH_OPENJPEG
+	/* Jpeg 2000 */
+
+	prop= RNA_def_property(srna, "jpeg_preset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "jp2_preset");
+	RNA_def_property_enum_items(prop, jp2_preset_items);
+	RNA_def_property_ui_text(prop, "Preset", "Use a DCI Standard preset for saving jpeg2000");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "jpeg_depth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "jp2_depth");
+	RNA_def_property_enum_items(prop, jp2_depth_items);
+	RNA_def_property_ui_text(prop, "Depth", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "jpeg_ycc", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_JPEG2K_YCC);
+	RNA_def_property_ui_text(prop, "YCC", "Save luminance-chrominance-chrominance instead of RGB color channels");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
 	
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");

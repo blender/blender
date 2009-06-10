@@ -223,6 +223,20 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Radial Falloff Power", "Radial falloff power (real gravitational falloff = 2)");
 
+	prop= RNA_def_property(srna, "texture_nabla", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tex_nabla");
+	RNA_def_property_range(prop, 0.0001f, 1.0f);
+	RNA_def_property_ui_text(prop, "Nabla", "Defines size of derivative offset used for calculating gradient and curl");
+	
+	prop= RNA_def_property(srna, "noise", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_noise");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Noise", "Noise of the wind force");
+
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_ui_text(prop, "Seed", "Seed of the wind noise");
+
 	/* Boolean */
 	
 	prop= RNA_def_property(srna, "use_min_distance", PROP_BOOLEAN, PROP_NONE);
@@ -267,9 +281,16 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_2D);
 	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2d");
 	
-	prop= RNA_def_property(srna, "root_coords", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "root_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_ROOTCO);
 	RNA_def_property_ui_text(prop, "Root Texture Coordinates", "Texture coordinates from root particle locations");
+	
+	/* Pointer */
+	
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tex");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Texture", "Texture to use as force");
 }
 
 static void rna_def_game_softbody(BlenderRNA *brna)

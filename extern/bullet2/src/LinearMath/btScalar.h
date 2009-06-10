@@ -168,8 +168,12 @@ inline int	btGetVersion()
 ///The btScalar type abstracts floating point numbers, to easily switch between double and single floating point precision.
 #if defined(BT_USE_DOUBLE_PRECISION)
 typedef double btScalar;
+//this number could be bigger in double precision
+#define BT_LARGE_FLOAT 1e30
 #else
 typedef float btScalar;
+//keep BT_LARGE_FLOAT*BT_LARGE_FLOAT < FLT_MAX
+#define BT_LARGE_FLOAT 1e18f
 #endif
 
 

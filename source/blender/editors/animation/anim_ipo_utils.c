@@ -33,6 +33,7 @@
  */
 
 
+#include <math.h>
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"

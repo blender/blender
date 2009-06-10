@@ -1521,6 +1521,7 @@ static void sculpt_flush_update(bContext *C)
 		
 		mmd->undo_verts = s->session->mvert;
 		mmd->undo_verts_tot = s->session->totvert;
+		multires_mark_as_modified(CTX_data_active_object(C));
 	}
 
 	ED_region_tag_redraw(ar);

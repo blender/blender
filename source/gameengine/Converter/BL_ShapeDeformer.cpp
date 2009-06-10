@@ -68,7 +68,7 @@ BL_ShapeDeformer::~BL_ShapeDeformer()
 {
 };
 
-RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
+RAS_Deformer *BL_ShapeDeformer::GetReplica()
 {
 	BL_ShapeDeformer *result;
 
@@ -79,6 +79,8 @@ RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
 
 void BL_ShapeDeformer::ProcessReplica()
 {
+	BL_SkinDeformer::ProcessReplica();
+	m_lastShapeUpdate = -1;
 }
 
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
@@ -87,7 +89,7 @@ bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 
 	m_shapeDrivers.clear();
 	// check if this mesh has armature driven shape keys
-	if (m_bmesh->key->ipo) {
+	if (m_bmesh->key && m_bmesh->key->ipo) {
 		for(icu= (IpoCurve*)m_bmesh->key->ipo->curve.first; icu; icu= (IpoCurve*)icu->next) {
 			if(icu->driver && 
 				(icu->flag & IPO_MUTE) == 0 &&
@@ -125,7 +127,7 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 
 		ForceUpdate();
 		m_armobj->RestorePose();
-
+		m_bDynamic = true;
 		return true;
 	}
 	return false;
@@ -147,7 +149,11 @@ bool BL_ShapeDeformer::Update(void)
 		m_pMeshObject->CheckWeightCache(blendobj);
 
 		/* we will blend the key directly in mvert array: it is used by armature as the start position */
-		do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
+		/* m_bmesh->key can be NULL in case of Modifier deformer */
+		if (m_bmesh->key) {
+			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
+			m_bDynamic = true;
+		}
 
 		// Don't release the weight array as in Blender, it will most likely be reusable on next frame 
 		// The weight array are ultimately deleted when the skin mesh is destroyed
@@ -163,7 +169,8 @@ bool BL_ShapeDeformer::Update(void)
 	// check for armature deform
 	bSkinUpdate = BL_SkinDeformer::Update();
 
-	if (!bSkinUpdate && bShapeUpdate) {
+	// non dynamic deformer = Modifer without armature and shape keys, no need to create storage
+	if (!bSkinUpdate && bShapeUpdate && m_bDynamic) {
 		// this means that there is no armature, we still need to copy the vertex to m_transverts
 		// and update the normal (was not done after shape key calculation)
 
@@ -174,7 +181,8 @@ bool BL_ShapeDeformer::Update(void)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
 #ifdef __NLA_DEFNORMALS
-		RecalcNormals();
+		if (m_recalcNormal)
+			RecalcNormals();
 #endif
 		bSkinUpdate = true;
 	}

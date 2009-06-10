@@ -170,7 +170,7 @@ static int compare_name(const void *a1, const void *a2)
 	if( strcmp(entry1->relname, "..")==0 ) return (-1);
 	if( strcmp(entry2->relname, "..")==0 ) return (1);
 	
-	return (BLI_strcasecmp(entry1->relname,entry2->relname));
+	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
 
 static int compare_date(const void *a1, const void *a2)	
@@ -201,7 +201,7 @@ static int compare_date(const void *a1, const void *a2)
 	if ( entry1->s.st_mtime < entry2->s.st_mtime) return 1;
 	if ( entry1->s.st_mtime > entry2->s.st_mtime) return -1;
 	
-	else return BLI_strcasecmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname,entry2->relname);
 }
 
 static int compare_size(const void *a1, const void *a2)	
@@ -231,7 +231,7 @@ static int compare_size(const void *a1, const void *a2)
 	
 	if ( entry1->s.st_size < entry2->s.st_size) return 1;
 	if ( entry1->s.st_size > entry2->s.st_size) return -1;
-	else return BLI_strcasecmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname,entry2->relname);
 }
 
 static int compare_extension(const void *a1, const void *a2) {

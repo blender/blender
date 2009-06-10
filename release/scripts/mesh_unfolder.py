@@ -164,8 +164,8 @@ class Fold:
 		sangle = Mathutils.AngleBetweenVecs(self.refPolyNormal, self.polyNormal)
 		if(sangle!=sangle):
 			sangle=0.0
-		ncp = Mathutils.CrossVecs(self.refPolyNormal, self.polyNormal)
-		dp = Mathutils.DotVecs(ncp, self.edge.vector)
+		ncp = self.refPolyNormal.cross(self.polyNormal)
+		dp = ncp.dot(self.edge.vector)
 		if(dp>0.0):
 			return +sangle
 		else:
@@ -855,7 +855,7 @@ class Poly:
 		p.resize3D()
 		q = a-c
 		q.resize3D()
-		return CrossVecs(p,q)
+		return p.cross(q)
 	def makeEdges(self):
 		self.edges = []
 		for i in xrange(self.nPoints()):

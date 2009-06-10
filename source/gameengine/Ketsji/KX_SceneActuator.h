@@ -93,6 +93,7 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. set                                                                */
@@ -107,7 +108,7 @@ class KX_SceneActuator : public SCA_IActuator
 	/* 5. getScene:                                                          */
 	KX_PYMETHOD_DOC_NOARGS(KX_SceneActuator,GetScene);
 	/* 6. setCamera:                                                          */
-	KX_PYMETHOD_DOC_VARARGS(KX_SceneActuator,SetCamera);
+	KX_PYMETHOD_DOC_O(KX_SceneActuator,SetCamera);
 	/* 7. getCamera:                                                          */
 	KX_PYMETHOD_DOC_NOARGS(KX_SceneActuator,GetCamera);
 	

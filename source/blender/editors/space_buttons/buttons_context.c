@@ -50,8 +50,11 @@
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_world.h"
 
 #include "RNA_access.h"
+
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -61,7 +64,40 @@
 typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
+	int worldtex;
 } ButsContextPath;
+
+static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
+{
+	PointerRNA *ptr;
+	int a;
+
+	for(a=0; a<path->len; a++) {
+		ptr= &path->ptr[a];
+
+		if(RNA_struct_is_a(ptr->type, type)) {
+			CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static PointerRNA *get_pointer_type(ButsContextPath *path, StructRNA *type)
+{
+	PointerRNA *ptr;
+	int a;
+
+	for(a=0; a<path->len; a++) {
+		ptr= &path->ptr[a];
+
+		if(RNA_struct_is_a(ptr->type, type))
+			return ptr;
+	}
+
+	return NULL;
+}
 
 /************************* Creating the Path ************************/
 
@@ -96,6 +132,7 @@ static int buttons_context_path_world(ButsContextPath *path)
 	return 0;
 }
 
+
 static int buttons_context_path_object(ButsContextPath *path)
 {
 	Scene *scene;
@@ -126,12 +163,21 @@ static int buttons_context_path_object(ButsContextPath *path)
 static int buttons_context_path_data(ButsContextPath *path, int type)
 {
 	Object *ob;
+	PointerRNA *ptr= &path->ptr[path->len-1];
 
+	/* if we already have a data, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_Mesh) && (type == -1 || type == OB_MESH)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Curve) && (type == -1 || ELEM3(type, OB_CURVE, OB_SURF, OB_FONT))) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Armature) && (type == -1 || type == OB_ARMATURE)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (type == -1 || type == OB_MBALL)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Lamp) && (type == -1 || type == OB_LAMP)) return 1;
 	/* try to get an object in the path, no pinning supported here */
-	if(buttons_context_path_object(path)) {
+	else if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
 
-		if(type == -1 || type == ob->type) {
+		if(ob && (type == -1 || type == ob->type)) {
 			RNA_id_pointer_create(ob->data, &path->ptr[path->len]);
 			path->len++;
 
@@ -143,10 +189,25 @@ static int buttons_context_path_data(ButsContextPath *path, int type)
 	return 0;
 }
 
+static int buttons_context_path_modifier(ButsContextPath *path)
+{
+	Object *ob;
+
+	if(buttons_context_path_object(path)) {
+		ob= path->ptr[path->len-1].data;
+
+		if(ob && ELEM4(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF))
+			return 1;
+	}
+
+	return 0;
+}
+
 static int buttons_context_path_material(ButsContextPath *path)
 {
 	Object *ob;
 	PointerRNA *ptr= &path->ptr[path->len-1];
+	Material *ma;
 
 	/* if we already have a (pinned) material, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Material)) {
@@ -157,7 +218,8 @@ static int buttons_context_path_material(ButsContextPath *path)
 		ob= path->ptr[path->len-1].data;
 
 		if(ob && ob->type && (ob->type<OB_LAMP)) {
-			RNA_pointer_create(&ob->id, &RNA_MaterialSlot, ob->mat+ob->actcol-1, &path->ptr[path->len]);
+			ma= give_current_material(ob, ob->actcol);
+			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
 			return 1;
 		}
@@ -212,11 +274,14 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	/* if we have an object, get the active particle system */
 	if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
-		psys= psys_get_current(ob);
 
-		RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &path->ptr[path->len]);
-		path->len++;
-		return 1;
+		if(ob && ob->type == OB_MESH) {
+			psys= psys_get_current(ob);
+
+			RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
 	}
 
 	/* no path to a particle system possible */
@@ -225,58 +290,70 @@ static int buttons_context_path_particle(ButsContextPath *path)
 
 static int buttons_context_path_texture(ButsContextPath *path)
 {
-	Object *ob;
-	Lamp *la;
 	Material *ma;
+	Lamp *la;
+	World *wo;
+	MTex *mtex;
+	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
 	/* if we already have a (pinned) texture, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
 		return 1;
 	}
-	/* try to get the active material */
-	else if(buttons_context_path_material(path)) {
-		ptr= &path->ptr[path->len-1];
+	/* try world */
+	else if(path->worldtex && buttons_context_path_world(path)) {
+		wo= path->ptr[path->len-1].data;
 
-		if(RNA_struct_is_a(ptr->type, &RNA_Material)) {
-			ma= ptr->data;
-		}
-		else if(RNA_struct_is_a(ptr->type, &RNA_MaterialSlot)) {
-			ob= ptr->id.data;
-			ma= give_current_material(ob, (Material**)ptr->data - ob->mat);
-		}
-		else
-			ma= NULL;
+		if(wo) {
+			mtex= wo->mtex[(int)wo->texact];
+			tex= (mtex)? mtex->tex: NULL;
 
-		if(ma) {
-			RNA_pointer_create(&ma->id, &RNA_TextureSlot, ma->mtex[(int)ma->texact], &path->ptr[path->len]);
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
 			return 1;
 		}
 	}
-	/* try to get the active lamp */
+	/* try material */
+	else if(buttons_context_path_material(path)) {
+		ma= path->ptr[path->len-1].data;
+
+		if(ma) {
+			mtex= ma->mtex[(int)ma->texact];
+			tex= (mtex)? mtex->tex: NULL;
+
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
+	/* try lamp */
 	else if(buttons_context_path_data(path, OB_LAMP)) {
 		la= path->ptr[path->len-1].data;
 
 		if(la) {
-			RNA_pointer_create(&la->id, &RNA_TextureSlot, la->mtex[(int)la->texact], &path->ptr[path->len]);
+			mtex= la->mtex[(int)la->texact];
+			tex= (mtex)? mtex->tex: NULL;
+
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
 			return 1;
 		}
 	}
-	/* TODO: world, brush */
+	/* TODO: material nodes, brush */
 
 	/* no path to a particle system possible */
 	return 0;
 }
 
-static int buttons_context_path(const bContext *C, ButsContextPath *path)
+static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int worldtex)
 {
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	ID *id;
 	int found;
 
 	memset(path, 0, sizeof(*path));
+	path->worldtex= worldtex;
 
 	/* if some ID datablock is pinned, set the root pointer */
 	if(sbuts->pinid) {
@@ -295,7 +372,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path)
 
 	/* now for each buttons context type, we try to construct a path,
 	 * tracing back recursively */
-	switch(sbuts->mainb) {
+	switch(mainb) {
 		case BCONTEXT_SCENE:
 			found= buttons_context_path_scene(path);
 			break;
@@ -304,8 +381,11 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path)
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
-		case BCONTEXT_MODIFIER:
+		case BCONTEXT_CONSTRAINT:
 			found= buttons_context_path_object(path);
+			break;
+		case BCONTEXT_MODIFIER:
+			found= buttons_context_path_modifier(path);
 			break;
 		case BCONTEXT_DATA:
 			found= buttons_context_path_data(path, -1);
@@ -332,50 +412,67 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path)
 
 void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
+	ButsContextPath *path;
+	PointerRNA *ptr;
+	int a, worldtex, flag= 0;
+
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
 	
-	buttons_context_path(C, sbuts->path);
+	path= sbuts->path;
+	worldtex= (sbuts->flag & SB_WORLD_TEX);
+	
+	/* for each context, see if we can compute a valid path to it, if
+	 * this is the case, we know we have to display the button */
+	for(a=0; a<BCONTEXT_TOT; a++) {
+		if(buttons_context_path(C, path, a, worldtex)) {
+			flag |= (1<<a);
+
+			/* setting icon for data context */
+			if(a == BCONTEXT_DATA) {
+				ptr= &path->ptr[path->len-1];
+
+				if(ptr->type)
+					sbuts->dataicon= RNA_struct_ui_icon(ptr->type);
+				else
+					sbuts->dataicon= ICON_EMPTY_DATA;
+			}
+		}
+	}
+
+	/* in case something becomes invalid, change */
+	if((flag & (1 << sbuts->mainb)) == 0) {
+		if(flag & BCONTEXT_OBJECT) {
+			sbuts->mainb= BCONTEXT_OBJECT;
+		}
+		else {
+			for(a=0; a<BCONTEXT_TOT; a++) {
+				if(flag & (1 << a)) {
+					sbuts->mainb= a;
+					break;
+				}
+			}
+		}
+	}
+
+	buttons_context_path(C, path, sbuts->mainb, worldtex);
+
+	if(!(flag & (1 << sbuts->mainb))) {
+		if(flag & (1 << BCONTEXT_OBJECT))
+			sbuts->mainb= BCONTEXT_OBJECT;
+		else
+			sbuts->mainb= BCONTEXT_SCENE;
+	}
+
+	sbuts->pathflag= flag;
 }
 
 /************************* Context Callback ************************/
 
-static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
-{
-	PointerRNA *ptr;
-	int a;
-
-	for(a=0; a<path->len; a++) {
-		ptr= &path->ptr[a];
-
-		if(RNA_struct_is_a(ptr->type, type)) {
-			CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-static PointerRNA *get_pointer_type(ButsContextPath *path, StructRNA *type)
-{
-	PointerRNA *ptr;
-	int a;
-
-	for(a=0; a<path->len; a++) {
-		ptr= &path->ptr[a];
-
-		if(RNA_struct_is_a(ptr->type, type))
-			return ptr;
-	}
-
-	return NULL;
-}
-
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	ButsContextPath *path= sbuts->path;
+	ButsContextPath *path= sbuts?sbuts->path:NULL;
 
 	if(!path)
 		return 0;
@@ -419,34 +516,53 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if(CTX_data_equals(member, "material")) {
-		if(!set_pointer_type(path, result, &RNA_Material)) {
-			PointerRNA *ptr= get_pointer_type(path, &RNA_MaterialSlot);
-
-			if(ptr && ptr->data) {
-				Object *ob= ptr->id.data;
-				Material *ma= give_current_material(ob, (Material**)ptr->data - ob->mat);
-				CTX_data_id_pointer_set(result, &ma->id);
-			}
-		}
-
+		set_pointer_type(path, result, &RNA_Material);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "texture")) {
-		if(!set_pointer_type(path, result, &RNA_Texture)) {
-			PointerRNA *ptr= get_pointer_type(path, &RNA_TextureSlot);
+		set_pointer_type(path, result, &RNA_Texture);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "material_slot")) {
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
 
-			if(ptr && ptr->data)
-				CTX_data_id_pointer_set(result, &((MTex*)ptr->data)->tex->id);
+		if(ptr) {
+			Object *ob= ptr->data;
+
+			if(ob && ob->type && (ob->type<OB_LAMP))
+				CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, ob->mat+ob->actcol-1);
 		}
 
 		return 1;
 	}
-	else if(CTX_data_equals(member, "material_slot")) {
-		set_pointer_type(path, result, &RNA_MaterialSlot);
-		return 1;
-	}
 	else if(CTX_data_equals(member, "texture_slot")) {
-		set_pointer_type(path, result, &RNA_TextureSlot);
+		PointerRNA *ptr;
+
+		if((ptr=get_pointer_type(path, &RNA_Material))) {
+			Material *ma= ptr->data;
+
+			if(ma)
+				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
+		}
+		else if((ptr=get_pointer_type(path, &RNA_Lamp))) {
+			Lamp *la= ptr->data;
+
+			if(la)
+				CTX_data_pointer_set(result, &la->id, &RNA_LampTextureSlot, la->mtex[(int)la->texact]);
+		}
+		else if((ptr=get_pointer_type(path, &RNA_World))) {
+			World *wo= ptr->data;
+
+			if(wo)
+				CTX_data_pointer_set(result, &wo->id, &RNA_WorldTextureSlot, wo->mtex[(int)wo->texact]);
+		}
+		else if((ptr=get_pointer_type(path, &RNA_Brush))) { /* how to get this into context? */
+			Brush *br= ptr->data;
+
+			if(br)
+				CTX_data_pointer_set(result, &br->id, &RNA_TextureSlot, br->mtex[(int)br->texact]);
+		}
+
 		return 1;
 	}
 	else if(CTX_data_equals(member, "bone")) {
@@ -486,11 +602,38 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 /************************* Drawing the Path ************************/
 
-static void buttons_panel_context(const bContext *C, Panel *pa)
+static void pin_cb(bContext *C, void *arg1, void *arg2)
+{
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	ButsContextPath *path= sbuts->path;
+	PointerRNA *ptr;
+	int a;
+
+	if(sbuts->flag & SB_PIN_CONTEXT) {
+		if(path->len) {
+			for(a=path->len-1; a>=0; a--) {
+				ptr= &path->ptr[a];
+
+				if(ptr->id.data) {
+					sbuts->pinid= ptr->id.data;
+					break;
+				}
+			}
+		}
+	}
+	else
+		sbuts->pinid= NULL;
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+void buttons_context_draw(const bContext *C, uiLayout *layout)
 {
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	ButsContextPath *path= sbuts->path;
 	uiLayout *row;
+	uiBlock *block;
+	uiBut *but;
 	PointerRNA *ptr;
 	PropertyRNA *nameprop;
 	char namebuf[128], *name;
@@ -499,8 +642,13 @@ static void buttons_panel_context(const bContext *C, Panel *pa)
 	if(!path)
 		return;
 
-	row= uiLayoutRow(pa->layout, 0);
+	row= uiLayoutRow(layout, 0);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+
+	block= uiLayoutGetBlock(row);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, (sbuts->flag & SB_PIN_CONTEXT)? ICON_PINNED: ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
+	uiButSetFunc(but, pin_cb, NULL, NULL);
 
 	for(a=0; a<path->len; a++) {
 		ptr= &path->ptr[a];
@@ -509,6 +657,12 @@ static void buttons_panel_context(const bContext *C, Panel *pa)
 			icon= RNA_struct_ui_icon(ptr->type);
 			nameprop= RNA_struct_name_property(ptr->type);
 
+#if 0
+			if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene) {
+				uiItemL(row, "", icon); /* save some space */
+			}
+			else
+#endif
 			if(nameprop) {
 				name= RNA_property_string_get_alloc(ptr, nameprop, namebuf, sizeof(namebuf));
 
@@ -521,6 +675,11 @@ static void buttons_panel_context(const bContext *C, Panel *pa)
 				uiItemL(row, "", icon);
 		}
 	}
+}
+
+static void buttons_panel_context(const bContext *C, Panel *pa)
+{
+	buttons_context_draw(C, pa->layout);
 }
 
 void buttons_context_register(ARegionType *art)

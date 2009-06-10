@@ -255,7 +255,7 @@ struct uiBlock {
 	void *handle_func_arg;
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)();
+	void (*drawextra)(const struct bContext *C, void *idv, rcti *rect);
 
 	int afterval, flag;
 	
@@ -371,6 +371,7 @@ uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *but
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
 void ui_set_name_menu(uiBut *but, int value);
+int ui_step_name_menu(uiBut *but, int step);
 
 struct AutoComplete;
 struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
@@ -402,7 +403,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 
-extern void ui_draw_but(ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
+extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 		/* theme color init */
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);

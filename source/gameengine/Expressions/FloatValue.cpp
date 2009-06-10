@@ -50,7 +50,7 @@ effect: constructs a new CFloatValue containing value fl
 
 
 
-CFloatValue::CFloatValue(float fl,STR_String name,AllocationTYPE alloctype)
+CFloatValue::CFloatValue(float fl,const char *name,AllocationTYPE alloctype)
 /*
 pre:
 effect: constructs a new CFloatValue containing value fl
@@ -307,8 +307,8 @@ const STR_String & CFloatValue::GetText()
 CValue* CFloatValue::GetReplica()
 { 
 	CFloatValue* replica = new CFloatValue(*this);
-	replica->m_pstrRep = NULL;
-	CValue::AddDataToReplica(replica);
+	replica->m_pstrRep = NULL; /* should be in CFloatValue::ProcessReplica() but its not defined, no matter */
+	replica->ProcessReplica();
 
 	return replica;
 }

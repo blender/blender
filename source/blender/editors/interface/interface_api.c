@@ -86,6 +86,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "split", "uiLayoutSplit");
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
+	RNA_def_float(func, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
 
 	/* items */
 	func= RNA_def_function(srna, "itemR", "uiItemR");
@@ -123,12 +124,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "itemO", "uiItemO");
 	api_ui_item_op_common(func);
 
-	/*func= RNA_def_function(srna, "item_enumO", "uiItemEnumO");
+	func= RNA_def_function(srna, "item_enumO", "uiItemEnumO_string");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);*/
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "items_enumO", "uiItemsEnumO");
 	parm= RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator.");
@@ -193,7 +194,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func= RNA_def_function(srna, "template_header_ID", "uiTemplateHeaderID");
+	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");

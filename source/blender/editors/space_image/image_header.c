@@ -140,13 +140,8 @@ static void image_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_view_properties_panel"); // View Properties...
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_image_properties_panel"); // Image Properties...|N
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_realtime_properties_panel"); // Real-time properties...
-	if(show_paint) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_paint_panel"); // Paint Tool...|C
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_curves_panel"); // Curves Tool...
-	if(show_render) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_grease_pencil_panel"); // Grease Pencil...
+	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_properties");
+	//if(show_render) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
 
 	uiItemS(layout);
 

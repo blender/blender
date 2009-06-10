@@ -77,7 +77,7 @@ CValue* SCA_DelaySensor::GetReplica()
 {
 	CValue* replica = new SCA_DelaySensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -89,7 +89,7 @@ bool SCA_DelaySensor::IsPositiveTrigger()
 	return (m_invert ? !m_lastResult : m_lastResult);
 }
 
-bool SCA_DelaySensor::Evaluate(CValue* event)
+bool SCA_DelaySensor::Evaluate()
 {
 	bool trigger = false;
 	bool result;
@@ -131,8 +131,13 @@ bool SCA_DelaySensor::Evaluate(CValue* event)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_DelaySensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_DelaySensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -180,6 +185,10 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 
 PyObject* SCA_DelaySensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_DelaySensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_DelaySensor::py_setattro(PyObject *attr, PyObject *value) {

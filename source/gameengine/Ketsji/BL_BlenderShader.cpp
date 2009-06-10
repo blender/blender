@@ -20,41 +20,33 @@ BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lig
 :
 	mScene(scene),
 	mMat(ma),
-	mLightLayer(lightlayer)
+	mLightLayer(lightlayer),
+	mGPUMat(NULL)
 {
 	mBlenderScene = scene->GetBlenderScene();
 	mBlendMode = GPU_BLEND_SOLID;
 
-	if(mMat)
-		GPU_material_from_blender(mBlenderScene, mMat);
+	ReloadMaterial();
 }
 
 BL_BlenderShader::~BL_BlenderShader()
 {
-	if(mMat && GPU_material_from_blender(mBlenderScene, mMat))
-		GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
+	if(mGPUMat)
+		GPU_material_unbind(mGPUMat);
 }
 
-bool BL_BlenderShader::Ok()
+void BL_BlenderShader::ReloadMaterial()
 {
-	return VerifyShader();
-}
-
-bool BL_BlenderShader::VerifyShader()
-{
-	if(mMat)
-		return (GPU_material_from_blender(mBlenderScene, mMat) != 0);
-	else
-		return false;
+	mGPUMat = (mMat) ? GPU_material_from_blender(mBlenderScene, mMat) : NULL;
 }
 
 void BL_BlenderShader::SetProg(bool enable, double time)
 {
 	if(VerifyShader()) {
 		if(enable)
-			GPU_material_bind(GPU_material_from_blender(mBlenderScene, mMat), mLightLayer, mBlenderScene->lay, time);
+			GPU_material_bind(mGPUMat, mLightLayer, mBlenderScene->lay, time);
 		else
-			GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
+			GPU_material_unbind(mGPUMat);
 	}
 }
 
@@ -66,7 +58,7 @@ int BL_BlenderShader::GetAttribNum()
 	if(!VerifyShader())
 		return enabled;
 
-	GPU_material_vertex_attributes(GPU_material_from_blender(mBlenderScene, mMat), &attribs);
+	GPU_material_vertex_attributes(mGPUMat, &attribs);
 
     for(i = 0; i < attribs.totlayer; i++)
 		if(attribs.layer[i].glindex+1 > enabled)
@@ -89,7 +81,7 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 	if(!VerifyShader())
 		return;
 	
-	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
+	gpumat = mGPUMat;
 
 	if(ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
 		GPU_material_vertex_attributes(gpumat, &attribs);
@@ -131,7 +123,7 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 	float obmat[4][4], viewmat[4][4], viewinvmat[4][4], obcol[4];
 	GPUMaterial *gpumat;
 
-	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
+	gpumat = mGPUMat;
 
 	if(!gpumat || !GPU_material_bound(gpumat))
 		return;

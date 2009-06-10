@@ -182,7 +182,7 @@ WITH_BF_DOCS=False
 BF_DEBUG=False
 BF_BSC=False
 CFLAGS = []
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT', '/openmp']
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
 CXXFLAGS = ['/EHsc']
 
 if BF_DEBUG:
@@ -190,7 +190,7 @@ if BF_DEBUG:
 else:
 	BF_NUMJOBS=6
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/LARGEADDRESSAWARE']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"']
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'
 BF_INSTALLDIR='..\\install\\blender25-win64-vc'

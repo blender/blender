@@ -338,6 +338,10 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filename", filename);
 
+	/* XXX if(sfile->flag & FILE_STRINGCODE) {
+		BLI_makestringcode(G.sce, str);
+	}*/
+
 // XXX	sound= sound_new_sound(filename);
 	sound= NULL;
 

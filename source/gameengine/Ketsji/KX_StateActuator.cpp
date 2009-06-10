@@ -55,6 +55,9 @@ KX_StateActuator::~KX_StateActuator(
 	// intentionally empty
 }
 
+// used to put state actuator to be executed before any other actuators
+SG_QList KX_StateActuator::m_stateActuatorHead;
+
 CValue*
 KX_StateActuator::GetReplica(
 	void
@@ -62,8 +65,6 @@ KX_StateActuator::GetReplica(
 {
 	KX_StateActuator* replica = new KX_StateActuator(*this);
 	replica->ProcessReplica();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -72,7 +73,10 @@ KX_StateActuator::Update()
 {
 	bool bNegativeEvent = IsNegativeEvent();
 	unsigned int objMask;
-	
+
+	// execution of state actuator means that we are in the execution phase, reset this pointer
+	// because all the active actuator of this object will be removed for sure.
+	m_gameobj->m_firstState = NULL;
 	RemoveAllEvents();
 	if (bNegativeEvent) return false;
 
@@ -101,6 +105,31 @@ KX_StateActuator::Update()
 	return false;
 }
 
+// this function is only used to deactivate actuators outside the logic loop
+// e.g. when an object is deleted.
+void KX_StateActuator::Deactivate()
+{
+	if (QDelink())
+	{
+		// the actuator was in the active list
+		if (m_stateActuatorHead.QEmpty())
+			// no more state object active
+			m_stateActuatorHead.Delink();
+	}
+}
+
+void KX_StateActuator::Activate(SG_DList& head)
+{
+	// sort the state actuators per object on the global list
+	if (QEmpty())
+	{
+		InsertSelfActiveQList(m_stateActuatorHead, &m_gameobj->m_firstState);
+		// add front to make sure it runs before other actuators
+		head.AddFront(&m_stateActuatorHead);
+	}
+}
+
+
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -109,8 +138,13 @@ KX_StateActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_StateActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_StateActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -156,7 +190,11 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 PyObject* KX_StateActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
-};
+}
+
+PyObject* KX_StateActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
 
 int KX_StateActuator::py_setattro(PyObject *attr, PyObject* value)
 {

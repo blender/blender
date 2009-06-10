@@ -2547,7 +2547,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	//	BKE_report in render!
 	//	RE_error_cb(re, error_cb);
 
-	WM_jobs_start(steve);
+	WM_jobs_start(CTX_wm_manager(C), steve);
 	
 	G.afbreek= 0;
 	

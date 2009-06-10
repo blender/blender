@@ -85,7 +85,7 @@ CValue* SCA_KeyboardSensor::GetReplica()
 {
 	SCA_KeyboardSensor* replica = new SCA_KeyboardSensor(*this);
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 	return replica;
 }
@@ -118,7 +118,7 @@ bool SCA_KeyboardSensor::TriggerOnAllKeys()
 
 
 
-bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
+bool SCA_KeyboardSensor::Evaluate()
 {
 	bool result    = false;
 	bool reset     = m_reset && m_level;
@@ -195,6 +195,9 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					}
 				}
 			}
+			if (m_tap)
+				// special case for tap mode: only generate event for new activation
+				result = false;
 		}
 
 
@@ -612,8 +615,13 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_KeyboardSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_KeyboardSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -664,10 +672,13 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject*
-SCA_KeyboardSensor::py_getattro(PyObject *attr)
+PyObject* SCA_KeyboardSensor::py_getattro(PyObject *attr)
 {
   py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_KeyboardSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_KeyboardSensor::py_setattro(PyObject *attr, PyObject *value)
@@ -691,7 +702,7 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 		{
 			PyObject* keypair = PyList_New(2);
 			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
-			PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
+			PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
 			PyList_Append(resultlist,keypair);
 		}
 	}	

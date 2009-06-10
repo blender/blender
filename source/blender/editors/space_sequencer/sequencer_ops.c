@@ -77,6 +77,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
+	WM_operatortype_append(SEQUENCER_OT_snap);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
@@ -99,6 +100,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_sound_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_image_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_effect_strip_add);
+	WM_operatortype_append(SEQUENCER_OT_properties);
 }
 
 
@@ -106,6 +108,8 @@ void sequencer_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
 	wmKeymapItem *kmi;
+	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);

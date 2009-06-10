@@ -734,6 +734,7 @@ int join_armature(Scene *scene, View3D *v3d)
 						VecSubf(delta, curbone->tail, curbone->head);
 						vec_roll_to_mat3(delta, curbone->roll, temp);
 						
+						Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
 						Mat4MulMat34(premat, temp, mat);
 						
 						Mat4MulVecfl(mat, curbone->head);
