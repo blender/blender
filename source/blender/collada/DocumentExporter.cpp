@@ -1,6 +1,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
@@ -48,6 +49,7 @@ public:
 				MFace *mfaces = dm->getFaceArray(dm);
 				int totfaces = dm->getNumFaces(dm);
 				int totverts = dm->getNumVerts(dm);
+				bool checkTexcoords = false;
 
 				std::string geom_name(ob->id.name);
 
@@ -57,6 +59,7 @@ public:
 				//<source>
 				createVertsSource(sce, mSW, geom_name, dm);
 				createNormalsSource(sce, mSW, geom_name, dm);
+				checkTexcoords = createTexcoordsSource(sce, mSW, geom_name, dm, (Mesh*)ob->data);
 
 				//<vertices>	
 				COLLADASW::Vertices verts(mSW);
@@ -80,24 +83,63 @@ public:
 										getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
 				COLLADASW::Input input3(COLLADASW::NORMAL,
 										getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
+
 				til.push_back(input2);
 				til.push_back(input3);
-							
+				
+				//if mesh has uv coords writes input for TEXCOORD
+				if (checkTexcoords == true)
+					{
+						COLLADASW::Input input4(COLLADASW::TEXCOORD,
+												getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1);
+						til.push_back(input4);
+					}
+				
 				tris.prepareToAppendValues();
-
+				
 				int i;
+				int texindex = 0;
 				for (i = 0; i < totfaces; i++) {
 					MFace *f = &mfaces[i];
-
-					// if triangle
-					if (f->v4 == 0) {
-						tris.appendValues(f->v1, f->v2, f->v3);
+					
+					if (checkTexcoords == true)	{
+						// if triangle
+						if (f->v4 == 0) {
+							tris.appendValues(f->v1);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v2);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v3);
+							tris.appendValues(texindex++);
+						}
+						// quad
+						else {
+							tris.appendValues(f->v1);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v2);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v3);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v3);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v4);
+							tris.appendValues(texindex++);
+							tris.appendValues(f->v1);
+							tris.appendValues(texindex++);
+						}
 					}
-					// quad
 					else {
-						tris.appendValues(f->v1, f->v2, f->v3);
-						tris.appendValues(f->v3, f->v4, f->v1);
-					}
+						// if triangle
+						if (f->v4 == 0) {
+							tris.appendValues(f->v1, f->v2, f->v3);	
+						}
+						// quad
+						else {
+							tris.appendValues(f->v1, f->v2, f->v3);
+							tris.appendValues(f->v3, f->v4, f->v1);
+						}
+						
+					} 
 				}
 
 				tris.closeElement();
@@ -113,36 +155,6 @@ public:
 			base= base->next;
 		}
 
-		/*	//openMesh(geoId, geoName, meshId)
-		void openMesh("", "", "");
-		
-		//<source>
-		void sourceCreator(&sce);
-
-		//<vertices>	
-		Vertices verts(&sw);
-		verts.setId();
-		Input input(POSITION, source);
-		InputList inputL(&sw);
-		inputL.push_back(input);
-		verts.add();
-
-		//triangles
-		PrimitivesBase pBase(&sw, CSWC::CSW_ELEMENT_TRIANGLES);
-		Primitive<CSWC::CSW_ELEMENT_TRIANGLES> prim(&sw);
-		prim.setCount();
-		prim.setMaterial();
-		InputList &til = pBase.getInputList();
-		til.push_back(input);
-
-		prim.prepareToAppendValues();
-		prim.appendValues();
-		prim.closeElement();
-		prim.finish();
-		
-		closeMesh();
-		closeGeometry();
-		*/
 		closeLibrary();
 	}
 
@@ -173,7 +185,7 @@ public:
 		int i = 0;
 		for (i = 0; i < totverts; i++) {
 			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
-			//	source.appendValues((float)(v->no[i] / 32767.0));
+			
 		}
 		/*closes <float_array>, adds
 		  <technique_common>
@@ -185,26 +197,84 @@ public:
 
 	/*----------------------------------------------------------*/
 	
-	/*	//creates <source> for texcoords
-	void createTexcoordsSource(Scene *sce, COLLADASW::StreamWriter *sw,
-							   std::string geom_name, DerivedMesh *dm)
+	//creates <source> for texcoords
+	// returns true if mesh has uv data
+	bool createTexcoordsSource(Scene *sce, COLLADASW::StreamWriter *sw,
+							   std::string geom_name, DerivedMesh *dm, Mesh *me)
 	{
-		COLLADASW::FloatSourceF source(sw);
-		source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
-		source.setArrayId(geom_name + COLLADA::TEXCOORD + ARRAY_ID_SUFFIX);
-		//TODO: replace totverts to totuvs
-		source.setAccessorCount(totverts);
-		source.setAccessorStride(2);
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("X");
-		param.push_back("Y");
-	
-		source.prepareToAppendValues();
-		//appends data to <float_array>	
 		
+		int totfaces = dm->getNumFaces(dm);
+		MTFace *tface = me->mtface;
+		MFace *mfaces = dm->getFaceArray(dm);
+		if(tface != NULL)
+			{
+				
+				COLLADASW::FloatSourceF source(sw);
+				source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
+				source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
+								  ARRAY_ID_SUFFIX);
+				source.setAccessorCount(countTris(dm) * 3);
+				source.setAccessorStride(2);
+				COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+				param.push_back("X");
+				param.push_back("Y");
+				
+				source.prepareToAppendValues();
+				
+				int i;
+				for (i = 0; i < totfaces; i++) {
+					MFace *f = &mfaces[i];
+					
+					// if triangle
+					if (f->v4 == 0) {
+						
+						// get uv1's X coordinate
+						source.appendValues(tface[i].uv[0][0]);
+						// get uv1's Y coordinate
+						source.appendValues(tface[i].uv[0][1]);
+						// get uv2's X coordinate
+						source.appendValues(tface[i].uv[1][0]);
+						// etc...
+						source.appendValues(tface[i].uv[1][1]);
+						//uv3
+						source.appendValues(tface[i].uv[2][0]);
+						source.appendValues(tface[i].uv[2][1]);
+						
+						
+					}
+					// quad
+					else {
+						
+						// get uv1's X coordinate
+						source.appendValues(tface[i].uv[0][0]);
+						// get uv1's Y coordinate
+						source.appendValues(tface[i].uv[0][1]);
+						//uv2
+						source.appendValues(tface[i].uv[1][0]);
+						source.appendValues(tface[i].uv[1][1]);
+						//uv3
+						source.appendValues(tface[i].uv[2][0]);
+						source.appendValues(tface[i].uv[2][1]);
+						//uv3
+						source.appendValues(tface[i].uv[2][0]);
+						source.appendValues(tface[i].uv[2][1]);
+						//uv4
+						source.appendValues(tface[i].uv[3][0]);
+						source.appendValues(tface[i].uv[3][1]);
+						//uv1
+						source.appendValues(tface[i].uv[0][0]);
+						source.appendValues(tface[i].uv[0][1]);
+						
+					}
+				}
+				
+				source.finish();
+				return true;
+			}
+		return false;
 	}
 
-	*/
+
 
 	//creates <source> for normals
 	void createNormalsSource(Scene *sce, COLLADASW::StreamWriter *sw,
@@ -239,7 +309,31 @@ public:
 		
 
 	}
-
+	
+	int countTris(DerivedMesh *dm)
+	{
+		
+		MFace *mfaces = dm->getFaceArray(dm);
+		int totfaces = dm->getNumFaces(dm);
+		
+		int i;
+		int tottri = 0;
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+			
+			// if triangle
+			if (f->v4 == 0) {
+				tottri++;
+			}
+			// quad
+			else {
+				tottri += 2;
+			}
+		}
+		return tottri;
+		
+	}
+	
 	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type) {
 		return geom_name +
 			getSuffixBySemantic(type);
@@ -305,42 +399,6 @@ public:
 	}
 };
 
-/*
-
-  <library_visual_scenes>
-   <visual_scene>
-    <node>
-	 <translate>
-	 <rotate>
-	 <instance_geometry>
-	</node>
-    ...
-   </visual_scene>
-  </library_visual_scenes>
-
-  <library_geometries>
-   <geometry id="">
-    <mesh>
-	 <source id="source_id">
-	  <float_array id="" count="">
-	   0.0 0.0 0.0
-	  </float_array>
-	 </source>
-
-	 <vertices>
-	  <input source="#source_id" ...>
-	 </vertices>
-
-	 <triangles>
-	  <input>
-	  <p>
-	 </triangles>
-
-	</mesh>
-   </geometry>
-  </library_geometries>
-
- */
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
@@ -362,6 +420,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	//<library_geometries>
 	GeometryExporter ge(&sw);
 	ge.exportGeom(sce);
+
 
 	//<scene>
 	std::string scene_name(sce->id.name);
