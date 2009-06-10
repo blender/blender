@@ -285,6 +285,15 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
 		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(strip, "start_offset")
+		col.itemR(strip, "start_still")
+		
+		col = split.column()
+		col.itemR(strip, "end_offset")
+		col.itemR(strip, "end_still")
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"

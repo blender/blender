@@ -48,6 +48,56 @@ static void rna_SequenceEditor_name_get(PointerRNA *ptr, char *str)
 	strcpy(str, "Sequence Editor");
 }
 
+static void rna_SequenceEditor_start_frame_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq->start= value;
+	calc_sequence_disp(seq);
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
+static void rna_SequenceEditor_length_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq_tx_set_final_right(seq, seq->start+value);
+	calc_sequence_disp(seq);
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
+static int rna_SequenceEditor_length_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	return seq_tx_get_final_right(seq, 1)-seq_tx_get_final_left(seq, 1);
+}
+
+static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq->machine= value;
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -329,13 +379,14 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "len");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // computed from other values
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
-	
+	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_length_get", "rna_SequenceEditor_length_set",NULL);
+
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "start");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Frame", "");
+	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	
 	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
@@ -361,8 +412,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
+	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_channel_set",NULL); // overlap test
 
 	/* blending */
 
