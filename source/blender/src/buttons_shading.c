@@ -909,7 +909,7 @@ static void texture_panel_pointdensity(Tex *tex)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 
 	uiDefButF(block, NUM, B_REDR, "Radius: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 10000.0, 10, 2, "Radius to look for nearby particles within");
 	
 	yco -= YSPACE;
 	
@@ -1021,11 +1021,11 @@ static void texture_panel_pointdensity_modify(Tex *tex)
 	if (pd->flag & TEX_PD_TURBULENCE) {
 		
 		uiDefButF(block, NUM, B_REDR, "Size: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 10000.0, 10, 2, "Turbulence size");
 		uiDefButS(block, NUM, B_REDR, "Depth: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 1024.0, 10, 2, "Turbulence depth");
 		uiDefButF(block, NUM, B_REDR, "Strength: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 10000.0, 10, 2, "");
 		
 		uiBlockEndAlign(block);
 		
