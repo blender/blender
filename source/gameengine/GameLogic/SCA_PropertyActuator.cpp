@@ -186,11 +186,6 @@ GetReplica() {
 	SCA_PropertyActuator* replica = new SCA_PropertyActuator(*this);
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 
 };
@@ -233,8 +228,13 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertyActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_PropertyActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -270,13 +270,18 @@ PyMethodDef SCA_PropertyActuator::Methods[] = {
 };
 
 PyAttributeDef SCA_PropertyActuator::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_STRING_RW("value",0,100,false,SCA_PropertyActuator,m_exprtxt),
+	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
 	{ NULL }	//Sentinel
 };
 
 PyObject* SCA_PropertyActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* SCA_PropertyActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int SCA_PropertyActuator::py_setattro(PyObject *attr, PyObject *value) {
@@ -291,7 +296,7 @@ const char SCA_PropertyActuator::SetProperty_doc[] =
 "\tof this name, the call is ignored.\n";
 PyObject* SCA_PropertyActuator::PySetProperty(PyObject* args, PyObject* kwds)
 {
-	ShowDeprecationWarning("setProperty()", "the 'property' property");
+	ShowDeprecationWarning("setProperty()", "the 'propName' property");
 	/* Check whether the name exists first ! */
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
@@ -316,7 +321,7 @@ const char SCA_PropertyActuator::GetProperty_doc[] =
 "\tReturn the property on which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* args, PyObject* kwds)
 {
-	ShowDeprecationWarning("getProperty()", "the 'property' property");
+	ShowDeprecationWarning("getProperty()", "the 'propName' property");
 	return PyString_FromString(m_propname);
 }
 

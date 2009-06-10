@@ -75,7 +75,7 @@ bool KX_NetworkMessageActuator::Update()
 			m_toPropName,
 			GetParent()->GetName(),
 			m_subject,
-			GetParent()->GetPropertyText(m_body,""));
+			GetParent()->GetPropertyText(m_body));
 	} else
 	{
 		m_networkscene->SendMessage(
@@ -93,9 +93,6 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 	    new KX_NetworkMessageActuator(*this);
 	replica->ProcessReplica();
 
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 }
 
@@ -105,8 +102,13 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 
 /* Integration hooks -------------------------------------------------- */
 PyTypeObject KX_NetworkMessageActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_NetworkMessageActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -155,6 +157,10 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 
 PyObject* KX_NetworkMessageActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_NetworkMessageActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_NetworkMessageActuator::py_setattro(PyObject *attr, PyObject *value) {

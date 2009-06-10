@@ -106,6 +106,7 @@ typedef struct ParticleSettings {
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
 	short draw, draw_as, draw_size, childtype;
+	short ren_as, rt2[3];
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
 	short hair_step, keys_step;
@@ -302,12 +303,12 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 /* part->draw */
 #define PART_DRAW_VEL		1
-#define PART_DRAW_ANG		2
+//#define PART_DRAW_PATH_LEN	2
 #define PART_DRAW_SIZE		4
 #define PART_DRAW_EMITTER	8	/* render emitter also */
-//#define PART_DRAW_KEYS		16 /* not used anywhere */
-#define PART_DRAW_ADAPT		32
-#define PART_DRAW_COS		64
+//#define PART_DRAW_HEALTH	16
+//#define PART_DRAW_TIMED_PATH  32
+//#define PART_DRAW_CACHED_PATH 64
 #define PART_DRAW_BB_LOCK	128
 #define PART_DRAW_PARENT	256
 #define PART_DRAW_NUM		512
@@ -341,9 +342,11 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_BB_OFF_LINEAR	1
 #define PART_BB_OFF_RANDOM	2
 
-/* part->draw as */
+/* part->draw_as */
+/* part->ren_as*/
 #define PART_DRAW_NOT		0
 #define PART_DRAW_DOT		1
+#define PART_DRAW_HALO		1
 #define PART_DRAW_CIRC		2
 #define PART_DRAW_CROSS		3
 #define PART_DRAW_AXIS		4
@@ -352,6 +355,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_DRAW_OB		7
 #define PART_DRAW_GR		8
 #define PART_DRAW_BB		9
+#define PART_DRAW_REND		10
 
 /* part->integrator */
 #define PART_INT_EULER		0
@@ -382,11 +386,10 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_CHILD_FACES		2
 
 /* psys->recalc */
-#define PSYS_INIT			1
-#define PSYS_DISTR			2
-#define PSYS_ALLOC			4
-#define PSYS_TYPE			8
-#define PSYS_RECALC_HAIR	16
+#define PSYS_RECALC_REDO	1	/* only do pathcache etc */
+#define PSYS_RECALC_RESET	2	/* reset everything including pointcache */
+#define PSYS_RECALC_TYPE	4	/* handle system type change */
+#define PSYS_RECALC_CHILD	16	/* only child settings changed */
 
 /* psys->flag */
 #define PSYS_CURRENT		1

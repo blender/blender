@@ -91,7 +91,7 @@ struct RAS_MeshObject::fronttoback
 STR_String RAS_MeshObject::s_emptyname = "";
 
 RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
-	: m_lightlayer(lightlayer),
+	: //m_lightlayer(lightlayer),
 	m_bModified(true),
 	m_bMeshModified(true),
 	m_mesh(mesh),
@@ -112,10 +112,10 @@ bool RAS_MeshObject::MeshModified()
 	return m_bMeshModified;
 }
 
-unsigned int RAS_MeshObject::GetLightLayer()
-{
-	return m_lightlayer;
-}
+//unsigned int RAS_MeshObject::GetLightLayer()
+//{
+//	return m_lightlayer;
+//}
 
 
 
@@ -179,14 +179,14 @@ list<RAS_MeshMaterial>::iterator RAS_MeshObject::GetLastMaterial()
 
 
 
-void RAS_MeshObject::SetName(STR_String name)
+void RAS_MeshObject::SetName(const char *name)
 {
 	m_name = name;
 }
 
 
 
-const STR_String& RAS_MeshObject::GetName()
+STR_String& RAS_MeshObject::GetName()
 {
 	return m_name;
 }
@@ -215,6 +215,19 @@ RAS_MeshMaterial *RAS_MeshObject::GetMeshMaterial(RAS_IPolyMaterial *mat)
 	return NULL;
 }
 
+int RAS_MeshObject::GetMaterialId(RAS_IPolyMaterial *mat)
+{
+	list<RAS_MeshMaterial>::iterator mit;
+	int imat;
+
+	/* find a mesh material */
+	for(imat=0, mit = m_materials.begin(); mit != m_materials.end(); mit++, imat++)
+		if(mit->m_bucket->GetPolyMaterial() == mat)
+			return imat;
+
+	return -1;
+}
+
 RAS_Polygon* RAS_MeshObject::AddPolygon(RAS_MaterialBucket *bucket, int numverts)
 {
 	RAS_MeshMaterial *mmat;
@@ -229,6 +242,7 @@ RAS_Polygon* RAS_MeshObject::AddPolygon(RAS_MaterialBucket *bucket, int numverts
 		RAS_MeshMaterial meshmat;
 		meshmat.m_bucket = bucket;
 		meshmat.m_baseslot = meshmat.m_bucket->AddMesh(numverts);
+		meshmat.m_baseslot->m_mesh = this;
 		m_materials.push_back(meshmat);
 		mmat = &m_materials.back();
 	}
@@ -291,7 +305,7 @@ void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 	slot = mmat->m_baseslot;
 	darray = slot->CurrentDisplayArray();
 
-	if(!flat) {
+	{ /* Shared Vertex! */
 		/* find vertices shared between faces, with the restriction
 		 * that they exist in the same display array, and have the
 		 * same uv coordinate etc */
@@ -319,7 +333,7 @@ void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 		slot->AddPolygonVertex(offset);
 	poly->SetVertexOffset(i, offset);
 
-	if(!flat) {
+	{ /* Shared Vertex! */
 		SharedVertex shared;
 		shared.m_darray = darray;
 		shared.m_offset = offset;
@@ -368,16 +382,41 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 	return NULL;
 }
 
-void RAS_MeshObject::AddMeshUser(void *clientobj)
+void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer)
 {
 	list<RAS_MeshMaterial>::iterator it;
+	list<RAS_MeshMaterial>::iterator mit;
 
 	for(it = m_materials.begin();it!=m_materials.end();++it) {
 		/* always copy from the base slot, which is never removed 
 		 * since new objects can be created with the same mesh data */
+		if (deformer && !deformer->UseVertexArray())
+		{
+			// HACK! 
+			// this deformer doesn't use vertex array => derive mesh
+			// we must keep only the mesh slots that have unique material id
+			// this is to match the derived mesh drawing function
+			// Need a better solution in the future: scan the derive mesh and create vertex array
+			RAS_IPolyMaterial* curmat = it->m_bucket->GetPolyMaterial();
+			if (curmat->GetFlag() & RAS_BLENDERGLSL) 
+			{
+				for(mit = m_materials.begin(); mit != it; ++mit)
+				{
+					RAS_IPolyMaterial* mat = mit->m_bucket->GetPolyMaterial();
+					if ((mat->GetFlag() & RAS_BLENDERGLSL) && 
+						mat->GetMaterialIndex() == curmat->GetMaterialIndex())
+						// no need to convert current mesh slot
+						break;
+				}
+				if (mit != it)
+					continue;
+			}
+		}
 		RAS_MeshSlot *ms = it->m_bucket->CopyMesh(it->m_baseslot);
 		ms->m_clientObj = clientobj;
+		ms->SetDeformer(deformer);
 		it->m_slots.insert(clientobj, ms);
+		head->QAddBack(ms);
 	}
 }
 
@@ -389,7 +428,7 @@ void RAS_MeshObject::UpdateBuckets(void* clientobj,
 							   bool culled)
 {
 	list<RAS_MeshMaterial>::iterator it;
-
+	
 	for(it = m_materials.begin();it!=m_materials.end();++it) {
 		RAS_MeshSlot **msp = it->m_slots[clientobj];
 
@@ -404,6 +443,8 @@ void RAS_MeshObject::UpdateBuckets(void* clientobj,
 		ms->m_RGBAcolor = rgbavec;
 		ms->m_bVisible = visible;
 		ms->m_bCulled = culled || !visible;
+		if (!ms->m_bCulled)
+			ms->m_bucket->ActivateMesh(ms);
 
 		/* split if necessary */
 #ifdef USE_SPLIT

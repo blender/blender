@@ -51,22 +51,23 @@ int *MultiresDM_get_face_offsets(struct DerivedMesh *);
 int MultiresDM_get_totlvl(struct DerivedMesh *);
 int MultiresDM_get_lvl(struct DerivedMesh *);
 void MultiresDM_set_update(struct DerivedMesh *, void (*)(struct DerivedMesh*));
-int *MultiresDM_get_flags(struct DerivedMesh *);
 
-#define MULTIRES_DM_UPDATE_BLOCK 1
-#define MULTIRES_DM_UPDATE_ALWAYS 2
+/* The displacements will only be updated when
+   the MultiresDM has been marked as modified */
+void MultiresDM_mark_as_modified(struct DerivedMesh *);
+void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, struct DerivedMesh*,
 						    struct Mesh *, int, int);
 
+struct MultiresModifierData *find_multires_modifier(struct Object *ob);
 int multiresModifier_switch_level(struct Object *, const int);
 void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int distance,
 				int updateblock, int simple);
-void multiresModifier_setLevel(void *mmd_v, void *ob_v);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
 
 /* Related to the old multires */

@@ -572,6 +572,8 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		++origIndex;
 		i++;
 
+
+#if 0 //BMESH_TODO
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
@@ -616,7 +618,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 				}
 			}
 		}
-
+#endif
 		*((int*)ccgSubSurf_getFaceUserData(ss, f)) = faceBase;
 		faceBase += 1 + numVerts * ((gridSize-2) + (gridSize-2) * (gridSize-2));
 	}
@@ -745,7 +747,6 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	mf = CDDM_get_tessfaces(result);
 	origIndex = result->getTessFaceData(result, 0, CD_ORIGINDEX);
 
-#if 0 //BMESH_TODO
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap2[index];
 		int numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -781,7 +782,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 					                      edgeSize, gridSize);
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
-
+#if 0 //BMESH_TODO
 					if(dm) {
 						int prevS = (S - 1 + numVerts) % numVerts;
 						int nextS = (S + 1) % numVerts;
@@ -799,6 +800,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 						                    &w, 1, i);
 						weight++;
 					}
+#endif
 
 					*origIndex = mapIndex;
 					++mf;
@@ -808,7 +810,6 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			}
 		}
 	}
-#endif
 
 	MEM_freeN(faceMap2);
 	MEM_freeN(edgeMap2);
@@ -2568,6 +2569,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		++vertOrigIndex;
 		++vertNum;
 
+
+#if 0 //BMESH_TODO
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
@@ -2605,7 +2608,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 				}
 			}
 		}
-
+#endif
 		for(i = 0; i < numFinalEdges; ++i)
 			*(int *)DM_get_edge_data(&ccgdm->dm, edgeNum + i,
 			                         CD_ORIGINDEX) = ORIGINDEX_NONE;

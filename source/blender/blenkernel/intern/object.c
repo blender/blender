@@ -978,6 +978,8 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
+	/* ob->pad3 == Contact Processing Threshold */
+	ob->m_contactProcessingThreshold = 1.;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
@@ -1132,6 +1134,9 @@ static void copy_object_pose(Object *obn, Object *ob)
 			 * is changed to object->proxy_from when evaluating the driver. */
 			if(con->ipo && !con->ipo->id.lib) {
 				IpoCurve *icu;
+				
+				con->ipo= copy_ipo(con->ipo);
+				
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
 					if(icu->driver && icu->driver->ob==ob)
 						icu->driver->ob= obn;
@@ -1319,6 +1324,18 @@ void make_local_object(Object *ob)
 	}
 	
 	expand_local_object(ob);
+}
+
+/* returns true if the Object data is a from an external blend file (libdata) */
+int object_data_is_libdata(Object *ob)
+{
+	if(!ob) return 0;
+	if(ob->proxy) return 0;
+	if(ob->id.lib) return 1;
+	if(!ob->data) return 0;
+	if(((ID *)ob->data)->lib) return 1;
+
+	return 0;
 }
 
 /* *************** PROXY **************** */

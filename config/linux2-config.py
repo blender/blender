@@ -1,9 +1,17 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
+def py_version_string():
+	'''
+	returns py version - "2.5", "2.6" etc
+	'''
+	import platform
+	ver = platform.python_version_tuple()
+	return '%d.%d' % (int(ver[0]), int(ver[1])) # py2.5 uses strings, 2.6 ints
+
 BF_PYTHON = '/usr'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = py_version_string()
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -17,11 +25,6 @@ BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
-
-# some distros have a separate libalut
-# if you get linker complaints, you need to uncomment the line below
-# BF_OPENAL_LIB = 'openal alut'  
-# BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
 
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
@@ -71,7 +74,8 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_GAMEENGINE=False
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = True
 
 WITH_BF_ODE = False
 BF_ODE = LIBDIR + '/ode'
@@ -86,8 +90,6 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
-
-WITH_BF_YAFRAY = True
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr

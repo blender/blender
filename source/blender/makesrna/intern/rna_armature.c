@@ -110,6 +110,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Bone", NULL);
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
+	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -266,6 +267,7 @@ void rna_def_armature(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");
+	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
 	
 	RNA_def_struct_sdna(srna, "bArmature");
 	

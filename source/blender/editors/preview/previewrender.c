@@ -44,6 +44,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
@@ -88,6 +89,7 @@
 #include "WM_types.h"
 
 #include "ED_anim_api.h"
+#include "ED_previewrender.h"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
@@ -113,6 +115,7 @@ typedef struct ShaderPreview {
 	
 	int sizex, sizey;
 	int pr_method;
+	
 } ShaderPreview;
 
 
@@ -247,6 +250,12 @@ void BIF_preview_changed(short id_code)
 			for(ob=G.main->object.first; ob; ob=ob->id.next) {
 				if(ob->gpulamp.first) {
 					GPU_lamp_free(ob);
+				}
+			}
+
+			for(ma=G.main->mat.first; ma; ma=ma->id.next) {
+				if(ma->gpumaterial.first) {
+					GPU_material_free(ma);
 				}
 			}
 		} else if(OBACT) {
@@ -586,7 +595,7 @@ void BIF_previewrender_buts(Scene *scene, SpaceButs *sbuts)
 	sbuts->lockpoin= id;
 	
 	if(sbuts->mainb==CONTEXT_SHADING) {
-		int tab= sbuts->tab[CONTEXT_SHADING];
+		int tab= TAB_SHADING_MAT; // XXX sbuts->tab[CONTEXT_SHADING];
 		
 		if(tab==TAB_SHADING_MAT) 
 			idshow = sbuts->lockpoin;
@@ -620,45 +629,44 @@ void BIF_previewrender_buts(Scene *scene, SpaceButs *sbuts)
 	}
 }
 
-
-/* is panel callback, supposed to be called with correct panel offset matrix */
-void BIF_previewdraw(ScrArea *sa, uiBlock *block)
+/* new UI convention: draw is in pixel space already. */
+/* uses ROUNDBOX button in block to get the rect */
+void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 {
-	ARegion *ar= NULL; // XXX
+	ScrArea *sa= CTX_wm_area(C);
 	SpaceButs *sbuts= sa->spacedata.first;
-	short id_code= 0;
+	RenderResult rres;
+	int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
+	int ok= 0;
+	char name[32];
 	
-	if(sbuts->lockpoin) {
-		ID *id= sbuts->lockpoin;
-		id_code= GS(id->name);
-	}
-	
-	if (!sbuts->ri) {
-		sbuts->ri= MEM_callocN(sizeof(RenderInfo), "butsrenderinfo");
-		sbuts->ri->tottile = 10000;
-	}
-	
-	if (sbuts->ri->rect==NULL) BIF_preview_changed(id_code);
-	else {
-		RenderInfo *ri= sbuts->ri;
-		int oldx= ri->pr_rectx, oldy= ri->pr_recty;
+	sprintf(name, "Preview %p", sa);
+	BLI_lock_malloc_thread();
+	RE_GetResultImage(RE_GetRender(name), &rres);
+
+	if(rres.rectf) {
 		
-		/* we now do scalable previews! */
-		set_previewrect(sa, ri);
-		if( ABS(oldx-ri->pr_rectx)<2 && ABS(oldy-ri->pr_recty)<2 ) {
-			/* restore old values for drawing! */
-			ri->pr_rectx= oldx;
-			ri->pr_recty= oldy;
-			glaDrawPixelsSafe(ri->disprect.xmin, ri->disprect.ymin, ri->pr_rectx, ri->pr_recty, ri->pr_rectx, GL_RGBA, GL_UNSIGNED_BYTE, ri->rect);
+		if( ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2 ) {
+			/* correct size, then black outline matches */
+			rect->xmax= rect->xmin + rres.rectx;
+			rect->ymax= rect->ymin + rres.recty;
+		
+			glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
+			ok= 1;
 		}
-		else {
-			MEM_freeN(ri->rect);
-			ri->rect= NULL;
-			sbuts->ri->curtile= 0;
-		}
-		end_previewrect(ar);
 	}
-	if(sbuts->ri->curtile==0) BIF_preview_changed(id_code);
+	BLI_unlock_malloc_thread();
+
+	/* check for spacetype... */
+	if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
+		sbuts->preview= 0;
+		ok= 0;
+	}
+	
+	if(ok==0) {
+		printf("added shader job\n");
+		ED_preview_shader_job(C, sa, idp, newx, newy);
+	}
 	
 }
 
@@ -975,7 +983,7 @@ void BIF_view3d_previewdraw(struct ScrArea *sa, struct uiBlock *block)
 
 /* **************************** New preview system ****************** */
 
-/* called by renderer, sets job update value */
+/* inside thread, called by renderer, sets job update value */
 static void shader_preview_draw(void *spv, RenderResult *rr, volatile struct rcti *rect)
 {
 	ShaderPreview *sp= spv;
@@ -991,12 +999,20 @@ static int shader_preview_break(void *spv)
 	return *(sp->stop);
 }
 
+/* outside thread, called before redraw notifiers, it moves finished preview over */
+static void shader_preview_updatejob(void *spv)
+{
+//	ShaderPreview *sp= spv;
+	
+}
 
+/* runs inside thread */
 static void shader_preview_startjob(void *customdata, short *stop, short *do_update)
 {
 	ShaderPreview *sp= customdata;
 	Render *re;
 	Scene *sce;
+	float oldlens;
 	char name [32];
 
 	sp->stop= stop;
@@ -1010,39 +1026,50 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	re= RE_GetRender(name);
 	
 	/* full refreshed render from first tile */
-	if(re==NULL) {
+	if(re==NULL)
 		re= RE_NewRender(name);
 		
-		/* sce->r gets copied in RE_InitState! */
-		if(sp->pr_method==PR_DO_RENDER) {
-			sce->r.scemode |= R_NODE_PREVIEW;
-			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
-		}
-		else {	/* PR_ICON_RENDER */
-			sce->r.scemode &= ~R_NODE_PREVIEW;
-			sce->r.scemode |= R_NO_IMAGE_LOAD;
-		}
-		
-		/* allocates render result */
-		RE_InitState(re, NULL, &sce->r, sp->sizex, sp->sizey, NULL);
+	/* sce->r gets copied in RE_InitState! */
+	if(sp->pr_method==PR_DO_RENDER) {
+		sce->r.scemode |= R_NODE_PREVIEW;
+		sce->r.scemode &= ~R_NO_IMAGE_LOAD;
+		sce->r.mode |= R_OSA;
 	}
-	
+	else {	/* PR_ICON_RENDER */
+		sce->r.scemode &= ~R_NODE_PREVIEW;
+		sce->r.scemode |= R_NO_IMAGE_LOAD;
+	}
+
+	/* allocates or re-uses render result */
+	RE_InitState(re, NULL, &sce->r, sp->sizex, sp->sizey, NULL);
+
 	/* callbacs are cleared on GetRender() */
 	if(sp->pr_method==PR_DO_RENDER) {
 		RE_display_draw_cb(re, sp, shader_preview_draw);
 		RE_test_break_cb(re, sp, shader_preview_break);
 	}
+	/* lens adjust */
+	oldlens= ((Camera *)sce->camera->data)->lens;
+	if(sp->sizex > sp->sizey)
+		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sp->sizex;
 
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
 	RE_Database_FromScene(re, sce, 1);
-	RE_TileProcessor(re, 0, 0);	// actual render engine
+	RE_TileProcessor(re, 0, 1);	// actual render engine
 	RE_Database_Free(re);
 
+	((Camera *)sce->camera->data)->lens= oldlens;
 	*do_update= 1;
 
 	/* handle results */
 	if(sp->pr_method==PR_ICON_RENDER) {
+		//if(ri->rect==NULL)
+		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
+		//RE_ResultGet32(re, ri->rect);
+	}
+	else {
+		/* validate owner */
 		//if(ri->rect==NULL)
 		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
@@ -1062,8 +1089,15 @@ static void shader_preview_free(void *customdata)
 
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, int sizey)
 {
-	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
-	ShaderPreview *sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
+	wmJob *steve;
+	ShaderPreview *sp;
+
+	/* XXX ugly global still, but we can't do preview while rendering */
+	if(G.rendering)
+		return;
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */
 	sp->scene= CTX_data_scene(C);
@@ -1076,9 +1110,9 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, in
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, NULL);
+	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, shader_preview_updatejob);
 	
-	WM_jobs_start(steve);
+	WM_jobs_start(CTX_wm_manager(C), steve);
 }
 
 

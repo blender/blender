@@ -58,7 +58,6 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 	  m_parameter2(para2),
 	  m_distribution(mode)
 {
-	// m_base is never deleted, probably a memory leak!
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
 	enforceConstraints();
@@ -68,7 +67,7 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 
 SCA_RandomActuator::~SCA_RandomActuator()
 {
-	/* intentionally empty */ 
+	m_base->Release();
 } 
 
 
@@ -78,9 +77,14 @@ CValue* SCA_RandomActuator::GetReplica()
 	SCA_RandomActuator* replica = new SCA_RandomActuator(*this);
 	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
-	CValue::AddDataToReplica(replica);
-
 	return replica;
+}
+
+void SCA_RandomActuator::ProcessReplica()
+{
+	SCA_IActuator::ProcessReplica();
+	// increment reference count so that we can release the generator at the end
+	m_base->AddRef();
 }
 
 
@@ -312,8 +316,13 @@ void SCA_RandomActuator::enforceConstraints() {
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_RandomActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_RandomActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -367,7 +376,7 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RO("para1",SCA_RandomActuator,m_parameter1),
 	KX_PYATTRIBUTE_FLOAT_RO("para2",SCA_RandomActuator,m_parameter2),
 	KX_PYATTRIBUTE_ENUM_RO("distribution",SCA_RandomActuator,m_distribution),
-	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_RW_FUNCTION("seed",SCA_RandomActuator,pyattr_get_seed,pyattr_set_seed),
 	{ NULL }	//Sentinel
 };	
@@ -384,15 +393,19 @@ int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_
 	if (PyInt_Check(value))	{
 		int ival = PyInt_AsLong(value);
 		act->m_base->SetSeed(ival);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	} else {
 		PyErr_SetString(PyExc_TypeError, "actuator.seed = int: Random Actuator, expected an integer");
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 }
 
 PyObject* SCA_RandomActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* SCA_RandomActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int SCA_RandomActuator::py_setattro(PyObject *attr, PyObject *value)
@@ -470,7 +483,7 @@ const char SCA_RandomActuator::SetProperty_doc[] =
 "\tSet the property to which the random value is assigned. If the \n"
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PySetProperty(PyObject* args) {
-	ShowDeprecationWarning("setProperty()", "the 'property' property");
+	ShowDeprecationWarning("setProperty()", "the 'propName' property");
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
 		return NULL;
@@ -494,7 +507,7 @@ const char SCA_RandomActuator::GetProperty_doc[] =
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PyGetProperty()
 {
-	ShowDeprecationWarning("getProperty()", "the 'property' property");
+	ShowDeprecationWarning("getProperty()", "the 'propName' property");
 	return PyString_FromString(m_propname);
 }
 

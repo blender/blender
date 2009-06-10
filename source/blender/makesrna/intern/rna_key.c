@@ -285,6 +285,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
 	RNA_def_struct_sdna(srna, "KeyBlock");
+	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
@@ -314,7 +315,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
 	RNA_def_property_ui_text(prop, "Relative Key", "Shape used as a relative key.");
-	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYBLOCK_MUTE);
@@ -344,6 +345,7 @@ static void rna_def_key(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Key", "ID");
 	RNA_def_struct_ui_text(srna, "Key", "Shape keys datablock containing different shapes of geometric datablocks.");
+	RNA_def_struct_ui_icon(srna, ICON_SHAPEKEY_DATA);
 
 	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

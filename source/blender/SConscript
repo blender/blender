@@ -26,9 +26,6 @@ SConscript(['avi/SConscript',
 if env['WITH_BF_PYTHON']:
     SConscript(['python/SConscript'])
 
-if env['WITH_BF_YAFRAY']:
-    SConscript(['yafray/SConscript'])
-
 if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
 

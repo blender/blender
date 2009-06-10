@@ -579,7 +579,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 
 static char *filesel_imagetype_string(Image *ima)
 {
-	char *strp, *str= MEM_callocN(14*32, "menu for filesel");
+	char *strp, *str= MEM_callocN(15*32, "menu for filesel");
 	
 	strp= str;
 	str += sprintf(str, "Save Image as: %%t|");
@@ -588,6 +588,9 @@ static char *filesel_imagetype_string(Image *ima)
 	str += sprintf(str, "PNG %%x%d|", R_PNG);
 	str += sprintf(str, "BMP %%x%d|", R_BMP);
 	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+#ifdef WITH_OPENJPEG
+	str += sprintf(str, "Jpeg 2000 %%x%d|", R_JP2);
+#endif
 	str += sprintf(str, "Iris %%x%d|", R_IRIS);
 	if(G.have_libtiff)
 		str += sprintf(str, "Tiff %%x%d|", R_TIFF);
@@ -1133,7 +1136,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		pup= uiPupMenuBegin(C, "OK", ICON_HELP);
+		pup= uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout= uiPupMenuLayout(pup);
 		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);

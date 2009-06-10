@@ -490,7 +490,7 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 
 
 				///warm starting (or zero if disabled)
-				if (0)//infoGlobal.m_solverMode & SOLVER_USE_WARMSTARTING)
+				if (infoGlobal.m_solverMode & SOLVER_USE_WARMSTARTING)
 				{
 					solverConstraint.m_appliedImpulse = cp.m_appliedImpulse * infoGlobal.m_warmstartingFactor;
 					if (rb0)
@@ -539,9 +539,6 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 						if (!(infoGlobal.m_solverMode & SOLVER_DISABLE_VELOCITY_DEPENDENT_FRICTION_DIRECTION) && lat_rel_vel > SIMD_EPSILON)
 						{
 							cp.m_lateralFrictionDir1 /= btSqrt(lat_rel_vel);
-							applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir1);
-							applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir1);
-							addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 							if((infoGlobal.m_solverMode & SOLVER_USE_2_FRICTION_DIRECTIONS))
 							{
 								cp.m_lateralFrictionDir2 = cp.m_lateralFrictionDir1.cross(cp.m_normalWorldOnB);
@@ -550,21 +547,26 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 								applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir2);
 								addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 							}
+
+							applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir1);
+							applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir1);
+							addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 							cp.m_lateralFrictionInitialized = true;
 						} else
 						{
 							//re-calculate friction direction every frame, todo: check if this is really needed
 							btPlaneSpace1(cp.m_normalWorldOnB,cp.m_lateralFrictionDir1,cp.m_lateralFrictionDir2);
-							applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir1);
-							applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir1);
-
-							addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 							if ((infoGlobal.m_solverMode & SOLVER_USE_2_FRICTION_DIRECTIONS))
 							{
 								applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir2);
 								applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir2);
 								addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 							}
+
+							applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir1);
+							applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir1);
+							addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
+
 							cp.m_lateralFrictionInitialized = true;
 						}
 

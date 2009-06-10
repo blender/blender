@@ -68,8 +68,8 @@ void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
 	m_clientobject = NULL;
 	m_lastlightlayer = -1;
-	m_lastlighting = false;
 	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
 	DisableOpenGLLights();
 }
 
@@ -295,7 +295,7 @@ void KX_BlenderRenderTools::RenderText(
 	RAS_IPolyMaterial* polymat,
 	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
 {
-	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
+	const STR_String& mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
 	struct MTFace* tface = 0;

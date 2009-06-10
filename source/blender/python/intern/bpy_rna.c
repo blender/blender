@@ -212,6 +212,71 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	return ret;
 }
 
+/* This function is only used by operators right now
+ * Its used for taking keyword args and filling in property values */
+int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefix)
+{
+	int error_val = 0;
+	int totkw;
+	const char *arg_name= NULL;
+	PyObject *item;
+
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+
+	iterprop= RNA_struct_iterator_property(ptr->type);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+
+	totkw = kw ? PyDict_Size(kw):0;
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+
+		arg_name= RNA_property_identifier(prop);
+
+		if (strcmp(arg_name, "rna_type")==0) continue;
+
+		if (kw==NULL) {
+			PyErr_Format( PyExc_AttributeError, "%s: no keywords, expected \"%s\"", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+			error_val= -1;
+			break;
+		}
+
+		item= PyDict_GetItemString(kw, arg_name);
+
+		if (item == NULL) {
+			PyErr_Format( PyExc_AttributeError, "%s: keyword \"%s\" missing", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+			error_val = -1; /* pyrna_py_to_prop sets the error */
+			break;
+		}
+
+		if (pyrna_py_to_prop(ptr, prop, NULL, item)) {
+			error_val= -1;
+			break;
+		}
+
+		totkw--;
+	}
+
+	RNA_property_collection_end(&iter);
+
+	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(kw, &pos, &key, &value)) {
+			arg_name= _PyUnicode_AsString(key);
+			if (RNA_struct_find_property(ptr, arg_name) == NULL) break;
+			arg_name= NULL;
+		}
+
+		PyErr_Format( PyExc_AttributeError, "%s: keyword \"%s\" unrecognized", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+		error_val = -1;
+	}
+
+	return error_val;
+}
+
 static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw);
 
 PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
@@ -413,9 +478,9 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_POINTER:
 		{
-			StructRNA *ptype= RNA_property_pointer_type(prop);
+			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 
-			if(!BPy_StructRNA_Check(value)) {
+			if(!BPy_StructRNA_Check(value) && value != Py_None) {
 				PointerRNA tmp;
 				RNA_pointer_create(NULL, ptype, NULL, &tmp);
 				PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(tmp.type));
@@ -425,19 +490,32 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				int raise_error= 0;
 				if(data) {
 					if(ptype == &RNA_AnyType) {
-						*((PointerRNA*)data)= param->ptr;
+						if(value == Py_None)
+							memset(data, 0, sizeof(PointerRNA));
+						else
+							*((PointerRNA*)data)= param->ptr;
+					}
+					else if(value == Py_None) {
+						*((void**)data)= NULL;
 					}
 					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
 						*((void**)data)= param->ptr.data;
-					} else {
+					}
+					else {
 						raise_error= 1;
 					}
 				}
 				else {
 					/* data==NULL, assign to RNA */
-					if(RNA_struct_is_a(param->ptr.type, ptype)) {
+					if(value == Py_None) {
+						PointerRNA valueptr;
+						memset(&valueptr, 0, sizeof(valueptr));
+						RNA_property_pointer_set(ptr, prop, valueptr);
+					}
+					else if(RNA_struct_is_a(param->ptr.type, ptype)) {
 						RNA_property_pointer_set(ptr, prop, param->ptr);
-					} else {
+					}
+					else {
 						PointerRNA tmp;
 						RNA_pointer_create(NULL, ptype, NULL, &tmp);
 						PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(tmp.type));
@@ -455,9 +533,36 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			break;
 		}
 		case PROP_COLLECTION:
-			PyErr_SetString(PyExc_AttributeError, "cant convert collections yet");
-			return -1;
+		{
+			int seq_len, i;
+			PyObject *item;
+			PointerRNA itemptr;
+			
+			/* convert a sequence of dict's into a collection */
+			if(!PySequence_Check(value)) {
+				PyErr_SetString(PyExc_TypeError, "expected a sequence of dicts for an RNA collection");
+				return -1;
+			}
+			
+			seq_len = PySequence_Length(value);
+			for(i=0; i<seq_len; i++) {
+				item= PySequence_GetItem(value, i);
+				if(item==NULL || PyDict_Check(item)==0) {
+					PyErr_SetString(PyExc_TypeError, "expected a sequence of dicts for an RNA collection");
+					Py_XDECREF(item);
+					return -1;
+				}
+				
+				RNA_property_collection_add(ptr, prop, &itemptr);
+				if(pyrna_pydict_to_props(&itemptr, item, "Converting a python list to an RNA collection")==-1) {
+					Py_DECREF(item);
+					return -1;
+				}
+				Py_DECREF(item);
+			}
+			
 			break;
+		}
 		default:
 			PyErr_SetString(PyExc_AttributeError, "unknown property type (pyrna_py_to_prop)");
 			return -1;
@@ -1078,7 +1183,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		case PROP_POINTER:
 		{
 			PointerRNA newptr;
-			StructRNA *type= RNA_property_pointer_type(prop);
+			StructRNA *type= RNA_property_pointer_type(ptr, prop);
 
 			if(type == &RNA_AnyType) {
 				/* in this case we get the full ptr */
@@ -1372,7 +1477,14 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
 	PyObject *item;
-
+	
+	Py_INCREF(newclass);
+	
+	if (RNA_struct_py_type_get(srna))
+		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
+	
+	Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
+	
 	RNA_struct_py_type_set(srna, (void *)newclass); /* Store for later use */
 
 	/* Not 100% needed but useful,
@@ -1928,6 +2040,10 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 static void bpy_class_free(void *pyob_ptr)
 {
+	if(G.f&G_DEBUG) {
+		if(((PyObject *)pyob_ptr)->ob_refcnt > 1)
+			PyObSpit("zombie class - ref should be 1", (PyObject *)pyob_ptr);
+	}
 	Py_DECREF((PyObject *)pyob_ptr);
 }
 
@@ -1952,9 +2068,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	item= PyObject_GetAttrString(py_class, "__rna__");
 
 	if(!item || !BPy_StructRNA_Check(item)) {
-		if(item) {
-			Py_DECREF(item);
-		}
+		Py_XDECREF(item);
 		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no __rna__ property).");
 		return NULL;
 	}
@@ -1977,10 +2091,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_PRINT);
@@ -1994,8 +2105,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 
 	BKE_reports_clear(&reports);
 
-	pyrna_subtype_set_rna(py_class, srna);
-	Py_INCREF(py_class);
+	pyrna_subtype_set_rna(py_class, srna); /* takes a ref to py_class */
 
 	Py_RETURN_NONE;
 }
@@ -2040,10 +2150,8 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */
-	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");  /* borrow ref */
-
-	if(item)
-		C= (bContext*)PyCObject_AsVoidPtr(item);
+	C= BPy_GetContext();
+	
 
 	/* call unregister */
 	unreg(C, py_srna->ptr.data);

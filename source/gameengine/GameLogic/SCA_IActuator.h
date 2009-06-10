@@ -29,17 +29,32 @@
 #ifndef __KX_IACTUATOR
 #define __KX_IACTUATOR
 
-#include "SCA_ILogicBrick.h"
+#include "SCA_IController.h"
 #include <vector>
 
+/*
+ * Use of SG_DList : None
+ * Use of SG_QList : element of activated actuator list of their owner
+ *                   Head: SCA_IObject::m_activeActuators
+ */
 class SCA_IActuator : public SCA_ILogicBrick
 {
 	friend class SCA_LogicManager;
 protected:
 	int					 m_links;	// number of active links to controllers
 									// when 0, the actuator is automatically stopped
-	std::vector<CValue*> m_events;
-	void RemoveAllEvents();
+	//std::vector<CValue*> m_events;
+	bool			     m_posevent;
+	bool			     m_negevent;
+
+	std::vector<class SCA_IController*>		m_linkedcontrollers;
+
+	void RemoveAllEvents()
+	{
+		m_posevent = false;
+		m_negevent = false;
+	}
+
 
 public:
 	/**
@@ -75,7 +90,15 @@ public:
 	/** 
 	 * Add an event to an actuator.
 	 */ 
-	void AddEvent(CValue* event);
+	//void AddEvent(CValue* event)
+	void AddEvent(bool event)
+	{
+		if (event)
+			m_posevent = true;
+		else
+			m_negevent = true;
+	}
+
 	virtual void ProcessReplica();
 
 	/** 
@@ -84,8 +107,22 @@ public:
 	 * not immediately clear. But usually refers to key-up events
 	 * or events where no action is required.
 	 */
-	bool IsNegativeEvent() const;
+	bool IsNegativeEvent() const
+	{
+		return !m_posevent && m_negevent;
+	}
+
 	virtual ~SCA_IActuator();
+
+	/**
+	 * remove this actuator from the list of active actuators
+	 */
+	virtual void Deactivate();
+	virtual void Activate(SG_DList& head);
+
+	void	LinkToController(SCA_IController* controller);
+	void	UnlinkController(class SCA_IController* cont);
+	void	UnlinkAllControllers();
 
 	void ClrLink() { m_links=0; }
 	void IncLink() { m_links++; }

@@ -7,34 +7,44 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'LATTICE')
+		return (context.lattice != None)
 	
 class DATA_PT_lattice(DataButtonsPanel):
 	__idname__ = "DATA_PT_lattice"
 	__label__ = "Lattice"
 
 	def draw(self, context):
-		lat = context.active_object.data
+		ob = context.object
+		lat = context.lattice
+		space = context.space_data
 		layout = self.layout
 
-		if not lat:
-			return
-		
-		row = layout.row()
-		row.itemR(lat, "points_u")
-		row.itemR(lat, "interpolation_type_u", expand=True)
-		
-		row = layout.row()
-		row.itemR(lat, "points_v")
-		row.itemR(lat, "interpolation_type_v", expand=True)
-		
-		row = layout.row()
-		row.itemR(lat, "points_w")
-		row.itemR(lat, "interpolation_type_w", expand=True)
-		
-		row = layout.row()
-		row.itemR(lat, "outside")
-		row.itemR(lat, "shape_keys")
+		split = layout.split(percentage=0.65)
+
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif lat:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if lat:
+			layout.itemS()
+
+			row = layout.row()
+			row.itemR(lat, "points_u")
+			row.itemR(lat, "interpolation_type_u", expand=True)
+			
+			row = layout.row()
+			row.itemR(lat, "points_v")
+			row.itemR(lat, "interpolation_type_v", expand=True)
+			
+			row = layout.row()
+			row.itemR(lat, "points_w")
+			row.itemR(lat, "interpolation_type_w", expand=True)
+			
+			row = layout.row()
+			row.itemR(lat, "outside")
+			row.itemR(lat, "shape_keys")
 
 bpy.types.register(DATA_PT_lattice)

@@ -868,30 +868,47 @@ static void scrarea_draw_shape_light(ScrArea *sa, char dir)
 	glDisable(GL_BLEND);
 }
 
+static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2, short a) 
+{
+	/* right border area */
+	if(x2<sizex-1)
+		sdrawline(x2+a, y1, x2+a, y2);
+	
+	/* left border area */
+	if(x1>0)  /* otherwise it draws the emboss of window over */
+		sdrawline(x1+a, y1, x1+a, y2);
+	
+	/* top border area */
+	if(y2<sizey-1)
+		sdrawline(x1, y2+a, x2, y2+a);
+	
+	/* bottom border area */
+	if(y1>0)
+		sdrawline(x1, y1+a, x2, y1+a);
+	
+}
+
 /** screen edges drawing **/
-static void drawscredge_area(ScrArea *sa)
+static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 {
 	short x1= sa->v1->vec.x;
 	short y1= sa->v1->vec.y;
 	short x2= sa->v3->vec.x;
 	short y2= sa->v3->vec.y;
+	short a, rt;
 	
-	cpack(0x0);
+	rt= CLAMPIS(G.rt, 0, 16);
 	
-	/* right border area */
-	sdrawline(x2, y1, x2, y2);
-	
-	/* left border area */
-	if(x1>0) { /* otherwise it draws the emboss of window over */
-		sdrawline(x1, y1, x1, y2);
+	if(center==0) {
+		cpack(0x505050);
+		for(a=-rt; a<=rt; a++)
+			if(a!=0)
+				drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, a);
 	}
-	
-	/* top border area */
-	sdrawline(x1, y2, x2, y2);
-	
-	/* bottom border area */
-	sdrawline(x1, y1, x2, y1);
-	
+	else {
+		cpack(0x0);
+		drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
+	}
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
@@ -971,9 +988,11 @@ void ED_screen_draw(wmWindow *win)
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
-		drawscredge_area(sa);
+		drawscredge_area(sa, win->sizex, win->sizey, 0);
 	}
-
+	for(sa= win->screen->areabase.first; sa; sa= sa->next)
+		drawscredge_area(sa, win->sizex, win->sizey, 1);
+	
 	/* blended join arrow */
 	if (sa1 && sa2) {
 		dir = area_getorientation(win->screen, sa1, sa2);
@@ -1116,14 +1135,22 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 /* case when on area-edge or in azones, or outside window */
 static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {
+	AZone *az= NULL;
 	ScrArea *sa;
 	
 	for(sa= win->screen->areabase.first; sa; sa= sa->next)
-		if(is_in_area_actionzone(sa, event->x, event->y))
+		if((az=is_in_area_actionzone(sa, event->x, event->y)))
 			break;
 	
 	if(sa) {
-		WM_cursor_set(win, CURSOR_EDIT);
+		if(az->type==AZONE_AREA)
+			WM_cursor_set(win, CURSOR_EDIT);
+		else if(az->type==AZONE_REGION) {
+			if(az->x1==az->x2)
+				WM_cursor_set(win, CURSOR_X_MOVE);
+			else
+				WM_cursor_set(win, CURSOR_Y_MOVE);
+		}
 	}
 	else {
 		ScrEdge *actedge= screen_find_active_scredge(win->screen, event->x, event->y);
@@ -1256,6 +1283,9 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		
+		/* makes button hilites work */
+		WM_event_add_mousemove(C);
 	}
 }
 
@@ -1430,7 +1460,8 @@ void ED_screen_full_prevspace(bContext *C)
 		ed_screen_fullarea(C, sa);
 }
 
-void ED_screen_animation_timer(bContext *C, int enable)
+/* redraws: uses defines from stime->redraws */
+void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmWindow *win= CTX_wm_window(C);
@@ -1440,8 +1471,17 @@ void ED_screen_animation_timer(bContext *C, int enable)
 		WM_event_remove_window_timer(win, screen->animtimer);
 	screen->animtimer= NULL;
 	
-	if(enable)
+	if(enable) {
+		struct ScreenAnimData *sad= MEM_mallocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
+		sad->ar= CTX_wm_region(C);
+		sad->redraws= redraws;
+		screen->animtimer->customdata= sad;
+		
+	}
+	/* notifier catched by top header, for button */
+	WM_event_add_notifier(C, NC_SCREEN|ND_ANIMPLAY, screen);
 }
 
 unsigned int ED_screen_view3d_layers(bScreen *screen)

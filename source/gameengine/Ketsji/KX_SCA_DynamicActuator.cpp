@@ -50,8 +50,13 @@
 	PyTypeObject 
 
 KX_SCA_DynamicActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_SCA_DynamicActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -85,7 +90,7 @@ PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
 };
 
 PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
-	KX_PYATTRIBUTE_SHORT_RW("operation",0,4,false,KX_SCA_DynamicActuator,m_dyn_operation),
+	KX_PYATTRIBUTE_SHORT_RW("mode",0,4,false,KX_SCA_DynamicActuator,m_dyn_operation),
 	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
@@ -94,6 +99,10 @@ PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
 PyObject* KX_SCA_DynamicActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_DynamicActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_SCA_DynamicActuator::py_setattro(PyObject *attr, PyObject* value)
@@ -112,7 +121,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
 "\t                3 = disable rigid body\n"
 "Change the dynamic status of the parent object.\n")
 {
-	ShowDeprecationWarning("setOperation()", "the operation property");
+	ShowDeprecationWarning("setOperation()", "the mode property");
 	int dyn_operation;
 	
 	if (!PyArg_ParseTuple(args, "i:setOperation", &dyn_operation))
@@ -132,7 +141,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 "Returns the operation type of this actuator.\n"
 )
 {
-	ShowDeprecationWarning("getOperation()", "the operation property");
+	ShowDeprecationWarning("getOperation()", "the mode property");
 	return PyInt_FromLong((long)m_dyn_operation);
 }
 
@@ -210,10 +219,6 @@ CValue* KX_SCA_DynamicActuator::GetReplica()
 		return NULL;
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-
 	return replica;
 };
 

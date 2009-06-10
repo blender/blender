@@ -940,7 +940,7 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 	DispList *dlnew=0, *dl;
 	float *f1;
 	int colnr=0, charidx=0, cont=1, tot, a, *index;
-	long totvert;
+	intptr_t totvert;
 	
 	if(dispbase==0) return;
 	if(dispbase->first==0) return;
@@ -1256,7 +1256,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 				originalVerts = MEM_dupallocN(deformedVerts);
 			}
 			
-			mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
+			mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, forRender, editmode);
 
 			if (md==preTesselatePoint)
 				break;
@@ -1317,7 +1317,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				fp+= offs;
 			}
 			
-			mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert);
+			mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert, forRender, editmode);
 			
 			fp= allverts;
 			for (dl=dispbase->first; dl; dl=dl->next) {
@@ -1329,7 +1329,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		}
 		else {
 			for (dl=dispbase->first; dl; dl=dl->next) {
-				mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+				mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr, forRender, editmode);
 			}
 		}
 	}

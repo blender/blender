@@ -53,8 +53,13 @@
 	PyTypeObject 
 
 KX_SCA_ReplaceMeshActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_SCA_ReplaceMeshActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -99,6 +104,10 @@ PyObject* KX_SCA_ReplaceMeshActuator::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IActuator);
 }
 
+PyObject* KX_SCA_ReplaceMeshActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
 int KX_SCA_ReplaceMeshActuator::py_setattro(PyObject *attr, PyObject* value) 
 {
 	py_setattro_up(SCA_IActuator);
@@ -119,10 +128,10 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 	RAS_MeshObject* new_mesh;
 	
 	if (!ConvertPythonToMesh(value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	
 	actuator->m_mesh = new_mesh;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 /* 1. setMesh */
@@ -212,9 +221,6 @@ CValue* KX_SCA_ReplaceMeshActuator::GetReplica()
 		return NULL;
 
 	replica->ProcessReplica();
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 
 	return replica;
 };

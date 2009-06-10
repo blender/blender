@@ -156,6 +156,17 @@ static char *rna_alloc_function_name(const char *structname, const char *propnam
 	return result;
 }
 
+static StructRNA *rna_find_struct(const char *identifier)
+{
+	StructDefRNA *ds;
+
+	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next)
+		if(strcmp(ds->srna->identifier, identifier)==0)
+			return ds->srna;
+
+	return NULL;
+}
+
 static const char *rna_find_type(const char *type)
 {
 	StructDefRNA *ds;
@@ -250,8 +261,10 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 	int a, mask= 0;
 
-	for(a=0; a<eprop->totitem; a++)
-		mask |= eprop->item[a].value;
+	if(eprop->item) {
+		for(a=0; a<eprop->totitem; a++)
+			mask |= eprop->item[a].value;
+	}
 	
 	return mask;
 }
@@ -497,7 +510,16 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				rna_print_data_get(f, dp);
+
+				if(prop->flag & PROP_ID_REFCOUNT) {
+					fprintf(f, "\n	if(data->%s)\n", dp->dnaname);
+					fprintf(f, "		id_us_min((ID*)data->%s);\n", dp->dnaname);
+					fprintf(f, "	if(value.data)\n");
+					fprintf(f, "		id_us_plus((ID*)value.data);\n\n");
+				}
+
 				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
+
 			}
 			fprintf(f, "}\n\n");
 			break;
@@ -1188,9 +1210,16 @@ static void rna_auto_types()
 			if(dp->dnatype) {
 				if(dp->prop->type == PROP_POINTER) {
 					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
+					StructRNA *type;
 
 					if(!pprop->type && !pprop->get)
 						pprop->type= (StructRNA*)rna_find_type(dp->dnatype);
+
+					if(pprop->type) {
+						type= rna_find_struct((char*)pprop->type);
+						if(type && (type->flag & STRUCT_ID_REFCOUNT))
+							pprop->property.flag |= PROP_ID_REFCOUNT;
+					}
 				}
 				else if(dp->prop->type== PROP_COLLECTION) {
 					CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
@@ -1454,6 +1483,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						DefRNA.error= 1;
 					}
 				}
+				else if(eprop->itemf);
 				else {
 					fprintf(stderr, "rna_generate_structs: %s%s.%s, enum must have items defined.\n", srna->identifier, errnest, prop->identifier);
 					DefRNA.error= 1;
@@ -1581,12 +1611,17 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 												}
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, rna_%s%s_%s_items, %d, %d\n", rna_function_string(eprop->get), rna_function_string(eprop->set), srna->identifier, strnest, prop->identifier, eprop->totitem, eprop->defaultvalue);
+				fprintf(f, "\t%s, %s, %s, ", rna_function_string(eprop->get), rna_function_string(eprop->set), rna_function_string(eprop->itemf));
+				if(eprop->item)
+					fprintf(f, "rna_%s%s_%s_items, ", srna->identifier, strnest, prop->identifier);
+				else
+					fprintf(f, "NULL, ");
+				fprintf(f, "%d, %d\n", eprop->totitem, eprop->defaultvalue);
 				break;
 											}
 			case PROP_POINTER: {
 				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set));
+				fprintf(f, "\t%s, %s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set), rna_function_string(pprop->typef));
 				if(pprop->type) fprintf(f, "&RNA_%s\n", (char*)pprop->type);
 				else fprintf(f, "NULL\n");
 				break;
@@ -1678,7 +1713,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	rna_print_c_string(f, srna->name);
 	fprintf(f, ", ");
 	rna_print_c_string(f, srna->description);
-	fprintf(f, ",\n");
+	fprintf(f, ",\n %d,\n", srna->icon);
 
 	prop= srna->nameproperty;
 	if(prop) {
@@ -1798,8 +1833,11 @@ static void rna_generate(BlenderRNA *brna, FILE *f, char *filename)
 	fprintf(f, "#include <limits.h>\n");
 	fprintf(f, "#include <string.h>\n\n");
 
+	fprintf(f, "#include \"DNA_ID.h\"\n");
+
 	fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
 
+	fprintf(f, "#include \"BKE_library.h\"\n");
 	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 
 	fprintf(f, "#include \"RNA_define.h\"\n");

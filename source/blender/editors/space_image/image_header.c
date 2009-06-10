@@ -141,18 +141,13 @@ static void image_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_view_properties_panel"); // View Properties...
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_image_properties_panel"); // Image Properties...|N
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_realtime_properties_panel"); // Real-time properties...
-	if(show_paint) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_paint_panel"); // Paint Tool...|C
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_curves_panel"); // Curves Tool...
-	if(show_render) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_grease_pencil_panel"); // Grease Pencil...
+	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_properties");
+	//if(show_render) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &spaceptr, "update_automatically", 0, 0);
-	// XXX if(show_uvedit) uiItemR(layout, NULL, 0, &uvptr, "local_view", 0, 0); // "UV Local View", Numpad /
+	uiItemR(layout, NULL, 0, &spaceptr, "update_automatically", 0, 0, 0);
+	// XXX if(show_uvedit) uiItemR(layout, NULL, 0, &uvptr, "local_view", 0, 0, 0); // "UV Local View", Numpad /
 
 	uiItemS(layout);
 
@@ -235,7 +230,7 @@ static void image_imagemenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 			uiItemS(layout);
 
-			uiItemR(layout, NULL, 0, &spaceptr, "image_painting", 0, 0);
+			uiItemR(layout, NULL, 0, &spaceptr, "image_painting", 0, 0, 0);
 			
 			/* move to realtime properties panel */
 			RNA_id_pointer_create(&ima->id, &imaptr);
@@ -339,12 +334,12 @@ static void image_uvsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 
 	/* create menu */
-	uiItemR(layout, NULL, 0, &uvptr, "snap_to_pixels", 0, 0);
-	uiItemR(layout, NULL, 0, &uvptr, "constrain_to_image_bounds", 0, 0);
+	uiItemR(layout, NULL, 0, &uvptr, "snap_to_pixels", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &uvptr, "constrain_to_image_bounds", 0, 0, 0);
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &uvptr, "live_unwrap", 0, 0);
+	uiItemR(layout, NULL, 0, &uvptr, "live_unwrap", 0, 0, 0);
 	uiItemO(layout, NULL, 0, "UV_OT_unwrap");
 	uiItemBooleanO(layout, "Unpin", 0, "UV_OT_pin", "clear", 1);
 	uiItemO(layout, NULL, 0, "UV_OT_pin");
@@ -364,7 +359,7 @@ static void image_uvsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0);
+	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0, 0);
 	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
 
 	uiItemS(layout);

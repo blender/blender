@@ -70,6 +70,7 @@ public:
 	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
+	virtual void SetTransform() {}
 	virtual	MT_Scalar	GetMass();
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);

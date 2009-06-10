@@ -108,6 +108,7 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
 
 	prop= RNA_def_property(srna, "map_to_color", PROP_BOOLEAN, PROP_NONE);
@@ -262,6 +263,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Lamp", "ID");
 	RNA_def_struct_refine_func(srna, "rna_Lamp_refine");
 	RNA_def_struct_ui_text(srna, "Lamp", "Lamp datablock for lighting a scene.");
+	RNA_def_struct_ui_icon(srna, ICON_LAMP_DATA);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
@@ -270,12 +272,12 @@ static void rna_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0.01f, 5000.0f);
+	RNA_def_property_ui_range(prop, 0, 1000, 1.0, 2);
 	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_range(prop, 0, 10.0, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Energy", "Amount of light that the lamp emits.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
@@ -328,7 +330,6 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 		{0, NULL, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* needs to be able to create curve mapping */
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
 	RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
@@ -408,14 +409,14 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	prop= RNA_def_property(srna, (area)? "shadow_ray_samples_x": "shadow_ray_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ray_samp");
-	RNA_def_property_range(prop, 1, 16);
+	RNA_def_property_range(prop, 1, 64);
 	RNA_def_property_ui_text(prop, (area)? "Shadow Ray Samples": "Shadow Ray Samples X","Amount of samples taken extra (samples x samples).");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	if(area) {
 		prop= RNA_def_property(srna, "shadow_ray_samples_y", PROP_INT, PROP_NONE);
 		RNA_def_property_int_sdna(prop, NULL, "ray_sampy");
-		RNA_def_property_range(prop, 1, 16);
+		RNA_def_property_range(prop, 1, 64);
 		RNA_def_property_ui_text(prop, "Shadow Ray Samples Y", "Amount of samples taken extra (samples x samples).");
 		RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 	}
@@ -428,7 +429,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	prop= RNA_def_property(srna, "shadow_soft_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "soft");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows).");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
@@ -489,19 +490,19 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "area_size");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size", "Size of the area of the area Lamp, X direction size for Rectangle shapes.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "size_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "area_sizey");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size Y", "Size of the area of the area Lamp in the Y direction for Rectangle shapes.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k");
-	RNA_def_property_range(prop, 0.001f, 2.0f);
+	RNA_def_property_ui_range(prop, 0.001, 2.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Gamma", "Light gamma correction value.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 }
@@ -548,7 +549,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
-	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_ui_range(prop, 0, 5.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone  (Buffer Shadows).");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
@@ -650,8 +651,10 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	/* sky */
 	prop= RNA_def_property(srna, "sky", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "LampSkySettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Sky Settings", "Sky related settings for sun lamps.");
+
+	rna_def_lamp_sky_settings(brna);
 }
 
 static void rna_def_hemi_lamp(BlenderRNA *brna)
@@ -671,7 +674,6 @@ void RNA_def_lamp(BlenderRNA *brna)
 	rna_def_spot_lamp(brna);
 	rna_def_sun_lamp(brna);
 	rna_def_hemi_lamp(brna);
-	rna_def_lamp_sky_settings(brna);
 	rna_def_lamp_mtex(brna);
 }
 

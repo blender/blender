@@ -616,9 +616,9 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
-	if (isnan(co[0]) || !finite(co[0]) ||
-		isnan(co[1]) || !finite(co[1]) ||
-		isnan(co[2]) || !finite(co[2])
+	if (!finite(co[0]) ||
+		!finite(co[1]) ||
+		!finite(co[2])
 	) {
 		return;
 	}
@@ -839,9 +839,9 @@ BMVert *editmesh_get_x_mirror_vert(Object *ob, BMEditMesh *em, float *co)
 	intptr_t poinval;
 	
 	/* ignore nan verts */
-	if (isnan(co[0]) || !finite(co[0]) ||
-		isnan(co[1]) || !finite(co[1]) ||
-		isnan(co[2]) || !finite(co[2])
+	if (!finite(co[0]) ||
+		!finite(co[1]) ||
+		!finite(co[2])
 	   )
 		return NULL;
 	

@@ -83,9 +83,10 @@ public:
 
 	/// play video
 	virtual bool play (void);
-	/// stop/pause video
+	/// pause video
+	virtual bool pause (void);
+	/// stop video
 	virtual bool stop (void);
-
 	/// set play range
 	virtual void setRange (double start, double stop);
 	/// set frame rate

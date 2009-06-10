@@ -37,7 +37,7 @@ BMOpDefine def_object_load_bmesh = {
 
 BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "me"},
+	{{BMOP_OPSLOT_PNT, "mesh"},
 	{0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
 	0

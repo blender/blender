@@ -320,9 +320,9 @@ typedef struct RenderData {
 
 	/* Dome variables */
 	short domeres, domemode;
-	short domeangle, pad9;
-	float domesize;
+	short domeangle, dometilt;
 	float domeresbuf;
+	float pad2;
 	struct Text *dometext;
 
 } RenderData;
@@ -679,6 +679,7 @@ typedef struct Scene {
 #define R_STAMP_INFO		0x4000
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
+#define R_RECURS_PROTECTION     0x20000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001
@@ -762,7 +763,7 @@ typedef struct Scene {
 #define MAXFRAMEF	300000.0f
 
 #define MINFRAME	1
-#define MINFRAMEF	1.0
+#define MINFRAMEF	1.0f
 
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
@@ -835,6 +836,7 @@ typedef struct Scene {
 
 
 	/* return flag next_object function */
+#define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1
 #define F_SET			2

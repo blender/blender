@@ -189,6 +189,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *args;
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
+	PointerRNA ptr_context;
+	PyObject *py_context;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
@@ -233,7 +235,11 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		}
 		else if (mode==PYOP_EXEC) {
 			item= PyObject_GetAttrString(py_class, "exec");
-			args = PyTuple_New(1);
+			args = PyTuple_New(2);
+			
+			RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
+			py_context = pyrna_struct_CreatePyObject(&ptr_context);
+			PyTuple_SET_ITEM(args, 1, py_context);
 		}
 		else if (mode==PYOP_POLL) {
 			item= PyObject_GetAttrString(py_class, "poll");
@@ -272,7 +278,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		 * thrown away anyway
 		 *
 		 * If we ever want to do this and use the props again,
-		 * it can be done with - PYOP_props_from_dict(op->ptr, kw)
+		 * it can be done with - pyrna_pydict_to_props(op->ptr, kw, "")
 		 */
 		
 		Py_DECREF(ret);
@@ -391,7 +397,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"exec",	'f', 1,	BPY_CLASS_ATTR_OPTIONAL},
+		{"exec",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{"invoke",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}

@@ -527,9 +527,10 @@ def setupAnim(StartFrame, EndFrame, VideoFrameRate):
 	if VideoFrameRate>120: VideoFrameRate=120
 	# set up anim panel for them
 	context=scn.getRenderingContext() 
-	context.startFrame(StartFrame)
-	context.endFrame(EndFrame)
-	context.framesPerSec(int(VideoFrameRate))
+	context.sFrame=StartFrame
+	context.eFrame=EndFrame
+	context.fps=int(VideoFrameRate)
+	
 	Blender.Set("curframe",StartFrame)
 	Blender.Redraw()
 	return

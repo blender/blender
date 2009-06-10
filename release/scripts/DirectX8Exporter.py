@@ -45,7 +45,8 @@ from Blender import Types, Object, NMesh, Material,Armature,Mesh
 from Blender.Mathutils import *
 from Blender import Draw, BGL
 from Blender.BGL import *
-import math
+try: import math
+except: math = None
 
 global mat_flip,index_list,space,bone_list,mat_dict
 global anim,flip_norm,swap_zy,flip_z,speed,ticks,no_light,recalc_norm,Bl_norm

@@ -117,6 +117,7 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Lattice", "ID");
 	RNA_def_struct_ui_text(srna, "Lattice", "Lattice datablock defining a grid for deforming other objects.");
+	RNA_def_struct_ui_icon(srna, ICON_LATTICE_DATA);
 
 	prop= RNA_def_property(srna, "points_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");

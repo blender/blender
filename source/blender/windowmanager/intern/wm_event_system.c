@@ -773,12 +773,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
-				int filetype= FILE_BLENDER;
+				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORTALPHA;
 				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
-				if(RNA_struct_find_property(handler->op->ptr, "filetype"))
-					filetype= RNA_int_get(handler->op->ptr, "filetype");
-				
 				if(event->val==EVT_FILESELECT_OPEN)
 					ED_area_newspace(C, handler->op_area, SPACE_FILE);
 				else
@@ -788,7 +785,16 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				sfile= (SpaceFile*)CTX_wm_space_data(C);
 				sfile->op= handler->op;
 				
-				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, FILE_SHORTDISPLAY, 0);
+				/* XXX for now take the settings from the existing (previous) filebrowser 
+				   should be stored in settings and passed via the operator */
+				if (sfile->params) {
+					flag = sfile->params->flag;
+					filter = sfile->params->filter;
+					display = sfile->params->display;
+					sort = sfile->params->sort;
+				}
+
+				ED_fileselect_set_params(sfile, handler->op->type->name, path, flag, display, filter, sort);
 				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
@@ -820,7 +826,12 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						uiPupMenuSaveOver(C, handler->op, path);
 					}
 					else {
-						handler->op->type->exec(C, handler->op);
+						int retval= handler->op->type->exec(C, handler->op);
+						
+						if (retval & OPERATOR_FINISHED)
+							if(G.f & G_DEBUG)
+								wm_operator_print(handler->op);
+						
 						WM_operator_free(handler->op);
 					}
 					
@@ -1077,6 +1088,17 @@ void wm_event_do_handlers(bContext *C)
 			wm_event_free(event);
 			
 		}
+		
+		/* only add mousemove when queue was read entirely */
+		if(win->addmousemove) {
+			wmEvent event= *(win->eventstate);
+			event.type= MOUSEMOVE;
+			event.prevx= event.x;
+			event.prevy= event.y;
+			wm_event_add(win, &event);
+			win->addmousemove= 0;
+		}
+		
 		CTX_wm_window_set(C, NULL);
 	}
 }
@@ -1227,11 +1249,8 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window= CTX_wm_window(C);
-	wmEvent event= *(window->eventstate);
-	event.type= MOUSEMOVE;
-	event.prevx= event.x;
-	event.prevy= event.y;
-	wm_event_add(window, &event);
+	
+	window->addmousemove= 1;
 }
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */

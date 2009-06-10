@@ -161,7 +161,7 @@ typedef struct Object {
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
-	float pad3; /* clamp the maximum velocity 0.0 is disabled */
+	float m_contactProcessingThreshold;
 
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
@@ -427,6 +427,7 @@ extern Object workob;
 #define OB_COLLISION	65536
 #define OB_SOFT_BODY	0x20000
 #define OB_OCCLUDER		0x40000
+#define OB_SENSOR		0x80000
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
@@ -446,6 +447,7 @@ extern Object workob;
 #define OB_BODY_TYPE_RIGID			3
 #define OB_BODY_TYPE_SOFT			4
 #define OB_BODY_TYPE_OCCLUDER		5
+#define OB_BODY_TYPE_SENSOR			6
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1

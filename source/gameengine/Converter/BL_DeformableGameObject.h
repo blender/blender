@@ -62,7 +62,7 @@ public:
 			m_pDeformer->Relink (map);
 		KX_GameObject::Relink(map);
 	};
-	void ProcessReplica(KX_GameObject* replica);
+	void ProcessReplica();
 
 	BL_DeformableGameObject(Object* blendobj, void* sgReplicationInfo, SG_Callbacks callbacks) :
 		KX_GameObject(sgReplicationInfo,callbacks),
@@ -83,10 +83,7 @@ public:
 		return (m_pDeformer) ? ((BL_MeshDeformer*)m_pDeformer)->GetMesh()->key : NULL;
 	}
 	
-	virtual void	SetDeformer(class RAS_Deformer* deformer)
-	{
-		m_pDeformer = deformer;
-	}
+	virtual void	SetDeformer(class RAS_Deformer* deformer);
 	virtual class RAS_Deformer* GetDeformer()
 	{
 		return m_pDeformer;

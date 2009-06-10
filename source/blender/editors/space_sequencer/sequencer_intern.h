@@ -37,11 +37,16 @@ struct Sequence;
 struct bContext;
 struct rctf;
 struct SpaceSeq;
+struct ScrArea;
 struct ARegion;
+struct ARegionType;
 struct Scene;
 
+/* space_sequencer.c */
+struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
+
 /* sequencer_header.c */
-void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
+// void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
 void drawseqspace(const struct bContext *C, struct ARegion *ar);
@@ -84,6 +89,7 @@ void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
+void SEQUENCER_OT_snap(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
@@ -139,6 +145,11 @@ struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf);
 struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
 struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf * ibuf, float perc);
 struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
+
+/* sequencer_buttons.c */
+
+void SEQUENCER_OT_properties(struct wmOperatorType *ot);
+void sequencer_buttons_register(struct ARegionType *art);
 
 #endif /* ED_SEQUENCER_INTERN_H */
 

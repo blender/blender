@@ -3073,7 +3073,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	totpart=psys->totpart;
-	draw_as=part->draw_as;
+
+	if(part->draw_as==PART_DRAW_REND)
+		draw_as = part->ren_as;
+	else
+		draw_as = part->draw_as;
 
 	if(part->flag&PART_GLOB_TIME)
 		cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
@@ -3519,7 +3523,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				glEnableClientState(GL_COLOR_ARRAY);
 				glColorPointer(3, GL_FLOAT, 0, cdata);
 			}
-
 
 			/* draw created data arrays */
 			switch(draw_as){

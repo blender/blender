@@ -12,8 +12,16 @@
 # 
 # Currently it only prints missing modules and methods (not attributes)
 
+import sys, os
 
 BGE_API_DOC_PATH = 'source/gameengine/PyDoc'
+
+
+mods = ['GameLogic', 'Rasterizer', 'GameKeys']
+mods_dict = {}
+for m in mods:
+	mods_dict[m] = sys.modules[m]
+
 
 import GameTypes
 type_members = {}
@@ -34,7 +42,7 @@ for type_name in dir(GameTypes):
 		# print type_object.__name__ + '.' + k
 		members.append(member)
 
-import sys, os
+
 
 doc_dir= os.path.join(os.getcwd(), BGE_API_DOC_PATH)
 
@@ -42,13 +50,12 @@ if doc_dir not in sys.path:
 	sys.path.append(doc_dir)
 
 
-def check_attribute(type_mame, member):
-	filename = 	os.path.join(doc_dir, type_mame + '.py')
-	# print filename
+def check_attribute(class_ob, member):
+	doc = class_ob.__doc__
+	if not doc:
+		return False
 	
-	file = open(filename, 'rU')
-	
-	for l in file:
+	for l in doc.split('\n'):
 		l = l.strip()
 		
 		'''
@@ -58,14 +65,12 @@ def check_attribute(type_mame, member):
 			
 		'''
 		
-		if l.startswith('@ivar'):
+		if l.startswith('@ivar') or l.startswith('@var'):
 			var = l.split()[1].split(':')[0]
 			
 			if var == member:
-				file.close()
 				return True
 	
-	file.close()
 	return False
 	
 	
@@ -77,18 +82,14 @@ print '\n\n\nChecking Docs'
 
 PRINT_OK = False
 
+pymod = sys.modules['GameTypes']
+del sys.modules['GameTypes'] # temp remove
+mod = __import__('GameTypes') # get the python module
+reload(mod) # incase were editing it
+sys.modules['GameTypes'] = pymod
+
 for type_name in sorted(type_members.keys()):
 	members = type_members[type_name]
-	
-	try:
-		mod = __import__(type_name)
-		if PRINT_OK:
-			print "type: %s" % type_name
-	except:
-		print "missing: %s - %s" % (type_name, str(sorted(members)))
-		continue
-	
-	reload(mod) # incase were editing it
 	
 	try:
 		type_class = getattr(mod, type_name)
@@ -102,9 +103,34 @@ for type_name in sorted(type_members.keys()):
 			if PRINT_OK:
 				print "\tfound: %s.%s" % (type_name, member)
 		except:
-			if check_attribute(type_name, member):
+			if check_attribute(type_class, member):
 				if PRINT_OK:
 					print "\tfound attr: %s.%s" % (type_name, member)
 			else:
 				print "\tmissing: %s.%s" % (type_name, member)
+
+
+# Now check the modules
+for mod_name, pymod in mods_dict.iteritems():
+	print pymod
+	del sys.modules[mod_name]
+		
+	# Now well get the python version
+	pydoc = __import__(mod_name)
+	pydoc = reload(pydoc) # avoid using the out dated pyc file only
+	print pydoc.__file__
+	
+	for member in sorted(dir(pymod)):
+		if hasattr(pydoc, member) or check_attribute(pydoc, member):
+			if PRINT_OK:
+				print "\tfound module attr: %s.%s" % (mod_name, member)
+		else:
+			print "\tmissing module attr: %s.%s" % (mod_name, member)
+	
+	# Restore real module
+	sys.modules[mod_name] = pymod
+
+
+sys.path.pop() # remove the pydoc dir from our import paths
+
 

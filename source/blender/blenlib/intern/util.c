@@ -1472,9 +1472,6 @@ char* BLI_getbundle(void) {
 }
 #endif
 
-
-
-
 #ifdef WITH_ICONV
 #include "iconv.h"
 #include "localcharset.h"

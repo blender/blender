@@ -27,9 +27,9 @@ public:
 	CParser();
 	virtual				~CParser();
 
-	float				GetFloat(STR_String txt);
-	CValue*				GetValue(STR_String txt, bool bFallbackToText=false);
-	CExpression*		ProcessText(STR_String intext);
+	float				GetFloat(STR_String& txt);
+	CValue*				GetValue(STR_String& txt, bool bFallbackToText=false);
+	CExpression*		ProcessText(const char *intext);
 	void				SetContext(CValue* context);
 
 private:
@@ -86,8 +86,8 @@ private:
 	CValue*	m_identifierContext;// context in which identifiers are looked up
 	
 	
-	void ScanError(STR_String str);
-	CExpression* Error(STR_String str);
+	void ScanError(const char *str);
+	CExpression* Error(const char *str);
 	void NextCh();
 	void TermChar(char c);
 	void DigRep();

@@ -172,6 +172,8 @@ static void rna_def_text(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "Text", "ID");
 	RNA_def_struct_ui_text(srna, "Text", "Text datablock referencing an external or packed text file.");
+	RNA_def_struct_ui_icon(srna, ICON_TEXT);
+	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Text_filename_get", "rna_Text_filename_length", "rna_Text_filename_set");

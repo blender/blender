@@ -1163,7 +1163,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
+	for (i=0; eve; eve=BMIter_Step(&iter), i++, index++) {
 		MVert *mv = &mvert[i];
 
 		VECCOPY(mv->co, eve->co);
@@ -1183,7 +1183,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-	for (i=0; eed; eed=BMIter_Step(&iter), i++) {
+	for (i=0; eed; eed=BMIter_Step(&iter), i++, index++) {
 		MEdge *med = &medge[i];
 
 		med->v1 = BMINDEX_GET(eed->v1);
@@ -1227,7 +1227,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	index = CustomData_get(&dm->polyData, 0, CD_ORIGINDEX);
 	j = 0;
 	efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-	for (i=0; efa; i++, efa=BMIter_Step(&iter)) {
+	for (i=0; efa; i++, efa=BMIter_Step(&iter), index++) {
 		BMLoop *l;
 		MPoly *mp = &mpoly[i];
 
@@ -1245,7 +1245,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 			mloop++;
 		}
 
-		*(index++) = i;
+		*index = i;
 	}
 
 	return dm;
@@ -1720,7 +1720,7 @@ typedef struct MultiresDM {
 	int *face_offsets;
 
 	Mesh *me;
-	int flags;
+	int modified;
 
 	void (*update)(DerivedMesh*);
 } MultiresDM;
@@ -1731,7 +1731,7 @@ static void MultiresDM_release(DerivedMesh *dm)
 	int mvert_layer;
 
 	/* Before freeing, need to update the displacement map */
-	if(dm->needsFree && !(mrdm->flags & MULTIRES_DM_UPDATE_BLOCK))
+	if(dm->needsFree && mrdm->modified)
 		mrdm->update(dm);
 
 	/* If the MVert data is being used as the sculpt undo store, don't free it */
@@ -1807,7 +1807,7 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig,
 	mrdm->lvl = ms->mmd->lvl;
 	mrdm->totlvl = ms->mmd->totlvl;
 	mrdm->subco = MEM_callocN(sizeof(MVert)*numVerts, "multires subdivided verts");
-	mrdm->flags = 0;
+	mrdm->modified = 0;
 
 	dm->release = MultiresDM_release;
 
@@ -1893,8 +1893,8 @@ int *MultiresDM_get_face_offsets(DerivedMesh *dm)
 	return mrdm->face_offsets;
 }
 
-int *MultiresDM_get_flags(DerivedMesh *dm)
+void MultiresDM_mark_as_modified(DerivedMesh *dm)
 {
-	return &((MultiresDM*)dm)->flags;
+	((MultiresDM*)dm)->modified = 1;
 }
 

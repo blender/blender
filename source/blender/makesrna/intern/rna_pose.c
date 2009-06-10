@@ -82,7 +82,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_struct_idproperties_func(srna, "rna_PoseChannel_idproperties");
 
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "constraints", NULL);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
 

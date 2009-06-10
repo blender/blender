@@ -125,7 +125,8 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob,
 	                    struct DerivedMesh *derivedData,
-	                    float (*vertexCos)[3], int numVerts);
+	                    float (*vertexCos)[3], int numVerts,
+	                    int useRenderParams, int isFinalCalc);
 
 	/* Like deformVerts but called during editmode (for supporting modifiers)
 	 */

@@ -43,16 +43,31 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 //static PyObject *gTextureDict = 0;
 
 KX_BlenderMaterial::KX_BlenderMaterial(
-    KX_Scene *scene,
-	BL_Material *data,
-	bool skin,
-	int lightlayer,
 	PyTypeObject *T
 	)
 :	PyObjectPlus(T),
-	RAS_IPolyMaterial(
-		STR_String( data->texname[0] ),
-		STR_String( data->matname ), // needed for physics!
+	RAS_IPolyMaterial(),
+	mMaterial(NULL),
+	mShader(0),
+	mBlenderShader(0),
+	mScene(NULL),
+	mUserDefBlend(0),
+	mModified(0),
+	mConstructed(false),
+	mPass(0)
+{
+}
+
+void KX_BlenderMaterial::Initialize(
+    KX_Scene *scene,
+	BL_Material *data,
+	bool skin,
+	int lightlayer)
+{
+	RAS_IPolyMaterial::Initialize(
+		data->texname[0],
+		data->matname,
+		data->materialindex,
 		data->tile,
 		data->tilexrep[0],
 		data->tileyrep[0],
@@ -61,17 +76,15 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 		((data->ras_mode &ALPHA)!=0),
 		((data->ras_mode &ZSORT)!=0),
 		lightlayer
-	),
-	mMaterial(data),
-	mShader(0),
-	mBlenderShader(0),
-	mScene(scene),
-	mUserDefBlend(0),
-	mModified(0),
-	mConstructed(false),
-	mPass(0)
-
-{
+	);
+	mMaterial = data;
+	mShader = 0;
+	mBlenderShader = 0;
+	mScene = scene;
+	mUserDefBlend = 0;
+	mModified = 0;
+	mConstructed = false;
+	mPass = 0;
 	// --------------------------------
 	// RAS_IPolyMaterial variables... 
 	m_flag |= RAS_BLENDERMAT;
@@ -95,7 +108,6 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 			 );
 	}
 	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
-
 }
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
@@ -105,7 +117,6 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		// clean only if material was actually used
 		OnExit();
 }
-
 
 MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {
@@ -120,14 +131,41 @@ unsigned int* KX_BlenderMaterial::GetMCol(void) const
 	return mMaterial->rgb;
 }
 
-void KX_BlenderMaterial::OnConstruction()
+void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	if (mMaterial) {
+		*rgba++ = (unsigned char) (mMaterial->matcolor[0]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[1]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[2]*255.0);
+		*rgba++ = (unsigned char) (mMaterial->matcolor[3]*255.0);
+	} else
+		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
+}
+
+Material *KX_BlenderMaterial::GetBlenderMaterial() const
+{
+	return mMaterial->material;
+}
+
+Scene* KX_BlenderMaterial::GetBlenderScene() const
+{
+	return mScene->GetBlenderScene();
+}
+
+void KX_BlenderMaterial::ReleaseMaterial()
+{
+	if (mBlenderShader)
+		mBlenderShader->ReloadMaterial();
+}
+
+void KX_BlenderMaterial::OnConstruction(int layer)
 {
 	if (mConstructed)
 		// when material are reused between objects
 		return;
 	
 	if(mMaterial->glslmat)
-		SetBlenderGLSLShader();
+		SetBlenderGLSLShader(layer);
 
 	// for each unique material...
 	int i;
@@ -377,10 +415,12 @@ KX_BlenderMaterial::ActivatShaders(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 void
@@ -469,10 +509,12 @@ KX_BlenderMaterial::ActivateMat(
 		}
 		else
 			rasty->SetLines(false);
+		ActivatGLMaterials(rasty);
+		ActivateTexGen(rasty);
 	}
 
-	ActivatGLMaterials(rasty);
-	ActivateTexGen(rasty);
+	//ActivatGLMaterials(rasty);
+	//ActivateTexGen(rasty);
 }
 
 bool 
@@ -601,8 +643,7 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 
 			if (mode &USECUSTOMUV)
 			{
-				STR_String str = mMaterial->mapping[i].uvCoName;
-				if (!str.IsEmpty())
+				if (!mMaterial->mapping[i].uvCoName.IsEmpty())
 					ras->SetTexCoord(RAS_IRasterizer::RAS_TEXCO_UV2, i);
 				continue;
 			}
@@ -749,12 +790,20 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 };
 
 PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	//KX_PYATTRIBUTE_TODO("shader"),
+	//KX_PYATTRIBUTE_TODO("materialIndex"),
+	//KX_PYATTRIBUTE_TODO("blending"),
 	{ NULL }	//Sentinel
 };
 
 PyTypeObject KX_BlenderMaterial::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_BlenderMaterial",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -782,6 +831,10 @@ PyParentObject KX_BlenderMaterial::Parents[] = {
 PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
 {
 	py_getattro_up(PyObjectPlus);
+}
+
+PyObject* KX_BlenderMaterial::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
 }
 
 int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
@@ -846,10 +899,10 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 }
 
 
-void KX_BlenderMaterial::SetBlenderGLSLShader(void)
+void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 {
 	if(!mBlenderShader)
-		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, m_lightlayer);
+		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, layer);
 
 	if(!mBlenderShader->Ok()) {
 		delete mBlenderShader;
@@ -859,7 +912,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(void)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( mMaterial->material_index );
+	return PyInt_FromLong( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )

@@ -69,7 +69,7 @@ typedef struct PartDeflect {
 	struct Tex *tex;	/* Texture of the texture effector */
 	struct RNG *rng; /* random noise generator for e.g. wind */
 	float f_noise; /* noise of force (currently used for wind) */
-	int pad;
+	int seed; /* wind noise random seed */
 } PartDeflect;
 
 typedef struct PointCache {
@@ -119,7 +119,8 @@ typedef struct BulletSoftBody {
 	float	kAHR;			/* Anchors hardness [0,1] */
 	int		collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 	int		numclusteriterations;	/* number of iterations to refine collision clusters*/
-
+	float	welding;		/* welding limit to remove duplicate/nearby vertices, 0.0..0.01 */
+	float   margin;			/* margin specific to softbody */
 } BulletSoftBody;
 
 /* BulletSoftBody.flag */

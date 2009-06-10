@@ -44,6 +44,7 @@ struct wmWindowManager;
 #define OPTYPE_UNDO			2
 
 /* context to call operator in for WM_operator_name_call */
+/* rna_ui.c contains EnumPropertyItem's of these, keep in sync */
 enum {
 	/* if there's invoke, call it, otherwise exec */
 	WM_OP_INVOKE_DEFAULT,
@@ -157,6 +158,7 @@ typedef struct wmNotifier {
 #define	NC_IMAGE			(10<<24)
 #define	NC_BRUSH			(11<<24)
 #define	NC_TEXT				(12<<24)
+#define NC_WORLD			(13<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -169,7 +171,7 @@ typedef struct wmNotifier {
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
 #define ND_SCREENCAST		(2<<16)
-
+#define ND_ANIMPLAY			(3<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -196,6 +198,8 @@ typedef struct wmNotifier {
 #define ND_MODIFIER			(23<<16)
 #define ND_KEYS				(24<<16)
 #define ND_GEOM_DATA		(25<<16)
+#define ND_CONSTRAINT		(26<<16)
+#define ND_PARTICLE			(27<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
@@ -276,7 +280,8 @@ typedef struct wmTabletData {
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
 	double timestep;		/* set by timer user */
-	int event_type;			/* set by timer user */
+	int event_type;			/* set by timer user, goes to event system */
+	void *customdata;		/* set by timer user, to allow custom values */
 	
 	double duration;		/* total running time in seconds */
 	double delta;			/* time since previous step in seconds */

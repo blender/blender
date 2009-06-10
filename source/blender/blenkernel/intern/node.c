@@ -1055,6 +1055,14 @@ bNodeTree *ntreeAddTree(int type)
 	ntree->type= type;
 	ntree->alltypes.first = NULL;
 	ntree->alltypes.last = NULL;
+
+	/* this helps RNA identify ID pointers as nodetree */
+    if(ntree->type==NTREE_SHADER)
+		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_COMPOSIT)
+		BLI_strncpy(ntree->id.name, "NTComposit Nodetree", sizeof(ntree->id.name));
+    else if(ntree->type==NTREE_TEXTURE)
+		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
 	ntreeInitTypes(ntree);
 	return ntree;
@@ -1982,9 +1990,9 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
 	}
 }
 
+/* notes below are ancient! (ton) */
 /* stack indices make sure all nodes only write in allocated data, for making it thread safe */
 /* only root tree gets the stack, to enable instances to have own stack entries */
-/* only two threads now! */
 /* per tree (and per group) unique indices are created */
 /* the index_ext we need to be able to map from groups to the group-node own stack */
 
@@ -1999,14 +2007,9 @@ static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
 	ListBase *lb= &ntree->threadstack[thread];
 	bNodeThreadStack *nts;
 	
-	/* for material shading this is called quite a lot (perhaps too much locking unlocking)
-	 * however without locking we get bug #18058 - Campbell */
-	BLI_lock_thread(LOCK_CUSTOM1); 
-	
 	for(nts=lb->first; nts; nts=nts->next) {
 		if(!nts->used) {
 			nts->used= 1;
-			BLI_unlock_thread(LOCK_CUSTOM1);
 			return nts;
 		}
 	}
@@ -2014,7 +2017,7 @@ static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
 	nts->stack= MEM_dupallocN(ntree->stack);
 	nts->used= 1;
 	BLI_addtail(lb, nts);
-	BLI_unlock_thread(LOCK_CUSTOM1);
+
 	return nts;
 }
 

@@ -548,7 +548,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 
 	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
 
-	if(dm != NULL)
+	if(dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
 	{
 		//Setup arrays to get vertexs positions, normals and deform weights
 		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);

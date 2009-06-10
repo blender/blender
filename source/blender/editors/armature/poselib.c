@@ -328,7 +328,7 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	/* start building */
 	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
 	uiItemIntO(layout, "Add New", 0, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
@@ -462,7 +462,7 @@ static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent
 	/* start building */
 	pup= uiPupMenuBegin(C, op->type->name, 0);
 	layout= uiPupMenuLayout(pup);
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add each marker to this menu */
 	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++)

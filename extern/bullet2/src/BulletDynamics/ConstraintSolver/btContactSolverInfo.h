@@ -77,7 +77,7 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_splitImpulsePenetrationThreshold = -0.02f;
 		m_linearSlop = btScalar(0.0);
 		m_warmstartingFactor=btScalar(0.85);
-		m_solverMode = SOLVER_USE_WARMSTARTING | SOLVER_SIMD ;//SOLVER_RANDMIZE_ORDER
+		m_solverMode = SOLVER_USE_WARMSTARTING | SOLVER_USE_2_FRICTION_DIRECTIONS |SOLVER_SIMD | SOLVER_RANDMIZE_ORDER;
 		m_restingContactRestitutionThreshold = 2;//resting contact lifetime threshold to disable restitution
 	}
 };

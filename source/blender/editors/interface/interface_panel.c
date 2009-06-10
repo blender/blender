@@ -119,7 +119,7 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 		SpaceButs *sbuts= sa->spacedata.first;
 
 		if(sbuts->align)
-			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
+			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb)
 				return 1;
 	}
 	else if(ar->regiontype==RGN_TYPE_UI)
@@ -580,7 +580,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 			else uiSetRoundBox(3);
 			
 			UI_ThemeColorShade(TH_BACK, -120);
-			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, headrect.ymax+1, 8);
+			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);
 		}
 		if(panel->flag & PNL_OVERLAP) {
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);

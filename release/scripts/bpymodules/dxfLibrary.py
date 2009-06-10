@@ -1,6 +1,6 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.29beta - 2008.12.28"
+__version__ = "v1.32 - 2009.06.06"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
 __url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -18,31 +18,39 @@ IDEAs:
 -
 
 TODO:
-- add support for SPLINEs, (bad idea, cause DXF r14 object :(
+- add support for DXFr14 (needs extended file header)
+- add support for SPLINEs (possible first in DXFr14 version)
 
 History
+v1.32 - 2009.06.06 by migius
+ - modif Style class: changed defaults to widthFactor=1.0, obliqueAngle=0.0
+ - modif Text class: alignment parameter reactivated
+v1.31 - 2009.06.02 by migius
+ - modif _Entity class: added paperspace,elevation
+v1.30 - 2009.05.28 by migius
+ - bugfix 3dPOLYLINE/POLYFACE: VERTEX needs x,y,z coordinates, index starts with 1 not 0
 v1.29 - 2008.12.28 by Yorik
-- modif POLYLINE to support bulge segments
+ - modif POLYLINE to support bulge segments
 v1.28 - 2008.12.13 by Steeve/BlenderArtists
-- bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
+ - bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
 v1.27 - 2008.10.07 by migius
-- beautifying output code: keys whitespace prefix
-- refactoring DXF-strings format: NewLine moved to the end of
+ - beautifying output code: keys whitespace prefix
+ - refactoring DXF-strings format: NewLine moved to the end of
 v1.26 - 2008.10.05 by migius
-- modif POLYLINE to support POLYFACE
+ - modif POLYLINE to support POLYFACE
 v1.25 - 2008.09.28 by migius
-- modif FACE class for r12
+ - modif FACE class for r12
 v1.24 - 2008.09.27 by migius
-- modif POLYLINE class for r12
-- changing output format from r9 to r12(AC1009)
+ - modif POLYLINE class for r12
+ - changing output format from r9 to r12(AC1009)
 v1.1 (20/6/2005) by www.stani.be/python/sdxf
-- Python library to generate dxf drawings
+ - Python library to generate dxf drawings
 ______________________________________________________________
 """ % (__author__,__version__,__license__,__url__)
 
 # --------------------------------------------------------------------------
 # DXF Library: copyright (C) 2005 by Stani Michiels (AKA Stani)
-#                            2008 modif by Remigiusz Fiedler (AKA migius)
+#                       2008/2009 modif by Remigiusz Fiedler (AKA migius)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -85,7 +93,6 @@ def _point(x,index=0):
 def _points(plist):
 	"""Convert a list of tuples to dxf points"""
 	out = '\n'.join([_point(plist[i],i)for i in range(len(plist))])
-	#print 'deb: points=\n', out #-------------------
 	return out
 
 #---base classes----------------------------------------
@@ -104,17 +111,21 @@ class _Call:
 #-------------------------------------------------------
 class _Entity(_Call):
 	"""Base class for _common group codes for entities."""
-	def __init__(self,color=None,extrusion=None,layer='0',
+	def __init__(self,paperspace=None,color=None,layer='0',
 				 lineType=None,lineTypeScale=None,lineWeight=None,
-				 thickness=None,parent=None):
+				 extrusion=None,elevation=None,thickness=None,
+				 parent=None):
 		"""None values will be omitted."""
+		self.paperspace	  = paperspace
 		self.color		  = color
-		self.extrusion	  = extrusion
 		self.layer		  = layer
 		self.lineType	   = lineType
 		self.lineTypeScale  = lineTypeScale
 		self.lineWeight	 = lineWeight
+		self.extrusion	  = extrusion
+		self.elevation	  = elevation
 		self.thickness	  = thickness
+		#self.visible	  = visible
 		self.parent		 = parent
 
 	def _common(self):
@@ -122,13 +133,16 @@ class _Entity(_Call):
 		if self.parent:parent=self.parent
 		else:parent=self
 		result =''
+		if parent.paperspace==1: result+='  67\n1\n'
 		if parent.layer!=None: result+='  8\n%s\n'%parent.layer
 		if parent.color!=None: result+=' 62\n%s\n'%parent.color
-		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		if parent.lineType!=None: result+='  6\n%s\n'%parent.lineType
 		#TODO: if parent.lineWeight!=None: result+='370\n%s\n'%parent.lineWeight
+		#TODO: if parent.visible!=None: result+='60\n%s\n'%parent.visible
 		if parent.lineTypeScale!=None: result+=' 48\n%s\n'%parent.lineTypeScale
+		if parent.elevation!=None: result+=' 38\n%s\n'%parent.elevation
 		if parent.thickness!=None: result+=' 39\n%s\n'%parent.thickness
+		if parent.extrusion!=None: result+='%s\n'%_point(parent.extrusion,200)
 		return result
 
 #--------------------------
@@ -307,6 +321,10 @@ class PolyLine(_Entity):
 		self.points=points
 		self.org_point=org_point
 		self.flag=flag
+		self.polyface = False
+		self.polyline2d = False
+		self.faces = [] # dummy value
+		self.width= None # dummy value
 		if self.flag & POLYFACE_MESH:
 			self.polyface=True
 			self.points=points[0]
@@ -322,21 +340,21 @@ class PolyLine(_Entity):
 
 	def __str__(self):
 		result= '  0\nPOLYLINE\n%s 70\n%s\n' %(self._common(),self.flag)
-		#print 'deb: self._common()', self._common() #----------
 		result+=' 66\n1\n'
 		result+='%s\n' %_point(self.org_point)
 		if self.polyface:
 			result+=' 71\n%s\n' %self.p_count
 			result+=' 72\n%s\n' %self.f_count
 		elif self.polyline2d:
-			if self.width: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
+			if self.width!=None: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
 		for point in self.points:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
-			result+='%s\n' %_point(point[0:2])
 			if self.polyface:
+				result+='%s\n' %_point(point[0:3])
 				result+=' 70\n192\n'
 			elif self.polyline2d:
+				result+='%s\n' %_point(point[0:2])
 				if len(point)>4:
 					width1, width2 = point[3], point[4]
 					if width1!=None: result+=' 40\n%s\n' %width1
@@ -344,6 +362,8 @@ class PolyLine(_Entity):
 				if len(point)==6:
 					bulge = point[5]
 					if bulge: result+=' 42\n%s\n' %bulge
+			else:
+				result+='%s\n' %_point(point[0:3])
 		for face in self.faces:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
@@ -407,7 +427,7 @@ class Text(_Entity):
 		if self.style: result+='  7\n%s\n'%self.style
 		if self.flag: result+=' 71\n%s\n'%self.flag
 		if self.justifyhor: result+=' 72\n%s\n'%self.justifyhor
-		#TODO: if self.alignment: result+='%s\n'%_point(self.alignment,1)
+		if self.alignment: result+='%s\n'%_point(self.alignment,1)
 		if self.justifyver: result+=' 73\n%s\n'%self.justifyver
 		return result
 
@@ -528,7 +548,7 @@ class LineType(_Call):
 #-----------------------------------------------
 class Style(_Call):
 	"""Text style"""
-	def __init__(self,name='standard',flag=0,height=0,widthFactor=40,obliqueAngle=50,
+	def __init__(self,name='standard',flag=0,height=0,widthFactor=1.0,obliqueAngle=0.0,
 				 mirror=0,lastHeight=1,font='arial.ttf',bigFont=''):
 		self.name=name
 		self.flag=flag

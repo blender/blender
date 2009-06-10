@@ -250,9 +250,9 @@ public:
 	 * Sets the modelview matrix.
 	 */
 	virtual void	SetViewMatrix(const MT_Matrix4x4 & mat,
-						const MT_Vector3& campos,
-						const MT_Point3 &camLoc,
-						const MT_Quaternion &camOrientQuat)=0;
+								const MT_Matrix3x3 & ori,
+								const MT_Point3 & pos,
+								bool perspective)=0;
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
@@ -280,6 +280,7 @@ public:
 	/**
 	 */
 	virtual void	DisableFog()=0;
+	virtual bool	IsFogEnabled()=0;
 
 	virtual void	SetBackColor(float red,
 								 float green,
@@ -325,6 +326,26 @@ public:
 		float focallength = 0.0f,
 		bool perspective = true
 	)=0;
+
+	/**
+	 * Generates a orthographic projection matrix from the specified frustum.
+	 * @param left the left clipping plane
+	 * @param right the right clipping plane
+	 * @param bottom the bottom clipping plane
+	 * @param top the top clipping plane
+	 * @param frustnear the near clipping plane
+	 * @param frustfar the far clipping plane
+	 * @return a 4x4 matrix representing the projection transform.
+	 */
+	virtual MT_Matrix4x4 GetOrthoMatrix(
+		float left,
+		float right,
+		float bottom,
+		float top,
+		float frustnear,
+		float frustfar
+	)=0;
+
 	/**
 	 * Sets the specular color component of the lighting equation.
 	 */

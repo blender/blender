@@ -92,6 +92,7 @@ typedef struct World {
 	short mode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;	/* here it's aligned */
+	short ticrate, maxlogicstep, physubstep, maxphystep;
 	
 	float misi, miststa, mistdist, misthi;
 	

@@ -36,6 +36,12 @@ This script opens the user's default web browser at http://www.blender.org's
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-import Blender, webbrowser
-version = str(int(Blender.Get('version')))
-webbrowser.open('http://www.blender.org/documentation/'+ version +'PythonDoc/')
+import Blender
+try: import webbrowser
+except: webbrowser = None
+
+if webbrowser:
+    version = str(int(Blender.Get('version')))
+    webbrowser.open('http://www.blender.org/documentation/'+ version +'PythonDoc/')
+else:
+    Blender.Draw.PupMenu("Error%t|This script requires a full python installation")

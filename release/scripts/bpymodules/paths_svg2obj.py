@@ -1,7 +1,7 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.5.9n
-Copyright (c) jm soler juillet/novembre 2004-february 2009, 
+SVG 2 OBJ translater, 0.5.9o
+Copyright (c) jm soler juillet/novembre 2004-april 2009, 
 # ---------------------------------------------------------------
     released under GNU Licence 
     for the Blender 2.42 Python Scripts Bundle.
@@ -255,7 +255,7 @@ Changelog:
               - removed  all debug statements
               - correction of a zero division error in the calc_arc function.
 
-		  0.5.9f: - 2007/15/7 
+     0.5.9f: - 2007/15/7 
               - Correction de plusieurs bugs sur l'attributions des couleurs et le nommage 
                 des courbes
 
@@ -266,6 +266,8 @@ Changelog:
      0.5.9k : - 14/01/2009 
      0.5.9l : - 31/01/2009 
      0.5.9n : - 01/02/2009
+     0.5.9o : - 04/04/2009, remove pattern if it made with path.
+
 
 ==================================================================================   
 =================================================================================="""
@@ -280,6 +282,7 @@ LAST_ID=''
 LAST_COLOR=[0.0,0.0,0.0,0.0]
 SEPARATE_CURVES=0
 USE_COLORS=0
+PATTERN=0
 
 SVGCOLORNAMELIST={ 'aliceblue':[240, 248, 255] ,'antiquewhite':[250, 235, 215]
 ,'aqua':[ 0, 255, 255], 'aquamarine':[127, 255, 212]
@@ -786,6 +789,7 @@ def polygon(prp):
 	if D!=[]:
 		D.append('Z')
 	return D
+
 
 #--------------------
 # 0.5.8, to remove exec 
@@ -1462,13 +1466,13 @@ def collect_ATTRIBUTS(data):
 # --------------------------------------------
 def build_HIERARCHY(t):
 	global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
-	global LAST_ID
+	global LAST_ID, PATTERN
 	TRANSFORM=0
 	t=t.replace('\t',' ')
 	while t.find('  ')!=-1: t=t.replace('  ',' ')
 	n0=0      
 	t0=t1=0
-	baliste=[]
+	#baliste=[]
 	balisetype=['?','?','/','/','!','!']
 	BALISES=['D',  #DECL_TEXTE',
 						'D',  #DECL_TEXTE',
@@ -1490,26 +1494,37 @@ def build_HIERARCHY(t):
 		if t0>-1 and t1>-1:
 			if t[t0+1] in balisetype:
 				b=balisetype.index(t[t0+1])
+				
 				if t[t0+2]=='-': 
 					b=balisetype.index(t[t0+1])+1
+					
 				balise=BALISES[b]
+				
 				if b==2:
 					parent=STACK.pop(-1)
 					if parent!=None and TRANSFORM>0:
 						TRANSFORM-=1
+						
 			elif t[t1-1] in balisetype:
 				balise=BALISES[balisetype.index(t[t1-1])+1]
+				
 			else:
 				t2=t.find(' ',t0)  
 				if t2>t1: t2=t1
 				ouvrante=1
 				NOM=t[t0+1:t2]
+				
+					
 				if '</'+NOM in t: #.find('</'+NOM)>-1:
 					balise=BALISES[-1]
+					if NOM=='pattern' and not PATTERN:
+						t1=t.find('</'+NOM+'>',t0)+len('</'+NOM+'>')
+						balise=BALISES[-3]
 				else:
 					balise=BALISES[-2]
 					
 			if balise=='E' or balise=='O':
+					
 				proprietes=collect_ATTRIBUTS(t[t0:t1+ouvrante])
 				
 				if  'id' in proprietes:
@@ -1532,6 +1547,11 @@ def build_HIERARCHY(t):
 					# 0.5.8, to remove exec 
 					#--------------------
 					D=OTHERSSHAPES[proprietes['TYPE']](proprietes)
+					
+				#elif proprietes['TYPE'] in ['pattern']:
+				#	print 'pattern'	
+				#	D=''
+					
 				CP=[0.0,0.0]	
 				if len(D)>0:
 					cursor=0
@@ -1567,7 +1587,7 @@ def build_HIERARCHY(t):
 
 def scan_FILE(nom):
 	global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
-	global SEPARATE_CURVES, USE_COLORS
+	global SEPARATE_CURVES, USE_COLORS, PATTERN
 	
 	dir,name=split(nom)
 	name=name.split('.')
@@ -1583,13 +1603,14 @@ def scan_FILE(nom):
 			togAS = Blender.Draw.Create(0)
 			togSP = Blender.Draw.Create(0)
 			togCOL = Blender.Draw.Create(0)
+			Pattern= Blender.Draw.Create(0)
 			block=[\
 				("Clamp Width 1",	togW,  "Rescale the import with a Width of one unit"),\
 				("Clamp Height 1",	togH,  "Rescale the import with a Heightof one unit"),\
 				("No Rescaling",	togAS, "No rescaling, the result can be very large"),\
 				("Separate Curves", togSP, "Create an object for each curve, Slower. May manage colors"),\
-				("Import Colors",	togCOL, "try to import color if the path is set as 'fill'. Only With separate option")]
-
+				("Import Colors",	togCOL, "try to import color if the path is set as 'fill'. Only With separate option"),\
+ 				("Import Patterns",	Pattern, "import pattern content if it is made with paths.")]
 			retval = Blender.Draw.PupBlock("Import Options", block)
 			if  togW.val: scale_=1
 			elif togH.val: 	scale_=2
@@ -1598,6 +1619,8 @@ def scan_FILE(nom):
 			if  togSP.val: SEPARATE_CURVES=1	
 
 			if  togCOL.val and SEPARATE_CURVES : USE_COLORS=1	
+				
+			if	Pattern.val : PATTERN =1
 											
 		t1=Blender.sys.time()
 		# 0.4.1 : to avoid to use sax and the xml  

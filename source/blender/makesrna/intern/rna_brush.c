@@ -93,6 +93,7 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting.");
+	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
 	
 	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
@@ -189,7 +190,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
 
-	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */
@@ -198,7 +199,7 @@ void rna_def_brush(BlenderRNA *brna)
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clone.image");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Clone Image", "Image for clone tool.");
 	
 	prop= RNA_def_property(srna, "clone_opacity", PROP_FLOAT, PROP_NONE);

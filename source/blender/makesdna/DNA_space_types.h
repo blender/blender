@@ -121,7 +121,7 @@ typedef struct SpaceButs {
 	struct RenderInfo *ri;
 
 	short cursens, curact;
-	short align, tabo;		/* align for panels, tab is old tab */
+	short align, preview;		/* align for panels, preview is signal to refresh */
 	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
@@ -139,8 +139,9 @@ typedef struct SpaceButs {
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
 	char flag, texact;
 	
-	char tab[8];	/* storing tabs for each context */
-		
+	void *path;				/* runtime */
+	int pathflag, dataicon;	/* runtime */
+	ID *pinid;
 } SpaceButs;
 
 typedef struct SpaceSeq {
@@ -154,7 +155,8 @@ typedef struct SpaceSeq {
 	View2D v2d; /* depricated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, pad;
+	short mainb;
+	short render_size;
 	short chanshown;
 	short zebra;
 	int flag;
@@ -343,7 +345,8 @@ typedef struct SpaceNode {
 	float mx, my;	/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype, pad;			/* treetype: as same nodetree->type */
+	int treetype;			/* treetype: as same nodetree->type */
+	short texfrom, pad;		/* texfrom object, world or brush */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -351,6 +354,11 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+
+/* snode->texfrom */
+#define SNODE_TEX_OBJECT	0
+#define SNODE_TEX_WORLD		1
+#define SNODE_TEX_BRUSH		2
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
@@ -463,8 +471,26 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_SOUND		3
 #define TAB_SCENE_SEQUENCER	4
 
+
+/* buts->mainb new */
+#define BCONTEXT_SCENE		0
+#define BCONTEXT_WORLD		1
+#define BCONTEXT_OBJECT		2
+#define BCONTEXT_DATA		3
+#define BCONTEXT_MATERIAL	4
+#define BCONTEXT_TEXTURE	5
+#define BCONTEXT_PARTICLE	6
+#define BCONTEXT_PHYSICS	7
+#define BCONTEXT_GAME		8
+#define BCONTEXT_BONE		9
+#define BCONTEXT_MODIFIER	10
+#define BCONTEXT_CONSTRAINT 12
+#define BCONTEXT_TOT		13
+
 /* sbuts->flag */
 #define SB_PRV_OSA			1
+#define SB_PIN_CONTEXT		2
+#define SB_WORLD_TEX		4
 
 /* sbuts->align */
 #define BUT_FREE  		0
@@ -684,7 +710,7 @@ enum {
 #define TIME_ONLYACTSEL		4
 
 /* time->redraws */
-#define TIME_LEFTMOST_3D_WIN	1
+#define TIME_REGION				1
 #define TIME_ALL_3D_WIN			2
 #define TIME_ALL_ANIM_WIN		4
 #define TIME_ALL_BUTS_WIN		8

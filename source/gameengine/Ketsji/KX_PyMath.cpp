@@ -75,9 +75,8 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 	return false;
 }
 
-bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix)
+bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefix)
 {
-	MT_Matrix3x3 rot;
 	int size= PySequence_Size(pyval);
 	
 	if (size == 4)

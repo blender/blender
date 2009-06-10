@@ -74,4 +74,8 @@ char *BPy_enum_as_string(struct EnumPropertyItem *item);
 /* error reporting */
 int BPy_reports_to_error(struct ReportList *reports);
 
+/* TODO - find a better solution! */
+struct bContext *BPy_GetContext(void);
+void BPy_SetContext(struct bContext *C);
+
 #endif

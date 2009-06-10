@@ -28,15 +28,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
+#include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 
+#include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
+#include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
+#include "BKE_report.h"
+#include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -49,7 +65,265 @@
 
 #include "object_intern.h"
 
-/********************* add modifier operator ********************/
+/******************************** API ****************************/
+
+int ED_object_modifier_delete(ReportList *reports, Object *ob, ModifierData *md)
+{
+	ModifierData *obmd;
+
+	/* It seems on rapid delete it is possible to
+	 * get called twice on same modifier, so make
+	 * sure it is in list. */
+	for (obmd=ob->modifiers.first; obmd; obmd=obmd->next)
+		if (obmd==md)
+			break;
+	
+	if (!obmd)
+		return 0;
+
+	if(md->type == eModifierType_ParticleSystem) {
+		ParticleSystemModifierData *psmd=(ParticleSystemModifierData*)md;
+
+		BLI_remlink(&ob->particlesystem, psmd->psys);
+		psys_free(ob, psmd->psys);
+	}
+
+	BLI_remlink(&ob->modifiers, md);
+
+	modifier_free(md);
+
+	return 1;
+}
+
+int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
+{
+	if(md->prev) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if(mti->type!=eModifierTypeType_OnlyDeform) {
+			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
+
+			if(nmti->flags&eModifierTypeFlag_RequiresOriginalData)
+				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data.");
+				return 0;
+		}
+
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
+	}
+
+	return 1;
+}
+
+int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
+{
+	if(md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
+
+			if(nmti->type!=eModifierTypeType_OnlyDeform) {
+				BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier.");
+				return 0;
+			}
+		}
+
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->next, md);
+	}
+
+	return 1;
+}
+
+int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+{
+	Object *obn;
+	ParticleSystem *psys;
+	ParticleCacheKey *key, **cache;
+	ParticleSettings *part;
+	Mesh *me;
+	MVert *mvert;
+	MEdge *medge;
+	int a, k, kmax;
+	int totvert=0, totedge=0, cvert=0;
+	int totpart=0, totchild=0;
+
+	if(md->type != eModifierType_ParticleSystem) return 0;
+	if(G.f & G_PARTICLEEDIT) return 0;
+
+	psys=((ParticleSystemModifierData *)md)->psys;
+	part= psys->part;
+
+	if(part->draw_as == PART_DRAW_GR || part->draw_as == PART_DRAW_OB) {
+		; // XXX make_object_duplilist_real(NULL);
+	}
+	else {
+		if(part->draw_as != PART_DRAW_PATH || psys->pathcache == 0)
+			return 0;
+
+		totpart= psys->totcached;
+		totchild= psys->totchildcache;
+
+		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+			totpart= 0;
+
+		/* count */
+		cache= psys->pathcache;
+		for(a=0; a<totpart; a++) {
+			key= cache[a];
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
+
+		cache= psys->childcache;
+		for(a=0; a<totchild; a++) {
+			key= cache[a];
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
+
+		if(totvert==0) return 0;
+
+		/* add new mesh */
+		obn= add_object(scene, OB_MESH);
+		me= obn->data;
+		
+		me->totvert= totvert;
+		me->totedge= totedge;
+		
+		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
+		
+		mvert= me->mvert;
+		medge= me->medge;
+
+		/* copy coordinates */
+		cache= psys->pathcache;
+		for(a=0; a<totpart; a++) {
+			key= cache[a];
+			kmax= key->steps;
+			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+				VECCOPY(mvert->co,key->co);
+				if(k) {
+					medge->v1= cvert-1;
+					medge->v2= cvert;
+					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+					medge++;
+				}
+			}
+		}
+
+		cache=psys->childcache;
+		for(a=0; a<totchild; a++) {
+			key=cache[a];
+			kmax=key->steps;
+			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+				VECCOPY(mvert->co,key->co);
+				if(k) {
+					medge->v1=cvert-1;
+					medge->v2=cvert;
+					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+					medge++;
+				}
+			}
+		}
+	}
+
+	DAG_scene_sort(scene);
+
+	return 1;
+}
+
+int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+{
+	DerivedMesh *dm;
+	Mesh *me = ob->data;
+	int converted = 0;
+
+	if (scene->obedit) {
+		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
+		return 0;
+	} else if (((ID*) ob->data)->us>1) {
+		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
+		return 0;
+	}
+
+	if (md!=ob->modifiers.first)
+		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
+
+	if (ob->type==OB_MESH) {
+		if(me->key) {
+			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+			return 0;
+		}
+	
+		mesh_pmv_off(ob, me);
+	
+		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		if (!dm) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
+			return 0;
+		}
+
+		DM_to_mesh(dm, me);
+		converted = 1;
+
+		dm->release(dm);
+	} 
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		Curve *cu = ob->data;
+		int numVerts;
+		float (*vertexCos)[3];
+
+		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
+
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
+			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+			return 0;
+		}
+
+		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
+
+		converted = 1;
+
+		MEM_freeN(vertexCos);
+
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
+		return 0;
+	}
+
+	if (converted) {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
+{
+	ModifierData *nmd;
+	
+	nmd = modifier_new(md->type);
+	modifier_copyData(md, nmd);
+	BLI_insertlink(&ob->modifiers, md, nmd);
+
+	return 1;
+}
+
+/***************************** OPERATORS ****************************/
+
+/************************ add modifier operator *********************/
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -95,4 +369,266 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* XXX only some types should be here */
 	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
 }
+
+/****************** multires subdivide operator *********************/
+
+static int multires_subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	PointerRNA ptr = CTX_data_pointer_get(C, "modifier");
+	MultiresModifierData *mmd = (RNA_struct_is_a(ptr.type, &RNA_Modifier))? ptr.data: NULL;
+
+	if(mmd) {
+		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
+{
+	ot->name= "Multires Subdivide";
+	ot->description= "Add a new level of subdivision.";
+	ot->idname= "OBJECT_OT_multires_subdivide";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= multires_subdivide_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ mdef bind operator *********************/
+
+static int modifier_mdef_bind_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
+	return RNA_struct_is_a(ptr.type, &RNA_MeshDeformModifier);
+}
+
+static int modifier_mdef_bind_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
+	Object *ob= ptr.id.data;
+	MeshDeformModifierData *mmd= ptr.data;
+
+	if(mmd->bindcos) {
+		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
+		mmd->bindweights= NULL;
+		mmd->bindcos= NULL;
+		mmd->dyngrid= NULL;
+		mmd->dyninfluences= NULL;
+		mmd->dynverts= NULL;
+		mmd->totvert= 0;
+		mmd->totcagevert= 0;
+		mmd->totinfluence= 0;
+	}
+	else {
+		DerivedMesh *dm;
+		int mode= mmd->modifier.mode;
+
+		/* force modifier to run, it will call binding routine */
+		mmd->needbind= 1;
+		mmd->modifier.mode |= eModifierMode_Realtime;
+
+		if(ob->type == OB_MESH) {
+			dm= mesh_create_derived_view(scene, ob, 0);
+			dm->release(dm);
+		}
+		else if(ob->type == OB_LATTICE) {
+			lattice_calc_modifiers(scene, ob);
+		}
+		else if(ob->type==OB_MBALL) {
+			makeDispListMBall(scene, ob);
+		}
+		else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			makeDispListCurveTypes(scene, ob, 0);
+		}
+
+		mmd->needbind= 0;
+		mmd->modifier.mode= mode;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_mdef_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mesh Deform Bind";
+	ot->description = "Bind mesh to cage in mesh deform modifier.";
+	ot->idname= "OBJECT_OT_modifier_mdef_bind";
+	
+	/* api callbacks */
+	ot->poll= modifier_mdef_bind_poll;
+	ot->exec= modifier_mdef_bind_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+#if 0
+static void modifiers_add(void *ob_v, int type)
+{
+	Object *ob = ob_v;
+	ModifierTypeInfo *mti = modifierType_getInfo(type);
+	
+	if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+		ModifierData *md = ob->modifiers.first;
+
+		while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+			md = md->next;
+		}
+
+		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+	} else {
+		BLI_addtail(&ob->modifiers, modifier_new(type));
+	}
+	ED_undo_push("Add modifier");
+}
+
+typedef struct MenuEntry {
+	char *name;
+	int ID;
+} MenuEntry;
+
+static int menuEntry_compare_names(const void *entry1, const void *entry2)
+{
+	return strcmp(((MenuEntry *)entry1)->name, ((MenuEntry *)entry2)->name);
+}
+
+static uiBlock *modifiers_add_menu(void *ob_v)
+{
+	Object *ob = ob_v;
+	uiBlock *block;
+	int i, yco=0;
+	int numEntries = 0;
+	MenuEntry entries[NUM_MODIFIER_TYPES];
+	
+	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu",
+	                  UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, modifiers_add, ob);
+
+	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
+		ModifierTypeInfo *mti = modifierType_getInfo(i);
+
+		/* Only allow adding through appropriate other interfaces */
+		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
+		
+		if(ELEM4(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Surface, eModifierType_Fluidsim)) continue;
+
+		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
+		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
+			entries[numEntries].name = mti->name;
+			entries[numEntries].ID = i;
+
+			++numEntries;
+		}
+	}
+
+	qsort(entries, numEntries, sizeof(*entries), menuEntry_compare_names);
+
+
+	for(i = 0; i < numEntries; ++i)
+		uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
+		         0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
+
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);
+
+	return block;
+}
+#endif
+
+#if 0
+static void modifiers_clearHookOffset(bContext *C, void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	
+	if (hmd->object) {
+		Mat4Invert(hmd->object->imat, hmd->object->obmat);
+		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		ED_undo_push(C, "Clear hook offset");
+	}
+}
+
+static void modifiers_cursorHookCenter(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX 
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	if(G.vd) {
+		float *curs = give_cursor();
+		float bmat[3][3], imat[3][3];
+
+		where_is_object(ob);
+	
+		Mat3CpyMat4(bmat, ob->obmat);
+		Mat3Inv(imat, bmat);
+
+		curs= give_cursor();
+		hmd->cent[0]= curs[0]-ob->obmat[3][0];
+		hmd->cent[1]= curs[1]-ob->obmat[3][1];
+		hmd->cent[2]= curs[2]-ob->obmat[3][2];
+		Mat3MulVecfl(imat, hmd->cent);
+
+		ED_undo_push(C, "Hook cursor center");
+	}*/
+}
+
+static void modifiers_selectHook(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	hook_select(hmd);*/
+}
+
+static void modifiers_reassignHook(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	float cent[3];
+	int *indexar, tot, ok;
+	char name[32];
+		
+	ok= hook_getIndexArray(&tot, &indexar, name, cent);
+
+	if (!ok) {
+		uiPupMenuError(C, "Requires selected vertices or active Vertex Group");
+	} else {
+		if (hmd->indexar) {
+			MEM_freeN(hmd->indexar);
+		}
+
+		VECCOPY(hmd->cent, cent);
+		hmd->indexar = indexar;
+		hmd->totindex = tot;
+	}*/
+}
+
+void modifiers_explodeFacepa(bContext *C, void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+
+	emd->flag |= eExplodeFlag_CalcFaces;
+}
+
+void modifiers_explodeDelVg(bContext *C, void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+#endif
+
 

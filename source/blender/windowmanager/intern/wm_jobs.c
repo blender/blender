@@ -107,7 +107,7 @@ struct wmJob {
 	
 /* internal */
 	void *owner;
-	short running, ready, do_update, stop;
+	short suspended, running, ready, do_update, stop;
 	
 	/* once running, we store this separately */
 	void *run_customdata;
@@ -121,6 +121,8 @@ struct wmJob {
 /* ******************* public API ***************** */
 
 /* returns current or adds new job, but doesnt run it */
+/* every owner only gets a single job, adding a new one will stop running stop and 
+   when stopped it starts the new one */
 wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner)
 {
 	wmJob *steve;
@@ -195,7 +197,26 @@ static void *do_job_thread(void *job_v)
 	return NULL;
 }
 
-void WM_jobs_start(wmJob *steve)
+/* dont allow same startjob to be executed twice */
+static void wm_jobs_test_suspend(wmWindowManager *wm, wmJob *test)
+{
+	wmJob *steve;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve!=test)
+			if(steve->running)
+				if(steve->startjob==test->startjob)
+					break;
+	
+	if(steve)
+		test->suspended= 1;
+	else
+		test->suspended= 0;
+}
+
+/* if job running, the same owner gave it a new job */
+/* if different owner starts existing startjob, it suspends itself */
+void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 {
 	if(steve->running) {
 		/* signal job to end and restart */
@@ -204,20 +225,24 @@ void WM_jobs_start(wmJob *steve)
 	else {
 		if(steve->customdata && steve->startjob) {
 			
-			/* copy to ensure proper free in end */
-			steve->run_customdata= steve->customdata;
-			steve->run_free= steve->free;
-			steve->free= NULL;
-			steve->customdata= NULL;
-			steve->running= 1;
+			wm_jobs_test_suspend(wm, steve);
 			
-			if(steve->initjob)
-				steve->initjob(steve->run_customdata);
-			
- 			BLI_init_threads(&steve->threads, do_job_thread, 1);
-			BLI_insert_thread(&steve->threads, steve);
+			if(steve->suspended==0) {
+				/* copy to ensure proper free in end */
+				steve->run_customdata= steve->customdata;
+				steve->run_free= steve->free;
+				steve->free= NULL;
+				steve->customdata= NULL;
+				steve->running= 1;
+				
+				if(steve->initjob)
+					steve->initjob(steve->run_customdata);
+				
+				BLI_init_threads(&steve->threads, do_job_thread, 1);
+				BLI_insert_thread(&steve->threads, steve);
 
-			// printf("job started\n");
+				// printf("job started\n");
+			}
 			
 			/* restarted job has timer already */
 			if(steve->wt==NULL)
@@ -269,6 +294,7 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 	for(; steve; steve= steve->next) {
 		
 		if(evt->customdata==steve->wt) {
+			
 			/* running threads */
 			if(steve->threads.first) {
 				
@@ -298,7 +324,7 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 					
 					/* new job added for steve? */
 					if(steve->customdata) {
-						WM_jobs_start(steve);
+						WM_jobs_start(wm, steve);
 					}
 					else {
 						WM_event_remove_window_timer(steve->win, steve->wt);
@@ -310,6 +336,10 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 					}
 				}
 			}
+			else if(steve->suspended) {
+				WM_jobs_start(wm, steve);
+			}
+			
 			return OPERATOR_FINISHED;
 		}
 	}

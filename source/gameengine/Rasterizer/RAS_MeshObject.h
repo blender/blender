@@ -45,6 +45,7 @@
 #include "GEN_HashedPtr.h"
 
 struct Mesh;
+class RAS_Deformer;
 
 /* RAS_MeshObject is a mesh used for rendering. It stores polygons,
  * but the actual vertices and index arrays are stored in material
@@ -54,7 +55,7 @@ class RAS_MeshObject
 {
 private:
 	unsigned int				m_debugcolor;
-	int							m_lightlayer;
+	//int							m_lightlayer;
 
 	bool						m_bModified;
 	bool						m_bMeshModified;
@@ -89,15 +90,16 @@ public:
 
 	RAS_MeshMaterial* 	GetMeshMaterial(unsigned int matid);
 	RAS_MeshMaterial*	GetMeshMaterial(RAS_IPolyMaterial *mat);
+	int					GetMaterialId(RAS_IPolyMaterial *mat);
 
 	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
 	list<RAS_MeshMaterial>::iterator GetLastMaterial();
 
-	unsigned int		GetLightLayer();
+	//unsigned int		GetLightLayer();
 
 	/* name */
-	void				SetName(STR_String name);
-	const STR_String&	GetName();
+	void				SetName(const char *name);
+	STR_String&			GetName();
 
 	/* modification state */
 	bool				MeshModified();
@@ -129,7 +131,7 @@ public:
 	RAS_Polygon*		GetPolygon(int num) const;
 	
 	/* buckets */
-	virtual void		AddMeshUser(void *clientobj);
+	virtual void		AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer);
 	virtual void		UpdateBuckets(
 							void* clientobj,
 							double* oglmatrix,

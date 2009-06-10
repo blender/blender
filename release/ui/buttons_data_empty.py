@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
+		ob = context.object
 		return (ob and ob.type == 'EMPTY')
 	
 class DATA_PT_empty(DataButtonsPanel):
@@ -15,12 +15,9 @@ class DATA_PT_empty(DataButtonsPanel):
 	__label__ = "Empty"
 
 	def draw(self, context):
-		ob = context.active_object
+		ob = context.object
 		layout = self.layout
 
-		if not ob:
-			return
-			
 		layout.itemR(ob, "empty_draw_type")
 		layout.itemR(ob, "empty_draw_size")
 		

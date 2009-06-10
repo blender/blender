@@ -56,7 +56,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 	if(op)
 		return op->type->srna;
 	else
-		return &RNA_OperatorProperties;
+		return ptr->type;
 }
 
 IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
@@ -107,7 +107,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");
@@ -133,6 +133,21 @@ static void rna_def_operator_utils(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time", "Time of mouse location.");
 }
 
+static void rna_def_operator_filelist_element(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "OperatorFileListElement", "IDPropertyGroup");
+	RNA_def_struct_ui_text(srna, "Operator File List Element", "");
+	
+	
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Name", "the name of a file or directory within a file list");
+}
+
+
 static void rna_def_windowmanager(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -151,6 +166,7 @@ void RNA_def_wm(BlenderRNA *brna)
 {
 	rna_def_operator(brna);
 	rna_def_operator_utils(brna);
+	rna_def_operator_filelist_element(brna);
 	rna_def_windowmanager(brna);
 }
 

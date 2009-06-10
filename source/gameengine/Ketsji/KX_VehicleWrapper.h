@@ -13,6 +13,7 @@ class	KX_VehicleWrapper : public PyObjectPlus
 {
 	Py_Header;
 	virtual PyObject*		py_getattro(PyObject *attr);
+	virtual PyObject*		py_getattro_dict();
 	virtual int 			py_setattro(PyObject *attr, PyObject *value);
 
 	std::vector<PHY_IMotionState*> m_motionStates;

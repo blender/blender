@@ -859,27 +859,26 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 }
 #endif
 /* ************************** spin operator ******************** */
-	
-static int spin_mesh(bContext *C, float *dvec, int steps, float degr, int dupli )
+
+
+static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli )
 {
 	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0f, 0.0f, 0.0f};
-	float *curs, si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
+	float si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
 	float cent[3], bmat[3][3];
 	float phi;
 	short a, ok= 1;
 
+	RNA_float_get_array(op->ptr, "center", cent);
+	
 	/* imat and center and size */
 	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat,bmat);
 
-	curs= give_cursor(scene, v3d);
-	VECCOPY(cent, curs);
 	cent[0]-= obedit->obmat[3][0];
 	cent[1]-= obedit->obmat[3][1];
 	cent[2]-= obedit->obmat[3][2];
@@ -889,15 +888,7 @@ static int spin_mesh(bContext *C, float *dvec, int steps, float degr, int dupli 
 	phi/= steps;
 	if(scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
-	if(dvec) {
-		n[0]= rv3d->viewinv[1][0];
-		n[1]= rv3d->viewinv[1][1];
-		n[2]= rv3d->viewinv[1][2];
-	} else {
-		n[0]= rv3d->viewinv[2][0];
-		n[1]= rv3d->viewinv[2][1];
-		n[2]= rv3d->viewinv[2][2];
-	}
+	RNA_float_get_array(op->ptr, "axis", n);
 	Normalize(n);
 
 	q[0]= (float)cos(phi);
@@ -959,12 +950,25 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	ok= spin_mesh(C, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
+	ok= spin_mesh(C, op, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
 	if(ok==0) {
 		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
 		return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_FINISHED;
+}
+
+/* get center and axis, in global coords */
+static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	
+	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
+	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
+	
+	return spin_mesh_exec(C, op);
 }
 
 void MESH_OT_spin(wmOperatorType *ot)
@@ -974,16 +978,21 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->idname= "MESH_OT_spin";
 	
 	/* api callbacks */
+	ot->invoke= spin_mesh_invoke;
 	ot->exec= spin_mesh_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	/*props */
+	/* props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
 	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
 	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
+	
+	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+
 }
 
 static int screw_mesh_exec(bContext *C, wmOperator *op)
@@ -1042,7 +1051,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		dvec[2]= -dvec[2];
 	}
 	
-	if(spin_mesh(C, dvec, turns*steps, 360.0f*turns, 0)) {
+	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 		BKE_mesh_end_editmesh(obedit->data, em);		
 		return OPERATOR_FINISHED;
@@ -1056,6 +1065,19 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
+/* get center and axis, in global coords */
+static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	
+	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
+	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[1]);
+	
+	return screw_mesh_exec(C, op);
+}
+
 void MESH_OT_screw(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1063,6 +1085,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	ot->idname= "MESH_OT_screw";
 	
 	/* api callbacks */
+	ot->invoke= screw_mesh_invoke;
 	ot->exec= screw_mesh_exec;
 	ot->poll= ED_operator_editmesh;
 	
@@ -1072,6 +1095,9 @@ void MESH_OT_screw(wmOperatorType *ot)
 	/*props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
 	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, 256);
+
+	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
 static void erase_edges(EditMesh *em, ListBase *l)
@@ -1128,7 +1154,6 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 	int count;
-	char *str="Erase";
 	
 	if(event<1) return OPERATOR_CANCELLED;
 
@@ -1136,7 +1161,7 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	if(event==10 ) {
-		str= "Erase Vertices";
+		//"Erase Vertices";
 		erase_edges(em, &em->edges);
 		erase_faces(em, &em->faces);
 		erase_vertices(em, &em->verts);
@@ -1145,22 +1170,22 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		BKE_mesh_end_editmesh(obedit->data, em);
 	} 
 	else if(event==7) {
+		//"Dissolve Verts"
 		if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv",BM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 	else if(event==6) {
+		//"Erase Edge Loop";
 		if(!EdgeLoopDelete(em, op)) {
 			BKE_mesh_end_editmesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
 		}
 
-		str= "Erase Edge Loop";
-
 		EM_fgon_flags(em);	// redo flags and indices for fgons
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 	else if(event==4) {
-		str= "Erase Edges & Faces";
+		//"Erase Edges & Faces";
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
@@ -1205,7 +1230,7 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		BKE_mesh_end_editmesh(obedit->data, em);
 	} 
 	else if(event==1) {
-		str= "Erase Edges";
+		//"Erase Edges";
 		// faces first
 		efa= em->faces.first;
 		while(efa) {
@@ -1252,14 +1277,14 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 	else if(event==2) {
-		str="Erase Faces";
+		//"Erase Faces";
 		delfaceflag(em, SELECT);
 
 		EM_fgon_flags(em);	// redo flags and indices for fgons
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 	else if(event==3) {
-		str= "Erase All";
+		//"Erase All";
 		if(em->verts.first) free_vertlist(em, &em->verts);
 		if(em->edges.first) free_edgelist(em, &em->edges);
 		if(em->faces.first) free_facelist(em, &em->faces);
@@ -1269,10 +1294,10 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 	else if(event==5) {
+		//"Erase Only Faces";
 		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%d",
 		                  BM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
-		str= "Erase Only Faces";
 	}
 	
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);

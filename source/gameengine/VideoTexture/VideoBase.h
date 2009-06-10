@@ -80,7 +80,17 @@ public:
 		}
 		return false;
 	}
-	/// stop/pause video
+	/// pause video
+	virtual bool pause (void)
+	{
+		if (m_status == SourcePlaying)
+		{
+			m_status = SourceStopped;
+			return true;
+		}
+		return false;
+	}
+	/// stop video
 	virtual bool stop (void)
 	{
 		if (m_status == SourcePlaying)
@@ -170,6 +180,7 @@ template <class T> void Video_init (PyImage * self)
 // video functions
 void Video_open (VideoBase * self, char * file, short captureID);
 PyObject * Video_play (PyImage * self);
+PyObject * Video_pause (PyImage * self);
 PyObject * Video_stop (PyImage * self);
 PyObject * Video_refresh (PyImage * self);
 PyObject * Video_getStatus (PyImage * self, void * closure);

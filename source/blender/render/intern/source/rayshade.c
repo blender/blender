@@ -262,13 +262,15 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 	shade_input_set_shade_texco(shi);
 	
-	if(is->mode==RE_RAY_SHADOW_TRA) 
-		if(shi->mat->nodetree && shi->mat->use_nodes) {
+	if(is->mode==RE_RAY_SHADOW_TRA) {
+		/* temp hack to prevent recursion */
+		if(shi->nodes==0 && shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
 		else
 			shade_color(shi, shr);
+	}
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -1273,7 +1275,7 @@ static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 	shadfac[3]= (1.0f-alpha)*shadfac[3];
 }
 
-static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
+static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int traflag)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
 	   if it has col[3]>0.0f  continue. so exit when alpha is full */
@@ -1290,16 +1292,15 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		/* end warning! - Campbell */
 		
 		shi.depth= 1;					/* only used to indicate tracing */
-		shi.mask= 1;
-		
-		/*shi.osatex= 0;
-		shi.thread= shi.sample= 0;
-		shi.lay= 0;
-		shi.passflag= 0;
-		shi.combinedflag= 0;
-		shi.do_preview= 0;
-		shi.light_override= NULL;
-		shi.mat_override= NULL;*/
+		shi.mask= origshi->mask;
+		shi.thread= origshi->thread;
+		shi.passflag= SCE_PASS_COMBINED;
+		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
+	
+		shi.xs= origshi->xs;
+		shi.ys= origshi->ys;
+		shi.lay= origshi->lay;
+		shi.nodes= origshi->nodes;
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
@@ -1315,7 +1316,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 			is->oborig= RAY_OBJECT_SET(&R, shi.obi);
 			is->faceorig= (RayFace*)shi.vlr;
 
-			ray_trace_shadow_tra(is, depth-1, traflag | RAY_TRA);
+			ray_trace_shadow_tra(is, origshi, depth-1, traflag | RAY_TRA);
 		}
 	}
 }
@@ -1943,7 +1944,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			isec->col[0]= isec->col[1]= isec->col[2]=  1.0f;
 			isec->col[3]= 1.0f;
 			
-			ray_trace_shadow_tra(isec, DEPTH_SHADOW_TRA, 0);
+			ray_trace_shadow_tra(isec, shi, DEPTH_SHADOW_TRA, 0);
 			shadfac[0] += isec->col[0];
 			shadfac[1] += isec->col[1];
 			shadfac[2] += isec->col[2];
@@ -2041,7 +2042,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 			isec->col[0]= isec->col[1]= isec->col[2]=  1.0f;
 			isec->col[3]= 1.0f;
 			
-			ray_trace_shadow_tra(isec, DEPTH_SHADOW_TRA, 0);
+			ray_trace_shadow_tra(isec, shi, DEPTH_SHADOW_TRA, 0);
 			shadfac[0] += isec->col[0];
 			shadfac[1] += isec->col[1];
 			shadfac[2] += isec->col[2];
@@ -2122,7 +2123,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				isec.col[0]= isec.col[1]= isec.col[2]=  1.0f;
 				isec.col[3]= 1.0f;
 
-				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA, 0);
+				ray_trace_shadow_tra(&isec, shi, DEPTH_SHADOW_TRA, 0);
 				QUATCOPY(shadfac, isec.col);
 			}
 			else if(RE_ray_tree_intersect(R.raytree, &isec)) shadfac[3]= 0.0f;

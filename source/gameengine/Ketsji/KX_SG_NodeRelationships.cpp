@@ -63,7 +63,7 @@ UpdateChildCoordinates(
 
 	if (parent==NULL) { /* Simple case */
 		child->SetWorldFromLocalTransform();
-		child->SetModified(false);
+		child->ClearModified();
 		return true; //false;
 	}
 	else {
@@ -75,7 +75,7 @@ UpdateChildCoordinates(
 		child->SetWorldScale(p_world_scale * child->GetLocalScale());
 		child->SetWorldOrientation(p_world_rotation * child->GetLocalOrientation());
 		child->SetWorldPosition(p_world_pos + p_world_scale * (p_world_rotation * child->GetLocalPosition()));
-		child->SetModified(false);
+		child->ClearModified();
 		return true;
 	}
 }
@@ -137,7 +137,7 @@ UpdateChildCoordinates(
 		child->SetWorldPosition(child->GetLocalPosition());
 	
 	child->SetWorldOrientation(child->GetLocalOrientation());
-	child->SetModified(false);
+	child->ClearModified();
 	return true; //parent != NULL;
 }
 
@@ -259,7 +259,9 @@ UpdateChildCoordinates(
 	child->SetWorldScale(child_w_scale);
 	child->SetWorldPosition(child_w_pos);
 	child->SetWorldOrientation(child_w_rotation);
-	child->SetModified(false);
+	child->ClearModified();
+	// this node must always be updated, so reschedule it for next time
+	child->ActivateRecheduleUpdateCallback();
 	
 	return true; //parent != NULL;
 }

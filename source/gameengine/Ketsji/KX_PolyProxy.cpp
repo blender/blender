@@ -39,8 +39,13 @@
 #include "KX_PyMath.h"
 
 PyTypeObject KX_PolyProxy::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_PolyProxy",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -59,8 +64,8 @@ PyTypeObject KX_PolyProxy::Type = {
 
 PyParentObject KX_PolyProxy::Parents[] = {
 	&KX_PolyProxy::Type,
-	&SCA_IObject::Type,
 	&CValue::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
@@ -79,6 +84,7 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 
 PyAttributeDef KX_PolyProxy::Attributes[] = {
 	/* All dummy's so they come up in a dir() */
+	//KX_PYATTRIBUTE_TODO("DummyProps"),
 	KX_PYATTRIBUTE_DUMMY("matname"),
 	KX_PYATTRIBUTE_DUMMY("texture"),
 	KX_PYATTRIBUTE_DUMMY("material"),
@@ -156,7 +162,11 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	py_getattro_up(SCA_IObject);
+	py_getattro_up(CValue);
+}
+
+PyObject* KX_PolyProxy::py_getattro_dict() {
+	py_getattro_dict_up(CValue);
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
@@ -176,11 +186,9 @@ CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { re
 STR_String	sPolyName="polygone";
 const STR_String &	KX_PolyProxy::GetText() {return sPolyName;};
 double		KX_PolyProxy::GetNumber() { return -1;}
-STR_String	KX_PolyProxy::GetName() { return sPolyName;}
-void		KX_PolyProxy::SetName(STR_String) { };
+STR_String&	KX_PolyProxy::GetName() { return sPolyName;}
+void		KX_PolyProxy::SetName(const char *) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}
-void		KX_PolyProxy::ReplicaSetName(STR_String) {};
-
 
 // stuff for python integration
 

@@ -10,7 +10,7 @@ __url__= ["blender", "blenderartist"]
 __version__= "1.0"
 
 __bpydoc__= """\
-This script takes the selected mesh objects, devides them into 2 groups
+This script takes the selected mesh objects, divides them into 2 groups
 Cutters and The objects to be cut.
 
 Cutters are meshes with no faces, just edge loops. and any meshes with faces will be cut.
@@ -128,14 +128,14 @@ def sorted_indicies(i1, i2):
 
 def fake_length2d(pt1, pt2):
 	'''
-	Only used for comparison so dont sqrt
+	Only used for comparison so don't sqrt
 	'''
 	#return math.sqrt(abs(pow(x1-x2, 2)+ pow(y1-y2, 2)))
 	return pow(pt1[0]-pt2[0], 2) + pow(pt1[1]- pt2[1], 2)
 
 def length2d(pt1, pt2):
 	'''
-	Only used for comparison so dont sqrt
+	Only used for comparison so don't sqrt
 	'''
 	#return math.sqrt(abs(pow(x1-x2, 2)+ pow(y1-y2, 2)))
 	return sqrt(pow(pt1[0]-pt2[0], 2) + pow(pt1[1]- pt2[1], 2))
@@ -150,7 +150,7 @@ def tri_area_2d(v1, v2, v3):
 	return 0.25 * sqrt(abs(p*(p-2*e1)*(p-2*e2)*(p-2*e3)))
 
 def tri_pt_find_z_2d(pt, tri):
-	""" Takes a face and 3d vector and assigns teh vectors Z to its on the face"""
+	""" Takes a face and 3d vector and assigns the vectors Z to its on the face"""
 	
 	l1= tri_area_2d(tri[1], tri[2], pt)
 	l2= tri_area_2d(tri[0], tri[2], pt)
@@ -170,7 +170,7 @@ def tri_pt_find_z_2d(pt, tri):
 
 
 def tri_pt_find_uv_2d(pt, tri, uvs):
-	""" Takes a face and 3d vector and assigns teh vectors Z to its on the face"""
+	""" Takes a face and 3d vector and assigns the vectors Z to its on the face"""
 	
 	l1= tri_area_2d(tri[1], tri[2], pt)
 	l2= tri_area_2d(tri[0], tri[2], pt)
@@ -288,12 +288,12 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 			# Loop through the cutter edges.
 			for ei_c, ed_c in enumerate(me_c.edges):
 				# If the cutter edge has 2 verts inside the same face then we can ignore it
-				# Bothe are different faces or None
+				# Both are different faces or None
 				if cut_vert_terrain_faces[ed_c.v1.index] != cut_vert_terrain_faces[ed_c.v2.index] or\
 				cut_vert_terrain_faces[ed_c.v1.index] == cut_vert_terrain_faces[ed_c.v2.index] == None:
 					eb_c= c.edge_bounds[ei_c]
 					if bounds_intersect(eb_t, eb_c): # face/edge bounds intersect?
-						# Now we know the 2 edges might intersect, we'll do a propper test
+						# Now we know the 2 edges might intersect, we'll do a proper test
 						
 						x= LineIntersect2D(ed_t.v1.co, ed_t.v2.co,   ed_c.v1.co, ed_c.v2.co)					
 						if x:
@@ -340,7 +340,7 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 		for f in faces:
 			faces_intersecting.setdefault(f.index, []).append(ed_isect)
 	
-	# this list is used to store edges that are totaly inside a face ( no intersections with terrain)
+	# this list is used to store edges that are totally inside a face ( no intersections with terrain)
 	# we can remove these as we
 	face_containing_edges= [[] for i in xrange(len(me_t.faces))]
 	for ed_c in me_c.edges:
@@ -412,8 +412,8 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 		
 		
 		
-		# edges that dont have a vert in the face have to span between to intersection points
-		# since we dont know the other point at any 1 time we need to remember edges that 
+		# edges that don't have a vert in the face have to span between to intersection points
+		# since we don't know the other point at any 1 time we need to remember edges that 
 		# span a face and add them once we'v collected both
 		# first add outline edges
 		edge_span_face= {}
@@ -507,7 +507,7 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 						# 0,2,3
 						f_uv_mod= f_uv[0], f_uv[2], f_uv[3]
 						f_vco_mod= f_vco[0], f_vco[2], f_vco[3]
-					# else - side of 0,1,2 - dont modify the quad
+					# else - side of 0,1,2 - don't modify the quad
 				
 				uvs[i]= tri_pt_find_uv_2d(v_co, f_vco_mod, f_uv_mod)	
 			
@@ -579,7 +579,7 @@ def main():
 	for ob in obs:
 		if ob.type == 'Mesh':
 			me= ob.getData(mesh=1)
-		elif ob.data.flag & 1: # Is the curve 3D? else dont use.
+		elif ob.data.flag & 1: # Is the curve 3D? else don't use.
 			me= BPyMesh.getMeshFromObject(ob) # get the curve
 		else:
 			continue

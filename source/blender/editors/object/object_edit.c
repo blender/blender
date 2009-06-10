@@ -204,21 +204,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 }
 
 
-/*
- * Returns true if the Object data is a from an external blend file (libdata)
- */
-int object_data_is_libdata(Object *ob)
-{
-	if (!ob) return 0;
-	if (ob->proxy) return 0;
-	if (ob->id.lib) return 1;
-	if (!ob->data) return 0;
-	if (((ID *)ob->data)->lib) return 1;
-	return 0;
-}
-
-
-
 /* exported */
 void ED_object_base_init_from_view(bContext *C, Base *base)
 {
@@ -297,12 +282,12 @@ static Object *object_add_type(bContext *C, int type)
 	ob= add_object(scene, type);
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);
-	
+
 	/* more editor stuff */
 	ED_object_base_init_from_view(C, BASACT);
-	
+
 	DAG_scene_sort(scene);
-	
+
 	return ob;
 }
 
@@ -2627,7 +2612,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_DEFAULT);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */

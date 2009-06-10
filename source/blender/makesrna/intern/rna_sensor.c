@@ -197,6 +197,7 @@ void rna_def_touch_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "Only look for floors with this material.");
 }
 

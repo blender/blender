@@ -74,8 +74,8 @@ void GPC_RenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
 	m_clientobject = NULL;
 	m_lastlightlayer = -1;
-	m_lastlighting = false;
 	m_lastauxinfo = NULL;
+	m_lastlighting = true; /* force disable in DisableOpenGLLights() */
 	DisableOpenGLLights();
 }
 
@@ -286,10 +286,7 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int height)
 {
 	STR_String tmpstr(text);
-	int lines;
 	char* s = tmpstr.Ptr();
-	char* p;
-	
 
 	// Save and change OpenGL settings
 	int texture2D;

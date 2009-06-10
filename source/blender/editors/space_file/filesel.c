@@ -84,13 +84,13 @@
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, FILE_UNIX, "", "/", 0, FILE_SHORTDISPLAY, 0);
+		ED_fileselect_set_params(sfile, "", "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORTALPHA);
 	}
 	return sfile->params;
 }
 
-short ED_fileselect_set_params(SpaceFile *sfile, int type, const char *title, const char *path,
-							   short flag, short display, short filter)
+short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *path,
+							   short flag, short display, short filter, short sort)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	FileSelectParams *params;
@@ -101,39 +101,26 @@ short ED_fileselect_set_params(SpaceFile *sfile, int type, const char *title, co
 
 	params = sfile->params;
 
-	params->type = type;
 	params->flag = flag;
 	params->display = display;
 	params->filter = filter;
+	params->sort = sort;
 
 	BLI_strncpy(params->title, title, sizeof(params->title));
 	
 	BLI_strncpy(name, path, sizeof(name));
 	BLI_convertstringcode(name, G.sce);
-	
-	switch(type) {
-		case FILE_MAIN:
-			break;
-		case FILE_LOADLIB:
-			break;
-		case FILE_BLENDER:
-		case FILE_LOADFONT:
-		default:
-			{
-				BLI_split_dirfile(name, dir, file);
-				BLI_strncpy(params->file, file, sizeof(params->file));
-				BLI_strncpy(params->dir, dir, sizeof(params->dir));
-				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
-			}
-			break;
-	}
+
+	BLI_split_dirfile(name, dir, file);
+	BLI_strncpy(params->file, file, sizeof(params->file));
+	BLI_strncpy(params->dir, dir, sizeof(params->dir));
+	BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
 
 	return 1;
 }
 
 void ED_fileselect_reset_params(SpaceFile *sfile)
 {
-	sfile->params->type = FILE_UNIX;
 	sfile->params->flag = 0;
 	sfile->params->title[0] = '\0';
 }

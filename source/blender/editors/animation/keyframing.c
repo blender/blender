@@ -728,8 +728,23 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		float curval= 0.0f;
 		
 		/* set additional flags for the F-Curve (i.e. only integer values) */
-		if (RNA_property_type(prop) != PROP_FLOAT)
-			fcu->flag |= FCURVE_INT_VALUES;
+		fcu->flag &= ~(FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);
+		switch (RNA_property_type(prop)) {
+			case PROP_FLOAT:
+				/* do nothing */
+				break;
+			case PROP_INT:
+				/* do integer (only 'whole' numbers) interpolation between all points */
+				fcu->flag |= FCURVE_INT_VALUES;
+				break;
+			default:
+				/* do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
+				 * values at all) interpolation between all points
+				 *	- however, we must also ensure that evaluated values are only integers still
+				 */
+				fcu->flag |= (FCURVE_DISCRETE_VALUES|FCURVE_INT_VALUES);
+				break;
+		}
 		
 		/* apply special time tweaking */
 			// XXX check on this stuff...
@@ -1234,7 +1249,10 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	}
 	else if (G.f & G_DEBUG) {
 		printf("ptr.data = %p, prop = %p,", ptr.data, prop);
-		printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
+		if(prop)
+			printf("animateable = %d \n", RNA_property_animateable(&ptr, prop));
+		else
+			printf("animateable = NULL \n");
 	}
 	
 	if (success) {

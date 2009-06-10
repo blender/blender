@@ -433,7 +433,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 	unsigned char *rect= NULL;
 	float *rect_float= NULL;
 	int x, y;
-	int checkerwidth=21, dark=1;
+	int checkerwidth=32, dark=1;
 	
 	if (floatbuf) {
 		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
@@ -668,6 +668,11 @@ static uintptr_t image_mem_size(Image *ima)
 	uintptr_t size = 0;
 
 	size= 0;
+	
+	/* viewers have memory depending on other rules, has no valid rect pointer */
+	if(ima->source==IMA_SRC_VIEWER)
+		return 0;
+	
 	for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
 		if(ibuf->rect) size += MEM_allocN_len(ibuf->rect);
 		else if(ibuf->rect_float) size += MEM_allocN_len(ibuf->rect_float);
@@ -1052,7 +1057,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq= NULL; //XXX = get_forground_frame_seq(scene->r.cfra);
+		Sequence *seq= NULL; //XXX = get_foreground_frame_seq(scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");

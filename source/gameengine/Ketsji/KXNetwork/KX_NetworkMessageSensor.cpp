@@ -79,15 +79,13 @@ CValue* KX_NetworkMessageSensor::GetReplica() {
 	CValue* replica = new KX_NetworkMessageSensor(*this);
 
 	if (replica == NULL) return NULL;
-
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
 
 // Return true only for flank (UP and DOWN)
-bool KX_NetworkMessageSensor::Evaluate(CValue* event)
+bool KX_NetworkMessageSensor::Evaluate()
 {
 	bool result = false;
 	bool WasUp = m_IsUp;
@@ -104,8 +102,8 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 		m_SubjectList = NULL;
 	}
 
-	STR_String toname=GetParent()->GetName();
-	STR_String subject = this->m_subject;
+	STR_String& toname=GetParent()->GetName();
+	STR_String& subject = this->m_subject;
 
 	vector<NG_NetworkMessage*> messages =
 		m_NetworkScene->FindMessages(toname,"",subject,true);
@@ -125,9 +123,9 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 	for (mesit=messages.begin();mesit!=messages.end();mesit++)
 	{
 		// save the body
-		STR_String body = (*mesit)->GetMessageText();
+		const STR_String& body = (*mesit)->GetMessageText();
 		// save the subject
-		STR_String messub = (*mesit)->GetSubject();
+		const STR_String& messub = (*mesit)->GetSubject();
 #ifdef NAN_NET_DEBUG
 		if (body) {
 			cout << "body [" << body << "]\n";
@@ -168,8 +166,13 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 
 /* Integration hooks --------------------------------------------------- */
 PyTypeObject KX_NetworkMessageSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_NetworkMessageSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -225,6 +228,10 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 
 PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_NetworkMessageSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {

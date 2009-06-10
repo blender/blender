@@ -407,6 +407,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_templates.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_utils.c"
 				>
 			</File>
@@ -603,6 +607,10 @@
 			Name="space_image"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_buttons.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_image\image_draw.c"
 				>
 			</File>
@@ -616,10 +624,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_image\image_ops.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_image\image_panels.c"
 				>
 			</File>
 			<File
@@ -674,6 +678,10 @@
 		<Filter
 			Name="space_buttons"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_context.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_header.c"
 				>

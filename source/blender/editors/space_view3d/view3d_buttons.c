@@ -1502,6 +1502,7 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
+#if 0
 static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -1526,6 +1527,7 @@ static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
 }
+#endif
 
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
@@ -1574,7 +1576,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	uiBlockBeginAlign(block);
 	
 	/* use real flag instead of 1 */
-	uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+	uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones, (Ctrl snaps to mesh volume)");
 	uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
 	uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
 	yco -= 20;
@@ -1687,7 +1689,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	PointerRNA ptr;
 	uiBlock *block;
 	
-	block= uiLayoutBlock(pa->layout);
+	block= uiLayoutGetBlock(pa->layout);
 
 	/* only for operators that are registered and did an undo push */
 	for(op= wm->operators.last; op; op= op->prev)
