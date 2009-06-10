@@ -144,6 +144,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		st = context.space_data
 		
 		layout.column()
+		layout.itemO("SEQUENCER_OT_scene_strip_add", text="Scene")
 		layout.itemO("SEQUENCER_OT_movie_strip_add", text="Movie")
 		layout.item_booleanO("SEQUENCER_OT_movie_strip_add", "sound", True, text="Movie & Sound") # FFMPEG ONLY
 		layout.itemO("SEQUENCER_OT_image_strip_add", text="Image")
@@ -469,6 +470,16 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		col.itemR(strip, "reverse_frames", text="Backwards")
 		
 		layout.itemR(strip, "use_color_balance")
+		if strip.color_balance: # TODO - need to add this somehow
+			col = layout.row()
+			
+			col.itemR(strip.color_balance, "lift")
+			col.itemR(strip.color_balance, "gamma")
+			col.itemR(strip.color_balance, "gain")
+			col = layout.row()
+			col.itemR(strip.color_balance, "inverse_lift")
+			col.itemR(strip.color_balance, "inverse_gamma")
+			col.itemR(strip.color_balance, "inverse_gain")
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
@@ -496,11 +507,11 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 		
 		layout = self.layout
 		
-		row = layout.row()
-		row.itemR(strip, "proxy_custom_directory")
+		flow = layout.column_flow()
+		flow.itemR(strip, "proxy_custom_directory")
 		if strip.proxy: # TODO - need to add this somehow
-			row.itemR(strip.proxy, "dir")
-			row.itemR(strip.proxy, "file")
+			flow.itemR(strip.proxy, "directory")
+			flow.itemR(strip.proxy, "file")
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):

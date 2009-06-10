@@ -98,6 +98,39 @@ static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
 	sort_seq(sce);
 }
 
+static int rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	int c;
+	
+	if(value) {
+		seq->flag |= SEQ_USE_COLOR_BALANCE;
+		if(seq->strip->color_balance == NULL) {
+			seq->strip->color_balance = MEM_callocN(sizeof(struct StripColorBalance), "StripColorBalance");
+			for (c=0; c<3; c++) {
+				seq->strip->color_balance->lift[c] = 1.0f;
+				seq->strip->color_balance->gamma[c] = 1.0f;
+				seq->strip->color_balance->gain[c] = 1.0f;
+			}
+		}
+	} else {
+		seq->flag ^= SEQ_USE_COLOR_BALANCE;
+	}
+}
+
+static int rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_PROXY;
+		if(seq->strip->proxy == NULL) {
+			seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_PROXY;
+	}
+}
+
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -504,8 +537,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_color_balance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_COLOR_BALANCE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate color balance
 	RNA_def_property_ui_text(prop, "Use Color Balance", "(3-Way color correction) on input.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_color_balance_set");
 
 	prop= RNA_def_property(srna, "color_balance", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->color_balance");
@@ -551,8 +584,8 @@ static void rna_def_proxy(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate proxy
 	RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this strip.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_proxy_set");
 
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->proxy");
