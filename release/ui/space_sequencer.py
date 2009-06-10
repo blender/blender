@@ -391,7 +391,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+		return strip.type in ('MOVIE', 'IMAGE', 'SOUND')
 	
 	def draw(self, context):
 		layout = self.layout
@@ -404,12 +404,15 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		sub = split.column() 
 		sub.itemR(strip, "directory", text="")
 		
-		# TODO - get current element!
+		# Current element for the filename
 		split = layout.split(percentage=0.3)
 		sub = split.column()
 		sub.itemL(text="File Name:")
-		sub = split.column() 
-		sub.itemR(strip.elements[0], "filename", text="")
+		sub = split.column()
+		
+		elem = strip.getStripElem(context.scene.current_frame)
+		if elem:
+			sub.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
 		"""
 		layout.itemR(strip, "use_crop")

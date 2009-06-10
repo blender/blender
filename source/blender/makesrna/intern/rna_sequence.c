@@ -34,6 +34,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BKE_sequence.h"
+
 #ifdef RNA_RUNTIME
 
 static int rna_SequenceEditor_name_length(PointerRNA *ptr)
@@ -240,6 +242,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	static const EnumPropertyItem seq_type_items[]= {
 		{SEQ_IMAGE, "IMAGE", "Image", ""}, 
@@ -370,6 +373,13 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend_opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
+	
+	/* funcsions */
+	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
+	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
+	prop= RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "The frame to get the strip element from", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }
 
 void rna_def_editor(BlenderRNA *brna)
