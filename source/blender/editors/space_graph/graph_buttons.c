@@ -405,7 +405,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	char gen_mode[]="Generator Type%t|Expanded Polynomial%x0|Factorised Polynomial%x1|Built-In Function%x2|Expression%x3";
-	char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4";
+	char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4|Normalised Sin%x5";
 	int cy= *yco - 30;
 	uiBut *but;
 	
@@ -554,6 +554,9 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 						break;
 					case FCM_GENERATOR_FN_SQRT: /* square root */
 						sprintf(func_name, "sqrt(");
+						break;
+					case FCM_GENERATOR_FN_SINC: /* normalised sine wave */
+						sprintf(func_name, "sinc(");
 						break;
 					default: /* unknown */
 						sprintf(func_name, "<fn?>(");

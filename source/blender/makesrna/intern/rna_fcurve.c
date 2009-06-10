@@ -284,6 +284,7 @@ static void rna_def_fmodifier_generator_function(BlenderRNA *brna)
 		{2, "TAN", "Tangent", ""},
 		{3, "SQRT", "Square Root", ""},
 		{4, "LN", "Natural Logarithm", ""},
+		{5, "SINC", "Normalised Sine", "sin(x) / x"},
 		{0, NULL, NULL, NULL}};
 		
 	

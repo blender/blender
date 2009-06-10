@@ -1410,6 +1410,18 @@ static void fcm_generator_verify (FModifier *fcm)
 	}
 }
 
+/* Unary 'normalised sine' function
+ * 	y = sin(PI + x) / (PI * x),
+ * except for x = 0 when y = 1.
+ */
+static double sinc (double x)
+{
+    if (fabs(x) < 0.0001)
+        return 1.0;
+    else
+        return sin(M_PI * x) / (M_PI * x);
+}
+
 static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
@@ -1490,6 +1502,9 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 				case FCM_GENERATOR_FN_COS: /* cosine wave */
 					fn= cos;
 					break;
+				case FCM_GENERATOR_FN_SINC: /* normalised sine wave */
+					fn= sinc;
+					break;
 					
 				/* validation required */
 				case FCM_GENERATOR_FN_TAN: /* tangent wave */
@@ -1527,7 +1542,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 					}
 				}
 					break;
-					
+				
 				default:
 					printf("Invalid Function-Generator for F-Modifier - %d \n", data->func_type);
 			}
