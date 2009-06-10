@@ -1276,6 +1276,7 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 	}
 	
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1299,7 +1300,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 
 	delete_mesh(obedit, op, RNA_enum_get(op->ptr, "type"), scene);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
