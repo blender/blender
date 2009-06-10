@@ -423,7 +423,10 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
 	
-	uiPopupBoundsBlock(block, 0.0f, 0, -20); /* move it downwards, mouse over button */
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
 	
 	event= *(win->eventstate);	/* XXX huh huh? make api call */

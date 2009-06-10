@@ -1144,14 +1144,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		ct= chartransdata;
 		if (cu->sepchar==0) {
 			for (i= 0; i<slen; i++) {
-				cha = (unsigned long) mem[i];
-				info = &(custrinfo[i]);
-				
+				cha = (uintptr_t) mem[i];
+				info = &(cu->strinfo[i]);
 				if (info->mat_nr > (ob->totcol)) {
 					/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
 					info->mat_nr = 0;
 				}
-				
 				// We do not want to see any character for \n or \r
 				if(cha != '\n' && cha != '\r')
 					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);

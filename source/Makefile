@@ -155,6 +155,9 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(NAN_BULLET2)/lib/libbullet2.a
 endif
 
+# Cloth requires bullet2, gameegine does not matter anymore
+#COMLIB += $(NAN_BULLET2)/lib/libbullet2.a
+
 COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
@@ -274,6 +277,7 @@ SPLIB = $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 # can I just not check them? nm claims they aren't...
 SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 SPLIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
+SPLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 # These three need to be explicitly mentioned on the cl, because 
 # if they are offered as a lib, they are optimized away. (nzc)
@@ -375,8 +379,6 @@ else
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-        ALUT = $(wildcard $(NAN_OPENAL)/lib/libalut.a)
-        NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
       ifeq ($(OS),windows)
@@ -385,8 +387,6 @@ else
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-        ALUT = $(wildcard $(NAN_OPENAL)/lib/alut_static.lib)
-        NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
@@ -400,8 +400,6 @@ else
       NAN_SND_LIBS += $(DUMMYSOUND)
       NAN_SND_LIBS += $(OPENALSOUND)
       NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-      ALUT = $(wildcard $(NAN_OPENAL)/lib/libalut.a)
-      NAN_SND_LIBS += $(ALUT)
       NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
       ifeq ($(OS), solaris)
@@ -410,8 +408,6 @@ else
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-        ALUT = $(wildcard $(NAN_OPENAL)/lib/libalut.a)
-        NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
         ifeq ($(OS), irix)

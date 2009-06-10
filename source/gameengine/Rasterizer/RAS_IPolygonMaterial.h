@@ -39,6 +39,9 @@
 #include "STR_HashedString.h"
 
 class RAS_IRasterizer;
+struct MTFace;
+struct Material;
+struct Scene;
 
 enum MaterialProps
 {
@@ -70,7 +73,8 @@ protected:
 	int						m_transp;
 	bool					m_alpha;
 	bool					m_zsort;
-	int						m_lightlayer;
+	//int						m_lightlayer;
+	int						m_materialindex;
 	
 	unsigned int			m_polymatid;
 	static unsigned int		m_newpolymatid;
@@ -96,8 +100,10 @@ public:
 		SHADOW				  =8192
 	};
 
+	RAS_IPolyMaterial();
 	RAS_IPolyMaterial(const STR_String& texname,
 					  const STR_String& matname,
+					  int materialindex,
 					  int tile,
 					  int tilexrep,
 					  int tileyrep,
@@ -106,6 +112,17 @@ public:
 					  bool alpha,
 					  bool zsort,
 					  int lightlayer);
+	void Initialize(const STR_String& texname,
+					const STR_String& matname,
+					int materialindex,
+					int tile,
+					int tilexrep,
+					int tileyrep,
+					int mode,
+					int transp,
+					bool alpha,
+					bool zsort,
+					int lightlayer);
 	virtual ~RAS_IPolyMaterial() {};
  
 	/**
@@ -130,7 +147,7 @@ public:
 
 	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
-	int					GetLightLayer() const;
+	//int					GetLightLayer() const;
 	bool				IsAlpha() const;
 	bool				IsZSort() const;
 	unsigned int		hash() const;
@@ -139,14 +156,18 @@ public:
 	dword				GetMaterialNameHash() const;
 	const STR_String&	GetTextureName() const;
 	unsigned int		GetFlag() const;
+	int					GetMaterialIndex() const;
 
+	virtual Material*   GetBlenderMaterial() const;
+	virtual Scene*		GetBlenderScene() const;
+	virtual void		ReleaseMaterial();
+	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
-	
 	/*
 	 * PreCalculate texture gen
 	 */
-	virtual void OnConstruction(){}
+	virtual void OnConstruction(int layer){}
 };
 
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)

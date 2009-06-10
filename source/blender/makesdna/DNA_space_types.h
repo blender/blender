@@ -121,7 +121,7 @@ typedef struct SpaceButs {
 	struct RenderInfo *ri;
 
 	short cursens, curact;
-	short align, pad;		/* align for panels */
+	short align, preview;		/* align for panels, preview is signal to refresh */
 	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
@@ -139,7 +139,8 @@ typedef struct SpaceButs {
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
 	char flag, texact;
 	
-	void *path;		/* runtime */
+	void *path;				/* runtime */
+	int pathflag, dataicon;	/* runtime */
 	ID *pinid;
 } SpaceButs;
 
@@ -154,7 +155,8 @@ typedef struct SpaceSeq {
 	View2D v2d; /* depricated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, pad;
+	short mainb;
+	short render_size;
 	short chanshown;
 	short zebra;
 	int flag;
@@ -343,7 +345,8 @@ typedef struct SpaceNode {
 	float mx, my;	/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
-	int treetype, pad;			/* treetype: as same nodetree->type */
+	int treetype;			/* treetype: as same nodetree->type */
+	short texfrom, pad;		/* texfrom object, world or brush */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
@@ -351,6 +354,11 @@ typedef struct SpaceNode {
 /* snode->flag */
 #define SNODE_BACKDRAW		2
 #define SNODE_DISPGP		4
+
+/* snode->texfrom */
+#define SNODE_TEX_OBJECT	0
+#define SNODE_TEX_WORLD		1
+#define SNODE_TEX_BRUSH		2
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
@@ -464,7 +472,6 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_SEQUENCER	4
 
 
-/* warning: the values of these defines are used in sbuts->tabs[8] */
 /* buts->mainb new */
 #define BCONTEXT_SCENE		0
 #define BCONTEXT_WORLD		1
@@ -477,10 +484,13 @@ typedef struct SpaceImaSel {
 #define BCONTEXT_GAME		8
 #define BCONTEXT_BONE		9
 #define BCONTEXT_MODIFIER	10
-
+#define BCONTEXT_CONSTRAINT 12
+#define BCONTEXT_TOT		13
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
+#define SB_PIN_CONTEXT		2
+#define SB_WORLD_TEX		4
 
 /* sbuts->align */
 #define BUT_FREE  		0

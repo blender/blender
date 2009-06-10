@@ -904,8 +904,8 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	static EnumPropertyItem pivot_items[] = {
 		{CONSTRAINT_RB_BALL, "BALL", "Ball", ""},
 		{CONSTRAINT_RB_HINGE, "HINGE", "Hinge", ""},
-		{CONSTRAINT_RB_CONETWIST, "CONETWIST", "Cone Twist", ""},
-		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC", "Generic 6 DoF", ""},
+		{CONSTRAINT_RB_CONETWIST, "CONE_TWIST", "Cone Twist", ""},
+		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC_6_DOF", "Generic 6 DoF", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RigidBodyJointConstraint", "Constraint");

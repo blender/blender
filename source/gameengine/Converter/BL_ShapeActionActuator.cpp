@@ -61,6 +61,7 @@ BL_ShapeActionActuator::~BL_ShapeActionActuator()
 
 void BL_ShapeActionActuator::ProcessReplica()
 {
+	SCA_IActuator::ProcessReplica();
 	m_localtime=m_startframe;
 	m_lastUpdate=-1;
 }
@@ -74,9 +75,6 @@ CValue* BL_ShapeActionActuator::GetReplica()
 {
 	BL_ShapeActionActuator* replica = new BL_ShapeActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
-	
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
 	return replica;
 }
 
@@ -162,16 +160,9 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	// maybe there are events for us in the queue !
 	if (frame)
 	{
-		for (vector<CValue*>::iterator i=m_events.begin(); !(i==m_events.end());i++)
-		{
-			if ((*i)->GetNumber() == 0.0f)
-				bNegativeEvent = true;
-			else
-				bPositiveEvent= true;
-			(*i)->Release();
-		
-		}
-		m_events.clear();
+		bNegativeEvent = m_negevent;
+		bPositiveEvent = m_posevent;
+		RemoveAllEvents();
 		
 		if (bPositiveEvent)
 			m_flag |= ACT_FLAG_ACTIVE;
@@ -420,8 +411,13 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 /* Integration hooks ------------------------------------------------------- */
 
 PyTypeObject BL_ShapeActionActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"BL_ShapeActionActuator",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -471,22 +467,26 @@ PyMethodDef BL_ShapeActionActuator::Methods[] = {
 };
 
 PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
-	KX_PYATTRIBUTE_FLOAT_RW("start", 0, MAXFRAMEF, BL_ShapeActionActuator, m_startframe),
-	KX_PYATTRIBUTE_FLOAT_RW("end", 0, MAXFRAMEF, BL_ShapeActionActuator, m_endframe),
-	KX_PYATTRIBUTE_FLOAT_RW("blendin", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendin),
+	KX_PYATTRIBUTE_FLOAT_RW("frameStart", 0, MAXFRAMEF, BL_ShapeActionActuator, m_startframe),
+	KX_PYATTRIBUTE_FLOAT_RW("frameEnd", 0, MAXFRAMEF, BL_ShapeActionActuator, m_endframe),
+	KX_PYATTRIBUTE_FLOAT_RW("blendIn", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendin),
 	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ShapeActionActuator, pyattr_get_action, pyattr_set_action),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ShapeActionActuator, m_priority),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ShapeActionActuator, m_localtime, CheckFrame),
-	KX_PYATTRIBUTE_STRING_RW("property", 0, 31, false, BL_ShapeActionActuator, m_propname),
-	KX_PYATTRIBUTE_STRING_RW("frameProperty", 0, 31, false, BL_ShapeActionActuator, m_framepropname),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, 31, false, BL_ShapeActionActuator, m_propname),
+	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 31, false, BL_ShapeActionActuator, m_framepropname),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendframe, CheckBlendTime),
-	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ShapeActionActuator,m_playtype,CheckType),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",0,100,false,BL_ShapeActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel
 };
 
 
 PyObject* BL_ShapeActionActuator::py_getattro(PyObject* attr) {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* BL_ShapeActionActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int BL_ShapeActionActuator::py_setattro(PyObject *attr, PyObject* value) {
@@ -870,7 +870,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 	if (!PyString_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, expected the string name of the action");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
@@ -882,11 +882,11 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 		if (action==NULL)
 		{
 			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, action not found!");
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 	}
 	
 	self->SetAction(action);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 
 }

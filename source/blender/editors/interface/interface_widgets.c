@@ -279,13 +279,11 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 	return tot;
 }
 
-
-
-static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
+/* this call has 1 extra arg to allow mask outline */
+static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad, float radi)
 {
 	float vec[9][2], veci[9][2];
 	float minx= rect->xmin, miny= rect->ymin, maxx= rect->xmax, maxy= rect->ymax;
-	float radi;				  /* rad inner */
 	float minxi= minx + 1.0f; /* boundbox inner */
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
@@ -297,7 +295,8 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 	if(2.0f*rad > rect->ymax-rect->ymin)
 		rad= 0.5f*(rect->ymax-rect->ymin);
 
-	radi= rad - 1.0f;
+	if(2.0f*(radi+1.0f) > rect->ymax-rect->ymin)
+		radi= 0.5f*(rect->ymax-rect->ymin) - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -422,6 +421,12 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 	wt->totvert= tot;
 }
 
+static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
+{
+	round_box__edges(wt, roundboxalign, rect, rad, rad-1.0f);
+}
+
+
 /* based on button rect, return scaled array of triangles */
 static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
 {
@@ -536,6 +541,21 @@ static void round_box_shade_col4(char *col1, char *col2, float fac)
 	glColor4ubv(col);
 }
 
+static void widgetbase_outline(uiWidgetBase *wtb)
+{
+	int a;
+	
+	/* outline */
+	glBegin(GL_QUAD_STRIP);
+	for(a=0; a<wtb->totvert; a++) {
+		glVertex2fv(wtb->outer_v[a]);
+		glVertex2fv(wtb->inner_v[a]);
+	}
+	glVertex2fv(wtb->outer_v[0]);
+	glVertex2fv(wtb->inner_v[0]);
+	glEnd();
+}
+
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 {
 	int j, a;
@@ -545,12 +565,14 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	/* backdrop non AA */
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
+			
 			/* filled center, solid */
 			glColor4ubv(wcol->inner);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++)
 				glVertex2fv(wtb->inner_v[a]);
 			glEnd();
+
 		}
 		else {
 			char col1[4], col2[4];
@@ -670,7 +692,10 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 				}
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
-				xs= rect->xmin+1;
+				if(but->type==SEARCH_MENU)
+					xs= rect->xmin+4;
+				else
+					xs= rect->xmin+1;
 			}
 			else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
 				xs= rect->xmin+3;
@@ -1361,11 +1386,12 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	/* decoration */
 	if(!(state & UI_TEXTINPUT)) {
@@ -1468,7 +1494,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
@@ -1498,11 +1524,12 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
+		float rad= 0.5f*(rect->ymax - rect->ymin);
 		
 		widget_init(&wtb);
 		
 		/* fully rounded */
-		round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+		round_box_edges(&wtb, roundboxalign, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -1584,14 +1611,46 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	widgetbase_draw(&wtb, wcol);
 }
+
+static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
+{
+	uiWidgetBase wtb;
+	char col[4];
+	
+	/* state copy! */
+	wt->wcol= *(wt->wcol_theme);
+	
+	widget_init(&wtb);
+	
+	if(but->block->drawextra) {
+		/* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
+		but->block->drawextra(C, but->poin, rect);
+		
+		/* make mask to draw over image */
+		UI_GetThemeColor3ubv(TH_BACK, col);
+		glColor3ubv(col);
+		
+		round_box__edges(&wtb, 15, rect, 0.0f, 4.0);
+		widgetbase_outline(&wtb);
+	}
+	
+	/* outline */
+	round_box_edges(&wtb, 15, rect, 5.0f);
+	wtb.outline= 1;
+	wtb.inner= 0;
+	widgetbase_draw(&wtb, &wt->wcol);
+	
+}
+
 
 static void widget_disabled(rcti *rect)
 {
@@ -1771,7 +1830,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 }
 
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
+void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
 	bTheme *btheme= U.themes.first;
 	ThemeUI *tui= &btheme->tui;
@@ -1860,6 +1919,10 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				
 			case ROUNDBOX:
 				wt= widget_type(UI_WTYPE_BOX);
+				break;
+			
+			case BUT_EXTRA:
+				widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
 				break;
 				
 				 // XXX four old button types

@@ -45,6 +45,7 @@ PyObject*	initGameKeys();
 PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
 PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie, int argc, char** argv);
 PyObject*	initMathutils();
+PyObject*	initGeometry();
 PyObject*	initBGL();
 PyObject*	initVideoTexture(void); 
 void		exitGamePlayerPythonScripting();
@@ -52,6 +53,7 @@ PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 void		exitGamePythonScripting();
 
 void		setGamePythonPath(char *path);
+void		resetGamePythonPath();
 void		pathGamePythonConfig( char *path );
 int			saveGamePythonConfig( char **marshal_buffer);
 int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);

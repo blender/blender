@@ -11,13 +11,26 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'TEXT')
 		
 class DATA_PT_shape_text(DataButtonsPanel):
-		__idname__ = "DATA_PT_shape_text"
-		__label__ = "Shape"
+	__idname__ = "DATA_PT_shape_text"
+	__label__ = "Shape"
 
-		def draw(self, context):
-			curve = context.curve
-			layout = self.layout
+	def draw(self, context):
+		ob = context.object
+		curve = context.curve
+		space = context.space_data
+		layout = self.layout
 
+		split = layout.split(percentage=0.65)
+
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif curve:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if curve:
+			layout.itemS()
 			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()

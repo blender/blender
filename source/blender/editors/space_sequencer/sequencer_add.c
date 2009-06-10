@@ -338,6 +338,10 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filename", filename);
 
+	/* XXX if(sfile->flag & FILE_STRINGCODE) {
+		BLI_makestringcode(G.sce, str);
+	}*/
+
 // XXX	sound= sound_new_sound(filename);
 	sound= NULL;
 
@@ -423,9 +427,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, TRUE);
 
-
-	int tot_images= 1; //XXX FIXME, we need string arrays!
-	//int a;
+	int tot_images;
 
 	char filename[FILE_MAX];
 
@@ -440,26 +442,30 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "filename", filename);
 
-	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel);	
 	seq->type= SEQ_IMAGE;
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = tot_images;	
+	BLI_split_dirfile_basic(filename, strip->dir, NULL);
+	
+	tot_images= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+	
+	strip->len = seq->len = tot_images?tot_images:1;
 	strip->us= 1;
 	
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	
-
-	BLI_split_dirfile_basic(filename, strip->dir, se->name); // XXX se->name assignment should be moved into the loop below
-
-#if 0 // XXX
-	for(a=0; a<seq->len; a++) {
-	   strncpy(se->name, name, FILE_MAXFILE-1);
-	   se++;
+	if(tot_images) {
+		RNA_BEGIN(op->ptr, itemptr, "files") {
+			RNA_string_get(&itemptr, "name", se->name);
+			se++;
+		}
+		RNA_END;
 	}
-#endif
+	else {
+		BLI_split_dirfile_basic(filename, NULL, se->name);
+	}
 
 	RNA_string_get(op->ptr, "name", seq->name);
 	
@@ -507,6 +513,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
+	
+	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }
 
 

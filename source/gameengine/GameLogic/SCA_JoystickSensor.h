@@ -30,6 +30,7 @@
 #define __JOYSENSOR_H
 
 #include "SCA_ISensor.h"
+#include "./Joystick/SCA_JoystickDefines.h"
 
 class SCA_JoystickSensor :public SCA_ISensor
 {
@@ -37,7 +38,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
-	 * Axis 1-or-2, MUST be followed by m_axisf
+	 * Axis 1-JOYAXIS_MAX, MUST be followed by m_axisf
 	 */
 	int 	m_axis;
 	/**
@@ -53,11 +54,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	int 	m_buttonf;
 	/**
-	 * The actual hat. MUST be followed by m_hatf
+	 * The actual hat 1-JOYHAT_MAX. MUST be followed by m_hatf
 	 */
 	int 	m_hat;
 	/**
-	 * Flag to find direction 0-11, MUST be an int
+	 * Flag to find direction 1-12, MUST be an int
 	 */
 	int 	m_hatf;
 	/**
@@ -110,7 +111,7 @@ public:
 	virtual ~SCA_JoystickSensor();
 	virtual CValue* GetReplica();
 	
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	
@@ -123,6 +124,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* Joystick Index */
@@ -151,6 +153,8 @@ public:
 
 	static PyObject*	pyattr_get_axis_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_axis_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hat_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -163,8 +167,8 @@ public:
 		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
 		if (sensor->m_axis < 1)
 			sensor->m_axis = 1;
-		else if (sensor->m_axis > 2)
-			sensor->m_axis = 2;
+		else if (sensor->m_axis > JOYAXIS_MAX)
+			sensor->m_axis = JOYAXIS_MAX;
 		return 0;
 	}
 	static int CheckHat(void *self, const PyAttributeDef*)
@@ -172,8 +176,8 @@ public:
 		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
 		if (sensor->m_hat < 1)
 			sensor->m_hat = 1;
-		else if (sensor->m_hat > 2)
-			sensor->m_hat = 2;
+		else if (sensor->m_hat > JOYHAT_MAX)
+			sensor->m_hat = JOYHAT_MAX;
 		return 0;
 	}
 	

@@ -49,12 +49,21 @@ static void init(bNode *node) {
 	node->custom4 = 1.0; /* squash */
 }
 
+static float noise(int n) /* fast integer noise */
+{
+	int nn;
+	n = (n >> 13) ^ n;
+	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+	return 0.5f * ((float)nn / 1073741824.0f);
+}
+
 static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
 {
 	float x = coord[0];
 	float y = coord[1];
 	
-	float bricknum, rownum, offset = 0;
+	int bricknum, rownum;
+	float offset = 0;
 	float ins_x, ins_y;
 	float tint;
 	
@@ -71,20 +80,19 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	tex_input_rgba(bricks2, in[1], coord, thread);
 	tex_input_rgba(mortar,  in[2], coord, thread);
 	
-	rownum = floor(y / row_height);
+	rownum = (int)floor(y / row_height);
 	
 	if( node->custom1 && node->custom2 ) {
 		brick_width *= ((int)(rownum) % node->custom2 ) ? 1.0f : node->custom4;      /* squash */
 		offset = ((int)(rownum) % node->custom1 ) ? 0 : (brick_width*node->custom3); /* offset */
 	}
 	
-	bricknum = floor((x+offset) / brick_width);
+	bricknum = (int)floor((x+offset) / brick_width);
 	
 	ins_x = (x+offset) - brick_width*bricknum;
 	ins_y = y - row_height*rownum;
 	
-	srand( (123456*rownum) + bricknum );
-	tint = rand() / (float)RAND_MAX + bias;
+	tint = noise((rownum << 16) + (bricknum & 0xFFFF)) + bias;
 	CLAMP(tint,0.0f,1.0f);
 	
 	if( ins_x < mortar_thickness || ins_y < mortar_thickness ||

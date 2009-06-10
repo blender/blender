@@ -1274,7 +1274,7 @@ static void wpaint_exit(bContext *C, wmOperator *op)
 		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
 			for(i=0; i<PSYS_TOT_VG; i++) {
 				if(psys->vgroup[i]==ob->actdef) {
-					psys->recalc |= PSYS_RECALC_HAIR;
+					psys->recalc |= PSYS_RECALC_RESET;
 					break;
 				}
 			}

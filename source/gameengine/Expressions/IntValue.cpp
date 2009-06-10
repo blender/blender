@@ -54,7 +54,7 @@ effect: constructs a new CIntValue containing cInt innie
 
 
 
-CIntValue::CIntValue(cInt innie,STR_String name,AllocationTYPE alloctype)
+CIntValue::CIntValue(cInt innie,const char *name,AllocationTYPE alloctype)
 {
 	m_int = innie;
 	SetName(name);
@@ -311,7 +311,7 @@ const STR_String & CIntValue::GetText()
 
 CValue* CIntValue::GetReplica() { 
 	CIntValue* replica = new CIntValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->m_pstrRep = NULL;
 	
 	return replica;

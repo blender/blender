@@ -400,7 +400,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	MEM_freeN(bfd);
 }
 
-static void handle_subversion_warning(Main *main)
+static int handle_subversion_warning(Main *main)
 {
 	if(main->minversionfile > BLENDER_VERSION ||
 	   (main->minversionfile == BLENDER_VERSION && 
@@ -411,7 +411,7 @@ static void handle_subversion_warning(Main *main)
 		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
 // XXX		error(str);
 	}
-		
+	return 1;
 }
 
 void BKE_userdef_free(void)
@@ -438,9 +438,14 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 	if (bfd) {
 		if(bfd->user) retval= 2;
 		
-		setup_app_data(C, bfd, dir);
-		
-		handle_subversion_warning(G.main);
+		if(0==handle_subversion_warning(bfd->main)) {
+			free_main(bfd->main);
+			MEM_freeN(bfd);
+			bfd= NULL;
+			retval= 0;
+		}
+		else
+			setup_app_data(C, bfd, dir); // frees BFD
 	} 
 	else
 		BKE_reports_prependf(reports, "Loading %s failed: ", dir);

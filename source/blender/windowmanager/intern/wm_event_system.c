@@ -826,7 +826,12 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						uiPupMenuSaveOver(C, handler->op, path);
 					}
 					else {
-						handler->op->type->exec(C, handler->op);
+						int retval= handler->op->type->exec(C, handler->op);
+						
+						if (retval & OPERATOR_FINISHED)
+							if(G.f & G_DEBUG)
+								wm_operator_print(handler->op);
+						
 						WM_operator_free(handler->op);
 					}
 					
@@ -1083,6 +1088,17 @@ void wm_event_do_handlers(bContext *C)
 			wm_event_free(event);
 			
 		}
+		
+		/* only add mousemove when queue was read entirely */
+		if(win->addmousemove) {
+			wmEvent event= *(win->eventstate);
+			event.type= MOUSEMOVE;
+			event.prevx= event.x;
+			event.prevy= event.y;
+			wm_event_add(win, &event);
+			win->addmousemove= 0;
+		}
+		
 		CTX_wm_window_set(C, NULL);
 	}
 }
@@ -1233,11 +1249,8 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window= CTX_wm_window(C);
-	wmEvent event= *(window->eventstate);
-	event.type= MOUSEMOVE;
-	event.prevx= event.x;
-	event.prevy= event.y;
-	wm_event_add(window, &event);
+	
+	window->addmousemove= 1;
 }
 
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */

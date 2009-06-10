@@ -130,7 +130,9 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 				nodestack_get_vec(&shi->translucency, SOCK_VALUE, in[MAT_IN_TRANSLUCENCY]);			
 		}
 		
+		shi->nodes= 1; /* temp hack to prevent trashadow recursion */
 		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
+		shi->nodes= 0;
 		
 		/* write to outputs */
 		if(node->custom1 & SH_NODE_MAT_DIFF) {

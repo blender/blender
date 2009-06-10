@@ -662,12 +662,10 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	else if(block->panel)
 		ui_draw_aligned_panel(ar, &style, block, &rect);
 
-	if(block->drawextra) block->drawextra(C, block);
-
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(ar, &style, but, &rect);
+		ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */
@@ -1453,9 +1451,9 @@ static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, Prope
 
 		/* if it's a collection and has same pointer type, we've got it */
 		if(RNA_property_type(iprop) == PROP_COLLECTION) {
-			srna= RNA_property_pointer_type(iprop);
+			srna= RNA_property_pointer_type(ptr, iprop);
 
-			if(RNA_property_pointer_type(but->rnaprop) == srna) {
+			if(RNA_property_pointer_type(ptr, but->rnaprop) == srna) {
 				*prop= iprop;
 				break;
 			}
@@ -1526,7 +1524,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				if(str == NULL || str[0] == '\0') {
 					memset(&rptr, 0, sizeof(rptr));
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
-					return 11;
+					return 1;
 				}
 				else if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
 					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
@@ -2968,7 +2966,7 @@ void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1
 	
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, rcti *rect))
 {
 	block->drawextra= func;
 }

@@ -42,7 +42,4 @@ typedef struct {
 
 PyObject *BPY_operator_module(void);
 
-/* fill in properties from a python dict */
-int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw);
-
 #endif

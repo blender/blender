@@ -223,11 +223,10 @@ void duplicate_defgroup ( Object *ob )
 	bDeformGroup *dg, *cdg;
 	char name[32], s[32];
 	MDeformWeight *org, *cpy;
-	MDeformVert *dvert;
-	Mesh *me;
-	int i, idg, icdg;
+	MDeformVert *dvert, *dvert_array;
+	int i, idg, icdg, dvert_tot;
 
-	if (ob->type != OB_MESH)
+	if (ob->type != OB_MESH && ob->type != OB_LATTICE)
 		return;
 
 	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
@@ -258,16 +257,28 @@ void duplicate_defgroup ( Object *ob )
 	ob->actdef = BLI_countlist (&ob->defbase);
 	icdg = (ob->actdef-1);
 
-	me = get_mesh (ob);
-	if (!me->dvert)
+	if(ob->type == OB_MESH) {
+		Mesh *me = get_mesh (ob);
+		dvert_array= me->dvert;
+		dvert_tot= me->totvert;
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt= (Lattice *)ob->data;
+		dvert_array= lt->dvert;
+		dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
+	}
+	
+	if (!dvert_array)
 		return;
 
-	for (i = 0; i < me->totvert; i++) {
-		dvert = me->dvert+i;
+	for (i = 0; i < dvert_tot; i++) {
+		dvert = dvert_array+i;
 		org = get_defweight (dvert, idg);
 		if (org) {
+			float weight = org->weight;
+			/* verify_defweight re-allocs org so need to store the weight first */
 			cpy = verify_defweight (dvert, icdg);
-			cpy->weight = org->weight;
+			cpy->weight = weight;
 		}
 	}
 }
@@ -335,29 +346,39 @@ static void del_defgroup_update_users(Object *ob, int id)
 void del_defgroup_in_object_mode ( Object *ob )
 {
 	bDeformGroup *dg;
-	MDeformVert *dvert;
-	Mesh *me;
-	int i, e;
+	MDeformVert *dvert_array, *dvert;
+	
+	int i, e, dvert_tot;
 
-	if ((!ob) || (ob->type != OB_MESH))
+	if ((!ob) || (ob->type != OB_MESH && ob->type != OB_LATTICE))
 		return;
 
+	if(ob->type == OB_MESH) {
+		Mesh *me = get_mesh (ob);
+		dvert_array= me->dvert;
+		dvert_tot= me->totvert;
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt= (Lattice *)ob->data;
+		dvert_array= lt->dvert;
+		dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
+	}
+	
 	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
 	if (!dg)
 		return;
-
-	me = get_mesh (ob);
-	if (me->dvert) {
-		for (i = 0; i < me->totvert; i++) {
-			dvert = me->dvert + i;
+	
+	if (dvert_array) {
+		for (i = 0; i < dvert_tot; i++) {
+			dvert = dvert_array + i;
 			if (dvert) {
 				if (get_defweight (dvert, (ob->actdef-1)))
 					remove_vert_defgroup (ob, dg, i);
 			}
 		}
 
-		for (i = 0; i < me->totvert; i++) {
-			dvert = me->dvert+i;
+		for (i = 0; i < dvert_tot; i++) {
+			dvert = dvert_array+i;
 			if (dvert) {
 				for (e = 0; e < dvert->totweight; e++) {
 					if (dvert->dw[e].def_nr > (ob->actdef-1))

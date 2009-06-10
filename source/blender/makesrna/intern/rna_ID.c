@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -57,11 +58,41 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	test_idbutton(id->name+2);
 }
 
-StructRNA *rna_ID_refine(PointerRNA *ptr)
+short RNA_type_to_ID_code(StructRNA *type)
 {
-	ID *id= (ID*)ptr->data;
+	if(RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
+	if(RNA_struct_is_a(type, &RNA_Armature)) return ID_AR;
+	if(RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
+	if(RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
+	if(RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
+	if(RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
+	if(RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
+	//if(RNA_struct_is_a(type, &RNA_Ipo)) return case ID_IP;
+	if(RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
+	if(RNA_struct_is_a(type, &RNA_Lamp)) return ID_LA;
+	if(RNA_struct_is_a(type, &RNA_Library)) return ID_LI;
+	if(RNA_struct_is_a(type, &RNA_Lattice)) return ID_LT;
+	if(RNA_struct_is_a(type, &RNA_Material)) return ID_MA;
+	if(RNA_struct_is_a(type, &RNA_MetaBall)) return ID_MB;
+	if(RNA_struct_is_a(type, &RNA_NodeTree)) return ID_NT;
+	if(RNA_struct_is_a(type, &RNA_Mesh)) return ID_ME;
+	if(RNA_struct_is_a(type, &RNA_Object)) return ID_OB;
+	if(RNA_struct_is_a(type, &RNA_ParticleSettings)) return ID_PA;
+	if(RNA_struct_is_a(type, &RNA_Scene)) return ID_SCE;
+	if(RNA_struct_is_a(type, &RNA_Screen)) return ID_SCR;
+	if(RNA_struct_is_a(type, &RNA_Sound)) return ID_SO;
+	if(RNA_struct_is_a(type, &RNA_Text)) return ID_TXT;
+	if(RNA_struct_is_a(type, &RNA_Texture)) return ID_TE;
+	if(RNA_struct_is_a(type, &RNA_VectorFont)) return ID_VF;
+	if(RNA_struct_is_a(type, &RNA_World)) return ID_WO;
+	if(RNA_struct_is_a(type, &RNA_WindowManager)) return ID_WM;
 
-	switch(GS(id->name)) {
+	return 0;
+}
+
+StructRNA *ID_code_to_RNA_type(short idcode)
+{
+	switch(idcode) {
 		case ID_AC: return &RNA_Action;
 		case ID_AR: return &RNA_Armature;
 		case ID_BR: return &RNA_Brush;
@@ -90,6 +121,13 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_WM: return &RNA_WindowManager;
 		default: return &RNA_ID;
 	}
+}
+
+StructRNA *rna_ID_refine(PointerRNA *ptr)
+{
+	ID *id= (ID*)ptr->data;
+
+	return ID_code_to_RNA_type(GS(id->name));
 }
 
 IDProperty *rna_ID_idproperties(PointerRNA *ptr, int create)

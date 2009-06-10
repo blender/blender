@@ -115,7 +115,7 @@ public:
 	struct Object *FindBlenderObject(KX_GameObject *for_gameobject);
 
 	void RegisterGameMesh(RAS_MeshObject *gamemesh, struct Mesh *for_blendermesh);
-	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh, unsigned int onlayer);
+	RAS_MeshObject *FindGameMesh(struct Mesh *for_blendermesh/*, unsigned int onlayer*/);
 
 //	void RegisterSumoShape(DT_ShapeHandle shape, RAS_MeshObject *for_gamemesh);
 //	DT_ShapeHandle FindSumoShape(RAS_MeshObject *for_gamemesh);

@@ -60,6 +60,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 //	virtual PyObject* py_getattro(PyObject *attr);
+//	virtual PyObject* py_getattro_dict();
 
 };
 

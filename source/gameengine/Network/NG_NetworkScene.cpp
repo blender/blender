@@ -119,7 +119,7 @@ void NG_NetworkScene::AddObject(NG_NetworkObject* object)
 {
 	if (! m_networkdevice->IsOnline()) return;
 
-	STR_String name = object->GetName();
+	const STR_String& name = object->GetName();
 	m_networkObjects.insert(name, object);
 }
 
@@ -130,7 +130,7 @@ void NG_NetworkScene::RemoveObject(NG_NetworkObject* object)
 {
 	if (! m_networkdevice->IsOnline()) return;
 
-	STR_String name = object->GetName();
+	const STR_String& name = object->GetName();
 	m_networkObjects.remove(name);
 }
 

@@ -133,10 +133,12 @@ import BPyImage
 
 import BPyMessages
 
-import struct
-from struct import calcsize, unpack
+try:
+	from struct import calcsize, unpack
+except:
+	calcsize= unpack= None
 
-import os
+
 
 # If python version is less than 2.4, try to get set stuff from module
 try:
@@ -958,7 +960,10 @@ def load_3ds(filename, PREF_UI= True):
 
 DEBUG= False
 if __name__=='__main__' and not DEBUG:
-	Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
+	if calcsize==None:
+		Blender.Draw.PupMenu('Error%t|a full python installation not found') 
+	else:
+		Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
 
 # For testing compatibility
 #load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
@@ -966,6 +971,7 @@ if __name__=='__main__' and not DEBUG:
 '''
 
 else:
+	import os
 	# DEBUG ONLY
 	TIME= Blender.sys.time()
 	import os

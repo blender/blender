@@ -28,6 +28,7 @@
  
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -81,8 +82,56 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
-	if (time) 
-		sprintf(str, "   %.2f", FRA2TIME(CFRA));
+	if (time) {
+		/* Timecode:
+		 *	- In general, minutes and seconds should be shown, as most clips will be
+		 *	  within this length. Hours will only be included if relevant.
+		 *	- Only show frames when zoomed in enough for them to be relevant 
+		 *	  (using separator of '!' for frames).
+		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
+		 * TODO: factor into reusable function.
+		 * Meanwhile keep in sync:
+		 *	  source/blender/editors/animation/anim_draw.c
+		 *	  source/blender/editors/interface/view2d.c
+		 */
+		float val= FRA2TIME(CFRA);
+		int hours=0, minutes=0, seconds=0, frames=0;
+		char neg[2]= "";
+		
+		/* get values */
+		if (val < 0) {
+			/* correction for negative values */
+			sprintf(neg, "-");
+			val = -val;
+		}
+		if (val >= 3600) {
+			/* hours */
+			/* XXX should we only display a single digit for hours since clips are 
+			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
+			 *	   go against conventions...
+			 */
+			hours= (int)val / 3600;
+			val= (float)fmod(val, 3600);
+		}
+		if (val >= 60) {
+			/* minutes */
+			minutes= (int)val / 60;
+			val= (float)fmod(val, 60);
+		}
+		{
+			/* seconds + frames
+			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
+			 *	to cope with 'half' frames, etc., which should be fine in most cases
+			 */
+			seconds= (int)val;
+			frames= (int)floor( ((val - seconds) * FPS) + 0.5f );
+		}
+		
+		/* print timecode to temp string buffer */
+		if (hours) sprintf(str, "   %s%02d:%02d:%02d!%02d", neg, hours, minutes, seconds, frames);
+		else if (minutes) sprintf(str, "   %s%02d:%02d!%02d", neg, minutes, seconds, frames);
+		else sprintf(str, "   %s%d!%02d", neg, seconds, frames);
+	}
 	else 
 		sprintf(str, "   %d", CFRA);
 	slen= (short)UI_GetStringWidth(str) - 1;

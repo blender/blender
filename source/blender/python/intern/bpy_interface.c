@@ -19,6 +19,7 @@
 #include "bpy_rna.h"
 #include "bpy_operator.h"
 #include "bpy_ui.h"
+#include "bpy_util.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"

@@ -36,6 +36,7 @@ extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
 class RAS_MeshObject;
+struct DerivedMesh;
 class btCollisionShape;
 
 
@@ -59,7 +60,7 @@ class CcdShapeConstructionInfo
 public:
 	
 
-	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
@@ -139,7 +140,7 @@ public:
 		return true;
 	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
+	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
@@ -151,7 +152,7 @@ public:
 		return m_shapeProxy;
 	}
 
-	btCollisionShape* CreateBulletShape();
+	btCollisionShape* CreateBulletShape(btScalar margin);
 
 	// member variables
 	PHY_ShapeType			m_shapeType;
@@ -161,8 +162,8 @@ public:
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
 	void*					m_userData;	
-	btAlignedObjectArray<btVector3>	m_vertexArray;	// Contains both vertex array for polytope shape and
-											// triangle array for concave mesh shape.
+	btAlignedObjectArray<btScalar>	m_vertexArray;	// Contains both vertex array for polytope shape and
+											// triangle array for concave mesh shape. Each vertex is 3 consecutive values
 											// In this case a triangle is made of 3 consecutive points
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
@@ -173,11 +174,7 @@ public:
 
 	void	setVertexWeldingThreshold1(float threshold)
 	{
-		m_weldingThreshold1  = threshold;
-	}
-	float	getVertexWeldingThreshold1() const
-	{
-		return m_weldingThreshold1;
+		m_weldingThreshold1  = threshold*threshold;
 	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
@@ -225,6 +222,7 @@ struct CcdConstructionInfo
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_bSoft(false),
+		m_bSensor(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -233,7 +231,8 @@ struct CcdConstructionInfo
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f),
 		m_do_anisotropic(false),
-		m_anisotropicFriction(1.f,1.f,1.f)
+		m_anisotropicFriction(1.f,1.f,1.f),
+		m_contactProcessingThreshold(1e10)
 	{
 	}
 
@@ -291,6 +290,7 @@ struct CcdConstructionInfo
 	int			m_collisionFlags;
 	bool		m_bRigid;
 	bool		m_bSoft;
+	bool		m_bSensor;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
@@ -318,6 +318,13 @@ struct CcdConstructionInfo
 	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
 	bool		m_fh_normal;             ///< Should the object slide off slopes?
 	float		m_radius;//for fh backwards compatibility
+	
+	///m_contactProcessingThreshold allows to process contact points with positive distance
+	///normally only contacts with negative distance (penetration) are solved
+	///however, rigid body stacking is more stable when positive contacts are still passed into the constraint solver
+	///this might sometimes lead to collisions with 'internal edges' such as a sliding character controller
+	///so disable/set m_contactProcessingThreshold to zero for sliding characters etc.
+	float		m_contactProcessingThreshold;///< Process contacts with positive distance in range [0..INF]
 
 };
 
@@ -329,7 +336,7 @@ class btSoftBody;
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-
+protected:
 	btCollisionObject* m_object;
 	
 
@@ -364,8 +371,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		return (--m_registerCount == 0) ? true : false;
 	}
 
-	protected:
-		void setWorldOrientation(const btMatrix3x3& mat);
+	void setWorldOrientation(const btMatrix3x3& mat);
+	void forceWorldTransform(const btMatrix3x3& mat, const btVector3& pos);
 
 	public:
 	
@@ -410,6 +417,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly);
 		virtual	void		WriteDynamicsToMotionState();
+
 		// controller replication
 		virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
 
@@ -508,7 +516,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		void	SetCenterOfMassTransform(btTransform& xform);
 
-		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
+		static btTransform&	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
 		void	setAabb(const btVector3& aabbMin,const btVector3& aabbMax);
 
@@ -566,6 +574,7 @@ class	DefaultMotionState : public PHY_IMotionState
 		virtual void	setWorldPosition(float posX,float posY,float posZ);
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
 		virtual void	getWorldOrientation(float* ori);
+		virtual void	setWorldOrientation(const float* ori);
 		
 		virtual	void	calculateWorldTransformations();
 		

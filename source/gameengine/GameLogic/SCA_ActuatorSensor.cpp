@@ -60,7 +60,7 @@ CValue* SCA_ActuatorSensor::GetReplica()
 {
 	SCA_ActuatorSensor* replica = new SCA_ActuatorSensor(*this);
 	// m_range_expr must be recalculated on replica!
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	replica->Init();
 
 	return replica;
@@ -89,7 +89,7 @@ SCA_ActuatorSensor::~SCA_ActuatorSensor()
 
 
 
-bool SCA_ActuatorSensor::Evaluate(CValue* event)
+bool SCA_ActuatorSensor::Evaluate()
 {
 	if (m_actuator)
 	{
@@ -122,8 +122,13 @@ void SCA_ActuatorSensor::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ActuatorSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"SCA_ActuatorSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -163,6 +168,10 @@ PyAttributeDef SCA_ActuatorSensor::Attributes[] = {
 
 PyObject* SCA_ActuatorSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_ActuatorSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_ActuatorSensor::py_setattro(PyObject *attr, PyObject *value) {

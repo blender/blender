@@ -32,18 +32,22 @@
 #ifndef __SCA_ISENSOR
 #define __SCA_ISENSOR
 
-#include "SCA_ILogicBrick.h"
+#include "SCA_IController.h"
 
 #include <vector>
 
 /**
  * Interface Class for all logic Sensors. Implements
- * pulsemode,pulsefrequency */
+ * pulsemode,pulsefrequency 
+ * Use of SG_DList element: link sensors to their respective event manager
+ *                          Head: SCA_EventManager::m_sensors
+ * Use of SG_QList element: not used
+ */
 class SCA_ISensor : public SCA_ILogicBrick
 {
 	Py_Header;
+protected:
 	class SCA_EventManager* m_eventmgr;
-	bool	m_triggered;
 
 	/** Pulse positive  pulses? */
 	bool m_pos_pulsemode;
@@ -66,6 +70,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** detect level instead of edge*/
 	bool m_level;
 
+	/** tap mode */
+	bool m_tap;
+
 	/** sensor has been reset */
 	bool m_reset;
 
@@ -75,10 +82,24 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** number of connections to controller */
 	int m_links;
 
-	/** list of controllers that have just activated this sensor because of a state change */
-	std::vector<class SCA_IController*> m_newControllers;
+	/** current sensor state */
+	bool m_state;
+
+	/** previous state (for tap option) */
+	bool m_prev_state;
+
+	std::vector<class SCA_IController*>		m_linkedcontrollers;
 
 public:
+
+	enum sensortype {
+		ST_NONE = 0,
+		ST_TOUCH,
+		ST_NEAR,
+		ST_RADAR,
+		// to be updated as needed
+	};
+
 	SCA_ISensor(SCA_IObject* gameobj,
 				class SCA_EventManager* eventmgr,
 				PyTypeObject* T );;
@@ -89,8 +110,8 @@ public:
 	/* an implementation on this level. It requires an evaluate on the lower */
 	/* level of individual sensors. Mapping the old activate()s is easy.     */
 	/* The IsPosTrig() also has to change, to keep things consistent.        */
-	void Activate(class SCA_LogicManager* logicmgr,CValue* event);
-	virtual bool Evaluate(CValue* event) = 0;
+	void Activate(class SCA_LogicManager* logicmgr);
+	virtual bool Evaluate() = 0;
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
@@ -109,11 +130,24 @@ public:
 	void SetInvert(bool inv);
 	/** set the level detection on or off */
 	void SetLevel(bool lvl);
+	void SetTap(bool tap);
 
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
+	void ReserveController(int num)
+	{
+		m_linkedcontrollers.reserve(num);
+	}
+	void LinkToController(SCA_IController* controller);
+	void UnlinkController(SCA_IController* controller);
+	void UnlinkAllControllers();
+	void ActivateControllers(class SCA_LogicManager* logicmgr);
+
+	virtual void ProcessReplica();
 
 	virtual double GetNumber();
+
+	virtual sensortype GetSensorType() { return ST_NONE; }
 
 	/** Stop sensing for a while. */
 	void Suspend();
@@ -121,11 +155,15 @@ public:
 	/** Is this sensor switched off? */
 	bool IsSuspended();
 	
+	/** get the state of the sensor: positive or negative */
+	bool GetState()
+	{
+		return m_state;
+	}
+
 	/** Resume sensing. */
 	void Resume();
 
-	void AddNewController(class SCA_IController* controller)
-		{ m_newControllers.push_back(controller); }
 	void ClrLink()
 		{ m_links = 0; }
 	void IncLink()
@@ -137,6 +175,7 @@ public:
 	/* Python functions: */
 	
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
@@ -157,6 +196,8 @@ public:
 	
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__SCA_ISENSOR

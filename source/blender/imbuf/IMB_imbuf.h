@@ -410,6 +410,7 @@ void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float 
 void bicubic_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void neareast_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

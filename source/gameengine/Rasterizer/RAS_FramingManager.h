@@ -209,6 +209,18 @@ public :
 
 	static
 		void
+	ComputeOrtho(
+		const RAS_FrameSettings &settings,
+		const RAS_Rect &availableViewport,
+		const RAS_Rect &viewport,
+		const float scale,
+		const float camnear,
+		const float camfar,
+		RAS_FrameFrustum &frustum
+	);
+
+	static
+		void
 	ComputeFrustum(
 		const RAS_FrameSettings &settings,
 		const RAS_Rect &availableViewport,
@@ -228,6 +240,16 @@ public :
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	
+
+	static
+		void
+	ComputeDefaultOrtho(
+		const float camnear,
+		const float camfar,
+		const float scale,
+		const float design_aspect_ratio,
+		RAS_FrameFrustum & frustum
+	);
 
 private :
 

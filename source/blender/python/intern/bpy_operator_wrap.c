@@ -278,7 +278,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		 * thrown away anyway
 		 *
 		 * If we ever want to do this and use the props again,
-		 * it can be done with - PYOP_props_from_dict(op->ptr, kw)
+		 * it can be done with - pyrna_pydict_to_props(op->ptr, kw, "")
 		 */
 		
 		Py_DECREF(ret);

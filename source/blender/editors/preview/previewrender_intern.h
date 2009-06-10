@@ -32,38 +32,6 @@
 /* internal exports only */
 
 
-typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
-
-/* stores rendered preview  - is also used for icons */
-typedef struct RenderInfo {
-	int pr_rectx;
-	int pr_recty;
-	short curtile, tottile, status;
-	rcti disprect;			/* storage for view3d preview rect */
-	unsigned int* rect;		
-	struct Render *re;		/* persistant render */
-} RenderInfo;
-
-/* ri->status */
-#define PR_DBASE			1
-#define PR_DISPRECT			2
-#define PR_PROJECTED		4
-#define PR_ROTATED			8
-
-/* Render the preview
-
-pr_method:
-- PR_DRAW_RENDER: preview is rendered and drawn, as indicated by called context (buttons panel)
-- PR_ICON_RENDER: the preview is not drawn and the function is not dynamic,
-	so no events are processed. Hopefully fast enough for at least 32x32 
-- PR_DO_RENDER: preview is rendered, not drawn, but events are processed for afterqueue,
-	in use for node editor now.
-	*/
-
-#define PR_DRAW_RENDER	0
-#define PR_ICON_RENDER	1
-#define PR_DO_RENDER	2
-
 
 #endif /* PREVIEWRENDER_INTERN_H */
 

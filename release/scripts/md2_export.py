@@ -612,29 +612,9 @@ class md2_obj:
 ######################################################
 # Validation
 ######################################################
+
 def validation(object):
 	global user_frame_list
-
-	#move the object to the origin if it's not already there
-	if object.getLocation('worldspace')!=(0.0, 0.0, 0.0):
-		print "Model not centered at origin"
-		result=Blender.Draw.PupMenu("Model not centered at origin%t|Center (will not work with animations!)|Do not center")
-		if result==1:
-			object.setLocation(0.0,0.0,0.0)
-
-	#resize the object in case it is not the right size
-	if object.getSize('worldspace')!=(1.0,1.0,1.0):
-		print "Object is scaled-You should scale the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object%t|Fix scale (will not work with animations!)|Do not scale")
-		if result==1:
-			object.setSize(1.0,1.0,1.0)
-		
-	if object.getEuler('worldspace')!=Blender.Mathutils.Euler(0.0,0.0,0.0):
-		print "object.rot: ", object.getEuler('worldspace')
-		print "Object is rotated-You should rotate the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object%t|Fix rotation (will not work with animations!)|Do not rotate")
-		if result==1:
-			object.setEuler([0.0,0.0,0.0])
 	
 	#get access to the mesh data
 	mesh=object.getData(False, True) #get the object (not just name) and the Mesh, not NMesh
@@ -696,7 +676,8 @@ def validation(object):
 				result=Blender.Draw.PupMenu("Model has more than 1 texture map assigned%t|Quit")
 				#return False
 		if mesh_image:
-			size=mesh_image.getSize()
+			try:		size=mesh_image.getSize()
+			except:	size= 256,256 # No image data
 			#is this really what the user wants
 			if (size[0]!=256 or size[1]!=256):
 				print "Texture map size is non-standard (not 256x256), it is: ",size[0],"x",size[1]
@@ -753,6 +734,8 @@ def fill_md2(md2, object):
 	#create the vertex list from the first frame
 	Blender.Set("curframe", 1)
 	
+	has_uvs = mesh.faceUV
+	
 	#header information
 	md2.ident=844121161
 	md2.version=8	
@@ -761,9 +744,11 @@ def fill_md2(md2, object):
 
 	#get the skin information
 	#use the first faces' image for the texture information
-	if mesh.faceUV:
+	if has_uvs:
 		mesh_image=mesh.faces[0].image
-		size=mesh_image.getSize()
+		try:		size=mesh_image.getSize()
+		except:	size= 256,256
+		
 		md2.skin_width=size[0]
 		md2.skin_height=size[1]
 		md2.num_skins=1
@@ -777,12 +762,14 @@ def fill_md2(md2, object):
 
 	#put texture information in the md2 structure
 	#build UV coord dictionary (prevents double entries-saves space)
+	if not has_uvs:
+		t=(0,0)
+	
 	for face in mesh.faces:
 		for i in xrange(0,3):
-			if mesh.faceUV:
+			if has_uvs:
 				t=(face.uv[i])
-			else:
-				t=(0,0)
+				
 			tex_key=(t[0],t[1])
 			if not tex_list.has_key(tex_key):
 				tex_list[tex_key]=tex_count
@@ -798,16 +785,25 @@ def fill_md2(md2, object):
 
 	#put faces in the md2 structure
 	#for each face in the model
+	
+	if not has_uvs:
+		uv_coords=[(0,0)]*3
+	
 	for this_face in xrange(0, md2.num_faces):
 		md2.faces.append(md2_face())
+		mf = mesh.faces[this_face]
+		mf_v = mf.v
+		if has_uvs:
+			uv_coords = mf.uv
+		
 		for i in xrange(0,3):
 			#blender uses indexed vertexes so this works very well
-			md2.faces[this_face].vertex_index[i]=mesh.faces[this_face].verts[i].index
+			md2.faces[this_face].vertex_index[i] = mf_v[i].index
 			#lookup texture index in dictionary
-			if mesh.faceUV:
-				uv_coord=(mesh.faces[this_face].uv[i])
-			else:
-				uv_coord=(0,0)
+			if has_uvs:
+				uv_coord = uv_coords[i]
+			# otherwise we set it before
+				
 			tex_key=(uv_coord[0],uv_coord[1])
 			tex_index=tex_list[tex_key]
 			md2.faces[this_face].texture_index[i]=tex_index
@@ -837,13 +833,18 @@ def fill_md2(md2, object):
 	for frame_counter in xrange(0,md2.num_frames):
 		
 		progress+=progressIncrement
-		Blender.Window.DrawProgressBar(progress, "Calculating Frame: "+str(frame_counter))
+		Blender.Window.DrawProgressBar(progress, "Calculating Frame: %d of %d" % (frame_counter, md2.num_frames))
 			
 		#add a frame
 		md2.frames.append(md2_frame())
 		#update the mesh objects vertex positions for the animation
 		Blender.Set("curframe", frame_counter)  #set blender to the correct frame
-		mesh.getFromObject(object.name)  #update the mesh to make verts current
+		
+		
+		
+		
+		mesh.getFromObject(object)  #update the mesh to make verts current
+		mesh.transform(object.matrixWorld)
 		
 #each frame has a scale and transform value that gets the vertex value between 0-255
 #since the scale and transform are the same for the all the verts in the frame, we only need
@@ -862,13 +863,14 @@ def fill_md2(md2, object):
 		frame_max_z=-100000.0
 	
 		for face in mesh.faces:
-			for vert in face.verts:					
-				if frame_min_x>vert.co[1]: frame_min_x=vert.co[1]
-				if frame_max_x<vert.co[1]: frame_max_x=vert.co[1]
-				if frame_min_y>vert.co[0]: frame_min_y=vert.co[0]
-				if frame_max_y<vert.co[0]: frame_max_y=vert.co[0]
-				if frame_min_z>vert.co[2]: frame_min_z=vert.co[2]
-				if frame_max_z<vert.co[2]: frame_max_z=vert.co[2]
+			for vert in face:
+				co = vert.co
+				if frame_min_x>co[1]: frame_min_x=co[1]
+				if frame_max_x<co[1]: frame_max_x=co[1]
+				if frame_min_y>co[0]: frame_min_y=co[0]
+				if frame_max_y<co[0]: frame_max_y=co[0]
+				if frame_min_z>co[2]: frame_min_z=co[2]
+				if frame_max_z<co[2]: frame_max_z=co[2]
 		
 		#the scale is the difference between the min and max (on that axis) / 255
 		frame_scale_x=(frame_max_x-frame_min_x)/255
@@ -896,9 +898,10 @@ def fill_md2(md2, object):
 			#then translates the point so it's not less than 0
 			#then scale it so it's between 0..255
 			#print "frame scale : ", frame_scale_x, " ", frame_scale_y, " ", frame_scale_z
-			new_x=int((mesh.verts[vert_counter].co[1]-frame_trans_x)/frame_scale_x)
-			new_y=int((mesh.verts[vert_counter].co[0]-frame_trans_y)/frame_scale_y)
-			new_z=int((mesh.verts[vert_counter].co[2]-frame_trans_z)/frame_scale_z)
+			co = mesh.verts[vert_counter].co
+			new_x=int((co[1]-frame_trans_x)/frame_scale_x)
+			new_y=int((co[0]-frame_trans_y)/frame_scale_y)
+			new_z=int((co[2]-frame_trans_z)/frame_scale_z)
 			#put them in the structure
 			md2.frames[frame_counter].vertices[vert_counter].vertices=(new_x, new_y, new_z)
 
@@ -908,14 +911,14 @@ def fill_md2(md2, object):
 
 			
 			#swap y and x for difference in axis orientation 
-			x1=-mesh.verts[vert_counter].no[1]
-			y1=mesh.verts[vert_counter].no[0]
-			z1=mesh.verts[vert_counter].no[2]
+			no = mesh.verts[vert_counter].no
+			x1=	-no[1]
+			y1=	 no[0]
+			z1=	 no[2]
+			
 			for j in xrange(0,162):
 				#dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-				dot = (x1*MD2_NORMALS[j][0]+
-				       y1*MD2_NORMALS[j][1]+
-							 z1*MD2_NORMALS[j][2]);
+				dot = (x1*MD2_NORMALS[j][0] + y1*MD2_NORMALS[j][1]+ z1*MD2_NORMALS[j][2]);
 				if (dot > maxdot):
 					maxdot = dot;
 					maxdotindex = j;

@@ -549,13 +549,13 @@ static void def_cmp_image(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem type_items[] = {
+	/*static EnumPropertyItem type_items[] = {
 		{IMA_SRC_FILE,      "IMAGE",     "Image",     ""},
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
 		{0, NULL, NULL, NULL}
-	};
+	};*/
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -1109,12 +1109,12 @@ static void def_cmp_glare(StructRNA *srna)
 		{0, NULL, NULL, NULL}
 	};
 	
-	static EnumPropertyItem quality_items[] = {
+	/*static EnumPropertyItem quality_items[] = {
 		{0, "HIGH",   "High",   ""},
 		{1, "MEDIUM", "Medium", ""},
 		{2, "LOW",    "Low",    ""},
 		{0, NULL, NULL, NULL}
-	};
+	};*/
 	
 	RNA_def_struct_sdna_from(srna, "NodeGlare", "storage");
 	

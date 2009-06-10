@@ -51,8 +51,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "BIF_gl.h"
-
 #include "ED_util.h"
 #include "ED_types.h"
 #include "ED_screen.h"
@@ -147,16 +145,15 @@ typedef struct uiLayoutItemFlow {
 	int totcol;
 } uiLayoutItemFlow;
 
-typedef struct uiLayoutItemSplt {
-	uiLayout litem;
-	int number;
-	int lr;
-} uiLayoutItemSplt;
-
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
 	uiBut *roundbox;
 } uiLayoutItemBx;
+
+typedef struct uiLayoutItemSplt {
+	uiLayout litem;
+	float percentage;
+} uiLayoutItemSplt;
 
 typedef struct uiLayoutItemRoot {
 	uiLayout litem;
@@ -596,6 +593,41 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 		for(i=0; i<totitem; i++)
 			uiItemEnumO(layout, NULL, 0, opname, propname, item[i].value);
 	}
+}
+
+/* for use in cases where we have */
+void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value_str)
+{
+	PointerRNA ptr;
+	
+	/* for getting the enum */
+	PropertyRNA *prop;
+	const EnumPropertyItem *item;
+	int totitem;
+	int value;
+
+	WM_operator_properties_create(&ptr, opname);
+	
+	/* enum lookup */
+	if((prop= RNA_struct_find_property(&ptr, propname))) {
+		RNA_property_enum_items(&ptr, prop, &item, &totitem);
+		if(RNA_enum_value_from_id(item, value_str, &value)==0) {
+			printf("uiItemEnumO_string: %s.%s, enum %s not found.\n", RNA_struct_identifier(ptr.type), propname, value_str);
+			return;
+		}
+	}
+	else {
+		printf("uiItemEnumO_string: %s.%s not found.\n", RNA_struct_identifier(ptr.type), propname);
+		return;
+	}
+	
+	RNA_property_enum_set(&ptr, prop, value);
+	
+	/* same as uiItemEnumO */
+	if(!name)
+		name= ui_menu_enumpropname(opname, propname, value);
+
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->root->opcontext);
 }
 
 void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value)
@@ -1084,7 +1116,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 
 			x += neww;
 
-			if(neww < minw && w != 0) {
+			if((neww < minw || itemw == minw) && w != 0) {
 				/* fixed size */
 				item->flag= 1;
 				fixedw += minw;
@@ -1450,12 +1482,12 @@ static void ui_litem_estimate_split(uiLayout *litem)
 
 static void ui_litem_layout_split(uiLayout *litem)
 {
+	uiLayoutItemSplt *split= (uiLayoutItemSplt*)litem;
 	uiItem *item;
 	int itemh, x, y, w, tot=0, colw=0;
 
 	x= litem->x;
 	y= litem->y;
-	w= litem->w;
 
 	for(item=litem->items.first; item; item=item->next)
 		tot++;
@@ -1463,7 +1495,8 @@ static void ui_litem_layout_split(uiLayout *litem)
 	if(tot == 0)
 		return;
 	
-	colw= (litem->w - (tot-1)*litem->space)/tot;
+	w= (litem->w - (tot-1)*litem->space);
+	colw= w*split->percentage;
 	colw= MAX2(colw, 0);
 
 	for(item=litem->items.first; item; item=item->next) {
@@ -1472,8 +1505,12 @@ static void ui_litem_layout_split(uiLayout *litem)
 		ui_item_position(item, x, y-itemh, colw, itemh);
 		x += colw;
 
-		if(item->next)
+		if(item->next) {
+			colw= (w - (w*split->percentage))/(tot-1);
+			colw= MAX2(colw, 0);
+
 			x += litem->space;
+		}
 	}
 
 	litem->w= x - litem->x;
@@ -1589,18 +1626,23 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout)
 	return block;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout)
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
 {
-	uiLayout *litem;
+	uiLayoutItemSplt *split;
 
-	litem= uiLayoutRow(layout, 0);
-	litem->item.type = ITEM_LAYOUT_SPLIT;
-	litem->root= layout->root;
-	litem->space= layout->root->style->columnspace;
+	split= MEM_callocN(sizeof(uiLayoutItemSplt), "uiLayoutItemSplt");
+	split->litem.item.type= ITEM_LAYOUT_SPLIT;
+	split->litem.root= layout->root;
+	split->litem.active= 1;
+	split->litem.enabled= 1;
+	split->litem.context= layout->context;
+	split->litem.space= layout->root->style->columnspace;
+	split->percentage= (percentage == 0.0f)? 0.5f: percentage;
+	BLI_addtail(&layout->items, split);
 
-	uiBlockSetCurLayout(layout->root->block, litem);
+	uiBlockSetCurLayout(layout->root->block, &split->litem);
 
-	return litem;
+	return &split->litem;
 }
 
 void uiLayoutSetActive(uiLayout *layout, int active)
@@ -1908,6 +1950,12 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout)
 {
 	return layout->root->block;
 }
+
+int uiLayoutGetOperatorContext(uiLayout *layout)
+{
+	return layout->root->opcontext;
+}
+
 
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout)
 {

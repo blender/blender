@@ -32,13 +32,17 @@
 //////////////////////////////////////////////////////////////////////
 
 double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
-bool CValue::m_ignore_deprecation_warnings(false);
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
 PyTypeObject CValue::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"CValue",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -62,13 +66,14 @@ PyParentObject CValue::Parents[] = {
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
 	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* CValue::PyGetName()
 {
+	ShowDeprecationWarning("getName()", "the name property");
+	
 	return PyString_FromString(this->GetName());
 }
 
@@ -287,13 +292,15 @@ CValue* CValue::GetProperty(const char *inName)
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
 //
-STR_String CValue::GetPropertyText(const STR_String & inName,const STR_String& deftext)
+const STR_String& CValue::GetPropertyText(const STR_String & inName)
 {
+	const static STR_String sEmpty("");
+
 	CValue *property = GetProperty(inName);
 	if (property)
 		return property->GetText();
 	else
-		return deftext;//String::sEmpty;
+		return sEmpty;
 }
 
 float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
@@ -439,27 +446,6 @@ int CValue::GetPropertyCount()
 }
 
 
-
-
-
-void CValue::CloneProperties(CValue *replica)
-{
-	
-	if (m_pNamedPropertyArray)
-	{
-		replica->m_pNamedPropertyArray=NULL;
-		std::map<STR_String,CValue*>::iterator it;
-		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
-		{
-			CValue *val = (*it).second->GetReplica();
-			replica->SetProperty((*it).first,val);
-			val->Release();
-		}
-	}
-
-	
-}
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
@@ -470,50 +456,12 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
-//
-// Add a reference to this value
-//
-CValue *CValue::AddRef()
-{
-	// Increase global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue++);
-#ifdef _DEBUG
-	//gRefCountValue++;
-#endif
-	m_refcount++; 
-	return this;
-}
 
 
 
 //
 // Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 //
-int	CValue::Release()
-{
-	// Decrease global reference count, used to see at the end of the program
-	// if all CValue-derived classes have been dereferenced to 0
-	//debug(gRefCountValue--);
-#ifdef _DEBUG
-	//gRefCountValue--;
-#endif
-	// Decrease local reference count, if it reaches 0 the object should be freed
-	if (--m_refcount > 0)
-	{
-		// Reference count normal, return new reference count
-		return m_refcount;
-	}
-	else
-	{
-		// Reference count reached 0, delete ourselves and return 0
-//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
-		
-		delete this;
-		return 0;
-	}
-
-}
 
 
 
@@ -534,22 +482,31 @@ void CValue::DisableRefCount()
 
 
 
-void CValue::AddDataToReplica(CValue *replica)
+void CValue::ProcessReplica() /* was AddDataToReplica in 2.48 */
 {
-	replica->m_refcount = 1;
-
+	m_refcount = 1;
+	
 #ifdef _DEBUG
 	//gRefCountValue++;
 #endif
-	replica->m_ValFlags.RefCountDisabled = false;
+	PyObjectPlus::ProcessReplica();
 
-	replica->ReplicaSetName(GetName());
+	m_ValFlags.RefCountDisabled = false;
 
-	//copy all props
-	CloneProperties(replica);
+	/* copy all props */
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*> *pOldArray = m_pNamedPropertyArray;
+		m_pNamedPropertyArray=NULL;
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= pOldArray->begin(); (it != pOldArray->end()); it++)
+		{
+			CValue *val = (*it).second->GetReplica();
+			SetProperty((*it).first,val);
+			val->Release();
+		}
+	}
 }
-
-
 
 CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 {
@@ -592,18 +549,22 @@ static PyMethodDef	CValueMethods[] =
 };
 
 PyAttributeDef CValue::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
 	{ NULL }	//Sentinel
 };
 
 
 PyObject*	CValue::py_getattro(PyObject *attr)
-{
+{	
 	char *attr_str= PyString_AsString(attr);
 	CValue* resultattr = GetProperty(attr_str);
 	if (resultattr)
 	{
+		/* only show the wanting here because python inspects for __class__ and KX_MeshProxy uses CValues name attr */
+		ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
+		
 		PyObject* pyconvert = resultattr->ConvertValueToPython();
-	
+		
 		if (pyconvert)
 			return pyconvert;
 		else
@@ -612,7 +573,16 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
-CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
+PyObject* CValue::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
+PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
+	CValue * self = static_cast<CValue *> (self_v);
+	return PyString_FromString(self->GetName());
+}
+
+CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 {
 
 	CValue* vallie = NULL;
@@ -628,7 +598,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		for (i=0;i<numitems;i++)
 		{
 			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
-			CValue* listitemval = ConvertPythonToValue(listitem);
+			CValue* listitemval = ConvertPythonToValue(listitem, error_prefix);
 			if (listitemval)
 			{
 				listval->Add(listitemval);
@@ -665,13 +635,22 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	{
 		vallie = new CStringValue(PyString_AsString(pyobj),"");
 	} else
-	if (pyobj->ob_type==&CValue::Type || pyobj->ob_type==&CListValue::Type)
+	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		vallie = ((CValue*) pyobj)->AddRef();
+		if (BGE_PROXY_REF(pyobj) && (BGE_PROXY_REF(pyobj))->isA(&CValue::Type))
+		{
+			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
+		} else {
+			
+			if(BGE_PROXY_REF(pyobj))	/* this is not a CValue */
+				PyErr_Format(PyExc_TypeError, "%sgame engine python type cannot be used as a property", error_prefix);
+			else						/* PyObjectPlus_Proxy has been removed, cant use */
+				PyErr_Format(PyExc_SystemError, "%s"BGE_PROXY_ERROR_MSG, error_prefix);
+		}
 	} else
 	{
 		/* return an error value from the caller */
-		PyErr_SetString(PyExc_TypeError, "This python type could not be converted to a to a game engine property");
+		PyErr_Format(PyExc_TypeError, "%scould convert python value to a game engine property", error_prefix);
 	}
 	return vallie;
 
@@ -679,21 +658,26 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 int	CValue::py_delattro(PyObject *attr)
 {
+	ShowDeprecationWarning("del ob.attr", "del ob['attr']");
+	
 	char *attr_str= PyString_AsString(attr);
-	if (RemoveProperty(STR_String(attr_str)))
+	if (RemoveProperty(attr_str))
 		return 0;
 	
 	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
-	char *attr_str= PyString_AsString(attr);
-	CValue* oldprop = GetProperty(attr_str);
+	ShowDeprecationWarning("ob.attr = val", "ob['attr'] = val");
 	
-	CValue* vallie = ConvertPythonToValue(pyobj);
-	if (vallie)
+	char *attr_str= PyString_AsString(attr);
+	CValue* oldprop = GetProperty(attr_str);	
+	CValue* vallie;
+
+	/* Dissallow python to assign GameObjects, Scenes etc as values */
+	if ((BGE_PROXY_CHECK_TYPE(pyobj)==0) && (vallie = ConvertPythonToValue(pyobj, "cvalue.attr = value: ")))
 	{
 		if (oldprop)
 			oldprop->SetValue(vallie);
@@ -750,10 +734,40 @@ PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 }
 */
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef CValue_module_def = {
+	{}, /* m_base */
+	"CValue",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	CValueMethods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 extern "C" {
 	void initCValue(void)
 	{
-		Py_InitModule("CValue",CValueMethods);
+		PyObject *m;
+		/* Use existing module where possible
+		 * be careful not to init any runtime vars after this */
+		m = PyImport_ImportModule( "CValue" );
+		if(m) {
+			Py_DECREF(m);
+			//return m;
+		}
+		else {
+			PyErr_Clear();
+		
+#if (PY_VERSION_HEX >= 0x03000000)
+			PyModule_Create(&CValue_module_def);
+#else
+			Py_InitModule("CValue",CValueMethods);
+#endif
+		}
 	}
 }
 
@@ -779,52 +793,3 @@ void CValue::SetValue(CValue* newval)
 	// no one should get here
 	assertd(newval->GetNumber() == 10121969);	
 }
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-/* deprecation warning management */
-void CValue::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
-{
-	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
-}
-
-void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
-{
-	if (!m_ignore_deprecation_warnings) {
-		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
-		
-		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
-		
-		PyObject *getframe, *frame;
-		PyObject *f_lineno, *f_code, *co_filename;
-		
-		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
-		if (getframe) {
-			frame = PyObject_CallObject(getframe, NULL);
-			if (frame) {
-				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-				f_code= PyObject_GetAttrString(frame, "f_code");
-				if (f_lineno && f_code) {
-					co_filename= PyObject_GetAttrString(f_code, "co_filename");
-					if (co_filename) {
-						
-						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
-						
-						Py_DECREF(f_lineno);
-						Py_DECREF(f_code);
-						Py_DECREF(co_filename);
-						Py_DECREF(frame);
-						return;
-					}
-				}
-				
-				Py_XDECREF(f_lineno);
-				Py_XDECREF(f_code);
-				Py_DECREF(frame);
-			}
-			
-		}
-		PyErr_Clear();
-		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
-	}
-}
-

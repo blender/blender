@@ -226,7 +226,7 @@ void update_string(Curve *cu)
 	wcs2utf8s(cu->str, ef->textbuf);
 }
 
-static int insert_into_textbuf(Object *obedit, unsigned long c)
+static int insert_into_textbuf(Object *obedit, uintptr_t c)
 {
 	Curve *cu= obedit->data;
 	
@@ -1290,7 +1290,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	Curve *cu= obedit->data;
 	EditFont *ef= cu->editfont;
 	static int accentcode= 0;
-	unsigned long ascii = evt->ascii;
+	uintptr_t ascii = evt->ascii;
 	int alt= evt->alt, shift= evt->shift, ctrl= evt->ctrl;
 	int event= evt->type, val= evt->val;
 	wchar_t inserted_text[2]= {0};

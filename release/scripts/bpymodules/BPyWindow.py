@@ -1,6 +1,6 @@
 import Blender
 from Blender import Mathutils, Window, Scene, Draw, Mesh
-from Blender.Mathutils import CrossVecs, Matrix, Vector, Intersect
+from Blender.Mathutils import Matrix, Vector, Intersect
 
 # DESCRIPTION:
 # screen_x, screen_y the origin point of the pick ray

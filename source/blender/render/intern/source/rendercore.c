@@ -2542,8 +2542,12 @@ static void shade_tface(BakeShade *bs)
 	
 	/* get pixel level vertex coordinates */
 	for(a=0; a<4; a++) {
-		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - 0.5f;
-		vec[a][1]= tface->uv[a][1]*(float)bs->recty - 0.5f;
+		/* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
+		 * where a pixel gets inbetween 2 faces or the middle of a quad,
+		 * camera aligned quads also have this problem but they are less common.
+		 * Add a small offset to the UVs, fixes bug #18685 - Campbell */
+		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001);
+		vec[a][1]= tface->uv[a][1]*(float)bs->recty - (0.5f + 0.002);
 	}
 	
 	/* UV indices have to be corrected for possible quad->tria splits */

@@ -193,6 +193,7 @@ typedef struct uiLayout uiLayout;
 #define OPTION		(38<<9)
 #define OPTIONN		(39<<9)
 #define SEARCH_MENU	(40<<9)
+#define BUT_EXTRA	(41<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
@@ -449,7 +450,8 @@ typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */
 void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
-
+		/* height in pixels, it's using hardcoded values still */
+int		uiSearchBoxhHeight(void);
 
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
@@ -461,7 +463,7 @@ void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2)
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, uiBlock *block));
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const struct bContext *C, void *, struct rcti *rect));
 
 /* Autocomplete
  *
@@ -579,6 +581,8 @@ void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
+
+int uiLayoutGetOperatorContext(uiLayout *layout);
 int uiLayoutGetActive(uiLayout *layout);
 int uiLayoutGetEnabled(uiLayout *layout);
 int uiLayoutGetRedAlert(uiLayout *layout);
@@ -593,13 +597,13 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
-uiLayout *uiLayoutSplit(uiLayout *layout);
+uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
 uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
-void uiTemplateHeaderID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
+void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
@@ -610,6 +614,7 @@ void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int ty
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
 void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
+void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname);
 void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);

@@ -22,11 +22,13 @@ http://gimpact.sf.net
 #include "btGeneric6DofConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "LinearMath/btTransformUtil.h"
+#include "LinearMath/btTransformUtil.h"
 #include <new>
 
 
+
 #define D6_USE_OBSOLETE_METHOD false
-//-----------------------------------------------------------------------------
+
 
 btGeneric6DofConstraint::btGeneric6DofConstraint()
 :btTypedConstraint(D6_CONSTRAINT_TYPE),
@@ -35,7 +37,7 @@ m_useSolveConstraintObsolete(D6_USE_OBSOLETE_METHOD)
 {
 }
 
-//-----------------------------------------------------------------------------
+
 
 btGeneric6DofConstraint::btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB, bool useLinearReferenceFrameA)
 : btTypedConstraint(D6_CONSTRAINT_TYPE, rbA, rbB)
@@ -46,12 +48,12 @@ m_useSolveConstraintObsolete(D6_USE_OBSOLETE_METHOD)
 {
 
 }
-//-----------------------------------------------------------------------------
+
 
 
 #define GENERIC_D6_DISABLE_WARMSTARTING 1
 
-//-----------------------------------------------------------------------------
+
 
 btScalar btGetMatrixElem(const btMatrix3x3& mat, int index);
 btScalar btGetMatrixElem(const btMatrix3x3& mat, int index)
@@ -61,7 +63,7 @@ btScalar btGetMatrixElem(const btMatrix3x3& mat, int index)
 	return mat[i][j];
 }
 
-//-----------------------------------------------------------------------------
+
 
 ///MatrixToEulerXYZ from http://www.geometrictools.com/LibFoundation/Mathematics/Wm4Matrix3.inl.html
 bool	matrixToEulerXYZ(const btMatrix3x3& mat,btVector3& xyz);
@@ -129,7 +131,7 @@ int btRotationalLimitMotor::testLimitValue(btScalar test_value)
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 btScalar btRotationalLimitMotor::solveAngularLimits(
 	btScalar timeStep,btVector3& axis,btScalar jacDiagABInv,
@@ -191,8 +193,8 @@ btScalar btRotationalLimitMotor::solveAngularLimits(
 
 
 	// sort with accumulated impulses
-	btScalar	lo = btScalar(-1e30);
-	btScalar	hi = btScalar(1e30);
+	btScalar	lo = btScalar(-BT_LARGE_FLOAT);
+	btScalar	hi = btScalar(BT_LARGE_FLOAT);
 
 	btScalar oldaccumImpulse = m_accumulatedImpulse;
 	btScalar sum = oldaccumImpulse + clippedMotorImpulse;
@@ -249,9 +251,9 @@ int btTranslationalLimitMotor::testLimitValue(int limitIndex, btScalar test_valu
 	m_currentLimit[limitIndex] = 0;//Free from violation
 	m_currentLimitError[limitIndex] = btScalar(0.f);
 	return 0;
-} // btTranslationalLimitMotor::testLimitValue()
+}
 
-//-----------------------------------------------------------------------------
+
 
 btScalar btTranslationalLimitMotor::solveLinearAxis(
 	btScalar timeStep,
@@ -283,8 +285,8 @@ btScalar btTranslationalLimitMotor::solveLinearAxis(
 
 	//positional error (zeroth order error)
 	btScalar depth = -(pointInA - pointInB).dot(axis_normal_on_a);
-	btScalar	lo = btScalar(-1e30);
-	btScalar	hi = btScalar(1e30);
+	btScalar	lo = btScalar(-BT_LARGE_FLOAT);
+	btScalar	hi = btScalar(BT_LARGE_FLOAT);
 
 	btScalar minLimit = m_lowerLimit[limit_index];
 	btScalar maxLimit = m_upperLimit[limit_index];
@@ -372,7 +374,7 @@ void btGeneric6DofConstraint::calculateAngleInfo()
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::calculateTransforms()
 {
@@ -382,7 +384,7 @@ void btGeneric6DofConstraint::calculateTransforms()
 	calculateAngleInfo();
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::buildLinearJacobian(
 	btJacobianEntry & jacLinear,const btVector3 & normalWorld,
@@ -400,7 +402,7 @@ void btGeneric6DofConstraint::buildLinearJacobian(
         m_rbB.getInvMass());
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::buildAngularJacobian(
 	btJacobianEntry & jacAngular,const btVector3 & jointAxisW)
@@ -413,17 +415,18 @@ void btGeneric6DofConstraint::buildAngularJacobian(
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 bool btGeneric6DofConstraint::testAngularLimitMotor(int axis_index)
 {
 	btScalar angle = m_calculatedAxisAngleDiff[axis_index];
+	m_angularLimits[axis_index].m_currentPosition = angle;
 	//test limits
 	m_angularLimits[axis_index].testLimitValue(angle);
 	return m_angularLimits[axis_index].needApplyTorques();
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::buildJacobian()
 {
@@ -483,7 +486,7 @@ void btGeneric6DofConstraint::buildJacobian()
 	}
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::getInfo1 (btConstraintInfo1* info)
 {
@@ -519,7 +522,7 @@ void btGeneric6DofConstraint::getInfo1 (btConstraintInfo1* info)
 	}
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::getInfo2 (btConstraintInfo2* info)
 {
@@ -528,7 +531,7 @@ void btGeneric6DofConstraint::getInfo2 (btConstraintInfo2* info)
 	setAngularLimits(info, row);
 }
 
-//-----------------------------------------------------------------------------
+
 
 int btGeneric6DofConstraint::setLinearLimits(btConstraintInfo2* info)
 {
@@ -542,6 +545,7 @@ int btGeneric6DofConstraint::setLinearLimits(btConstraintInfo2* info)
 		{ // re-use rotational motor code
 			limot.m_bounce = btScalar(0.f);
 			limot.m_currentLimit = m_linearLimits.m_currentLimit[i];
+			limot.m_currentPosition = m_linearLimits.m_currentLinearDiff[i];
 			limot.m_currentLimitError  = m_linearLimits.m_currentLimitError[i];
 			limot.m_damping  = m_linearLimits.m_damping;
 			limot.m_enableMotor  = m_linearLimits.m_enableMotor[i];
@@ -559,7 +563,7 @@ int btGeneric6DofConstraint::setLinearLimits(btConstraintInfo2* info)
 	return row;
 }
 
-//-----------------------------------------------------------------------------
+
 
 int btGeneric6DofConstraint::setAngularLimits(btConstraintInfo2 *info, int row_offset)
 {
@@ -582,7 +586,7 @@ int btGeneric6DofConstraint::setAngularLimits(btConstraintInfo2 *info, int row_o
 	return row;
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep)
 {
@@ -643,7 +647,7 @@ void btGeneric6DofConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolv
 	}
 }
 
-//-----------------------------------------------------------------------------
+
 
 void	btGeneric6DofConstraint::updateRHS(btScalar	timeStep)
 {
@@ -651,21 +655,26 @@ void	btGeneric6DofConstraint::updateRHS(btScalar	timeStep)
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 btVector3 btGeneric6DofConstraint::getAxis(int axis_index) const
 {
 	return m_calculatedAxis[axis_index];
 }
 
-//-----------------------------------------------------------------------------
 
-btScalar btGeneric6DofConstraint::getAngle(int axis_index) const
+btScalar	btGeneric6DofConstraint::getRelativePivotPosition(int axisIndex) const
 {
-	return m_calculatedAxisAngleDiff[axis_index];
+	return m_calculatedLinearDiff[axisIndex];
 }
 
-//-----------------------------------------------------------------------------
+
+btScalar btGeneric6DofConstraint::getAngle(int axisIndex) const
+{
+	return m_calculatedAxisAngleDiff[axisIndex];
+}
+
+
 
 void btGeneric6DofConstraint::calcAnchorPos(void)
 {
@@ -684,9 +693,9 @@ void btGeneric6DofConstraint::calcAnchorPos(void)
 	const btVector3& pB = m_calculatedTransformB.getOrigin();
 	m_AnchorPos = pA * weight + pB * (btScalar(1.0) - weight);
 	return;
-} // btGeneric6DofConstraint::calcAnchorPos()
+}
 
-//-----------------------------------------------------------------------------
+
 
 void btGeneric6DofConstraint::calculateLinearInfo()
 {
@@ -694,11 +703,12 @@ void btGeneric6DofConstraint::calculateLinearInfo()
 	m_calculatedLinearDiff = m_calculatedTransformA.getBasis().inverse() * m_calculatedLinearDiff;
 	for(int i = 0; i < 3; i++)
 	{
+		m_linearLimits.m_currentLinearDiff[i] = m_calculatedLinearDiff[i];
 		m_linearLimits.testLimitValue(i, m_calculatedLinearDiff[i]);
 	}
-} // btGeneric6DofConstraint::calculateLinearInfo()
+}
 
-//-----------------------------------------------------------------------------
+
 
 int btGeneric6DofConstraint::get_limit_motor_info2(
 	btRotationalLimitMotor * limot,
@@ -721,7 +731,7 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
             J2[srow+1] = -ax1[1];
             J2[srow+2] = -ax1[2];
         }
-        if((!rotational) && limit)
+        if((!rotational))
         {
 			btVector3 ltd;	// Linear Torque Decoupling vector
 			btVector3 c = m_calculatedTransformB.getOrigin() - body0->getCenterOfMassPosition();
@@ -745,7 +755,14 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
             info->cfm[srow] = 0.0f;
             if(!limit)
             {
-                info->m_constraintError[srow] += limot->m_targetVelocity;
+				btScalar tag_vel = rotational ? limot->m_targetVelocity : -limot->m_targetVelocity;
+
+				btScalar mot_fact = getMotorFactor(	limot->m_currentPosition, 
+													limot->m_loLimit,
+													limot->m_hiLimit, 
+													tag_vel, 
+													info->fps * info->erp);
+				info->m_constraintError[srow] += mot_fact * limot->m_targetVelocity;
                 info->m_lowerLimit[srow] = -limot->m_maxMotorForce;
                 info->m_upperLimit[srow] = limot->m_maxMotorForce;
             }
@@ -824,6 +841,131 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
     else return 0;
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
+
+
+
+btGeneric6DofSpringConstraint::btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA)
+	: btGeneric6DofConstraint(rbA, rbB, frameInA, frameInB, useLinearReferenceFrameA)
+{
+	for(int i = 0; i < 6; i++)
+	{
+		m_springEnabled[i] = false;
+		m_equilibriumPoint[i] = btScalar(0.f);
+		m_springStiffness[i] = btScalar(0.f);
+		m_springDamping[i] = btScalar(1.f);
+	}
+}
+
+
+void btGeneric6DofSpringConstraint::enableSpring(int index, bool onOff)
+{
+	btAssert((index >= 0) && (index < 6));
+	m_springEnabled[index] = onOff;
+	if(index < 3)
+	{
+		m_linearLimits.m_enableMotor[index] = onOff;
+	}
+	else
+	{
+		m_angularLimits[index - 3].m_enableMotor = onOff;
+	}
+}
+
+
+
+void btGeneric6DofSpringConstraint::setStiffness(int index, btScalar stiffness)
+{
+	btAssert((index >= 0) && (index < 6));
+	m_springStiffness[index] = stiffness;
+}
+
+
+void btGeneric6DofSpringConstraint::setDamping(int index, btScalar damping)
+{
+	btAssert((index >= 0) && (index < 6));
+	m_springDamping[index] = damping;
+}
+
+
+void btGeneric6DofSpringConstraint::setEquilibriumPoint()
+{
+	calculateTransforms();
+	for(int i = 0; i < 3; i++)
+	{
+		m_equilibriumPoint[i] = m_calculatedLinearDiff[i];
+	}
+	for(int i = 0; i < 3; i++)
+	{
+		m_equilibriumPoint[i + 3] = m_calculatedAxisAngleDiff[i];
+	}
+}
+
+
+
+void btGeneric6DofSpringConstraint::setEquilibriumPoint(int index)
+{
+	btAssert((index >= 0) && (index < 6));
+	calculateTransforms();
+	if(index < 3)
+	{
+		m_equilibriumPoint[index] = m_calculatedLinearDiff[index];
+	}
+	else
+	{
+		m_equilibriumPoint[index + 3] = m_calculatedAxisAngleDiff[index];
+	}
+}
+
+
+
+void btGeneric6DofSpringConstraint::internalUpdateSprings(btConstraintInfo2* info)
+{
+	calculateTransforms();
+	// it is assumed that calculateTransforms() have been called before this call
+	int i;
+	btVector3 relVel = m_rbB.getLinearVelocity() - m_rbA.getLinearVelocity();
+	for(i = 0; i < 3; i++)
+	{
+		if(m_springEnabled[i])
+		{
+			// get current position of constraint
+			btScalar currPos = m_calculatedLinearDiff[i];
+			// calculate difference
+			btScalar delta = currPos - m_equilibriumPoint[i];
+			// spring force is (delta * m_stiffness) according to Hooke's Law
+			btScalar force = delta * m_springStiffness[i];
+			btScalar velFactor = info->fps * m_springDamping[i];
+			m_linearLimits.m_targetVelocity[i] =  velFactor * force;
+			m_linearLimits.m_maxMotorForce[i] =  btFabs(force) / info->fps;
+		}
+	}
+	for(i = 0; i < 3; i++)
+	{
+		if(m_springEnabled[i + 3])
+		{
+			// get current position of constraint
+			btScalar currPos = m_calculatedAxisAngleDiff[i];
+			// calculate difference
+			btScalar delta = currPos - m_equilibriumPoint[i+3];
+			// spring force is (-delta * m_stiffness) according to Hooke's Law
+			btScalar force = -delta * m_springStiffness[i+3];
+			btScalar velFactor = info->fps * m_springDamping[i+3];
+			m_angularLimits[i].m_targetVelocity = velFactor * force;
+			m_angularLimits[i].m_maxMotorForce = btFabs(force) / info->fps;
+		}
+	}
+}
+
+
+void btGeneric6DofSpringConstraint::getInfo2(btConstraintInfo2* info)
+{
+	// this will be called by constraint solver at the constraint setup stage
+	// set current motor parameters
+	internalUpdateSprings(info);
+	// do the rest of job for constraint setup
+	btGeneric6DofConstraint::getInfo2(info);
+}
+
+
+
+

@@ -1120,11 +1120,22 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
-		/* make empty render result, so display callbacks can initialize */
-		RE_FreeRenderResult(re->result);
-		re->result= MEM_callocN(sizeof(RenderResult), "new render result");
-		re->result->rectx= re->rectx;
-		re->result->recty= re->recty;
+		/* if preview render, we try to keep old result */
+		if(re->r.scemode & R_PREVIEWBUTS) {
+			if(re->result && re->result->rectx==re->rectx && re->result->recty==re->recty);
+			else {
+				RE_FreeRenderResult(re->result);
+				re->result= NULL;
+			}
+		}
+		else {
+			
+			/* make empty render result, so display callbacks can initialize */
+			RE_FreeRenderResult(re->result);
+			re->result= MEM_callocN(sizeof(RenderResult), "new render result");
+			re->result->rectx= re->rectx;
+			re->result->recty= re->recty;
+		}
 		
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
@@ -1282,8 +1293,11 @@ static void *do_part_thread(void *pa_v)
 				save_render_result_tile(rr, rrpart);
 			
 		}
-		else if(render_display_draw_enabled(&R))
-			merge_render_result(R.result, pa->result);
+		else if(render_display_draw_enabled(&R)) {
+			/* on break, don't merge in result for preview renders, looks nicer */
+			if(R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS));
+			else merge_render_result(R.result, pa->result);
+		}
 	}
 	
 	pa->ready= 1;
@@ -1477,14 +1491,16 @@ static void threaded_tile_processor(Render *re)
 	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
-	RE_FreeRenderResult(re->result);
+	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
 	
-	if(re->sss_points)
-		re->result= new_render_result(re, &re->disprect, 0, 0);
-	else if(re->r.scemode & R_FULL_SAMPLE)
-		re->result= new_full_sample_buffers_exr(re);
-	else
-		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+		if(re->sss_points)
+			re->result= new_render_result(re, &re->disprect, 0, 0);
+		else if(re->r.scemode & R_FULL_SAMPLE)
+			re->result= new_full_sample_buffers_exr(re);
+		else
+			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+	}
 	
 	if(re->result==NULL)
 		return;
@@ -1651,6 +1667,42 @@ static void do_render_3d(Render *re)
 	RE_Database_Free(re);
 }
 
+/* called by blur loop, accumulate RGBA key alpha */
+static void addblur_rect_key(RenderResult *rr, float *rectf, float *rectf1, float blurfac)
+{
+	float mfac= 1.0f - blurfac;
+	int a, b, stride= 4*rr->rectx;
+	int len= stride*sizeof(float);
+	
+	for(a=0; a<rr->recty; a++) {
+		if(blurfac==1.0f) {
+			memcpy(rectf, rectf1, len);
+		}
+		else {
+			float *rf= rectf, *rf1= rectf1;
+			
+			for( b= rr->rectx; b>0; b--, rf+=4, rf1+=4) {
+				if(rf1[3]<0.01f)
+					rf[3]= mfac*rf[3];
+				else if(rf[3]<0.01f) {
+					rf[0]= rf1[0];
+					rf[1]= rf1[1];
+					rf[2]= rf1[2];
+					rf[3]= blurfac*rf1[3];
+				}
+				else {
+					rf[0]= mfac*rf[0] + blurfac*rf1[0];
+					rf[1]= mfac*rf[1] + blurfac*rf1[1];
+					rf[2]= mfac*rf[2] + blurfac*rf1[2];
+					rf[3]= mfac*rf[3] + blurfac*rf1[3];
+				}				
+			}
+		}
+		rectf+= stride;
+		rectf1+= stride;
+	}
+}
+
 /* called by blur loop, accumulate renderlayers */
 static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float blurfac, int channels)
 {
@@ -1674,8 +1726,9 @@ static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float bl
 	}
 }
 
+
 /* called by blur loop, accumulate renderlayers */
-static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac)
+static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac, int key_alpha)
 {
 	RenderLayer *rl, *rl1;
 	RenderPass *rpass, *rpass1;
@@ -1684,8 +1737,12 @@ static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float b
 	for(rl= rr->layers.first; rl && rl1; rl= rl->next, rl1= rl1->next) {
 		
 		/* combined */
-		if(rl->rectf && rl1->rectf)
-			addblur_rect(rr, rl->rectf, rl1->rectf, blurfac, 4);
+		if(rl->rectf && rl1->rectf) {
+			if(key_alpha)
+				addblur_rect_key(rr, rl->rectf, rl1->rectf, blurfac);
+			else
+				addblur_rect(rr, rl->rectf, rl1->rectf, blurfac, 4);
+		}
 		
 		/* passes are allocated in sync */
 		rpass1= rl1->passes.first;
@@ -1715,7 +1772,7 @@ static void do_render_blur_3d(Render *re)
 		
 		blurfac= 1.0f/(float)(re->r.osa-blur);
 		
-		merge_renderresult_blur(rres, re->result, blurfac);
+		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
 		if(re->test_break(re->tbh)) break;
 	}
 	
@@ -2416,7 +2473,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 /* general Blender frame render call */
 void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 {
-	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
+	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
 	re->result_ok= 0;
 	

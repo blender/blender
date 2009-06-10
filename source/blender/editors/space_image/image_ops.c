@@ -579,7 +579,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 
 static char *filesel_imagetype_string(Image *ima)
 {
-	char *strp, *str= MEM_callocN(14*32, "menu for filesel");
+	char *strp, *str= MEM_callocN(15*32, "menu for filesel");
 	
 	strp= str;
 	str += sprintf(str, "Save Image as: %%t|");
@@ -588,6 +588,9 @@ static char *filesel_imagetype_string(Image *ima)
 	str += sprintf(str, "PNG %%x%d|", R_PNG);
 	str += sprintf(str, "BMP %%x%d|", R_BMP);
 	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+#ifdef WITH_OPENJPEG
+	str += sprintf(str, "Jpeg 2000 %%x%d|", R_JP2);
+#endif
 	str += sprintf(str, "Iris %%x%d|", R_IRIS);
 	if(G.have_libtiff)
 		str += sprintf(str, "Tiff %%x%d|", R_TIFF);

@@ -1459,7 +1459,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if(part==NULL || pars==NULL || !psys_check_enabled(ob, psys))
 		return 0;
 	
-	if(part->draw_as==PART_DRAW_OB || part->draw_as==PART_DRAW_GR || part->draw_as==PART_DRAW_NOT)
+	if(part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
 		return 1;
 
 /* 2. start initialising things */
@@ -1522,7 +1522,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		sd.mcol = MEM_callocN(sd.totcol * sizeof(MCol), "particle_mcols");
 
 /* 2.2 setup billboards */
-	if(part->draw_as == PART_DRAW_BB) {
+	if(part->ren_as == PART_DRAW_BB) {
 		int first_uv = CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
 
 		bb.uv[0] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[0]);
@@ -1577,7 +1577,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	Mat3Transp(nmat);
 
 /* 2.6 setup strand rendering */
-	if(part->draw_as == PART_DRAW_PATH && psys->pathcache){
+	if(part->ren_as == PART_DRAW_PATH && psys->pathcache){
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
 		if(path_nbr) {
@@ -1760,7 +1760,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(parent->num < psmd->dm->getNumFaces(psmd->dm))
 						num = parent->num;
 
-				get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
+				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
 			}
 
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
@@ -1884,10 +1884,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				continue;
 
 			VECCOPY(loc,state.co);
-			if(part->draw_as!=PART_DRAW_BB)
+			if(part->ren_as!=PART_DRAW_BB)
 				MTC_Mat4MulVecfl(re->viewmat,loc);
 
-			switch(part->draw_as) {
+			switch(part->ren_as) {
 				case PART_DRAW_LINE:
 					sd.line = 1;
 					sd.time = 0.0f;
@@ -4379,7 +4379,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	}
 
 	for(psys=obd->particlesystem.first; psys; psys=psys->next)
-		if(!ELEM5(psys->part->draw_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
+		if(!ELEM5(psys->part->ren_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
 			return 0;
 
 	/* don't allow lamp, animated duplis, or radio render */
@@ -4402,7 +4402,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 	
 	if(ob->transflag & OB_DUPLIPARTS) {
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			if(ELEM(psys->part->draw_as, PART_DRAW_OB, PART_DRAW_GR)) {
+			if(ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 				if(enable)
 					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 				else

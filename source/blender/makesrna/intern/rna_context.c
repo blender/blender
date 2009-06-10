@@ -103,48 +103,48 @@ void RNA_def_context(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "manager", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "WindowManager");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_manager_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_manager_get", NULL, NULL);
 
 	/* prop= RNA_def_property(srna, "window", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Window");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_window_get", NULL); */
+	RNA_def_property_pointer_funcs(prop, "rna_Context_window_get", NULL, NULL); */
 
 	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Screen");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_screen_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_screen_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "area", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Area");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_area_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_area_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "space_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Space");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_space_data_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_space_data_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "region", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Region");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_region_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_region_get", NULL, NULL);
 
 	/*prop= RNA_def_property(srna, "region_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "RegionData");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_region_data_get", NULL);*/
+	RNA_def_property_pointer_funcs(prop, "rna_Context_region_data_get", NULL, NULL);*/
 
 	/* Data */
 	prop= RNA_def_property(srna, "main", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Main");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_main_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_main_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Scene");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_get", NULL, NULL);
 }
 
 #endif

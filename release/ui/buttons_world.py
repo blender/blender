@@ -12,6 +12,9 @@ class WorldButtonsPanel(bpy.types.Panel):
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
 
+	def poll(self, context):
+		return (context.scene or context.world)
+
 	def draw(self, context):
 		layout = self.layout
 
@@ -21,21 +24,38 @@ class WORLD_PT_preview(WorldButtonsPanel):
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
 
+	def poll(self, context):
+		return (context.scene or context.world)
+
 	def draw(self, context):
+		scene = context.scene
 		world = context.world
+		space = context.space_data
 		layout = self.layout
-		
-		row = layout.row()
-		row.itemR(world, "blend_sky")
-		row.itemR(world, "paper_sky")
-		row.itemR(world, "real_sky")
-		
-		row = layout.row()
-		row.column().itemR(world, "horizon_color")
-		col = row.column()
-		col.itemR(world, "zenith_color")
-		col.active = world.blend_sky
-		row.column().itemR(world, "ambient_color")
+
+		split = layout.split(percentage=0.65)
+
+		if scene:
+			split.template_ID(context, scene, "world", new="WORLD_OT_new")
+		elif world:
+			split.template_ID(context, space, "pin_id")
+
+		split.itemS()
+
+		if world:
+			layout.itemS()
+			
+			row = layout.row()
+			row.itemR(world, "blend_sky")
+			row.itemR(world, "paper_sky")
+			row.itemR(world, "real_sky")
+			
+			row = layout.row()
+			row.column().itemR(world, "horizon_color")
+			col = row.column()
+			col.itemR(world, "zenith_color")
+			col.active = world.blend_sky
+			row.column().itemR(world, "ambient_color")
 		
 class WORLD_PT_color_correction(WorldButtonsPanel):
 	__label__ = "Color Correction"
@@ -89,7 +109,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
 		flow.itemR(world.stars, "size")
 		flow.itemR(world.stars, "min_distance", text="Min. Dist")
 		flow.itemR(world.stars, "average_separation", text="Separation")
-		flow.itemR(world.stars, "color_randomization", text="Random:")
+		flow.itemR(world.stars, "color_randomization", text="Random")
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
