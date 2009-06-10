@@ -179,7 +179,7 @@ void NLA_OT_channels_select_border(wmOperatorType *ot)
 	ot->exec= nlachannels_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -449,7 +449,7 @@ void NLA_OT_channels_click (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= nlaop_poll_tweakmode_off; // xxx?
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

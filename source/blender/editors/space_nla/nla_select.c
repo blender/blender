@@ -208,6 +208,151 @@ void NLAEDIT_OT_select_all_toggle (wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
+/* ******************** Border Select Operator **************************** */
+/* This operator currently works in one of three ways:
+ *	-> BKEY 	- 1) all strips within region are selected (ACTKEYS_BORDERSEL_ALLSTRIPS)
+ *	-> ALT-BKEY - depending on which axis of the region was larger...
+ *		-> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
+ *		-> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
+ */
+
+/* defines for borderselect mode */
+enum {
+	NLA_BORDERSEL_ALLSTRIPS	= 0,
+	NLA_BORDERSEL_FRAMERANGE,
+	NLA_BORDERSEL_CHANNELS,
+} eActKeys_BorderSelect_Mode;
+
+
+static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, short selectmode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ac->ar->v2d;
+	rctf rectf;
+	float ymin=(float)(-NLACHANNEL_HEIGHT), ymax=0;
+	
+	/* convert border-region to view coordinates */
+	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* convert selection modes to selection modes */
+	selectmode= selmodes_to_flagmodes(selectmode);
+	
+	/* loop over data, doing border select */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		ymax= ymin + NLACHANNEL_STEP;
+		
+		/* perform vertical suitability check (if applicable) */
+		if ( (mode == NLA_BORDERSEL_FRAMERANGE) ||
+			!((ymax < rectf.ymin) || (ymin > rectf.ymax)) ) 
+		{
+			/* loop over data selecting (only if NLA-Track) */
+			if (ale->type == ANIMTYPE_NLATRACK) {
+				NlaTrack *nlt= (NlaTrack *)ale->data;
+				NlaStrip *strip;
+				
+				/* only select strips if they fall within the required ranges (if applicable) */
+				for (strip= nlt->strips.first; strip; strip= strip->next) {
+					if ( (mode == NLA_BORDERSEL_CHANNELS) || 
+						  BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax) ) 
+					{
+						/* set selection */
+						ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
+						
+						/* clear active flag */
+						strip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+					}
+				}
+			}
+		}
+		
+		/* set maximum extent to be the minimum of the next channel */
+		ymin= ymax;
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	rcti rect;
+	short mode=0, selectmode=0;
+	int event;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get settings from operator */
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+		
+	event= RNA_int_get(op->ptr, "event_type");
+	if (event == LEFTMOUSE) // FIXME... hardcoded
+		selectmode = SELECT_ADD;
+	else
+		selectmode = SELECT_SUBTRACT;
+	
+	/* selection 'mode' depends on whether borderselect region only matters on one axis */
+	if (RNA_boolean_get(op->ptr, "axis_range")) {
+		/* mode depends on which axis of the range is larger to determine which axis to use 
+		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
+		 *	- the frame-range select option is favoured over the channel one (x over y), as frame-range one is often
+		 *	  used for tweaking timing when "blocking", while channels is not that useful...
+		 */
+		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
+			mode= NLA_BORDERSEL_FRAMERANGE;
+		else
+			mode= NLA_BORDERSEL_CHANNELS;
+	}
+	else 
+		mode= NLA_BORDERSEL_ALLSTRIPS;
+	
+	/* apply borderselect action */
+	borderselect_nla_strips(&ac, rect, mode, selectmode);
+	
+	return OPERATOR_FINISHED;
+} 
+
+void NLAEDIT_OT_select_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border Select";
+	ot->idname= "NLAEDIT_OT_select_border";
+	
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= nlaedit_borderselect_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* rna */
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	
+	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+}
+
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of 2 ways:
  *	1) Select the strip directly under the mouse

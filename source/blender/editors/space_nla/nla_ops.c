@@ -126,6 +126,7 @@ void nla_operatortypes(void)
 	
 	/* select */
 	WM_operatortype_append(NLAEDIT_OT_click_select);
+	WM_operatortype_append(NLAEDIT_OT_select_border);
 	WM_operatortype_append(NLAEDIT_OT_select_all_toggle);
 	
 	/* edit */
@@ -185,6 +186,11 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 		/* deselect all */
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	
+		/* borderselect */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
+	
 	
 	/* editing */
 		/* tweakmode 
