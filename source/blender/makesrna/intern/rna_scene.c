@@ -31,6 +31,12 @@
 
 #include "DNA_scene_types.h"
 
+/*
+#include "BKE_writeffmpeg.h"
+#include <libavcodec/avcodec.h> 
+#include <libavformat/avformat.h>
+*/
+
 #include "WM_types.h"
 
 /* prop_mode needs to be accessible from transform operator */
@@ -285,7 +291,45 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_JPEG2K_16BIT, "32", "32", ""},
 		{0, NULL, NULL, NULL}};
 #endif
-	
+
+/*
+#ifdef WITH_FFMPEG
+	static EnumPropertyItem ffmpeg_format_items[] = {
+		{FFMPEG_MPEG1, "MPEG1", "MPEG-1", ""},
+		{FFMPEG_MPEG2, "MPEG2", "MPEG-2", ""},
+		{FFMPEG_MPEG4, "MPEG4", "MPEG-4", ""},
+		{FFMPEG_AVI, "AVI", "Avi", ""},
+		{FFMPEG_MOV, "QUICKTIME", "Quicktime", ""},
+		{FFMPEG_DV, "DV", "DV", ""},
+		{FFMPEG_H264, "H264", "H264", ""},
+		{FFMPEG_XVID, "XVID", "XVid", ""},
+		{FFMPEG_OGG, "OGG", "OGG", ""},
+		{FFMPEG_FLV, "FLASH", "Flash", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem ffmpeg_codec_items[] = {
+		{CODEC_ID_MPEG1VIDEO, "MPEG1", "MPEG-1", ""},
+		{CODEC_ID_MPEG2VIDEO, "MPEG2", "MPEG-2", ""},
+		{CODEC_ID_MPEG4, "MPEG4", "MPEG-4(divx)", ""},
+		{CODEC_ID_HUFFYUV, "HUFFYUV", "HuffYUV", ""},
+		{CODEC_ID_DVVIDEO, "DV", "DV", ""},
+		{CODEC_ID_H264, "H264", "H264", ""},
+		{CODEC_ID_XVID, "XVID", "XVid", ""},
+		{CODEC_ID_THEORA, "THEORA", "OGG Theora", ""},
+		{CODEC_ID_FLV1, "FLASH", "FlashVideo1", ""},
+		{0, NULL, NULL, NULL}};
+		
+	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
+		{CODEC_ID_MP2, "MP2", "MP2", ""},
+		{CODEC_ID_MP3, "MP3", "MP3", ""},
+		{CODEC_ID_AC3, "AC3", "AC3", ""},
+		{CODEC_ID_AAC, "AAC", "AAC", ""},
+		{CODEC_ID_VORBIS, "VORBIS", "Vorbis", ""},
+		{CODEC_ID_PCM_S16LE, "PCM", "PCM", ""},
+		{0, NULL, NULL, NULL}};
+#endif
+*/
+
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
@@ -422,7 +466,93 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "YCC", "Save luminance-chrominance-chrominance instead of RGB color channels");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 #endif
+
+#ifdef WITH_FFMPEG
+	/* FFMPEG Video*/
 	
+	/*
+	prop= RNA_def_property(srna, "ffmpeg_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.type");
+	RNA_def_property_enum_items(prop, ffmpeg_format_items);
+	RNA_def_property_ui_text(prop, "Format", "Output file format");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.codec");
+	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
+	RNA_def_property_ui_text(prop, "Codec", "FFMpeg codec to use");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	*/
+	
+	prop= RNA_def_property(srna, "ffmpeg_video_bitrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.video_bitrate");
+	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate(kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_minrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_min_rate");
+	RNA_def_property_range(prop, 0, 9000);
+	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate(kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_maxrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_max_rate");
+	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate(kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_muxrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.mux_rate");
+	RNA_def_property_range(prop, 0, 100000000);
+	RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/s(!))");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_gopsize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.gop_size");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "GOP Size", "Distance between key frames");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_buffersize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_buffer_size");
+	RNA_def_property_range(prop, 0, 2000);
+	RNA_def_property_ui_text(prop, "Buffersize", "Rate control: buffer size (kb)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_packetsize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.mux_packet_size");
+	RNA_def_property_range(prop, 0, 16384);
+	RNA_def_property_ui_text(prop, "Mux Packet Size", "Mux packet size (byte)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_autosplit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_AUTOSPLIT_OUTPUT);
+	RNA_def_property_ui_text(prop, "Autosplit Output", "Autosplit output at 2GB boundary.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	/* FFMPEG Audio*/
+	
+	/*
+	prop= RNA_def_property(srna, "ffmpeg_audio_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.audio_codec");
+	RNA_def_property_enum_items(prop, ffmpeg_audio_codec_items);
+	RNA_def_property_ui_text(prop, Codec", "FFMpeg codec to use");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	*/
+	
+	prop= RNA_def_property(srna, "ffmpeg_audio_bitrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_bitrate");
+	RNA_def_property_range(prop, 32, 384);
+	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate(kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "ffmpeg_multiplex_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_MULTIPLEX_AUDIO);
+	RNA_def_property_ui_text(prop, "Multiplex Audio", "Interleave audio with the output video");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
 	RNA_def_property_range(prop, 1, 120);

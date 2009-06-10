@@ -73,6 +73,7 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture_slot
+		textype = context.texture
 
 		split = layout.split(percentage=0.3)
 		col = split.column()
@@ -80,26 +81,30 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 		col = split.column()
 		col.itemR(tex, "texture_coordinates", text="")
 		
-		split = layout.split()
-		col = split.column()
+		
 		if tex.texture_coordinates == 'UV':
-			col.itemR(tex, "uv_layer")
+			row = layout.row()
+			row.itemR(tex, "uv_layer")
 		elif tex.texture_coordinates == 'OBJECT':
-			col.itemR(tex, "object")
-			
+			row = layout.row()
+			row.itemR(tex, "object")
+		
+		if textype.type in ('IMAGE', 'ENVIRONMENT_MAP'):
+			split = layout.split(percentage=0.3)
+			col = split.column()
+			col.itemL(text="Projection:")
+			col = split.column()
+			col.itemR(tex, "mapping", text="")
+
+		split = layout.split()
 		col = split.column()
 		col.itemR(tex, "from_dupli")
 		
-		split = layout.split(percentage=0.3)
 		col = split.column()
-		col.itemL(text="Projection:")
-		col = split.column()
-		col.itemR(tex, "mapping", text="")
-		
-		row = layout.row()
-		row.itemR(tex, "x_mapping", text="X")
-		row.itemR(tex, "y_mapping", text="Y")
-		row.itemR(tex, "z_mapping", text="Z")
+		colrow = col.row()
+		colrow.itemR(tex, "x_mapping", text="")
+		colrow.itemR(tex, "y_mapping", text="")
+		colrow.itemR(tex, "z_mapping", text="")
 
 		row = layout.row()
 		row.column().itemR(tex, "offset")
@@ -117,7 +122,7 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(tex, "map_color")
+		col.itemR(tex, "map_color", text="Diffuse Color")
 		colsub = col.column()
 		colsub.active = tex.map_color
 		colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
@@ -177,7 +182,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 		else:
 			split = layout.split()
 			col = split.column()
-			col.itemR(tex, "rgb_factor")
+			col.itemR(tex, "rgb_factor", text="Multiply RGB")
 
 		col = split.column()
 		col.itemL(text="Adjust:")
@@ -491,7 +496,7 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
-		sub.itemR(tex, "distortion_amount", text="Amount")
+		sub.itemR(tex, "distortion_amount", text="Distortion")
 		sub.itemR(tex, "noise_size", text="Size")
 		
 		sub = split.column()
