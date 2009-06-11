@@ -38,6 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
+#include "BKE_utildefines.h" /* FILE_MAX */
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
@@ -1797,6 +1798,33 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
+		PyTuple_SET_ITEM(ret, 1, kw);
+		Py_INCREF(kw);
+		return ret;
+	}
+}
+
+PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	static char *kwlist[] = {"attr", "name", "description", "maxlen", "default", NULL};
+	char *id, *name="", *description="", *def="";
+	int maxlen=FILE_MAX; // XXX need greater?
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
+		return NULL;
+	
+	if (PyTuple_Size(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+	
+	if (self) {
+		StructRNA *srna = PyCObject_AsVoidPtr(self);
+		RNA_def_string(srna, id, def, maxlen, name, description);
+		Py_RETURN_NONE;
+	} else {
+		PyObject *ret = PyTuple_New(2);
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_StringProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
 		Py_INCREF(kw);
 		return ret;

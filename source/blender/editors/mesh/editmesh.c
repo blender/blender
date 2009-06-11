@@ -2041,7 +2041,7 @@ void RNA_api_mesh_copy(Mesh *me, Mesh *from)
 	copy_mesh_data(me, from);
 }
 
-void RNA_api_mesh_copy_transformed()
+void RNA_api_mesh_transform(Mesh *me, float **mat)
 {
 }
 

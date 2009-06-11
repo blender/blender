@@ -799,6 +799,12 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 
+	/*
+	// error on compile
+	prop= RNA_def_float_matrix(srna, "mat", 16, NULL, 0.0f, 0.0f, "Matrix", "Transform matrix of the object.", 0.0f, 0.0f);
+	RNA_def_property_float_sdna(prop, NULL, "obmat");
+	*/
+
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");

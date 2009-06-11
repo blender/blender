@@ -76,6 +76,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
 
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
