@@ -135,7 +135,11 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 6, 48);
 	RNA_def_property_ui_text(prop, "Points", "");
-	
+
+	prop= RNA_def_property(srna, "kerning", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, -5, 5);
+	RNA_def_property_ui_text(prop, "Kerning", "");
+
 	prop= RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Shadow Size", "Shadow size in pixels (0, 3 and 5 supported)");

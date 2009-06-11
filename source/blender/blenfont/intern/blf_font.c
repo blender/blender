@@ -100,7 +100,7 @@ void blf_font_draw(FontBLF *font, char *str)
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
-	int pen_x, pen_y;
+	int pen_x, pen_y, old_pen_x;
 	int i, has_kerning;
 
 	if (!font->glyph_cache)
@@ -138,12 +138,24 @@ void blf_font_draw(FontBLF *font, char *str)
 		else if (font->mode == BLF_MODE_TEXTURE && (!g->tex_data))
 			g= blf_glyph_add(font, glyph_index, c);
 
-		if (has_kerning && g_prev) {
+		if ((font->flags & BLF_FONT_KERNING) && has_kerning && g_prev) {
+			old_pen_x= pen_x;
 			delta.x= 0;
 			delta.y= 0;
 
 			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
 			pen_x += delta.x >> 6;
+
+			if (pen_x < old_pen_x)
+				pen_x= old_pen_x;
+		}
+
+		if (font->flags & BLF_USER_KERNING) {
+			old_pen_x= pen_x;
+			pen_x += font->kerning;
+
+			if (pen_x < old_pen_x)
+				pen_x= old_pen_x;
 		}
 
 		/* do not return this loop if clipped, we want every character tested */
@@ -162,7 +174,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
 	rctf gbox;
-	int pen_x, pen_y;
+	int pen_x, pen_y, old_pen_x;
 	int i, has_kerning;
 
 	if (!font->glyph_cache)
@@ -205,12 +217,24 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 		else if (font->mode == BLF_MODE_TEXTURE && (!g->tex_data))
 			g= blf_glyph_add(font, glyph_index, c);
 
-		if (has_kerning && g_prev) {
+		if ((font->flags & BLF_FONT_KERNING) && has_kerning && g_prev) {
+			old_pen_x= pen_x;
 			delta.x= 0;
 			delta.y= 0;
 
 			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
 			pen_x += delta.x >> 6;
+
+			if (pen_x < old_pen_x)
+				old_pen_x= pen_x;
+		}
+
+		if (font->flags & BLF_USER_KERNING) {
+			old_pen_x= pen_x;
+			pen_x += font->kerning;
+
+			if (pen_x < old_pen_x)
+				old_pen_x= pen_x;
 		}
 
 		gbox.xmin= g->box.xmin + pen_x;
@@ -294,9 +318,10 @@ void blf_font_fill(FontBLF *font)
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;
 	font->clip_rec.ymax= 0.0f;
-	font->flags= 0;
+	font->flags= BLF_USER_KERNING;
 	font->dpi= 0;
 	font->size= 0;
+	font->kerning= 0;
 	font->cache.first= NULL;
 	font->cache.last= NULL;
 	font->glyph_cache= NULL;
