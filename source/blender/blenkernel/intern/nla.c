@@ -215,8 +215,10 @@ void copy_nladata (ListBase *dst, ListBase *src)
 
 /* Adding ------------------------------------------- */
 
-/* Add a NLA Track to the given AnimData */
-NlaTrack *add_nlatrack (AnimData *adt)
+/* Add a NLA Track to the given AnimData 
+ *	- prev: NLA-Track to add the new one after
+ */
+NlaTrack *add_nlatrack (AnimData *adt, NlaTrack *prev)
 {
 	NlaTrack *nlt;
 	
@@ -232,7 +234,10 @@ NlaTrack *add_nlatrack (AnimData *adt)
 	nlt->index= BLI_countlist(&adt->nla_tracks);
 	
 	/* add track to stack, and make it the active one */
-	BLI_addtail(&adt->nla_tracks, nlt);
+	if (prev)
+		BLI_insertlinkafter(&adt->nla_tracks, prev, nlt);
+	else
+		BLI_addtail(&adt->nla_tracks, nlt);
 	BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
 	
 	/* must have unique name, but we need to seed this */
@@ -308,7 +313,7 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 		 (BKE_nlatrack_has_space(adt->nla_tracks.last, strip->start, strip->end)==0) ) 
 	{
 		/* no space, so add to a new track... */
-		nlt= add_nlatrack(adt);
+		nlt= add_nlatrack(adt, NULL);
 	}
 	else 
 	{

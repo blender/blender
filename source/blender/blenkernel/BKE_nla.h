@@ -46,7 +46,7 @@ struct NlaStrip *copy_nlastrip(struct NlaStrip *strip);
 struct NlaTrack *copy_nlatrack(struct NlaTrack *nlt);
 void copy_nladata(ListBase *dst, ListBase *src);
 
-struct NlaTrack *add_nlatrack(struct AnimData *adt);
+struct NlaTrack *add_nlatrack(struct AnimData *adt, struct NlaTrack *prev);
 struct NlaStrip *add_nlastrip(struct bAction *act);
 struct NlaStrip *add_nlastrip_to_stack(struct AnimData *adt, struct bAction *act);
 

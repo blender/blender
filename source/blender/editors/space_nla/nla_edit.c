@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"

@@ -459,3 +459,76 @@ void NLA_OT_channels_click (wmOperatorType *ot)
 }
 
 /* *********************************************** */
+/* Special Operators */
+
+/* ******************** Add Tracks Operator ***************************** */
+/* Add NLA Tracks to the same AnimData block as a selected track, or above the selected tracks */
+
+static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	AnimData *lastAdt = NULL;
+	short above_sel= RNA_boolean_get(op->ptr, "above_selected");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* add tracks... */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
+		
+		/* check if just adding a new track above this one,
+		 * or whether we're adding a new one to the top of the stack that this one belongs to
+		 */
+		if (above_sel) {
+			/* just add a new one above this one */
+			add_nlatrack(adt, nlt);
+		}
+		else if ((lastAdt == NULL) || (adt != lastAdt)) {
+			/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
+			add_nlatrack(adt, NULL);
+			lastAdt= adt;
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_add_tracks (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Track(s)";
+	ot->idname= "NLA_OT_add_tracks";
+	ot->description= "Add NLA-Tracks above/after the selected tracks.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_add_tracks_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "above_selected", 0, "Above Selected", "Add a new NLA Track above every existing selected one.");
+}
+
+/* *********************************************** */

@@ -102,6 +102,8 @@ void NLAEDIT_OT_split(wmOperatorType *ot);
 void NLA_OT_channels_select_border(wmOperatorType *ot);
 void NLA_OT_channels_click(wmOperatorType *ot);
 
+void NLA_OT_add_tracks(wmOperatorType *ot);
+
 /* **************************************** */
 /* nla_ops.c */
 

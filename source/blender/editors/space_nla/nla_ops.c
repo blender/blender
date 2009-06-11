@@ -124,6 +124,8 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_channels_click);
 	WM_operatortype_append(NLA_OT_channels_select_border);
 	
+	WM_operatortype_append(NLA_OT_add_tracks);
+	
 	/* select */
 	WM_operatortype_append(NLAEDIT_OT_click_select);
 	WM_operatortype_append(NLAEDIT_OT_select_border);
@@ -148,8 +150,13 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	
-	/* borderselect */ 
+		/* borderselect */ 
 	WM_keymap_add_item(keymap, "NLA_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
+	
+	/* channel operations */
+		/* add tracks */
+	WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "above_selected", 1);
 	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 		/* deselect all */
