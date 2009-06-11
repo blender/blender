@@ -591,23 +591,23 @@ static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
 	float length, actlength, repeat, scale;
 	
 	/* get number of repeats */
-	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
+	if (IS_EQ(strip->repeat, 0.0f)) strip->repeat = 1.0f;
 	repeat = strip->repeat;
 	
 	/* scaling */
-	if (strip->scale == 0.0f) strip->scale= 1.0f;
+	if (IS_EQ(strip->scale, 0.0f)) strip->scale= 1.0f;
 	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
 	
 	/* length of referenced action */
 	actlength = strip->actend - strip->actstart;
-	if (actlength == 0.0f) actlength = 1.0f;
+	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
 	
 	/* length of strip */
-	length = repeat * scale * actlength;
+	length = strip->end - strip->start;
+	if (IS_EQ(length, 0.0f)) length= actlength * scale * repeat;
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		// FIXME: verify these 
 		/* invert = convert action-strip time to global time */
 		if (invert)
 			return length*(strip->actend - cframe)/(repeat*actlength) + strip->start;
@@ -651,7 +651,7 @@ void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 {
 	/* firstly, analytically generate values for influence and time (if applicable) */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
-		strip->strip_time= nlastrip_get_frame(strip, ctime, 1); /* last arg '1' means current time to 'strip'/action time */
+		strip->strip_time= nlastrip_get_frame(strip, ctime, 0);
 	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
 		strip->influence= nlastrip_get_influence(strip, ctime);
 	
