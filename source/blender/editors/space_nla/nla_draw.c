@@ -250,15 +250,13 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymax= (float)(height);
-	}
+	/* don't use totrect set, as the width stays the same 
+	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+	 */
+	v2d->tot.ymin= (float)(-height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_FIRST);
+	y= (float)(-NLACHANNEL_HEIGHT);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
@@ -330,7 +328,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 		}
 		
 		/* adjust y-position for next one */
-		y += NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP;
 	}
 	
 	/* free tempolary channels */
@@ -361,15 +359,13 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymax= (float)(height);
-	}
+	/* don't use totrect set, as the width stays the same 
+	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+	 */
+	v2d->tot.ymin= (float)(-height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_FIRST);
+	y= (float)(-NLACHANNEL_HEIGHT);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
@@ -397,7 +393,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					
 					/* only show expand if there are any channels */
 					if (EXPANDED_SCEC(sce))
-						expand= ICON_TRIA_UP;
+						expand= ICON_TRIA_DOWN;
 					else
 						expand= ICON_TRIA_RIGHT;
 					
@@ -421,7 +417,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						
 					/* only show expand if there are any channels */
 					if (EXPANDED_OBJC(ob))
-						expand= ICON_TRIA_UP;
+						expand= ICON_TRIA_DOWN;
 					else
 						expand= ICON_TRIA_RIGHT;
 					
@@ -438,7 +434,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					special = ICON_MATERIAL_DATA;
 					
 					if (FILTER_MAT_OBJC(ob))
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 						
@@ -457,7 +453,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					offset = 21;
 					
 					if (FILTER_MAT_OBJD(ma))
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 					
@@ -473,7 +469,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					special = ICON_LAMP_DATA;
 					
 					if (FILTER_LAM_OBJD(la))
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 					
@@ -489,7 +485,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					special = ICON_CAMERA_DATA;
 					
 					if (FILTER_CAM_OBJD(ca))
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 					
@@ -505,7 +501,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					special = ICON_CURVE_DATA;
 					
 					if (FILTER_CUR_OBJD(cu))
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 					
@@ -521,7 +517,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					special = ICON_SHAPEKEY_DATA; // XXX 
 					
 					if (FILTER_SKE_OBJD(key))	
-						expand = ICON_TRIA_UP;
+						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
 						
@@ -629,7 +625,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
-					uiSetRoundBox((expand == ICON_TRIA_UP)? (8):(1|8));
+					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (8):(1|8));
 					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 10);
 				}
 				else {
@@ -763,7 +759,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 		}
 		
 		/* adjust y-position for next one */
-		y += NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP;
 	}
 	
 	/* free tempolary channels */

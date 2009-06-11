@@ -717,35 +717,20 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 	return items;
 }
 
+/* Include NLA-Data for NLA-Editor:
+ *	- when ANIMFILTER_CHANNELS is used, that means we should be filtering the list for display
+ *	  Although the evaluation order is from the first track to the last and then apply the Action on top,
+ *	  we present this in the UI as the Active Action followed by the last track to the first so that we 
+ *	  get the evaluation order presented as per a stack.
+ *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
+ *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
+ */
 static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale;
 	NlaTrack *nlt;
+	NlaTrack *first=NULL, *next=NULL;
 	int items = 0;
-	
-	/* loop over NLA Tracks - assume that the caller of this has already checked that these should be included */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-		/* only work with this channel and its subchannels if it is editable */
-		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
-			/* only include this track if selected in a way consistent with the filtering requirements */
-			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
-				/* only include if this track is active */
-				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
-					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner, ownertype, owner_id);
-						
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-				
-				/* if we're in NLA-tweakmode, if this track was active, that means that it was the last active one */
-				// FIXME: the channels after should still get drawn, just 'differently', and after an active-action channel
-				if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_ACTIVE))
-					break;
-			}
-		}
-	}
 	
 	/* if showing channels, include active action */
 	if (filter_mode & ANIMFILTER_CHANNELS) {
@@ -762,6 +747,45 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 			if (ale) {
 				BLI_addtail(anim_data, ale);
 				items++;
+			}
+		}
+		
+		/* first track to include will be the last one if we're filtering by channels */
+		first= adt->nla_tracks.last;
+	}
+	else {
+		/* first track to include will the the first one (as per normal) */
+		first= adt->nla_tracks.first;
+	}
+	
+	/* loop over NLA Tracks - assume that the caller of this has already checked that these should be included */
+	for (nlt= first; nlt; nlt= next) {
+		/* 'next' NLA-Track to use depends on whether we're filtering for drawing or not */
+		if (filter_mode & ANIMFILTER_CHANNELS) 
+			next= nlt->prev;
+		else
+			next= nlt->next;
+		
+		/* if we're in NLA-tweakmode, don't show this track if it was disabled (due to tweaking) for now 
+		 *	- active track should still get shown though (even though it has disabled flag set)
+		 */
+		// FIXME: the channels after should still get drawn, just 'differently', and after an active-action channel
+		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED) && !(nlt->flag & NLATRACK_ACTIVE))
+			continue;
+		
+		/* only work with this channel and its subchannels if it is editable */
+		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
+			/* only include this track if selected in a way consistent with the filtering requirements */
+			if ( ANIMCHANNEL_SELOK(SEL_NLT(nlt)) ) {
+				/* only include if this track is active */
+				if (!(filter_mode & ANIMFILTER_ACTIVE) || (nlt->flag & NLATRACK_ACTIVE)) {
+					ale= make_new_animlistelem(nlt, ANIMTYPE_NLATRACK, owner, ownertype, owner_id);
+						
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
 			}
 		}
 	}

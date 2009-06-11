@@ -103,6 +103,7 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 
 static SpaceLink *nla_new(const bContext *C)
 {
+	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
 	SpaceNla *snla;
 	
@@ -132,37 +133,6 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
-	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for nla");
-	
-	BLI_addtail(&snla->regionbase, ar);
-	ar->regiontype= RGN_TYPE_WINDOW;
-	
-	ar->v2d.tot.xmin= 1.0f;
-	ar->v2d.tot.ymin=	0.0f;
-	ar->v2d.tot.xmax= 1000.0f;
-	ar->v2d.tot.ymax= 500.0f;
-	
-	ar->v2d.cur.xmin= -5.0f;
-	ar->v2d.cur.ymin= 0.0f;
-	ar->v2d.cur.xmax= 65.0f;
-	ar->v2d.cur.ymax= 250.0f;
-	
-	ar->v2d.min[0]= 0.0f;
-	ar->v2d.min[1]= 0.0f;
-	
-	ar->v2d.max[0]= MAXFRAMEF;
-	ar->v2d.max[1]= 1000.0f;
-	
-	ar->v2d.minzoom= 0.1f;
-	ar->v2d.maxzoom= 50.0f;
-	
-	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
-	ar->v2d.align= V2D_ALIGN_NO_NEG_Y;
-	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
-	
 	/* ui buttons */
 	ar= MEM_callocN(sizeof(ARegion), "buttons area for nla");
 	
@@ -170,6 +140,33 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_UI;
 	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
+	
+	/* main area */
+	ar= MEM_callocN(sizeof(ARegion), "main area for nla");
+	
+	BLI_addtail(&snla->regionbase, ar);
+	ar->regiontype= RGN_TYPE_WINDOW;
+	
+	ar->v2d.tot.xmin= (float)(SFRA-10);
+	ar->v2d.tot.ymin= -500.0f;
+	ar->v2d.tot.xmax= (float)(EFRA+10);
+	ar->v2d.tot.ymax= 0.0f;
+	
+	ar->v2d.cur = ar->v2d.tot;
+	
+	ar->v2d.min[0]= 0.0f;
+ 	ar->v2d.min[1]= 0.0f;
+	
+	ar->v2d.max[0]= MAXFRAMEF;
+ 	ar->v2d.max[1]= 10000.0f;
+ 	
+	ar->v2d.minzoom= 0.01f;
+	ar->v2d.maxzoom= 50;
+	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
+	ar->v2d.align= V2D_ALIGN_NO_POS_Y;
+	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
 	return (SpaceLink *)snla;
 }
@@ -213,7 +210,7 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STACK, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
 	// TODO: cannot use generic copy, need special NLA version

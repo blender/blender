@@ -1216,6 +1216,14 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					ACHANNEL_SET_FLAG(gpl, selectmode, GP_LAYER_SELECT);
 				}
 					break;
+					
+				case ANIMTYPE_NLATRACK: /* nla-track */
+				{
+					NlaTrack *nlt= (NlaTrack *)ale->data;
+					
+					ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
+				}
+					break;
 			}
 		}
 		

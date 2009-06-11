@@ -141,7 +141,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *nlt_ptr, PointerRNA 
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
-	return 1;
+	return found;
 }
 
 static int nla_panel_poll(const bContext *C, PanelType *pt)

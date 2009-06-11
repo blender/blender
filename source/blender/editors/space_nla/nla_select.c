@@ -247,7 +247,7 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		ymax= ymin + NLACHANNEL_STEP;
+		ymin= ymax - NLACHANNEL_STEP;
 		
 		/* perform vertical suitability check (if applicable) */
 		if ( (mode == NLA_BORDERSEL_FRAMERANGE) ||
@@ -273,8 +273,8 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 			}
 		}
 		
-		/* set maximum extent to be the minimum of the next channel */
-		ymin= ymax;
+		/* set minimum extent to be the maximum of the next channel */
+		ymax= ymin;
 	}
 	
 	/* cleanup */
@@ -390,7 +390,7 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 	
 	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-	UI_view2d_listview_view_to_cell(v2d, 0, NLACHANNEL_STEP, 0, 0, x, y, NULL, &channel_index);
+	UI_view2d_listview_view_to_cell(v2d, 0, NLACHANNEL_STEP, 0, (float)NLACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	
 	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click 
 	 * (that is the size of keyframe icons, so user should be expecting similar tolerances) 

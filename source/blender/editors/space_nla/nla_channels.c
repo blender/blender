@@ -82,116 +82,6 @@
 /* *********************************************** */
 /* Operators for NLA channels-list which need to be different from the standard Animation Editor ones */
 
-/* ******************** Borderselect Operator *********************** */
-
-static void borderselect_nla_channels (bAnimContext *ac, rcti *rect, short selectmode)
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	View2D *v2d= &ac->ar->v2d;
-	rctf rectf;
-	float ymin=(float)(-NLACHANNEL_HEIGHT), ymax=0;
-	
-	/* convert border-region to view coordinates */
-	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin+2, &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax-2, &rectf.xmax, &rectf.ymax);
-	
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* loop over data, doing border select */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		ymax= ymin + NLACHANNEL_STEP;
-		
-		/* if channel is within border-select region, alter it */
-		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-			/* only the following types can be selected */
-			switch (ale->type) {
-				case ANIMTYPE_OBJECT: /* object */
-				{
-					Base *base= (Base *)ale->data;
-					Object *ob= base->object;
-					
-					ACHANNEL_SET_FLAG(base, selectmode, SELECT);
-					ACHANNEL_SET_FLAG(ob, selectmode, SELECT);
-				}
-					break;
-				case ANIMTYPE_NLATRACK: /* nla-track */
-				{
-					NlaTrack *nlt= (NlaTrack *)ale->data;
-					
-					ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
-				}
-					break;
-			}
-		}
-		
-		/* set maximum extent to be the minimum of the next channel */
-		ymin= ymax;
-	}
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
-}
-
-/* ------------------- */
-
-static int nlachannels_borderselect_exec(bContext *C, wmOperator *op)
-{
-	bAnimContext ac;
-	rcti rect;
-	short selectmode=0;
-	int event;
-	
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-	
-	/* get settings from operator */
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
-	
-	event= RNA_int_get(op->ptr, "event_type");
-	if (event == LEFTMOUSE) // FIXME... hardcoded
-		selectmode = ACHANNEL_SETFLAG_ADD;
-	else
-		selectmode = ACHANNEL_SETFLAG_CLEAR;
-	
-	/* apply borderselect animation channels */
-	borderselect_nla_channels(&ac, &rect, selectmode);
-	
-	return OPERATOR_FINISHED;
-} 
-
-void NLA_OT_channels_select_border(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Border Select";
-	ot->idname= "NLA_OT_channels_select_border";
-	
-	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= nlachannels_borderselect_exec;
-	ot->modal= WM_border_select_modal;
-	
-	ot->poll= nlaop_poll_tweakmode_off;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-}
-
 /* ******************** Mouse-Click Operator *********************** */
 /* Depending on the channel that was clicked on, the mouse click will activate whichever
  * part of the channel is relevant.
@@ -425,7 +315,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 		selectmode= SELECT_REPLACE;
 	
 	/* figure out which channel user clicked in 
-	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 * Note: although channels technically start at y= NLACHANNEL_FIRST, we need to adjust by half a channel's height
 	 *		so that the tops of channels get caught ok. Since NLACHANNEL_FIRST is really NLACHANNEL_HEIGHT, we simply use
 	 *		NLACHANNEL_HEIGHT_HALF.
 	 */
