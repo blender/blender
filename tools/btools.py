@@ -157,7 +157,7 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
 
 		(BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
-
+		('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
 		(BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
 		('BF_OPENAL', 'base path for OpenAL', ''),
 		('BF_OPENAL_INC', 'include path for python headers', ''),
@@ -248,7 +248,7 @@ def read_opts(cfg, args):
 		('BF_ICONV_LIB', 'iconv library', ''),
 		('BF_ICONV_LIBPATH', 'iconv library path', ''),
 		
-		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , True)),
+		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
 		(BoolVariable('WITH_BF_ODE', 'Use ODE if true', True)),
 		('BF_ODE', 'ODE base path', ''),
