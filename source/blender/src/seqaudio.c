@@ -679,6 +679,9 @@ static void audiostream_reset_recurs_protection()
 		sce->r.scemode &= ~R_RECURS_PROTECTION;
 		sce= sce->id.next;
 	}
+	/* fix for silly case, when people try testing with
+	   the same scene ... */
+	audio_scene->r.scemode |= R_RECURS_PROTECTION;
 }
 
 void audiostream_play(int startframe, uint32_t duration, int mixdown)
