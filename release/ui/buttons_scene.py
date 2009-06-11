@@ -65,17 +65,17 @@ class RENDER_PT_output(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		if rd.file_format in ("AVIJPEG", "JPEG"):
+		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			col.itemR(rd, "quality", slider=True)
 			
-		elif rd.file_format in ("OPENEXR"):
+		elif rd.file_format == 'OPENEXR':
 			col.itemR(rd, "exr_codec")
 			col.itemR(rd, "exr_half")
 			col = split.column()
 			col.itemR(rd, "exr_zbuf")
 			col.itemR(rd, "exr_preview")
 		
-		elif rd.file_format in ("JPEG2000"):
+		elif rd.file_format == 'JPEG2000':
 			row = layout.row()
 			row.itemR(rd, "jpeg_preset")
 			split = layout.split()
@@ -86,7 +86,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 			col.itemR(rd, "jpeg_ycc")
 			col.itemR(rd, "exr_preview")
 			
-		elif rd.file_format in ("CINEON", "DPX"):
+		elif rd.file_format in ('CINEON', 'DPX'):
 			col.itemR(rd, "cineon_log", text="Convert to Log")
 			colsub = col.column()
 			colsub.active = rd.cineon_log
@@ -94,10 +94,10 @@ class RENDER_PT_output(RenderButtonsPanel):
 			colsub.itemR(rd, "cineon_white", text="White")
 			colsub.itemR(rd, "cineon_gamma", text="Gamma")
 			
-		elif rd.file_format in ("TIFF"):
+		elif rd.file_format == 'TIFF':
 			col.itemR(rd, "tiff_bit")
 		
-		elif rd.file_format in ("FFMPEG"):
+		elif rd.file_format == 'FFMPEG':
 			#row = layout.row()
 			#row.itemR(rd, "ffmpeg_format")
 			#row.itemR(rd, "ffmpeg_codec")
