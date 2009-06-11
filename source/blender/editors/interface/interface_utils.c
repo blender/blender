@@ -203,6 +203,7 @@ void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *pt
 
 
 /***************************** ID Utilities *******************************/
+/* note, C code version, will be replaced with version in interface_templates.c */
 
 typedef struct uiIDPoinParams {
 	uiIDPoinFunc func;

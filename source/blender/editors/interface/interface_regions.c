@@ -520,6 +520,14 @@ static void ui_searchbox_butrect(rcti *rect, uiSearchboxData *data, int itemnr)
 	
 }
 
+/* x and y in screencoords */
+int ui_searchbox_inside(ARegion *ar, int x, int y)
+{
+	uiSearchboxData *data= ar->regiondata;
+	
+	return(BLI_in_rcti(&data->bbox, x-ar->winrct.xmin, y-ar->winrct.ymin));
+}
+
 /* string validated to be of correct length (but->hardmax) */
 void ui_searchbox_apply(uiBut *but, ARegion *ar)
 {
@@ -699,71 +707,80 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* compute position */
 	
-	x1f= but->x1 - 5;	/* align text with button */
-	x2f= but->x2 + 5;	/* symmetrical */
 	if(but->block->flag & UI_BLOCK_LOOP) {
+		/* this case is search menu inside other menu */
+		/* we copy region size */
+
+		ar->winrct= butregion->winrct;
+		
+		/* widget rect, in region coords */
+		data->bbox.xmin= MENU_SHADOW_SIDE;
+		data->bbox.xmax= (ar->winrct.xmax-ar->winrct.xmin) - MENU_SHADOW_SIDE;
+		data->bbox.ymin= MENU_SHADOW_BOTTOM;
+		data->bbox.ymax= (ar->winrct.ymax-ar->winrct.ymin) - MENU_SHADOW_BOTTOM;
+		
 		/* check if button is lower half */
 		if( but->y2 < (but->block->minx+but->block->maxx)/2 ) {
-			y1f= but->y2;
-			y2f= y1f + uiSearchBoxhHeight();
+			data->bbox.ymin += (but->y2-but->y1);
 		}
 		else {
-			y2f= but->y1;
-			y1f= y2f - uiSearchBoxhHeight();
+			data->bbox.ymax -= (but->y2-but->y1);
 		}
 	}
 	else {
+		x1f= but->x1 - 5;	/* align text with button */
+		x2f= but->x2 + 5;	/* symmetrical */
 		y2f= but->y1;
 		y1f= y2f - uiSearchBoxhHeight();
-	}
 	
-	/* minimal width */
-	if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
-	
-	/* copy to int, gets projected if possible too */
-	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
-	
-	if(butregion) {
-		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
+		/* minimal width */
+		if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
+		
+		/* copy to int, gets projected if possible too */
+		x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
+		
+		if(butregion) {
+			if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+				UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
+				UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
+			}
+			
+			x1 += butregion->winrct.xmin;
+			x2 += butregion->winrct.xmin;
+			y1 += butregion->winrct.ymin;
+			y2 += butregion->winrct.ymin;
 		}
 		
-		x1 += butregion->winrct.xmin;
-		x2 += butregion->winrct.xmin;
-		y1 += butregion->winrct.ymin;
-		y2 += butregion->winrct.ymin;
-	}
-	
-	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
-	
-	if(x2 > winx) {
-		/* super size */
-		if(x2 > winx + x1) {
-			x2= winx;
-			x1= 0;
+		wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+		
+		if(x2 > winx) {
+			/* super size */
+			if(x2 > winx + x1) {
+				x2= winx;
+				x1= 0;
+			}
+			else {
+				x1 -= x2-winx;
+				x2= winx;
+			}
 		}
-		else {
-			x1 -= x2-winx;
-			x2= winx;
+		if(y1 < 0) {
+			y1 += 36;
+			y2 += 36;
 		}
+		
+		/* widget rect, in region coords */
+		data->bbox.xmin= MENU_SHADOW_SIDE;
+		data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
+		data->bbox.ymin= MENU_SHADOW_BOTTOM;
+		data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
+		
+		/* region bigger for shadow */
+		ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
+		ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
+		ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
+		ar->winrct.ymax= y2;
 	}
-	if(y1 < 0) {
-		y1 += 36;
-		y2 += 36;
-	}
-	
-	/* widget rect, in region coords */
-	data->bbox.xmin= MENU_SHADOW_SIDE;
-	data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
-	data->bbox.ymin= MENU_SHADOW_BOTTOM;
-	data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
-	
-	/* region bigger for shadow */
-	ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
-	ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
-	ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax= y2;
 	
 	/* adds subwindow */
 	ED_region_init(C, ar);

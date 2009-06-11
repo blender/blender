@@ -357,6 +357,7 @@ void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
+int ui_searchbox_inside(struct ARegion *ar, int x, int y);
 void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, int reset);
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);

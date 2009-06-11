@@ -1263,7 +1263,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			
 			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
 			if(data->searchbox)
-				inbox= BLI_in_rcti(&data->searchbox->winrct, event->x, event->y);
+				inbox= ui_searchbox_inside(data->searchbox, event->x, event->y);
 
 			if(event->val==KM_PRESS) {
 				mx= event->x;
@@ -1287,6 +1287,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 			}
 			else if(inbox) {
+				printf("release inside \n");
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval= WM_UI_HANDLER_BREAK;
 			}
