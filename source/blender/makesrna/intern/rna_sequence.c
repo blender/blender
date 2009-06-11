@@ -98,6 +98,7 @@ static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
 	sort_seq(sce);
 }
 
+/* properties that need to allocate structs */
 static int rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -131,6 +132,31 @@ static int rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
 	}
 }
 
+static int rna_SequenceEditor_use_translation_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_TRANSFORM;
+		if(seq->strip->transform == NULL) {
+			seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_TRANSFORM;
+	}
+}
+
+static int rna_SequenceEditor_use_crop_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_CROP;
+		if(seq->strip->crop == NULL) {
+			seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_CROP;
+	}
+}
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -546,8 +572,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_translation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_TRANSFORM);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate transform
 	RNA_def_property_ui_text(prop, "Use Translation", "Translate image before processing.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_translation_set");
 	
 	prop= RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");
@@ -555,8 +581,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_crop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_CROP);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate crop
 	RNA_def_property_ui_text(prop, "Use Crop", "Crop image before processing.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_crop_set");
 
 	prop= RNA_def_property(srna, "crop", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->crop");

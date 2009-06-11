@@ -790,8 +790,8 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 
 	if(ibuf->rect==NULL && ibuf->rect_float == NULL) 
 		return;
-
-	switch(sseq->mainb != SEQ_DRAW_SEQUENCE) {
+	
+	switch(sseq->mainb) {
 	case SEQ_DRAW_IMG_IMBUF:
 		if (sseq->zebra != 0) {
 			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);

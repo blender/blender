@@ -424,16 +424,26 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if elem:
 			sub.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
-		"""
+		layout.itemR(strip, "use_translation")
+		if strip.transform:
+			flow = layout.column_flow()
+			flow.active = strip.use_translation
+			flow.itemR(strip.transform, "offset_x")
+			flow.itemR(strip.transform, "offset_y")
+			
+			
 		layout.itemR(strip, "use_crop")
+		if strip.crop:
+			flow = layout.column_flow()
+			flow.active = strip.use_crop
+			flow.itemR(strip.crop, "top")
+			flow.itemR(strip.crop, "left")
+			flow.itemR(strip.crop, "bottom")
+			flow.itemR(strip.crop, "right")
+			
+		layout.itemR(strip, "animation_start_offset")
+		layout.itemR(strip, "animation_end_offset")
 		
-		flow = layout.column_flow()
-		flow.active = strip.use_crop
-		flow.itemR(strip, "top")
-		flow.itemR(strip, "left")
-		flow.itemR(strip, "bottom")
-		flow.itemR(strip, "right")
-		"""
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
@@ -471,15 +481,18 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		
 		layout.itemR(strip, "use_color_balance")
 		if strip.color_balance: # TODO - need to add this somehow
-			col = layout.row()
-			
+			row = layout.row()
+			row.active = strip.use_color_balance
+			col = row.column()
 			col.itemR(strip.color_balance, "lift")
-			col.itemR(strip.color_balance, "gamma")
-			col.itemR(strip.color_balance, "gain")
-			col = layout.row()
 			col.itemR(strip.color_balance, "inverse_lift")
+			col = row.column()
+			col.itemR(strip.color_balance, "gamma")
 			col.itemR(strip.color_balance, "inverse_gamma")
+			col = row.column()
+			col.itemR(strip.color_balance, "gain")
 			col.itemR(strip.color_balance, "inverse_gain")
+			
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
