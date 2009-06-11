@@ -190,7 +190,6 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 	PointerRNA ptr_context;
-	PyObject *py_context;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
@@ -226,20 +225,23 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 			RNA_property_collection_end(&iter);
 		}
-		
+
+		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 		
 		if (mode==PYOP_INVOKE) {
 			item= PyObject_GetAttrString(py_class, "invoke");
-			args = PyTuple_New(2);
-			PyTuple_SET_ITEM(args, 1, pyop_dict_from_event(event));
+			args = PyTuple_New(3);
+
+			// PyTuple_SET_ITEM "steals" object reference, it is
+			// an object passed shouldn't be DECREF'ed
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
+			PyTuple_SET_ITEM(args, 2, pyop_dict_from_event(event));
 		}
 		else if (mode==PYOP_EXEC) {
 			item= PyObject_GetAttrString(py_class, "exec");
 			args = PyTuple_New(2);
 			
-			RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
-			py_context = pyrna_struct_CreatePyObject(&ptr_context);
-			PyTuple_SET_ITEM(args, 1, py_context);
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		else if (mode==PYOP_POLL) {
 			item= PyObject_GetAttrString(py_class, "poll");
@@ -398,7 +400,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
 		{"exec",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
-		{"invoke",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
 	};
