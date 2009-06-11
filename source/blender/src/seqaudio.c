@@ -104,6 +104,10 @@ static Scene * audio_scene = 0; /* we can't use G.scene, since
 #define AFRA2TIME(a)           ((((double) audio_scene->r.frs_sec_base) * (a)) / audio_scene->r.frs_sec)
 #define ATIME2FRA(a)           ((((double) audio_scene->r.frs_sec) * (a)) / audio_scene->r.frs_sec_base)
 
+/* we do currently stereo 16 bit mixing only */
+#define AUDIO_CHANNELS 2
+#define SAMPLE_SIZE (AUDIO_CHANNELS * sizeof(short))
+
 /////
 //
 /* local protos ------------------- */
@@ -149,7 +153,8 @@ void audio_mixdown()
 
 	strcpy(buf, "RIFFlengWAVEfmt fmln01ccRATEbsecBP16dataDLEN");
 	totframe = (EFRA - SFRA + 1);
-	totlen = (int) ( FRA2TIME(totframe) * (float)G.scene->audio.mixrate * 4.0);
+	totlen = (int) ( FRA2TIME(totframe) 
+			 * (float)G.scene->audio.mixrate * SAMPLE_SIZE);
 	printf(" totlen %d\n", totlen+36+8);
 	
 	totlen+= 36;	/* len is filesize-8 in WAV spec, total header is 44 bytes */
@@ -159,7 +164,7 @@ void audio_mixdown()
 	buf[16] = 0x10; buf[17] = buf[18] = buf[19] = 0; buf[20] = 1; buf[21] = 0;
 	buf[22] = 2; buf[23]= 0;
 	memcpy(buf+24, &G.scene->audio.mixrate, 4);
-	i = G.scene->audio.mixrate * 4;
+	i = G.scene->audio.mixrate * SAMPLE_SIZE;
 	memcpy(buf+28, &i, 4);
 	buf[32] = 4; buf[33] = 0; buf[34] = 16; buf[35] = 0;
 	i = totlen;
@@ -192,7 +197,8 @@ void audio_mixdown()
 		
 		memset(buf+i, 0, 64);
 		
-		CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*FPS );
+		CFRA=(int) ( ((float)(audio_pos-64)
+			      / ( G.scene->audio.mixrate*SAMPLE_SIZE ))*FPS );
 			
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
@@ -226,7 +232,7 @@ void audiostream_fill(uint8_t *mixdown, int len)
 #ifndef DISABLE_SDL
 	for (i = 0; i < len; i += 64) {
 		CFRA = (int) ( ((float)(audio_pos-64)
-				/( audio_scene->audio.mixrate*4 ))
+				/( audio_scene->audio.mixrate * SAMPLE_SIZE ))
 			       * FPS );
 
 		audio_fill(mixdown + i, NULL, 
@@ -251,7 +257,7 @@ static void audio_levels(uint8_t *buf, int len, float db,
 	
 	fac = pow(10.0, ((-(db+audio_scene->audio.main))/20.0));
 
-	for (i=0; i<len; i+=4) {
+	for (i = 0; i < len; i += SAMPLE_SIZE) {
 		float facf = facf_start + ((double) i) * m;
 		float f_l = facl / (fac / facf);
 		float f_r = facr / (fac / facf);
@@ -276,31 +282,52 @@ void audio_makestream(bSound *sound)
 		return;
 	}
 	ratio = (float)G.scene->audio.mixrate / (float)sound->sample->rate;
-	sound->streamlen = (int) ( (float)sound->sample->len * ratio * 2.0/((float)sound->sample->channels) );
+	sound->streamlen = (int) ( (float)sound->sample->len * ratio 
+				   * AUDIO_CHANNELS 
+				   / ((float)sound->sample->channels) );
 	sound->stream = malloc((int) ((float)sound->streamlen * 1.05));
 	if (sound->sample->rate == G.scene->audio.mixrate) {
-		if (sound->sample->channels == 2) {
-			memcpy(sound->stream, sound->sample->data, sound->streamlen);
+		if (sound->sample->channels == AUDIO_CHANNELS) {
+			memcpy(sound->stream, 
+			       sound->sample->data, sound->streamlen);
 		   	return;
-		} else {
+		} else if (sound->sample->channels == 1) {
 			for (source = (signed short*)(sound->sample->data),
 			     dest = (signed short*)(sound->stream),
 				 i=0;
-				 i<sound->streamlen/4;
-				 dest += 2, source++, i++) dest[0] = dest[1] = source[0];
+				 i<sound->streamlen/SAMPLE_SIZE;
+			     dest += 2, source++, i++) {
+				int j;
+				for (j = 0; j < AUDIO_CHANNELS; j++) {
+					dest[j] = source[0];
+				}
+			}
+			return;
+		} else {
+			fprintf(stderr, "audio_makestream: "
+				"FIXME: can't handle number of channels %d\n",
+				sound->sample->channels);
 			return;
 		}
 	}
 	if (sound->sample->channels == 1) {
-		for (dest=(signed short*)(sound->stream), i=0, source=(signed short*)(sound->sample->data); 
-		     i<(sound->streamlen/4); dest+=2, i++)
-			dest[0] = dest[1] = source[(int)((float)i/ratio)];
+		for (dest = (signed short*)(sound->stream), i=0, 
+			     source = (signed short*)(sound->sample->data); 
+		     i<(sound->streamlen/SAMPLE_SIZE); 
+		     dest += AUDIO_CHANNELS, i++) {
+			int j;
+			int s = source[(int)((float)i/ratio)];
+			for (j = 0; j < AUDIO_CHANNELS; j++) {
+				dest[j] = s;
+			}
+		}
 	}
 	else if (sound->sample->channels == 2) {
-		for (dest=(signed short*)(sound->stream), i=0, source=(signed short*)(sound->sample->data); 
-		     i<(sound->streamlen/2); dest+=2, i+=2) {
+		for (dest=(signed short*)(sound->stream), i=0, 
+			     source = (signed short*)(sound->sample->data); 
+		     i<(sound->streamlen / 2); dest += AUDIO_CHANNELS, i+=2) {
 			dest[1] = source[(int)((float)i/ratio)];
-			dest[0] = source[(int)((float)i/ratio)+1];			
+			dest[0] = source[(int)((float)i/ratio)+1];
 		}
 	}	
 }
@@ -315,24 +342,37 @@ static int fra2curpos(Sequence * seq, int cfra)
 				  seq->anim_startofs))
 		       * ((float)audio_scene
 			  ->audio.mixrate)
-		       * 4 ));
+		       * SAMPLE_SIZE));
 }
 
 static int curpos2fra(Sequence * seq, int curpos)
 {
 	return ((int) floor(
 			ATIME2FRA(
-				((double) curpos) / 4 
+				((double) curpos) / SAMPLE_SIZE 
 				/audio_scene->audio.mixrate)))
 		- seq->anim_startofs + seq->start;
 }
 
-static void do_audio_seq_ipo(Sequence * seq, int len, float * facf_start,
-			     float * facf_end)
+static int get_curpos(Sequence * seq, int cfra)
 {
-	int cfra_start = curpos2fra(seq, seq->curpos);
+	return audio_pos + 
+		(((int)((FRA2TIME(((double) cfra) 
+				 - ((double) audio_scene->r.cfra)
+				 - ((double) seq->start) 
+				 + ((double) seq->anim_startofs))
+			* ((float)audio_scene->audio.mixrate)
+			* SAMPLE_SIZE )))
+		 & (~(SAMPLE_SIZE - 1))); /* has to be sample aligned! */
+}
+
+static void do_audio_seq_ipo(Sequence * seq, int len, float * facf_start,
+			     float * facf_end, int cfra)
+{
+	int seq_curpos = get_curpos(seq, cfra);
+	int cfra_start = curpos2fra(seq, seq_curpos);
 	int cfra_end = cfra_start + 1;
-	int ipo_curpos_start = fra2curpos(seq, curpos2fra(seq, seq->curpos));
+	int ipo_curpos_start = fra2curpos(seq, curpos2fra(seq, seq_curpos));
 	int ipo_curpos_end = fra2curpos(seq, cfra_end);
 	double ipo_facf_start;
 	double ipo_facf_end;
@@ -346,8 +386,8 @@ static void do_audio_seq_ipo(Sequence * seq, int len, float * facf_start,
 
 	m = (ipo_facf_end- ipo_facf_start)/(ipo_curpos_end - ipo_curpos_start);
 	
-	*facf_start = ipo_facf_start + (seq->curpos - ipo_curpos_start) * m;
-	*facf_end = ipo_facf_start + (seq->curpos + len-ipo_curpos_start) * m;
+	*facf_start = ipo_facf_start + (seq_curpos - ipo_curpos_start) * m;
+	*facf_end = ipo_facf_start + (seq_curpos + len-ipo_curpos_start) * m;
 }
 
 #endif
@@ -361,20 +401,30 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	bSound* sound;
 	float facf_start;
 	float facf_end;
+	int seq_curpos = get_curpos(seq, cfra);
+
+	/* catch corner case at the beginning of strip */
+	if (seq_curpos < 0 && (seq_curpos + len > 0)) {
+		seq_curpos *= -1;
+		len -= seq_curpos;
+		sstream += seq_curpos;
+		seq_curpos = 0;
+	}
 
 	sound = seq->sound;
 	audio_makestream(sound);
-	if ((seq->curpos<sound->streamlen -len) && (seq->curpos>=0) &&
+	if ((seq_curpos < sound->streamlen -len) && (seq_curpos >= 0) &&
 	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_audio_seq_ipo(seq, len, &facf_start, &facf_end);
+			do_audio_seq_ipo(seq, len, &facf_start, &facf_end,
+					 cfra);
 		} else {
 			facf_start = 1.0;
 			facf_end = 1.0;
 		}
 		cvtbuf = malloc(len);					
-		memcpy(cvtbuf, ((uint8_t*)sound->stream)+(seq->curpos & (~3)), len);
+		memcpy(cvtbuf, ((uint8_t*)sound->stream)+(seq_curpos), len);
 		audio_levels(cvtbuf, len, seq->level, facf_start, facf_end, 
 			     seq->pan);
 		if (!mixdown) {
@@ -384,7 +434,6 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 		}
 		free(cvtbuf);
 	}
-	seq->curpos += len;
 }
 #endif
 
@@ -396,12 +445,22 @@ static void audio_fill_hd_sound(Sequence *seq,
 	uint8_t* cvtbuf;
 	float facf_start;
 	float facf_end;
+	int seq_curpos = get_curpos(seq, cfra);
 
-	if ((seq->curpos >= 0) &&
+	/* catch corner case at the beginning of strip */
+	if (seq_curpos < 0 && (seq_curpos + len > 0)) {
+		seq_curpos *= -1;
+		len -= seq_curpos;
+		sstream += seq_curpos;
+		seq_curpos = 0;
+	}
+
+	if ((seq_curpos >= 0) &&
 	    (seq->startdisp <= cfra) && ((seq->enddisp) > cfra))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_audio_seq_ipo(seq, len, &facf_start, &facf_end);
+			do_audio_seq_ipo(seq, len, &facf_start, &facf_end,
+					 cfra);
 		} else {
 			facf_start = 1.0;
 			facf_end = 1.0;
@@ -409,10 +468,10 @@ static void audio_fill_hd_sound(Sequence *seq,
 		cvtbuf = malloc(len);
 		
 		sound_hdaudio_extract(seq->hdaudio, (short*) cvtbuf,
-				      seq->curpos / 4,
+				      seq_curpos / SAMPLE_SIZE,
 				      audio_scene->audio.mixrate,
-				      2,
-				      len / 4);
+				      AUDIO_CHANNELS,
+				      len / SAMPLE_SIZE);
 		audio_levels(cvtbuf, len, seq->level, facf_start, facf_end,
 			     seq->pan);
 		if (!mixdown) {
@@ -424,18 +483,15 @@ static void audio_fill_hd_sound(Sequence *seq,
 		}
 		free(cvtbuf);
 	}
-	seq->curpos += len;
 }
 #endif
 
 #ifndef DISABLE_SDL
 static void audio_fill_seq(Sequence * seq, void * mixdown,
-			   uint8_t *sstream, int len, int cfra,
-			   int advance_only);
+			   uint8_t *sstream, int len, int cfra);
 
 static void audio_fill_scene_strip(Sequence * seq, void * mixdown,
-				   uint8_t *sstream, int len, int cfra,
-				   int advance_only)
+				   uint8_t *sstream, int len, int cfra)
 {
 	Editing *ed;
 
@@ -450,8 +506,7 @@ static void audio_fill_scene_strip(Sequence * seq, void * mixdown,
 
 		audio_fill_seq(ed->seqbasep->first,
 			       mixdown,
-			       sstream, len, sce_cfra,
-			       advance_only);
+			       sstream, len, sce_cfra);
 	}
 	
 	/* restore */
@@ -461,8 +516,7 @@ static void audio_fill_scene_strip(Sequence * seq, void * mixdown,
 
 #ifndef DISABLE_SDL
 static void audio_fill_seq(Sequence * seq, void * mixdown,
-			   uint8_t *sstream, int len, int cfra,
-			   int advance_only)
+			   uint8_t *sstream, int len, int cfra)
 {
 	while(seq) {
 		if (seq->type == SEQ_META &&
@@ -470,11 +524,7 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 			if (seq->startdisp <= cfra && seq->enddisp > cfra) {
 				audio_fill_seq(seq->seqbase.first,
 					       mixdown, sstream, len, 
-					       cfra, advance_only);
-			} else {
-				audio_fill_seq(seq->seqbase.first,
-					       mixdown, sstream, len, 
-					       cfra, 1);
+					       cfra);
 			}
 		}
 		if (seq->type == SEQ_SCENE 
@@ -485,42 +535,27 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 			if (seq->startdisp <= cfra && seq->enddisp > cfra) {
 				audio_fill_scene_strip(
 					seq, mixdown, sstream, len,
-					cfra, advance_only);
-			} else {
-				audio_fill_scene_strip(
-					seq, mixdown, sstream, len,
-					cfra, 1);
+					cfra);
 			}
 		}
 		if ( (seq->type == SEQ_RAM_SOUND) &&
 		     (seq->sound) &&
 		     (!(seq->flag & SEQ_MUTE))) {
-			if (advance_only) {
-				seq->curpos += len;
-			} else {
-				audio_fill_ram_sound(
-					seq, mixdown, sstream, len,
-					cfra);
-			}
+			audio_fill_ram_sound(seq, mixdown, sstream, len, cfra);
 		}
 		if ( (seq->type == SEQ_HD_SOUND) &&
 		     (!(seq->flag & SEQ_MUTE)))	{
-			if (advance_only) {
-				seq->curpos += len;
-			} else {
-				if (!seq->hdaudio) {
-					char name[FILE_MAXDIR+FILE_MAXFILE];
-
-					BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_convertstringcode(name, G.sce);
+			if (!seq->hdaudio) {
+				char name[FILE_MAXDIR+FILE_MAXFILE];
 				
-					seq->hdaudio= sound_open_hdaudio(name);
-				}
-				if (seq->hdaudio) {
-					audio_fill_hd_sound(seq, mixdown, 
-							    sstream, len,
-							    cfra);
-				}
+				BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
+				BLI_convertstringcode(name, G.sce);
+				
+				seq->hdaudio= sound_open_hdaudio(name);
+			}
+			if (seq->hdaudio) {
+				audio_fill_hd_sound(seq, mixdown, sstream, len,
+						    cfra);
 			}
 		}
 		seq = seq->next;
@@ -542,10 +577,11 @@ static void audio_fill(void *mixdown, uint8_t *sstream, int len)
 	if((ed) && (!(audio_scene->audio.flag & AUDIO_MUTE))) {
 		seq = ed->seqbasep->first;
 		audio_fill_seq(seq, mixdown, sstream, len, 
-			       audio_scene->r.cfra, 0);
+			       audio_scene->r.cfra);
 	}
        
-	audio_pos += len;    
+	audio_pos += len;
+
 	if (audio_scrub > 0) { 
 		audio_scrub-= len;
 		if (audio_scrub <= 0) {
@@ -620,13 +656,6 @@ static int audiostream_play_seq(Sequence * seq, int startframe)
 		}
 		if ((seq->type == SEQ_RAM_SOUND) && (seq->sound)) {
 			have_sound = 1;
-			seq->curpos = (int)( (FRA2TIME(((double) startframe) -
-						       ((double) seq->start) +
-						       ((double) 
-						      seq->anim_startofs))
-					      * ((float)audio_scene
-						 ->audio.mixrate)
-					      * 4 ));
 		}
 		if ((seq->type == SEQ_HD_SOUND)) {
 			if (!seq->hdaudio) {
@@ -636,18 +665,20 @@ static int audiostream_play_seq(Sequence * seq, int startframe)
 				
 				seq->hdaudio = sound_open_hdaudio(name);
 			}
-
-			seq->curpos = (int)( (FRA2TIME(((double) startframe) - 
-						       ((double) seq->start) +
-						       ((double)
-						       seq->anim_startofs))
-					      * ((float)audio_scene
-						 ->audio.mixrate)
-					      * 4 ));
 		}
 		seq= seq->next;
 	}
 	return have_sound;
+}
+
+static void audiostream_reset_recurs_protection()
+{
+	Scene * sce = G.main->scene.first;
+
+	while(sce) {
+		sce->r.scemode &= ~R_RECURS_PROTECTION;
+		sce= sce->id.next;
+	}
 }
 
 void audiostream_play(int startframe, uint32_t duration, int mixdown)
@@ -658,6 +689,8 @@ void audiostream_play(int startframe, uint32_t duration, int mixdown)
 	int have_sound = 0;
 
 	audio_scene = G.scene;
+
+	audiostream_reset_recurs_protection();
 
 	ed= audio_scene->ed;
 	if(ed) {
