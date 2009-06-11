@@ -2207,7 +2207,7 @@ PyObject* KX_GameObject::PyGetChildrenRecursive()
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* args)
 {
-	ShowDeprecationWarning("getMesh()", "the meshes property");
+	ShowDeprecationWarning("getMesh()", "the meshes property (now a list of meshes)");
 	
 	int mesh = 0;
 
