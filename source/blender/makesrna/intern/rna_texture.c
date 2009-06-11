@@ -1120,7 +1120,7 @@ static void rna_def_texture(BlenderRNA *brna)
 		{TEX_BLEND, "BLEND", "Blend", ""},
 		{TEX_STUCCI, "STUCCI", "Stucci", ""},
 		{TEX_NOISE, "NOISE", "Noise", ""},
-		{TEX_IMAGE, "IMAGE", "Image", ""},
+		{TEX_IMAGE, "IMAGE", "Image/Movie", ""},
 		{TEX_PLUGIN, "PLUGIN", "Plugin", ""},
 		{TEX_ENVMAP, "ENVIRONMENT_MAP", "Environment Map", ""},
 		{TEX_MUSGRAVE, "MUSGRAVE", "Musgrave", ""},
