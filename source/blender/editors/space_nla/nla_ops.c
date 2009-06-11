@@ -134,6 +134,7 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLAEDIT_OT_tweakmode_exit);
 	
 	WM_operatortype_append(NLAEDIT_OT_delete);
+	WM_operatortype_append(NLAEDIT_OT_split);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -203,6 +204,9 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 		/* delete */
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	
+		/* split */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_split", YKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_NLA);

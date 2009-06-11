@@ -49,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
@@ -213,7 +214,7 @@ void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
 /* *********************************************** */
 /* NLA Editing Operations */
 
-/* ******************** Delete Operator ***************************** */
+/* ******************** Delete Strips Operator ***************************** */
 /* Deletes the selected NLA-Strips */
 
 static int nlaedit_delete_exec (bContext *C, wmOperator *op)
@@ -233,7 +234,6 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* for each NLA-Track, delete all selected strips */
-	// FIXME: need to double-check that we've got tracks
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip, *nstrip;
@@ -267,6 +267,99 @@ void NLAEDIT_OT_delete (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Split Strips Operator ***************************** */
+/* Splits the selected NLA-Strips into two strips at the midpoint of the strip */
+// TODO's? 
+// 	- multiple splits
+//	- variable-length splits?
+
+static int nlaedit_split_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, delete all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip, *nstrip, *next;
+		
+		for (strip= nlt->strips.first; strip; strip= next) {
+			next= strip->next;
+			
+			/* if selected, split the strip at its midpoint */
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				float midframe, midaframe, len;
+				
+				/* calculate the frames to do the splitting at */
+					/* strip extents */
+				len= strip->end - strip->start;
+				if (IS_EQ(len, 0.0f)) 
+					continue;
+				else
+					midframe= strip->start + (len / 2.0f);
+					
+					/* action range */
+				len= strip->actend - strip->actstart;
+				if (IS_EQ(len, 0.0f))
+					midaframe= strip->actend;
+				else
+					midaframe= strip->actstart + (len / 2.0f);
+				
+				/* make a copy (assume that this is possible) and append
+				 * it immediately after the current strip
+				 */
+				nstrip= copy_nlastrip(strip);
+				BLI_insertlinkafter(&nlt->strips, strip, nstrip);
+				
+				/* set the endpoint of the first strip and the start of the new strip 
+				 * to the midframe values calculated above
+				 */
+				strip->end= midframe;
+				nstrip->start= midframe;
+				
+				strip->actend= midaframe;
+				nstrip->actstart= midaframe;
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_split (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Split Strips";
+	ot->idname= "NLAEDIT_OT_split";
+	ot->description= "Split selected strips at their midpoints.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_split_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
