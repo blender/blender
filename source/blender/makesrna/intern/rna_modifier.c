@@ -378,14 +378,14 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "levels");
-	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_range(prop, 1, 6);
 	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
-	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_range(prop, 1, 6);
 	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 
@@ -669,14 +669,14 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "startx");
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position X",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starty");
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position Y",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -717,13 +717,13 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Speed", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Height", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -1042,7 +1042,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Strength", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -1524,7 +1524,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "subsurf_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "subsurfLevels");
-	RNA_def_property_range(prop, 0, 20);
+	RNA_def_property_range(prop, 0, 6);
 	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Subsurf Levels", "Number of subdivisions that must be performed before extracting vertices' positions and normals.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
