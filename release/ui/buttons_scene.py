@@ -96,6 +96,38 @@ class RENDER_PT_output(RenderButtonsPanel):
 			
 		elif rd.file_format in ("TIFF"):
 			col.itemR(rd, "tiff_bit")
+		
+		elif rd.file_format in ("FFMPEG"):
+			#row = layout.row()
+			#row.itemR(rd, "ffmpeg_format")
+			#row.itemR(rd, "ffmpeg_codec")
+			split = layout.split()
+		
+			col = split.column()
+			col.itemR(rd, "ffmpeg_video_bitrate")
+			col.itemL(text="Rate:")
+			col.itemR(rd, "ffmpeg_minrate", text="Minimum")
+			col.itemR(rd, "ffmpeg_maxrate", text="Maximum")
+			col.itemR(rd, "ffmpeg_buffersize", text="Buffer")
+			
+			col = split.column()
+			col.itemR(rd, "ffmpeg_gopsize")
+			col.itemR(rd, "ffmpeg_autosplit")
+			col.itemL(text="Mux:")
+			col.itemR(rd, "ffmpeg_muxrate", text="Rate")
+			col.itemR(rd, "ffmpeg_packetsize", text="Packet Size")
+			
+			row = layout.row()
+			row.itemL(text="Audio:")
+			row = layout.row()
+			#row.itemR(rd, "ffmpeg_audio_codec")
+			
+			split = layout.split()
+	
+			col = split.column()
+			col.itemR(rd, "ffmpeg_audio_bitrate")
+			col = split.column()
+			col.itemR(rd, "ffmpeg_multiplex_audio")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
@@ -241,8 +273,8 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		sub.itemR(rd, "render_stamp")
 		colsub = sub.column()
 		colsub.active = rd.render_stamp
-		colsub.itemR(rd, "stamp_foreground")
-		colsub.itemR(rd, "stamp_background")
+		colsub.itemR(rd, "stamp_foreground", slider=True)
+		colsub.itemR(rd, "stamp_background", slider=True)
 		colsub.itemR(rd, "stamp_font_size", text="Font Size")
 
 bpy.types.register(RENDER_PT_render)
