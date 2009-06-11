@@ -636,7 +636,9 @@ static void RayObject_octree_done(RayObject *tree)
 	}
 
 	MEM_freeN(oc->ocface);
+	oc->ocface = NULL;
 	MEM_freeN(oc->ro_nodes);
+	oc->ro_nodes = NULL;
 	
 	printf("%f %f - %f\n", oc->min[0], oc->max[0], oc->ocfacx );
 	printf("%f %f - %f\n", oc->min[1], oc->max[1], oc->ocfacy );
@@ -820,9 +822,10 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	Octree *oc= (Octree*)tree;
 	Node *no;
 	OcVal ocval;
-	float vec1[3], vec2[3], end[3];
+	float vec1[3], vec2[3], start[3], end[3];
 	float u1,u2,ox1,ox2,oy1,oy2,oz1,oz2;
 	float labdao,labdax,ldx,labday,ldy,labdaz,ldz, ddalabda;
+	float olabda = 0;
 	int dx,dy,dz;	
 	int xo,yo,zo,c1=0;
 	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
@@ -838,35 +841,33 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	is->userdata= oc->userdata;
 #endif
 
+	VECCOPY( start, is->start );
 	VECADDFAC( end, is->start, is->vec, is->labda );
-	ldx= end[0] - is->start[0];
+	ldx= is->vec[0]*is->labda;
+	olabda = is->labda;
 	u1= 0.0f;
 	u2= 1.0f;
 	
 	/* clip with octree cube */
-	if(cliptest(-ldx, is->start[0]-oc->min[0], &u1,&u2)) {
-		if(cliptest(ldx, oc->max[0]-is->start[0], &u1,&u2)) {
-			ldy= end[1] - is->start[1];
-			if(cliptest(-ldy, is->start[1]-oc->min[1], &u1,&u2)) {
-				if(cliptest(ldy, oc->max[1]-is->start[1], &u1,&u2)) {
-					ldz = end[2] - is->start[2];
-					if(cliptest(-ldz, is->start[2]-oc->min[2], &u1,&u2)) {
-						if(cliptest(ldz, oc->max[2]-is->start[2], &u1,&u2)) {
+	if(cliptest(-ldx, start[0]-oc->min[0], &u1,&u2)) {
+		if(cliptest(ldx, oc->max[0]-start[0], &u1,&u2)) {
+			ldy= is->vec[1]*is->labda;
+			if(cliptest(-ldy, start[1]-oc->min[1], &u1,&u2)) {
+				if(cliptest(ldy, oc->max[1]-start[1], &u1,&u2)) {
+					ldz = is->vec[2]*is->labda;
+					if(cliptest(-ldz, start[2]-oc->min[2], &u1,&u2)) {
+						if(cliptest(ldz, oc->max[2]-start[2], &u1,&u2)) {
 							c1=1;
 							if(u2<1.0f) {
-								is->vec[0] = u2*ldx;
-								is->vec[1] = u2*ldy;
-								is->vec[2] = u2*ldz;
-
-								end[0]= is->start[0]+u2*ldx;
-								end[1]= is->start[1]+u2*ldy;
-								end[2]= is->start[2]+u2*ldz;
+								end[0] = start[0]+u2*ldx;
+								end[1] = start[1]+u2*ldy;
+								end[2] = start[2]+u2*ldz;
 							}
+
 							if(u1>0.0f) {
-								assert( 0 );
-								is->start[0]+=u1*ldx;
-								is->start[1]+=u1*ldy;
-								is->start[2]+=u1*ldz;
+								start[0] += u1*ldx;
+								start[1] += u1*ldy;
+								start[2] += u1*ldz;
 							}
 						}
 					}
@@ -881,9 +882,9 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	//ocread(oc, oc->ocres, 0, 0);
 
 	/* setup 3dda to traverse octree */
-	ox1= (is->start[0]-oc->min[0])*oc->ocfacx;
-	oy1= (is->start[1]-oc->min[1])*oc->ocfacy;
-	oz1= (is->start[2]-oc->min[2])*oc->ocfacz;
+	ox1= (start[0]-oc->min[0])*oc->ocfacx;
+	oy1= (start[1]-oc->min[1])*oc->ocfacy;
+	oz1= (start[2]-oc->min[2])*oc->ocfacz;
 	ox2= (end[0]-oc->min[0])*oc->ocfacx;
 	oy2= (end[1]-oc->min[1])*oc->ocfacy;
 	oz2= (end[2]-oc->min[2])*oc->ocfacz;
@@ -902,11 +903,11 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 			vec1[0]= ox1; vec1[1]= oy1; vec1[2]= oz1;
 			vec2[0]= ox2; vec2[1]= oy2; vec2[2]= oz2;
 			calc_ocval_ray(&ocval, (float)ocx1, (float)ocy1, (float)ocz1, vec1, vec2);
-			is->labda = 1.0f;
 			if( testnode(oc, is, no, ocval) ) return 1;
 		}
 	}
 	else {
+		int found = 0;
 		//static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
 		float dox, doy, doz;
 		int eqval;
@@ -981,9 +982,14 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 				vec2[2]= oz1-ddalabda*doz;
 				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
 
-				is->labda= ddalabda;
-				if( testnode(oc, is, no, ocval) ) return 1;
+				//is->labda = (u1+ddalabda*(u2-u1))*olabda;
+				if( testnode(oc, is, no, ocval) )
+					found = 1;
+
+				if(is->labda < (u1+ddalabda*(u2-u1))*olabda)
+					return found;
 			}
+
 
 			labdao= ddalabda;
 			
@@ -1052,8 +1058,6 @@ static int RayObject_octree_intersect(RayObject *tree, Isect *is)
 	}
 	
 	/* reached end, no intersections found */
-	is->hit.ob   = 0;
-	is->hit.face = NULL;
 	return 0;
 }	
 

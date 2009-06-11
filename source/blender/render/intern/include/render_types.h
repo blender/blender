@@ -54,6 +54,7 @@ struct GHash;
 struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
+struct RayFace;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -170,7 +171,7 @@ struct Render
 	
 	/* octree tables and variables for raytrace */
 	struct RayObject *raytree;
-	struct RayObject *rayfaces; /* TODO Temporary */
+	struct RayFace *rayfaces;
 
 	/* occlusion tree */
 	void *occlusiontree;
@@ -280,6 +281,12 @@ typedef struct ObjectRen {
 	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
+
+	/* used on makeraytree */
+	struct RayObject *raytree;
+	struct RayFace *rayfaces;
+	struct ObjectInstanceRen *rayobi;
+	
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -297,6 +304,10 @@ typedef struct ObjectInstanceRen {
 
 	float *vectors;
 	int totvector;
+	
+	/* used on makeraytree */
+	struct RayObject *raytree;
+
 } ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */

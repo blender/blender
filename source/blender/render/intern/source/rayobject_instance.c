@@ -51,22 +51,28 @@ typedef struct InstanceRayObject
 {
 	RayObject rayobj;
 	RayObject *target;
+
+	void *ob; //Object represented by this instance
+	void *target_ob; //Object represented by the inner RayObject, needed to handle self-intersection
+	
 	float global2target[4][4];
 	float target2global[4][4];
 	
 } InstanceRayObject;
 
 
-RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4])
+RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob)
 {
 	InstanceRayObject *obj= (InstanceRayObject*)MEM_callocN(sizeof(InstanceRayObject), "InstanceRayObject");
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &instance_api;
 	obj->target = target;
+	obj->ob = ob;
+	obj->target_ob = target_ob;
 	
-	Mat4CpyMat4(obj->global2target, transform);
-	Mat4Invert(obj->target2global, obj->global2target);
+	Mat4CpyMat4(obj->target2global, transform);
+	Mat4Invert(obj->global2target, obj->target2global);
 	
 	return RayObject_unalign((RayObject*) obj);
 }
@@ -78,39 +84,54 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 	int res;
-	float start[3], vec[3], labda_point[3], labda;
+	float start[3], vec[3], labda, dist;
+	int changed = 0;
+	
+	//TODO - this is disabling self intersection on instances
+	if(isec->orig.ob == obj->ob && obj->ob)
+	{
+		changed = 1;
+		isec->orig.ob = obj->target_ob;
+	}
 	
 	
 	VECCOPY( start, isec->start );
 	VECCOPY( vec  , isec->vec   );
 	labda = isec->labda;
-	VECADDFAC( labda_point, start, vec, labda );
-	
-	
+	dist  = isec->dist;
+
 	//Transform to target coordinates system
 	VECADD( isec->vec, isec->vec, isec->start );	
-	VecMat4MulVecfl(isec->start, obj->target2global, isec->start);
-	VecMat4MulVecfl(isec->vec  , obj->target2global, isec->vec);
-	VecMat4MulVecfl(labda_point, obj->target2global, labda_point);
-	isec->labda = VecLenf( isec->start, labda_point );
+
+	Mat4MulVecfl(obj->global2target, isec->start);
+	Mat4MulVecfl(obj->global2target, isec->vec  );
+
+	isec->dist = VecLenf( isec->start, isec->vec );
 	VECSUB( isec->vec, isec->vec, isec->start );
+	
+	isec->labda *= isec->dist / dist;
 	
 	//Raycast
 	res = RE_rayobject_intersect(obj->target, isec);
 
 	//Restore coordinate space coords
 	if(res == 0)
-		isec->labda = labda;
-	else
 	{
-		VECADDFAC( labda_point, isec->start, isec->vec, isec->labda );
-		VecMat4MulVecfl(labda_point, obj->global2target, labda_point);
-		isec->labda = VecLenf( start, labda_point );
+		isec->labda = labda;
 		
 	}
+	else
+	{
+		isec->labda *= dist / isec->dist;
+		isec->hit.ob = obj->ob;
+	}
+	isec->dist = dist;
 	VECCOPY( isec->start, start );
-	VECCOPY( isec->vec, vec );
+	VECCOPY( isec->vec,   vec );
 	
+	if(changed)
+		isec->orig.ob = obj->ob;
+		
 	return res;
 }
 
@@ -123,17 +144,20 @@ static void RayObject_instance_free(RayObject *o)
 static void RayObject_instance_bb(RayObject *o, float *min, float *max)
 {
 	//TODO:
-	// *better bb.. calculated witouth rotations of bb
-	// *maybe cache that better fitted BB at the InstanceRayObject
+	// *better bb.. calculated without rotations of bb
+	// *maybe cache that better-fitted-BB at the InstanceRayObject
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 
-	float m[3], M[3];
+	float m[3], M[3], t[3];
+	int i, j;
 	INIT_MINMAX(m, M);
 	RE_rayobject_merge_bb(obj->target, m, M);
 
-	VecMat4MulVecfl(m, obj->target2global, m);
-	VecMat4MulVecfl(M, obj->target2global, M);
-
-	DO_MINMAX(m, min, max);
-	DO_MINMAX(M, min, max);
+	//There must be a faster way than rotating all the 8 vertexs of the BB
+	for(i=0; i<8; i++)
+	{
+		for(j=0; j<3; j++) t[j] = i&(1<<j) ? M[j] : m[j];
+		Mat4MulVecfl(obj->target2global, t);
+		DO_MINMAX(t, min, max);
+	}
 }

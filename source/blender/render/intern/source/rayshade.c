@@ -71,16 +71,6 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #if 0
-static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
-{
-	VlakRen *vlr= (VlakRen*)face;
-
-	*v1 = (vlr->v1)? vlr->v1->co: NULL;
-	*v2 = (vlr->v2)? vlr->v2->co: NULL;
-	*v3 = (vlr->v3)? vlr->v3->co: NULL;
-	*v4 = (vlr->v4)? vlr->v4->co: NULL;
-}
-
 static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 {
 	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
@@ -97,114 +87,238 @@ static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 	else
 		return (is->lay & obi->lay);
 }
-
-static float *vlr_get_transform(void *userdata, int i)
-{
-	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)userdata, i);
-
-	return (obi->flag & R_TRANSFORMED)? (float*)obi->mat: NULL;
-}
 #endif
 
 void freeraytree(Render *re)
 {
-	if(re->raytree) {
+	ObjectInstanceRen *obi;
+	
+	if(re->raytree)
+	{
 		RE_rayobject_free(re->raytree);
-		re->raytree= NULL;
-		MEM_freeN( re->rayfaces );
+		re->raytree = NULL;
+	}
+	if(re->rayfaces)
+	{
+		MEM_freeN(re->rayfaces);
+		re->rayfaces = NULL;
+	}
+
+	for(obi=re->instancetable.first; obi; obi=obi->next)
+	{
+		ObjectRen *obr = obi->obr;
+		if(obr->raytree)
+		{
+			RE_rayobject_free(obr->raytree);
+			obr->raytree = NULL;
+		}
+		if(obr->rayfaces)
+		{
+			MEM_freeN(obr->rayfaces);
+			obr->rayfaces = NULL;
+		}
+		if(obi->raytree)
+		{
+			RE_rayobject_free(obi->raytree);
+			obi->raytree = NULL;
+		}
 	}
 }
-void makeraytree(Render *re)
+
+static int is_raytraceable_vlr(Render *re, VlakRen *vlr)
 {
-	ObjectInstanceRen *obi;
-	ObjectRen *obr;
-	VlakRen *vlr= NULL;
-	double lasttime= PIL_check_seconds_timer();
-	int v, totv = 0, totface = 0;
-	RayFace *faces, *cur_face;
-	int tot_quads = 0;
+	if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE))
+	if((vlr->mat->mode & MA_WIRE)==0)
+		return 1;
+	return 0;
+}
 
-	//TODO (for now octree only supports RayFaces so we need to create them)
-	//
-	//count faces
-	for(obi=re->instancetable.first; obi; obi=obi->next) {
-		obr= obi->obr;
+static int is_raytraceable(Render *re, ObjectInstanceRen *obi)
+{
+	int v;
+	ObjectRen *obr = obi->obr;
 
-		if(re->excludeob && obr->ob == re->excludeob)
-			continue;
+	if(re->excludeob && obr->ob == re->excludeob)
+		return 0;
 
-		for(v=0;v<obr->totvlak;v++) {
-			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
-			else vlr++;
-			/* baking selected to active needs non-traceable too */
-			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
-				if((vlr->mat->mode & MA_WIRE)==0) {	
-					totface++;
-				}
-			}
-		}
+	for(v=0;v<obr->totvlak;v++)
+	{
+		VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+		if(is_raytraceable_vlr(re, vlr))
+			return 1;
 	}
-	
-	printf("RE_rayobject_*_create( %d )\n", totface);
-//	re->raytree = RE_rayobject_octree_create( re->r.ocres, totface );
-	re->raytree = RE_rayobject_bvh_create( totface );
-	
-	//Fill rayfaces
-	re->rayfaces = (RayObject*)MEM_callocN(totface*sizeof(RayFace), "render faces");
-	cur_face = faces = (RayFace*)re->rayfaces;
-	
-	for(obi=re->instancetable.first; obi; obi=obi->next) {
-		obr= obi->obr;
+	return 0;
+}
 
-		if(re->excludeob && obr->ob == re->excludeob)
-			continue;
+RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
+{
+	//TODO
+	// out-of-memory safeproof
+	// break render
+	// update render stats
+	ObjectRen *obr = obi->obr;
+	
+	if(obr->raytree == NULL)
+	{
+		RayObject *raytree;
+		RayFace *face;
+		int v;
+		
+		//Count faces
+		int faces = 0;
+		for(v=0;v<obr->totvlak;v++)
+		{
+			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+			if(is_raytraceable_vlr(re, vlr))
+				faces++;
+		}
+		assert( faces > 0 );
 
-		for(v=0;v<obr->totvlak;v++) {
-			if((v & 255)==0)
+		//Create Ray cast accelaration structure
+
+		//TODO dynamic ocres
+		raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
+//		raytree = obr->raytree = RE_rayobject_bvh_create( faces );
+		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
+		obr->rayobi = obi;
+		
+		for(v=0;v<obr->totvlak;v++)
+		{
+			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+			if(is_raytraceable_vlr(re, vlr))
 			{
-				double time= PIL_check_seconds_timer();
-
-				vlr= obr->vlaknodes[v>>8].vlak;
-
-				vlr= obr->vlaknodes[v>>8].vlak;
-				if(re->test_break(re->tbh))
-					break;
-				if(time-lasttime>1.0f) {
-					char str[32];
-					sprintf(str, "Filling Octree: %d", totv);
-					re->i.infostr= str;
-					re->stats_draw(re->sdh, &re->i);
-					re->i.infostr= NULL;
-					lasttime= time;
-				}
-			}
-			else vlr++;
-			/* baking selected to active needs non-traceable too */
-			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
-				if((vlr->mat->mode & MA_WIRE)==0) {	
-					cur_face->v1 = vlr->v1->co;
-					cur_face->v2 = vlr->v2->co;
-					cur_face->v3 = vlr->v3->co;
-					cur_face->v4 = vlr->v4 ? tot_quads++, vlr->v4->co : NULL;
-					
-					cur_face->ob   = (void*)obi;
-					cur_face->face = vlr;
-					
-					RE_rayobject_add( re->raytree, (RayObject*) cur_face );
-					cur_face++;
-				}
+				face->v1 = vlr->v1->co;
+				face->v2 = vlr->v2->co;
+				face->v3 = vlr->v3->co;
+				face->v4 = vlr->v4 ? vlr->v4->co : NULL;
+				
+				face->ob   = obi;
+				face->face = vlr;
+				
+				RE_rayobject_add( raytree, (RayObject*)face++ );
 			}
 		}
+		RE_rayobject_done( raytree );
 	}
 
-	printf("call RE_rayobject_done( %dtri, %dquads )\n", totface-tot_quads, tot_quads);
-	RE_rayobject_done( re->raytree );
-	printf("return RE_rayobject_done( )\n");
-//TODO	vlr_face_coords, vlr_check_intersect, vlr_get_transform, re);
+
+	if(obi->flag & R_TRANSFORMED)
+	{
+		obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
+	}
+	
+	if(obi->raytree) return obi->raytree;
+	return obi->obr->raytree;
+}
+
+/*
+ * create an hierarchic raytrace structure with all objects
+ *
+ * R_TRANSFORMED objects instances reuse the same tree by using the rayobject_instance
+ */
+static void makeraytree_hier(Render *re)
+{
+	//TODO
+	// out-of-memory safeproof
+	// break render
+	// update render stats
+
+	ObjectInstanceRen *obi;
+	int num_objects = 0;
+
+	re->i.infostr="Creating raytrace structure";
+	re->stats_draw(re->sdh, &re->i);
+
+	//Count number of objects
+	for(obi=re->instancetable.first; obi; obi=obi->next)
+	if(is_raytraceable(re, obi))
+		num_objects++;
+
+	//Create raytree
+	re->raytree = RE_rayobject_bvh_create( num_objects );
+	
+	for(obi=re->instancetable.first; obi; obi=obi->next)
+	if(is_raytraceable(re, obi))
+	{
+		RayObject *obj = makeraytree_object(re, obi);
+		RE_rayobject_add( re->raytree, obj );
+
+		if(re->test_break(re->tbh))
+			break;
+	}
+
+	if(!re->test_break(re->tbh))
+	{
+		RE_rayobject_done( re->raytree );
+	}
 
 	re->i.infostr= NULL;
 	re->stats_draw(re->sdh, &re->i);
 }
+
+/*
+ * create a single raytrace structure with all faces
+ */
+static void makeraytree_single(Render *re)
+{
+	ObjectInstanceRen *obi;
+	RayObject *raytree;
+	RayFace *face;
+	int faces = 0, obs = 0;
+
+	for(obi=re->instancetable.first; obi; obi=obi->next)
+	if(is_raytraceable(re, obi))
+	{
+		int v;
+		ObjectRen *obr = obi->obr;
+		obs++;
+		
+		assert((obi->flag & R_TRANSFORMED) == 0); //Not suported
+	
+		for(v=0;v<obr->totvlak;v++)
+		{
+			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+			if(is_raytraceable_vlr(re, vlr))
+				faces++;
+		}
+	}
+	
+	//Create raytree
+	raytree = re->raytree	= RE_rayobject_octree_create(re->r.ocres, faces);
+	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
+	
+	for(obi=re->instancetable.first; obi; obi=obi->next)
+	if(is_raytraceable(re, obi))
+	{
+		int v;
+		ObjectRen *obr = obi->obr;
+
+		for(v=0;v<obr->totvlak;v++)
+		{
+			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+			face->v1 = vlr->v1->co;
+			face->v2 = vlr->v2->co;
+			face->v3 = vlr->v3->co;
+			face->v4 = vlr->v4 ? vlr->v4->co : NULL;
+			
+			face->ob   = obi;
+			face->face = vlr;
+			
+			RE_rayobject_add( raytree, (RayObject*)face++ );
+		}
+	}
+	RE_rayobject_done( raytree );	
+}
+
+void makeraytree(Render *re)
+{
+	if(1)
+		makeraytree_hier(re);
+	else
+		makeraytree_single(re);
+}
+
+
 
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {

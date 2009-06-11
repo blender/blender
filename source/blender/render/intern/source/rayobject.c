@@ -128,10 +128,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
 
-	/* disabled until i got real & fast cylinder checking, this code doesnt work proper for faster strands */
-	//	if(is->mode==RE_RAY_SHADOW && is->vlr->flag & R_STRAND) 
-	//		return intersection_strand(is);
-	
 
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
@@ -182,7 +178,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 			if(v<ISECT_EPSILON && (u + v) > -(1.0f+ISECT_EPSILON)) {
 				labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 
-				if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
+				if(labda>-ISECT_EPSILON && labda<is->labda) {
 					ok= 1;
 				}
 			}
@@ -210,7 +206,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 				if(v<ISECT_EPSILON && (u + v) >-(1.0f+ISECT_EPSILON)) {
 					labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 					
-					if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
+					if(labda>-ISECT_EPSILON && labda<is->labda) {
 						ok= 2;
 					}
 				}
@@ -250,9 +246,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		}
 #endif
 
-		if(is->mode!=RE_RAY_SHADOW && labda > is->labda)
-			return 0;
-
 		is->isect= ok;	// wich half of the quad
 		is->labda= labda;
 		is->u= u; is->v= v;
@@ -274,10 +267,12 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 		printf("Casting %d rays\n", casted_rays);
 
 	i->labda = 10000.0;
+/*
 	i->vec[0] *= i->labda;
 	i->vec[1] *= i->labda;
 	i->vec[2] *= i->labda;
 	i->labda = 1.0f;
+*/
 	i->dist = VecLength(i->vec);
 	
 	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))

@@ -66,7 +66,7 @@ RayObject *RE_rayobject_bvh_create(int size)
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
-	obj->bvh = BLI_bvhtree_new(size, FLT_EPSILON, 2, 6);
+	obj->bvh = BLI_bvhtree_new(size, FLT_EPSILON, 4, 6);
 	
 	INIT_MINMAX(obj->bb[0], obj->bb[1]);
 	return RayObject_unalign((RayObject*) obj);
@@ -83,9 +83,8 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
 
 		if(isec->mode == RE_RAY_SHADOW)
 			hit->dist = 0;
-//		TODO
-//		else
-//			hit->dist = isec->labda;
+		else
+			hit->dist = isec->labda*isec->dist;
 	}
 }
 
@@ -99,7 +98,7 @@ static int  RayObject_bvh_intersect(RayObject *o, Isect *isec)
 	Normalize(dir);
 
 	hit.index = 0;
-	hit.dist = FLT_MAX; //TODO isec->labda;
+	hit.dist = isec->labda*isec->dist;
 	
 	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, isec);
 }
