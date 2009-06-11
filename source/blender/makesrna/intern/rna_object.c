@@ -1069,29 +1069,6 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
-	// XXX this stuff should be moved to AnimData...
-/*
-	prop= RNA_def_property(srna, "nla_disable_path", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_DISABLE_PATH);
-	RNA_def_property_ui_text(prop, "NLA Disable Path", "Disable path temporally, for editing cycles.");
-
-	prop= RNA_def_property(srna, "nla_collapsed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_COLLAPSED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Collapsed", "");
-
-	prop= RNA_def_property(srna, "nla_override", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_OVERRIDE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Override", "");
-
-	prop= RNA_def_property(srna, "nla_strips", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nlastrips", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Strips", "NLA strips of the object.");
-*/
-	
 	/* shape keys */
 
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
