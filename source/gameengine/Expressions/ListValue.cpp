@@ -209,6 +209,30 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 	return listval_new->NewProxy(true); /* python owns this list */
 }
 
+static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
+{
+	CListValue *self= static_cast<CListValue *>(BGE_PROXY_REF(self_v));
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val in CList, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (PyString_Check(value)) {
+		if (self->FindValue((const char *)PyString_AsString(value))) {
+			return 1;
+		}
+	}
+	else if (BGE_PROXY_CHECK_TYPE(value)) { /* not dict like at all but this worked before __contains__ was used */
+		CValue *item= static_cast<CValue *>(BGE_PROXY_REF(value));
+		for (int i=0; i < self->GetCount(); i++)
+			if (self->GetValue(i) == item) // Com
+				return 1;
+		
+	} // not using CheckEqual
+	
+	return 0;
+}
 
 
 static  PySequenceMethods listvalue_as_sequence = {
@@ -225,6 +249,7 @@ static  PySequenceMethods listvalue_as_sequence = {
  	NULL, /*sq_ass_item*/
  	NULL, /*sq_ass_slice*/
 #endif
+	(objobjproc)listvalue_buffer_contains,	/* sq_contains */
 };
 
 
@@ -264,7 +289,9 @@ PyTypeObject CListValue::Type = {
 	0,
 	py_base_getattro,
 	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
+	0,
+	Py_TPFLAGS_DEFAULT,
+	0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -499,7 +526,7 @@ PyObject* CListValue::Pyreverse()
 bool CListValue::CheckEqual(CValue* first,CValue* second)
 {
 	bool result = false;
-
+	
 	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
 	
 	if (eqval==NULL)
@@ -528,7 +555,7 @@ PyObject* CListValue::Pyindex(PyObject *value)
 	for (int i=0;i<numelem;i++)
 	{
 		CValue* elem = 			GetValue(i);
-		if (CheckEqual(checkobj,elem))
+		if (checkobj==elem || CheckEqual(checkobj,elem))
 		{
 			result = PyInt_FromLong(i);
 			break;
@@ -560,7 +587,7 @@ PyObject* CListValue::Pycount(PyObject* value)
 	for (int i=0;i<numelem;i++)
 	{
 		CValue* elem = 			GetValue(i);
-		if (CheckEqual(checkobj,elem))
+		if (checkobj==elem || CheckEqual(checkobj,elem))
 		{
 			numfound ++;
 		}
