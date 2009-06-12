@@ -476,7 +476,6 @@ if env['OURPLATFORM']=='linux2':
 		if '.svn' in tn:
 			tn.remove('.svn')
 		for f in tf:
-			print ">>>", env['BF_INSTALLDIR'], tp, f
 			iconlist.append(tp+os.sep+f)
 			icontargetlist.append(env['BF_INSTALLDIR']+tp[19:]+os.sep+f)
 
@@ -501,7 +500,6 @@ for tp, tn, tf in os.walk('release/plugins'):
 	if '.svn' in tn:
 		tn.remove('.svn')
 	for f in tf:
-		print ">>>", env['BF_INSTALLDIR'], tp, f
 		pluglist.append(tp+os.sep+f)
 		plugtargetlist.append(env['BF_INSTALLDIR']+tp[7:]+os.sep+f)
 

@@ -68,6 +68,7 @@ def validate_arguments(args, bc):
 			'BF_XVIDCORE_CONFIG',
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
+			'BF_MSVS',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -379,7 +380,8 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),
 		
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
-		('BF_NUMJOBS', 'Number of build processes to spawn', '1')
+		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
+		('BF_MSVS', 'Generate MSVS project files and solution', False)
 
 	) # end of opts.AddOptions()
 
@@ -419,8 +421,12 @@ def NSIS_Installer(target=None, source=None, env=None):
 
 	ns = open("00.sconsblender.nsi","r")
 
+
 	ns_cnt = str(ns.read())
 	ns.close()
+
+	# set Python version we compile against
+	ns_cnt = string.replace(ns_cnt, "[PYTHON_VERSION]", env['BF_PYTHON_VERSION'])
 
 	# do root
 	rootlist = []
