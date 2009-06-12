@@ -1095,17 +1095,6 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		ANIMDATA_FILTER_CASES(ob,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-#if 0
-				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_OBJECT, (ID *)ob);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-#endif
-				
 				/* add NLA tracks */
 				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
@@ -1141,7 +1130,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 					items += animdata_filter_action(anim_data, adt->action, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob); 
 				}
 			}
-		)
+		);
 	}
 	
 	
@@ -1151,17 +1140,6 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		ANIMDATA_FILTER_CASES(key,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-#if 0
-				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_OBJECT, (ID *)ob);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-#endif
-				
 				/* add NLA tracks */
 				items += animdata_filter_nla(anim_data, adt, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 			},
@@ -1195,7 +1173,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 					items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 				}
 			}
-		)
+		);
 	}
 
 	/* Materials? */
@@ -1280,17 +1258,6 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 		ANIMDATA_FILTER_CASES(sce,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-#if 0
-				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_SCENE (ID *)sce);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-#endif
-				
 				/* add NLA tracks */
 				items += animdata_filter_nla(anim_data, adt, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce);
 			},
@@ -1334,17 +1301,6 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 		ANIMDATA_FILTER_CASES(wo,
 			{ /* AnimData blocks - do nothing... */ },
 			{ /* nla */
-#if 0
-				/* include nla-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_NLATRACKS)) {
-					ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLNLA, base, ANIMTYPE_DSWOR (ID *)wo);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-#endif
-				
 				/* add NLA tracks */
 				items += animdata_filter_nla(anim_data, adt, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo);
 			},

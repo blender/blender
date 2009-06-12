@@ -858,17 +858,19 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight Action-Group or F-Curve? */
-			if (ale->type == ANIMTYPE_GROUP) {
-				bActionGroup *agrp= ale->data;
-				
-				agrp->flag |= AGRP_SELECTED;
-				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
-			}	
-			else if (ale->type == ANIMTYPE_FCURVE) {
-				FCurve *fcu= ale->data;
-				
-				fcu->flag |= FCURVE_SELECTED;
-				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+			if (ale && ale->data) {
+				if (ale->type == ANIMTYPE_GROUP) {
+					bActionGroup *agrp= ale->data;
+					
+					agrp->flag |= AGRP_SELECTED;
+					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+				}	
+				else if (ale->type == ANIMTYPE_FCURVE) {
+					FCurve *fcu= ale->data;
+					
+					fcu->flag |= FCURVE_SELECTED;
+					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+				}
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
@@ -881,7 +883,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	}
 	
 	/* only select keyframes if we clicked on a valid channel and hit something */
-	if (ale) {
+	if (ale && found) {
 		/* apply selection to keyframes */
 		if (/*gpl*/0) {
 			/* grease pencil */
