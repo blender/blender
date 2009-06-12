@@ -3362,7 +3362,8 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				uiBut *bt= ui_but_find_mouse_over(ar, event->x, event->y);
 
 				if(bt && bt->active != data) {
-					data->cancel= 1;
+					if(but->type != COL) /* exception */
+						data->cancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
 				break;
@@ -3391,7 +3392,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	return retval;
 }
 
-static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *but)
+static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data;
 	uiPopupBlockHandle *menu;
@@ -3400,11 +3401,18 @@ static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *
 	menu= data->menu;
 
 	/* copy over return values from the closing menu */
-	if(menu->menuretval == UI_RETURN_OK) {
+	if(menu->menuretval == UI_RETURN_OK || menu->menuretval == UI_RETURN_UPDATE) {
 		if(but->type == COL)
 			VECCOPY(data->vec, menu->retvec)
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value= menu->retvalue;
+	}
+
+	if(menu->menuretval == UI_RETURN_UPDATE) {
+		if(data->interactive) ui_apply_button(C, but->block, but, data, 1);
+		else ui_check_but(but);
+
+		menu->menuretval= 0;
 	}
 	
 	/* now change button state or exit, which will close the submenu */
@@ -3716,7 +3724,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 	 * buttons inside this region. disabled inside check .. not sure
 	 * anymore why it was there? but i meant enter enter didn't work
 	 * for example when mouse was not over submenu */
-	if((/*inside &&*/ !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	if((/*inside &&*/ (!menu->menuretval || menu->menuretval == UI_RETURN_UPDATE) && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
 		if(but) {
@@ -3746,7 +3754,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 		return retval;
 }
 
-static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiPopupBlockHandle *menu)
+static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlockHandle *menu)
 {
 	ARegion *ar;
 	uiBut *but;
@@ -3771,10 +3779,15 @@ static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiPopupBlo
 				menu->butretval= data->retval;
 			}
 		}
+		else if(submenu->menuretval == UI_RETURN_UPDATE)
+			menu->menuretval = UI_RETURN_UPDATE;
 
 		/* now let activated button in this menu exit, which
 		 * will actually close the submenu too */
-		ui_handle_button_closed_submenu(C, event, but);
+		ui_handle_button_return_submenu(C, event, but);
+
+		if(submenu->menuretval == UI_RETURN_UPDATE)
+			submenu->menuretval = 0;
 	}
 
 	/* for cases where close does not cascade, allow the user to
@@ -3808,7 +3821,7 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHa
 	/* now handle events for our own menu */
 	if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 		if(submenu && submenu->menuretval)
-			retval= ui_handle_menu_closed_submenu(C, event, menu);
+			retval= ui_handle_menu_return_submenu(C, event, menu);
 		else
 			retval= ui_handle_menu_event(C, event, menu, (submenu == NULL));
 	}
@@ -3901,7 +3914,7 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 			/* handle events for the activated button */
 			if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 				if(data->menu->menuretval)
-					ui_handle_button_closed_submenu(C, event, but);
+					ui_handle_button_return_submenu(C, event, but);
 				else
 					ui_handle_button_event(C, event, but);
 			}

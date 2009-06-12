@@ -1480,6 +1480,7 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
 	wmWindow *win= CTX_wm_window(C);
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *col= (float *)col1;
 	float *fp, hsv[3];
 	
@@ -1495,6 +1496,18 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 	ui_update_block_buts_hsv(but1->block, hsv);
 	update_picker_hex(but1->block, col);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
+}
+
+static void do_hsv_cb(bContext *C, void *bt1, void *unused)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* bt1 is num but, hsv1 is pointer to original color in hsv space*/
@@ -1502,6 +1515,7 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *hsv= (float *)hsv1;
 	float *fp= NULL;
 	
@@ -1514,6 +1528,9 @@ static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	} 
 	ui_update_block_buts_hsv(but1->block, hsv);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* bt1 is num but, col1 is pointer to original color */
@@ -1521,6 +1538,7 @@ static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 static void do_palette2_cb(bContext *C, void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *rgb= (float *)col1;
 	float *fp= NULL;
 	
@@ -1533,14 +1551,21 @@ static void do_palette2_cb(bContext *C, void *bt1, void *col1)
 		hsv_to_rgb(fp[0], fp[1], fp[2], rgb, rgb+1, rgb+2);
 	} 
 	ui_update_block_buts_hsv(but1->block, fp);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 static void do_palette_hex_cb(bContext *C, void *bt1, void *hexcl)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	char *hexcol= (char *)hexcl;
 	
 	ui_update_block_buts_hex(but1->block, hexcol);	
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* used for both 3d view and image window */
@@ -1623,8 +1648,10 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	
 	// the cube intersection
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
+	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
 
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
+	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
 
 	// palette
 	

@@ -96,6 +96,7 @@ typedef struct uiLayout uiLayout;
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
 #define UI_RETURN_OK        2       /* choice made */
 #define UI_RETURN_OUT       4       /* left the menu */
+#define UI_RETURN_UPDATE    8       /* update the button that opened */
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
