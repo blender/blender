@@ -53,6 +53,26 @@ CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 
+ifeq ($(WITH_FFMPEG),true)
+    CPPFLAGS += -DWITH_FFMPEG
+endif
+
+ifeq ($(WITH_OPENEXR), true)
+    CPPFLAGS += -DWITH_OPENEXR
+endif
+
+ifeq ($(WITH_DDS), true)
+    CPPFLAGS += -DWITH_DDS
+endif
+
+ifeq ($(WITH_OPENJPEG), true)
+    CPPFLAGS += -DWITH_OPENJPEG
+endif
+
+ifeq ($(WITH_QUICKTIME), true)
+	CPPFLAGS += -DWITH_QUICKTIME
+endif
+
 ifeq ($(OS),windows)
     # Windows needs these extra libs because of winstuff... It is not 
     # _really_ needed, but it is the easiest fix for now. If you have 

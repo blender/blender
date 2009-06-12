@@ -36,14 +36,16 @@ class	KX_ConstraintWrapper : public PyObjectPlus
 {
 	Py_Header;
 	virtual PyObject*		py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int 			py_setattro(PyObject *attr, PyObject *value);
 public:
 	KX_ConstraintWrapper(PHY_ConstraintType ctype,int constraintId,class PHY_IPhysicsEnvironment* physenv,PyTypeObject *T = &Type);
 	virtual ~KX_ConstraintWrapper ();
 	int			getConstraintId() { return m_constraintId;};
 	
-	KX_PYMETHOD(KX_ConstraintWrapper,TestMethod);
-	KX_PYMETHOD(KX_ConstraintWrapper,GetConstraintId);
+	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);
+	KX_PYMETHOD(KX_ConstraintWrapper,SetParam);
+	KX_PYMETHOD(KX_ConstraintWrapper,GetParam);
 
 private:
 	int					m_constraintId;

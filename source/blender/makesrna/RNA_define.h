@@ -145,7 +145,7 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range);
 void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item);
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set);
-void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set, const char *typef);
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
 
 /* Function */

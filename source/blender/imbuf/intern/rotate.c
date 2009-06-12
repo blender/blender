@@ -30,6 +30,7 @@
  */
 
 #include "BLI_blenlib.h"
+#include  "BKE_utildefines.h"
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -94,7 +95,6 @@ void IMB_flipy(struct ImBuf * ibuf)
 void IMB_flipx(struct ImBuf * ibuf)
 {
 	short x, y, xr, xl, yi;
-	unsigned int px;
 	float px_f[4];
 	
 	if (ibuf == NULL) return;
@@ -105,9 +105,7 @@ void IMB_flipx(struct ImBuf * ibuf)
 	if (ibuf->rect) {
 		for(yi=y-1;yi>=0;yi--) {
 			for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
-				px = ibuf->rect[(x*yi)+xr];
-				ibuf->rect[(x*yi)+xr] =	ibuf->rect[(x*yi)+xl];
-				ibuf->rect[(x*yi)+xl] =	px;		
+				SWAP(unsigned int, ibuf->rect[(x*yi)+xr], ibuf->rect[(x*yi)+xl]);
 			}
 		}
 	}

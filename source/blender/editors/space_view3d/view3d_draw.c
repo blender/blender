@@ -36,6 +36,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -1052,7 +1053,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	int m;
 #endif
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT);
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || (FACESEL_PAINT_TEST));
 	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
@@ -1727,12 +1728,14 @@ typedef struct View3DShadow {
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par, float obmat[][4], ListBase *shadows)
 {
 	GPULamp *lamp;
+	Lamp *la = (Lamp*)ob->data;
 	View3DShadow *shadow;
 	
 	lamp = GPU_lamp_from_blender(scene, ob, par);
 	
 	if(lamp) {
 		GPU_lamp_update(lamp, ob->lay, obmat);
+		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
 		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");

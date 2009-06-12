@@ -46,8 +46,13 @@
 #include "PyObjectPlus.h" 
 
 PyTypeObject KX_MeshProxy::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_MeshProxy",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -66,7 +71,6 @@ PyTypeObject KX_MeshProxy::Type = {
 
 PyParentObject KX_MeshProxy::Parents[] = {
 	&KX_MeshProxy::Type,
-	&SCA_IObject::Type,
 	&CValue::Type,
 	&PyObjectPlus::Type,
 	NULL
@@ -105,17 +109,21 @@ void KX_MeshProxy::SetMeshModified(bool v)
 
 PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
 {
- 	py_getattro_up(SCA_IObject);
+ 	py_getattro_up(CValue);
+}
+
+PyObject* KX_MeshProxy::py_getattro_dict() {
+	py_getattro_dict_up(CValue);
 }
 
 int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
 {
-	py_setattro_up(SCA_IObject);
+	py_setattro_up(CValue);
 }
 
 
 KX_MeshProxy::KX_MeshProxy(RAS_MeshObject* mesh)
-	: SCA_IObject(&Type), m_meshobj(mesh)
+	: CValue(&Type), m_meshobj(mesh)
 {
 }
 
@@ -131,10 +139,9 @@ CValue*		KX_MeshProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValu
 
 const STR_String &	KX_MeshProxy::GetText() {return m_meshobj->GetName();};
 double		KX_MeshProxy::GetNumber() { return -1;}
-STR_String	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
-void		KX_MeshProxy::SetName(STR_String name) { };
+STR_String&	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
+void		KX_MeshProxy::SetName(const char *name) { };
 CValue*		KX_MeshProxy::GetReplica() { return NULL;}
-void		KX_MeshProxy::ReplicaSetName(STR_String name) {};
 
 
 // stuff for python integration
@@ -213,24 +220,20 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
 
 PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 {
-    int vertexindex= 1;
-	int matindex= 1;
-	PyObject* vertexob = NULL;
+    int vertexindex;
+	int matindex;
 
-	if (PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
-	{
-		RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
-		if (vertex)
-		{
-			vertexob = (new KX_VertexProxy(this, vertex))->NewProxy(true);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
+		return NULL;
+	
+	RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
+	
+	if(vertex==NULL) {
+		PyErr_SetString(PyExc_ValueError, "mesh.getVertex(mat_idx, vert_idx): KX_MeshProxy, could not get a vertex at the given indicies");
 		return NULL;
 	}
-
-	return vertexob;
-		
+	
+	return (new KX_VertexProxy(this, vertex))->NewProxy(true);
 }
 
 PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
@@ -262,8 +265,12 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
+#if 0
 	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
-	Py_RETURN_NONE;//(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
+	if(KX_ReInstanceShapeFromMesh(m_meshobj))
+		Py_RETURN_TRUE;
+#endif
+	Py_RETURN_FALSE;
 }
 
 PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -341,7 +348,7 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		
 		/* sets the error */
 		if (*object==NULL) {
-			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}		
 		

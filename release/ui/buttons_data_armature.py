@@ -14,27 +14,40 @@ class DATA_PT_skeleton(DataButtonsPanel):
 	__label__ = "Skeleton"
 
 	def draw(self, context):
+		ob = context.object
 		arm = context.armature
+		space = context.space_data
 		layout = self.layout
-		
-		layout.itemR(arm, "rest_position")
 
-		split = layout.split()
+		split = layout.split(percentage=0.65)
 
-		sub = split.column()
-		sub.itemL(text="Deform:")
-		sub.itemR(arm, "deform_vertexgroups", text="Vertes Groups")
-		sub.itemR(arm, "deform_envelope", text="Envelopes")
-		sub.itemR(arm, "deform_quaternion", text="Quaternion")
-		sub.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
-		#sub.itemR(arm, "x_axis_mirror")
-		#sub.itemR(arm, "auto_ik")
-		
-		sub = split.column()
-		sub.itemL(text="Layers:")
-		sub.itemL(text="LAYERS")
-		#sub.itemR(arm, "layer")
-		#sub.itemR(arm, "layer_protection")
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif arm:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if arm:
+			layout.itemS()
+			layout.itemR(arm, "rest_position")
+
+			split = layout.split()
+
+			sub = split.column()
+			sub.itemL(text="Deform:")
+			sub.itemR(arm, "deform_vertexgroups", text="Vertes Groups")
+			sub.itemR(arm, "deform_envelope", text="Envelopes")
+			sub.itemR(arm, "deform_quaternion", text="Quaternion")
+			sub.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
+			#sub.itemR(arm, "x_axis_mirror")
+			#sub.itemR(arm, "auto_ik")
+			
+			sub = split.column()
+			sub.itemL(text="Layers:")
+			sub.itemL(text="LAYERS")
+			#sub.itemR(arm, "layer")
+			#sub.itemR(arm, "layer_protection")
 
 class DATA_PT_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_display"

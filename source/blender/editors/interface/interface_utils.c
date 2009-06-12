@@ -38,6 +38,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_blenlib.h"
+
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -116,7 +118,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)
-				pptr.type= RNA_property_pointer_type(prop);
+				pptr.type= RNA_property_pointer_type(ptr, prop);
 			icon= RNA_struct_ui_icon(pptr.type);
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
@@ -155,7 +157,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		split = uiLayoutSplit(layout);
+		split = uiLayoutSplit(layout, 0.5f);
 
 		name= (char*)RNA_property_ui_name(prop);
 
@@ -199,10 +201,13 @@ void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *pt
 	RNA_property_collection_end(&iter);
 }
 
+
 /***************************** ID Utilities *******************************/
+/* note, C code version, will be replaced with version in interface_templates.c */
 
 typedef struct uiIDPoinParams {
 	uiIDPoinFunc func;
+	ListBase *lb;
 	ID *id;
 	short id_code;
 	short browsenr;
@@ -210,16 +215,12 @@ typedef struct uiIDPoinParams {
 
 static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 {
-	Main *bmain;
-	ListBase *lb;
 	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+	ListBase *lb= params->lb;
 	uiIDPoinFunc func= params->func;
 	ID *id= params->id, *idtest;
 	int nr, event= GET_INT_FROM_POINTER(arg_event);
 
-	bmain= CTX_data_main(C);
-	lb= wich_libbase(bmain, params->id_code);
-	
 	if(event == UI_ID_BROWSE && params->browsenr == 32767)
 		event= UI_ID_ADD_NEW;
 	else if(event == UI_ID_BROWSE && params->browsenr == 32766)
@@ -286,21 +287,83 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 		func(C, id, event);
 }
 
+/* ***************************** ID Search browse menu ********************** */
+
+static void id_search_call_cb(struct bContext *C, void *arg_params, void *item)
+{
+	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+
+	if(item && params->func)
+		params->func(C, item, UI_ID_BROWSE);
+
+}
+
+static void id_search_cb(const struct bContext *C, void *arg_params, char *str, uiSearchItems *items)
+{
+	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+	ID *id;
+	
+	for(id= params->lb->first; id; id= id->next) {
+		
+		if(BLI_strcasestr(id->name+2, str)) {
+			if(0==uiSearchItemAdd(items, id->name+2, id))
+				break;
+		}
+	}
+}
+
+static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_params)
+{
+	static char search[256];
+	static uiIDPoinParams params;
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	/* params is malloced, can be freed by parent button */
+	params= *((uiIDPoinParams*)arg_params);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+/* ****************** */
+
 int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events)
 {
-	ListBase *lb;
 	uiBut *but;
 	uiIDPoinParams *params, *dup_params;
-	char *str=NULL, str1[10];
+	char str1[10];
 	int len, add_addbutton=0;
 
 	/* setup struct that we will pass on with the buttons */
 	params= MEM_callocN(sizeof(uiIDPoinParams), "uiIDPoinParams");
+	params->lb= wich_libbase(bmain, id_code);
 	params->id= id;
 	params->id_code= id_code;
 	params->func= func;
-
-	lb= wich_libbase(bmain, id_code);
 
 	/* create buttons */
 	uiBlockBeginAlign(block);
@@ -322,45 +385,11 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 
 	/* browse menu */
 	if(events & UI_ID_BROWSE) {
-		char *extrastr= NULL;
-		
-		if(ELEM4(id_code, ID_MA, ID_TE, ID_BR, ID_PA))
-			add_addbutton= 1;
-		
-		if(ELEM8(id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) || id_code == ID_PA)
-			extrastr= "ADD NEW %x 32767";
-		else if(id_code==ID_TXT)
-			extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
-		else if(id_code==ID_SO)
-			extrastr= "OPEN NEW %x 32766";
-
-		/* XXX should be moved out of this function
-		uiBlockSetButLock(block, G.scene->id.lib!=0, "Can't edit external libdata");
-		if( id_code==ID_SCE || id_code==ID_SCR ) uiBlockClearButLock(block); */
-		
-		/* XXX should be moved out of this function
-		if(curarea->spacetype==SPACE_BUTS)
-			uiBlockSetButLock(block, id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, "Cannot perform in EditMode"); */
-		
-		if(parid)
-			uiBlockSetButLock(block, parid->lib!=0, "Can't edit external libdata");
-
-		if(lb) {
-			if(id_code!=ID_IM || (events & UI_ID_BROWSE_RENDER))
-				IDnames_to_pupstring(&str, NULL, extrastr, lb, id, &params->browsenr);
-			else
-				IMAnames_to_pupstring(&str, NULL, extrastr, lb, id, &params->browsenr);
-		}
-
-		dup_params= MEM_dupallocN(params);
-		but= uiDefButS(block, MENU, 0, str, x, y, DEF_ICON_BUT_WIDTH, DEF_BUT_HEIGHT, &dup_params->browsenr, 0, 0, 0, 0, "Browse existing choices, or add new");
-		uiButSetNFunc(but, idpoin_cb, dup_params, SET_INT_IN_POINTER(UI_ID_BROWSE));
+		uiDefBlockButN(block, id_search_menu, MEM_dupallocN(params), "", x, y, DEF_ICON_BUT_WIDTH, DEF_BUT_HEIGHT, "Browse ID data");
 		x+= DEF_ICON_BUT_WIDTH;
-		
-		uiBlockClearButLock(block);
-	
-		MEM_freeN(str);
 	}
+	
+	
 
 	/* text button with name */
 	if(id) {

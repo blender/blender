@@ -281,12 +281,12 @@ static Object *object_add_type(bContext *C, int type)
 	ob= add_object(scene, type);
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);
-	
+
 	/* more editor stuff */
 	ED_object_base_init_from_view(C, BASACT);
-	
+
 	DAG_scene_sort(scene);
-	
+
 	return ob;
 }
 

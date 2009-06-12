@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="SG_SceneGraph"
 	ProjectGUID="{09222F5E-1625-4FF3-A89A-384D16875EE5}"
+	RootNamespace="SG_SceneGraph"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -510,6 +511,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_DList.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_IObject.h"
 				>
 			</File>
@@ -519,6 +524,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_ParentRelation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_QList.h"
 				>
 			</File>
 			<File

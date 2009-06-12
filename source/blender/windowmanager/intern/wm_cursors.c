@@ -55,7 +55,12 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 		case CURSOR_FACESEL:	return GHOST_kStandardCursorRightArrow;
 		case CURSOR_WAIT:		return GHOST_kStandardCursorWait;
 		case CURSOR_EDIT:		return GHOST_kStandardCursorCrosshair;
-		case CURSOR_HELP:		return GHOST_kStandardCursorHelp;
+		case CURSOR_HELP:		
+#ifdef __APPLE__
+			return GHOST_kStandardCursorLeftRight;
+#else
+			return GHOST_kStandardCursorHelp;
+#endif
 		case CURSOR_X_MOVE:		return GHOST_kStandardCursorLeftRight;
 		case CURSOR_Y_MOVE:		return GHOST_kStandardCursorUpDown;
 		case CURSOR_PENCIL:		return GHOST_kStandardCursorPencil;

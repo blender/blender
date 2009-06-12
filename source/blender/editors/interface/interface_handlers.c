@@ -1169,7 +1169,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	/* optional searchbox */
 	if(but->type==SEARCH_MENU) {
 		data->searchbox= ui_searchbox_create(C, data->region, but);
-		ui_searchbox_update(C, data->searchbox, but);
+		ui_searchbox_update(C, data->searchbox, but, 1); /* 1= reset */
 	}
 	
 	ui_check_but(but);
@@ -1245,9 +1245,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	int mx, my, changed= 0, inbox=0, retval= WM_UI_HANDLER_CONTINUE;
 
 	switch(event->type) {
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
 		case MOUSEMOVE:
 			if(data->searchbox)
-				ui_searchbox_event(data->searchbox, event);
+				ui_searchbox_event(C, data->searchbox, but, event);
 			
 			break;
 		case RIGHTMOUSE:
@@ -1261,7 +1263,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			
 			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
 			if(data->searchbox)
-				inbox= BLI_in_rcti(&data->searchbox->winrct, event->x, event->y);
+				inbox= ui_searchbox_inside(data->searchbox, event->x, event->y);
 
 			if(event->val==KM_PRESS) {
 				mx= event->x;
@@ -1277,11 +1279,15 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					retval= WM_UI_HANDLER_BREAK;
 				}
 				else if(inbox==0) {
+					/* if searchbox, click outside will cancel */
+					if(data->searchbox)
+						data->cancel= data->escapecancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 					retval= WM_UI_HANDLER_BREAK;
 				}
 			}
 			else if(inbox) {
+				printf("release inside \n");
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -1315,7 +1321,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 			case DOWNARROWKEY:
 				if(data->searchbox) {
-					ui_searchbox_event(data->searchbox, event);
+					ui_searchbox_event(C, data->searchbox, but, event);
 					break;
 				}
 				/* pass on purposedly */
@@ -1325,7 +1331,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 			case UPARROWKEY:
 				if(data->searchbox) {
-					ui_searchbox_event(data->searchbox, event);
+					ui_searchbox_event(C, data->searchbox, but, event);
 					break;
 				}
 				/* pass on purposedly */
@@ -1378,7 +1384,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		else ui_check_but(but);
 		
 		if(data->searchbox)
-			ui_searchbox_update(C, data->searchbox, but);
+			ui_searchbox_update(C, data->searchbox, but, 1); /* 1 = reset */
 	}
 
 	if(changed || (retval == WM_UI_HANDLER_BREAK))
@@ -1489,7 +1495,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			}
 			else {
 				func= but->block_create_func;
-				arg= but->poin;
+				arg= but->poin?but->poin:but->func_argN;
 			}
 			break;
 		case MENU:
@@ -1757,7 +1763,16 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
-		if(event->val==KM_PRESS) {
+		/* XXX hardcoded keymap check.... */
+		if(event->type == WHEELDOWNMOUSE && event->alt) {
+			mx= but->x1;
+			click= 1;
+		}
+		else if(event->type == WHEELUPMOUSE && event->alt) {
+			mx= but->x2;
+			click= 1;
+		}
+		else if(event->val==KM_PRESS) {
 			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->shift) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
@@ -1771,6 +1786,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
 				click= 1;
 		}
+		
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		if(event->type == ESCKEY) {
@@ -1958,7 +1974,16 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
-		if(event->val==KM_PRESS) {
+		/* XXX hardcoded keymap check.... */
+		if(event->type == WHEELDOWNMOUSE && event->alt) {
+			mx= but->x1;
+			click= 2;
+		}
+		else if(event->type == WHEELUPMOUSE && event->alt) {
+			mx= but->x2;
+			click= 2;
+		}
+		else if(event->val==KM_PRESS) {
 			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->shift) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
@@ -2001,7 +2026,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	}
 
 	if(click) {
-		if (event->ctrl) {
+		if (event->ctrl || click==2) {
 			/* nudge slider to the left or right */
 			float f, tempf, softmin, softmax, softrange;
 			int temp;
@@ -2054,10 +2079,26 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
+	
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 			return WM_UI_HANDLER_BREAK;
+		}
+		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW)) {
+			
+			if(event->type == WHEELDOWNMOUSE && event->alt) {
+				data->value= ui_step_name_menu(but, -1);
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				ui_apply_button(C, but->block, but, data, 1);
+				return WM_UI_HANDLER_BREAK;
+			}
+			else if(event->type == WHEELUPMOUSE && event->alt) {
+				data->value= ui_step_name_menu(but, 1);
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				ui_apply_button(C, but->block, but, data, 1);
+				return WM_UI_HANDLER_BREAK;
+			}
 		}
 	}
 
@@ -3073,7 +3114,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 			but->block->auto_open= 0;
 
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
-
+	
 	if(type == BUTTON_ACTIVATE_OPEN) {
 		button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 
@@ -3229,6 +3270,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		switch(event->type) {
+			
 			case MOUSEMOVE:
 				/* verify if we are still over the button, if not exit */
 				if(!ui_mouse_inside_button(ar, but, event->x, event->y)) {
@@ -3262,6 +3304,15 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 
 				retval= WM_UI_HANDLER_CONTINUE;
 				break;
+			case WHEELUPMOUSE:
+			case WHEELDOWNMOUSE:
+			case MIDDLEMOUSE:
+				/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
+				if(data->tooltiptimer) {
+					WM_event_remove_window_timer(data->window, data->tooltiptimer);
+					data->tooltiptimer= NULL;
+				}
+				/* pass on purposedly */
 			default:
 				/* handle button type specific events */
 				retval= ui_do_button(C, block, but, event);
@@ -3473,7 +3524,9 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 		if(block->miny <= my && block->maxy >= my)
 			inside= 1;
 
-	if((but=ui_but_find_activated(ar)) && button_modal_state(but->active->state)) {
+	/* if there's an active modal button, don't check events or outside, except for search menu */
+	but= ui_but_find_activated(ar);
+	if(but && button_modal_state(but->active->state) && but->type!=SEARCH_MENU) {
 		/* if a button is activated modal, always reset the start mouse
 		 * position of the towards mechanism to avoid loosing focus,
 		 * and don't handle events */
@@ -3484,125 +3537,128 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 		if(event->type == MOUSEMOVE)
 			ui_mouse_motion_towards_init(menu, mx, my, 0);
 
-		switch(event->type) {
-			/* closing sublevels of pulldowns */
-			case LEFTARROWKEY:
-				if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP))
-					if(BLI_countlist(&block->saferct) > 0)
-						menu->menuretval= UI_RETURN_OUT;
+		/* events not for active search menu button */
+		if(but==NULL || but->type!=SEARCH_MENU) {
+			switch(event->type) {
+				/* closing sublevels of pulldowns */
+				case LEFTARROWKEY:
+					if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP))
+						if(BLI_countlist(&block->saferct) > 0)
+							menu->menuretval= UI_RETURN_OUT;
 
-				retval= WM_UI_HANDLER_BREAK;
-				break;
+					retval= WM_UI_HANDLER_BREAK;
+					break;
 
-			/* opening sublevels of pulldowns */
-			case RIGHTARROWKEY:	
-				if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
-					but= ui_but_find_activated(ar);
-
-					if(!but) {
-						/* no item active, we make first active */
-						if(block->direction & UI_TOP) but= ui_but_last(block);
-						else but= ui_but_first(block);
-					}
-
-					if(but && ELEM(but->type, BLOCK, PULLDOWN))
-						ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
-				}
-
-				retval= WM_UI_HANDLER_BREAK;
-				break;
-			
-			case UPARROWKEY:
-			case DOWNARROWKEY:
-			case WHEELUPMOUSE:
-			case WHEELDOWNMOUSE:
-				/* arrowkeys: only handle for block_loop blocks */
-				if(inside || (block->flag & UI_BLOCK_LOOP)) {
-					if(event->val==KM_PRESS) {
+				/* opening sublevels of pulldowns */
+				case RIGHTARROWKEY:	
+					if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 						but= ui_but_find_activated(ar);
-						if(but) {
-							if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) {
-								if(block->direction & UI_TOP) but= ui_but_prev(but);
-								else but= ui_but_next(but);
-							}
-							else {
-								if(block->direction & UI_TOP) but= ui_but_next(but);
-								else but= ui_but_prev(but);
-							}
-
-							if(but)
-								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
-						}
 
 						if(!but) {
-							if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) {
-								if(block->direction & UI_TOP) bt= ui_but_first(block);
-								else bt= ui_but_last(block);
-							}
-							else {
-								if(block->direction & UI_TOP) bt= ui_but_last(block);
-								else bt= ui_but_first(block);
+							/* no item active, we make first active */
+							if(block->direction & UI_TOP) but= ui_but_last(block);
+							else but= ui_but_first(block);
+						}
+
+						if(but && ELEM(but->type, BLOCK, PULLDOWN))
+							ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
+					}
+
+					retval= WM_UI_HANDLER_BREAK;
+					break;
+				
+				case UPARROWKEY:
+				case DOWNARROWKEY:
+				case WHEELUPMOUSE:
+				case WHEELDOWNMOUSE:
+					/* arrowkeys: only handle for block_loop blocks */
+					if(inside || (block->flag & UI_BLOCK_LOOP)) {
+						if(event->val==KM_PRESS) {
+							but= ui_but_find_activated(ar);
+							if(but) {
+								if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) {
+									if(block->direction & UI_TOP) but= ui_but_prev(but);
+									else but= ui_but_next(but);
+								}
+								else {
+									if(block->direction & UI_TOP) but= ui_but_next(but);
+									else but= ui_but_prev(but);
+								}
+
+								if(but)
+									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
 							}
 
-							if(bt)
-								ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
+							if(!but) {
+								if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) {
+									if(block->direction & UI_TOP) bt= ui_but_first(block);
+									else bt= ui_but_last(block);
+								}
+								else {
+									if(block->direction & UI_TOP) bt= ui_but_last(block);
+									else bt= ui_but_first(block);
+								}
+
+								if(bt)
+									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
+							}
 						}
 					}
-				}
 
-				retval= WM_UI_HANDLER_BREAK;
-				break;
+					retval= WM_UI_HANDLER_BREAK;
+					break;
 
-			case ONEKEY: 	case PAD1: 
-				act= 1;
-			case TWOKEY: 	case PAD2: 
-				if(act==0) act= 2;
-			case THREEKEY: 	case PAD3: 
-				if(act==0) act= 3;
-			case FOURKEY: 	case PAD4: 
-				if(act==0) act= 4;
-			case FIVEKEY: 	case PAD5: 
-				if(act==0) act= 5;
-			case SIXKEY: 	case PAD6: 
-				if(act==0) act= 6;
-			case SEVENKEY: 	case PAD7: 
-				if(act==0) act= 7;
-			case EIGHTKEY: 	case PAD8: 
-				if(act==0) act= 8;
-			case NINEKEY: 	case PAD9: 
-				if(act==0) act= 9;
-			case ZEROKEY: 	case PAD0: 
-				if(act==0) act= 10;
-			
-				if(block->flag & UI_BLOCK_NUMSELECT) {
-					if(event->alt) act+= 10;
-					
-					count= 0;
-					for(but= block->buttons.first; but; but= but->next) {
-						int doit= 0;
+				case ONEKEY: 	case PAD1: 
+					act= 1;
+				case TWOKEY: 	case PAD2: 
+					if(act==0) act= 2;
+				case THREEKEY: 	case PAD3: 
+					if(act==0) act= 3;
+				case FOURKEY: 	case PAD4: 
+					if(act==0) act= 4;
+				case FIVEKEY: 	case PAD5: 
+					if(act==0) act= 5;
+				case SIXKEY: 	case PAD6: 
+					if(act==0) act= 6;
+				case SEVENKEY: 	case PAD7: 
+					if(act==0) act= 7;
+				case EIGHTKEY: 	case PAD8: 
+					if(act==0) act= 8;
+				case NINEKEY: 	case PAD9: 
+					if(act==0) act= 9;
+				case ZEROKEY: 	case PAD0: 
+					if(act==0) act= 10;
+				
+					if(block->flag & UI_BLOCK_NUMSELECT) {
+						if(event->alt) act+= 10;
 						
-						if(but->type!=LABEL && but->type!=SEPR)
-							count++;
+						count= 0;
+						for(but= block->buttons.first; but; but= but->next) {
+							int doit= 0;
+							
+							if(but->type!=LABEL && but->type!=SEPR)
+								count++;
 
-						/* exception for menus like layer buts, with button aligning they're not drawn in order */
-						if(but->type==TOGR) {
-							if(but->bitnr==act-1)
-								doit= 1;
-						}
-						else if(count==act)
-							doit=1;
-						
-						if(doit) {
-							ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
-							break;
+							/* exception for menus like layer buts, with button aligning they're not drawn in order */
+							if(but->type==TOGR) {
+								if(but->bitnr==act-1)
+									doit= 1;
+							}
+							else if(count==act)
+								doit=1;
+							
+							if(doit) {
+								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);
+								break;
+							}
 						}
 					}
-				}
 
-				retval= WM_UI_HANDLER_BREAK;
-				break;
+					retval= WM_UI_HANDLER_BREAK;
+					break;
+			}
 		}
-
+		
 		/* here we check return conditions for menus */
 		if(block->flag & UI_BLOCK_LOOP) {
 			/* if we click outside the block, verify if we clicked on the

@@ -162,6 +162,7 @@ intptr_t munmap(void *ptr, intptr_t size)
 	CloseHandle( mm->maphandle );
 	CloseHandle( mm->fhandle);
 	mmap_remlink(mmapbase, mm);
+	free(mm);
     return 0;
 }
 

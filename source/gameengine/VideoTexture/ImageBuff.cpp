@@ -71,10 +71,9 @@ static PyObject * load (PyImage * self, PyObject * args)
 	short width;
 	short height;
 	// parse parameters
-	if (!PyArg_ParseTuple(args, "s#hh", &buff, &buffSize, &width, &height))
+	if (!PyArg_ParseTuple(args, "s#hh:load", &buff, &buffSize, &width, &height))
 	{
 		// report error
-		PyErr_SetString(PyExc_TypeError, "Parameters are not correct");
 		return NULL;
 	}
 	// else check buffer size
@@ -123,8 +122,13 @@ static PyGetSetDef imageBuffGetSets[] =
 // define python type
 PyTypeObject ImageBuffType =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.ImageBuff",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

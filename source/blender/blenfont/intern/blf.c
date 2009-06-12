@@ -491,3 +491,12 @@ void BLF_mode(int mode)
 	if (font)
 		font->mode= mode;
 }
+
+void BLF_kerning(int space)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		font->kerning= space;
+}

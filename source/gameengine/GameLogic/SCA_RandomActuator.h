@@ -91,12 +91,14 @@ class SCA_RandomActuator : public SCA_IActuator
 	virtual bool Update();
 	
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	static PyObject* pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);

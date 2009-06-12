@@ -38,13 +38,14 @@ Developed as part of a Research and Development project for SAT - La Société des
 
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h"
-//#include "BLI_blenlib.h"
 
 //Dome modes: limit hardcoded in buttons_scene.c
-#define DOME_FISHEYE		1
-#define DOME_TRUNCATED		2
-#define DOME_PANORAM_SPH	3
-#define DOME_NUM_MODES		4
+#define DOME_FISHEYE			1
+#define DOME_TRUNCATED_FRONT	2
+#define DOME_TRUNCATED_REAR		3
+#define DOME_ENVMAP				4
+#define DOME_PANORAM_SPH		5
+#define DOME_NUM_MODES			6
 
 
 /// class for render 3d scene
@@ -60,12 +61,12 @@ public:
     RAS_IRenderTools* m_rendertools,
     /// engine
     KX_KetsjiEngine* m_engine,
-	
-	float size,
+
 	short res,
 	short mode,
 	short angle,
 	float resbuf,
+	short tilt,
 	struct Text* warptext
 	);
 
@@ -74,6 +75,7 @@ public:
 
 	//openGL checks:
 	bool	dlistSupported;
+	bool	fboSupported;
 
 	//openGL names:
 	GLuint domefacesId[7];		// ID of the images -- room for 7 images, using only 4 for 180º x 360º dome, 6 for panoramic and +1 for warp mesh
@@ -93,8 +95,9 @@ public:
 		bool usemesh;
 		int mode;
 		int n_width, n_height; //nodes width and height
-		int imagewidth, imageheight;
+		int imagesize;
 		int bufferwidth, bufferheight;
+		GLuint fboId;
 		vector <vector <WarpMeshNode> > nodes;
 	} warp;
 
@@ -116,7 +119,7 @@ public:
 	void CalculateFrustum(KX_Camera* cam);
 	void RotateCamera(KX_Camera* cam, int i);
 
-	//Mesh  Creating Functions
+	//Mesh creation Functions
 	void CreateMeshDome180(void);
 	void CreateMeshDome250(void);
 	void CreateMeshPanorama(void);
@@ -131,6 +134,7 @@ public:
 	void GLDrawWarpQuads(void);
 	void Draw(void);
 	void DrawDomeFisheye(void);
+	void DrawEnvMap(void);
 	void DrawPanorama(void);
 	void DrawDomeWarped(void);
 
@@ -139,6 +143,8 @@ public:
 	void ClearGLImages(void);//called on resize
 	bool CreateDL(void); //create Display Lists
 	void ClearDL(void);  //remove Display Lists 
+	bool CreateFBO(void);//create FBO (for warp mesh)
+	void ClearFBO(void); //remove FBO
 
 	void CalculateCameraOrientation();
 	void CalculateImageSize(); //set m_imagesize
@@ -153,13 +159,13 @@ protected:
 	int m_buffersize;	// canvas small dimension
 	int m_numfaces;		// 4 to 6 depending on the kind of dome image
 	int m_numimages;	//numfaces +1 if we have warp mesh
-	
-	float m_size;		// size to adjust
+
 	short m_resolution;	//resolution to tesselate the mesh
 	short m_mode;		// the mode (truncated, warped, panoramic,...)
 	short m_angle;		//the angle of the fisheye
 	float m_radangle;	//the angle of the fisheye in radians
 	float m_resbuffer;	//the resolution of the buffer
+	short m_tilt;		//the dome tilt (camera rotation on horizontal axis)
 	
 	RAS_Rect m_viewport;
 
@@ -181,3 +187,4 @@ protected:
 };
 
 #endif
+

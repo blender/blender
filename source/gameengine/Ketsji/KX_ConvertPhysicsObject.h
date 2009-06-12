@@ -47,6 +47,7 @@
 
 class RAS_MeshObject;
 class KX_Scene;
+struct DerivedMesh;
 
 typedef enum {
 	KX_BOUNDBOX,
@@ -82,6 +83,7 @@ struct KX_ObjectProperties
 	bool	m_ghost;
 	class KX_GameObject*	m_dynamic_parent;
 	bool	m_isactor;
+	bool	m_sensor;
 	bool	m_concave;
 	bool	m_isdeformable;
 	bool	m_disableSleeping;
@@ -124,6 +126,7 @@ struct KX_ObjectProperties
 	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
 	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
 	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+	float   m_soft_welding;			/*   threshold to remove duplicate/nearby vertices */
 
 	/////////////////////////
 	
@@ -136,6 +139,8 @@ struct KX_ObjectProperties
 
 	/////////////////////////
 	double  m_margin;
+	float	m_contactProcessingThreshold;
+
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;
@@ -182,6 +187,7 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
+	struct  DerivedMesh* dm,
 	class	KX_Scene* kxscene,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,

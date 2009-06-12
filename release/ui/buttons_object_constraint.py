@@ -4,7 +4,7 @@ import bpy
 class ConstraintButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
-	__context__ = "object"
+	__context__ = "constraint"
 
 	def draw_constraint(self, con):
 		layout = self.layout
@@ -509,7 +509,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "OBJECT_PT_constraints"
 	__label__ = "Constraints"
-	__context__ = "object"
+	__context__ = "constraint"
 
 	def poll(self, context):
 		return (context.object != None)
@@ -527,8 +527,8 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
-	__label__ = "Constraints"
-	__context__ = "bone"
+	__label__ = "Bone Constraints"
+	__context__ = "constraint"
 
 	def poll(self, context):
 		ob = context.object
@@ -548,4 +548,3 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 
 bpy.types.register(OBJECT_PT_constraints)
 bpy.types.register(BONE_PT_constraints)
-

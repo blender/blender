@@ -112,7 +112,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", "Alpha Under effect strip type"},
 	{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", "Gamma Cross effect strip type"},
 	{SEQ_MUL, "MULTIPLY", "Multiply", "Multiply effect strip type"},
-	{SEQ_OVERDROP, "ALPHA_OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+	{SEQ_OVERDROP, "OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
 	{SEQ_PLUGIN, "PLUGIN", "Plugin", "Plugin effect strip type"},
 	{SEQ_WIPE, "WIPE", "Wipe", "Wipe effect strip type"},
 	{SEQ_GLOW, "GLOW", "Glow", "Glow effect strip type"},
@@ -160,7 +160,7 @@ void set_last_seq(Scene *scene, Sequence *seq)
 	ed->act_seq= seq;
 }
 
-Sequence *get_forground_frame_seq(Scene *scene, int frame)
+Sequence *get_foreground_frame_seq(Scene *scene, int frame)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq, *best_seq=NULL;
@@ -879,12 +879,33 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 static Sequence *dupli_seq(Sequence *seq) 
 {
 	Sequence *seqn = MEM_dupallocN(seq);
+	// XXX animato: ID *id;
 
 	seq->tmp = seqn;
 		
 	seqn->strip= MEM_dupallocN(seq->strip);
 
-	if(seqn->ipo) seqn->ipo->id.us++;
+	// XXX animato
+#if 0
+	if (seqn->ipo) {
+		if (U.dupflag & USER_DUP_IPO) {
+			id= (ID *)seqn->ipo;
+			seqn->ipo= copy_ipo(seqn->ipo);
+			/* we don't need to decrease the number
+			 * of the ipo because we never increase it,
+			 * for example, adduplicate need decrease
+			 * the number but only because copy_object
+			 * call id_us_plus for the ipo block and
+			 * single_ipo_users only work if id->us > 1.
+			 *
+			 * need call ipo_idnew here, for drivers ??
+			 * - Diego
+			 */
+		}
+		else
+			seqn->ipo->id.us++;
+	}
+#endif
 
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;
@@ -1367,13 +1388,20 @@ static int seq_get_snaplimit(View2D *v2d)
 }
 #endif
 
-void seq_snap(Scene *scene, short event)
+/* Operator functions */
+
+/* snap operator*/
+static int sequencer_snap_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
+	
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-
+	int snap_frame;
 	
-	if(ed==NULL) return;
+	if(ed==NULL) return OPERATOR_CANCELLED;
+
+	snap_frame= RNA_int_get(op->ptr, "frame");
 
 	/* problem: contents of meta's are all shifted to the same position... */
 
@@ -1382,12 +1410,12 @@ void seq_snap(Scene *scene, short event)
 		if (seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK) &&
 		    seq_tx_test(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
-				seq->start= CFRA-seq->startofs+seq->startstill;
+				seq->start= snap_frame-seq->startofs+seq->startstill;
 			} else { 
 				if(seq->flag & SEQ_LEFTSEL) {
-					seq_tx_set_final_left(seq, CFRA);
+					seq_tx_set_final_left(seq, snap_frame);
 				} else { /* SEQ_RIGHTSEL */
-					seq_tx_set_final_right(seq, CFRA);
+					seq_tx_set_final_right(seq, snap_frame);
 				}
 				seq_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
 			}
@@ -1417,21 +1445,43 @@ void seq_snap(Scene *scene, short event)
 
 	/* as last: */
 	sort_seq(scene);
-
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
 }
 
-void seq_snap_menu(Scene *scene)
+static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	short event;
+	Scene *scene = CTX_data_scene(C);
 	
-	event= pupmenu("Snap %t|To Current Frame%x1");
-	if(event < 1) return;
+	int snap_frame;
 	
-	seq_snap(scene, event);
+	snap_frame= CFRA;
+	
+	RNA_int_set(op->ptr, "frame", snap_frame);
+	return sequencer_snap_exec(C, op);
 }
 
-/* Operator functions */
+void SEQUENCER_OT_snap(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Snap strips";
+	ot->idname= "SEQUENCER_OT_snap";
 
+	/* api callbacks */
+	ot->invoke= sequencer_snap_invoke;
+	ot->exec= sequencer_snap_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will snaped", INT_MIN, INT_MAX);
+}
+
+/* mute operator */
 static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);

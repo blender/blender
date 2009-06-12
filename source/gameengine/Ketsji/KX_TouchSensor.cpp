@@ -66,10 +66,10 @@ void KX_TouchSensor::UnregisterToManager()
 {
 	// before unregistering the sensor, make sure we release all references
 	EndFrame();
-	m_eventmgr->RemoveSensor(this);
+	SCA_ISensor::UnregisterToManager();
 }
 
-bool KX_TouchSensor::Evaluate(CValue* event)
+bool KX_TouchSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
@@ -142,11 +142,15 @@ KX_TouchSensor::~KX_TouchSensor()
 CValue* KX_TouchSensor::GetReplica() 
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
-	replica->m_colliders = new CListValue();
-	replica->Init();
-	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
+}
+
+void KX_TouchSensor::ProcessReplica()
+{
+	SCA_ISensor::ProcessReplica();
+	m_colliders = new CListValue();
+	Init();
 }
 
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
@@ -169,19 +173,67 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
 	if (m_physCtrl)
 	{
-		touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl);
-		// collision
-		// Deprecated	
-
+		if (touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl))
+		{
+			KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			if (client_info->isSensor())
+				touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
+		}
 	}
 }
-
 void KX_TouchSensor::UnregisterSumo(KX_TouchEventManager* touchman)
 {
 	if (m_physCtrl)
 	{
-		touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl);
+		if (touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl))
+		{
+			// no more sensor on the controller, can remove it if it is a sensor object
+			KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+			if (client_info->isSensor())
+				touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+		}
 	}
+}
+
+// this function is called only for sensor objects
+// return true if the controller can collide with the object
+bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
+{
+	assert(obj1==m_physCtrl && obj2);
+
+	KX_GameObject* myobj = (KX_GameObject*)GetParent();
+	KX_GameObject* myparent = myobj->GetParent();
+	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>(((PHY_IPhysicsController*)obj2)->getNewClientInfo());
+	KX_ClientObjectInfo* my_client_info = static_cast<KX_ClientObjectInfo*>(m_physCtrl->getNewClientInfo());
+	KX_GameObject* otherobj = ( client_info ? client_info->m_gameobject : NULL);
+
+	// first, decrement refcount as GetParent() increases it
+	if (myparent)
+		myparent->Release();
+
+	// we can only check on persistent characteristic: m_link and m_suspended are not
+	// good candidate because they are transient. That must be handled at another level
+	if (!otherobj ||
+		otherobj == myparent ||		// don't interact with our parent
+		(my_client_info->m_type == KX_ClientObjectInfo::OBACTORSENSOR &&
+		 client_info->m_type != KX_ClientObjectInfo::ACTOR))	// only with actor objects
+		return false;
+		
+	bool found = m_touchedpropname.IsEmpty();
+	if (!found)
+	{
+		if (m_bFindMaterial)
+		{
+			if (client_info->m_auxilary_info)
+			{
+				found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
+			}
+		} else
+		{
+			found = (otherobj->GetProperty(m_touchedpropname) != NULL);
+		}
+	}
+	return found;
 }
 
 bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)
@@ -242,8 +294,13 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 /* ------------------------------------------------------------------------- */
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TouchSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_TouchSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -283,17 +340,21 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 };
 
 PyAttributeDef KX_TouchSensor::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("property",0,100,false,KX_TouchSensor,m_touchedpropname),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,100,false,KX_TouchSensor,m_touchedpropname),
 	KX_PYATTRIBUTE_BOOL_RW("useMaterial",KX_TouchSensor,m_bFindMaterial),
-	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
-	KX_PYATTRIBUTE_RO_FUNCTION("objectHit", KX_TouchSensor, pyattr_get_object_hit),
-	KX_PYATTRIBUTE_RO_FUNCTION("objectHitList", KX_TouchSensor, pyattr_get_object_hit_list),
+	KX_PYATTRIBUTE_BOOL_RW("usePulseCollision",KX_TouchSensor,m_bTouchPulse),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObject", KX_TouchSensor, pyattr_get_object_hit),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObjectList", KX_TouchSensor, pyattr_get_object_hit_list),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_TouchSensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_TouchSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int KX_TouchSensor::py_setattro(PyObject *attr, PyObject *value)
@@ -312,7 +373,7 @@ const char KX_TouchSensor::SetProperty_doc[] =
 "\tmaterials.";
 PyObject* KX_TouchSensor::PySetProperty(PyObject* value)
 {
-	ShowDeprecationWarning("setProperty()", "the propertyName property");
+	ShowDeprecationWarning("setProperty()", "the propName property");
 	char *nameArg= PyString_AsString(value);
 	if (nameArg==NULL) {
 		PyErr_SetString(PyExc_ValueError, "expected a ");
@@ -329,6 +390,8 @@ const char KX_TouchSensor::GetProperty_doc[] =
 "\tgetTouchMaterial() to find out whether this sensor\n"
 "\tlooks for properties or materials.";
 PyObject*  KX_TouchSensor::PyGetProperty() {
+	ShowDeprecationWarning("getProperty()", "the propName property");
+	
 	return PyString_FromString(m_touchedpropname);
 }
 
@@ -337,7 +400,7 @@ const char KX_TouchSensor::GetHitObject_doc[] =
 ;
 PyObject* KX_TouchSensor::PyGetHitObject()
 {
-	ShowDeprecationWarning("getHitObject()", "the objectHit property");
+	ShowDeprecationWarning("getHitObject()", "the hitObject property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */
 	if (m_hitObject)
@@ -353,7 +416,7 @@ const char KX_TouchSensor::GetHitObjectList_doc[] =
 "\tbut only those matching the property/material condition.\n";
 PyObject* KX_TouchSensor::PyGetHitObjectList()
 {
-	ShowDeprecationWarning("getHitObjectList()", "the objectHitList property");
+	ShowDeprecationWarning("getHitObjectList()", "the hitObjectList property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
 	return m_colliders->GetProxy();

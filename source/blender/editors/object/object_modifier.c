@@ -375,7 +375,8 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	MultiresModifierData *mmd = find_multires_modifier(ob);
+	PointerRNA ptr = CTX_data_pointer_get(C, "modifier");
+	MultiresModifierData *mmd = (RNA_struct_is_a(ptr.type, &RNA_Modifier))? ptr.data: NULL;
 
 	if(mmd) {
 		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);

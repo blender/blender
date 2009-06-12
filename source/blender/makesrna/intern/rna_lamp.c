@@ -651,7 +651,7 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	/* sky */
 	prop= RNA_def_property(srna, "sky", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "LampSkySettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Sky Settings", "Sky related settings for sun lamps.");
 
 	rna_def_lamp_sky_settings(brna);

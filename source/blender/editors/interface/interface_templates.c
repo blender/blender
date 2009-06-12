@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,6 +34,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
+#include "ED_previewrender.h"
 
 #include "RNA_access.h"
 
@@ -58,7 +60,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C)
 
 /******************* Header ID Template ************************/
 
-typedef struct TemplateHeaderID {
+typedef struct TemplateID {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -68,15 +70,16 @@ typedef struct TemplateHeaderID {
 	char newop[256];
 	char openop[256];
 	char unlinkop[256];
-} TemplateHeaderID;
+	
+	short idtype;
+} TemplateID;
 
-static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
+static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
-	TemplateHeaderID *template= (TemplateHeaderID*)arg_litem;
+	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *idtest, *id= idptr.data;
-	ListBase *lb= wich_libbase(CTX_data_main(C), ID_TXT);
-	int nr, event= GET_INT_FROM_POINTER(arg_event);
+	ID *id= idptr.data;
+	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	if(event == UI_ID_BROWSE && template->browse == 32767)
 		event= UI_ID_ADD_NEW;
@@ -84,34 +87,13 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 		event= UI_ID_OPEN;
 
 	switch(event) {
-		case UI_ID_BROWSE: {
-			if(template->browse== -2) {
-				/* XXX implement or find a replacement
-				 * activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_MESHBROWSE, &template->browse, do_global_buttons); */
-				return;
-			}
-			if(template->browse < 0)
-				return;
-
-			for(idtest=lb->first, nr=1; idtest; idtest=idtest->next, nr++) {
-				if(nr==template->browse) {
-					if(id == idtest)
-						return;
-
-					id= idtest;
-					RNA_id_pointer_create(id, &idptr);
-					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-					RNA_property_update(C, &template->ptr, template->prop);
-					/* XXX */
-
-					break;
-				}
-			}
+		case UI_ID_BROWSE:
+			printf("warning, id browse shouldnt come here\n");
 			break;
-		}
-#if 0
 		case UI_ID_DELETE:
-			id= NULL;
+			memset(&idptr, 0, sizeof(idptr));
+			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+			RNA_property_update(C, &template->ptr, template->prop);
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
@@ -120,7 +102,6 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			else return;
 			break;
-#endif
 		case UI_ID_PIN:
 			break;
 		case UI_ID_ADD_NEW:
@@ -144,22 +125,96 @@ static void template_header_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_header_ID(bContext *C, uiBlock *block, TemplateHeaderID *template)
+/* ID Search browse menu, assign  */
+static void id_search_call_cb(struct bContext *C, void *arg_litem, void *item)
+{
+	if(item) {
+		TemplateID *template= (TemplateID*)arg_litem;
+		PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
+
+		RNA_id_pointer_create(item, &idptr);
+		RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+		RNA_property_update(C, &template->ptr, template->prop);
+	}	
+}
+
+/* ID Search browse menu, do the search */
+static void id_search_cb(const struct bContext *C, void *arg_litem, char *str, uiSearchItems *items)
+{
+	TemplateID *template= (TemplateID*)arg_litem;
+	ListBase *lb= wich_libbase(CTX_data_main(C), template->idtype);
+	ID *id;
+	
+	for(id= lb->first; id; id= id->next) {
+		
+		if(BLI_strcasestr(id->name+2, str)) {
+			if(0==uiSearchItemAdd(items, id->name+2, id))
+				break;
+		}
+	}
+}
+
+/* ID Search browse menu, open */
+static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
+{
+	static char search[256];
+	static TemplateID template;
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	/* arg_litem is malloced, can be freed by parent button */
+	template= *((TemplateID*)arg_litem);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+/* ****************** */
+
+
+static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type)
 {
 	uiBut *but;
-	TemplateHeaderID *duptemplate;
 	PointerRNA idptr;
 	ListBase *lb;
-	int x= 0, y= 0;
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	lb= wich_libbase(CTX_data_main(C), ID_TXT);
+	lb= wich_libbase(CTX_data_main(C), template->idtype);
+
+	if(idptr.type)
+		type= idptr.type;
+	if(type)
+		uiDefIconBut(block, LABEL, 0, RNA_struct_ui_icon(type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	if(template->flag & UI_ID_BROWSE) {
+		/*
 		char *extrastr, *str;
 		
-		if((template->flag & UI_ID_ADD_NEW) && (template->flag && UI_ID_OPEN))
+		if((template->flag & UI_ID_ADD_NEW) && (template->flag & UI_ID_OPEN))
 			extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if(template->flag & UI_ID_ADD_NEW)
 			extrastr= "ADD NEW %x 32767";
@@ -171,51 +226,71 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateHeaderID *te
 		duptemplate= MEM_dupallocN(template);
 		IDnames_to_pupstring(&str, NULL, extrastr, lb, idptr.data, &duptemplate->browse);
 
-		but= uiDefButS(block, MENU, 0, str, x, y, UI_UNIT_X, UI_UNIT_Y, &duptemplate->browse, 0, 0, 0, 0, "Browse existing choices, or add new");
-		uiButSetNFunc(but, template_header_id_cb, duptemplate, SET_INT_IN_POINTER(UI_ID_BROWSE));
-		x+= UI_UNIT_X;
+		but= uiDefButS(block, MENU, 0, str, 0, 0, UI_UNIT_X, UI_UNIT_Y, &duptemplate->browse, 0, 0, 0, 0, "Browse existing choices, or add new");
+		uiButSetNFunc(but, template_id_cb, duptemplate, SET_INT_IN_POINTER(UI_ID_BROWSE));
 	
 		MEM_freeN(str);
+		*/
+		uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Browse ID data");
 	}
 
 	/* text button with name */
 	if(idptr.data) {
 		char name[64];
 
-		text_idbutton(idptr.data, name);
-		but= uiDefButR(block, TEX, 0, name, x, y, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
-		uiButSetNFunc(but, template_header_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
-		x += UI_UNIT_X*6;
-
-		/* delete button */
-		if(template->flag & UI_ID_DELETE) {
-			but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, x, y, UI_UNIT_X, UI_UNIT_Y, NULL);
-			x += UI_UNIT_X;
+		//text_idbutton(idptr.data, name);
+		name[0]= '\0';
+		but= uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
+		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
+	}
+	
+	if(template->flag & UI_ID_ADD_NEW) {
+		int w= idptr.data?UI_UNIT_X:UI_UNIT_X*6;
+		
+		if(template->newop[0]) {
+			but= uiDefIconTextButO(block, BUT, template->newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+		}
+		else {
+			but= uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 	}
+	
+	/* delete button */
+	if(idptr.data && (template->flag & UI_ID_DELETE)) {
+		if(template->unlinkop[0]) {
+			but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+		}
+		else {
+			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+		}
+	}
+	
 	uiBlockEndAlign(block);
 }
 
-void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
 {
-	TemplateHeaderID *template;
+	TemplateID *template;
 	uiBlock *block;
 	PropertyRNA *prop;
+	StructRNA *type;
 
 	if(!ptr->data)
 		return;
 
 	prop= RNA_struct_find_property(ptr, propname);
 
-	if(!prop) {
-		printf("uiTemplateHeaderID: property not found: %s\n", propname);
+	if(!prop || RNA_property_type(prop) != PROP_POINTER) {
+		printf("uiTemplateID: pointer property not found: %s\n", propname);
 		return;
 	}
 
-	template= MEM_callocN(sizeof(TemplateHeaderID), "TemplateHeaderID");
+	template= MEM_callocN(sizeof(TemplateID), "TemplateID");
 	template->ptr= *ptr;
 	template->prop= prop;
-	template->flag= UI_ID_BROWSE|UI_ID_RENAME;
+	template->flag= UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE;
 
 	if(newop) {
 		template->flag |= UI_ID_ADD_NEW;
@@ -225,13 +300,17 @@ void uiTemplateHeaderID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		template->flag |= UI_ID_OPEN;
 		BLI_strncpy(template->openop, openop, sizeof(template->openop));
 	}
-	if(unlinkop) {
-		template->flag |= UI_ID_DELETE;
+	if(unlinkop)
 		BLI_strncpy(template->unlinkop, unlinkop, sizeof(template->unlinkop));
-	}
 
-	block= uiLayoutFreeBlock(layout);
-	template_header_ID(C, block, template);
+	type= RNA_property_pointer_type(ptr, prop);
+	template->idtype = RNA_type_to_ID_code(type);
+
+	if(template->idtype) {
+		uiLayoutRow(layout, 1);
+		block= uiLayoutGetBlock(layout);
+		template_header_ID(C, block, template, type);
+	}
 
 	MEM_freeN(template);
 }
@@ -1277,14 +1356,24 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 
 #define B_MATPRV 1
 
+
+static void do_preview_buttons(bContext *C, void *arg, int event)
+{
+	switch(event) {
+		case B_MATPRV:
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, arg);
+			break;
+	}
+}
+
 void uiTemplatePreview(uiLayout *layout, ID *id)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
 	Material *ma;
 
-	if(!id || !ELEM3(GS(id->name), ID_MA, ID_TE, ID_WO)) {
-		printf("uiTemplatePreview: expected ID of type material, texture or world.\n");
+	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
+		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
@@ -1294,21 +1383,26 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 
 	col= uiLayoutColumn(row, 0);
 	uiLayoutSetKeepAspect(col, 1);
-	uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw);
+	
+	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
+	
+	if(id) {
+		if(GS(id->name) == ID_MA) {
+			ma= (Material*)id;
 
-	if(GS(id->name) == ID_MA) {
-		ma= (Material*)id;
+			uiLayoutColumn(row, 1);
 
-		uiLayoutColumn(row, 1);
-
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+		}
 	}
-
 }
 
 /********************** ColorRamp Template **************************/

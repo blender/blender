@@ -107,6 +107,7 @@ typedef struct bObjectActuator {
 	float loc[3], rot[3];
 	float dloc[3], drot[3];
 	float linearvelocity[3], angularvelocity[3];
+	struct Object *reference;
 } bObjectActuator;
 
 typedef struct bIpoActuator {
@@ -214,7 +215,8 @@ typedef struct bTwoDFilterActuator{
 }bTwoDFilterActuator;
 
 typedef struct bParentActuator {
-	char pad[4];
+	char pad[2];
+	short flag;
 	int type;
 	struct Object *ob;
 } bParentActuator;
@@ -482,6 +484,11 @@ typedef struct FreeCamera {
 /* parentactuator->type */
 #define ACT_PARENT_SET      0
 #define ACT_PARENT_REMOVE   1
+
+/* parentactuator->flag */
+#define ACT_PARENT_COMPOUND	1
+#define ACT_PARENT_GHOST	2
+
 #endif
 
 

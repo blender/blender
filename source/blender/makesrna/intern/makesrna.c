@@ -1621,7 +1621,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 											}
 			case PROP_POINTER: {
 				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set));
+				fprintf(f, "\t%s, %s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set), rna_function_string(pprop->typef));
 				if(pprop->type) fprintf(f, "&RNA_%s\n", (char*)pprop->type);
 				else fprintf(f, "NULL\n");
 				break;

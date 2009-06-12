@@ -28,6 +28,7 @@
  * Camera in the gameengine. Cameras are also used for views.
  */
  
+#include "GL/glew.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
@@ -41,15 +42,17 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
 					 bool frustum_culling,
+					 bool delete_node,
 					 PyTypeObject *T)
 					:
 					KX_GameObject(sgReplicationInfo,callbacks,T),
 					m_camdata(camdata),
 					m_dirty(true),
 					m_normalized(false),
-					m_frustum_culling(frustum_culling && camdata.m_perspective),
+					m_frustum_culling(frustum_culling),
 					m_set_projection_matrix(false),
-					m_set_frustum_center(false)
+					m_set_frustum_center(false),
+					m_delete_node(delete_node)
 {
 	// setting a name would be nice...
 	m_name = "cam";
@@ -63,6 +66,12 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 
 KX_Camera::~KX_Camera()
 {
+	if (m_delete_node && m_pSGNode)
+	{
+		// for shadow camera, avoids memleak
+		delete m_pSGNode;
+		m_pSGNode = NULL;
+	}
 }	
 
 
@@ -71,15 +80,16 @@ CValue*	KX_Camera::GetReplica()
 	KX_Camera* replica = new KX_Camera(*this);
 	
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
-	ProcessReplica(replica);
+	replica->ProcessReplica();
 	
 	return replica;
 }
-	
-void KX_Camera::ProcessReplica(KX_Camera* replica)
+
+void KX_Camera::ProcessReplica()
 {
-	KX_GameObject::ProcessReplica(replica);
+	KX_GameObject::ProcessReplica();
+	// replicated camera are always registered in the scene
+	m_delete_node = false;
 }
 
 MT_Transform KX_Camera::GetWorldToCamera() const
@@ -190,6 +200,11 @@ float KX_Camera::GetLens() const
 	return m_camdata.m_lens;
 }
 
+float KX_Camera::GetScale() const
+{
+	return m_camdata.m_scale;
+}
+
 
 
 float KX_Camera::GetCameraNear() const
@@ -270,80 +285,83 @@ void KX_Camera::ExtractFrustumSphere()
 	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
 	clip_camcs_matrix.invert();
 
-    // detect which of the corner of the far clipping plane is the farthest to the origin
-	MT_Vector4 nfar;    // far point in device normalized coordinate
-    MT_Point3 farpoint; // most extreme far point in camera coordinate
-    MT_Point3 nearpoint;// most extreme near point in camera coordinate
-    MT_Point3 farcenter(0.,0.,0.);// center of far cliping plane in camera coordinate
-    MT_Scalar F=1.0, N; // square distance of far and near point to origin
-    MT_Scalar f, n;     // distance of far and near point to z axis. f is always > 0 but n can be < 0
-    MT_Scalar e, s;     // far and near clipping distance (<0)
-    MT_Scalar c;        // slope of center line = distance of far clipping center to z axis / far clipping distance
-    MT_Scalar z;        // projection of sphere center on z axis (<0)
-    // tmp value
-    MT_Vector4 npoint(1., 1., 1., 1.);
-    MT_Vector4 hpoint;
-    MT_Point3 point;
-    MT_Scalar len;
-    for (int i=0; i<4; i++)
-    {
-    	hpoint = clip_camcs_matrix*npoint;
-        point.setValue(hpoint[0]/hpoint[3], hpoint[1]/hpoint[3], hpoint[2]/hpoint[3]);
-        len = point.dot(point);
-        if (len > F)
-        {
-            nfar = npoint;
-            farpoint = point;
-            F = len;
-        }
-        // rotate by 90 degree along the z axis to walk through the 4 extreme points of the far clipping plane
-        len = npoint[0];
-        npoint[0] = -npoint[1];
-        npoint[1] = len;
-        farcenter += point;
-    }
-    // the far center is the average of the far clipping points
-    farcenter *= 0.25;
-    // the extreme near point is the opposite point on the near clipping plane
-    nfar.setValue(-nfar[0], -nfar[1], -1., 1.);
-   	nfar = clip_camcs_matrix*nfar;
-    nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
-    N = nearpoint.dot(nearpoint);
-    e = farpoint[2];
-    s = nearpoint[2];
-    // projection on XY plane for distance to axis computation
-    MT_Point2 farxy(farpoint[0], farpoint[1]);
-    // f is forced positive by construction
-    f = farxy.length();
-    // get corresponding point on the near plane
-    farxy *= s/e;
-    // this formula preserve the sign of n
-    n = f*s/e - MT_Point2(nearpoint[0]-farxy[0], nearpoint[1]-farxy[1]).length();
-    c = MT_Point2(farcenter[0], farcenter[1]).length()/e;
-    // the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case
-    z = (F-N)/(2.0*(e-s+c*(f-n)));
-	m_frustum_center = MT_Point3(farcenter[0]*z/e, farcenter[1]*z/e, z);
-	m_frustum_radius = m_frustum_center.distance(farpoint);
-
-#if 0
-	// The most extreme points on the near and far plane. (normalized device coords)
-	MT_Vector4 hnear(1., 1., 0., 1.), hfar(1., 1., 1., 1.);
-	
-	// Transform to hom camera local space
-	hnear = clip_camcs_matrix*hnear;
-	hfar = clip_camcs_matrix*hfar;
-	
-	// Tranform to 3d camera local space.
-	MT_Point3 nearpoint(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
-	MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
-	
-	// Compute center
-    // don't use camera data in case the user specifies the matrix directly
-	m_frustum_center = MT_Point3(0., 0.,
-		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(nearpoint[2]-farpoint[2] /*m_camdata.m_clipend - m_camdata.m_clipstart*/)));
-	m_frustum_radius = m_frustum_center.distance(farpoint);
-#endif
-
+	if (m_projection_matrix[3][3] == MT_Scalar(0.0)) 
+	{
+		// frustrum projection
+		// detect which of the corner of the far clipping plane is the farthest to the origin
+		MT_Vector4 nfar;    // far point in device normalized coordinate
+		MT_Point3 farpoint; // most extreme far point in camera coordinate
+		MT_Point3 nearpoint;// most extreme near point in camera coordinate
+		MT_Point3 farcenter(0.,0.,0.);// center of far cliping plane in camera coordinate
+		MT_Scalar F=-1.0, N; // square distance of far and near point to origin
+		MT_Scalar f, n;     // distance of far and near point to z axis. f is always > 0 but n can be < 0
+		MT_Scalar e, s;     // far and near clipping distance (<0)
+		MT_Scalar c;        // slope of center line = distance of far clipping center to z axis / far clipping distance
+		MT_Scalar z;        // projection of sphere center on z axis (<0)
+		// tmp value
+		MT_Vector4 npoint(1., 1., 1., 1.);
+		MT_Vector4 hpoint;
+		MT_Point3 point;
+		MT_Scalar len;
+		for (int i=0; i<4; i++)
+		{
+    		hpoint = clip_camcs_matrix*npoint;
+			point.setValue(hpoint[0]/hpoint[3], hpoint[1]/hpoint[3], hpoint[2]/hpoint[3]);
+			len = point.dot(point);
+			if (len > F)
+			{
+				nfar = npoint;
+				farpoint = point;
+				F = len;
+			}
+			// rotate by 90 degree along the z axis to walk through the 4 extreme points of the far clipping plane
+			len = npoint[0];
+			npoint[0] = -npoint[1];
+			npoint[1] = len;
+			farcenter += point;
+		}
+		// the far center is the average of the far clipping points
+		farcenter *= 0.25;
+		// the extreme near point is the opposite point on the near clipping plane
+		nfar.setValue(-nfar[0], -nfar[1], -1., 1.);
+   		nfar = clip_camcs_matrix*nfar;
+		nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
+		// this is a frustrum projection
+		N = nearpoint.dot(nearpoint);
+		e = farpoint[2];
+		s = nearpoint[2];
+		// projection on XY plane for distance to axis computation
+		MT_Point2 farxy(farpoint[0], farpoint[1]);
+		// f is forced positive by construction
+		f = farxy.length();
+		// get corresponding point on the near plane
+		farxy *= s/e;
+		// this formula preserve the sign of n
+		n = f*s/e - MT_Point2(nearpoint[0]-farxy[0], nearpoint[1]-farxy[1]).length();
+		c = MT_Point2(farcenter[0], farcenter[1]).length()/e;
+		// the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case
+		z = (F-N)/(2.0*(e-s+c*(f-n)));
+		m_frustum_center = MT_Point3(farcenter[0]*z/e, farcenter[1]*z/e, z);
+		m_frustum_radius = m_frustum_center.distance(farpoint);
+	} 
+	else
+	{
+		// orthographic projection
+		// The most extreme points on the near and far plane. (normalized device coords)
+		MT_Vector4 hnear(1., 1., 1., 1.), hfar(-1., -1., -1., 1.);
+		
+		// Transform to hom camera local space
+		hnear = clip_camcs_matrix*hnear;
+		hfar = clip_camcs_matrix*hfar;
+		
+		// Tranform to 3d camera local space.
+		MT_Point3 nearpoint(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
+		MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
+		
+		// just use mediant point
+		m_frustum_center = (farpoint + nearpoint)*0.5;
+		m_frustum_radius = m_frustum_center.distance(farpoint);
+	}
 	// Transform to world space.
 	m_frustum_center = GetCameraToWorld()(m_frustum_center);
 	m_frustum_radius /= fabs(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
@@ -474,11 +492,16 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_Camera, pointInsideFrustum),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getCameraToWorld),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, getWorldToCamera),
-	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
 	KX_PYMETHODTABLE_NOARGS(KX_Camera, setOnTop),
+	KX_PYMETHODTABLE_O(KX_Camera, getScreenPosition),
+	KX_PYMETHODTABLE(KX_Camera, getScreenVect),
+	KX_PYMETHODTABLE(KX_Camera, getScreenRay),
+
+	// DEPRECATED
+	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
+	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
+	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -492,7 +515,9 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("near",	KX_Camera,	pyattr_get_near, pyattr_set_near),
 	KX_PYATTRIBUTE_RW_FUNCTION("far",	KX_Camera,	pyattr_get_far,  pyattr_set_far),
 	
-	KX_PYATTRIBUTE_RO_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix),
+	KX_PYATTRIBUTE_RW_FUNCTION("useViewport",	KX_Camera,	pyattr_get_use_viewport,  pyattr_set_use_viewport),
+	
+	KX_PYATTRIBUTE_RW_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix, pyattr_set_projection_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("modelview_matrix",	KX_Camera,	pyattr_get_modelview_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("camera_to_world",	KX_Camera,	pyattr_get_camera_to_world),
 	KX_PYATTRIBUTE_RO_FUNCTION("world_to_camera",	KX_Camera,	pyattr_get_world_to_camera),
@@ -506,8 +531,13 @@ PyAttributeDef KX_Camera::Attributes[] = {
 };
 
 PyTypeObject KX_Camera::Type = {
-	PyObject_HEAD_INIT(NULL)
-		0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 		"KX_Camera",
 		sizeof(PyObjectPlus_Proxy),
 		0,
@@ -542,6 +572,10 @@ PyParentObject KX_Camera::Parents[] = {
 PyObject* KX_Camera::py_getattro(PyObject *attr)
 {
 	py_getattro_up(KX_GameObject);
+}
+
+PyObject* KX_Camera::py_getattro_dict() {
+	py_getattro_dict_up(KX_GameObject);
 }
 
 int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
@@ -678,6 +712,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getProjectionMatrix,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
+	ShowDeprecationWarning("getProjectionMatrix()", "the projection_matrix property");
 	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 }
 
@@ -723,6 +758,8 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
 "\tcam = co.getOwner()\n"
 "\tcam.setProjectionMatrix(Perspective(-1.0, 1.0, -1.0, 1.0, 0.1, 1))\n")
 {
+	ShowDeprecationWarning("setProjectionMatrix(mat)", "the projection_matrix property");
+	
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat))
 	{
@@ -739,8 +776,9 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
 "Sets this camera's viewport status\n"
 )
 {
-	int viewport = PyObject_IsTrue(value);
+	ShowDeprecationWarning("enableViewport(bool)", "the useViewport property");
 	
+	int viewport = PyObject_IsTrue(value);
 	if (viewport == -1) {
 		PyErr_SetString(PyExc_ValueError, "camera.enableViewport(bool): KX_Camera, expected True/False or 0/1");
 		return NULL;
@@ -770,10 +808,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, setOnTop,
 "setOnTop()\n"
 "Sets this camera's viewport on top\n")
 {
-	class KX_Scene* scene;
-	
-	scene = KX_GetActiveScene();
-	MT_assert(scene);
+	class KX_Scene* scene = KX_GetActiveScene();
 	scene->SetCameraOnTop(this);
 	Py_RETURN_NONE;
 }
@@ -790,11 +825,11 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.perspective = bool: KX_Camera, expected True/False or 0/1");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_perspective= param;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -809,12 +844,12 @@ int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.lens = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_lens= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -829,12 +864,12 @@ int KX_Camera::pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.near = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_clipstart= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -849,13 +884,33 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.far = float: KX_Camera, expected a float greater then zero");
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	self->m_camdata.m_clipend= param;
 	self->m_set_projection_matrix = false;
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
+
+
+PyObject* KX_Camera::pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	return PyBool_FromLong(self->GetViewport());
+}
+
+int KX_Camera::pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	int param = PyObject_IsTrue( value );
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "camera.useViewport = bool: KX_Camera, expected True or False");
+		return PY_SET_ATTR_FAIL;
+	}
+	self->EnableViewport((bool)param);
+	return PY_SET_ATTR_SUCCESS;
+}
+
 
 PyObject* KX_Camera::pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -868,10 +923,10 @@ int KX_Camera::pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_D
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat)) 
-		return -1;
+		return PY_SET_ATTR_FAIL;
 	
 	self->SetProjectionMatrix(mat);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyObject* KX_Camera::pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -899,4 +954,198 @@ PyObject* KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *
 {	return PyInt_FromLong(OUTSIDE); }
 PyObject* KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {	return PyInt_FromLong(INTERSECT); }
+
+
+bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix)
+{
+	if (value==NULL) {
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
+		*object = NULL;
+		return false;
+	}
+		
+	if (value==Py_None) {
+		*object = NULL;
+		
+		if (py_none_ok) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_Camera or a KX_Camera name, None is invalid", error_prefix);
+			return false;
+		}
+	}
+	
+	if (PyString_Check(value)) {
+		STR_String value_str = PyString_AsString(value);
+		*object = KX_GetActiveScene()->FindCamera(value_str);
+		
+		if (*object) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, PyString_AsString(value));
+			return false;
+		}
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_Camera::Type)) {
+		*object = static_cast<KX_Camera*>BGE_PROXY_REF(value);
+		
+		/* sets the error */
+		if (*object==NULL) {
+			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	*object = NULL;
+	
+	if (py_none_ok) {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera, a string or None", error_prefix);
+	} else {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_Camera or a string", error_prefix);
+	}
+	
+	return false;
+}
+
+KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
+"getScreenPosition()\n"
+)
+
+{
+	MT_Vector3 vect;
+	KX_GameObject *obj = NULL;
+
+	if (!PyVecTo(value, vect))
+	{
+		if(ConvertPythonToGameObject(value, &obj, true, ""))
+		{
+			PyErr_Clear();
+			vect = MT_Vector3(obj->NodeGetWorldPosition());
+		}
+		else
+		{
+			PyErr_SetString(PyExc_TypeError, "Error in getScreenPosition. Expected a Vector3 or a KX_GameObject or a string for a name of a KX_GameObject");
+			return NULL;
+		}
+	}
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	vect[0] =  (win[0] - viewport[0]) / viewport[2];
+	vect[1] =  (win[1] - viewport[1]) / viewport[3];
+
+	vect[1] = 1.0 - vect[1]; //to follow Blender window coordinate system (Top-Down)
+
+	PyObject* ret = PyTuple_New(2);
+	if(ret){
+		PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(vect[0]));
+		PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(vect[1]));
+		return ret;
+	}
+
+	return NULL;
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
+"getScreenVect()\n"
+)
+{
+	double x,y;
+	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
+		return NULL;
+
+	y = 1.0 - y; //to follow Blender window coordinate system (Top-Down)
+
+	MT_Vector3 vect;
+	MT_Point3 campos, screenpos;
+
+	GLint viewport[4];
+	GLdouble win[3];
+	GLdouble modelmatrix[16];
+	GLdouble projmatrix[16];
+
+	MT_Matrix4x4 m_modelmatrix = this->GetModelviewMatrix();
+	MT_Matrix4x4 m_projmatrix = this->GetProjectionMatrix();
+
+	m_modelmatrix.getValue(modelmatrix);
+	m_projmatrix.getValue(projmatrix);
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	vect[0] = x * viewport[2];
+	vect[1] = y * viewport[3];
+
+	vect[0] += viewport[0];
+	vect[1] += viewport[1];
+
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vect[2]);
+	gluUnProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
+
+	campos = this->GetCameraLocation();
+	screenpos = MT_Point3(win[0], win[1], win[2]);
+	vect = campos-screenpos;
+
+	vect.normalize();
+	return PyObjectFrom(vect);
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
+"getScreenRay()\n"
+)
+{
+	MT_Vector3 vect;
+	double x,y,dist;
+	char *propName = NULL;
+
+	if (!PyArg_ParseTuple(args,"ddd|s:getScreenRay",&x,&y,&dist,&propName))
+		return NULL;
+
+	PyObject* argValue = PyTuple_New(2);
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
+	}
+
+	if(!PyVecTo(PygetScreenVect(argValue), vect))
+	{
+		Py_DECREF(argValue);
+		PyErr_SetString(PyExc_TypeError,
+			"Error in getScreenRay. Invalid 2D coordinate. Expected a normalized 2D screen coordinate, a distance and an optional property argument");
+		return NULL;
+	}
+	Py_DECREF(argValue);
+
+	dist = -dist;
+	vect += this->GetCameraLocation();
+
+	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
+	if (argValue) {
+		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
+		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
+		if (propName)
+			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+
+		PyObject* ret= this->PyrayCastTo(argValue,NULL);
+		Py_DECREF(argValue);
+		return ret;
+	}
+
+	return NULL;
+}
 

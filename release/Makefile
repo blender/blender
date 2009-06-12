@@ -180,7 +180,7 @@ endif
       else
 	@strip -x $(DISTDIR)/blender$(EXT0)
 	@if [ -f $(DISTDIR)/blenderplayer$(EXTO) ]; then \
-           strip -x $(DISTDIR)/blender$(EXT0) ; \
+           strip -x $(DISTDIR)/blenderplayer$(EXT0) ; \
 	fi
       endif
     endif

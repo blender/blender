@@ -165,7 +165,7 @@ int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src
 		for(i = 0; i < src_me->totvert; ++i)
 			VecCopyf(mvert[i].co, src_me->mvert[i].co);
 		mrdm->needsFree = 1;
-		*MultiresDM_get_flags(mrdm) |= MULTIRES_DM_UPDATE_ALWAYS;
+		MultiresDM_mark_as_modified(mrdm);
 		mrdm->release(mrdm);
 		dst->derivedFinal = NULL;
 
@@ -397,7 +397,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 	final->needsFree = 1;
 	final->release(final);
 	mrdm->needsFree = 1;
-	*MultiresDM_get_flags(mrdm) |= MULTIRES_DM_UPDATE_ALWAYS;
+	MultiresDM_mark_as_modified(mrdm);
 	mrdm->release(mrdm);
 }
 
@@ -475,7 +475,6 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		
 		final = multires_subdisp_pre(mrdm, distance, simple);
 		mrdm->needsFree = 1;
-		*MultiresDM_get_flags(mrdm) |= MULTIRES_DM_UPDATE_BLOCK;
 		mrdm->release(mrdm);
 	}
 
@@ -1168,8 +1167,6 @@ static void multiresModifier_update(DerivedMesh *dm)
 	Mesh *me;
 	MDisps *mdisps;
 
-	if(!(G.f & G_SCULPTMODE) && !(*MultiresDM_get_flags(dm) & MULTIRES_DM_UPDATE_ALWAYS)) return;
-
 	me = MultiresDM_get_mesh(dm);
 	mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
@@ -1191,7 +1188,6 @@ static void multiresModifier_update(DerivedMesh *dm)
 			mmd.totlvl = totlvl;
 			mmd.lvl = lvl;
 			subco_dm = multires_dm_create_from_derived(&mmd, orig, me, 0, 0);
-			*MultiresDM_get_flags(subco_dm) |= MULTIRES_DM_UPDATE_BLOCK;
 			cur_lvl_orig_verts = CDDM_get_verts(subco_dm);
 
 			/* Subtract the original vertex cos from the new vertex cos */
@@ -1209,6 +1205,13 @@ static void multiresModifier_update(DerivedMesh *dm)
 		}
 		else
 			multiresModifier_disp_run(dm, MultiresDM_get_subco(dm), 1);
+	}
+}
+
+void multires_mark_as_modified(struct Object *ob)
+{
+	if(ob && ob->derivedFinal) {
+		MultiresDM_mark_as_modified(ob->derivedFinal);
 	}
 }
 

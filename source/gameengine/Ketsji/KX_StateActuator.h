@@ -33,6 +33,13 @@
 
 #include "SCA_IActuator.h"
 
+
+/*
+ * Use of SG_DList : element of actuator being deactivated
+ *                   Head: SCA_LogicManager::m_removedActuators
+ * Use of SG_QList : element of global activated state actuator list 
+ *                   Head: KX_StateActuator::m_stateActuatorHead
+ */
 class KX_StateActuator : public SCA_IActuator
 {
 	Py_Header;
@@ -46,6 +53,11 @@ class KX_StateActuator : public SCA_IActuator
 		OP_NEG,
 		OP_COUNT
 	};
+	// SG_Dlist: element of objects with active actuators, always put in front of the list
+	//           Head: SCA_LogicManager::m_activeActuators
+	// SG_QList: Head of active state actuators list globally
+	//           Elements: KX_StateActuator
+	static SG_QList	m_stateActuatorHead;
 	int				m_operation;
 	int				m_mask;
 
@@ -71,11 +83,15 @@ class KX_StateActuator : public SCA_IActuator
 	virtual bool
 		Update();
 
+	virtual void Deactivate();
+	virtual void Activate(SG_DList& head);
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject* value);
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC_VARARGS(KX_StateActuator,SetOperation);

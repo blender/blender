@@ -44,6 +44,7 @@ private:
 public:
 	// -----------------------------------
 	BL_Material();
+	void Initialize();
 
 	int IdMode;
 	unsigned int ras_mode;
@@ -54,6 +55,7 @@ public:
 	int tile,tilexrep[MAXTEX],tileyrep[MAXTEX];
 	STR_String matname;
 	STR_String mtexname[MAXTEX];
+	int materialindex;
 
 	float matcolor[4];
 	float speccolor[3];
@@ -68,8 +70,6 @@ public:
 	int	 mode;
 	int num_enabled;
 	
-	int material_index;
-
 	BL_Mapping	mapping[MAXTEX];
 	STR_String	imageId[MAXTEX];
 

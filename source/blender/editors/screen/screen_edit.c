@@ -1283,6 +1283,9 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		
+		/* makes button hilites work */
+		WM_event_add_mousemove(C);
 	}
 }
 

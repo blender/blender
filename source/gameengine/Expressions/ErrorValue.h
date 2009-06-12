@@ -25,7 +25,7 @@ public:
 	virtual const STR_String & GetText();
 	virtual double GetNumber();
 	CErrorValue();
-	CErrorValue(STR_String errmsg);
+	CErrorValue(const char *errmsg);
 	virtual ~CErrorValue();
 	virtual CValue* Calc(VALUE_OPERATOR op, CValue* val);
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);

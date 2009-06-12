@@ -1289,12 +1289,16 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 	
 	/* get string to print */
 	if (unit == V2D_UNIT_SECONDS) {
-		/* SMPTE timecode style:
+		/* Timecode:
 		 *	- In general, minutes and seconds should be shown, as most clips will be
 		 *	  within this length. Hours will only be included if relevant.
 		 *	- Only show frames when zoomed in enough for them to be relevant 
-		 *	  (using separator convention of ';' for frames, ala QuickTime).
+		 *	  (using separator of '!' for frames).
 		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
+		 * TODO: factor into reusable function.
+		 * Meanwhile keep in sync:
+		 *	  source/blender/editors/animation/anim_draw.c
+		 *	  source/blender/editors/interface/view2d.c
 		 */
 		int hours=0, minutes=0, seconds=0, frames=0;
 		char neg[2]= "";
@@ -1335,9 +1339,9 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 		/* print timecode to temp string buffer */
 		if (power <= 0) {
 			/* include "frames" in display */
-			if (hours) sprintf(str, "%s%02d:%02d:%02d;%02d", neg, hours, minutes, seconds, frames);
-			else if (minutes) sprintf(str, "%s%02d:%02d;%02d", neg, minutes, seconds, frames);
-			else sprintf(str, "%s%d;%02d", neg, seconds, frames);
+			if (hours) sprintf(str, "%s%02d:%02d:%02d!%02d", neg, hours, minutes, seconds, frames);
+			else if (minutes) sprintf(str, "%s%02d:%02d!%02d", neg, minutes, seconds, frames);
+			else sprintf(str, "%s%d!%02d", neg, seconds, frames);
 		}
 		else {
 			/* don't include 'frames' in display */

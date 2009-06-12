@@ -741,12 +741,21 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	static int recursive= 0;
 	float zoom;
 	float zoomx, zoomy;
+	int render_size = 0;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	rectx= (scene->r.size*scene->r.xsch)/100;
-	recty= (scene->r.size*scene->r.ysch)/100;
+	render_size = sseq->render_size;
+	if (render_size == 0) {
+		render_size = scene->r.size;
+	}
+	if (render_size < 0) {
+		return;
+	}
+
+	rectx= (render_size*scene->r.xsch)/100;
+	recty= (render_size*scene->r.ysch)/100;
 
 	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
 	   this shouldn't belong in a window drawing....
@@ -758,13 +767,13 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	else {
 		recursive= 1;
 		if (special_seq_update) {
-			ibuf= give_ibuf_seq_direct(scene, rectx, recty, (scene->r.cfra), special_seq_update);
+			ibuf= give_ibuf_seq_direct(scene, rectx, recty, (scene->r.cfra), render_size, special_seq_update);
 		} 
 		else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, (scene->r.cfra), sseq->chanshown);
+			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, render_size);
 		} 
 		else {
-			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, (scene->r.cfra), sseq->chanshown);
+			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, render_size);
 		}
 		recursive= 0;
 		
@@ -781,8 +790,8 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 
 	if(ibuf->rect==NULL && ibuf->rect_float == NULL) 
 		return;
-
-	switch(sseq->mainb != SEQ_DRAW_SEQUENCE) {
+	
+	switch(sseq->mainb) {
 	case SEQ_DRAW_IMG_IMBUF:
 		if (sseq->zebra != 0) {
 			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
@@ -815,6 +824,7 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	
 	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		zoom /= render_size / 100.0;
 		zoomx = zoom * ((float)scene->r.xasp / (float)scene->r.yasp);
 		zoomy = zoom;
 	} else {
@@ -949,13 +959,21 @@ void seq_viewmove(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
 	int rectx, recty;
+	int render_size = sseq->render_size;
+	if (render_size == 0) {
+		render_size = scene->r.size;
+	}
+	if (render_size < 0) {
+		return;
+	}
 
-	rectx= (scene->r.size*scene->r.xsch)/100;
-	recty= (scene->r.size*scene->r.ysch)/100;
+	rectx= (render_size*scene->r.xsch)/100;
+	recty= (render_size*scene->r.ysch)/100;
 
 	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		give_ibuf_prefetch_request(
-			rectx, recty, (scene->r.cfra), sseq->chanshown);
+			rectx, recty, (scene->r.cfra), sseq->chanshown,
+			render_size);
 	}
 }
 

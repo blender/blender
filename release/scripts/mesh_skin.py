@@ -52,7 +52,7 @@ A pop-up will provide further options, if the results of a method are not adequa
 import Blender
 import bpy
 from Blender import Window
-from Blender.Mathutils import MidpointVecs, Vector, CrossVecs
+from Blender.Mathutils import MidpointVecs, Vector
 from Blender.Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
 import BPyMessages
 
@@ -119,7 +119,7 @@ class edgeLoop(object):
 		# GENERATE AN AVERAGE NORMAL FOR THE WHOLE LOOP.
 		self.normal = Vector()
 		for e in self.edges:
-			n = CrossVecs(self.centre-e.co1, self.centre-e.co2)
+			n = (self.centre-e.co1).cross(self.centre-e.co2)
 			# Do we realy need tot normalize?
 			n.normalize()
 			self.normal += n
@@ -149,7 +149,7 @@ class edgeLoop(object):
 			
 			a = n1-n2
 			b = n1-n3
-			normal1 = CrossVecs(a,b)
+			normal1 = a.cross(b)
 			normal1.normalize()
 			
 			n1 = e.co2
@@ -159,7 +159,7 @@ class edgeLoop(object):
 			a = n1-n2
 			b = n1-n3
 			
-			normal2 = CrossVecs(a,b)
+			normal2 = a.cross(b)
 			normal2.normalize()
 			
 			# Reuse normal1 var

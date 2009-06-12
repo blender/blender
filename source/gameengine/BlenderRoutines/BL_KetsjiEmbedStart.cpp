@@ -129,6 +129,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
 	setGamePythonPath(G.sce);
 
 	// Acquire Python's GIL (global interpreter lock)
@@ -153,7 +154,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
-
+		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
@@ -161,12 +162,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRasterizer* rasterizer = NULL;
 		
 		if(displaylists) {
-			if (GLEW_VERSION_1_1)
+			if (GLEW_VERSION_1_1 && !novertexarrays)
 				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (GLEW_VERSION_1_1)
+		else if (GLEW_VERSION_1_1 && !novertexarrays)
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
@@ -292,6 +293,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				if(blenderdata) {
 					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+					setGamePythonPath(G.sce);
 				}
 			}
 			// else forget it, we can't find it
@@ -321,12 +323,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		{
 			int startFrame = blscene->r.cfra;
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+			
+			// Quad buffered needs a special window.
+			if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		}
-
-
-		// Quad buffered needs a special window.
-		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
@@ -380,6 +381,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
 			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();
@@ -387,7 +389,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 			//initialize Dome Settings
 			if(blscene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-				ketsjiengine->InitDome(blscene->r.domesize, blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometext);
+				ketsjiengine->InitDome(blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometilt, blscene->r.dometext);
 
 			if (sceneconverter)
 			{
@@ -684,6 +686,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			initGeometry();
 			initBGL();
 #ifdef WITH_FFMPEG
 			initVideoTexture();

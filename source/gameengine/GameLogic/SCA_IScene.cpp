@@ -50,7 +50,7 @@ SCA_IScene::SCA_IScene()
 void SCA_IScene::RemoveAllDebugProperties()
 {
 	for (std::vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
-		!(it==m_debugList.end());it++)
+		!(it==m_debugList.end());++it)
 	{
 		delete (*it);
 	}

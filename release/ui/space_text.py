@@ -38,7 +38,7 @@ class TEXT_HT_header(bpy.types.Header):
 		row.itemR(st, "syntax_highlight", text="", icon=ICON_SYNTAX_OFF)
 		# row.itemR(st, "do_python_plugins", text="", icon=ICON_SCRIPTPLUGINS)
 
-		layout.template_header_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
+		layout.template_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
 
 		if text:
 			row = layout.row()

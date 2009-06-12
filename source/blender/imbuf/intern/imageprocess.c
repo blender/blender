@@ -294,10 +294,79 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		b= v-floor(v);
 		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
 		
-		outI[0]= ma_mb*row1I[0] + a_mb*row3I[0] + ma_b*row2I[0]+ a_b*row4I[0];
-		outI[1]= ma_mb*row1I[1] + a_mb*row3I[1] + ma_b*row2I[1]+ a_b*row4I[1];
-		outI[2]= ma_mb*row1I[2] + a_mb*row3I[2] + ma_b*row2I[2]+ a_b*row4I[2];
-		outI[3]= ma_mb*row1I[3] + a_mb*row3I[3] + ma_b*row2I[3]+ a_b*row4I[3];
+		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
+		 * tested with white images and this should not wrap back to zero */
+		outI[0]= (ma_mb*row1I[0] + a_mb*row3I[0] + ma_b*row2I[0]+ a_b*row4I[0]) + 0.5f;
+		outI[1]= (ma_mb*row1I[1] + a_mb*row3I[1] + ma_b*row2I[1]+ a_b*row4I[1]) + 0.5f;
+		outI[2]= (ma_mb*row1I[2] + a_mb*row3I[2] + ma_b*row2I[2]+ a_b*row4I[2]) + 0.5f;
+		outI[3]= (ma_mb*row1I[3] + a_mb*row3I[3] + ma_b*row2I[3]+ a_b*row4I[3]) + 0.5f;
+	}
+}
+
+/* function assumes out to be zero'ed, only does RGBA */
+/* BILINEAR INTERPOLATION */
+
+/* Note about wrapping, the u/v still needs to be within the image bounds,
+ * just the interpolation is wrapped.
+ * This the same as bilinear_interpolation_color except it wraps rather then using empty and emptyI */
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+{
+	float *row1, *row2, *row3, *row4, a, b;
+	unsigned char *row1I, *row2I, *row3I, *row4I;
+	float a_b, ma_b, a_mb, ma_mb;
+	int y1, y2, x1, x2;
+	
+	
+	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+
+	x1= (int)floor(u);
+	x2= (int)ceil(u);
+	y1= (int)floor(v);
+	y2= (int)ceil(v);
+
+	// sample area entirely outside image? 
+	if (x2<0 || x1>in->x-1 || y2<0 || y1>in->y-1) return;
+	
+	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
+	if(x1<0)x1= in->x+x1;
+	if(y1<0)y1= in->y+y1;
+	
+	if(x2>=in->x)x2= x2-in->x;
+	if(y2>=in->y)y2= y2-in->y;
+
+	if (outF) {
+		// sample including outside of edges of image 
+		row1= (float *)in->rect_float + in->x * y1 * 4 + 4*x1;
+		row2= (float *)in->rect_float + in->x * y2 * 4 + 4*x1;
+		row3= (float *)in->rect_float + in->x * y1 * 4 + 4*x2;
+		row4= (float *)in->rect_float + in->x * y2 * 4 + 4*x2;
+		
+		a= u-floor(u);
+		b= v-floor(v);
+		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
+		
+		outF[0]= ma_mb*row1[0] + a_mb*row3[0] + ma_b*row2[0]+ a_b*row4[0];
+		outF[1]= ma_mb*row1[1] + a_mb*row3[1] + ma_b*row2[1]+ a_b*row4[1];
+		outF[2]= ma_mb*row1[2] + a_mb*row3[2] + ma_b*row2[2]+ a_b*row4[2];
+		outF[3]= ma_mb*row1[3] + a_mb*row3[3] + ma_b*row2[3]+ a_b*row4[3];
+	}
+	if (outI) {
+		// sample including outside of edges of image 
+		row1I= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x1;
+		row2I= (unsigned char *)in->rect + in->x * y2 * 4 + 4*x1;
+		row3I= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x2;
+		row4I= (unsigned char *)in->rect + in->x * y2 * 4 + 4*x2;
+		
+		a= u-floor(u);
+		b= v-floor(v);
+		a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
+		
+		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
+		 * tested with white images and this should not wrap back to zero */
+		outI[0]= (ma_mb*row1I[0] + a_mb*row3I[0] + ma_b*row2I[0]+ a_b*row4I[0]) + 0.5f;
+		outI[1]= (ma_mb*row1I[1] + a_mb*row3I[1] + ma_b*row2I[1]+ a_b*row4I[1]) + 0.5f;
+		outI[2]= (ma_mb*row1I[2] + a_mb*row3I[2] + ma_b*row2I[2]+ a_b*row4I[2]) + 0.5f;
+		outI[3]= (ma_mb*row1I[3] + a_mb*row3I[3] + ma_b*row2I[3]+ a_b*row4I[3]) + 0.5f;
 	}
 }
 

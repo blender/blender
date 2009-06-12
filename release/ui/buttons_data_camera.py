@@ -9,45 +9,58 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.camera != None)
 		
-class DATA_PT_cameralens(DataButtonsPanel):
+class DATA_PT_camera(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera"
 	__label__ = "Lens"
 
 	def draw(self, context):
+		ob = context.object
 		cam = context.camera
+		space = context.space_data
 		layout = self.layout
 
-		layout.itemR(cam, "type", expand=True)
-		
-		row = layout.row(align=True)
-		if cam.type == 'PERSP':
-			row.itemR(cam, "lens_unit", text="")
-			if cam.lens_unit == 'MILLIMETERS':
-				row.itemR(cam, "lens", text="Angle")
-			elif cam.lens_unit == 'DEGREES':
-				row.itemR(cam, "angle")
+		split = layout.split(percentage=0.65)
 
-		elif cam.type == 'ORTHO':
-			row.itemR(cam, "ortho_scale")
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif arm:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if cam:
+			layout.itemS()
+			layout.itemR(cam, "type", expand=True)
 			
-		split = layout.split()
+			row = layout.row(align=True)
+			if cam.type == 'PERSP':
+				row.itemR(cam, "lens_unit", text="")
+				if cam.lens_unit == 'MILLIMETERS':
+					row.itemR(cam, "lens", text="Angle")
+				elif cam.lens_unit == 'DEGREES':
+					row.itemR(cam, "angle")
+
+			elif cam.type == 'ORTHO':
+				row.itemR(cam, "ortho_scale")
+				
+			split = layout.split()
+			
+			sub = split.column(align=True)
+			sub.itemL(text="Shift:")
+			sub.itemR(cam, "shift_x", text="X")
+			sub.itemR(cam, "shift_y", text="Y")
+			
+			sub = split.column(align=True)
+			sub.itemL(text="Clipping:")
+			sub.itemR(cam, "clip_start", text="Start")
+			sub.itemR(cam, "clip_end", text="End")
+			
+			row = layout.row()
+			row.itemR(cam, "dof_object")
+			row.itemR(cam, "dof_distance")
 		
-		sub = split.column(align=True)
-		sub.itemL(text="Shift:")
-		sub.itemR(cam, "shift_x", text="X")
-		sub.itemR(cam, "shift_y", text="Y")
-		
-		sub = split.column(align=True)
-		sub.itemL(text="Clipping:")
-		sub.itemR(cam, "clip_start", text="Start")
-		sub.itemR(cam, "clip_end", text="End")
-		
-		row = layout.row()
-		row.itemR(cam, "dof_object")
-		row.itemR(cam, "dof_distance")
-		
-class DATA_PT_cameradisplay(DataButtonsPanel):
-	__idname__ = "DATA_PT_cameradisplay"
+class DATA_PT_camera_display(DataButtonsPanel):
+	__idname__ = "DATA_PT_camera_display"
 	__label__ = "Display"
 	
 	def draw(self, context):
@@ -69,5 +82,5 @@ class DATA_PT_cameradisplay(DataButtonsPanel):
 		colsub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
 		col.itemR(cam, "draw_size", text="Size")
 		
-bpy.types.register(DATA_PT_cameralens)
-bpy.types.register(DATA_PT_cameradisplay)
+bpy.types.register(DATA_PT_camera)
+bpy.types.register(DATA_PT_camera_display)
