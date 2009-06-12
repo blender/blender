@@ -236,9 +236,8 @@ def write_nurb(file, ob, ob_mat):
 				pt_num += 1
 				curve_ls.append(-1)
 			else:
-				val = DEG_ORDER_U - 1
-				pt_num += val*2
-				curve_ls = curve_ls[-val:] + curve_ls + curve_ls[0:val] # Blenders OrderU of 3 -> val==1, 4 -> 2 etc
+				pt_num += DEG_ORDER_U-1
+				curve_ls = curve_ls + curve_ls[0:DEG_ORDER_U]
 		
 		file.write('curv 0.0 1.0 %s\n' % (' '.join( [str(i) for i in curve_ls] ))) # Blender has no U and V values for the curve
 		
