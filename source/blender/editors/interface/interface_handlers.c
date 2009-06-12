@@ -621,6 +621,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case BUT_NORMAL:
 		case HSVCUBE:
+		case HSVCIRCLE:
 			ui_apply_but_VEC(C, but, data);
 			break;
 		case BUT_COLORBAND:
@@ -1432,7 +1433,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		data->coba= (ColorBand*)but->poin;
 		but->editcoba= data->coba;
 	}
-	else if(ELEM(but->type, BUT_NORMAL, HSVCUBE)) {
+	else if(ELEM3(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE)) {
 		ui_get_but_vectorf(but, data->origvec);
 		VECCOPY(data->vec, data->origvec);
 		but->editvec= data->vec;
@@ -2100,6 +2101,25 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
+		else if(but->type==COL) {
+			if( ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
+				float col[3];
+				
+				ui_get_but_vectorf(but, col);
+				rgb_to_hsv(col[0], col[1], col[2], but->hsv, but->hsv+1, but->hsv+2);
+
+				if(event->type==WHEELDOWNMOUSE)
+					but->hsv[2]= CLAMPIS(but->hsv[2]-0.05f, 0.0f, 1.0f);
+				else
+					but->hsv[2]= CLAMPIS(but->hsv[2]+0.05f, 0.0f, 1.0f);
+				
+				hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], data->vec, data->vec+1, data->vec+2);
+				
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				ui_apply_button(C, but->block, but, data, 1);
+				return WM_UI_HANDLER_BREAK;
+			}
+		}
 	}
 
 	return WM_UI_HANDLER_CONTINUE;
@@ -2223,8 +2243,11 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		but->hsv[2]= x; 
 		but->hsv[1]= y; 
 	}
-	else
+	else if(but->a1==3) {
 		but->hsv[0]= x; 
+	}
+	else
+		but->hsv[2]= y; 
 
 	ui_set_but_hsv(but);	// converts to rgb
 	
@@ -2275,6 +2298,79 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 	return WM_UI_HANDLER_CONTINUE;
 }
+
+static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my)
+{
+	rcti rect;
+	int changed= 1;
+
+	rect.xmin= but->x1; rect.xmax= but->x2;
+	rect.ymin= but->y1; rect.ymax= but->y2;
+	
+	ui_hsvcircle_vals_from_pos(but->hsv, but->hsv+1, &rect, (float)mx, (float)my);
+	
+	ui_set_but_hsv(but);	// converts to rgb
+	
+	// update button values and strings
+	// XXX ui_update_block_buts_hsv(but->block, but->hsv);
+	
+	data->draglastx= mx;
+	data->draglasty= my;
+	
+	return changed;
+}
+
+
+static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+	
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+	
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+			
+			/* also do drag the first time */
+			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+				ui_numedit_apply(C, block, but, data);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		/* XXX hardcoded keymap check.... */
+		if(event->type == WHEELDOWNMOUSE) {
+			but->hsv[2]= CLAMPIS(but->hsv[2]-0.05f, 0.0f, 1.0f);
+			ui_set_but_hsv(but);	// converts to rgb
+			ui_numedit_apply(C, block, but, data);
+		}
+		else if(event->type == WHEELUPMOUSE) {
+			but->hsv[2]= CLAMPIS(but->hsv[2]+0.05f, 0.0f, 1.0f);
+			ui_set_but_hsv(but);	// converts to rgb
+			ui_numedit_apply(C, block, but, data);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS)
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		
+		return WM_UI_HANDLER_BREAK;
+	}
+	
+	return WM_UI_HANDLER_CONTINUE;
+}
+
 
 static int verg_colorband(const void *a1, const void *a2)
 {
@@ -2846,6 +2942,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		break;
 	case HSVCUBE:
 		retval= ui_do_but_HSVCUBE(C, block, but, data, event);
+		break;
+	case HSVCIRCLE:
+		retval= ui_do_but_HSVCIRCLE(C, block, but, data, event);
 		break;
 #ifdef INTERNATIONAL
 	case CHARTAB:
@@ -3545,8 +3644,10 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 		if(event->type == MOUSEMOVE)
 			ui_mouse_motion_towards_init(menu, mx, my, 0);
 
+		/* first block own event func */
+		if(block->block_event_func && block->block_event_func(C, block, event));
 		/* events not for active search menu button */
-		if(but==NULL || but->type!=SEARCH_MENU) {
+		else if(but==NULL || but->type!=SEARCH_MENU) {
 			switch(event->type) {
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:

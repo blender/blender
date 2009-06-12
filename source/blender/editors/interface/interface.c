@@ -2232,7 +2232,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 	
-	if(but->type==HSVCUBE) { /* hsv buttons temp storage */
+	if(ELEM(but->type, HSVCUBE, HSVCIRCLE)) { /* hsv buttons temp storage */
 		float rgb[3];
 		ui_get_but_vectorf(but, rgb);
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);

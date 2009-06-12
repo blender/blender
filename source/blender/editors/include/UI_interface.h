@@ -195,6 +195,7 @@ typedef struct uiLayout uiLayout;
 #define OPTIONN		(39<<9)
 #define SEARCH_MENU	(40<<9)
 #define BUT_EXTRA	(41<<9)
+#define HSVCIRCLE	(42<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
