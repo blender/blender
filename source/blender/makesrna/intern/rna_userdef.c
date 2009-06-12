@@ -137,8 +137,8 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Points", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
-	prop= RNA_def_property(srna, "kerning", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, -5, 5);
+	prop= RNA_def_property(srna, "kerning", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_text(prop, "Kerning", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 

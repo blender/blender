@@ -66,8 +66,8 @@ typedef struct uiFont {
 typedef struct uiFontStyle {
 	short uifont_id;		/* saved in file, 0 is default */
 	short points;			/* actual size depends on 'global' dpi */
-	short kerning;			/* kerning space between characters. */
-	char pad[6];
+	float kerning;			/* kerning space between characters. */
+	float pad;
 	short italic, bold;		/* style hint */
 	short shadow;			/* value is amount of pixels blur */
 	short shadx, shady;		/* shadow offset in pixels */

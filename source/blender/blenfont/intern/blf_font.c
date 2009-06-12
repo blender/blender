@@ -100,7 +100,7 @@ void blf_font_draw(FontBLF *font, char *str)
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
-	int pen_x, pen_y, old_pen_x;
+	float pen_x, pen_y, old_pen_x;
 	int i, has_kerning;
 
 	if (!font->glyph_cache)
@@ -159,7 +159,7 @@ void blf_font_draw(FontBLF *font, char *str)
 		}
 
 		/* do not return this loop if clipped, we want every character tested */
-		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
+		blf_glyph_render(font, g, pen_x, pen_y);
 
 		pen_x += g->advance;
 		g_prev= g;
@@ -321,7 +321,7 @@ void blf_font_fill(FontBLF *font)
 	font->flags= BLF_USER_KERNING;
 	font->dpi= 0;
 	font->size= 0;
-	font->kerning= 0;
+	font->kerning= 0.0f;
 	font->cache.first= NULL;
 	font->cache.last= NULL;
 	font->glyph_cache= NULL;
