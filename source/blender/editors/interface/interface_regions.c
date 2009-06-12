@@ -1792,7 +1792,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	}
 	else {
 		uiBlockPickerSmall(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
-		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1;
+		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_OUT_1;
 		uiBoundsBlock(block, 10);
 		
 		block->block_event_func= ui_picker_small_wheel;

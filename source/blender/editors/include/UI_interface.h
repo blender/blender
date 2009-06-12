@@ -91,6 +91,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
+#define UI_BLOCK_OUT_1			1024
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */

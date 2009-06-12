@@ -3812,8 +3812,12 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 					}
 
 					/* strict check, and include the parent rect */
-					if(!menu->dotowards && !saferct)
-						menu->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
+					if(!menu->dotowards && !saferct) {
+						if(block->flag & UI_BLOCK_OUT_1)
+							menu->menuretval= UI_RETURN_OK;
+						else
+							menu->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
+					}
 					else if(menu->dotowards && event->type==MOUSEMOVE)
 						retval= WM_UI_HANDLER_BREAK;
 				}
