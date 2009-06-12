@@ -135,32 +135,38 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 6, 48);
 	RNA_def_property_ui_text(prop, "Points", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "kerning", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -5, 5);
 	RNA_def_property_ui_text(prop, "Kerning", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Shadow Size", "Shadow size in pixels (0, 3 and 5 supported)");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "shadx", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -10, 10);
 	RNA_def_property_ui_text(prop, "Shadow X Offset", "Shadow offset in pixels");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "shady", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -10, 10);
 	RNA_def_property_ui_text(prop, "Shadow Y Offset", "Shadow offset in pixels");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadowalpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shadow Alpha", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadowcolor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in grey value");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }	
-
 
 static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 {
@@ -177,21 +183,25 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "paneltitle");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Panel Font", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "grouplabel", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "grouplabel");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Group Label Font", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "widgetlabel", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "widgetlabel");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Widget Label Font", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "widget", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "widget");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Widget Font", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 }	
 
@@ -207,38 +217,47 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "outline", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Outline", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "inner", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Inner", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "inner_sel", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Inner Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "item", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Item", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "text", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Text", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "text_sel", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Text Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "shaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shaded", 1);
 	RNA_def_property_ui_text(prop, "Shaded", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "shadetop", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Shade Top", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "shadedown", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Shade Down", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 }
 
@@ -1402,23 +1421,28 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "display_object_info", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DRAWVIEWINFO);
-	RNA_def_property_ui_text(prop, "Display Object Info", "Display and objects name and frame number in 3d view.");
+	RNA_def_property_ui_text(prop, "Display Object Info", "Display objects name and frame number in 3d view.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "global_scene", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SCENEGLOBAL);
 	RNA_def_property_ui_text(prop, "Global Scene", "Forces the current Scene to be displayed in all Screens.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "use_large_cursors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "curssize", 0);
 	RNA_def_property_ui_text(prop, "Large Cursors", "Use large mouse cursors when available.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "show_view_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_VIEWPORTNAME);
 	RNA_def_property_ui_text(prop, "Show View Name", "Show the name of the view's direction in each 3D View.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "show_playback_fps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_FPS);
 	RNA_def_property_ui_text(prop, "Show Playback FPS", "Show the frames per second screen refresh rate, while animation is played back.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	/* menus */
 	prop= RNA_def_property(srna, "open_mouse_over", PROP_BOOLEAN, PROP_NONE);
@@ -1789,33 +1813,40 @@ static void rna_def_userdef_language(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "international_fonts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
 	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dpi");
 	RNA_def_property_range(prop, 48, 128);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* Language Selection */
 
 	prop= RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, language_items);
 	RNA_def_property_ui_text(prop, "Language", "Language use for translation.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "translate_tooltips", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_TOOLTIPS);
 	RNA_def_property_ui_text(prop, "Translate Tooltips", "Translate Tooltips.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "translate_buttons", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_BUTTONS);
 	RNA_def_property_ui_text(prop, "Translate Buttons", "Translate button labels.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "translate_toolbox", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_MENUS);
 	RNA_def_property_ui_text(prop, "Translate Toolbox", "Translate toolbox menu.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "use_textured_fonts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_USETEXTUREFONT);
 	RNA_def_property_ui_text(prop, "Textured Fonts", "Use textures for drawing international fonts.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_userdef_autosave(BlenderRNA *brna)
@@ -2005,10 +2036,6 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FILECOMPRESS);
 	RNA_def_property_ui_text(prop, "Compress File", "Enable file compression when saving .blend files.");
 
-	prop= RNA_def_property(srna, "yafray_export_directory", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "yfexportdir");
-	RNA_def_property_ui_text(prop, "Yafray Export Directory", "The default directory for yafray xml export (must exist!).");
-
 	prop= RNA_def_property(srna, "fonts_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "fontdir");
 	RNA_def_property_ui_text(prop, "Fonts Directory", "The default directory to search for loading fonts.");
@@ -2116,11 +2143,6 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_language(brna);
 	rna_def_userdef_filepaths(brna);
 	rna_def_userdef_system(brna);
-	
-	
-	
-	
-	
 	
 }
 
