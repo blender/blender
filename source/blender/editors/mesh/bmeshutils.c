@@ -356,13 +356,13 @@ BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
 /* this replaces the active flag used in uv/face mode */
 void EDBM_set_actFace(BMEditMesh *em, BMFace *efa)
 {
-	em->act_face = efa;
+	em->bm->act_face = efa;
 }
 
 BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 {
-	if (em->act_face) {
-		return em->act_face;
+	if (em->bm->act_face) {
+		return em->bm->act_face;
 	} else if (sloppy) {
 		BMFace *efa= NULL;
 		BMEditSelection *ese;

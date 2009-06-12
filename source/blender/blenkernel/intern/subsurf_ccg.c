@@ -1346,6 +1346,11 @@ void ccgDM_faceIterStep(void *self)
 {
 	ccgDM_faceIter *fiter = self;
 
+	if (!fiter->ccgdm || !fiter->ccgdm->ss) {
+		fiter->head.done = 1;
+		return;
+	}
+
 	if (fiter->head.index >= ccgSubSurf_getNumTessFaces(fiter->ccgdm->ss)) {
 		fiter->head.done = 1;
 		return;
@@ -2570,19 +2575,21 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		++vertNum;
 
 
-#if 0 //BMESH_TODO
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
 			int otherS = (numVerts == 4) ? (S + 2) % numVerts : 3;
+
 			for(x = 1; x < gridFaces; x++) {
 				float w[4];
+#if 0 //BMESH_TODO
 				w[prevS]  = weight[x][0][0];
 				w[S]      = weight[x][0][1];
 				w[nextS]  = weight[x][0][2];
 				w[otherS] = weight[x][0][3];
 				DM_interp_vert_data(dm, &ccgdm->dm, vertIdx, w,
 				                    numVerts, vertNum);
+#endif
 				*vertOrigIndex = ORIGINDEX_NONE;
 				++vertOrigIndex;
 				++vertNum;
@@ -2596,24 +2603,25 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
 					float w[4];
+#if 0 //BMESH_TODO
 					w[prevS]  = weight[y * gridFaces + x][0][0];
 					w[S]      = weight[y * gridFaces + x][0][1];
 					w[nextS]  = weight[y * gridFaces + x][0][2];
 					w[otherS] = weight[y * gridFaces + x][0][3];
 					DM_interp_vert_data(dm, &ccgdm->dm, vertIdx, w,
 					                    numVerts, vertNum);
+#endif
 					*vertOrigIndex = ORIGINDEX_NONE;
 					++vertOrigIndex;
 					++vertNum;
 				}
 			}
 		}
-#endif
+
 		for(i = 0; i < numFinalEdges; ++i)
 			*(int *)DM_get_edge_data(&ccgdm->dm, edgeNum + i,
 			                         CD_ORIGINDEX) = ORIGINDEX_NONE;
 
-#if 0 //BMESH_TODO
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
@@ -2626,6 +2634,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					FaceVertWeight w;
 					int j;
 
+#if 0 //BMESH_TODO
 					for(j = 0; j < 4; ++j) {
 						w[j][prevS]  = (*weight)[j][0];
 						w[j][S]      = (*weight)[j][1];
@@ -2636,6 +2645,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					DM_interp_tessface_data(dm, &ccgdm->dm, &origIndex, NULL,
 					                    &w, 1, faceNum);
 					weight++;
+#endif
 
 					*faceOrigIndex = mapIndex;
 
@@ -2644,7 +2654,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 				}
 			}
 		}
-#endif
 
 		faceFlags[index*4] = mface[origIndex].flag;
 		faceFlags[index*4 + 1] = mface[origIndex].mat_nr;

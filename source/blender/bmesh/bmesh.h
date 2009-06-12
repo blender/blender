@@ -162,6 +162,9 @@ typedef struct BMesh {
 	int stackdepth;									/*current depth of operator stack*/
 	int totflags, walkers;							/*total number of tool flag layers*/
 	ListBase errorstack;
+
+	/*active face pointer*/
+	struct BMFace *act_face;
 } BMesh;
 
 typedef struct BMVert {	
@@ -321,6 +324,13 @@ struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
 /*convert between bmesh and Mesh flags*/
 int BMFlags_To_MEFlags(void *element);
+
+/*convert between Mesh and bmesh flags
+  type must be BM_VERT/BM_EDGE/BM_FACE,
+  and represents the type of the element
+  parameter (the three defines map to
+  MVert, MEdge, and MPoly, respectively).*/
+int MEFlags_To_BMFlags(void *element, int type);
 
 /*include the rest of the API*/
 #include "bmesh_filters.h"

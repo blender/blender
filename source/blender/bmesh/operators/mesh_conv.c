@@ -36,7 +36,7 @@
 */
 
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
-	Mesh *me = BMO_Get_Pnt(op, "me");
+	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	MVert *mvert;
 	MEdge *medge;
 	MLoop *ml;
@@ -67,6 +67,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->data);
+
+		v->head.flag = MEFlags_To_BMFlags(mvert, BM_VERT);
 	}
 
 	if (!me->totedge) return;
@@ -84,10 +86,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		e->crease = (float)medge->crease / 255.0f;
 		e->bweight = (float)medge->bweight / 255.0f;
 
-		if (medge->flag & SELECT) BM_Select_Edge(bm, e, 1);
-		if (medge->flag & ME_HIDE) BM_SetHFlag(e, BM_HIDDEN);
-		if (medge->flag & ME_SHARP) BM_SetHFlag(e, BM_SHARP);
-		if (medge->flag & ME_SEAM) BM_SetHFlag(e, BM_SEAM);
+		e->head.flag = MEFlags_To_BMFlags(medge, BM_EDGE);
 	}
 	
 	if (!me->totpoly) return;
@@ -118,6 +117,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
 		
+		f->head.flag = MEFlags_To_BMFlags(mpoly, BM_FACE);
+		if (i == me->act_face) bm->act_face = f;
+
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->fdata, &bm->pdata, i, &f->data);
 	}
@@ -214,8 +216,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		mvert->no[1] = (unsigned char) (v->no[1]*255.0f);
 		mvert->no[2] = (unsigned char) (v->no[2]*255.0f);
 		
-		if (BM_TestHFlag(v, BM_SELECT)) mvert->flag |= SELECT;
-		if (BM_TestHFlag(v, BM_HIDDEN)) mvert->flag |= ME_HIDE;
+		mvert->flag = BMFlags_To_MEFlags(v);
 
 		BMINDEX_SET(v, i);
 		i++;
@@ -233,11 +234,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		medge->v1 = BMINDEX_GET(e->v1);
 		medge->v2 = BMINDEX_GET(e->v2);
 
-		if (BM_TestHFlag(e, BM_SELECT)) medge->flag |= SELECT;
-		if (BM_TestHFlag(e, BM_HIDDEN)) medge->flag |= ME_HIDE;
-		if (BM_TestHFlag(e, BM_SHARP)) medge->flag |= ME_SEAM;
-		if (BM_TestHFlag(e, BM_SEAM)) medge->flag |= ME_SHARP;
-		
+		medge->flag = BMFlags_To_MEFlags(e);
+
 		BMINDEX_SET(e, i);
 		i++;
 		medge++;
@@ -245,10 +243,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	
 	i = 0;
 	BM_ITER(f, &iter, bmtess, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_SELECT)) mface->flag |= ME_FACE_SEL;
-		if (BM_TestHFlag(f, BM_HIDDEN)) mface->flag |= ME_HIDE;
-		if (BM_TestHFlag(f, BM_SMOOTH)) mface->flag |= ME_SMOOTH;
 		mface->mat_nr = f->mat_nr;
+		mface->flag = BMFlags_To_MEFlags(f);
 		
 		mface->v1 = BMINDEX_GET(f->loopbase->v);
 		mface->v2 = BMINDEX_GET(((BMLoop*)f->loopbase->head.next)->v);
@@ -276,22 +272,18 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	i = 0;
 	j = 0;
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_SELECT)) mpoly->flag |= ME_FACE_SEL;
-		if (BM_TestHFlag(f, BM_HIDDEN)) mpoly->flag |= ME_HIDE;
-		if (BM_TestHFlag(f, BM_SMOOTH)) mpoly->flag |= ME_SMOOTH;
-
 		mpoly->loopstart = j;
 		mpoly->totloop = f->len;
 		mpoly->mat_nr = f->mat_nr;
+		mpoly->flag = BMFlags_To_MEFlags(f);
 
-		//BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for ( ; l; l=BMIter_Step(&liter)) {
+		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {
 			mloop->e = BMINDEX_GET(l->e);
 			mloop->v = BMINDEX_GET(l->v);
-			mloop++;
-			j++;
 		}
+		
+		if (f == bm->act_face) me->act_face = i;
 
 		i++;
 		mpoly++;

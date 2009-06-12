@@ -41,9 +41,6 @@ typedef struct BMEditMesh {
 	/*retopo data pointer*/
 	struct RetopoPaintData *retopo_paint_data;
 
-	/*active face pointer*/
-	struct BMFace *act_face; 
-
 	/*index tables, to map indices to elements via
 	  EDBM_init_index_arrays and associated functions.  don't
 	  touch this or read it directly.*/

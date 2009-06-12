@@ -62,20 +62,19 @@ struct EdgeHash {
 /***/
 
 EdgeHash *BLI_edgehash_new(void) {
-	EdgeHash *eh= MEM_mallocN(sizeof(*eh), "EdgeHash");
+	EdgeHash *eh= MEM_callocN(sizeof(*eh), "EdgeHash");
 	eh->cursize= 0;
 	eh->nentries= 0;
 	eh->nbuckets= hashsizes[eh->cursize];
 	
-	eh->buckets= malloc(eh->nbuckets*sizeof(*eh->buckets));
-	memset(eh->buckets, 0, eh->nbuckets*sizeof(*eh->buckets));
+	eh->buckets= MEM_callocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets 2");
 	
 	return eh;
 }
 
 void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	unsigned int hash;
-	Entry *e= malloc(sizeof(*e));
+	Entry *e= MEM_callocN(sizeof(*e), "edgehash e");
 
 	if (v1<v0) {
 		v0 ^= v1;
@@ -95,7 +94,7 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 		int i, nold= eh->nbuckets;
 		
 		eh->nbuckets= hashsizes[++eh->cursize];
-		eh->buckets= malloc(eh->nbuckets*sizeof(*eh->buckets));
+		eh->buckets= MEM_mallocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets");
 		memset(eh->buckets, 0, eh->nbuckets*sizeof(*eh->buckets));
 		
 		for (i=0; i<nold; i++) {
@@ -110,7 +109,7 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 			}
 		}
 		
-		free(old);
+		MEM_freeN(old);
 	}
 }
 
@@ -155,7 +154,7 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 			Entry *n= e->next;
 			
 			if (valfreefp) valfreefp(e->val);
-			free(e);
+			MEM_freeN(e);
 			
 			e= n;
 		}
@@ -168,7 +167,7 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 	BLI_edgehash_clear(eh, valfreefp);
 	
-	free(eh->buckets);
+	MEM_freeN(eh->buckets);
 	MEM_freeN(eh);
 }
 
@@ -182,7 +181,7 @@ struct EdgeHashIterator {
 };
 
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) {
-	EdgeHashIterator *ehi= malloc(sizeof(*ehi));
+	EdgeHashIterator *ehi= MEM_mallocN(sizeof(*ehi), "eh iter");
 	ehi->eh= eh;
 	ehi->curEntry= NULL;
 	ehi->curBucket= -1;
@@ -195,7 +194,7 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) {
 	return ehi;
 }
 void BLI_edgehashIterator_free(EdgeHashIterator *ehi) {
-	free(ehi);
+	MEM_freeN(ehi);
 }
 
 void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r) {

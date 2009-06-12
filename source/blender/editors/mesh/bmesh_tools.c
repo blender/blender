@@ -105,7 +105,9 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	BM_esubdivideflag(obedit, em->bm, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -133,6 +135,8 @@ static int subdivide_multi_exec(bContext *C, wmOperator *op)
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -163,6 +167,8 @@ static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -194,6 +200,8 @@ static int subdivide_smooth_exec(bContext *C, wmOperator *op)
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
 	return OPERATOR_FINISHED;	
 }
 
@@ -597,6 +605,7 @@ short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
 		
@@ -633,7 +642,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return OPERATOR_FINISHED;
 }
 

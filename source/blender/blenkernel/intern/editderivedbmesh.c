@@ -107,7 +107,6 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 	*tm2 = *tm;
 	
 	tm2->derivedCage = tm2->derivedFinal = NULL;
-	tm2->act_face = NULL;
 	
 	tm2->looptris = NULL;
 	tm2->bm = BM_Copy_Mesh(tm->bm);
@@ -214,7 +213,6 @@ void BMEdit_Free(BMEditMesh *em)
 	}
 
 	em->retopo_paint_data= NULL;
-	em->act_face = NULL;
 
 	if (em->looptris) MEM_freeN(em->looptris);
 

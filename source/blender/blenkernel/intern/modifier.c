@@ -575,7 +575,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 			   if(source.v4)
 				   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
 
-			   DM_copy_face_data(dm, result, faceMap[i], i, 1);
+			   DM_copy_tessface_data(dm, result, faceMap[i], i, 1);
 			   *dest = source;
 
 			   test_index_face(dest, &result->faceData, i, (orig_v4 ? 4 : 3));
@@ -930,7 +930,7 @@ static DerivedMesh *maskModifier_applyModifier(ModifierData *md, Object *ob,
 		if (source.v4)
 		   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
 		
-		DM_copy_face_data(dm, result, oldIndex, newIndex, 1);
+		DM_copy_tessface_data(dm, result, oldIndex, newIndex, 1);
 		*dest = source;
 		
 		test_index_face(dest, &result->faceData, newIndex, (orig_v4 ? 4 : 3));
@@ -1366,7 +1366,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 			  dm->getTessFace(dm, i, &inMF);
 
-			  DM_copy_face_data(dm, result, i, numFaces, 1);
+			  DM_copy_tessface_data(dm, result, i, numFaces, 1);
 			  *mf = inMF;
 
 			  mf->v1 = indexMap[inMF.v1].new;
@@ -1402,7 +1402,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  {
 				  MFace *mf2 = &mface[numFaces];
 
-				  DM_copy_face_data(dm, result, i, numFaces, 1);
+				  DM_copy_tessface_data(dm, result, i, numFaces, 1);
 				  *mf2 = *mf;
 
 				  mf2->v1 = calc_mapping(indexMap, inMF.v1, j);
@@ -1499,7 +1499,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  }
 			  origindex = result->getTessFaceDataArray(result, CD_ORIGINDEX);
 			  for(i = 0; i < capFaces; i++) {
-				  DM_copy_face_data(start_cap, result, i, numFaces, 1);
+				  DM_copy_tessface_data(start_cap, result, i, numFaces, 1);
 				  mface[numFaces] = cap_mface[i];
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
@@ -1600,7 +1600,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  }
 			  origindex = result->getTessFaceDataArray(result, CD_ORIGINDEX);
 			  for(i = 0; i < capFaces; i++) {
-				  DM_copy_face_data(end_cap, result, i, numFaces, 1);
+				  DM_copy_tessface_data(end_cap, result, i, numFaces, 1);
 				  mface[numFaces] = cap_mface[i];
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
@@ -1978,7 +1978,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		
 		dm->getTessFace(dm, i, &inMF);
 		
-		DM_copy_face_data(dm, result, i, numFaces, 1);
+		DM_copy_tessface_data(dm, result, i, numFaces, 1);
 		*mf = inMF;
 		numFaces++;
 		
@@ -1994,7 +1994,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			MFace *mf2 = CDDM_get_tessface(result, numFaces);
 			static int corner_indices[4] = {2, 1, 0, 3};
 			
-			DM_copy_face_data(dm, result, i, numFaces, 1);
+			DM_copy_tessface_data(dm, result, i, numFaces, 1);
 			*mf2 = *mf;
 			
 			mf2->v1 += indexMap[inMF.v1][1];
@@ -2475,7 +2475,7 @@ static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 		SmoothFace *face = &mesh->faces[i];
 		MFace *newMF = &new_faces[face->newIndex];
 
-		DM_copy_face_data(mesh->dm, result,
+		DM_copy_tessface_data(mesh->dm, result,
 				  face->oldIndex, face->newIndex, 1);
 		mesh->dm->getTessFace(mesh->dm, face->oldIndex, newMF);
 
@@ -6590,7 +6590,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		}
 
 		inMF = orig_mface + i%totface;
-		DM_copy_face_data(dm, result, i%totface, i, 1);
+		DM_copy_tessface_data(dm, result, i%totface, i, 1);
 		*mf = *inMF;
 
 		mf->v1+=(i/totface)*totvert;
@@ -6870,7 +6870,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 		dm->getTessFace(dm, i, &source);
 		dest = CDDM_get_tessface(splitdm, i);
 
-		DM_copy_face_data(dm, splitdm, i, i, 1);
+		DM_copy_tessface_data(dm, splitdm, i, i, 1);
 		*dest = source;
 	}
 
@@ -6913,7 +6913,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 			/* ouch! creating new faces & remapping them to new verts is no fun */
 			if(*fs==1){
 				df1=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df1=*mf;
 				curdupface++;
 				
@@ -6937,12 +6937,12 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 			}
 			if(*fs==2){
 				df1=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df1=*mf;
 				curdupface++;
 
 				df2=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df2=*mf;
 				curdupface++;
 
@@ -7014,17 +7014,17 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 			}
 			else if(*fs==3){
 				df1=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df1=*mf;
 				curdupface++;
 
 				df2=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df2=*mf;
 				curdupface++;
 
 				df3=CDDM_get_tessface(splitdm,curdupface);
-				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 				*df3=*mf;
 				curdupface++;
 
@@ -7115,17 +7115,17 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 
 					df1=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df1=*mf;
 					curdupface++;
 
 					df2=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df2=*mf;
 					curdupface++;
 
 					df3=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df3=*mf;
 					curdupface++;
 
@@ -7155,17 +7155,17 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				}
 				else{
 					df1=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df1=*mf;
 					curdupface++;
 
 					df2=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df2=*mf;
 					curdupface++;
 
 					df3=CDDM_get_tessface(splitdm,curdupface);
-					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					DM_copy_tessface_data(splitdm,splitdm,i,curdupface,1);
 					*df3=*mf;
 					curdupface++;
 
@@ -7365,7 +7365,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		if(source.v4)
 			source.v4 = edgesplit_get(vertpahash, source.v4, mindex);
 
-		DM_copy_face_data(dm,explode,i,i,1);
+		DM_copy_tessface_data(dm,explode,i,i,1);
 
 		*mf = source;
 

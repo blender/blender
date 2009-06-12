@@ -1676,7 +1676,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	mp = cddm->mpoly;
 	ml = cddm->mloop;
 	l = 0;
-	for (i=0; i<cddm->dm.numFaceData; i++, mf++) {
+	for (i=0; i<cddm->dm.numFaceData; i++, mf++, mp++) {
 		mp->flag = mf->flag;
 		mp->loopstart = l;
 		mp->mat_nr = mf->mat_nr;

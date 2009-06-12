@@ -44,6 +44,8 @@
 #include "stdio.h"
 #include "string.h"
 
+#define SELECT 1
+
 /*prototypes*/
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
                                     BMLoop *source_loop, BMLoop *target_loop);
@@ -477,6 +479,8 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {
 			BM_Copy_Attributes(bmold, bm, loops[i], l);
 		}
+
+		if (f == bmold->act_face) bm->act_face = f2;
 	}
 	
 	V_FREE(etable);
@@ -487,6 +491,13 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	return bm;
 }
 
+/*
+  BM FLAGS TO ME FLAGS
+
+  Returns the flags stored in element,
+  which much be either a BMVert, BMEdge,
+  or BMFace, converted to mesh flags.
+*/
 int BMFlags_To_MEFlags(void *element) {
 	BMHeader *h = element;
 	int f = 0;
@@ -504,6 +515,38 @@ int BMFlags_To_MEFlags(void *element) {
 	} else if (h->type == BM_VERT) {
 		if (h->flag & BM_SELECT) f |= BM_SELECT;
 		if (h->flag & BM_HIDDEN) f |= ME_HIDE;
+	}
+
+	return f;
+}
+
+/*
+  BM FLAGS TO ME FLAGS
+
+  Returns the flags stored in element,
+  which much be either a MVert, MEdge,
+  or MPoly, converted to mesh flags.
+  type must be either BM_VERT, BM_EDGE,
+  or BM_FACE.
+*/
+int MEFlags_To_BMFlags(void *element, int type) {
+	int f = 0;
+
+	if (type == BM_FACE) {
+		MPoly *mp = element;
+		if (mp->flag & ME_FACE_SEL) f |= BM_SELECT;
+		if (mp->flag & ME_SMOOTH) f |= BM_SMOOTH;
+		if (mp->flag & ME_HIDE) f |= BM_HIDDEN;
+	} else if (type == BM_EDGE) {
+		MEdge *me = element;
+		if (me->flag & SELECT) f |= BM_SELECT;
+		if (me->flag & ME_SEAM) f |= BM_SEAM;
+		if (me->flag & ME_SHARP) f |= BM_SHARP;
+		if (me->flag & ME_HIDE) f |= BM_HIDDEN;
+	} else if (type == BM_VERT) {
+		MVert *mv = element;
+		if (mv->flag & SELECT) f |= BM_SELECT;
+		if (mv->flag & ME_HIDE) f |= BM_HIDDEN;
 	}
 
 	return f;
