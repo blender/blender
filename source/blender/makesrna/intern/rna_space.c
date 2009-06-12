@@ -92,10 +92,10 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		/*case SPACE_SOUND:
 			return &RNA_SpaceAudioWindow;
 		case SPACE_ACTION:
-			return &RNA_SpaceDopeSheetEditor;
+			return &RNA_SpaceDopeSheetEditor;*/
 		case SPACE_NLA:
-			return &RNA_SpaceNLAEditor;
-		case SPACE_SCRIPT:
+			return &RNA_SpaceNLA;
+		/*case SPACE_SCRIPT:
 			return &RNA_SpaceScriptsWindow;
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
@@ -757,6 +757,27 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Replace Text", "Text to replace selected text with using the replace tool.");
 }
 
+static void rna_def_space_nla(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "SpaceNLA", "Space");
+	RNA_def_struct_sdna(srna, "SpaceNla");
+	RNA_def_struct_ui_text(srna, "Space Nla Editor", "NLA editor space data.");
+	
+	/* display */
+	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNLA_DRAWTIME);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, only set with operator
+	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames.");
+	
+	prop= RNA_def_property(srna, "show_cframe_indicator", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NODRAWCFRANUM);
+	RNA_def_property_ui_text(prop, "Show Frame Number Indicator", "Show frame number beside the current frame indicator line.");
+
+}
+
 void RNA_def_space(BlenderRNA *brna)
 {
 	rna_def_space(brna);
@@ -767,6 +788,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_background_image(brna);
 	rna_def_space_3dview(brna);
 	rna_def_space_buttons(brna);
+	rna_def_space_nla(brna);
 }
 
 #endif

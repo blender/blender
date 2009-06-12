@@ -696,8 +696,11 @@ enum {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
+	// depreceated
 #define SNLA_ALLKEYED		(1<<0)
+	// depreceated
 #define SNLA_ACTIVELAYERS	(1<<1)
+
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)

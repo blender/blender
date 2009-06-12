@@ -57,6 +57,9 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
+#include "BIF_transform.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -74,36 +77,83 @@ enum {
 
 /* ************************ header area region *********************** */
 
-static void do_viewmenu(bContext *C, void *arg, int event)
+
+static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
+	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
+	PointerRNA spaceptr;
 	
+	/* retrieve state */
+	RNA_pointer_create(&sc->id, &RNA_SpaceNLA, snla, &spaceptr);
+	
+	/* create menu */
+	uiItemO(layout, NULL, ICON_MENU_PANEL, "NLAEDIT_OT_properties");
+	
+	uiItemS(layout);
+	
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	
+	if (snla->flag & SNLA_DRAWTIME)
+		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
+	else
+		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
+
+	uiItemS(layout);
+	
+	if (scene->flag & SCE_NLA_EDIT_ON) 
+		uiItemO(layout, NULL, 0, "NLAEDIT_OT_tweakmode_exit");
+	else
+		uiItemO(layout, NULL, 0, "NLAEDIT_OT_tweakmode_enter");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLA_OT_view_all");
+	
+	if (sa->full) 
+		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else 
+		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 
-static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void nla_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	ScrArea *curarea= CTX_wm_area(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_select_all_toggle");
+	uiItemBooleanO(layout, "Invert All", 0, "NLAEDIT_OT_select_all_toggle", "invert", 1);
 	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_viewmenu, NULL);
+	uiItemS(layout);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nothing yet", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_select_border");
+	uiItemBooleanO(layout, "Border Axis Range", 0, "NLAEDIT_OT_select_border", "axis_range", 1);
 }
+
+static void nla_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	// XXX these operators may change for NLA...
+	uiItemEnumO(layout, "Grab/Move", 0, "TFM_OT_transform", "mode", TFM_TIME_TRANSLATE);
+	uiItemEnumO(layout, "Extend", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
+	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
+}
+
+static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLA_OT_add_tracks");
+	uiItemBooleanO(layout, "Add Tracks Above Selected", 0, "NLA_OT_add_tracks", "above_selected", 1);
+	
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_split");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_delete");
+}
+
+/* ------------------ */
 
 static void do_nla_buttons(bContext *C, void *arg, int event)
 {
@@ -132,9 +182,17 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 		int xmax;
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco-2, xmax-3, 24, "");
-		xco+=XIC+xmax;
+		uiDefMenuBut(block, nla_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Select");
+		uiDefMenuBut(block, nla_selectmenu, NULL, "Select", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Edit");
+		uiDefMenuBut(block, nla_editmenu, NULL, "Edit", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
