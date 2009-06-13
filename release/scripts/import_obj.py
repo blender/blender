@@ -2,7 +2,7 @@
  
 """
 Name: 'Wavefront (.obj)...'
-Blender: 248
+Blender: 249
 Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
@@ -40,7 +40,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import *
+from Blender import Mesh, Draw, Window, Texture, Material, sys, Mathutils
 import bpy
 import BPyMesh
 import BPyImage
@@ -614,6 +614,14 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 	ob = scn.objects.new(cu)
 	new_objects.append(ob)
 	
+def transform_tuples(verts_loc, matrix):
+	vec = Mathutils.Vector(0.0,0.0,0.0)
+	def rotvec(v):
+		vec[:] = v
+		return tuple(vec * matrix)
+	
+	verts_loc[:] = [rotvec(v) for v in verts_loc]
+
 
 def strip_slash(line_split):
 	if line_split[-1][-1]== '\\':
@@ -651,6 +659,7 @@ def load_obj(filepath,
 						 SPLIT_OBJECTS= True, 
 						 SPLIT_GROUPS= True, 
 						 SPLIT_MATERIALS= True, 
+						 ROTATE_X90= True, 
 						 IMAGE_SEARCH=True,
 						 POLYGROUPS=False):
 	'''
@@ -921,6 +930,8 @@ def load_obj(filepath,
 	print '%.4f sec' % (time_new-time_sub)
 	time_sub= time_new
 	
+	if not ROTATE_X90:
+		transform_tuples(verts_loc, Mathutils.RotationMatrix(-90, 3, 'x'))
 	
 	# deselect all
 	scn = bpy.data.scenes.active
@@ -962,6 +973,11 @@ def load_obj(filepath,
 		for ob in new_objects:
 			ob.setSize(scale, scale, scale)
 	
+	# Better rotate the vert locations
+	#if not ROTATE_X90:
+	#	for ob in new_objects:
+	#		ob.RotX = -1.570796326794896558
+	
 	time_new= sys.time()
 	
 	print '%.4f sec' % (time_new-time_sub)
@@ -975,7 +991,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
-	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
+	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
@@ -987,6 +1003,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	IMAGE_SEARCH= Draw.Create(1)
 	POLYGROUPS= Draw.Create(0)
 	KEEP_VERT_ORDER= Draw.Create(1)
+	ROTATE_X90= Draw.Create(1)
 	
 	
 	# Get USER Options
@@ -1073,7 +1090,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			ui_x -= 165
 			ui_y -= 90
 			
-			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
+			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 			
 			Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
 			Draw.BeginAlign()
@@ -1084,13 +1101,15 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			
 			Draw.Label('Separate objects by OBJ...', ui_x+9, ui_y+110, 220, 20)
 			Draw.BeginAlign()
-			SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 70, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
-			SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+79, ui_y+89, 70, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-			SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+149, ui_y+89, 70, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
+			SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
+			SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
+			SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
 			Draw.EndAlign()
 			
 			# Only used for user feedback
-			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+229, ui_y+89, 110, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
+			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+184, ui_y+89, 113, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
+			
+			ROTATE_X90 = Draw.Toggle('-X90', EVENT_REDRAW, ui_x+302, ui_y+89, 38, 21, ROTATE_X90.val, 'Rotate X 90.')
 			
 			Draw.Label('Options...', ui_x+9, ui_y+60, 211, 20)
 			CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 130, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
@@ -1145,6 +1164,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			  SPLIT_OBJECTS.val,\
 			  SPLIT_GROUPS.val,\
 			  SPLIT_MATERIALS.val,\
+			  ROTATE_X90.val,\
 			  IMAGE_SEARCH.val,\
 			  POLYGROUPS.val
 			)
@@ -1158,6 +1178,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		  SPLIT_OBJECTS.val,\
 		  SPLIT_GROUPS.val,\
 		  SPLIT_MATERIALS.val,\
+		  ROTATE_X90.val,\
 		  IMAGE_SEARCH.val,\
 		  POLYGROUPS.val
 		)
@@ -1176,7 +1197,7 @@ if __name__=='__main__' and not DEBUG:
 	else:
 		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
 
-# For testing compatibility
+	# For testing compatibility
 '''
 else:
 	# DEBUG ONLY
@@ -1197,7 +1218,7 @@ else:
 			print 'Importing', obj_file, '\nNUMBER', i, 'of', len(files)
 			newScn= bpy.data.scenes.new(os.path.basename(obj_file))
 			newScn.makeCurrent()
-			load_obj(obj_file, False)
+			load_obj(obj_file, False, IMAGE_SEARCH=0)
 
 	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 '''
