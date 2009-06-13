@@ -140,12 +140,47 @@ static PyObject *pyop_dict_from_event(wmEvent *event)
 /* TODO - a whole traceback would be ideal */
 static void pyop_error_report(ReportList *reports)
 {
+	const char *string;
 	PyObject *exception, *v, *tb;
 	PyErr_Fetch(&exception, &v, &tb);
 	if (exception == NULL)
 		return;
+	
+	/* get the string from the exception */
+	if(v==NULL) {
+		string= "py exception not set";
+	}
+	else if(string = _PyUnicode_AsString(v)) {
+		/* do nothing */
+	}
+	else { /* a valid PyObject but not a string, try get its string value */
+		PyObject *repr;
+		
+		Py_INCREF(v); /* incase clearing the error below somehow frees this */
+		PyErr_Clear();
+		
+		repr= PyObject_Repr(v);
+		
+		if(repr==NULL) {
+			PyErr_Clear();
+			string= "py exception found but can't be converted";
+		}
+		else {
+			string = _PyUnicode_AsString(repr);
+			Py_DECREF(repr);
+			
+			if(string==NULL) { /* unlikely to happen */
+				PyErr_Clear();
+				string= "py exception found but can't be converted";
+			}
+		}
+		
+		Py_DECREF(v); /* finished dealing with v, PyErr_Clear isnt called anymore so can decref it */
+	}
+	/* done getting the string */
+	
 	/* Now we know v != NULL too */
-	BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(v));
+	BKE_report(reports, RPT_ERROR, string);
 	
 	PyErr_Print();
 }
