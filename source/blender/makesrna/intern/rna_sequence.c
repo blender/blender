@@ -36,6 +36,8 @@
 
 #include "BKE_sequence.h"
 
+#include "MEM_guardedalloc.h"
+
 #ifdef RNA_RUNTIME
 
 static int rna_SequenceEditor_name_length(PointerRNA *ptr)
@@ -99,7 +101,7 @@ static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
 }
 
 /* properties that need to allocate structs */
-static int rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
+static void rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	int c;
@@ -119,7 +121,7 @@ static int rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
+static void rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	if(value) {
@@ -132,7 +134,7 @@ static int rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_SequenceEditor_use_translation_set(PointerRNA *ptr, int value)
+static void rna_SequenceEditor_use_translation_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	if(value) {
@@ -145,7 +147,7 @@ static int rna_SequenceEditor_use_translation_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_SequenceEditor_use_crop_set(PointerRNA *ptr, int value)
+static void rna_SequenceEditor_use_crop_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	if(value) {
