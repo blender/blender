@@ -45,9 +45,9 @@ class DATA_PT_skeleton(DataButtonsPanel):
 			
 			sub = split.column()
 			sub.itemL(text="Layers:")
-			sub.itemL(text="LAYERS")
-			#sub.itemR(arm, "layer")
-			#sub.itemR(arm, "layer_protection")
+			sub.template_layers(arm, "layer")
+			sub.itemL(text="Protected Layers:")
+			sub.template_layers(arm, "layer_protection")
 
 class DATA_PT_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_display"

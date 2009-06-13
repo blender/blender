@@ -615,6 +615,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
+void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

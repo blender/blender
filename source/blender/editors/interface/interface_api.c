@@ -230,5 +230,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "ramp", "ColorRamp", "", "Color ramp pointer.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	
+	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
+	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of pointer property in data.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
