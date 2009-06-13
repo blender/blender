@@ -7813,10 +7813,12 @@ static void meshdeformModifier_deformVerts(
 {
 	DerivedMesh *dm;
 
-	if(!derivedData && ob->type==OB_MESH)
-		dm= CDDM_from_mesh(ob->data, ob);
-	else
-		dm= derivedData;
+	if (!derivedData) {
+		dm= get_original_dm(ob, NULL, 0);
+		if (dm == NULL) return;
+	}
+	else dm= derivedData;
+
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
