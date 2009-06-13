@@ -1382,21 +1382,29 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
-
-static void SaveState(void)
+static ListBase queue_back;
+static void SaveState(bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
+	
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	GPU_state_init();
 
 	if(G.f & G_TEXTUREPAINT)
 		GPU_paint_set_mipmap(1);
-
+	
+	queue_back= win->queue;
+	
+	win->queue.first= win->queue.last= NULL;
+	
 	//XXX waitcursor(1);
 }
 
-static void RestoreState(void)
+static void RestoreState(bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
+	
 	if(G.f & G_TEXTUREPAINT)
 		GPU_paint_set_mipmap(0);
 
@@ -1407,34 +1415,33 @@ static void RestoreState(void)
 	//XXX reset_slowparents();
 	//XXX waitcursor(0);
 	//XXX G.qual= 0;
+	
+	win->queue= queue_back;
+	
 	glPopAttrib();
 }
 
 /* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(wmWindow *win, ScrArea *area, struct ARegion *ar, struct Scene *scene, struct Main* maggie,int always_use_expand_framing);
+extern void StartKetsjiShell(struct bContext *C,int always_use_expand_framing);
 
 
 static int game_engine_exec(bContext *C, wmOperator *unused)
 {
-	View3D *v3d= CTX_wm_view3d(C);
-	ScrArea *sa= CTX_wm_area(C); // curarea
-	ARegion *ar= CTX_wm_region(C);
-	Scene *sc, *startscene = CTX_data_scene(C);
+	Scene *startscene = CTX_data_scene(C);
 	
 #if GAMEBLENDER == 1
-	SaveState();
-	StartKetsjiShell(CTX_wm_window(C), sa, ar, startscene, CTX_data_main(C), 1);
-	RestoreState();
+	SaveState(C);
+	StartKetsjiShell(C, 1);
+	RestoreState(C);
 	
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
 	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
 #else
 	printf("GameEngine Disabled\n");
 #endif
-	
+	ED_area_tag_redraw(CTX_wm_area(C));
 	return OPERATOR_FINISHED;
 }
 
