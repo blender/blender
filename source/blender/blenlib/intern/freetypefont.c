@@ -301,9 +301,12 @@ int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 			tf->pf->size,
 			0,
 			&face);			
+		if (err) return FALSE;
 	}
-	else
-		err= TRUE;
+	else {
+		err = TRUE;
+		return FALSE;
+	}
 		
 	// Read the char
 	freetypechar_to_vchar(face, charcode, vfont->data);
