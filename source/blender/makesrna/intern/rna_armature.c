@@ -32,6 +32,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
@@ -294,6 +296,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, NULL);
 	
 		/* layer protection */
 	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_NONE);
