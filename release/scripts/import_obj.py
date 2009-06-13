@@ -40,7 +40,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import Mesh, Draw, Window, Texture, Material, sys, Mathutils
+from Blender import Mesh, Draw, Window, Texture, Material, sys
 import bpy
 import BPyMesh
 import BPyImage
@@ -615,14 +615,6 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 	
 	ob = scn.objects.new(cu)
 	new_objects.append(ob)
-	
-def transform_tuples(verts_loc, matrix):
-	vec = Mathutils.Vector(0.0,0.0,0.0)
-	def rotvec(v):
-		vec[:] = v
-		return tuple(vec * matrix)
-	
-	verts_loc[:] = [rotvec(v) for v in verts_loc]
 
 
 def strip_slash(line_split):
@@ -934,7 +926,7 @@ def load_obj(filepath,
 	time_sub= time_new
 	
 	if not ROTATE_X90:
-		transform_tuples(verts_loc, Mathutils.RotationMatrix(-90, 3, 'x'))
+		verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 	
 	# deselect all
 	scn = bpy.data.scenes.active
