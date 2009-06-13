@@ -338,6 +338,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
+				ketsjiengine->SetCameraOverrideLens(v3d->lens);
 			}
 			
 			// create a scene converter, create and convert the startingscene

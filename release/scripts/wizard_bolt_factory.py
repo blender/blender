@@ -8,7 +8,7 @@ Tooltip: 'Create models of various types of screw fasteners.'
 """
 
 __author__ = " Aaron Keith (Spudmn) "
-__version__ = "2.00 2009/05/22"
+__version__ = "2.02 2009/06/10"
 __url__ = ["Author's site,http://sourceforge.net/projects/boltfactory/", "Blender,http://wiki.blender.org/index.php/Extensions:Py/Scripts/Manual/Misc/Bolt_Factory"]
 __bpydoc__ = """\
 Bolt_Factory.py 
@@ -22,6 +22,13 @@ with default settings.
 
 
 History:
+ V2.02 10/06/09 by Aaron Keith
+
+    -Added changes made by the Blender team.
+
+ V2.01 26/05/09 by Aaron Keith
+
+    -    Fixed normal's on Lock Nut
 
 V2.00 22/05/09 by Aaron Keith
 
@@ -2005,7 +2012,7 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
 
     return Move_Verts_Up_Z(sVerts,0),faces,Lowest_Z_Vert
 
@@ -2059,7 +2066,7 @@ def add_Nylon_Part(OUTSIDE_RADIUS,Z_LOCATION = 0):
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)  #add the start verts to the Spin verts to complete the loop
     
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
 
     return sVerts,faces,0 - Lowest_Z_Vert
 
@@ -2594,8 +2601,8 @@ def Create_Tab(X1,Y1,X2,Y2,Title,Buttons): # X1,Y1 = Top Left X2,Y2 = Bottom Rig
     
 def Dispaly_Title_Bar(Y_POS,CONTROL_HEIGHT):
     CONTROL_WIDTH = 250
-    Create_Tab(3,Y_POS,CONTROL_WIDTH,Y_POS -CONTROL_HEIGHT,"Bolt Factory V2.00",Model_Type)
-    
+    Create_Tab(3,Y_POS,CONTROL_WIDTH,Y_POS -CONTROL_HEIGHT,"Bolt Factory V2.02",Model_Type)
+   
     
       
 def Dispaly_Preset_Tab(Y_POS,CONTROL_HEIGHT):

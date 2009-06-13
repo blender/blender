@@ -1,4 +1,3 @@
-#!BPY
 # flt_properties.py. For setting default OpenFLight ID property types
 # Copyright (C) 2007 Blender Foundation
 #

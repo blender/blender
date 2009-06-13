@@ -1016,14 +1016,21 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 		}
 		if (body)
 		{
-			//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
-			//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
-			const btVector3& angFac = body->getAngularFactor();
-			btVector3 tmpFac(0,0,1);
-			body->setAngularFactor(tmpFac);
-			body->applyTorque(torque);
-			body->setAngularFactor(angFac);
-		}
+			if 	(m_cci.m_bRigid)
+			{
+				body->applyTorque(torque);
+			}
+			else
+			{
+				//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
+				//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
+				const btVector3& angFac = body->getAngularFactor();
+				btVector3 tmpFac(0,0,1);
+				body->setAngularFactor(tmpFac);
+				body->applyTorque(torque);
+				body->setAngularFactor(angFac);
+			} 
+		} 
 	}
 }
 

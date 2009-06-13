@@ -1857,8 +1857,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					strand->totvert++;
 				}
 				else{
-					sd.first = 0;
-					sd.time = time;
 					sd.size = hasize;
 
 					if(k==1){
@@ -1866,7 +1864,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						sd.time = 0.0f;
 						VECSUB(loc0,loc1,loc);
 						VECADD(loc0,loc1,loc0);
+
+						render_new_particle(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed);
 					}
+
+					sd.first = 0;
+					sd.time = time;
 
 					if(k)
 						render_new_particle(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
@@ -2558,7 +2561,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	if(need_orco) orcobase= orco= get_object_orco(re, ob);
 
 	displist.first= displist.last= 0;
-	makeDispListSurf(re->scene, ob, &displist, 1);
+	makeDispListSurf(re->scene, ob, &displist, 1, 0);
 
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
