@@ -734,13 +734,28 @@ static void rna_def_material_sss(BlenderRNA *brna)
 void rna_def_material_specularity(StructRNA *srna)
 {
 	PropertyRNA *prop;
-
+	
+	static EnumPropertyItem prop_spec_shader_items[] = {
+		{MA_SPEC_COOKTORR, "COOKTORR", "CookTorr", ""},
+		{MA_SPEC_PHONG, "PHONG", "Phong", ""},
+		{MA_SPEC_BLINN, "BLINN", "Blinn", ""},
+		{MA_SPEC_TOON, "TOON", "Toon", ""},
+		{MA_SPEC_WARDISO, "WARDISO", "WardIso", ""},
+		{0, NULL, NULL, NULL}};
+	
+	prop= RNA_def_property(srna, "spec_shader", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "spec_shader");
+	RNA_def_property_enum_items(prop, prop_spec_shader_items);
+	RNA_def_property_ui_text(prop, "Specular Shader Model", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+	
 	prop= RNA_def_property(srna, "specularity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Specularity Intensity", "");
 
 	/* XXX: this field is also used for Halo hardness. should probably be fixed in DNA */
+	/* I guess it's fine. Specular is disabled when mat type is Halo. --DingTo */
 	prop= RNA_def_property(srna, "specular_hardness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);

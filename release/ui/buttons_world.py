@@ -12,26 +12,24 @@ class WorldButtonsPanel(bpy.types.Panel):
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
 
-	def poll(self, context):
-		return (context.scene or context.world)
-
 	def draw(self, context):
 		layout = self.layout
-
 		world = context.world
+		
 		layout.template_preview(world)
 	
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
 
 	def poll(self, context):
-		return (context.scene or context.world)
+		return (context.scene != None)
 
 	def draw(self, context):
+		layout = self.layout
+		
 		scene = context.scene
 		world = context.world
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
@@ -61,8 +59,8 @@ class WORLD_PT_color_correction(WorldButtonsPanel):
 	__label__ = "Color Correction"
 
 	def draw(self, context):
-		world = context.world
 		layout = self.layout
+		world = context.world
 
 		row = layout.row()
 		row.itemR(world, "exposure")
@@ -72,14 +70,15 @@ class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		layout = self.layout
 		layout.itemR(world.mist, "enabled", text="")
 
 	def draw(self, context):
-		world = context.world
 		layout = self.layout
+		world = context.world
+
 		layout.active = world.mist.enabled
 
 		flow = layout.column_flow()
@@ -95,14 +94,15 @@ class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		layout = self.layout
 		layout.itemR(world.stars, "enabled", text="")
 
 	def draw(self, context):
-		world = context.world
 		layout = self.layout
+		world = context.world
+
 		layout.active = world.stars.enabled
 
 		flow = layout.column_flow()
@@ -115,24 +115,26 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
 
 	def draw_header(self, context):
+		layout = self.layout
 		world = context.world
 
-		layout = self.layout
 		layout.itemR(world.ambient_occlusion, "enabled", text="")
 
 	def draw(self, context):
-		world = context.world
-		ao = world.ambient_occlusion
 		layout = self.layout
+		ao = context.world.ambient_occlusion
+		
 		layout.active = ao.enabled
 		
 		layout.itemR(ao, "gather_method", expand=True)
 		
 		if ao.gather_method == 'RAYTRACE':
 			split = layout.split()
+			
 			col = split.column()
 			col.itemR(ao, "samples")
 			col.itemR(ao, "distance")
+			
 			col = split.column()
 			col.itemR(ao, "falloff")
 			colsub = col.column()
@@ -151,10 +153,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 						
 		if ao.gather_method == 'APPROXIMATE':
 			split = layout.split()
+			
 			col = split.column()
 			col.itemR(ao, "passes")
 			col.itemR(ao, "error_tolerance", text="Error")
 			col.itemR(ao, "correction")
+			
 			col = split.column() 
 			col.itemR(ao, "falloff")
 			colsub = col.column()
