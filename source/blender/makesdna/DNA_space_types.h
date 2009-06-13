@@ -272,7 +272,8 @@ typedef struct SpaceText {
 	int tabnumber;
 
 	int showsyntax;
-	int overwrite;
+	short overwrite;
+	short live_edit; /* run python while editing, evil */
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
