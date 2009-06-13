@@ -194,8 +194,8 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
-extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);/*rcruiz*/
+extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie,int always_use_expand_framing);
+extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, int always_use_expand_framing);/*rcruiz*/
 
 /**
  * When the mipmap setting changes, we want to redraw the view right
@@ -556,7 +556,7 @@ void start_game(void)
 	space_set_commmandline_options();
 
 	SaveState();
-	StartKetsjiShell(curarea, startscene->id.name+2, G.main,G.sipo, 1);
+	StartKetsjiShell(curarea, startscene->id.name+2, G.main, 1);
 	RestoreState();
 
 	/* Restart BPY - unload the game engine modules. */
@@ -634,7 +634,7 @@ void start_RBSimulation(void)
 	space_set_commmandline_options();
 
 	SaveState();
-	StartKetsjiShellSimulation(curarea, startscene->id.name+2, G.main,G.sipo, 1);
+	StartKetsjiShellSimulation(curarea, startscene->id.name+2, G.main, 1);
 	RestoreState();
 
 	/* Restart BPY - unload the game engine modules. */

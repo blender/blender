@@ -313,7 +313,11 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
+#if PY_VERSION_HEX >= 0x03000000 // TODO - richcmp
+	NULL,
+#else
 	( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
+#endif
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
