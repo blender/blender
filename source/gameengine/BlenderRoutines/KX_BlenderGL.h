@@ -33,14 +33,15 @@
 extern "C" {
 #endif //__cplusplus
 
-struct ScrArea;
+struct wmWindow;
+struct ARegion;
 
 // special swapbuffers, that takes care of which area (viewport) needs to be swapped
-void	BL_SwapBuffers();
+void	BL_SwapBuffers(struct wmWindow *win);
 
 void	BL_warp_pointer(int x,int y);
 
-void	BL_MakeScreenShot(struct ScrArea *area, const char* filename);
+void	BL_MakeScreenShot(struct ARegion *ar, const char* filename);
 
 void	BL_HideMouse();
 void	BL_NormalMouse();

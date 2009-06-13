@@ -88,10 +88,10 @@
 extern "C" {
 #endif
 //XXX #include "BSE_headerbuttons.h"
-void update_for_newframe();
 #ifdef __cplusplus
 }
 #endif
+
 
 static BlendFileData *load_game_data(char *filename)
 {
@@ -111,17 +111,17 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct ScrArea *area,
+extern "C" void StartKetsjiShell(struct wmWindow *win,
+								 struct ScrArea *area,
 								 struct ARegion *ar,
-								 char* scenename,
+								 Scene *scene,
 								 struct Main* maggie1,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
-	Scene *scene= NULL; // XXX give as arg
 	Main* blenderdata = maggie1;
 
-	char* startscenename = scenename;
+	char* startscenename = scene->id.name+2;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE], oldsce[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
@@ -155,7 +155,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -235,7 +235,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 		for (i = 0; i < 16; i++)
 		{
-			float *projmat_linear; 			//XXX = (float*) area->winmat;
+			float *projmat_linear= (float*) rv3d->winmat;
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
@@ -423,7 +423,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					exitrequested = ketsjiengine->GetExitCode();
 					
 					// kick the engine
-					bool render = ketsjiengine->NextFrame();
+					bool render = ketsjiengine->NextFrame(); // XXX 2.5 Bug, This is never true! FIXME-  Campbell
 					
 					if (render)
 					{
@@ -434,7 +434,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					// test for the ESC key
 					while (0) //XXX while (qtest())
 					{
-						short val; 
+						short val = 0;
 						unsigned short event = 0; //XXX extern_qread(&val);
 						
 						if (keyboarddevice->ConvertBlenderEvent(event,val))
@@ -444,9 +444,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 							* should this really be?
 						*/
 						if (event==MOUSEX) {
-							val = 0;//XXX val - scrarea_get_win_x(area);
+							val = val - ar->winrct.xmin;
 						} else if (event==MOUSEY) {
-							val = 0;//XXX scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
+							val = ar->winy - (val - ar->winrct.ymin) - 1;
 						}
 						
 						mousedevice->ConvertBlenderEvent(event,val);
@@ -557,7 +557,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	PyGILState_Release(gilstate);
 }
 
-extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
+extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
+								 struct ScrArea *area,
 								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,
@@ -595,7 +596,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		bool usemat = false;
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -648,7 +649,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			cframe=blscene->r.cfra;
 			startFrame = blscene->r.sfra;
 			blscene->r.cfra=startFrame;
-			update_for_newframe();
+			// update_for_newframe(); // XXX scene_update_for_newframe wont cut it!
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
 		}
 
@@ -722,7 +723,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 					// kick the engine
 					ketsjiengine->NextFrame();
 				    blscene->r.cfra=blscene->r.cfra+1;
-				    update_for_newframe();
+				    // update_for_newframe(); // XXX scene_update_for_newframe wont cut it
 					
 				}
 				exitstring = ketsjiengine->GetExitString();

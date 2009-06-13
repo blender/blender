@@ -81,10 +81,9 @@
 
 #include "PyObjectPlus.h"
 
-//XXX
-#if 0
-
 #include "KX_PythonInitTypes.h" 
+
+#if 0 //XXX25
 
 /* we only need this to get a list of libraries from the main struct */
 #include "DNA_ID.h"
@@ -97,7 +96,7 @@ extern "C" {
 	#include "BGL.h"
 #endif
 }
-#endif
+#endif //XXX25
 
 #include "marshal.h" /* python header for loading/saving dicts */
 
@@ -1606,7 +1605,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	//importBlenderModules()
 	
 	setSandbox(level);
-	/* XXX 2.5 initPyTypes(); */
+	initPyTypes();
 	
 	/* XXX 2.5 bpy_import_main_set(maggie); */
 	
@@ -1645,7 +1644,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_FrozenFlag=1;
 
 	setSandbox(level);
-	/* XXX 2.5 initPyTypes(); */
+	initPyTypes();
 	
 	/* XXX 2.5 bpy_import_main_set(maggie); */
 	
