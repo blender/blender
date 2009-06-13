@@ -115,7 +115,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie1,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -342,7 +341,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
@@ -562,7 +561,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
     int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -661,7 +659,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=true;
 			
