@@ -166,12 +166,13 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	del temp_mtl
 	
 	#Create new materials
-	for name in unique_materials.iterkeys():
-		unique_materials[name]= bpy.data.materials.new(name)
-		
-		unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
+	for name in unique_materials: # .keys()
+		if name != None:
+			unique_materials[name]= bpy.data.materials.new(name)
+			unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
 	unique_materials[None]= None
+	unique_material_images[None]= None, False
 	
 	for libname in material_libs:
 		mtlpath= DIR + libname
