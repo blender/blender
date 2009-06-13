@@ -563,6 +563,8 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 		return
 	
 	cu = bpy.data.curves.new(name, 'Curve')
+	cu.flag |= 1 # 3D curve
+	
 	nu = None
 	for pt in curv_idx:
 		
@@ -907,7 +909,8 @@ def load_obj(filepath,
 			context_nurbs['deg']= [int(i) for i in line.split()[1:]]
 		elif line.startswith('end'):
 			# Add the nurbs curve
-			context_nurbs['name'] = context_object
+			if context_object:
+				context_nurbs['name'] = context_object
 			nurbs.append(context_nurbs)
 			context_nurbs = {}
 			context_parm = ''

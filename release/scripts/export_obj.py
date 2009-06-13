@@ -193,6 +193,7 @@ def test_nurbs_compat(ob):
 	return False
 
 def write_nurb(file, ob, ob_mat):
+	tot_verts = 0
 	cu = ob.data
 	
 	# use negative indices
@@ -222,7 +223,7 @@ def write_nurb(file, ob, ob_mat):
 			pt = Vector(pt[0], pt[1], pt[2]) * ob_mat
 			file.write('v %.6f %.6f %.6f\n' % (pt[0], pt[1], pt[2]))
 			pt_num += 1
-		
+		tot_verts += pt_num
 		
 		file.write('g %s\n' % (fixName(ob.name))) # fixName(ob.getData(1)) could use the data name too
 		file.write('cstype bspline\n') # not ideal, hard coded
@@ -236,7 +237,7 @@ def write_nurb(file, ob, ob_mat):
 				pt_num += 1
 				curve_ls.append(-1)
 			else:
-				pt_num += DEG_ORDER_U-1
+				pt_num += DEG_ORDER_U
 				curve_ls = curve_ls + curve_ls[0:DEG_ORDER_U]
 		
 		file.write('curv 0.0 1.0 %s\n' % (' '.join( [str(i) for i in curve_ls] ))) # Blender has no U and V values for the curve
@@ -254,6 +255,8 @@ def write_nurb(file, ob, ob_mat):
 		file.write('parm u %s\n' % ' '.join( [str(i) for i in parm_ls] ))
 
 		file.write('end\n')
+	
+	return tot_verts
 
 def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
@@ -337,7 +340,6 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 	
 	globalNormals = {}
 	
-	
 	# Get all meshes
 	for ob_main in objects:
 		for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
@@ -347,7 +349,7 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 				if EXPORT_ROTX90:
 					ob_mat = ob_mat * mat_xrot90
 				
-				write_nurb(file, ob, ob_mat)
+				totverts += write_nurb(file, ob, ob_mat)
 				
 				continue
 			# end nurbs
