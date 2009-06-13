@@ -191,6 +191,25 @@ double Armature::getMaxJointChange()
 	return maxJoint;
 }
 
+double Armature::getMaxEndEffectorChange()
+{
+	if (!m_finalized)
+		return 0.0;
+	double maxDelta = 0.0;
+	double delta;
+	Twist twist;
+	for (unsigned int i = 0; i<m_neffector; i++) {
+		twist = diff(m_effectors[i].pose, m_effectors[i].oldpose);
+		delta = twist.rot.Norm();
+		if (delta > maxDelta)
+			maxDelta = delta;
+		delta = twist.vel.Norm();
+		if (delta > maxDelta)
+			maxDelta = delta;
+	}
+	return maxDelta;
+}
+
 int Armature::addConstraint(const std::string& segment_name, ConstraintCallback _function, void* _param, bool _freeParam, bool _substep)
 {
 	SegmentMap::const_iterator segment_it = m_tree.getSegment(segment_name);
@@ -414,6 +433,9 @@ void Armature::updateControlOutput(const Timestamp& timestamp)
 	if (!timestamp.substep) {
 		// save previous joint state for getMaxJointChange()
 		memcpy(&m_oldqKdl(0), &m_qKdl(0), sizeof(double)*m_qKdl.rows());
+		for (unsigned int i=0; i<m_neffector; i++) {
+			m_effectors[i].oldpose = m_effectors[i].pose;
+		}
 	}
 
 	JointConstraintList::iterator it;

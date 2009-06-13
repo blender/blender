@@ -398,7 +398,8 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 				cs->task->getMaxTimestep(timesubstep);
 			}
 			// use substep that are dividers of timestep for more regularity
-			timesubstep = timestep/(1.0+floor((timestep/timesubstep)-0.333));
+			maxsubstep = 2.0*floor(timestep/2.0/timesubstep-0.66666);
+			timesubstep = (maxsubstep < 0.0) ? timestep : timestep/(2.0+maxsubstep);
 			if (timesubstep >= timeleft-(m_minstep/2.0)) {
 				timesubstep = timeleft;
 				numsubstep = 1;

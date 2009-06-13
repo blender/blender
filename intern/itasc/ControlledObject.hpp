@@ -41,7 +41,7 @@ public:
 
     virtual const e_matrix& getCq() const{return m_Cq;};
 
-    virtual const e_matrix& getWq() const {return m_Wq;};
+    virtual e_matrix& getWq() {return m_Wq;};
     virtual void setWq(const e_matrix& Wq_in){m_Wq = Wq_in;};
 
     virtual const e_vector& getWy() const {return m_Wy;};

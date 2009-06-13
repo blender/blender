@@ -27,6 +27,7 @@ public:
 	// specific limit constraint on joint
 	int addLimitConstraint(const std::string& segment_name, double _min, double _max, double _threshold, double _maxWeight=1000.0, double _slope=1.0);
 	double getMaxJointChange();
+	double getMaxEndEffectorChange();
 	bool getSegment(const std::string& segment_name, const unsigned int q_size, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip);
 	bool getRelativeFrame(Frame& result, const std::string& segment_name, const std::string& base_name=m_root);
 
@@ -42,8 +43,9 @@ public:
 
 	struct Effector_struct {
 		std::string name;
+		Frame oldpose;
 		Frame pose;
-		Effector_struct(const std::string& _name) {name = _name; pose = F_identity;}
+		Effector_struct(const std::string& _name) {name = _name; oldpose = pose = F_identity;}
 	};
 	typedef std::vector<Effector_struct> EffectorList;
 

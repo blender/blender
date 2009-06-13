@@ -106,6 +106,7 @@ void MovingFrame::updateCoordinates(const Timestamp& timestamp)
 		} else {
 			// first position in cache, no velocity as we cannot interpolate
 			m_internalPose = m_nextPose;
+			m_velocity = Twist::Zero();
 			m_xudot = e_zero_vector(6);
 			// recompute the jacobian
 			updateJacobian();

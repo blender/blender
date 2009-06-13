@@ -486,6 +486,8 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 	std::string  joint;
 	std::string  root("root");
 	std::string  parent;
+	std::vector<double> weights;
+	double weight[3];
 	// assume uniform scaling and take Y scale as general scale for the armature
 	float scale = VecLength(ob->obmat[1]);
 	double X, Y, Z;
@@ -523,7 +525,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		XY  ==> RX+RY(tip)
 		XZ  ==> RX+RZ(tip)
 		YZ  ==> RZ+RY(tip)
-		XYZ ==> RX+RZ+RY(tip)
+		XYZ ==> full spherical unless there are limits, in which case RX+RZ+RY(tip)
 		In case of stretch, tip=(0,0,0) and there is an additional TY joint
 		The frame at last of these joints represents the tail of the bone. 
 		The head is computed by a reverse translation on Y axis of the bone length
@@ -539,17 +541,17 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		*/
 		KDL::Frame tip(iTaSC::F_identity);
 		Vector3 *fl = bone->bone_mat;
-		KDL::Rotation bonerot(
+		KDL::Frame head(KDL::Rotation(
 			fl[0][0], fl[1][0], fl[2][0],
 			fl[0][1], fl[1][1], fl[2][1],
-			fl[0][2], fl[1][2], fl[2][2]);
-		
+			fl[0][2], fl[1][2], fl[2][2]),
+			KDL::Vector(bone->head[0], bone->head[1], bone->head[2]));
+
 		// take scaling into account
 		length= bone->length*scale;
 		parent = (a > 0) ? ikscene->channels[tree->parent[a]].bone : root;
 		// first the fixed segment to the bone head
-		if (VecLength(bone->head) > KDL::epsilon) {
-			KDL::Frame head(KDL::Vector(bone->head[0], bone->head[1], bone->head[2]));
+		if (head.p.Norm() > KDL::epsilon || head.M.GetRot().Norm() > KDL::epsilon) {
 			joint = bone->name;
 			joint += ":H";
 			ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, head);
@@ -560,6 +562,9 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			tip.p[1] = length;
 		}
 		joint = bone->name;
+		weight[0] = 1.0/(1.0-pchan->stiffness[0]);
+		weight[1] = 1.0/(1.0-pchan->stiffness[1]);
+		weight[2] = 1.0/(1.0-pchan->stiffness[2]);
 		switch (flag)
 		{
 		case 0:
@@ -569,85 +574,103 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			break;
 		case IK_XDOF:
 			// RX only, get the X rotation
-			X = EulerAngleFromMatrix(bonerot, 0);
+			//X = EulerAngleFromMatrix(bonerot, 0);
 			joint += ":RX";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X, tip);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0, tip);
+			weights.push_back(weight[0]);
 			break;
 		case IK_YDOF:
 			// RY only, get the Y rotation
-			Y = ComputeTwist(bonerot);
+			//Y = ComputeTwist(bonerot);
 			joint += ":RY";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y, tip);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0, tip);
+			weights.push_back(weight[1]);
 			break;
 		case IK_ZDOF:
-			// RX only, get the X rotation
-			Z = EulerAngleFromMatrix(bonerot, 2);
+			// RZ only, get the Zz rotation
+			//Z = EulerAngleFromMatrix(bonerot, 2);
 			joint += ":RZ";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z, tip);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0, tip);
+			weights.push_back(weight[2]);
 			break;
 		case IK_XDOF|IK_YDOF:
-			Y = ComputeTwist(bonerot);
-			RemoveEulerAngleFromMatrix(bonerot, Y, 1);
-			X = EulerAngleFromMatrix(bonerot, 0);
+			//Y = ComputeTwist(bonerot);
+			//RemoveEulerAngleFromMatrix(bonerot, Y, 1);
+			//X = EulerAngleFromMatrix(bonerot, 0);
 			joint += ":RX";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0);
+			weights.push_back(weight[0]);
 			if (ret) {
 				parent = joint;
 				joint = bone->name;
 				joint += ":RY";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0);
+				weights.push_back(weight[1]);
 			}
 			break;
 		case IK_XDOF|IK_ZDOF:
 			// RX+RZ
-			Z = EulerAngleFromMatrix(bonerot, 2);
-			RemoveEulerAngleFromMatrix(bonerot, Z, 2);
-			X = EulerAngleFromMatrix(bonerot, 0);
+			//Z = EulerAngleFromMatrix(bonerot, 2);
+			//RemoveEulerAngleFromMatrix(bonerot, Z, 2);
+			//X = EulerAngleFromMatrix(bonerot, 0);
 			joint += ":RX";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0);
+			weights.push_back(weight[0]);
 			if (ret) {
 				parent = joint;
 				joint = bone->name;
 				joint += ":RZ";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0);
+				weights.push_back(weight[2]);
 			}
 			break;
 		case IK_YDOF|IK_ZDOF:
 			// RZ+RY
-			Y = ComputeTwist(bonerot);
-			RemoveEulerAngleFromMatrix(bonerot, Y, 1);
-			Z = EulerAngleFromMatrix(bonerot, 2);
+			//Y = ComputeTwist(bonerot);
+			//RemoveEulerAngleFromMatrix(bonerot, Y, 1);
+			//Z = EulerAngleFromMatrix(bonerot, 2);
 			joint += ":RZ";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z);
+			ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0);
+			weights.push_back(weight[2]);
 			if (ret) {
 				parent = joint;
 				joint = bone->name;
 				joint += ":RY";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0);
+				weights.push_back(weight[1]);
 			}
 			break;
 		case IK_XDOF|IK_YDOF|IK_ZDOF:
 			// spherical joint
-			KDL::Vector rot = bonerot.GetRot();
-			joint += ":SJ";
-			ret = arm->addSegment(joint, parent, KDL::Joint::Sphere, rot(0), tip);
-			/*
-			GetEulerXYZ(bonerot, X, Y, Z);
-			joint += ":RX";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, X);
-			if (ret) {
-				parent = joint;
-				joint = bone->name;
-				joint += ":RY";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, Y);
+			if (pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_YLIMIT|BONE_IK_ZLIMIT)) {
+				// cannot use spherical joint in this case, decompose in several joints
+				//GetEulerXZY(bonerot, X, Z, Y);
+				joint += ":RX";
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0);
+				weights.push_back(weight[0]);
 				if (ret) {
 					parent = joint;
 					joint = bone->name;
 					joint += ":RZ";
-					ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, Z, tip);
+					ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0);
+					weights.push_back(weight[2]);
+					if (ret) {
+						parent = joint;
+						joint = bone->name;
+						joint += ":RY";
+						ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0, tip);
+						weights.push_back(weight[1]);
+					}
 				}
+			} 
+			else {
+				KDL::Vector rot(0.0,0.0,0.0);
+				joint += ":SJ";
+				ret = arm->addSegment(joint, parent, KDL::Joint::Sphere, rot(0), tip);
+				weights.push_back(weight[0]);
+				weights.push_back(weight[1]);
+				weights.push_back(weight[2]);
 			}
-			*/
 			break;
 		}
 		if (ret && hasstretch) {
@@ -655,29 +678,37 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			joint = bone->name;
 			joint += ":TY";
 			ret = arm->addSegment(joint, parent, KDL::Joint::TransY, length);
+			float ikstretch = pchan->ikstretch*pchan->ikstretch;
+			weight[1] = 1.0/(1.0-MIN2(1.0-ikstretch, 0.99));
+			weights.push_back(weight[1]);
 		}
 		if (!ret)
 			// error making the armature??
 			break;
 		// joint points to the segment that correspond to the bone per say
 		ikchan->bone = joint;
-		
-		//if (pchan->ikflag & BONE_IK_XLIMIT)
-		//	IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
-		//if (pchan->ikflag & BONE_IK_YLIMIT)
-		//	IK_SetLimit(seg, IK_Y, pchan->limitmin[1], pchan->limitmax[1]);
-		//if (pchan->ikflag & BONE_IK_ZLIMIT)
-		//	IK_SetLimit(seg, IK_Z, pchan->limitmin[2], pchan->limitmax[2]);
-		
-		//IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
-		//IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
-		//IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
-		
-		//if(tree->stretch && (pchan->ikstretch > 0.0)) {
-		//	float ikstretch = pchan->ikstretch*pchan->ikstretch;
-		//	IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
-		//	IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
-		//}
+		// in case of error
+		ret = false;
+		if ((flag & IK_XDOF) && (pchan->ikflag & BONE_IK_XLIMIT)) {
+			joint = bone->name;
+			joint += ":RX";
+			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[0], KDL::deg2rad*pchan->limitmax[0], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+				break;
+		}
+		if ((flag & IK_YDOF) && (pchan->ikflag & BONE_IK_YLIMIT)) {
+			joint = bone->name;
+			joint += ":RY";
+			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[1], KDL::deg2rad*pchan->limitmax[1], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+				break;
+		}
+		if ((flag & IK_ZDOF) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
+			joint = bone->name;
+			joint += ":RZ";
+			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[2], KDL::deg2rad*pchan->limitmax[2], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+				break;
+		}
+		//  no error, so restore
+		ret = true;
 	}
 	if (!ret) {
 		delete ikscene;
@@ -725,6 +756,11 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		delete ikscene;
 		return NULL;
 	}
+	// set the weight
+	e_matrix& Wq = arm->getWq();
+	assert(Wq.cols() == weights.size());
+	for (unsigned int q=0; q<Wq.cols(); q++)
+		Wq(q,q)=weights[q];
 	// get the inverse rest pose frame of the base to compute relative rest pose of end effectors
 	// this is needed to handle the enforce parameter
 	// ikscene->pchan[0] is the root channel of the tree
@@ -858,7 +894,8 @@ static void execute_scene(IK_Scene* ikscene, float ctime)
 	if (reiterate) {
 		// how many times do we reiterate?
 		for (i=0; i<100; i++) {
-			if (ikscene->armature->getMaxJointChange() < 0.005)
+			if (ikscene->armature->getMaxJointChange() < 0.005 ||
+				ikscene->armature->getMaxEndEffectorChange() < 0.005)
 				break;
 			ikscene->scene->update(timestamp, timestep, 0, true, false);
 		}
