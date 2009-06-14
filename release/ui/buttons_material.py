@@ -47,14 +47,14 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 			layout.itemS()
 		
 			layout.itemR(mat, "type", expand=True)
-
-			row = layout.row()
-			row.column().itemR(mat, "diffuse_color")
-			row.column().itemR(mat, "specular_color")
-			row.column().itemR(mat, "mirror_color")
 			
 			layout.itemR(mat, "alpha", slider=True)
 
+			row = layout.row()
+			row.itemR(mat, "shadeless")	
+			row.itemR(mat, "wireframe")
+			
+			
 class MATERIAL_PT_tangent(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_tangent"
 	__label__ = "Tangent Shading"
@@ -68,6 +68,8 @@ class MATERIAL_PT_tangent(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tan = context.material.strand
+		mat = context.material
+		layout.active = mat.tangent_shading	
 		
 		split = layout.split()
 		
@@ -111,10 +113,11 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub = split.column()
 		sub.itemL(text="Shadows:")
 		sub.itemR(mat, "shadows", text="Recieve")
-		sub.itemR(mat, "only_shadow", text="Render Shadows Only")
+		sub.itemR(mat, "transparent_shadows", text="Recieve Transparent")
+		sub.itemR(mat, "only_shadow", text="Shadows Only")
 		sub.itemR(mat, "cast_shadows_only", text="Cast Only")
-		sub.itemR(mat, "shadow_casting_alpha", text="Alpha", slider=True)
-		sub.itemR(mat, "transparent_shadows")
+		sub.itemR(mat, "shadow_casting_alpha", text="Casting Alpha", slider=True)
+		
 		sub.itemR(mat, "ray_shadow_bias")
 		colsub = sub.column()
 		colsub.active = mat.ray_shadow_bias
@@ -124,9 +127,48 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		colsub.active = mat.cast_buffer_shadows
 		colsub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
 
-class MATERIAL_PT_shading(MaterialButtonsPanel):
-	__idname__= "MATERIAL_PT_shading"
-	__label__ = "Shading"
+class MATERIAL_PT_diffuse(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_diffuse"
+	__label__ = "Diffuse"
+
+	def poll(self, context):
+		mat = context.material
+		return (mat and mat.type != "HALO")
+
+	def draw(self, context):
+		layout = self.layout
+		mat = context.material	
+		
+		split = layout.split()
+		
+		sub = split.column()
+		sub.itemR(mat, "diffuse_color", text="")
+		sub.itemR(mat, "diffuse_reflection", text="Reflection", slider=True)
+		sub.itemR(mat, "emit")
+		sub.itemR(mat, "ambient", slider=True)
+		sub.itemR(mat, "translucency", slider=True)
+		
+		sub = split.column()
+		sub.itemR(mat, "object_color")
+		sub.itemR(mat, "vertex_color_light")
+		sub.itemR(mat, "vertex_color_paint")
+		sub.itemR(mat, "cubic")
+		
+		layout.itemR(mat, "diffuse_shader", text="Shader")
+		split = layout.split()
+		sub = split.column()
+		if mat.diffuse_shader == 'OREN_NAYAR':
+				sub.itemR(mat, "roughness")
+		if mat.diffuse_shader == 'MINNAERT':
+			sub.itemR(mat, "darkness")
+		sub = split.column()
+		sub.itemR(mat, "params1_4", text="")
+		
+		layout.itemR(mat, "diffuse_ramp", text="Ramp")
+
+class MATERIAL_PT_specular(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_specular"
+	__label__ = "Specular"
 
 	def poll(self, context):
 		mat = context.material
@@ -136,44 +178,26 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 		layout = self.layout
 		mat = context.material
 		
-		row = layout.row()
-		row.itemR(mat, "shadeless")	
-		row.itemR(mat, "wireframe")
+		split = layout.split()
 		
-		#Diffuse
-		layout.itemL(text="Diffuse:")
-		layout.itemR(mat, "diffuse_shader", text="Shader")
-		layout.itemR(mat, "diffuse_ramp", text="Ramp")
+		sub = split.column()
+		sub.itemR(mat, "specular_color", text="")
+		sub = split.column()
+		sub.itemR(mat, "specularity", text="Intensity", slider=True)
+		
+		layout.itemR(mat, "spec_shader", text="Shader")
 		
 		split = layout.split()
 		
 		sub = split.column()
-		sub.itemR(mat, "diffuse_reflection", text="Reflection")
-		sub.itemR(mat, "roughness")
-		sub.itemR(mat, "params1_4")
+		if (mat.spec_shader in ('COOKTORR', 'PHONG', 'BLINN')):
+			sub.itemR(mat, "specular_hardness", text="Hardness")
+		if (mat.spec_shader in ('BLINN')):
+			sub.itemR(mat, "specular_refraction", text="IOR")
+		if (mat.spec_shader in ('WARDISO')):
+			sub.itemR(mat, "specular_slope", text="Slope")
 		
-		sub = split.column()
-		sub.itemR(mat, "darkness")
-		sub.itemR(mat, "emit")
-		sub.itemR(mat, "ambient", slider=True)
-		sub.itemR(mat, "translucency", slider=True)
-		sub.itemR(mat, "object_color")
-		sub.itemR(mat, "vertex_color_light")
-		sub.itemR(mat, "vertex_color_paint")
-		sub.itemR(mat, "cubic")
-		
-		layout.itemS()
-		
-		#Specular
-		layout.itemL(text="Specular:")
-		layout.itemR(mat, "spec_shader", text="Shader")
 		layout.itemR(mat, "specular_ramp", text="Ramp")
-
-		flow = layout.column_flow()
-		flow.itemR(mat, "specularity", text="Intensity")
-		flow.itemR(mat, "specular_hardness", text="Hardness")
-		flow.itemR(mat, "specular_refraction", text="IOR")
-		flow.itemR(mat, "specular_slope", text="Slope")
 
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
@@ -194,21 +218,23 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		sss = context.material.subsurface_scattering
 		layout.active = sss.enabled	
 		
-		flow = layout.column_flow()
-		flow.itemR(sss, "error_tolerance")
-		flow.itemR(sss, "ior")
-		flow.itemR(sss, "scale")
+		split = layout.split()
 		
-		row = layout.row()
-		row.column().itemR(sss, "color")
-		row.column().itemR(sss, "radius")
+		sub = split.column()
+		sub.itemR(sss, "ior")
+		sub.itemR(sss, "scale")
+		sub.itemR(sss, "radius", text="RGB Radius")
+		sub.itemR(sss, "error_tolerance")
 		
-		flow = layout.column_flow()
-		flow.itemR(sss, "color_factor", slider=True)
-		flow.itemR(sss, "texture_factor", slider=True)
-		flow.itemR(sss, "front")
-		flow.itemR(sss, "back")
-		
+		sub = split.column()
+		sub.itemR(sss, "color", text="")
+		sub.itemL(text="Blend:")
+		sub.itemR(sss, "color_factor", slider=True)
+		sub.itemR(sss, "texture_factor", slider=True)
+		sub.itemL(text="Scattering Weight:")
+		sub.itemR(sss, "front")
+		sub.itemR(sss, "back")
+
 class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raymir"
 	__label__ = "Ray Mirror"
@@ -226,12 +252,14 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		raym = context.material.raytrace_mirror
+		mat = context.material
 		
 		layout.active = raym.enabled
 		
 		split = layout.split()
 		
 		sub = split.column()
+		sub.itemR(mat, "mirror_color", text="")
 		sub.itemR(raym, "reflect", text="RayMir", slider=True)
 		sub.itemR(raym, "fresnel")
 		sub.itemR(raym, "fresnel_fac", text="Fac", slider=True)
@@ -304,7 +332,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemL(text="General Settings:")
+		col.itemR(mat, "diffuse_color", text="")
 		col.itemR(halo, "size")
 		col.itemR(halo, "hardness")
 		col.itemR(halo, "add", slider=True)
@@ -317,15 +345,17 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		col.itemR(halo, "soft")
 
 		col = split.column()
-		col = col.column(align=True)
+		col = col.column()
 		col.itemR(halo, "ring")
 		colsub = col.column()
 		colsub.active = halo.ring
 		colsub.itemR(halo, "rings")
+		colsub.itemR(mat, "mirror_color", text="")
 		col.itemR(halo, "lines")
 		colsub = col.column()
 		colsub.active = halo.lines
 		colsub.itemR(halo, "line_number", text="Lines")
+		colsub.itemR(mat, "specular_color", text="")
 		col.itemR(halo, "star")
 		colsub = col.column()
 		colsub.active = halo.star
@@ -341,7 +371,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
-bpy.types.register(MATERIAL_PT_shading)
+bpy.types.register(MATERIAL_PT_diffuse)
+bpy.types.register(MATERIAL_PT_specular)
 bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
