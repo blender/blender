@@ -137,54 +137,6 @@ static PyObject *pyop_dict_from_event(wmEvent *event)
 	return dict;
 }
 
-/* TODO - a whole traceback would be ideal */
-static void pyop_error_report(ReportList *reports)
-{
-	const char *string;
-	PyObject *exception, *v, *tb;
-	PyErr_Fetch(&exception, &v, &tb);
-	if (exception == NULL)
-		return;
-	
-	/* get the string from the exception */
-	if(v==NULL) {
-		string= "py exception not set";
-	}
-	else if(string = _PyUnicode_AsString(v)) {
-		/* do nothing */
-	}
-	else { /* a valid PyObject but not a string, try get its string value */
-		PyObject *repr;
-		
-		Py_INCREF(v); /* incase clearing the error below somehow frees this */
-		PyErr_Clear();
-		
-		repr= PyObject_Repr(v);
-		
-		if(repr==NULL) {
-			PyErr_Clear();
-			string= "py exception found but can't be converted";
-		}
-		else {
-			string = _PyUnicode_AsString(repr);
-			Py_DECREF(repr);
-			
-			if(string==NULL) { /* unlikely to happen */
-				PyErr_Clear();
-				string= "py exception found but can't be converted";
-			}
-		}
-		
-		Py_DECREF(v); /* finished dealing with v, PyErr_Clear isnt called anymore so can decref it */
-	}
-	/* done getting the string */
-	
-	/* Now we know v != NULL too */
-	BKE_report(reports, RPT_ERROR, string);
-	
-	PyErr_Print();
-}
-
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
 	{"CANCELLED", OPERATOR_CANCELLED},
@@ -291,13 +243,13 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */
-		pyop_error_report(op->reports);
+		BPy_errors_to_report(op->reports);
 	}
 	else {
 		if (mode==PYOP_POLL) {
 			if (PyBool_Check(ret) == 0) {
 				PyErr_SetString(PyExc_ValueError, "Python poll function return value ");
-				pyop_error_report(op->reports);
+				BPy_errors_to_report(op->reports);
 			}
 			else {
 				ret_flag= ret==Py_True ? 1:0;
@@ -305,7 +257,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 			
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
-			pyop_error_report(op->reports);
+			BPy_errors_to_report(op->reports);
 			
 		}
 		/* there is no need to copy the py keyword dict modified by

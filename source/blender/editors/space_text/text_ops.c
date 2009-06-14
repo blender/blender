@@ -521,7 +521,7 @@ static int run_script_exec(bContext *C, wmOperator *op)
 #else
 	Text *text= CTX_data_edit_text(C);
 
-	if (BPY_run_python_script( C, NULL, text ))
+	if (BPY_run_python_script(C, NULL, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */

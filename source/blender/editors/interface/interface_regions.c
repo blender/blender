@@ -1948,6 +1948,9 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 	md= decompose_menu_string(info->instr);
 
 	rows= md->nitems;
+	if(rows<1)
+		rows= 1;
+	
 	columns= 1;
 
 	/* size and location, title slightly bigger for bold */

@@ -150,7 +150,7 @@ void BPY_end_python( void )
 }
 
 /* Can run a file or text block */
-int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
+int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *py_dict, *py_result;
 	PyGILState_STATE gilstate;
@@ -178,7 +178,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				PyErr_Print(); PyErr_Clear();
+				BPy_errors_to_report(reports);
 				BPY_free_compiled_text( text );
 				PyGILState_Release(gilstate);
 				return 0;
@@ -194,7 +194,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	}
 	
 	if (!py_result) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(reports);
 	} else {
 		Py_DECREF( py_result );
 	}
@@ -221,7 +221,7 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	script = sc->script;
 
 	if( err ) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(NULL); // TODO, reports
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -250,7 +250,7 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 		return 0;
 	
 	if (sc->script->py_draw==NULL && sc->script->scriptname[0] != '\0')
-		BPY_run_python_script(C, sc->script->scriptname, NULL);
+		BPY_run_python_script(C, sc->script->scriptname, NULL, NULL);
 		
 	if (sc->script->py_draw==NULL)
 		return 0;
@@ -329,7 +329,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	}
 	
 	if (!py_result) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(NULL); // TODO - reports
 	} else
 		Py_DECREF( py_result );
 	
@@ -410,7 +410,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 			if(mod) {
 				Py_DECREF(mod); /* could be NULL from reloading */
 			} else {
-				PyErr_Print(); PyErr_Clear();
+				BPy_errors_to_report(NULL); // TODO - reports
 				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
 			}
 		}
@@ -530,7 +530,7 @@ static float pydriver_error(ChannelDriver *driver)
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
 	
-	PyErr_Print(); PyErr_Clear();
+	BPy_errors_to_report(NULL); // TODO - reports
 
 	return 0.0f;
 }
@@ -589,7 +589,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			}
 			
 			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			PyErr_Print(); PyErr_Clear();
+			BPy_errors_to_report(NULL); // TODO - reports
 		}
 	}
 	

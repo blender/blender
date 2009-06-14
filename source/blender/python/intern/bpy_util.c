@@ -168,6 +168,12 @@ void PyObSpit(char *name, PyObject *var) {
 		PyObject_Print(var, stderr, 0);
 		fprintf(stderr, " ref:%d ", var->ob_refcnt);
 		fprintf(stderr, " ptr:%ld", (long)var);
+		
+		fprintf(stderr, " type:");
+		if(Py_TYPE(var))
+			fprintf(stderr, "%s", Py_TYPE(var)->tp_name);
+		else
+			fprintf(stderr, "<NIL>");
 	}
 	fprintf(stderr, "\n");
 }
@@ -329,6 +335,72 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 	return 0;
 }
 
+
+
+/* returns the exception string as a new PyUnicode object, depends on external StringIO module */
+PyObject *BPY_exception_buffer(void)
+{
+	PyObject *stdout_backup = PySys_GetObject("stdout"); /* borrowed */
+	PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
+	PyObject *string_io = NULL;
+	PyObject *string_io_buf = NULL;
+	PyObject *string_io_mod;
+	PyObject *string_io_getvalue;
+	
+	PyObject *error_type, *error_value, *error_traceback;
+	
+	if (!PyErr_Occurred())
+		return NULL;
+	
+	PyErr_Fetch(&error_type, &error_value, &error_traceback);
+	
+	PyErr_Clear();
+	
+	/* import StringIO / io
+	 * string_io = StringIO.StringIO()
+	 */
+	
+#if PY_VERSION_HEX < 0x03000000
+	if(! (string_io_mod= PyImport_ImportModule("StringIO")) ) {
+#else
+	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
+#endif
+		return NULL;
+	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
+		Py_DECREF(string_io_mod);
+		return NULL;
+	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
+		Py_DECREF(string_io_mod);
+		Py_DECREF(string_io);
+		return NULL;
+	}
+	
+	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
+	Py_INCREF(stderr_backup);
+	
+	PySys_SetObject("stdout", string_io); // both of these are free'd when restoring
+	PySys_SetObject("stderr", string_io);
+	
+	PyErr_Restore(error_type, error_value, error_traceback);
+	PyErr_Print(); /* print the error */
+	PyErr_Clear();
+	
+	string_io_buf = PyObject_CallObject(string_io_getvalue, NULL);
+	
+	PySys_SetObject("stdout", stdout_backup);
+	PySys_SetObject("stderr", stderr_backup);
+	
+	Py_DECREF(stdout_backup); /* now sys owns the ref again */
+	Py_DECREF(stderr_backup);
+	
+	Py_DECREF(string_io_mod);
+	Py_DECREF(string_io_getvalue);
+	Py_DECREF(string_io); /* free the original reference */
+	
+	PyErr_Clear();
+	return string_io_buf;
+}
+
 char *BPy_enum_as_string(EnumPropertyItem *item)
 {
 	DynStr *dynstr= BLI_dynstr_new();
@@ -358,3 +430,33 @@ int BPy_reports_to_error(ReportList *reports)
 	return (report_str != NULL);
 }
 
+
+int BPy_errors_to_report(ReportList *reports)
+{
+	PyObject *pystring;
+	char *cstring;
+	
+	if (!PyErr_Occurred())
+		return 1;
+	
+	/* less hassle if we allow NULL */
+	if(reports==NULL) {
+		PyErr_Print();
+		PyErr_Clear();
+		return 1;
+	}
+	
+	pystring= BPY_exception_buffer();
+	
+	if(pystring==NULL) {
+		BKE_report(reports, RPT_ERROR, "unknown py-exception, could not convert");
+		return 0;
+	}
+	
+	cstring= _PyUnicode_AsString(pystring);
+	
+	BKE_report(reports, RPT_ERROR, cstring);
+	fprintf(stderr, "%s\n", cstring); // not exactly needed. just for testing
+	Py_DECREF(pystring);
+	return 1;
+}
