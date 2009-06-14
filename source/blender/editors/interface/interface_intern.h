@@ -254,6 +254,9 @@ struct uiBlock {
 	uiBlockHandleFunc handle_func;
 	void *handle_func_arg;
 	
+	/* custom extra handling */
+	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
+	
 	/* extra draw function for custom blocks */
 	void (*drawextra)(const struct bContext *C, void *idv, rcti *rect);
 
@@ -306,6 +309,8 @@ extern void ui_set_but_hsv(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float *vec);
 extern void ui_set_but_vectorf(uiBut *but, float *vec);
 
+extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
+
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
@@ -357,6 +362,7 @@ void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
+int ui_searchbox_inside(struct ARegion *ar, int x, int y);
 void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, int reset);
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);

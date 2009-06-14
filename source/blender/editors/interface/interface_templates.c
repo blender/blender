@@ -78,9 +78,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *idtest, *id= idptr.data;
-	ListBase *lb= wich_libbase(CTX_data_main(C), template->idtype);
-	int nr, event= GET_INT_FROM_POINTER(arg_event);
+	ID *id= idptr.data;
+	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	if(event == UI_ID_BROWSE && template->browse == 32767)
 		event= UI_ID_ADD_NEW;
@@ -88,31 +87,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 		event= UI_ID_OPEN;
 
 	switch(event) {
-		case UI_ID_BROWSE: {
-			if(template->browse== -2) {
-				/* XXX implement or find a replacement
-				 * activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_MESHBROWSE, &template->browse, do_global_buttons); */
-				return;
-			}
-			if(template->browse < 0)
-				return;
-
-			for(idtest=lb->first, nr=1; idtest; idtest=idtest->next, nr++) {
-				if(nr==template->browse) {
-					if(id == idtest)
-						return;
-
-					id= idtest;
-					RNA_id_pointer_create(id, &idptr);
-					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-					RNA_property_update(C, &template->ptr, template->prop);
-					/* XXX */
-
-					break;
-				}
-			}
+		case UI_ID_BROWSE:
+			printf("warning, id browse shouldnt come here\n");
 			break;
-		}
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
 			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
@@ -148,10 +125,79 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
+/* ID Search browse menu, assign  */
+static void id_search_call_cb(struct bContext *C, void *arg_litem, void *item)
+{
+	if(item) {
+		TemplateID *template= (TemplateID*)arg_litem;
+		PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
+
+		RNA_id_pointer_create(item, &idptr);
+		RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+		RNA_property_update(C, &template->ptr, template->prop);
+	}	
+}
+
+/* ID Search browse menu, do the search */
+static void id_search_cb(const struct bContext *C, void *arg_litem, char *str, uiSearchItems *items)
+{
+	TemplateID *template= (TemplateID*)arg_litem;
+	ListBase *lb= wich_libbase(CTX_data_main(C), template->idtype);
+	ID *id;
+	
+	for(id= lb->first; id; id= id->next) {
+		
+		if(BLI_strcasestr(id->name+2, str)) {
+			if(0==uiSearchItemAdd(items, id->name+2, id))
+				break;
+		}
+	}
+}
+
+/* ID Search browse menu, open */
+static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
+{
+	static char search[256];
+	static TemplateID template;
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	/* arg_litem is malloced, can be freed by parent button */
+	template= *((TemplateID*)arg_litem);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+/* ****************** */
+
+
 static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type)
 {
 	uiBut *but;
-	TemplateID *duptemplate;
 	PointerRNA idptr;
 	ListBase *lb;
 
@@ -165,6 +211,7 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template
 
 	uiBlockBeginAlign(block);
 	if(template->flag & UI_ID_BROWSE) {
+		/*
 		char *extrastr, *str;
 		
 		if((template->flag & UI_ID_ADD_NEW) && (template->flag & UI_ID_OPEN))
@@ -183,6 +230,8 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template
 		uiButSetNFunc(but, template_id_cb, duptemplate, SET_INT_IN_POINTER(UI_ID_BROWSE));
 	
 		MEM_freeN(str);
+		*/
+		uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Browse ID data");
 	}
 
 	/* text button with name */
@@ -193,18 +242,31 @@ static void template_header_ID(bContext *C, uiBlock *block, TemplateID *template
 		name[0]= '\0';
 		but= uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
 		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
-
-		/* delete button */
-		if(template->flag & UI_ID_DELETE) {
-			if(template->unlinkop[0]) {
-				but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
-			}
-			else {
-				but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-				uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
-			}
+	}
+	
+	if(template->flag & UI_ID_ADD_NEW) {
+		int w= idptr.data?UI_UNIT_X:UI_UNIT_X*6;
+		
+		if(template->newop[0]) {
+			but= uiDefIconTextButO(block, BUT, template->newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+		}
+		else {
+			but= uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 	}
+	
+	/* delete button */
+	if(idptr.data && (template->flag & UI_ID_DELETE)) {
+		if(template->unlinkop[0]) {
+			but= uiDefIconButO(block, BUT, template->unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+		}
+		else {
+			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+		}
+	}
+	
 	uiBlockEndAlign(block);
 }
 
@@ -1310,7 +1372,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 	uiBlock *block;
 	Material *ma;
 
-	if(!id || !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
+	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
@@ -1377,3 +1439,56 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 	}
 }
 
+/********************* Layer Buttons Template ************************/
+
+// TODO:
+//	- option for showing extra info like whether layer has contents?
+//	- for now, grouping of layers is determined by dividing up the length of 
+//	  the array of layer bitflags
+
+void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
+{
+	uiBlock *block;
+	uiLayout *uRow, *uSplit, *uCol;
+	PropertyRNA *prop;
+	StructRNA *type;
+	int groups, cols, layers;
+	int group, col, layer, row;
+	
+	if (!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("uiTemplateLayer: layers property not found: %s\n", propname);
+		return;
+	}
+	
+	/* the number of layers determines the way we group them 
+	 *	- we want 2 rows only (for now)
+	 *	- the number of columns (cols) is the total number of buttons per row
+	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
+	 *	- for now, only split into groups if if group will have at least 5 items
+	 */
+	layers= RNA_property_array_length(prop);
+	cols= (layers / 2) + (layers % 2);
+	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
+	
+	/* layers are laid out going across rows, with the columns being divided into groups */
+	uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	
+	for (group= 0; group < groups; group++) {
+		uCol= uiLayoutColumn(uSplit, 1);
+		
+		for (row= 0; row < 2; row++) {
+			uRow= uiLayoutRow(uCol, 1);
+			layer= groups*cols*row + cols*group;
+			
+			/* add layers as toggle buts */
+			for (col= 0; (col < cols) && (layer < layers); col++, layer++) {
+				int icon=0; // XXX - add some way of setting this...
+				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, 0, 0, 1);
+			}
+		}
+	}
+}

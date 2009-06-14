@@ -66,6 +66,7 @@ class TEXT_PT_properties(bpy.types.Panel):
 		flow.itemR(st, "line_numbers", icon=ICON_LINENUMBERS_OFF)
 		flow.itemR(st, "word_wrap", icon=ICON_WORDWRAP_OFF)
 		flow.itemR(st, "syntax_highlight", icon=ICON_SYNTAX_OFF)
+		flow.itemR(st, "live_edit")
 
 		flow = layout.column_flow()
 		flow.itemR(st, "font_size")

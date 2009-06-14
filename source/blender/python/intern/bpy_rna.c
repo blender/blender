@@ -764,6 +764,39 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
 };
 
+static int pyrna_prop_contains(BPy_PropertyRNA * self, PyObject *value)
+{
+	PointerRNA newptr; /* not used, just so RNA_property_collection_lookup_string runs */
+	char *keyname = _PyUnicode_AsString(value);
+	
+	if(keyname==NULL) {
+		PyErr_SetString(PyExc_SystemError, "PropertyRNA - key in prop, key must be a string type");
+		return -1;
+	}
+	
+	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
+		PyErr_SetString(PyExc_SystemError, "PropertyRNA - key in prop, is only valid for collection types");
+		return -1;
+	}
+	
+	
+	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
+		return 1;
+	
+	return 0;
+}
+
+static PySequenceMethods pyrna_prop_as_sequence = {
+	NULL,		/* Cant set the len otherwise it can evaluate as false */
+	NULL,		/* sq_concat */
+	NULL,		/* sq_repeat */
+	NULL,		/* sq_item */
+	NULL,		/* sq_slice */
+	NULL,		/* sq_ass_item */
+	NULL,		/* sq_ass_slice */
+	(objobjproc)pyrna_prop_contains,	/* sq_contains */
+};
+
 static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 {
 	PyObject *ret, *dict;
@@ -1404,7 +1437,7 @@ PyTypeObject pyrna_prop_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,						/* PySequenceMethods *tp_as_sequence; */
+	&pyrna_prop_as_sequence,	/* PySequenceMethods *tp_as_sequence; */
 	&pyrna_prop_as_mapping,		/* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */

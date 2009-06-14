@@ -432,6 +432,7 @@ static void ui_draw_links(uiBlock *block)
 
 /* ************** BLOCK ENDING FUNCTION ************* */
 
+/* NOTE: if but->poin is allocated memory for every defbut, things fail... */
 static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 {
 	/* various properties are being compared here, hopfully sufficient
@@ -2231,7 +2232,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 	
-	if(but->type==HSVCUBE) { /* hsv buttons temp storage */
+	if(ELEM(but->type, HSVCUBE, HSVCIRCLE)) { /* hsv buttons temp storage */
 		float rgb[3];
 		ui_get_but_vectorf(but, rgb);
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
@@ -3012,6 +3013,16 @@ uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *st
 	return but;
 }
 
+uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *str, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, NULL, 0.0, 0.0, 0.0, 0.0, tip);
+	but->block_create_func= func;
+	but->func_argN= argN;
+	ui_check_but(but);
+	return but;
+}
+
+
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
@@ -3095,7 +3106,6 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 	but->flag|= UI_HAS_ICON;
 	
 	but->flag|= UI_ICON_LEFT|UI_TEXT_LEFT;
-	but->flag|= UI_ICON_SUBMENU;
 	
 	ui_check_but(but);
 	

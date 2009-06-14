@@ -524,7 +524,10 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	if (BPY_run_python_script( C, NULL, text ))
 		return OPERATOR_FINISHED;
 	
-	BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	/* Dont report error messages while live editing */
+	if(!CTX_wm_space_text(C)->live_edit)
+		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	
 	return OPERATOR_CANCELLED;
 #endif
 }
@@ -699,6 +702,10 @@ static int paste_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -765,6 +772,10 @@ static int cut_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1627,6 +1638,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -2224,7 +2239,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char str[2];
-
+	int ret;
 	/* XXX old code from winqreadtextspace, is it still needed somewhere? */
 	/* smartass code to prevent the CTRL/ALT events below from not working! */
 	/*if(qual & (LR_ALTKEY|LR_CTRLKEY))
@@ -2235,8 +2250,13 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	str[1]= '\0';
 
 	RNA_string_set(op->ptr, "text", str);
-
-	return insert_exec(C, op);
+	ret = insert_exec(C, op);
+	
+	/* run the script while editing, evil but useful */
+	if(ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
+	return ret;
 }
 
 void TEXT_OT_insert(wmOperatorType *ot)

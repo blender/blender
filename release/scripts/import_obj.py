@@ -2,7 +2,7 @@
  
 """
 Name: 'Wavefront (.obj)...'
-Blender: 248
+Blender: 249
 Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
@@ -40,7 +40,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import *
+from Blender import Mesh, Draw, Window, Texture, Material, sys
 import bpy
 import BPyMesh
 import BPyImage
@@ -166,12 +166,13 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	del temp_mtl
 	
 	#Create new materials
-	for name in unique_materials.iterkeys():
-		unique_materials[name]= bpy.data.materials.new(name)
-		
-		unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
+	for name in unique_materials: # .keys()
+		if name != None:
+			unique_materials[name]= bpy.data.materials.new(name)
+			unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
 	unique_materials[None]= None
+	unique_material_images[None]= None, False
 	
 	for libname in material_libs:
 		mtlpath= DIR + libname
@@ -536,6 +537,98 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 		me.addVertGroup(group_name)
 		me.assignVertsToGroup(group_name, group_indicies,1.00, Mesh.AssignModes.REPLACE)
 
+
+def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
+	'''
+	Add nurbs object to blender, only support one type at the moment
+	'''
+	deg = context_nurbs.get('deg', (3,))
+	curv_range = context_nurbs.get('curv_range', None)
+	curv_idx = context_nurbs.get('curv_idx', [])
+	parm_u = context_nurbs.get('parm_u', [])
+	parm_v = context_nurbs.get('parm_v', [])
+	name = context_nurbs.get('name', 'ObjNurb')
+	cstype = context_nurbs.get('cstype', None)
+	
+	if cstype == None:
+		print '\tWarning, cstype not found'
+		return
+	if cstype != 'bspline':
+		print '\tWarning, cstype is not supported (only bspline)'
+		return
+	if not curv_idx:
+		print '\tWarning, curv argument empty or not set'
+		return
+	if len(deg) > 1 or parm_v:
+		print '\tWarning, surfaces not supported'
+		return
+	
+	cu = bpy.data.curves.new(name, 'Curve')
+	cu.flag |= 1 # 3D curve
+	
+	nu = None
+	for pt in curv_idx:
+		
+		pt = vert_loc[pt]
+		pt = (pt[0], pt[1], pt[2], 1.0)
+		
+		if nu == None:
+			nu = cu.appendNurb(pt)
+		else:
+			nu.append(pt)
+	
+	nu.orderU = deg[0]+1
+	
+	# get for endpoint flag from the weighting
+	if curv_range and len(parm_u) > deg[0]+1:
+		do_endpoints = True
+		for i in xrange(deg[0]+1):
+			
+			if abs(parm_u[i]-curv_range[0]) > 0.0001:
+				do_endpoints = False
+				break
+			
+			if abs(parm_u[-(i+1)]-curv_range[1]) > 0.0001:
+				do_endpoints = False
+				break
+			
+	else:
+		do_endpoints = False
+	
+	if do_endpoints:
+		nu.flagU |= 2
+	
+	
+	# close
+	'''
+	do_closed = False
+	if len(parm_u) > deg[0]+1:
+		for i in xrange(deg[0]+1):
+			#print curv_idx[i], curv_idx[-(i+1)]
+			
+			if curv_idx[i]==curv_idx[-(i+1)]:
+				do_closed = True
+				break
+	
+	if do_closed:
+		nu.flagU |= 1
+	'''
+	
+	ob = scn.objects.new(cu)
+	new_objects.append(ob)
+
+
+def strip_slash(line_split):
+	if line_split[-1][-1]== '\\':
+		if len(line_split[-1])==1:
+			line_split.pop() # remove the \ item
+		else:
+			line_split[-1]= line_split[-1][:-1] # remove the \ from the end last number
+		return True
+	return False
+
+
+
 def get_float_func(filepath):
 	'''
 	find the float function for this obj file
@@ -561,6 +654,7 @@ def load_obj(filepath,
 						 SPLIT_OBJECTS= True, 
 						 SPLIT_GROUPS= True, 
 						 SPLIT_MATERIALS= True, 
+						 ROTATE_X90= True, 
 						 IMAGE_SEARCH=True,
 						 POLYGROUPS=False):
 	'''
@@ -590,6 +684,11 @@ def load_obj(filepath,
 	context_smooth_group= None
 	context_object= None
 	context_vgroup = None
+	
+	# Nurbs
+	context_nurbs = {}
+	nurbs = []
+	context_parm = '' # used by nurbs too but could be used elsewhere
 
 	has_ngons= False
 	# has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
@@ -604,7 +703,7 @@ def load_obj(filepath,
 	# it means they are multiline- 
 	# since we use xreadline we cant skip to the next line
 	# so we need to know weather 
-	multi_line_face= False
+	context_multi_line= ''
 	
 	print '\tparsing obj file "%s"...' % filepath,
 	time_sub= sys.time()
@@ -627,12 +726,11 @@ def load_obj(filepath,
 		
 		# Handel faces lines (as faces) and the second+ lines of fa multiline face here
 		# use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
-		elif line.startswith('f') or (line.startswith('l ') and CREATE_EDGES) or multi_line_face:
+		elif line.startswith('f') or context_multi_line == 'f':
 			
-			if multi_line_face:
+			if context_multi_line:
 				# use face_vert_loc_indicies and face_vert_tex_indicies previously defined and used the obj_face
 				line_split= line.split()
-				multi_line_face= False
 				
 			else:
 				line_split= line[2:].split()
@@ -648,14 +746,10 @@ def load_obj(filepath,
 				context_object\
 				))
 			
-			if line_split[-1][-1]== '\\':
-				multi_line_face= True
-				if len(line_split[-1])==1:
-					line_split.pop() # remove the \ item
-				else:
-					line_split[-1]= line_split[-1][:-1] # remove the \ from the end last number
-			
-			isline= line.startswith('l')
+			if strip_slash(line_split):
+				context_multi_line = 'f'
+			else:
+				context_multi_line = ''
 			
 			for v in line_split:
 				obj_vert= v.split('/')
@@ -672,24 +766,60 @@ def load_obj(filepath,
 				
 				face_vert_loc_indicies.append(vert_loc_index)
 				
-				if not isline:
-					if len(obj_vert)>1 and obj_vert[1]:
-						# formatting for faces with normals and textures us 
-						# loc_index/tex_index/nor_index
-						
-						vert_tex_index= int(obj_vert[1])-1
-						# Make relative negative vert indicies absolute
-						if vert_tex_index < 0:
-							vert_tex_index= len(verts_tex) + vert_tex_index + 1
-						
-						face_vert_tex_indicies.append(vert_tex_index)
-					else:
-						# dummy
-						face_vert_tex_indicies.append(0)
+				if len(obj_vert)>1 and obj_vert[1]:
+					# formatting for faces with normals and textures us 
+					# loc_index/tex_index/nor_index
+					
+					vert_tex_index= int(obj_vert[1])-1
+					# Make relative negative vert indicies absolute
+					if vert_tex_index < 0:
+						vert_tex_index= len(verts_tex) + vert_tex_index + 1
+					
+					face_vert_tex_indicies.append(vert_tex_index)
+				else:
+					# dummy
+					face_vert_tex_indicies.append(0)
 			
 			if len(face_vert_loc_indicies) > 4:
 				has_ngons= True
+		
+		elif CREATE_EDGES and (line.startswith('l ') or context_multi_line == 'l'):
+			# very similar to the face load function above with some parts removed
 			
+			if context_multi_line:
+				# use face_vert_loc_indicies and face_vert_tex_indicies previously defined and used the obj_face
+				line_split= line.split()
+				
+			else:
+				line_split= line[2:].split()
+				face_vert_loc_indicies= []
+				face_vert_tex_indicies= []
+				
+				# Instance a face
+				faces.append((\
+				face_vert_loc_indicies,\
+				face_vert_tex_indicies,\
+				context_material,\
+				context_smooth_group,\
+				context_object\
+				))
+			
+			if strip_slash(line_split):
+				context_multi_line = 'l'
+			else:
+				context_multi_line = ''
+			
+			isline= line.startswith('l')
+			
+			for v in line_split:
+				vert_loc_index= int(v)-1
+				
+				# Make relative negative vert indicies absolute
+				if vert_loc_index < 0:
+					vert_loc_index= len(verts_loc) + vert_loc_index + 1
+				
+				face_vert_loc_indicies.append(vert_loc_index)
+		
 		elif line.startswith('s'):
 			if CREATE_SMOOTH_GROUPS:
 				context_smooth_group= line_value(line.split())
@@ -720,6 +850,63 @@ def load_obj(filepath,
 			unique_materials[context_material]= None
 		elif line.startswith('mtllib'): # usemap or usemat
 			material_libs.extend( line.split()[1:] ) # can have multiple mtllib filenames per line
+			
+			
+			# Nurbs support
+		elif line.startswith('cstype '):
+			context_nurbs['cstype']= line_value(line.split()) # 'rat bspline' / 'bspline'
+		elif line.startswith('curv ') or context_multi_line == 'curv':
+			line_split= line.split()
+			
+			curv_idx = context_nurbs['curv_idx'] = context_nurbs.get('curv_idx', []) # incase were multiline
+			
+			if not context_multi_line:
+				context_nurbs['curv_range'] = float_func(line_split[1]), float_func(line_split[2])
+				line_split[0:3] = [] # remove first 3 items
+			
+			if strip_slash(line_split):
+				context_multi_line = 'curv'
+			else:
+				context_multi_line = ''
+				
+			
+			for i in line_split:
+				vert_loc_index = int(i)-1
+				
+				if vert_loc_index < 0:
+					vert_loc_index= len(verts_loc) + vert_loc_index + 1
+				
+				curv_idx.append(vert_loc_index)
+			
+		elif line.startswith('parm') or context_multi_line == 'parm':
+			line_split= line.split()
+			
+			if context_multi_line:
+				context_multi_line = ''
+			else:
+				context_parm = line_split[1]
+				line_split[0:2] = [] # remove first 2
+			
+			if strip_slash(line_split):
+				context_multi_line = 'parm'
+			else:
+				context_multi_line = ''
+			
+			if context_parm.lower() == 'u':
+				context_nurbs.setdefault('parm_u', []).extend( [float_func(f) for f in line_split] )
+			elif context_parm.lower() == 'v': # surfaces not suported yet
+				context_nurbs.setdefault('parm_v', []).extend( [float_func(f) for f in line_split] )
+			# else: # may want to support other parm's ?
+		
+		elif line.startswith('deg '):
+			context_nurbs['deg']= [int(i) for i in line.split()[1:]]
+		elif line.startswith('end'):
+			# Add the nurbs curve
+			if context_object:
+				context_nurbs['name'] = context_object
+			nurbs.append(context_nurbs)
+			context_nurbs = {}
+			context_parm = ''
 		
 		''' # How to use usemap? depricated?
 		elif line.startswith('usema'): # usemap or usemat
@@ -739,6 +926,8 @@ def load_obj(filepath,
 	print '%.4f sec' % (time_new-time_sub)
 	time_sub= time_new
 	
+	if not ROTATE_X90:
+		verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 	
 	# deselect all
 	scn = bpy.data.scenes.active
@@ -753,6 +942,11 @@ def load_obj(filepath,
 	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
 		# Create meshes from the data, warning 'vertex_groups' wont support splitting
 		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
+	
+	# nurbs support
+	for context_nurbs in nurbs:
+		create_nurbs(scn, context_nurbs, verts_loc, new_objects)
+	
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3
@@ -775,6 +969,11 @@ def load_obj(filepath,
 		for ob in new_objects:
 			ob.setSize(scale, scale, scale)
 	
+	# Better rotate the vert locations
+	#if not ROTATE_X90:
+	#	for ob in new_objects:
+	#		ob.RotX = -1.570796326794896558
+	
 	time_new= sys.time()
 	
 	print '%.4f sec' % (time_new-time_sub)
@@ -788,7 +987,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
-	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
+	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
@@ -800,6 +999,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	IMAGE_SEARCH= Draw.Create(1)
 	POLYGROUPS= Draw.Create(0)
 	KEEP_VERT_ORDER= Draw.Create(1)
+	ROTATE_X90= Draw.Create(1)
 	
 	
 	# Get USER Options
@@ -886,7 +1086,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			ui_x -= 165
 			ui_y -= 90
 			
-			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER
+			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 			
 			Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
 			Draw.BeginAlign()
@@ -897,13 +1097,15 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			
 			Draw.Label('Separate objects by OBJ...', ui_x+9, ui_y+110, 220, 20)
 			Draw.BeginAlign()
-			SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 70, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
-			SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+79, ui_y+89, 70, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-			SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+149, ui_y+89, 70, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
+			SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
+			SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
+			SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
 			Draw.EndAlign()
 			
 			# Only used for user feedback
-			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+229, ui_y+89, 110, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
+			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+184, ui_y+89, 113, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
+			
+			ROTATE_X90 = Draw.Toggle('-X90', EVENT_REDRAW, ui_x+302, ui_y+89, 38, 21, ROTATE_X90.val, 'Rotate X 90.')
 			
 			Draw.Label('Options...', ui_x+9, ui_y+60, 211, 20)
 			CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 130, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
@@ -958,6 +1160,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			  SPLIT_OBJECTS.val,\
 			  SPLIT_GROUPS.val,\
 			  SPLIT_MATERIALS.val,\
+			  ROTATE_X90.val,\
 			  IMAGE_SEARCH.val,\
 			  POLYGROUPS.val
 			)
@@ -971,6 +1174,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		  SPLIT_OBJECTS.val,\
 		  SPLIT_GROUPS.val,\
 		  SPLIT_MATERIALS.val,\
+		  ROTATE_X90.val,\
 		  IMAGE_SEARCH.val,\
 		  POLYGROUPS.val
 		)
@@ -989,34 +1193,28 @@ if __name__=='__main__' and not DEBUG:
 	else:
 		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
 
-
+	# For testing compatibility
 '''
-# For testing compatibility
 else:
 	# DEBUG ONLY
 	TIME= sys.time()
+	DIR = '/fe/obj'
 	import os
 	print 'Searching for files'
-	os.system('find /fe/obj -iname "*.obj" > /tmp/temp3ds_list')
+	def fileList(path):
+		for dirpath, dirnames, filenames in os.walk(path):
+			for filename in filenames:
+				yield os.path.join(dirpath, filename)
 	
-	print '...Done'
-	file= open('/tmp/temp3ds_list', 'rU')
-	lines= file.readlines()
-	file.close()
-
-	def between(v,a,b):
-		if v <= max(a,b) and v >= min(a,b):
-			return True		
-		return False
-		
-	for i, _obj in enumerate(lines):
-		if between(i, 0,20):
-			_obj= _obj[:-1]
-			print 'Importing', _obj, '\nNUMBER', i, 'of', len(lines)
-			_obj_file= _obj.split('/')[-1].split('\\')[-1]
-			newScn= bpy.data.scenes.new(_obj_file)
+	files = [f for f in fileList(DIR) if f.lower().endswith('.obj')]
+	files.sort()
+	
+	for i, obj_file in enumerate(files):
+		if 0 < i < 20:
+			print 'Importing', obj_file, '\nNUMBER', i, 'of', len(files)
+			newScn= bpy.data.scenes.new(os.path.basename(obj_file))
 			newScn.makeCurrent()
-			load_obj(_obj, False)
+			load_obj(obj_file, False, IMAGE_SEARCH=0)
 
 	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 '''

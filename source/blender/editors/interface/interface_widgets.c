@@ -1024,11 +1024,11 @@ static struct uiWidgetColors wcol_menu_item= {
 static struct uiWidgetColors wcol_menu_back= {
 	{0, 0, 0, 255},
 	{25, 25, 25, 230},
-	{46, 124, 217, 204},
+	{45, 45, 45, 230},
 	{255, 255, 255, 255},
 	
 	{255, 255, 255, 255},
-	{0, 0, 0, 255},
+	{255, 255, 255, 255},
 	
 	0,
 	25, -20
@@ -1076,6 +1076,20 @@ static struct uiWidgetColors wcol_tool= {
 
 static struct uiWidgetColors wcol_box= {
 	{25, 25, 25, 255},
+	{128, 128, 128, 255},
+	{100, 100, 100, 255},
+	{25, 25, 25, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
+/* free wcol struct to play with */
+static struct uiWidgetColors wcol_tmp= {
+	{0, 0, 0, 255},
 	{128, 128, 128, 255},
 	{100, 100, 100, 255},
 	{25, 25, 25, 255},
@@ -1262,6 +1276,109 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
+
+static void ui_hsv_cursor(float x, float y)
+{
+	
+	glPushMatrix();
+	glTranslatef(x, y, 0.0f);
+	
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glutil_draw_filled_arc(0.0f, M_PI*2.0, 3.0f, 8);
+	
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH );
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, 3.0f, 12);
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH );
+	
+	glPopMatrix();
+	
+}
+
+void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my)
+{
+	/* duplication of code... well, simple is better now */
+	float centx= (float)(rect->xmin + rect->xmax)/2;
+	float centy= (float)(rect->ymin + rect->ymax)/2;
+	float radius, dist;
+	
+	if( rect->xmax-rect->xmin > rect->ymax-rect->ymin )
+		radius= (float)(rect->ymax - rect->ymin)/2; 
+	else
+		radius= (float)(rect->xmax - rect->xmin)/2; 
+
+	mx-= centx;
+	my-= centy;
+	dist= sqrt( mx*mx + my*my);
+	if(dist < radius)
+		*valdist= dist/radius;
+	else
+		*valdist= 1.0f;
+	
+	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
+}
+
+void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
+{
+	/* gouraud triangle fan */
+	float radstep, ang= 0.0f;
+	float centx, centy, radius;
+	float hsv[3], col[3], colcent[3];
+	int a, tot= 32;
+	
+	radstep= 2.0f*M_PI/(float)tot;
+	centx= (float)(rect->xmin + rect->xmax)/2;
+	centy= (float)(rect->ymin + rect->ymax)/2;
+	
+	if( rect->xmax-rect->xmin > rect->ymax-rect->ymin )
+		radius= (float)(rect->ymax - rect->ymin)/2; 
+	else
+		radius= (float)(rect->xmax - rect->xmin)/2; 
+	
+	/* color */
+	VECCOPY(hsv, but->hsv);
+	hsv[0]= hsv[1]= 0.0f;
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], colcent, colcent+1, colcent+2);
+	
+	glShadeModel(GL_SMOOTH);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glColor3fv(colcent);
+	glVertex2f( centx, centy);
+	
+	for(a=0; a<=tot; a++, ang+=radstep) {
+		float si= sin(ang);
+		float co= cos(ang);
+		
+		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
+		glColor3fv(col);
+		glVertex2f( centx + co*radius, centy + si*radius);
+	}
+	glEnd();
+	
+	glShadeModel(GL_FLAT);
+	
+	/* fully rounded outline */
+	glPushMatrix();
+	glTranslatef(centx, centy, 0.0f);
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH );
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH );
+	glPopMatrix();
+
+	/* cursor */
+	ang= 2.0f*M_PI*but->hsv[0] + 0.5f*M_PI;
+	radius= but->hsv[1]*radius;
+	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
+	
+}
+
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
@@ -1301,7 +1418,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= v; y= s;
 	}
-	else {		// only hue slider
+	else if(but->a1==3) {		// only hue slider
 		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		VECCOPY(col1[1], col1[0]);
 		VECCOPY(col1[2], col1[0]);
@@ -1335,7 +1452,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
-		else {	// only H
+		else if(but->a1==3) {	// only H
 			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			VECCOPY(col1[1], col1[0]);
 			VECCOPY(col1[2], col1[0]);
@@ -1373,13 +1490,42 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 	CLAMP(x, rect->xmin+3.0, rect->xmax-3.0);
 	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
 	
-	fdrawXORcirc(x, y, 3.1);
+	ui_hsv_cursor(x, y);
 	
 	/* outline */
 	glColor3ub(0,  0,  0);
 	fdrawbox((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 }
 
+/* vertical 'value' slider, using new widget code */
+static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
+{
+	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->xmax - rect->xmin);
+	float x, y;
+	
+	widget_init(&wtb);
+	
+	/* fully rounded */
+	round_box_edges(&wtb, 15, rect, rad);
+	
+	/* setup temp colors */
+	wcol_tmp.outline[0]= wcol_tmp.outline[1]= wcol_tmp.outline[2]= 0;
+	wcol_tmp.inner[0]= wcol_tmp.inner[1]= wcol_tmp.inner[2]= 128;
+	wcol_tmp.shadetop= 127;
+	wcol_tmp.shadedown= -128;
+	wcol_tmp.shaded= 1;
+	
+	widgetbase_draw(&wtb, &wcol_tmp);
+
+	/* cursor */
+	x= rect->xmin + 0.5f*(rect->xmax-rect->xmin);
+	y= rect->ymin + but->hsv[2]*(rect->ymax-rect->ymin);
+	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
+	
+	ui_hsv_cursor(x, y);
+	
+}
 
 /* ************ button callbacks, draw ***************** */
 
@@ -1865,31 +2011,43 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					fstyle= &style->widgetlabel;
 				}
 				break;
+				
 			case SEPR:
 				break;
+				
 			case BUT:
 				wt= widget_type(UI_WTYPE_EXEC);
 				break;
 			case NUM:
 				wt= widget_type(UI_WTYPE_NUMBER);
 				break;
+				
 			case NUMSLI:
 			case HSVSLI:
 				wt= widget_type(UI_WTYPE_SLIDER);
 				break;
+				
 			case ROW:
 				wt= widget_type(UI_WTYPE_RADIO);
 				break;
+				
 			case TEX:
-			case SEARCH_MENU:
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
+				
+			case SEARCH_MENU:
+				wt= widget_type(UI_WTYPE_NAME);
+				if(but->block->flag & UI_BLOCK_LOOP)
+					wt->wcol_theme= &btheme->tui.wcol_menu_back;
+				break;
+				
 			case TOGBUT:
 			case TOG:
 			case TOGN:
 			case TOG3:
 				wt= widget_type(UI_WTYPE_TOGGLE);
 				break;
+				
 			case OPTION:
 			case OPTIONN:
 				if (!(but->flag & UI_HAS_ICON)) {
@@ -1899,6 +2057,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				else
 					wt= widget_type(UI_WTYPE_TOGGLE);
 				break;
+				
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
@@ -1925,16 +2084,25 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
 				break;
 				
-				 // XXX four old button types
 			case HSVCUBE:
-				ui_draw_but_HSVCUBE(but, rect);
+				if(but->a1==4) // vertical V slider, uses new widget draw now
+					ui_draw_but_HSV_v(but, rect);
+				else  // other HSV pickers...
+					ui_draw_but_HSVCUBE(but, rect);
 				break;
+				
+			case HSVCIRCLE:
+				ui_draw_but_HSVCIRCLE(but, rect);
+				break;
+				
 			case BUT_COLORBAND:
 				ui_draw_but_COLORBAND(but, &tui->wcol_regular, rect);
 				break;
+				
 			case BUT_NORMAL:
 				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
 				break;
+				
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;

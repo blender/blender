@@ -123,7 +123,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{TEXCO_GLOB, "GLOBAL", "Global", "Uses global coordinates for the texture coordinates."},
 		{TEXCO_OBJECT, "OBJECT", "Object", "Uses linked object's coordinates for texture coordinates."},
 		{TEXCO_UV, "UV", "UV", "Uses UV coordinates for texture coordinates."},
-		{TEXCO_ORCO, "ORCO", "Orco", "Uses the original undeformed coordinates of the object."},
+		{TEXCO_ORCO, "ORCO", "Generated", "Uses the original undeformed coordinates of the object."},
 		{TEXCO_STRAND, "STRAND", "Strand", "Uses normalized strand texture coordinate (1D)."},
 		{TEXCO_STICKY, "STICKY", "Sticky", "Uses mesh's sticky coordinates for the texture coordinates."},
 		{TEXCO_WINDOW, "WINDOW", "Window", "Uses screen coordinates as texture coordinates."},

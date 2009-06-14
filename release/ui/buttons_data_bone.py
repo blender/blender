@@ -35,7 +35,9 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "multiply_vertexgroup_with_envelope", text="Multiply")
 
 		sub = split.column()
-		#sub.itemR(bone, "layer")
+		sub.itemL(text="Layers:")
+		sub.template_layers(bone, "layer")
+		
 		sub.itemL(text="Display:")
 		sub.itemR(bone, "draw_wire", text="Wireframe")
 		sub.itemR(bone, "editmode_hidden", text="Hide (EditMode)")

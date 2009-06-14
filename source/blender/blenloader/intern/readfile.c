@@ -3827,12 +3827,19 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
+			
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 			if(sce->toolsettings->sculpt)
 				sce->toolsettings->sculpt->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
-
+			if(sce->toolsettings->vpaint)
+				sce->toolsettings->vpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
+			if(sce->toolsettings->wpaint)
+				sce->toolsettings->wpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->wpaint->brush);
+			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {

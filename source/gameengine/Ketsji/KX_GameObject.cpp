@@ -1287,7 +1287,7 @@ PyObject* KX_GameObject::PyGetPosition()
 	return PyObjectFrom(NodeGetWorldPosition());
 }
 
-PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
+static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	const char *attr_str= PyString_AsString(item);
@@ -1295,7 +1295,7 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 	PyObject* pyconvert;
 	
 	if (self==NULL) {
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "val = gameOb[key]: KX_GameObject, "BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
 	
@@ -1321,7 +1321,7 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 }
 
 
-int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
+static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	const char *attr_str= PyString_AsString(key);
@@ -1329,7 +1329,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		PyErr_Clear();
 	
 	if (self==NULL) {
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		PyErr_SetString(PyExc_SystemError, "gameOb[key] = value: KX_GameObject, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
@@ -1409,11 +1409,40 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	return 0; /* success */
 }
 
-/* Cant set the len otherwise it can evaluate as false */
+static int Seq_Contains(PyObject *self_v, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val in gameOb: KX_GameObject, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if(PyString_Check(value) && self->GetProperty(PyString_AsString(value)))
+		return 1;
+	
+	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
+		return 1;
+	
+	return 0;
+}
+
+
 PyMappingMethods KX_GameObject::Mapping = {
 	(lenfunc)NULL					, 			/*inquiry mp_length */
-	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
-	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
+	(binaryfunc)Map_GetItem,		/*binaryfunc mp_subscript */
+	(objobjargproc)Map_SetItem,	/*objobjargproc mp_ass_subscript */
+};
+
+PySequenceMethods KX_GameObject::Sequence = {
+	NULL,		/* Cant set the len otherwise it can evaluate as false */
+	NULL,		/* sq_concat */
+	NULL,		/* sq_repeat */
+	NULL,		/* sq_item */
+	NULL,		/* sq_slice */
+	NULL,		/* sq_ass_item */
+	NULL,		/* sq_ass_slice */
+	(objobjproc)Seq_Contains,	/* sq_contains */
 };
 
 PyTypeObject KX_GameObject::Type = {
@@ -1433,12 +1462,15 @@ PyTypeObject KX_GameObject::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,
+		0,
+		&Sequence,
 		&Mapping,
 		0,0,0,
 		py_base_getattro,
 		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
+		0,
+		Py_TPFLAGS_DEFAULT,
+		0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -2207,7 +2239,7 @@ PyObject* KX_GameObject::PyGetChildrenRecursive()
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* args)
 {
-	ShowDeprecationWarning("getMesh()", "the meshes property");
+	ShowDeprecationWarning("getMesh()", "the meshes property (now a list of meshes)");
 	
 	int mesh = 0;
 
@@ -2779,15 +2811,10 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 /* Matches python dict.has_key() */
 PyObject* KX_GameObject::Pyhas_key(PyObject* value)
 {
-	if(PyString_Check(value) && GetProperty(PyString_AsString(value)))
-		Py_RETURN_TRUE;
-	
-	if (m_attr_dict && PyDict_GetItem(m_attr_dict, value))
-		Py_RETURN_TRUE;
-	
-	Py_RETURN_FALSE;
+	// the ONLY error case is invalid data, this is checked by the macro'd static function
+	// that calls this one. but make sure Seq_Contains doesnt add extra errors later on.
+	return PyBool_FromLong(Seq_Contains((PyObject *)this, value));
 }
-
 
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header

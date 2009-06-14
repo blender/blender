@@ -726,6 +726,9 @@ static void rna_def_space_text(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "overwrite", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite characters when typing rather than inserting them.");
 	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+	
+	prop= RNA_def_property(srna, "live_edit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing.");
 
 	prop= RNA_def_property(srna, "tab_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tabnumber");
