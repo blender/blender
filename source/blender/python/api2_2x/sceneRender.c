@@ -925,13 +925,6 @@ static PyObject *RenderData_getBorder( BPy_RenderData * self )
 			self->renderContext->border.ymax );
 }
 
-static PyObject *RenderData_EnableGammaCorrection( BPy_RenderData * self,
-					    PyObject * args )
-{
-	return M_Render_BitToggleInt( args, R_GAMMA,
-				      &self->renderContext->mode );
-}
-
 static PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
