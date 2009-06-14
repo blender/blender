@@ -609,6 +609,10 @@
 				Name="TEX_nodes"
 				>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_at.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_bricks.c"
 					>
 				</File>
