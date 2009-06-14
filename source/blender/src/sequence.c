@@ -1480,7 +1480,8 @@ static int input_have_to_preprocess(Sequence * seq, TStripElem* se, int cfra)
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
+	   !(seq->type & SEQ_EFFECT)) {
 		if (seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(seq, cfra);
 			mul *= seq->facf0;
@@ -1568,7 +1569,8 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
+	   !(seq->type & SEQ_EFFECT)) {
 		if (seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(seq, cfra);
 			mul *= seq->facf0;
@@ -1822,10 +1824,14 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			input_preprocess(seq, se, cfra);
 		}
 	} else if(seq->type & SEQ_EFFECT) {
+		int use_preprocess = FALSE;
 		/* should the effect be recalculated? */
 		
 		if (!build_proxy_run && se->ibuf == 0) {
 			se->ibuf = seq_proxy_fetch(seq, cfra, render_size);
+			if (se->ibuf) {
+				use_preprocess = TRUE;
+			}
 		}
 
 		if(se->ibuf == 0) {
@@ -1838,6 +1844,22 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 			
 			do_effect(cfra, seq, se);
+			if (input_have_to_preprocess(seq, se, cfra) &&
+			    !build_proxy_run) {
+				if ((se->se1 && (se->ibuf == se->se1->ibuf)) ||
+				    (se->se2 && (se->ibuf == se->se2->ibuf))) {
+					struct ImBuf * i
+						= IMB_dupImBuf(se->ibuf);
+
+					IMB_freeImBuf(se->ibuf);
+
+					se->ibuf = i;
+				}
+				use_preprocess = TRUE;
+			}
+		}
+		if (use_preprocess) {
+			input_preprocess(seq, se, cfra);
 		}
 	} else if(seq->type == SEQ_IMAGE) {
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
@@ -2946,9 +2968,8 @@ void free_imbuf_seq_except(int cfra)
 	END_SEQ
 }
 
-void free_imbuf_seq()
+static void free_imbuf_seq_editing(Editing * ed)
 {
-	Editing *ed= G.scene->ed;
 	Sequence *seq;
 	TStripElem *se;
 	int a;
@@ -2988,6 +3009,15 @@ void free_imbuf_seq()
 		}
 	}
 	END_SEQ
+}
+
+void free_imbuf_seq()
+{
+	Scene * sce = G.main->scene.first;
+	while(sce) {
+		free_imbuf_seq_editing(sce->ed);
+		sce= sce->id.next;
+	}
 }
 
 void free_imbuf_seq_with_ipo(struct Ipo *ipo)
@@ -3074,12 +3104,17 @@ void update_changed_seq_and_deps(Sequence *changed_seq, int len_change, int ibuf
 /* bad levell call... */
 void do_render_seq(RenderResult *rr, int cfra)
 {
+	static int recurs_depth = 0;
 	ImBuf *ibuf;
 
 	G.f |= G_PLAYANIM;	/* waitcursor patch */
 
+	recurs_depth++;
+
 	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, G.scene->r.size);
 	
+	recurs_depth--;
+
 	if(ibuf) {
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
@@ -3115,7 +3150,7 @@ void do_render_seq(RenderResult *rr, int cfra)
 		   on freeing _all_ buffers every time on long timelines...)
 		   (schlaile)
 		*/
-		{
+		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			uintptr_t mem_in_use;
 			uintptr_t mmap_in_use;
 			uintptr_t max;

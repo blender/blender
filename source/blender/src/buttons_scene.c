@@ -570,7 +570,7 @@ static void seq_panel_editing()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Edit", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      0, 0, 318, 204) == 0) return;
 
 	uiDefBut(block, LABEL, 
 		 0, give_seqname(last_seq), 
@@ -754,7 +754,7 @@ static void seq_panel_input()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      320, 0, 318, 204) == 0) return;
 
 	if (SEQ_HAS_PATH(last_seq)) {
 		uiDefBut(block, TEX, 
@@ -897,7 +897,7 @@ static void seq_panel_filter_video()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      640, 0, 318, 204) == 0) return;
 
 
 	uiBlockBeginAlign(block);
@@ -1024,7 +1024,7 @@ static void seq_panel_filter_audio()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      640, 0, 318, 204) == 0) return;
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
@@ -1040,7 +1040,7 @@ static void seq_panel_effect()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Effect", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      320, 0, 318, 204) == 0) return;
 
 	if(last_seq->type == SEQ_PLUGIN) {
 		PluginSeq *pis;
@@ -1168,7 +1168,7 @@ static void seq_panel_proxy()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Proxy", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      960, 0, 318, 204) == 0) return;
 
 	uiBlockBeginAlign(block);
 
@@ -1276,7 +1276,7 @@ void sequencer_panels()
 	}
 
 	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {
-		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_PROXY;
+		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_FILTER| SEQ_PANEL_PROXY;
 	}
 
 	if (panels & SEQ_PANEL_EDITING) {
