@@ -1164,6 +1164,8 @@ static void seq_panel_proxy()
 {
 	Sequence *last_seq = get_last_seq();
 	uiBlock *block;
+	int yofs;
+
 	block = uiNewBlock(&curarea->uiblocks, "seq_panel_proxy", 
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
@@ -1172,83 +1174,118 @@ static void seq_panel_proxy()
 
 	uiBlockBeginAlign(block);
 
+	yofs = 140;
+
 	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
 		     B_SEQ_BUT_RELOAD, "Use Proxy", 
-		     10,140,80,19, &last_seq->flag, 
+		     10,yofs,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Use a preview proxy for this strip");
 
-	if (last_seq->flag & SEQ_USE_PROXY) {
-		if (!last_seq->strip->proxy) {
-			last_seq->strip->proxy = 
-				MEM_callocN(sizeof(struct StripProxy),
-					    "StripProxy");
-		}
-
-		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
-			     B_SEQ_BUT_RELOAD, "Custom Dir", 
-			     90,140,80,19, &last_seq->flag, 
-			     0.0, 21.0, 100, 0, 
-			     "Use a custom directory to store data");
-
-		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_FILE, 
-			     B_SEQ_BUT_RELOAD, "Custom File", 
-			     170,140,80,19, &last_seq->flag, 
-			     0.0, 21.0, 100, 0, 
-			     "Use a custom file to load data from");
-
-		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
-				     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
-				     "Select the directory/name for "
-				     "the proxy storage");
-
-			uiDefBut(block, TEX, 
-				 B_SEQ_BUT_RELOAD, "Dir: ", 
-				 30,120,220,20, last_seq->strip->proxy->dir, 
-				 0.0, (float)sizeof(last_seq->strip->proxy->dir)-1, 100, 0, "");
-		}
-		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
-				     ICON_FILESEL, 10, 100, 20, 20, 0, 0, 0, 
-				     0, 0, 
-				     "Select the custom proxy file "
-				     "(used for all preview resolutions!)");
-
-			uiDefBut(block, TEX, 
-				 B_SEQ_BUT_RELOAD, "File: ", 
-				 30,100,220,20, last_seq->strip->proxy->file, 
-				 0.0, (float)sizeof(last_seq->strip->proxy->file)-1, 100, 0, "");
-		}
+	if (!(last_seq->flag & SEQ_USE_PROXY)) {
+		uiBlockEndAlign(block);
+		return;
 	}
 
-	if (last_seq->flag & SEQ_USE_PROXY) {
-		if (G.scene->r.size == 100) {
-			uiDefBut(block, LABEL, 0, 
-				 "Full render size selected, ",
-				 10,60,240,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, 
-				 "so no proxy enabled!",
-				 10,40,240,19, 0, 0, 0, 0, 0, "");
-		} else if (last_seq->type != SEQ_MOVIE 
-			   && last_seq->type != SEQ_IMAGE
-			   && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-			uiDefBut(block, LABEL, 0, 
-				 "Cannot proxy this strip without ",
-				 10,60,240,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, 
-				 "custom directory selection!",
-				 10,40,240,19, 0, 0, 0, 0, 0, "");
-		} else if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
-			uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
-				 "Rebuild proxy",
-				 10,60,240,19, 0, 0, 0, 0, 0, 
-				 "Rebuild proxy for the "
-				 "currently selected strip.");
+	if (!last_seq->strip->proxy) {
+		last_seq->strip->proxy = 
+			MEM_callocN(sizeof(struct StripProxy),
+				    "StripProxy");
+	}
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
+		     B_SEQ_BUT_RELOAD, "Custom Dir", 
+		     90,yofs,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a custom directory to store data");
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_FILE, 
+		     B_SEQ_BUT_RELOAD, "Custom File", 
+		     170,yofs,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a custom file to load data from");
+	
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR ||
+	    last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		yofs -= 20;
+
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
+			     ICON_FILESEL, 10, yofs, 20, 20, 0, 0, 0, 0, 0, 
+			     "Select the directory/name for "
+			     "the proxy storage");
+		
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "Dir: ", 
+			 30,yofs,220,20, last_seq->strip->proxy->dir, 
+			 0.0, (float)sizeof(last_seq->strip->proxy->dir)-1, 
+			 100, 0, "");
+	}
+
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		yofs -= 20;
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
+			     ICON_FILESEL, 10, yofs, 20, 20, 0, 0, 0, 
+			     0, 0, 
+			     "Select the custom proxy file "
+			     "(used for all preview resolutions!)");
+		
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "File: ", 
+			 30, yofs,220,20, last_seq->strip->proxy->file, 
+			 0.0, (float)sizeof(last_seq->strip->proxy->file)-1, 
+			 100, 0, "");
+	}
+
+	if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
+		if (last_seq->strip->proxy->size == 0) {
+			if (G.scene->r.size != 100) {
+				last_seq->strip->proxy->size = G.scene->r.size;
+			} else {
+				last_seq->strip->proxy->size = 25;
+			}
 		}
+		if (last_seq->strip->proxy->quality == 0) {
+			last_seq->strip->proxy->quality = 90;
+		}
+		yofs -= 25;
+
+		uiDefButS(block, NUM,B_DIFF, "Q:",  10,yofs,74,20, 
+			  &last_seq->strip->proxy->quality, 
+			  10.0, 100.0, 0, 0, 
+			  "Quality setting for JPEG images");
+		uiDefButS(block, ROW,B_DIFF,"75%",  90,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,75.0, 0, 0, 
+			  "Set proxy size to 3/4 of defined size");
+		uiDefButS(block, ROW,B_DIFF,"50%",  143,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,50.0, 0, 0, 
+			  "Set proxy size to 1/2 of defined size");
+		uiDefButS(block, ROW,B_DIFF,"25%",  196,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,25.0, 0, 0, 
+			  "Set proxy size to 1/4 of defined size");
+	}
+
+	if (last_seq->type != SEQ_MOVIE 
+	    && last_seq->type != SEQ_IMAGE
+	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+		yofs -= 20;
+		uiDefBut(block, LABEL, 0, 
+			 "Cannot proxy this strip without ",
+			 30,yofs,240,19, 0, 0, 0, 0, 0, "");
+		yofs -= 20;
+		uiDefBut(block, LABEL, 0, 
+			 "custom directory selection!",
+			 30,yofs,240,19, 0, 0, 0, 0, 0, "");
+	} else if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
+		yofs -= 45;
+		uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
+			 "Rebuild proxy",
+			 10,yofs,240,40, 0, 0, 0, 0, 0, 
+			 "Rebuild proxy for the "
+			 "currently selected strip.");
 	}
 
 	uiBlockEndAlign(block);
+
 }
 
 

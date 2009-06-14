@@ -741,16 +741,16 @@ void seq_buttons()
 		xco+= 8 + XIC*3.5;
 
 		uiDefButS(block, MENU, B_REDR, 
-			  "Render size: %t"
-			  "|R 100 %x100"
-			  "|R 75  %x75"
-			  "|R 50  %x50"
-			  "|R 25  %x25"
-			  "|R Sce %x0"
-			  "|R Off %x-1", 
+			  "Proxy Render Size: %t"
+			  "|Q 100 %x100"
+			  "|Q 75  %x75"
+			  "|Q 50  %x50"
+			  "|Q 25  %x25"
+			  "|Q Sce %x0"
+			  "|Q Off %x-1", 
 			  xco,0,3.0 * XIC, YIC, &sseq->render_size, 
 			  0,0,0,0, 
-			  "Use different (proxy) render size "
+			  "Use different proxy render size settings "
 			  "for this preview screen, use scene render size "
 			  "or disable this preview completely");
 

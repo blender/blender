@@ -8156,6 +8156,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	}
 	
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				WHILE_SEQ(&ed->seqbase) {
+					if (seq->strip && seq->strip->proxy){
+						if (G.scene->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				END_SEQ
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

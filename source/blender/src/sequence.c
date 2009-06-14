@@ -1211,7 +1211,7 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra, int render_size)
 
 	   depth = 32 is intentionally left in, otherwise ALPHA channels
 	   won't work... */
-	quality = 90;
+	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
 
 	BLI_make_existing_file(name);
@@ -1228,6 +1228,7 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra, int render_size)
 void seq_proxy_rebuild(Sequence * seq)
 {
 	int cfra;
+	float rsize = seq->strip->proxy->size;
 
 	waitcursor(1);
 
@@ -1245,6 +1246,8 @@ void seq_proxy_rebuild(Sequence * seq)
 		tse->flag &= ~STRIPELEM_PREVIEW_DONE;
 	}
 
+	
+
 	/* a _lot_ faster for movie files, if we read frames in
 	   sequential order */
 	if (seq->flag & SEQ_REVERSE_FRAMES) {
@@ -1253,8 +1256,8 @@ void seq_proxy_rebuild(Sequence * seq)
 			TStripElem * tse = give_tstripelem(seq, cfra);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-				seq_proxy_build_frame(seq, cfra,
-						      G.scene->r.size);
+				set_timecursor(cfra);
+				seq_proxy_build_frame(seq, cfra, rsize);
 				tse->flag |= STRIPELEM_PREVIEW_DONE;
 			}
 			if (blender_test_break()) {
@@ -1267,8 +1270,8 @@ void seq_proxy_rebuild(Sequence * seq)
 			TStripElem * tse = give_tstripelem(seq, cfra);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-				seq_proxy_build_frame(seq, cfra,
-						      G.scene->r.size);
+				set_timecursor(cfra);
+				seq_proxy_build_frame(seq, cfra, rsize);
 				tse->flag |= STRIPELEM_PREVIEW_DONE;
 			}
 			if (blender_test_break()) {
@@ -1959,7 +1962,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		} else if (se->ibuf==NULL && sce_valid) {
 			/* no need to display a waitcursor on sequencer
 			   scene strips */
-			if (!(sce->r.scemode & R_DOSEQ)) 
+			if (!(sce->r.scemode & R_DOSEQ) && !build_proxy_run) 
 				waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
@@ -2012,7 +2015,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			G.scene->r.scemode |= doseq;
 			
 			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-			   && !(sce->r.scemode & R_DOSEQ)) 
+			   && !(sce->r.scemode & R_DOSEQ)
+			   && !build_proxy_run) 
              
 				waitcursor(0);
 			CFRA = oldcfra;
@@ -3111,7 +3115,7 @@ void do_render_seq(RenderResult *rr, int cfra)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, G.scene->r.size);
+	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, 100.0);
 	
 	recurs_depth--;
 
