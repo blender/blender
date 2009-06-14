@@ -1774,7 +1774,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			click= 1;
 		}
 		else if(event->val==KM_PRESS) {
-			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->shift) {
+			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->ctrl) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -1985,7 +1985,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			click= 2;
 		}
 		else if(event->val==KM_PRESS) {
-			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->shift) {
+			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->ctrl) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
@@ -2027,7 +2027,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	}
 
 	if(click) {
-		if (event->ctrl || click==2) {
+		if (click==2) {
 			/* nudge slider to the left or right */
 			float f, tempf, softmin, softmax, softrange;
 			int temp;
