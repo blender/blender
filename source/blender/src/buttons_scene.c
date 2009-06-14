@@ -1266,7 +1266,8 @@ static void seq_panel_proxy()
 
 	if (last_seq->type != SEQ_MOVIE 
 	    && last_seq->type != SEQ_IMAGE
-	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
+	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
 		yofs -= 20;
 		uiDefBut(block, LABEL, 0, 
 			 "Cannot proxy this strip without ",
