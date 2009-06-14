@@ -1393,8 +1393,6 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 	ShadeInput shi;
 	ShadeResult shr;
 	
-	assert(0);
-
 	if(RE_rayobject_raycast(R.raytree, is)) {
 		float d= 1.0f;
 		/* we got a face */
@@ -1662,8 +1660,6 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float dxyview[3], skyadded=0, div;
 	int aocolor;
 	
-	assert(0);
-	
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 
@@ -1795,8 +1791,6 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
 	int j= -1, tot, actual=0, skyadded=0, aocolor, resol= R.wrld.aosamp;
-	
-	assert(0);
 	
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
@@ -1979,8 +1973,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	float jitco[RE_MAX_OSA][3];
 	int totjitco;
 
-//	assert(0);
-
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
 		shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0f;
@@ -2071,7 +2063,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		}
 
 		VECCOPY(isec->start, co);
-//		VECSUB(isec->vec, end, isec->start);
 		isec->vec[0] = end[0]-isec->start[0];
 		isec->vec[1] = end[1]-isec->start[1];
 		isec->vec[2] = end[2]-isec->start[2];
@@ -2134,8 +2125,6 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 	float *jitlamp;
 	float fac=0.0f, div=0.0f, vec[3];
 	int a, j= -1, mask;
-	
-	assert(0);
 	
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
 		shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0f;
@@ -2265,11 +2254,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				ray_trace_shadow_tra(&isec, shi, DEPTH_SHADOW_TRA, 0);
 				QUATCOPY(shadfac, isec.col);
 			}
-			else
-			{
-				assert(0);
-				if(RE_rayobject_raycast(R.raytree, &isec)) shadfac[3]= 0.0f;
-			}
+			else if(RE_rayobject_raycast(R.raytree, &isec))
+				shadfac[3]= 0.0f;
 		}
 		else {
 			ray_shadow_jitter(shi, lar, lampco, shadfac, &isec);

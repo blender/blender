@@ -266,8 +266,8 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 	if(casted_rays++ % (1<<20) == 0)
 		printf("Casting %d rays\n", casted_rays);
 
-	i->labda = 10000.0;
 /*
+	i->labda = 10000.0;
 	i->vec[0] *= i->labda;
 	i->vec[1] *= i->labda;
 	i->vec[2] *= i->labda;
