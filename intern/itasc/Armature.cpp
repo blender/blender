@@ -496,8 +496,45 @@ double Armature::getMaxTimestep(double& timestep)
 	// then search through the joint limit
 	for (JointConstraintList::const_iterator it=m_constraints.begin(); it != m_constraints.end(); it++) {
 		JointConstraint_struct* cs = *it;
-
-		
+		if (cs->function == JointLimitCallback) {
+			// this is a joint limit constraint, 
+			LimitConstraintParam_struct* pLimit = (LimitConstraintParam_struct*)cs->param;
+			double qdot = m_qdot(cs->segment->second.q_nr);
+			if (fabs(qdot) > KDL::epsilon) {
+				double q = m_qKdl(cs->segment->second.q_nr);
+				double dq = qdot*timestep;
+				double newq = q+dq;
+				double alpha = cs->values.alpha;
+				double newalpha;
+				if (q    > pLimit->maxThreshold || q    < pLimit->minThreshold ||
+					newq > pLimit->maxThreshold || newq < pLimit->minThreshold) {
+					if (q > pLimit->maxThreshold) {
+						if (q < pLimit->max || dq < 0.0) {
+							newalpha = (alpha>2.0)?(alpha*((dq>0.0)?1.5:0.666)):(alpha+((dq>0.0)?1.0:-1.0));
+							if (newalpha > 0.0)
+								newq = pLimit->max-pLimit->threshold*(pLimit->maxWeight-newalpha)/(newalpha*pLimit->slope+pLimit->maxWeight);
+						}
+					} else if (q < pLimit->minThreshold) {
+						if (q > pLimit->min || dq > 0.0) {
+							newalpha = (alpha>2.0)?(alpha*((dq<0.0)?1.5:0.666)):(alpha+((dq<0.0)?1.0:-1.0));
+							if (newalpha > 0.0)
+								newq = pLimit->min+pLimit->threshold*(pLimit->maxWeight-newalpha)/(newalpha*pLimit->slope+pLimit->maxWeight);
+						}
+					} else if (newq > pLimit->maxThreshold) {
+						newalpha = 1.0;
+						newq = pLimit->max-pLimit->threshold*(pLimit->maxWeight-newalpha)/(newalpha*pLimit->slope+pLimit->maxWeight);
+					} else {
+						newalpha = 1.0;
+						newq = pLimit->min+pLimit->threshold*(pLimit->maxWeight-newalpha)/(newalpha*pLimit->slope+pLimit->maxWeight);
+					}
+					double newdq = fabs(newq-q);
+					dq = fabs(dq);
+					if (newdq < dq) {
+						timestep *= newdq/dq;
+					}
+				}
+			}
+		}
 	}
 	return timestep;
 }

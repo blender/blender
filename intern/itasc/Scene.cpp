@@ -397,7 +397,7 @@ bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, b
 				ConstraintSet_struct* cs = it->second;
 				cs->task->getMaxTimestep(timesubstep);
 			}
-			// use substep that are dividers of timestep for more regularity
+			// use substep that are even dividers of timestep for more regularity
 			maxsubstep = 2.0*floor(timestep/2.0/timesubstep-0.66666);
 			timesubstep = (maxsubstep < 0.0) ? timestep : timestep/(2.0+maxsubstep);
 			if (timesubstep >= timeleft-(m_minstep/2.0)) {

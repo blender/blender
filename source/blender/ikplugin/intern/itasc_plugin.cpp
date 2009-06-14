@@ -692,19 +692,19 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		if ((flag & IK_XDOF) && (pchan->ikflag & BONE_IK_XLIMIT)) {
 			joint = bone->name;
 			joint += ":RX";
-			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[0], KDL::deg2rad*pchan->limitmax[0], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+			if (arm->addLimitConstraint(joint, pchan->limitmin[0], pchan->limitmax[0], 5.0, 50.0, 5.0) < 0)
 				break;
 		}
 		if ((flag & IK_YDOF) && (pchan->ikflag & BONE_IK_YLIMIT)) {
 			joint = bone->name;
 			joint += ":RY";
-			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[1], KDL::deg2rad*pchan->limitmax[1], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+			if (arm->addLimitConstraint(joint, pchan->limitmin[1], pchan->limitmax[1], 5.0, 50.0, 5.0) < 0)
 				break;
 		}
 		if ((flag & IK_ZDOF) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
 			joint = bone->name;
 			joint += ":RZ";
-			if (arm->addLimitConstraint(joint, KDL::deg2rad*pchan->limitmin[2], KDL::deg2rad*pchan->limitmax[2], KDL::deg2rad*5.0, 10.0, 2.0) < 0)
+			if (arm->addLimitConstraint(joint, pchan->limitmin[2], pchan->limitmax[2], 5.0, 50.0, 5.0) < 0)
 				break;
 		}
 		//  no error, so restore
