@@ -225,6 +225,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 	PointerRNA ptr_context;
+	PyObject ptr_operator;
+	PyObject *py_operator;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
@@ -260,6 +262,12 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 			RNA_property_collection_end(&iter);
 		}
+
+		/* set operator pointer RNA as instance "__operator__" attribute */
+		RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
+		py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
+		PyObject_SetAttrString(py_class_instance, "__operator__", py_operator);
+		Py_DECREF(py_operator);
 
 		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 		

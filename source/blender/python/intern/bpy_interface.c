@@ -60,6 +60,7 @@ static void bpy_init_modules( void )
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
 	PyModule_AddObject( mod, "ops", BPY_operator_module() );
 	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
 	
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
@@ -94,22 +95,6 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
-	
-	// XXX - put somewhere more logical
-	{
-		PyMethodDef *ml;
-		static PyMethodDef bpy_prop_meths[] = {
-			{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-			{NULL, NULL, 0, NULL}
-		};
-		
-		for(ml = bpy_prop_meths; ml->ml_name; ml++) {
-			PyDict_SetItemString( dict, ml->ml_name, PyCFunction_New(ml, NULL));
-		}
-	}
 	
 	/* add bpy to global namespace */
 	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);

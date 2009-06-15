@@ -1,3 +1,4 @@
+
 import bpy
 
 class SCRIPT_OT_export_obj(bpy.types.Operator):
@@ -7,6 +8,7 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	__props__ = [
+        bpy.props["StringProperty"](attr="filename", name="filename", default="/tmp")
 #		FloatProperty(attr="setting_1", name="Example 1", default=10.0, min=0, max=10, description="Add info here"),
 #		StringProperty(attr="filename")
 		]
@@ -17,11 +19,13 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	def exec(self, context):
 #		print(self.setting_1)
 		self.debug("exec")
-		return 'FINISHED'
+		self.debug("filename = " + self.filename)
+		return ('FINISHED',)
 	
 	def invoke(self, context, event):
 		self.debug("invoke")
-		return self.exec(context)
+		context.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',) #self.exec(context)
 	
 	def poll(self, context): # poll isnt working yet
 		self.debug("poll")

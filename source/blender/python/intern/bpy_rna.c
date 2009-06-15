@@ -1750,7 +1750,24 @@ PyObject *BPY_rna_types(void)
 	return (PyObject *)self;
 }
 
+PyObject *BPY_rna_props( void )
+{
+	PyObject *dict = PyDict_New(  );
+	PyMethodDef *ml;
+	static PyMethodDef bpy_prop_meths[] = {
+		{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+		{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+		{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+		{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+		{NULL, NULL, 0, NULL}
+	};
+		
+	for(ml = bpy_prop_meths; ml->ml_name; ml++) {
+		PyDict_SetItemString( dict, ml->ml_name, PyCFunction_New(ml, NULL));
+	}
 
+	return dict;
+}
 
 /* Orphan functions, not sure where they should go */
 
