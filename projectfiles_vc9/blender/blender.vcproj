@@ -80,7 +80,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib\lib25_vs2008;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_9\libs\intern;..\..\..\build\msvc_9\libs\extern;..\..\..\lib\windows\ffmpeg\lib"
 				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames="msvcprt.lib;glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmtd.lib;odbc32.lib;odbccp32.lib"
+				IgnoreDefaultLibraryNames="msvcrt.lib;glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmtd.lib;odbc32.lib;odbccp32.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="..\..\..\build\msvc_9\libs\blender.pdb"
 				SubSystem="1"
