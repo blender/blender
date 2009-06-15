@@ -1132,10 +1132,14 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Copy mesh data.");
 	prop= RNA_def_pointer(func, "src", "Mesh", "", "A mesh to copy data from.");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	/*
-	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "A new mesh.");
-	RNA_def_function_return(func, prop);
-	*/
+
+	func= RNA_def_function(srna, "copy_applied", "RNA_api_mesh_copy_applied");
+	RNA_def_function_ui_description(func, "Copy mesh data from object with all modifiers and transformations applied.");
+	prop= RNA_def_pointer(func, "sce", "Scene", "", "Scene.");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop= RNA_def_pointer(func, "ob", "Object", "", "Object to copy data from.");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	RNA_def_boolean(func, "apply_obmat", 1, "", "Apply object matrix.");
 }
 
 void RNA_def_mesh(BlenderRNA *brna)

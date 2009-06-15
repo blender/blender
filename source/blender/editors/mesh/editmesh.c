@@ -2041,6 +2041,16 @@ void RNA_api_mesh_copy(Mesh *me, Mesh *from)
 	copy_mesh_data(me, from);
 }
 
+void RNA_api_mesh_copy_applied(Mesh *me, Scene *sce, Object *ob, int apply_obmat)
+{
+	DerivedMesh *dm= mesh_create_derived_view(sce, ob, CD_MASK_MESH);
+	DM_to_mesh(dm, me);
+	dm->release(dm);
+
+	if (apply_obmat) {
+	}
+}
+
 void RNA_api_mesh_transform(Mesh *me, float **mat)
 {
 }
@@ -2048,6 +2058,8 @@ void RNA_api_mesh_transform(Mesh *me, float **mat)
 /*
  * This version of copy_mesh doesn't allocate a new mesh,
  * instead it copies data between two existing meshes.
+ *
+ * XXX is this already possible with DerivedMesh?
  */
 void copy_mesh_data(Mesh *dest, Mesh *src)
 {
@@ -2078,47 +2090,3 @@ void copy_mesh_data(Mesh *dest, Mesh *src)
 
 	mesh_update_customdata_pointers(dest);
 }
-
-/*
-void RNA_api_mesh_apply_transform(Mesh *me)
-{
-	
-}
-*/
-
-/*
-void RNA_api_mesh_copy_(Mesh *me, Object *ob, int apply_transform)
-{
-	if (ob->type != OB_MESH) {
-		return;
-	}
-
-	Mesh *src= (Mesh*)ob->data;
-
-	CustomData_free(&me->vdata, me->totvert);
-	CustomData_free(&me->edata, me->totedge);
-	CustomData_free(&me->fdata, me->totface);
-
-	CustomData_copy(&src->vdata, &me->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&src->edata, &me->edata, CD_MASK_MESH, CD_DUPLICATE, me->totedge);
-	CustomData_copy(&src->fdata, &me->fdata, CD_MASK_MESH, CD_DUPLICATE, me->totface);
-	mesh_update_customdata_pointers(me);
-
-	// ensure indirect linked data becomes lib-extern
-	for(i=0; i<src->fdata.totlayer; i++) {
-		if(src->fdata.layers[i].type == CD_MTFACE) {
-			tface= (MTFace*)src->fdata.layers[i].data;
-
-			for(a=0; a<src->totface; a++, tface++)
-				if(tface->tpage)
-					id_lib_extern((ID*)tface->tpage);
-		}
-	}
-	
-	me->mselect= NULL;
-	me->bb= src->bb;
-
-	//men->key= copy_key(me->key);
-	//if(men->key) men->key->from= (ID *)men;
-}
-*/
