@@ -75,7 +75,7 @@ static int theme_regionid= RGN_TYPE_WINDOW;
 
 void ui_resources_init(void)
 {
-	UI_icons_init(BIFICONID_LAST+1);
+	UI_icons_init(BIFICONID_LAST);
 }
 
 void ui_resources_free(void)

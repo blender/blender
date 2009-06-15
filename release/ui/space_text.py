@@ -30,12 +30,12 @@ class TEXT_HT_header(bpy.types.Header):
 		if text and text.modified:
 			row = layout.row()
 			# row.color(redalert)
-			row.itemO("TEXT_OT_resolve_conflict", text="", icon=ICON_HELP)
+			row.itemO("TEXT_OT_resolve_conflict", text="", icon='ICON_HELP')
 
 		row = layout.row(align=True)
-		row.itemR(st, "line_numbers", text="", icon=ICON_LINENUMBERS_OFF)
-		row.itemR(st, "word_wrap", text="", icon=ICON_WORDWRAP_OFF)
-		row.itemR(st, "syntax_highlight", text="", icon=ICON_SYNTAX_OFF)
+		row.itemR(st, "line_numbers", text="", icon='ICON_LINENUMBERS_OFF')
+		row.itemR(st, "word_wrap", text="", icon='ICON_WORDWRAP_OFF')
+		row.itemR(st, "syntax_highlight", text="", icon='ICON_SYNTAX_OFF')
 		# row.itemR(st, "do_python_plugins", text="", icon=ICON_SCRIPTPLUGINS)
 
 		layout.template_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
@@ -63,9 +63,9 @@ class TEXT_PT_properties(bpy.types.Panel):
 		layout = self.layout
 
 		flow = layout.column_flow()
-		flow.itemR(st, "line_numbers", icon=ICON_LINENUMBERS_OFF)
-		flow.itemR(st, "word_wrap", icon=ICON_WORDWRAP_OFF)
-		flow.itemR(st, "syntax_highlight", icon=ICON_SYNTAX_OFF)
+		flow.itemR(st, "line_numbers", icon='ICON_LINENUMBERS_OFF')
+		flow.itemR(st, "word_wrap", icon='ICON_WORDWRAP_OFF')
+		flow.itemR(st, "syntax_highlight", icon='ICON_SYNTAX_OFF')
 		flow.itemR(st, "live_edit")
 
 		flow = layout.column_flow()
@@ -85,14 +85,14 @@ class TEXT_PT_find(bpy.types.Panel):
 		col = layout.column(align=True)
 		row = col.row()
 		row.itemR(st, "find_text", text="")
-		row.itemO("TEXT_OT_find_set_selected", text="", icon=ICON_TEXT)
+		row.itemO("TEXT_OT_find_set_selected", text="", icon='ICON_TEXT')
 		col.itemO("TEXT_OT_find")
 
 		# replace
 		col = layout.column(align=True)
 		row = col.row()
 		row.itemR(st, "replace_text", text="")
-		row.itemO("TEXT_OT_replace_set_selected", text="", icon=ICON_TEXT)
+		row.itemO("TEXT_OT_replace_set_selected", text="", icon='ICON_TEXT')
 		col.itemO("TEXT_OT_replace")
 
 		# mark

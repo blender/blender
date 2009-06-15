@@ -33,11 +33,24 @@
 #include "RNA_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
+
+#define DEF_ICON(name) {name, #name, #name, ""},
+static EnumPropertyItem icon_items[] = {
+#include "UI_icons.h"
+		{0, NULL, NULL, NULL}};
+#undef DEF_ICON
 
 static void api_ui_item_common(FunctionRNA *func)
 {
+	PropertyRNA *prop;
+
 	RNA_def_string(func, "text", "", 0, "", "Override automatic text of the item.");
-	RNA_def_int(func, "icon", 0, 0, INT_MAX, "", "Override automatic icon of the item.", 0, INT_MAX);
+
+	prop= RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, icon_items);
+	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item.");
+
 }
 
 static void api_ui_item_op_common(FunctionRNA *func)

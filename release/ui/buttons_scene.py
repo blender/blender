@@ -162,8 +162,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="Render Still", icon=109)
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon=111)
+		row.itemO("SCREEN_OT_render", text="Render Still", icon='ICON_IMAGE_COL')
+		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon='ICON_SEQUENCE')
 		
 		row = layout.row()
 		row.itemR(rd, "do_composite")

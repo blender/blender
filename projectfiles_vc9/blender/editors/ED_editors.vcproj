@@ -310,6 +310,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\UI_icons.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\UI_interface.h"
 				>
 			</File>
