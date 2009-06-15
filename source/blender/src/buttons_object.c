@@ -1009,17 +1009,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Settings */
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_CHANGETARGET, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "ChainLen:", *xco, *yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);
 				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-92, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco+147, *yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_CHANGETARGET, "Rot", *xco+147, *yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
 				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "W ", *xco+187, *yco-112, 97, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
 				
 				uiBlockBeginAlign(block);
 				
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco, *yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_CHANGETARGET, "Stretch", *xco, *yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
 				uiBlockBeginAlign(block);
 				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+147, *yco-137, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
 				uiBlockEndAlign(block);

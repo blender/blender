@@ -4014,6 +4014,8 @@ void do_armbuts(unsigned short event)
 	
 	switch(event) {
 	case B_ARM_RECALCDATA:
+		if (ob->pose)
+			ob->pose->flag |= POSE_WAS_REBUILT;
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWBUTSEDIT, 0);
