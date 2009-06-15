@@ -27,33 +27,28 @@
  */
 
 #include "KX_BlenderScalarInterpolator.h"
+#include "stdio.h"
+#include <cstring>
 
 extern "C" {
 #include "DNA_ipo_types.h"
-#include "BKE_ipo.h"
+#include "DNA_action_types.h"
+#include "DNA_anim_types.h"
+#include "BKE_fcurve.h"
 }
-
-static const int BL_MAX_CHANNELS = 32;
 
 float BL_ScalarInterpolator::GetValue(float currentTime) const {
-	return 0; // XXX IPO_GetFloatValue(m_blender_ipo, m_channel, currentTime);
+	// XXX 2.4x IPO_GetFloatValue(m_blender_adt, m_channel, currentTime);
+	return evaluate_fcurve(m_fcu, currentTime);
 }
 
- 
-
-BL_InterpolatorList::BL_InterpolatorList(struct Ipo *ipo) {
-	IPO_Channel channels[BL_MAX_CHANNELS];
-
-	int num_channels = 0; // XXX IPO_GetChannels(ipo, channels);
-
-	int i;
-
-	for (i = 0; i != num_channels; ++i) {
-		BL_ScalarInterpolator *new_ipo =
-			new BL_ScalarInterpolator(ipo, channels[i]); 
-
-		//assert(new_ipo);
-		push_back(new_ipo);
+BL_InterpolatorList::BL_InterpolatorList(struct AnimData *adt) {
+	for(FCurve *fcu= (FCurve *)adt->action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
+		if(fcu->rna_path) {
+			BL_ScalarInterpolator *new_ipo = new BL_ScalarInterpolator(fcu); 
+			//assert(new_ipo);
+			push_back(new_ipo);
+		}
 	}
 }
 
@@ -64,15 +59,13 @@ BL_InterpolatorList::~BL_InterpolatorList() {
 	}
 }
 
-
-KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(BL_IpoChannel channel) {
-	BL_InterpolatorList::iterator i = begin();
-	while (!(i == end()) && 
-		   (static_cast<BL_ScalarInterpolator *>(*i))->GetChannel() != 
-		   channel) {
-		++i;
+KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(char *rna_path, int array_index) {
+	for(BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
+	{
+		FCurve *fcu= (static_cast<BL_ScalarInterpolator *>(*i))->GetFCurve();
+		if(array_index==fcu->array_index && strcmp(rna_path, fcu->rna_path)==0)
+			return *i;
 	}
-	
-	return (i == end()) ? 0 : *i;
+	return NULL;
 }	
 
