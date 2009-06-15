@@ -303,6 +303,7 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 		// For each active channel in the adtList add an
 		// interpolator to the game object.
 		
+		KX_IInterpolator *interpolator;
 		KX_IScalarInterpolator *interp;
 		
 		for(int i=0; i<3; i++) {
