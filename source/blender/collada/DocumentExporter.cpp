@@ -2,11 +2,14 @@
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_image_types.h"
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
 }
 #include "BKE_scene.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "DocumentExporter.h"
 
@@ -20,6 +23,20 @@ extern "C"
 #include <COLLADASWScene.h>
 #include <COLLADASWPrimitves.h>
 #include <COLLADASWVertices.h>
+#include <COLLADASWLibraryImages.h>
+#include <COLLADASWLibraryEffects.h>
+#include <COLLADASWImage.h>
+#include <COLLADASWEffectProfile.h>
+#include <COLLADASWColorOrTexture.h>
+#include <COLLADASWParamTemplate.h>
+#include <COLLADASWParamBase.h>
+#include <COLLADASWSurfaceInitOption.h>
+#include <COLLADASWTexture.h>
+#include <COLLADASWSampler.h>
+#include <COLLADASWSurface.h>
+#include <COLLADASWLibraryMaterials.h>
+#include <COLLADASWBindMaterial.h>
+
 
 // not good idea - there are for example blender Scene and COLLADASW::Scene
 //using namespace COLLADASW;
@@ -33,6 +50,7 @@ public:
 	
 	void exportGeom(Scene *sce)
 	{
+		//opens <library_geometries>
 		openLibrary();
 		
 		// iterate over objects in scene
@@ -56,12 +74,15 @@ public:
 				//openMesh(geoId, geoName, meshId)
 				openMesh(geom_name, "", "");
 
-				//<source>
+				//writes <source> for vertex coords
 				createVertsSource(sce, mSW, geom_name, dm);
+				//writes <source> for normal coords
 				createNormalsSource(sce, mSW, geom_name, dm);
+				//writes <source> for uv coords
+				//if mesh has uv coords
 				checkTexcoords = createTexcoordsSource(sce, mSW, geom_name, dm, (Mesh*)ob->data);
 
-				//<vertices>	
+				//<vertices>
 				COLLADASW::Vertices verts(mSW);
 				verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
 				COLLADASW::InputList &input_list = verts.getInputList();
@@ -70,38 +91,43 @@ public:
 				input_list.push_back(input);
 				verts.add();
 				
-				//triangles
+				//<triangles>
 				COLLADASW::Triangles tris(mSW);
+				//sets count attribute in <triangles>
 				tris.setCount(getTriCount(mfaces, totfaces));
-				//tris.setMaterial();
+				
 				COLLADASW::InputList &til = tris.getInputList();
-				/*added semantic, source, offset attributes to <input>
-				 I am not sure whether it's right or not
-				*/
-
+				/*added semantic, source, offset attributes to <input> */
+				
+			   //creates list of attributes in <triangles> <input> for vertices 
 				COLLADASW::Input input2(COLLADASW::VERTEX,
 										getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
+				//creates list of attributes in <triangles> <input> for normals
 				COLLADASW::Input input3(COLLADASW::NORMAL,
 										getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
-
+				
 				til.push_back(input2);
 				til.push_back(input3);
 				
-				//if mesh has uv coords writes input for TEXCOORD
+				//if mesh has uv coords writes <input> attributes for TEXCOORD
 				if (checkTexcoords == true)
 					{
 						COLLADASW::Input input4(COLLADASW::TEXCOORD,
 												getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1);
 						til.push_back(input4);
+						//XXX
+						tris.setMaterial("material-symbol");
 					}
-				
+				//performs the actual writing
 				tris.prepareToAppendValues();
 				
 				int i;
 				int texindex = 0;
+				//writes data to <p>
 				for (i = 0; i < totfaces; i++) {
 					MFace *f = &mfaces[i];
-					
+					//if mesh has uv coords writes uv and
+					//vertex indexes
 					if (checkTexcoords == true)	{
 						// if triangle
 						if (f->v4 == 0) {
@@ -128,6 +154,8 @@ public:
 							tris.appendValues(texindex++);
 						}
 					}
+					//if mesh has no uv coords writes only 
+					//vertex indexes
 					else {
 						// if triangle
 						if (f->v4 == 0) {
@@ -213,7 +241,7 @@ public:
 				source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
 				source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
 								  ARRAY_ID_SUFFIX);
-				source.setAccessorCount(countTris(dm) * 3);
+				source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
 				source.setAccessorStride(2);
 				COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 				param.push_back("X");
@@ -274,7 +302,7 @@ public:
 		return false;
 	}
 
-
+	/*----------------------------------------------------------*/
 
 	//creates <source> for normals
 	void createNormalsSource(Scene *sce, COLLADASW::StreamWriter *sw,
@@ -306,43 +334,23 @@ public:
 				
 		}
 		source.finish();
-		
-
 	}
 	
-	int countTris(DerivedMesh *dm)
-	{
-		
-		MFace *mfaces = dm->getFaceArray(dm);
-		int totfaces = dm->getNumFaces(dm);
-		
-		int i;
-		int tottri = 0;
-		for (i = 0; i < totfaces; i++) {
-			MFace *f = &mfaces[i];
-			
-			// if triangle
-			if (f->v4 == 0) {
-				tottri++;
-			}
-			// quad
-			else {
-				tottri += 2;
-			}
-		}
-		return tottri;
-		
-	}
+	/*----------------------------------------------------------*/
 	
 	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type) {
 		return geom_name +
 			getSuffixBySemantic(type);
 	}
+	
+	/*----------------------------------------------------------*/
 
 	COLLADASW::URI getUrlBySemantics(std::string geom_name, COLLADASW::Semantics type) {
 		std::string id(getIdBySemantics(geom_name, type));
 		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 	}
+	
+	/*----------------------------------------------------------*/
 
 	int getTriCount(MFace *faces, int totface) {
 		int i;
@@ -358,6 +366,8 @@ public:
 		return tris;
 	}
 };
+
+/*----------------------------------------------------------*/
 
 class SceneExporter: COLLADASW::LibraryVisualScenes
 {
@@ -385,6 +395,14 @@ public:
 				std::string ob_name(ob->id.name);
 				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   ob_name));
+				//XXX hardcoded
+				/*COLLADASW::BindMaterial bm(mSW);
+				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
+				std::string matid = "material";
+				COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+				iml.push_back(im);
+				instGeom.getBindMaterial() = bm;*/
+				
 				instGeom.add();
 			
 				node.end();
@@ -399,6 +417,113 @@ public:
 	}
 };
 
+/*----------------------------------------------------------*/
+//class for exporting textures
+class ImagesExporter: COLLADASW::LibraryImages
+{
+public:
+	ImagesExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryImages(sw)
+	{}
+	
+	void exportImages(Scene *sce)
+	{
+		openLibrary();
+		
+		Image *image = (Image*)G.main->image.first;
+		while(image) {
+			
+			//fileURI, imageId, imageName
+			COLLADASW::Image img(COLLADABU::URI(image->name), image->id.name, "");
+			img.add(mSW);
+			
+			image = (Image*)image->id.next;
+		}
+		closeLibrary();
+	}
+	
+};
+
+/*----------------------------------------------------------*/
+
+class EffectsExporter: COLLADASW::LibraryEffects
+{
+public:
+	EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
+	void exportEffects(Scene *sce)
+	{
+		//XXX
+		openLibrary();
+		openEffect("effect-id");
+		COLLADASW::EffectProfile ep(mSW);
+		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+		/*	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+			ep.setTechniqueSid("sid");
+		COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D, "image_sid");
+		COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, "image_sid");
+		COLLADASW::Texture texture("id");
+		COLLADASW::ColorOrTexture cot(texture);
+		ep.setDiffuse(cot, false, "sid");
+		ep.openProfile();
+		ep.addProfileElements();*/
+		ep.openProfile();
+		
+		//newparam surface init_from
+		//COLLADASW::NewParamSurface newparamsurf(mSW);
+		//newparamsurf.openParam("IMmonkey_unwrapped_face" + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+		COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D);
+		COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+		sio.setImageReference("IMmonkey_unwrapped_face");
+		surface.setInitOption(sio);
+		//surface.add(mSW);
+		//newparamsurf.closeParam();
+		
+		//newparam sampler source
+		//COLLADASW::NewParamSampler newparamsamp(mSW);
+		//newparamsamp.openParam("IMmonkey_unwrapped_face" + COLLADASW::Sampler::SAMPLER_SID_SUFFIX);
+		COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, "IMmonkey_unwrapped_face" + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+		//sampler.add(mSW);
+		//newparamsamp.closeParam();
+		
+		//lambert diffuse texture	
+		COLLADASW::Texture texture("IMmonkey_unwrapped_face" /*"IMmonkey_unwrapped_face" +  COLLADASW::Sampler::SAMPLER_SID_SUFFIX*/);
+		texture.setTexcoord("myUVS");
+		texture.setSurface(surface);
+		texture.setSampler(sampler);
+		
+		COLLADASW::ColorOrTexture cot(texture, "texture_sid");
+		ep.setDiffuse(cot, true, "");
+		ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+		//	ep.addSampler(cot);
+		//ep.setTechniqueSid("technique_sid");
+		ep.addProfileElements();
+		
+		ep.closeProfile();
+		closeEffect();
+		closeLibrary();
+
+	}
+	
+};
+/*----------------------------------------------------------*/
+
+class MaterialsExporter: COLLADASW::LibraryMaterials
+{
+public:
+	MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
+	void exportMaterials()
+	{
+		openMaterial("material");
+		std::string efid = "effect-id";
+		addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
+		closeMaterial();
+		closeLibrary();
+	}
+	
+	
+};
+
+
+/*----------------------------------------------------------*/
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
@@ -414,14 +539,25 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	asset.add();
 	
-	SceneExporter se(&sw);
-	se.exportScene(sce);
+	//exports all object textures
+	ImagesExporter ie(&sw);
+	ie.exportImages(sce);
 	
+	//library_materials
+	//MaterialsExporter me(&sw);
+	//me.exportMaterials();
+	//
+	//EffectsExporter ee(&sw);
+	//ee.exportEffects(sce);
+
+
 	//<library_geometries>
 	GeometryExporter ge(&sw);
 	ge.exportGeom(sce);
-
-
+	
+	//
+	SceneExporter se(&sw);
+	se.exportScene(sce);
 	//<scene>
 	std::string scene_name(sce->id.name);
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
@@ -432,6 +568,8 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	sw.endDocument();
 
 }
+
+/*----------------------------------------------------------*/
 
 void DocumentExporter::exportScenes(const char* filename)
 {
