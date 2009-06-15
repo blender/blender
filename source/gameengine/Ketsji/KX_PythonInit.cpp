@@ -1986,6 +1986,8 @@ PyObject* initGeometry() {Py_INCREF(Py_None);return Py_None;}
 PyObject* initBGL() {Py_INCREF(Py_None);return Py_None;}
 #endif
 
+
+
 void KX_SetActiveScene(class KX_Scene* scene)
 {
 	gp_KetsjiScene = scene;
@@ -2017,11 +2019,17 @@ int saveGamePythonConfig( char **marshal_buffer)
 			if (pyGlobalDictMarshal) {
 				// for testing only
 				// PyObject_Print(pyGlobalDictMarshal, stderr, 0);
-
+				char *marshal_cstring;
+				
+#if PY_VERSION_HEX < 0x03000000
+				marshal_cstring = PyString_AsString(pyGlobalDictMarshal);
 				marshal_length= PyString_Size(pyGlobalDictMarshal);
+#else			// py3 uses byte arrays
+				marshal_cstring = PyBytes_AsString(pyGlobalDictMarshal);
+				marshal_length= PyBytes_Size(pyGlobalDictMarshal);
+#endif
 				*marshal_buffer = new char[marshal_length + 1];
-				memcpy(*marshal_buffer, PyString_AsString(pyGlobalDictMarshal), marshal_length);
-
+				memcpy(*marshal_buffer, marshal_cstring, marshal_length);
 				Py_DECREF(pyGlobalDictMarshal);
 			} else {
 				printf("Error, GameLogic.globalDict could not be marshal'd\n");
