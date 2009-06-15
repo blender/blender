@@ -206,7 +206,7 @@ static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->name, cmd->name, 32);
 }
 
-CustomDataMask curveModifier_requiredDataMask(ModifierData *md)
+CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -282,7 +282,7 @@ static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tlmd->name, lmd->name, 32);
 }
 
-CustomDataMask latticeModifier_requiredDataMask(ModifierData *md)
+CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -665,7 +665,7 @@ static void maskModifier_copyData(ModifierData *md, ModifierData *target)
 	strcpy(tmmd->vgroup, mmd->vgroup);
 }
 
-static CustomDataMask maskModifier_requiredDataMask(ModifierData *md)
+static CustomDataMask maskModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	return (1 << CD_MDEFORMVERT);
 }
@@ -3393,7 +3393,7 @@ static void bevelModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
 }
 
-CustomDataMask bevelModifier_requiredDataMask(ModifierData *md)
+CustomDataMask bevelModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3473,7 +3473,7 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
-CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
+CustomDataMask displaceModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3816,7 +3816,7 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->aspecty = umd->aspecty;
 }
 
-CustomDataMask uvprojectModifier_requiredDataMask(ModifierData *md)
+CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -4276,7 +4276,7 @@ int smoothModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask smoothModifier_requiredDataMask(ModifierData *md)
+CustomDataMask smoothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	SmoothModifierData *smd = (SmoothModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -4505,7 +4505,7 @@ int castModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask castModifier_requiredDataMask(ModifierData *md)
+CustomDataMask castModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5136,7 +5136,7 @@ static void waveModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask waveModifier_requiredDataMask(ModifierData *md)
+CustomDataMask waveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5473,7 +5473,7 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 
-CustomDataMask armatureModifier_requiredDataMask(ModifierData *md)
+CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -5587,7 +5587,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(thmd->name, hmd->name, 32);
 }
 
-CustomDataMask hookModifier_requiredDataMask(ModifierData *md)
+CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5846,7 +5846,7 @@ static void clothModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
+CustomDataMask clothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -6230,7 +6230,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	return derivedData;
 }
 
-CustomDataMask booleanModifier_requiredDataMask(ModifierData *md)
+CustomDataMask booleanModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
 
@@ -6278,11 +6278,26 @@ static void particleSystemModifier_copyData(ModifierData *md, ModifierData *targ
 	tpsmd->psys = psmd->psys;
 }
 
-CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
+CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	CustomDataMask dataMask = 0;
+	Material *ma;
+	MTex *mtex;
 	int i;
+
+	ma= give_current_material(ob, psmd->psys->part->omat);
+	if(ma) {
+		for(i=0; i<MAX_MTEX; i++) {
+			mtex=ma->mtex[i];
+			if(mtex && (ma->septex & (1<<i))==0)
+				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
+					dataMask |= (1 << CD_MTFACE);
+		}
+	}
+
+	if(psmd->psys->part->tanfac!=0.0)
+		dataMask |= (1 << CD_MTFACE);
 
 	/* ask for vertexgroups if we need them */
 	for(i=0; i<PSYS_TOT_VG; i++){
@@ -6638,7 +6653,7 @@ static int explodeModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
 }
-CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
+CustomDataMask explodeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -7552,7 +7567,7 @@ static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->object = mmd->object;
 }
 
-CustomDataMask meshdeformModifier_requiredDataMask(ModifierData *md)
+CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierData *md)
 {	
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -7876,7 +7891,7 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->subsurfLevels = smd->subsurfLevels;
 }
 
-CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
+CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -7910,7 +7925,7 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -7936,7 +7951,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
 	if(dataMask)
 	{
@@ -7995,7 +8010,7 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 }
 
-static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
+static CustomDataMask simpledeformModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -8024,7 +8039,7 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -8051,7 +8066,7 @@ static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, Deriv
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -8658,7 +8673,20 @@ int modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
+int modifier_isEnabled(ModifierData *md, int required_mode)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	if((md->mode & required_mode) != required_mode) return 0;
+	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(md->mode & eModifierMode_DisableTemporary) return 0;
+	if(required_mode & eModifierMode_Editmode)
+		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	
+	return 1;
+}
+
+LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
 	LinkNode *dataMasks = NULL;
 	LinkNode *curr, *prev;
@@ -8668,7 +8696,9 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		CustomDataMask mask = 0;
 
-		if(mti->requiredDataMask) mask = mti->requiredDataMask(md);
+		if(modifier_isEnabled(md, required_mode))
+			if(mti->requiredDataMask)
+				mask = mti->requiredDataMask(ob, md);
 
 		BLI_linklist_prepend(&dataMasks, (void *)mask);
 	}

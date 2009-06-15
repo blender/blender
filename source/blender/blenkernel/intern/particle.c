@@ -3182,7 +3182,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 
 	if(ma) for(m=0; m<MAX_MTEX; m++){
 		mtex=ma->mtex[m];
-		if(mtex && (ma->septex & (1<<m))==0){
+		if(mtex && (ma->septex & (1<<m))==0 && mtex->pmapto){
 			float def=mtex->def_var;
 			float var=mtex->varfac;
 			short blend=mtex->blendtype;
@@ -3231,7 +3231,7 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 
 	if(ma) for(m=0; m<MAX_MTEX; m++){
 		mtex=ma->mtex[m];
-		if(mtex && (ma->septex & (1<<m))==0){
+		if(mtex && (ma->septex & (1<<m))==0 && mtex->pmapto){
 			float var=mtex->varfac;
 			float def=mtex->def_var;
 			short blend=mtex->blendtype;
