@@ -316,7 +316,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
 			pyop_error_report(op->reports);
-			
+
+			ret_flag = OPERATOR_CANCELLED;
 		}
 		/* there is no need to copy the py keyword dict modified by
 		 * pyot->py_invoke(), back to the operator props since they are just
@@ -327,6 +328,29 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		 */
 		
 		Py_DECREF(ret);
+	}
+
+	/* print operator return value */
+	if (mode != PYOP_POLL) {
+		char flag_str[100];
+		char class_name[100];
+		BPY_flag_def *flag_def = pyop_ret_flags;
+
+		strcpy(flag_str, "");
+		
+		while(flag_def->name) {
+			if (ret_flag & flag_def->flag) {
+				flag_str[1] ? sprintf(flag_str, "%s | %s", flag_str, flag_def->name) : strcpy(flag_str, flag_def->name);
+			}
+			flag_def++;
+		}
+
+		/* get class name */
+		item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
+		Py_DECREF(item);
+		strcpy(class_name, _PyUnicode_AsString(item));
+
+		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "exec" : "invoke", flag_str);
 	}
 
 	PyGILState_Release(gilstate);

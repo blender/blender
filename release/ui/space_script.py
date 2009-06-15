@@ -112,7 +112,7 @@ class SCRIPT_OT_reload_scripts(bpy.types.Operator):
                     register_op(cls)
                     print("Registered it.")
 
-        return 'FINISHED'
+        return ('FINISHED',)
 
     def invoke(self, context, event):
         print("SCRIPT_OT_reload_scripts: invoke")

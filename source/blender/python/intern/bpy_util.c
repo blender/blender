@@ -109,6 +109,9 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 		error_val= 1;
 	}
 
+	if (*flag == 0)
+		error_val = 1;
+
 	if (error_val) {
 		char *buf = bpy_flag_error_str(flagdef);
 		PyErr_SetString(PyExc_AttributeError, buf);
