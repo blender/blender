@@ -451,54 +451,43 @@ public:
 	EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
 	void exportEffects(Scene *sce)
 	{
-		//XXX
+		
 		openLibrary();
-		openEffect("effect-id");
-		COLLADASW::EffectProfile ep(mSW);
-		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
-		/*	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-			ep.setTechniqueSid("sid");
-		COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D, "image_sid");
-		COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, "image_sid");
-		COLLADASW::Texture texture("id");
-		COLLADASW::ColorOrTexture cot(texture);
-		ep.setDiffuse(cot, false, "sid");
-		ep.openProfile();
-		ep.addProfileElements();*/
-		ep.openProfile();
 		
-		//newparam surface init_from
-		//COLLADASW::NewParamSurface newparamsurf(mSW);
-		//newparamsurf.openParam("IMmonkey_unwrapped_face" + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-		COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D);
-		COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-		sio.setImageReference("IMmonkey_unwrapped_face");
-		surface.setInitOption(sio);
-		//surface.add(mSW);
-		//newparamsurf.closeParam();
+		Image *image = (Image*)G.main->image.first;
+		while(image) {
+			
+			openEffect(std::string(image->id.name) + "-effect");
+			COLLADASW::EffectProfile ep(mSW);
+			ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+			//open <profile_common>
+			ep.openProfile();
+			
+			//<newparam> <surface> <init_from>
+			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D);
+			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+			sio.setImageReference(image->id.name);
+			surface.setInitOption(sio);
+			
+			//<newparam> <sampler> <source>
+			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, image->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+			
+			//<lambert> <diffuse> <texture>	
+			COLLADASW::Texture texture(image->id.name);
+			texture.setTexcoord("myUVS");
+			texture.setSurface(surface);
+			texture.setSampler(sampler);
+			
+			COLLADASW::ColorOrTexture cot(texture);
+			ep.setDiffuse(cot, true, "");
+			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+			//performs the actual writing
+			ep.addProfileElements();
+			ep.closeProfile();
+			closeEffect();
+			image = (Image*)image->id.next;
+		}
 		
-		//newparam sampler source
-		//COLLADASW::NewParamSampler newparamsamp(mSW);
-		//newparamsamp.openParam("IMmonkey_unwrapped_face" + COLLADASW::Sampler::SAMPLER_SID_SUFFIX);
-		COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, "IMmonkey_unwrapped_face" + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-		//sampler.add(mSW);
-		//newparamsamp.closeParam();
-		
-		//lambert diffuse texture	
-		COLLADASW::Texture texture("IMmonkey_unwrapped_face" /*"IMmonkey_unwrapped_face" +  COLLADASW::Sampler::SAMPLER_SID_SUFFIX*/);
-		texture.setTexcoord("myUVS");
-		texture.setSurface(surface);
-		texture.setSampler(sampler);
-		
-		COLLADASW::ColorOrTexture cot(texture, "texture_sid");
-		ep.setDiffuse(cot, true, "");
-		ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-		//	ep.addSampler(cot);
-		//ep.setTechniqueSid("technique_sid");
-		ep.addProfileElements();
-		
-		ep.closeProfile();
-		closeEffect();
 		closeLibrary();
 
 	}
@@ -510,12 +499,18 @@ class MaterialsExporter: COLLADASW::LibraryMaterials
 {
 public:
 	MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
-	void exportMaterials()
+	void exportMaterials(Scene *sce)
 	{
-		openMaterial("material");
-		std::string efid = "effect-id";
-		addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
-		closeMaterial();
+		openLibrary();
+		Image *image = (Image*)G.main->image.first;
+		while(image) {
+			
+			openMaterial(std::string(image->id.name) + "-material");
+			std::string efid = std::string(image->id.name) + "-effect";
+			addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
+			closeMaterial();
+			image = (Image*)image->id.next;
+		}
 		closeLibrary();
 	}
 	
@@ -539,25 +534,26 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	asset.add();
 	
-	//exports all object textures
+	//<library_images>
 	ImagesExporter ie(&sw);
 	ie.exportImages(sce);
 	
-	//library_materials
-	//MaterialsExporter me(&sw);
-	//me.exportMaterials();
-	//
-	//EffectsExporter ee(&sw);
-	//ee.exportEffects(sce);
-
+	//<library_effects>
+	EffectsExporter ee(&sw);
+	ee.exportEffects(sce);
+	
+	//<library_materials>
+	MaterialsExporter me(&sw);
+	me.exportMaterials(sce);
 
 	//<library_geometries>
 	GeometryExporter ge(&sw);
 	ge.exportGeom(sce);
 	
-	//
+	//<library_visual_scenes>
 	SceneExporter se(&sw);
 	se.exportScene(sce);
+	
 	//<scene>
 	std::string scene_name(sce->id.name);
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
