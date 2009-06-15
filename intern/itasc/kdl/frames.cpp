@@ -300,8 +300,23 @@ Vector Rotation::GetRot() const
        double alfa;
        if (sa > epsilon)
            alfa = ::atan2(sa,ca)/sa;
-       else
-           alfa = 1;
+	   else {
+		   if (ca < 0.0) {
+			   alfa = KDL::PI;
+			   axis.data[0] = 0.0;
+			   axis.data[1] = 0.0;
+			   axis.data[2] = 0.0;
+			   if (data[0] > 0.0) {
+				   axis.data[0] = 1.0;
+			   } else if (data[4] > 0.0) {
+				   axis.data[1] = 1.0;
+			   } else {
+				   axis.data[2] = 1.0;
+			   }
+		   } else {
+			   alfa = 0.0;
+		   }
+	   }
        return axis * alfa;
      }
 
