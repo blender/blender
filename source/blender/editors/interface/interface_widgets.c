@@ -1118,8 +1118,6 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu_back= wcol_menu_back;
 	tui->wcol_menu_item= wcol_menu_item;
 	tui->wcol_box= wcol_box;
-	
-	tui->iconfile[0]= 0;
 }
 
 /* ************ button callbacks, state ***************** */
