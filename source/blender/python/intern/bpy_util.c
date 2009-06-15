@@ -81,6 +81,7 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 	char *cstring;
 	PyObject *item;
 	BPY_flag_def *fd;
+	*flag = 0;
 
 	if (PySequence_Check(seq)) {
 		i= PySequence_Length(seq);
