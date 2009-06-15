@@ -1407,7 +1407,7 @@ void make_editText(Object *obedit)
 		ef->copybuf= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "texteditcopybuf");
 		ef->copybufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditcopybufinfo");	
 		ef->oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
-		ef->oldstrinfo= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
+		ef->oldstrinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "oldstrbuf");
 	}
 	
 	// Convert the original text to wchar_t

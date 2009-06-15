@@ -155,7 +155,7 @@ Curve *add_curve(char *name, int type)
 		cu->str= MEM_mallocN(12, "str");
 		strcpy(cu->str, "Text");
 		cu->pos= 4;
-		cu->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo");
+		cu->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo new");
 		cu->totbox= cu->actbox= 1;
 		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
 		cu->tb[0].w = cu->tb[0].h = 0.0;
