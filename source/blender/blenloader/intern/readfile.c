@@ -8166,7 +8166,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ed) {
 				WHILE_SEQ(&ed->seqbase) {
 					if (seq->strip && seq->strip->proxy){
-						if (G.scene->r.size != 100.0) {
+						if (sce->r.size != 100.0) {
 							seq->strip->proxy->size
 								= sce->r.size;
 						} else {
