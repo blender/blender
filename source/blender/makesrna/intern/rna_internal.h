@@ -237,6 +237,9 @@ void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_listbase_end(struct CollectionPropertyIterator *iter);
 
+/* experimental */
+void *rna_iterator_listbase_add(ListBase *lb, void *item);
+
 typedef struct ArrayIterator {
 	char *ptr;
 	char *endptr;
@@ -249,6 +252,9 @@ void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
+
+/* experimental */
+void *rna_iterator_array_add(void *ptr, void *data);
 
 /* Duplicated code since we can't link in blenlib */
 

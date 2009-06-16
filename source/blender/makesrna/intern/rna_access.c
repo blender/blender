@@ -1342,6 +1342,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	else
 		printf("RNA_property_collection_add %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
 
+	/* TODO: call cprop->add on non-ID props here */
+
 	if(r_ptr) {
 		if(idprop) {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
@@ -1510,6 +1512,13 @@ void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 	iter->internal= NULL;
 }
 
+void *rna_iterator_listbase_add(ListBase *lb, void *item)
+{
+	BLI_addtail(lb, item);
+
+	return item;
+}
+
 void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip)
 {
 	ArrayIterator *internal;
@@ -1565,6 +1574,21 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
 	iter->internal= NULL;
+}
+
+void *rna_iterator_array_add(void *ptr, int itemsize, int length, void *item)
+{
+	// alloc new block, copy old data
+	void *newptr= MEM_callocN(length * itemsize + itemsize, "RNA collection add");
+	memcpy(newptr, ptr, length * itemsize);
+
+	// copy new item
+	memcpy(((char*)newptr) + length * itemsize, item, itemsize);
+
+	// free old block
+	MEM_freeN(ptr);
+
+	return newptr;
 }
 
 /* RNA Path - Experiment */
