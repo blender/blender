@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#include "DNA_screen_types.h"
+
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -39,8 +41,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
-
-#include "DNA_screen_types.h"
 
 #include "BLI_dynstr.h"
 
@@ -497,23 +497,23 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem alignment_items[] = {
-		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", "Expand", ""},
-		{UI_LAYOUT_ALIGN_LEFT, "LEFT", "Left", ""},
-		{UI_LAYOUT_ALIGN_CENTER, "CENTER", "Center", ""},
-		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", "RIght", ""},
-		{0, NULL, NULL, NULL}};
+		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", 0, "Expand", ""},
+		{UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
+		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
+		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "RIght", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	/* see WM_types.h */
 	static EnumPropertyItem operator_context_items[] = {
-		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", "Invoke Default", ""},
-		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", "Invoke Region Window", ""},
-		{WM_OP_INVOKE_AREA, "INVOKE_AREA", "Invoke Area", ""},
-		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", "Invoke Screen", ""},
-		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", "Exec Default", ""},
-		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", "Exec Region Window", ""},
-		{WM_OP_EXEC_AREA, "EXEC_AREA", "Exec Area", ""},
-		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", "Exec Screen", ""},
-		{0, NULL, NULL, NULL}};
+		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
+		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
+		{WM_OP_INVOKE_AREA, "INVOKE_AREA", 0, "Invoke Area", ""},
+		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", 0, "Invoke Screen", ""},
+		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", 0, "Exec Default", ""},
+		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", 0, "Exec Region Window", ""},
+		{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
+		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");

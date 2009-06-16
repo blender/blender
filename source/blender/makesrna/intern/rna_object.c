@@ -392,9 +392,9 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem link_items[] = {
-		{0, "DATA", "Data", ""},
-		{1, "OBJECT", "Object", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "DATA", 0, "Data", ""},
+		{1, "OBJECT", 0, "Object", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
 	 * pointer data points to ob->mat + index, and we manually implement
@@ -428,22 +428,22 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem body_type_items[] = {
-		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", "No Collision", ""},
-		{OB_BODY_TYPE_STATIC, "STATIC", "Static", ""},
-		{OB_BODY_TYPE_DYNAMIC, "DYNAMIC", "Dynamic", ""},
-		{OB_BODY_TYPE_RIGID, "RIGID_BODY", "Rigid Body", ""},
-		{OB_BODY_TYPE_SOFT, "SOFT_BODY", "Soft Body", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, "No Collision", ""},
+		{OB_BODY_TYPE_STATIC, "STATIC", 0, "Static", ""},
+		{OB_BODY_TYPE_DYNAMIC, "DYNAMIC", 0, "Dynamic", ""},
+		{OB_BODY_TYPE_RIGID, "RIGID_BODY", 0, "Rigid Body", ""},
+		{OB_BODY_TYPE_SOFT, "SOFT_BODY", 0, "Soft Body", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem collision_bounds_items[] = {
-		{OB_BOUND_BOX, "BOX", "Box", ""},
-		{OB_BOUND_SPHERE, "SPHERE", "Sphere", ""},
-		{OB_BOUND_CYLINDER, "CYLINDER", "Cylinder", ""},
-		{OB_BOUND_CONE, "CONE", "Cone", ""},
-		{OB_BOUND_POLYH, "CONVEX_HULL", "Convex Hull", ""},
-		{OB_BOUND_POLYT, "TRIANGLE_MESH", "Triangle Mesh", ""},
-		//{OB_DYN_MESH, "DYNAMIC_MESH", "Dynamic Mesh", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_BOUND_BOX, "BOX", 0, "Box", ""},
+		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
+		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
+		{OB_BOUND_POLYH, "CONVEX_HULL", 0, "Convex Hull", ""},
+		{OB_BOUND_POLYT, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+		//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "GameObjectSettings", NULL);
 	RNA_def_struct_sdna(srna, "Object");
@@ -590,78 +590,78 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem parent_type_items[] = {
-		{PAROBJECT, "OBJECT", "Object", ""},
-		{PARCURVE, "CURVE", "Curve", ""},
-		//{PARKEY, "KEY", "Key", ""},
-		{PARSKEL, "ARMATURE", "Armature", ""},
-		{PARSKEL, "LATTICE", "Lattice", ""}, // PARSKEL reuse will give issues
-		{PARVERT1, "VERTEX", "Vertex", ""},
-		{PARVERT3, "VERTEX_3", "3 Vertices", ""},
-		{PARBONE, "BONE", "Bone", ""},
-		{0, NULL, NULL, NULL}};
+		{PAROBJECT, "OBJECT", 0, "Object", ""},
+		{PARCURVE, "CURVE", 0, "Curve", ""},
+		//{PARKEY, "KEY", 0, "Key", ""},
+		{PARSKEL, "ARMATURE", 0, "Armature", ""},
+		{PARSKEL, "LATTICE", 0, "Lattice", ""}, // PARSKEL reuse will give issues
+		{PARVERT1, "VERTEX", 0, "Vertex", ""},
+		{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
+		{PARBONE, "BONE", 0, "Bone", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem object_type_items[] = {
-		{OB_EMPTY, "EMPTY", "Empty", ""},
-		{OB_MESH, "MESH", "Mesh", ""},
-		{OB_CURVE, "CURVE", "Curve", ""},
-		{OB_SURF, "SURFACE", "Surface", ""},
-		{OB_FONT, "TEXT", "Text", ""},
-		{OB_MBALL, "META", "Meta", ""},
-		{OB_LAMP, "LAMP", "Lamp", ""},
-		{OB_CAMERA, "CAMERA", "Camera", ""},
-		{OB_WAVE, "WAVE", "Wave", ""},
-		{OB_LATTICE, "LATTICE", "Lattice", ""},
-		{OB_ARMATURE, "ARMATURE", "Armature", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+		{OB_MESH, "MESH", 0, "Mesh", ""},
+		{OB_CURVE, "CURVE", 0, "Curve", ""},
+		{OB_SURF, "SURFACE", 0, "Surface", ""},
+		{OB_FONT, "TEXT", 0, "Text", ""},
+		{OB_MBALL, "META", 0, "Meta", ""},
+		{OB_LAMP, "LAMP", 0, "Lamp", ""},
+		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+		{OB_WAVE, "WAVE", 0, "Wave", ""},
+		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
-		{OB_ARROWS, "ARROWS", "Arrows", ""},
-		{OB_SINGLE_ARROW, "SINGLE_ARROW", "Single Arrow", ""},
-		{OB_PLAINAXES, "PLAIN_AXES", "Plain Axes", ""},
-		{OB_CIRCLE, "CIRCLE", "Circle", ""},
-		{OB_CUBE, "CUBE", "Cube", ""},
-		{OB_EMPTY_SPHERE, "SPHERE", "Sphere", ""},
-		{OB_EMPTY_CONE, "CONE", "Cone", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
+		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
+		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
+		{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{OB_CUBE, "CUBE", 0, "Cube", ""},
+		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem track_items[] = {
-		{OB_POSX, "POSX", "+X", ""},
-		{OB_POSY, "POSY", "+Y", ""},
-		{OB_POSZ, "POSZ", "+Z", ""},
-		{OB_NEGX, "NEGX", "-X", ""},
-		{OB_NEGY, "NEGY", "-Y", ""},
-		{OB_NEGZ, "NEGZ", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_POSX, "POSX", 0, "+X", ""},
+		{OB_POSY, "POSY", 0, "+Y", ""},
+		{OB_POSZ, "POSZ", 0, "+Z", ""},
+		{OB_NEGX, "NEGX", 0, "-X", ""},
+		{OB_NEGY, "NEGY", 0, "-Y", ""},
+		{OB_NEGZ, "NEGZ", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem up_items[] = {
-		{OB_POSX, "X", "X", ""},
-		{OB_POSY, "Y", "Y", ""},
-		{OB_POSZ, "Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_POSX, "X", 0, "X", ""},
+		{OB_POSY, "Y", 0, "Y", ""},
+		{OB_POSZ, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem drawtype_items[] = {
-		{OB_BOUNDBOX, "BOUNDS", "Bounds", ""},
-		{OB_WIRE, "WIRE", "Wire", ""},
-		{OB_SOLID, "SOLID", "Solid", ""},
-		{OB_SHADED, "SHADED", "Shaded", ""},
-		{OB_TEXTURE, "TEXTURED", "Textured", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", ""},
+		{OB_WIRE, "WIRE", 0, "Wire", ""},
+		{OB_SOLID, "SOLID", 0, "Solid", ""},
+		{OB_SHADED, "SHADED", 0, "Shaded", ""},
+		{OB_TEXTURE, "TEXTURED", 0, "Textured", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem boundtype_items[] = {
-		{OB_BOUND_BOX, "BOX", "Box", ""},
-		{OB_BOUND_SPHERE, "SPHERE", "Sphere", ""},
-		{OB_BOUND_CYLINDER, "CYLINDER", "Cylinder", ""},
-		{OB_BOUND_CONE, "CONE", "Cone", ""},
-		{OB_BOUND_POLYH, "POLYHEDER", "Polyheder", ""},
-		{0, NULL, NULL, NULL}};
+		{OB_BOUND_BOX, "BOX", 0, "Box", ""},
+		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
+		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
+		{OB_BOUND_POLYH, "POLYHEDER", 0, "Polyheder", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dupli_items[] = {
-		{0, "NONE", "None", ""},
-		{OB_DUPLIFRAMES, "FRAMES", "Frames", "Make copy of object for every frame."},
-		{OB_DUPLIVERTS, "VERTS", "Verts", "Duplicate child objects on all vertices."},
-		{OB_DUPLIFACES, "FACES", "Faces", "Duplicate child objects on all faces."},
-		{OB_DUPLIGROUP, "GROUP", "Group", "Enable group instancing."},
-		{0, NULL, NULL, NULL}};
+		{0, "NONE", 0, "None", ""},
+		{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame."},
+		{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices."},
+		{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces."},
+		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");

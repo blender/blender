@@ -91,9 +91,13 @@ typedef enum PropertyFlag {
 	 * and collections */
 	PROP_ANIMATEABLE = 2,
 
+	/* icon */
+	PROP_ICONS_CONSECUTIVE = 4096,
+
 	/* function paramater flags */
 	PROP_REQUIRED = 4,
 	PROP_RETURN = 8,
+	PROP_RNAPTR = 2048,
 
 	/* registering */
 	PROP_REGISTER = 16,
@@ -133,6 +137,7 @@ typedef struct CollectionPointerLink {
 typedef struct EnumPropertyItem {
 	int value;
 	const char *identifier;
+	int icon;
 	const char *name;
 	const char *description;
 } EnumPropertyItem;

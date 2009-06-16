@@ -41,11 +41,15 @@ if env['WITH_BF_FFMPEG']:
 if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
 								 '../../blenlib',
 								 '../../blenkernel',
+								 '../../imbuf',
 								 '../../makesdna',
 								 '../../makesrna',
 								 '../../windowmanager',

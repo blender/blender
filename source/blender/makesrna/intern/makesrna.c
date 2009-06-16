@@ -242,7 +242,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 		case PROP_POINTER:  {
 			PointerPropertyRNA *pparm= (PointerPropertyRNA*)parm;
 
-			if(strcmp((char*)pparm->type, "AnyType") == 0)
+			if(parm->flag & PROP_RNAPTR)
 				return "PointerRNA";
 			else
 				return rna_find_dna_type((const char *)pparm->type);
@@ -1146,9 +1146,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		else if(dparm->prop->arraylength)
 			fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 		else if(dparm->prop->type == PROP_POINTER) {
-			PointerPropertyRNA *pprop= (PointerPropertyRNA*)dparm->prop;
-
-			if(strcmp((char*)pprop->type, "AnyType") == 0)
+			if(dparm->prop->flag & PROP_RNAPTR)
 				fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 			else
 				fprintf(f, "\t%s= *((%s%s**)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
@@ -1467,6 +1465,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 					for(i=0; i<eprop->totitem; i++) {
 						fprintf(f, "{%d, ", eprop->item[i].value);
 						rna_print_c_string(f, eprop->item[i].identifier); fprintf(f, ", ");
+						fprintf(f, "%d, ", eprop->item[i].icon);
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
 						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}");
 						if(i != eprop->totitem-1)
@@ -1565,6 +1564,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	fprintf(f, ", %d, ", prop->flag);
 	rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n");
+	fprintf(f, "%d, ", prop->icon);
 	fprintf(f, "\t%s, %s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), prop->arraylength);
 	fprintf(f, "\t%s, %d, %s},\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable));
 

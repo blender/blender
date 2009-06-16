@@ -963,9 +963,9 @@ static int mirror_exec(bContext *C, wmOperator *op)
 void UV_OT_mirror(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'x', "MIRROR_X", "Mirror X", "Mirror UVs over X axis."},
-		{'y', "MIRROR_Y", "Mirror Y", "Mirror UVs over Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
+		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Mirror";
@@ -1068,10 +1068,10 @@ static int align_exec(bContext *C, wmOperator *op)
 void UV_OT_align(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'a', "ALIGN_AUTO", "Align Auto", "Automatically choose the axis on which there is most alignment already."},
-		{'x', "ALIGN_X", "Align X", "Align UVs on X axis."},
-		{'y', "ALIGN_Y", "Align Y", "Align UVs on Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already."},
+		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis."},
+		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Align";
@@ -2326,9 +2326,9 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_cursor(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "SELECTION", "Selection", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "SELECTION", 0, "Selection", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Cursor";
@@ -2561,10 +2561,10 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_selection(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "CURSOR", "Cursor", ""},
-		{2, "ADJACENT_UNSELECTED", "Adjacent Unselected", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "CURSOR", 0, "Cursor", ""},
+		{2, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Selection";

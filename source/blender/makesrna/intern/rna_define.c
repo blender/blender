@@ -976,6 +976,13 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 	prop->description= description;
 }
 
+void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
+{
+	prop->icon= icon;
+	if(consecutive)
+		prop->flag |= PROP_ICONS_CONSECUTIVE;
+}
+
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
 {
 	StructRNA *srna= DefRNA.laststruct;
@@ -2219,15 +2226,13 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_STRING:
 				return sizeof(char *);
 			case PROP_POINTER: {
-				PointerPropertyRNA *pprop= (PointerPropertyRNA*)parm;
-
 #ifdef RNA_RUNTIME
-				if(pprop->type == &RNA_AnyType)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);
 #else
-				if(strcmp((char*)pprop->type, "AnyType") == 0)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);

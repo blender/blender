@@ -128,6 +128,8 @@ struct PropertyRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 
 	/* property type as it appears to the outside */
 	PropertyType type;

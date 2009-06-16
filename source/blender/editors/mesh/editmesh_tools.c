@@ -1273,14 +1273,14 @@ void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
-	{10,"VERT",		"Vertices", ""},
-	{1, "EDGE",		"Edges", ""},
-	{2, "FACE",		"Faces", ""},
-	{3, "ALL",		"All", ""},
-	{4, "EDGE_FACE","Edges & Faces", ""},
-	{5, "ONLY_FACE","Only Faces", ""},
-	{6, "EDGE_LOOP","Edge Loop", ""},
-	{0, NULL, NULL, NULL}
+	{10,"VERT",		0, "Vertices", ""},
+	{1, "EDGE",		0, "Edges", ""},
+	{2, "FACE",		0, "Faces", ""},
+	{3, "ALL",		0, "All", ""},
+	{4, "EDGE_FACE",0, "Edges & Faces", ""},
+	{5, "ONLY_FACE",0, "Only Faces", ""},
+	{6, "EDGE_LOOP",0, "Edge Loop", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int delete_mesh_exec(bContext *C, wmOperator *op)
@@ -6646,11 +6646,11 @@ static int subdivs_exec(bContext *C, wmOperator *op)
 void MESH_OT_subdivs(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", "Simple", ""},
-		{1, "MULTI", "Multi", ""},
-		{2, "FRACTAL", "Fractal", ""},
-		{3, "SMOOTH", "Smooth", ""},
-		{0, NULL, NULL}};
+		{0, "SIMPLE", 0, "Simple", ""},
+		{1, "MULTI", 0, "Multi", ""},
+		{2, "FRACTAL", 0, "Fractal", ""},
+		{3, "SMOOTH", 0, "Smooth", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "subdivs";

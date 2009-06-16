@@ -655,13 +655,13 @@ FACES GROUP
 */
 
 static EnumPropertyItem prop_simface_types[] = {
-	{1, "MATERIAL", "Material", ""},
-	{2, "IMAGE", "Image", ""},
-	{3, "AREA", "Area", ""},
-	{4, "PERIMETER", "Perimeter", ""},
-	{5, "NORMAL", "Normal", ""},
-	{6, "COPLANAR", "Co-planar", ""},
-	{0, NULL, NULL, NULL}
+	{1, "MATERIAL", 0, "Material", ""},
+	{2, "IMAGE", 0, "Image", ""},
+	{3, "AREA", 0, "Area", ""},
+	{4, "PERIMETER", 0, "Perimeter", ""},
+	{5, "NORMAL", 0, "Normal", ""},
+	{6, "COPLANAR", 0, "Co-planar", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -849,14 +849,14 @@ EDGE GROUP
 */
 
 static EnumPropertyItem prop_simedge_types[] = {
-	{1, "LENGTH", "Length", ""},
-	{2, "DIR", "Direction", ""},
-	{3, "FACE", "Amount of Vertices in Face", ""},
-	{4, "FACE_ANGLE", "Face Angles", ""},
-	{5, "CREASE", "Crease", ""},
-	{6, "SEAM", "Seam", ""},
-	{7, "SHARP", "Sharpness", ""},
-	{0, NULL, NULL, NULL}
+	{1, "LENGTH", 0, "Length", ""},
+	{2, "DIR", 0, "Direction", ""},
+	{3, "FACE", 0, "Amount of Vertices in Face", ""},
+	{4, "FACE_ANGLE", 0, "Face Angles", ""},
+	{5, "CREASE", 0, "Crease", ""},
+	{6, "SEAM", 0, "Seam", ""},
+	{7, "SHARP", 0, "Sharpness", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int similar_edge_select__internal(Scene *scene, EditMesh *em, int mode)
@@ -1105,10 +1105,10 @@ VERT GROUP
  mode 3: same vertex groups
 */
 static EnumPropertyItem prop_simvertex_types[] = {
-	{0, "NORMAL", "Normal", ""},
-	{1, "FACE", "Amount of Vertices in Face", ""},
-	{2, "VGROUP", "Vertex Groups", ""},
-	{0, NULL, NULL, NULL}
+	{0, "NORMAL", 0, "Normal", ""},
+	{1, "FACE", 0, "Amount of Vertices in Face", ""},
+	{2, "VGROUP", 0, "Vertex Groups", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -3537,10 +3537,10 @@ static void mesh_selection_type(Scene *scene, EditMesh *em, int val)
 }
 
 static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", "Vertices", ""},
-	{2, "EDGE", "Edges", ""},
-	{3, "FACE", "Faces", ""},
-	{0, NULL, NULL, NULL}
+	{1, "VERT", 0, "Vertices", ""},
+	{2, "EDGE", 0, "Edges", ""},
+	{3, "FACE", 0, "Faces", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int mesh_selection_type_exec(bContext *C, wmOperator *op)

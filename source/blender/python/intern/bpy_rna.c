@@ -481,7 +481,9 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
 				int raise_error= 0;
 				if(data) {
-					if(ptype == &RNA_AnyType) {
+					int flag = RNA_property_flag(prop);
+
+					if(flag & PROP_RNAPTR) {
 						if(value == Py_None)
 							memset(data, 0, sizeof(PointerRNA));
 						else
@@ -1209,8 +1211,9 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		{
 			PointerRNA newptr;
 			StructRNA *type= RNA_property_pointer_type(ptr, prop);
+			int flag = RNA_property_flag(prop);
 
-			if(type == &RNA_AnyType) {
+			if(flag & PROP_RNAPTR) {
 				/* in this case we get the full ptr */
 				newptr= *(PointerRNA*)data;
 			}

@@ -75,12 +75,12 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem gameproperty_type_items[] ={
-		{GPROP_BOOL, "BOOL", "Boolean", ""},
-		{GPROP_INT, "INT", "Integer", ""},
-		{GPROP_FLOAT, "FLOAT", "Float", ""},
-		{GPROP_STRING, "STRING", "String", ""},
-		{GPROP_TIME, "TIMER", "Timer", ""},
-		{0, NULL, NULL, NULL}};
+		{GPROP_BOOL, "BOOL", 0, "Boolean", ""},
+		{GPROP_INT, "INT", 0, "Integer", ""},
+		{GPROP_FLOAT, "FLOAT", 0, "Float", ""},
+		{GPROP_STRING, "STRING", 0, "String", ""},
+		{GPROP_TIME, "TIMER", 0, "Timer", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* Base Struct for GameProperty */
 	srna= RNA_def_struct(brna, "GameProperty", NULL);

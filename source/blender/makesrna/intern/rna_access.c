@@ -53,6 +53,8 @@ void RNA_exit()
 
 /* Pointer */
 
+PointerRNA PointerRNA_NULL = {{0}, 0, 0};
+
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 {
 	r_ptr->id.data= NULL;
@@ -675,6 +677,11 @@ const char *RNA_property_ui_name(PropertyRNA *prop)
 const char *RNA_property_ui_description(PropertyRNA *prop)
 {
 	return rna_ensure_property(prop)->description;
+}
+
+int RNA_property_ui_icon(PropertyRNA *prop)
+{
+	return rna_ensure_property(prop)->icon;
 }
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
@@ -2674,7 +2681,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 
 			ptype= RNA_property_pointer_type(ptr, prop);
 
-			if(ptype == &RNA_AnyType) {
+			if(prop->flag & PROP_RNAPTR) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);
 			}
 			else if (ptype!=srna) {

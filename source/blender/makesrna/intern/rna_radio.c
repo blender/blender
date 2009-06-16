@@ -40,10 +40,10 @@ void RNA_def_radio(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_drawtype_items[] = { 
-		{RAD_WIREFRAME, "WIREFRAME", "Wireframe", "Enables Wireframe draw mode"},
-		{RAD_SOLID, "SOLID", "Solid", "Enables Solid draw mode"},
-		{RAD_GOURAUD, "GOURAUD", "Gouraud", "Enables Gouraud draw mode"},
-		{0, NULL, NULL, NULL}};
+		{RAD_WIREFRAME, "WIREFRAME", 0, "Wireframe", "Enables Wireframe draw mode"},
+		{RAD_SOLID, "SOLID", 0, "Solid", "Enables Solid draw mode"},
+		{RAD_GOURAUD, "GOURAUD", 0, "Gouraud", "Enables Gouraud draw mode"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Radiosity", NULL);
 	RNA_def_struct_ui_text(srna, "Radiosity", "Settings for radiosity simulation of indirect diffuse lighting.");

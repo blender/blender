@@ -47,6 +47,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../editors/include

@@ -545,7 +545,7 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specularity";
+			return "specular_reflection";
 		
 		case MA_HARD:
 			return "specular_hardness";

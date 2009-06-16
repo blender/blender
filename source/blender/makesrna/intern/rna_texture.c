@@ -127,12 +127,12 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_interpolation_items[] = {
-		{1, "EASE", "Ease", ""},
-		{3, "CARDINAL", "Cardinal", ""},
-		{0, "LINEAR", "Linear", ""},
-		{2, "B_SPLINE", "B-Spline", ""},
-		{4, "CONSTANT", "Constant", ""},
-		{0, NULL, NULL, NULL}};
+		{1, "EASE", 0, "Ease", ""},
+		{3, "CARDINAL", 0, "Cardinal", ""},
+		{0, "LINEAR", 0, "Linear", ""},
+		{2, "B_SPLINE", 0, "B-Spline", ""},
+		{4, "CONSTANT", 0, "Constant", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ColorRamp", NULL);
 	RNA_def_struct_sdna(srna, "ColorBand");
@@ -201,21 +201,21 @@ static void rna_def_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_blend_type_items[] = {
-		{MTEX_BLEND, "MIX", "Mix", ""},
-		{MTEX_ADD, "ADD", "Add", ""},
-		{MTEX_SUB, "SUBTRACT", "Subtract", ""},
-		{MTEX_MUL, "MULTIPLY", "Multiply", ""},
-		{MTEX_SCREEN, "SCREEN", "Screen", ""},
-		{MTEX_OVERLAY, "OVERLAY", "Overlay", ""},
-		{MTEX_DIFF, "DIFFERENCE", "Difference", ""},
-		{MTEX_DIV, "DIVIDE", "Divide", ""},
-		{MTEX_DARK, "DARKEN", "Darken", ""},
-		{MTEX_LIGHT, "LIGHTEN", "Lighten", ""},
-		{MTEX_BLEND_HUE, "HUE", "Hue", ""},
-		{MTEX_BLEND_SAT, "SATURATION", "Saturation", ""},
-		{MTEX_BLEND_VAL, "VALUE", "Value", ""},
-		{MTEX_BLEND_COLOR, "COLOR", "Color", ""},
-		{0, NULL, NULL, NULL}};
+		{MTEX_BLEND, "MIX", 0, "Mix", ""},
+		{MTEX_ADD, "ADD", 0, "Add", ""},
+		{MTEX_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{MTEX_MUL, "MULTIPLY", 0, "Multiply", ""},
+		{MTEX_SCREEN, "SCREEN", 0, "Screen", ""},
+		{MTEX_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+		{MTEX_DIFF, "DIFFERENCE", 0, "Difference", ""},
+		{MTEX_DIV, "DIVIDE", 0, "Divide", ""},
+		{MTEX_DARK, "DARKEN", 0, "Darken", ""},
+		{MTEX_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+		{MTEX_BLEND_HUE, "HUE", 0, "Hue", ""},
+		{MTEX_BLEND_SAT, "SATURATION", 0, "Saturation", ""},
+		{MTEX_BLEND_VAL, "VALUE", 0, "Value", ""},
+		{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
@@ -323,10 +323,10 @@ static void rna_def_environment_map_common(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_source_items[] = {
-		{ENV_STATIC, "STATIC", "Static", "Calculates environment map only once"},
-		{ENV_ANIM, "ANIMATED", "Animated", "Calculates environment map at each rendering"},
-		{ENV_LOAD, "LOADED", "Loaded", "Loads saved environment map from disk"},
-		{0, NULL, NULL, NULL}};
+		{ENV_STATIC, "STATIC", 0, "Static", "Calculates environment map only once"},
+		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculates environment map at each rendering"},
+		{ENV_LOAD, "LOADED", 0, "Loaded", "Loads saved environment map from disk"},
+		{0, NULL, 0, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
@@ -348,9 +348,9 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{ENV_CUBE, "CUBE", "Cube", "Use environment map with six cube sides."},
-		{ENV_PLANE, "PLANE", "Plane", "Only one side is rendered, with Z axis pointing in direction of image."},
-		{0, NULL, NULL, NULL}};
+		{ENV_CUBE, "CUBE", 0, "Cube", "Use environment map with six cube sides."},
+		{ENV_PLANE, "PLANE", 0, "Plane", "Only one side is rendered, with Z axis pointing in direction of image."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "EnvironmentMap", NULL);
 	RNA_def_struct_sdna(srna, "EnvMap");
@@ -400,22 +400,22 @@ static void rna_def_environment_map(BlenderRNA *brna)
 }
 
 static EnumPropertyItem prop_noise_basis_items[] = {
-	{TEX_BLENDER, "BLENDER_ORIGINAL", "Blender Original", ""},
-	{TEX_STDPERLIN, "ORIGINAL_PERLIN", "Original Perlin", ""},
-	{TEX_NEWPERLIN, "IMPROVED_PERLIN", "Improved Perlin", ""},
-	{TEX_VORONOI_F1, "VORONOI_F1", "Voronoi F1", ""},
-	{TEX_VORONOI_F2, "VORONOI_F2", "Voronoi F2", ""},
-	{TEX_VORONOI_F3, "VORONOI_F3", "Voronoi F3", ""},
-	{TEX_VORONOI_F4, "VORONOI_F4", "Voronoi F4", ""},
-	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", "Voronoi F2-F1", ""},
-	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", "Voronoi Crackle", ""},
-	{TEX_CELLNOISE, "CELL_NOISE", "Cell Noise", ""},
-	{0, NULL, NULL, NULL}};
+	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original", ""},
+	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin", ""},
+	{TEX_NEWPERLIN, "IMPROVED_PERLIN", 0, "Improved Perlin", ""},
+	{TEX_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
+	{TEX_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", ""},
+	{TEX_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", ""},
+	{TEX_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", ""},
+	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", ""},
+	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", ""},
+	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_noise_type[] = {
-	{TEX_NOISESOFT, "SOFT_NOISE", "Soft", ""},
-	{TEX_NOISEPERL, "HARD_NOISE", "Hard", ""},
-	{0, NULL, NULL, NULL}};
+	{TEX_NOISESOFT, "SOFT_NOISE", 0, "Soft", ""},
+	{TEX_NOISEPERL, "HARD_NOISE", 0, "Hard", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 
 static void rna_def_texture_clouds(BlenderRNA *brna)
@@ -424,9 +424,9 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_clouds_stype[] = {
-	{TEX_DEFAULT, "GREYSCALE", "Greyscale", ""},
-	{TEX_COLOR, "COLOR", "Color", ""},
-	{0, NULL, NULL, NULL}};
+	{TEX_DEFAULT, "GREYSCALE", 0, "Greyscale", ""},
+	{TEX_COLOR, "COLOR", 0, "Color", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CloudsTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Clouds Texture", "Procedural noise texture.");
@@ -477,17 +477,17 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_wood_stype[] = {
-	{TEX_BAND, "BANDS", "Bands", "Uses standard wood texture in bands"},
-	{TEX_RING, "RINGS", "Rings", "Uses wood texture in rings"},
-	{TEX_BANDNOISE, "BANDNOISE", "Band Noise", "Adds noise to standard wood"},
-	{TEX_RINGNOISE, "RINGNOISE", "Ring Noise", "Adds noise to rings"},
-	{0, NULL, NULL, NULL}};
+	{TEX_BAND, "BANDS", 0, "Bands", "Uses standard wood texture in bands"},
+	{TEX_RING, "RINGS", 0, "Rings", "Uses wood texture in rings"},
+	{TEX_BANDNOISE, "BANDNOISE", 0, "Band Noise", "Adds noise to standard wood"},
+	{TEX_RINGNOISE, "RINGNOISE", 0, "Ring Noise", "Adds noise to rings"},
+	{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_wood_noisebasis2[] = {
-	{TEX_SIN, "SIN", "Sine", "Uses a sine wave to produce bands"},
-	{TEX_SAW, "SAW", "Saw", "Uses a saw wave to produce bands"},
-	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
-	{0, NULL, NULL, NULL}};
+	{TEX_SIN, "SIN", 0, "Sine", "Uses a sine wave to produce bands"},
+	{TEX_SAW, "SAW", 0, "Saw", "Uses a saw wave to produce bands"},
+	{TEX_TRI, "TRI", 0, "Tri", "Uses a triangle wave to produce bands"},
+	{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WoodTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Wood Texture", "Procedural noise texture.");
@@ -545,16 +545,16 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_marble_stype[] = {
-	{TEX_SOFT, "SOFT", "Soft", "Uses soft marble"},
-	{TEX_SHARP, "SHARP", "Sharp", "Uses more clearly defined marble"},
-	{TEX_SHARPER, "SHARPER", "Sharper", "Uses very clearly defined marble"},
-	{0, NULL, NULL, NULL}};
+	{TEX_SOFT, "SOFT", 0, "Soft", "Uses soft marble"},
+	{TEX_SHARP, "SHARP", 0, "Sharp", "Uses more clearly defined marble"},
+	{TEX_SHARPER, "SHARPER", 0, "Sharper", "Uses very clearly defined marble"},
+	{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_marble_noisebasis2[] = {
-	{TEX_SIN, "SIN", "Sin", "Uses a sine wave to produce bands"},
-	{TEX_SAW, "SAW", "Saw", "Uses a saw wave to produce bands"},
-	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
-	{0, NULL, NULL, NULL}};
+	{TEX_SIN, "SIN", 0, "Sin", "Uses a sine wave to produce bands"},
+	{TEX_SAW, "SAW", 0, "Saw", "Uses a saw wave to produce bands"},
+	{TEX_TRI, "TRI", 0, "Tri", "Uses a triangle wave to produce bands"},
+	{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MarbleTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Marble Texture", "Procedural noise texture.");
@@ -643,14 +643,14 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_blend_progression[] = {
-		{TEX_LIN, "LINEAR", "Linear", "Creates a linear progression"},
-		{TEX_QUAD, "QUADRATIC", "Quadratic", "Creates a quadratic progression"},
-		{TEX_EASE, "EASING", "Easing", "Creates a progression easing from one step to the next"},
-		{TEX_DIAG, "DIAGONAL", "Diagonal", "Creates a diagonal progression"},
-		{TEX_SPHERE, "SPHERICAL", "Spherical", "Creates a spherical progression"},
-		{TEX_HALO, "QUADRATIC_SPHERE", "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
-		{TEX_RAD, "RADIAL", "Radial", "Creates a radial progression"},
-		{0, NULL, NULL, NULL}};
+		{TEX_LIN, "LINEAR", 0, "Linear", "Creates a linear progression"},
+		{TEX_QUAD, "QUADRATIC", 0, "Quadratic", "Creates a quadratic progression"},
+		{TEX_EASE, "EASING", 0, "Easing", "Creates a progression easing from one step to the next"},
+		{TEX_DIAG, "DIAGONAL", 0, "Diagonal", "Creates a diagonal progression"},
+		{TEX_SPHERE, "SPHERICAL", 0, "Spherical", "Creates a spherical progression"},
+		{TEX_HALO, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
+		{TEX_RAD, "RADIAL", 0, "Radial", "Creates a radial progression"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BlendTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Blend Texture", "Procedural color blending texture.");
@@ -674,10 +674,10 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_stucci_stype[] = {
-	{TEX_PLASTIC, "PLASTIC", "Plastic", "Uses standard stucci"},
-	{TEX_WALLIN, "WALL_IN", "Wall in", "Creates Dimples"},
-	{TEX_WALLOUT, "WALL_OUT", "Wall out", "Creates Ridges"},
-	{0, NULL, NULL, NULL}};
+	{TEX_PLASTIC, "PLASTIC", 0, "Plastic", "Uses standard stucci"},
+	{TEX_WALLIN, "WALL_IN", 0, "Wall in", "Creates Dimples"},
+	{TEX_WALLOUT, "WALL_OUT", 0, "Wall out", "Creates Ridges"},
+	{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "StucciTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Stucci Texture", "Procedural noise texture.");
@@ -731,12 +731,12 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_image_extension[] = {
-		{1, "EXTEND", "Extend", "Extends by repeating edge pixels of the image"},
-		{2, "CLIP", "Clip", "Clips to image size and sets exterior pixels as transparent"},
-		{4, "CLIP_CUBE", "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
-		{3, "REPEAT", "Repeat", "Causes the image to repeat horizontally and vertically"},
-		{5, "CHECKER", "Checker", "Causes the image to repeat in checker board pattern"},
-		{0, NULL, NULL, NULL}};
+		{1, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
+		{2, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
+		{4, "CLIP_CUBE", 0, "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
+		{3, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
+		{5, "CHECKER", 0, "Checker", "Causes the image to repeat in checker board pattern"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ImageTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Image Texture", "");
@@ -920,12 +920,12 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_musgrave_type[] = {
-		{TEX_MFRACTAL, "MULTIFRACTAL", "Multifractal", ""},
-		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", "Ridged Multifractal", ""},
-		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", "Hybrid Multifractal", ""},
-		{TEX_FBM, "FBM", "fBM", ""},
-		{TEX_HTERRAIN, "HETERO_TERRAIN", "Hetero Terrain", ""},
-		{0, NULL, NULL, NULL}};
+		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal", ""},
+		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal", ""},
+		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal", ""},
+		{TEX_FBM, "FBM", 0, "fBM", ""},
+		{TEX_HTERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MusgraveTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Musgrave", "Procedural musgrave texture.");
@@ -999,22 +999,22 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_distance_metric_items[] = {
-		{TEX_DISTANCE, "DISTANCE", "Actual Distance", ""},
-		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", "Distance Squared", ""},
-		{TEX_MANHATTAN, "MANHATTAN", "Manhattan", ""},
-		{TEX_CHEBYCHEV, "CHEBYCHEV", "Chebychev", ""},
-		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", "Minkovsky 1/2", ""},
-		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", "Minkovsky 4", ""},
-		{TEX_MINKOVSKY, "MINKOVSKY", "Minkovsky", ""},
-		{0, NULL, NULL, NULL}};
+		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance", ""},
+		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", ""},
+		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan", ""},
+		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", ""},
+		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2", ""},
+		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4", ""},
+		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_coloring_items[] = {
 		/* XXX: OK names / descriptions? */
-		{TEX_INTENSITY, "INTENSITY", "Intensity", "Only calculate intensity."},
-		{TEX_COL1, "POSITION", "Position", "Color cells by position."},
-		{TEX_COL2, "POSITION_OUTLINE", "Position and Outline", "Use position plus an outline based on F2-F.1"},
-		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", "Position, Outline, and Intensity", "Multiply position and outline by intensity."},
-		{0, NULL, NULL, NULL}};
+		{TEX_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity."},
+		{TEX_COL1, "POSITION", 0, "Position", "Color cells by position."},
+		{TEX_COL2, "POSITION_OUTLINE", 0, "Position and Outline", "Use position plus an outline based on F2-F.1"},
+		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity", "Multiply position and outline by intensity."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "VoronoiTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Voronoi", "Procedural voronoi texture.");
@@ -1112,21 +1112,21 @@ static void rna_def_texture(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{0, "NONE", "None", ""},
-		{TEX_CLOUDS, "CLOUDS", "Clouds", ""},
-		{TEX_WOOD, "WOOD", "Wood", ""},
-		{TEX_MARBLE, "MARBLE", "Marble", ""},
-		{TEX_MAGIC, "MAGIC", "Magic", ""},
-		{TEX_BLEND, "BLEND", "Blend", ""},
-		{TEX_STUCCI, "STUCCI", "Stucci", ""},
-		{TEX_NOISE, "NOISE", "Noise", ""},
-		{TEX_IMAGE, "IMAGE", "Image/Movie", ""},
-		{TEX_PLUGIN, "PLUGIN", "Plugin", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", "Environment Map", ""},
-		{TEX_MUSGRAVE, "MUSGRAVE", "Musgrave", ""},
-		{TEX_VORONOI, "VORONOI", "Voronoi", ""},
-		{TEX_DISTNOISE, "DISTORTED_NOISE", "Distorted Noise", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "NONE", 0, "None", ""},
+		{TEX_CLOUDS, "CLOUDS", 0, "Clouds", ""},
+		{TEX_WOOD, "WOOD", 0, "Wood", ""},
+		{TEX_MARBLE, "MARBLE", 0, "Marble", ""},
+		{TEX_MAGIC, "MAGIC", 0, "Magic", ""},
+		{TEX_BLEND, "BLEND", 0, "Blend", ""},
+		{TEX_STUCCI, "STUCCI", 0, "Stucci", ""},
+		{TEX_NOISE, "NOISE", 0, "Noise", ""},
+		{TEX_IMAGE, "IMAGE", 0, "Image/Movie", ""},
+		{TEX_PLUGIN, "PLUGIN", 0, "Plugin", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", 0, "Environment Map", ""},
+		{TEX_MUSGRAVE, "MUSGRAVE", 0, "Musgrave", ""},
+		{TEX_VORONOI, "VORONOI", 0, "Voronoi", ""},
+		{TEX_DISTNOISE, "DISTORTED_NOISE", 0, "Distorted Noise", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
