@@ -104,7 +104,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
-//	KX_PYMETHOD(BL_ActionActuator,GetChannel);
+	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
