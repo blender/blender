@@ -71,8 +71,9 @@ struct BMVert;
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
-struct EditMesh;
 struct BMOperator;
+struct Mesh;
+struct EditMesh;
 
 /*
  * BMHeader
@@ -234,7 +235,7 @@ struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *
 #define BM_SetHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag | (f))
 #define BM_ClearHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag & ~(f))
 
-/*stuff for setting indices*/
+/*stuff for setting indices in elements.*/
 #define BMINDEX_SET(ele, i) (((BMHeader*)ele)->index = i)
 #define BMINDEX_GET(ele) ((BMHeader*)ele)->index
 
@@ -331,6 +332,11 @@ int BMFlags_To_MEFlags(void *element);
   parameter (the three defines map to
   MVert, MEdge, and MPoly, respectively).*/
 int MEFlags_To_BMFlags(void *element, int type);
+
+/*convert MLoop*** in a bmface to mtface and mcol in
+  an MFace*/
+void BM_loops_to_corners(BMesh *bm, struct Mesh *me, int findex,
+                         BMFace *f, int numTex, int numCol);
 
 /*include the rest of the API*/
 #include "bmesh_filters.h"

@@ -806,7 +806,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 
 		if(layer->flag & CD_FLAG_NOCOPY) continue;
 		else if(!((int)mask & (int)(1 << (int)type))) continue;
-		else if(number < CustomData_number_of_layers(dest, type)) continue;
+		else if(number+1 < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
 			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE,

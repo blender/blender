@@ -31,7 +31,12 @@
  */
 
 #include "MEM_guardedalloc.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BKE_customdata.h" 
+#include "BKE_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
@@ -102,6 +107,56 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->data); 				
 		l = l->radial.next->data;
 	}while(l!=e1->loop);
+}
+
+void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
+                         BMFace *f, int numTex, int numCol) 
+{
+	int i, j;
+	BMLoop *l;
+	BMIter iter;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		j = 0;
+		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+
+			j++;
+		}
+
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
+
+		j = 0;
+		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+
+			j++;
+		}
+	}
 }
 
 //static void bmesh_data_interp_from_face(BME_Mesh *bm, BMFace *source, BMFace *target)

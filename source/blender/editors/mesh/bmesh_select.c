@@ -894,21 +894,14 @@ static void edgeloop_select(BMEditMesh *em, BMEdge *starteed, int select)
 {
 	BMesh *bm = em->bm;
 	BMEdge *e;
-	BMOperator op;
 	BMWalker walker;
 
-	BMO_Exec_Op(bm, &op);
-
-	e = BMO_Get_MapPointer(bm, &op, "map", starteed);
-
 	BMW_Init(&walker, bm, BMW_LOOP, 0);
-	e = BMW_Begin(&walker, e);
+	e = BMW_Begin(&walker, starteed);
 	for (; e; e=BMW_Step(&walker)) {
 		BM_Select(bm, e, 1);
 	}
 	BMW_End(&walker);
-	
-	BMO_Finish_Op(bm, &op);
 }
 
 /* 
@@ -1034,7 +1027,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
-	ot->idname= "MESH_OT_select_loop_multi";
+	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
 	ot->exec= loop_multiselect;
@@ -1112,7 +1105,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
-	ot->idname= "MESH_OT_select_loop";
+	ot->idname= "MESH_OT_loop_select";
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
@@ -1213,7 +1206,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";
-	ot->idname= "MESH_OT_select_path_shortest";
+	ot->idname= "MESH_OT_select_shortest_path";
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;

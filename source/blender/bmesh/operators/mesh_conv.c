@@ -140,11 +140,11 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
-	int i, j, ototvert, totloop;
+	int i, j, ototvert, totloop, numTex, numCol;
 	
-	/*we'll going to have the bmesh-to-editmesh operator
-	  do most the work, then layer in ngon data, hehehe*/
-	
+	numTex = CustomData_number_of_layers(&me->pdata, CD_MLOOPUV);
+	numCol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+
 	bmtess = BM_Copy_Mesh(bm);
 	BMO_CallOpf(bmtess, "makefgon trifan=%i", 0);
 	
@@ -205,8 +205,11 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
-	mesh_update_customdata_pointers(me);
 
+	CustomData_from_bmeshpoly(&me->fdata, &bmtess->pdata, &bmtess->ldata, bmtess->totface);
+
+	mesh_update_customdata_pointers(me);
+	
 	/*set indices*/
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -265,6 +268,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		mface->v4 = BMINDEX_GET(((BMLoop*)f->loopbase->head.next->next->next)->v);
 		test_index_face(mface, &me->fdata, i, 1);
 		
+		BM_loops_to_corners(bmtess, me, i, f, numTex, numCol);
+
 		mface++;
 		i++;
 	}

@@ -65,7 +65,7 @@ struct BMEditMesh;
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
-#define SUB_ELEMS_FACE 4
+#define SUB_ELEMS_FACE 50
 
 /*
 note: all mface interfaces now officially operate on tesselated data.

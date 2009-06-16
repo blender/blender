@@ -240,8 +240,8 @@ int DM_release(DerivedMesh *dm)
 		CustomData_free_temporary(&dm->vertData, dm->numVertData);
 		CustomData_free_temporary(&dm->edgeData, dm->numEdgeData);
 		CustomData_free_temporary(&dm->faceData, dm->numFaceData);
-		CustomData_free(&dm->loopData, dm->numLoopData);
-		CustomData_free(&dm->polyData, dm->numPolyData);
+		CustomData_free_temporary(&dm->loopData, dm->numLoopData);
+		CustomData_free_temporary(&dm->polyData, dm->numPolyData);
 
 		return 0;
 	}
@@ -357,6 +357,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
+	CustomData_free(&me->ldata, me->totloop);
+	CustomData_free(&me->pdata, me->totpoly);
 
 	/* if the number of verts has changed, remove invalid data */
 	if(tmp.totvert != me->totvert) {

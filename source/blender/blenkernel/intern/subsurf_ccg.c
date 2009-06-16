@@ -428,7 +428,7 @@ static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditme
 }
 #endif
 
-/* face weighting */
+
 static void calc_ss_weights(int gridFaces,
                             FaceVertWeight **qweight, FaceVertWeight **tweight)
 {
@@ -472,6 +472,61 @@ static void calc_ss_weights(int gridFaces,
 	}
 }
 
+/* face weighting */
+typedef struct FaceVertWeightEntry {
+	FaceVertWeight *weight;
+	int valid;
+} FaceVertWeightEntry;
+
+typedef struct WeightTable {
+	FaceVertWeightEntry *weight_table;
+	int len;
+} WeightTable;
+
+static FaceVertWeight *get_ss_weights(WeightTable *wtable, int gridFaces, int faceLen)
+{
+	int i;
+
+	/*ensure we have at least the triangle and quad weights*/
+	if (wtable->len < 4) {
+		wtable->weight_table = MEM_callocN(sizeof(FaceVertWeightEntry)*5, "weight table alloc");
+		wtable->len = 5;
+
+		calc_ss_weights(gridFaces, &wtable->weight_table[4].weight, &wtable->weight_table[3].weight);
+		wtable->weight_table[4].valid = wtable->weight_table[3].valid = 1;
+	}
+	
+	if (wtable->len <= faceLen) {
+		void *tmp = MEM_callocN(sizeof(FaceVertWeightEntry)*(faceLen+1), "weight table alloc 2");
+		
+		memcpy(tmp, wtable->weight_table, sizeof(FaceVertWeightEntry)*wtable->len);
+		MEM_freeN(wtable->weight_table);
+		
+		wtable->weight_table = tmp;
+		wtable->len = faceLen+1;
+	}
+
+	if (!wtable->weight_table[faceLen].valid) {
+		/*ok, need to calculate weights here*/
+		wtable->weight_table[faceLen].weight =
+			MEM_callocN(sizeof(FaceVertWeight)*gridFaces*gridFaces, 
+			            "vert face weight");
+		wtable->weight_table[faceLen].valid = 1;
+	}
+
+	return wtable->weight_table[faceLen].weight;
+}
+
+void free_ss_weights(WeightTable *wtable)
+{
+	int i;
+
+	for (i=0; i<wtable->len; i++) {
+		if (wtable->weight_table[i].valid)
+			MEM_freeN(wtable->weight_table[i].weight);
+	}
+}
+
 static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
                                  int drawInteriorEdges, int useSubsurfUv,
                                  DerivedMesh *dm, MultiresSubsurf *ms)
@@ -493,11 +548,13 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	int totvert, totedge, totface;
 	MVert *mvert;
 	MEdge *med;
+	float *w = NULL;
+	WeightTable wtable;
+	V_DECLARE(w);
 	MFace *mf;
 	int *origIndex;
-	FaceVertWeight *qweight, *tweight;
 
-	calc_ss_weights(gridFaces, &qweight, &tweight);
+	memset(&wtable, 0, sizeof(wtable));
 
 	/* vert map */
 	totvert = ccgSubSurf_getNumVerts(ss);
@@ -554,7 +611,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap2[index];
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		FaceVertWeight *weight = (numVerts == 4) ? qweight : tweight;
+		FaceVertWeight *weight = get_ss_weights(&wtable, gridFaces, numVerts);
 
 		V_RESET(vertIdx);
 
@@ -572,19 +629,22 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		++origIndex;
 		i++;
 
+		V_RESET(w);
+		for (x=0; x<numVerts; x++) {
+			V_GROW(w);
+		}
 
-#if 0 //BMESH_TODO
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
-			int otherS = (numVerts == 4) ? (S + 2) % numVerts : 3;
+			int otherS = (numVerts >= 4) ? (S + 2) % numVerts : 3;
 
 			for(x = 1; x < gridFaces; x++) {
-				float w[4];
 				w[prevS]  = weight[x][0][0];
 				w[S]      = weight[x][0][1];
 				w[nextS]  = weight[x][0][2];
 				w[otherS] = weight[x][0][3];
+
 				DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
 				VecCopyf(mvert->co,
 				         ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
@@ -595,20 +655,25 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 				i++;
 			}
 		}
+		
+		V_RESET(w);
+		for (x=0; x<numVerts; x++) {
+			V_GROW(w);
+		}
 
 		for(S = 0; S < numVerts; S++) {
 			int prevS = (S - 1 + numVerts) % numVerts;
 			int nextS = (S + 1) % numVerts;
 			int otherS = (numVerts == 4) ? (S + 2) % numVerts : 3;
-
+			
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
-					float w[4];
 					w[prevS]  = weight[y * gridFaces + x][0][0];
 					w[S]      = weight[y * gridFaces + x][0][1];
 					w[nextS]  = weight[y * gridFaces + x][0][2];
 					w[otherS] = weight[y * gridFaces + x][0][3];
 					DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
+
 					VecCopyf(mvert->co,
 					         ccgSubSurf_getFaceGridData(ss, f, S, x, y));
 					*origIndex = ORIGINDEX_NONE;
@@ -618,7 +683,6 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 				}
 			}
 		}
-#endif
 		*((int*)ccgSubSurf_getFaceUserData(ss, f)) = faceBase;
 		faceBase += 1 + numVerts * ((gridSize-2) + (gridSize-2) * (gridSize-2));
 	}
@@ -634,12 +698,14 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		vertIdx[0] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
 		v = ccgSubSurf_getEdgeVert1(e);
 		vertIdx[1] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
-
+		
 		for(x = 1; x < edgeSize - 1; x++) {
-			float w[2];
-			w[1] = (float) x / (edgeSize - 1);
-			w[0] = 1 - w[1];
-			DM_interp_vert_data(dm, result, vertIdx, w, 2, i);
+			float w2[2];
+
+			w2[1] = (float) x / (edgeSize - 1);
+			w2[0] = 1 - w2[1];
+			DM_interp_vert_data(dm, result, vertIdx, w2, 2, i);
+
 			VecCopyf(mvert->co, ccgSubSurf_getEdgeData(ss, e, x));
 			*origIndex = ORIGINDEX_NONE;
 			++mvert;
@@ -768,8 +834,8 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		}
 
 		for(S = 0; S < numVerts; S++) {
-			FaceVertWeight *weight = (numVerts == 4) ? qweight : tweight;
-
+			FaceVertWeight *weight = get_ss_weights(&wtable, gridFaces, numVerts);
+			
 			for(y = 0; y < gridFaces; y++) {
 				for(x = 0; x < gridFaces; x++) {
 					mf->v1 = getFaceIndex(ss, f, S, x + 0, y + 0,
@@ -815,9 +881,8 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	MEM_freeN(edgeMap2);
 	MEM_freeN(vertMap2);
 
-	MEM_freeN(tweight);
-	MEM_freeN(qweight);
-	
+	free_ss_weights(&wtable);
+
 	V_FREE(vertIdx);
 
 	if(useSubsurfUv) {
@@ -831,7 +896,9 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	}
 
 	CDDM_calc_normals(result);
-
+	CDDM_tessfaces_to_faces(result);
+	
+	V_FREE(w);
 	return result;
 }
 
@@ -1365,7 +1432,7 @@ void ccgDM_faceIterStep(void *self)
 	fiter->head.len = fiter->mface.v4 ? 4 : 3;
 }
 
-void ccgDM_faceIterCData(void *self, int type, int layer)
+void *ccgDM_faceIterCData(void *self, int type, int layer)
 {
 	ccgDM_faceIter *fiter = self;
 	

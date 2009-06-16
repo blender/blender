@@ -781,8 +781,14 @@ static void cdDM_foreachMappedFaceCenter(
 	MVert *mv = cddm->mvert;
 	MPoly *mf = cddm->mpoly;
 	MLoop *ml = cddm->mloop;
-	int i, j, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	float (*cents)[3];
+	float (*nors)[3];
+	int *flens;
+	int i, j, orig, *index;
+	int maxf=0;
 
+	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
+	mf = cddm->mpoly;
 	for(i = 0; i < dm->numPolyData; i++, mf++) {
 		float cent[3];
 		float no[3];
@@ -790,8 +796,7 @@ static void cdDM_foreachMappedFaceCenter(
 		if (index) {
 			orig = *index++;
 			if(orig == ORIGINDEX_NONE) continue;
-		}
-		else
+		} else
 			orig = i;
 		
 		ml = &cddm->mloop[mf->loopstart];
@@ -804,14 +809,15 @@ static void cdDM_foreachMappedFaceCenter(
 		ml = &cddm->mloop[mf->loopstart];
 		if (j > 3) {
 			CalcNormFloat4(mv[ml->v].co, mv[(ml+1)->v].co,
-			               mv[(ml+2)->v].co, mv[(ml+3)->v].co, no);
+				       mv[(ml+2)->v].co, mv[(ml+3)->v].co, no);
 		} else {
 			CalcNormFloat(mv[ml->v].co, mv[(ml+1)->v].co,
-			               mv[(ml+2)->v].co, no);
+				       mv[(ml+2)->v].co, no);
 		}
 
 		func(userData, orig, cent, no);
 	}
+
 }
 
 static void cdDM_release(DerivedMesh *dm)
@@ -1651,7 +1657,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	MLoop *ml;
 	MPoly *mp;
 	EdgeHash *eh = BLI_edgehash_new();
-	int i, l, totloop;
+	int i, l, totloop, *index1, *index2;
 	
 	me = cddm->medge;
 	for (i=0; i<cddm->dm.numEdgeData; i++, me++) {
@@ -1664,14 +1670,25 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 		totloop += mf->v4 ? 4 : 3;
 	}
 
-	cddm->mloop = MEM_callocN(sizeof(MLoop)*totloop, "cddm->mloop in CDDM_tessfaces_to_faces");
+	CustomData_free(&cddm->dm.polyData, cddm->dm.numPolyData);
+	CustomData_free(&cddm->dm.loopData, cddm->dm.numLoopData);
+	
 	cddm->dm.numLoopData = totloop;
-	cddm->mpoly = MEM_callocN(sizeof(MPoly)*cddm->dm.numFaceData, "cddm->mpoly in CDDM_tessfaces_to_faces");
 	cddm->dm.numPolyData = cddm->dm.numFaceData;
+
+	if (!totloop) return;
+
+	cddm->mloop = MEM_callocN(sizeof(MLoop)*totloop, "cddm->mloop in CDDM_tessfaces_to_faces");
+	cddm->mpoly = MEM_callocN(sizeof(MPoly)*cddm->dm.numFaceData, "cddm->mpoly in CDDM_tessfaces_to_faces");
 	
 	CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, totloop);
 	CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, cddm->dm.numPolyData);
-	
+	CustomData_merge(&cddm->dm.faceData, &cddm->dm.polyData, 
+		CD_MASK_DERIVEDMESH, CD_DUPLICATE, cddm->dm.numFaceData);
+
+	index1 = CustomData_get_layer(&cddm->dm.faceData, CD_ORIGINDEX);
+	index2 = CustomData_get_layer(&cddm->dm.polyData, CD_ORIGINDEX);
+
 	mf = cddm->mface;
 	mp = cddm->mpoly;
 	ml = cddm->mloop;
