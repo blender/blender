@@ -725,54 +725,6 @@ PyObject*	CValue::ConvertKeysToPython( void )
 	return pylist;
 }
 
-/*
-PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
-{
-
-	//if (!PyArg_ParseTuple(args,"s:make",&name)) return NULL;
-	Py_RETURN_NONE;//new CValue();
-}
-*/
-
-#if (PY_VERSION_HEX >= 0x03000000)
-static struct PyModuleDef CValue_module_def = {
-	{}, /* m_base */
-	"CValue",  /* m_name */
-	0,  /* m_doc */
-	0,  /* m_size */
-	CValueMethods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
-};
-#endif
-
-extern "C" {
-	void initCValue(void)
-	{
-		PyObject *m;
-		/* Use existing module where possible
-		 * be careful not to init any runtime vars after this */
-		m = PyImport_ImportModule( "CValue" );
-		if(m) {
-			Py_DECREF(m);
-			//return m;
-		}
-		else {
-			PyErr_Clear();
-		
-#if (PY_VERSION_HEX >= 0x03000000)
-			PyModule_Create(&CValue_module_def);
-#else
-			Py_InitModule("CValue",CValueMethods);
-#endif
-		}
-	}
-}
-
-
-
 #endif //NO_EXP_PYTHON_EMBEDDING
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

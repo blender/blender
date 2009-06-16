@@ -979,6 +979,7 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 
 		if (m_object && m_object->getCollisionShape())
 		{
+			m_object->activate(true); // without this, sleeping objects scale wont be applied in bullet if python changes the scale - Campbell.
 			m_object->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
 			
 			//printf("no inertia recalc for fixed objects with mass=0\n");

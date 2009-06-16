@@ -6,22 +6,29 @@ The Blender Game Engine Python API Reference
 
 	See U{release notes<http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.49/Game_Engine>} for updates, changes and new functionality in the Game Engine Python API.
 
-	Top Module:
-	-----------
-
-		- L{GameLogic}
-		- L{GameKeys}
-		- L{GameTypes}
-		- L{Mathutils}
-		- L{Geometry}
-		- L{BGL}
+	Blender Game Engine Modules:
+	----------------------------
+	
+		Modules that include methods for accessing GameEngine data and functions.
+		
+			- L{GameLogic} utility functons for game logic.
+			- L{GameKeys} keyboard input and event conversion.
+			- L{Rasterizer} display and rendering.
+			- L{GameTypes} contains all the python types spesific to the GameEngine.
 	
 	Undocumented modules:
 	---------------------
 		- VideoTexture
-		- CValue
-		- Expression
 		- PhysicsConstraints
+	
+	Additional Modules:
+	-------------------
+	
+		These modules have no GameEngine spesific functionality but are useful in many cases.
+		
+			- L{Mathutils}
+			- L{Geometry}
+			- L{BGL}
 
 
 Introduction:
