@@ -244,6 +244,7 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+	ThemeSpace tlogic;
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];

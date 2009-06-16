@@ -966,7 +966,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= spin_mesh_invoke;
 	ot->exec= spin_mesh_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1073,7 +1073,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= screw_mesh_invoke;
 	ot->exec= screw_mesh_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -4995,7 +4995,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_rip_invoke;
-	ot->poll= ED_operator_editmesh; // XXX + v3d!
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

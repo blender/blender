@@ -179,6 +179,11 @@ int ED_operator_image_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_IMAGE);
 }
 
+int ED_operator_logic_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_LOGIC);
+}
+
 int ED_operator_object_active(bContext *C)
 {
 	return NULL != CTX_data_active_object(C);

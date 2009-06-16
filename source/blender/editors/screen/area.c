@@ -1048,6 +1048,7 @@ static char *windowtype_pup(void)
 		   "|Outliner %x3" //232
 		   "|Buttons Window %x4" //251
 		   "|Node Editor %x16"
+		   "|Logic Editor %x17"
 		   "|%l" //254
 		   
 		   "|File Browser %x5" //290

@@ -4733,6 +4733,14 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
+			else if(sl->spacetype==SPACE_LOGIC) {
+				SpaceLogic *slogic= (SpaceLogic *)sl;
+				
+				if(slogic->gpd) {
+					slogic->gpd= newdataadr(fd, slogic->gpd);
+					direct_link_gpencil(fd, slogic->gpd);
+				}
+			}
 			else if(sl->spacetype==SPACE_SEQ) {
 				SpaceSeq *sseq= (SpaceSeq *)sl;
 				if(sseq->gpd) {

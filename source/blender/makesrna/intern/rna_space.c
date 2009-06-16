@@ -54,6 +54,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_SCRIPT, "SCRIPTS_WINDOW", 0, "Scripts Window", ""},
 	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
 	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
+	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #define DC_RGB {0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."}
@@ -118,7 +119,9 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
 		case SPACE_NODE:
-			return &RNA_SpaceNodeEditor;*/
+			return &RNA_SpaceNodeEditor;
+		case SPACE_LOGIC:
+			return &RNA_SpaceLogicEditor;*/
 		default:
 			return &RNA_Space;
 	}
