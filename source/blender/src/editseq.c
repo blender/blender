@@ -2290,6 +2290,10 @@ static Sequence *dupli_seq(Sequence *seq)
 	if (seq->strip->color_balance) {
 		seqn->strip->color_balance 
 			= MEM_dupallocN(seq->strip->color_balance);
+		if (seq->strip->color_balance->gui) {
+			seqn->strip->color_balance->gui
+				=MEM_dupallocN(seq->strip->color_balance->gui);
+		}
 	}
 	
 	if(seq->type==SEQ_META) {

@@ -38,6 +38,7 @@
 
 struct Ipo;
 struct Scene;
+struct StripColorBalanceGUIHelper;
 
 /* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
 
@@ -71,9 +72,11 @@ typedef struct StripColorBalance {
 	float gamma[3];
 	float gain[3];
 	int flag;
-	int pad;
+	int mode;
 	float exposure;
 	float saturation;
+	int pad;
+	struct StripColorBalanceGUIHelper * gui;
 } StripColorBalance;
 
 typedef struct StripProxy {
@@ -263,9 +266,16 @@ typedef struct SpeedControlVars {
 #define SEQ_ACTIVE                            1048576
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
 
-#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
-#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
-#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN      1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA     2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT      4
+
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN      8
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA    16
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT     32
+
+#define SEQ_COLOR_BALANCE_GUI_MODE_LGG         0
+#define SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL     1
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

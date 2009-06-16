@@ -141,6 +141,9 @@ void free_strip(Strip *strip)
 		MEM_freeN(strip->transform);
 	}
 	if (strip->color_balance) {
+		if (strip->color_balance->gui) {
+			MEM_freeN(strip->color_balance->gui);
+		}
 		MEM_freeN(strip->color_balance);
 	}
 
@@ -1292,12 +1295,10 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	StripColorBalance cb = *cb_;
 	int c;
 
-	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
-		for (c = 0; c < 3; c++) {
+	for (c = 0; c < 3; c++) {
+		if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
 			cb.lift[c] = 1.0 - cb.lift[c];
-		}
-	} else {
-		for (c = 0; c < 3; c++) {
+		} else {
 			cb.lift[c] = -(1.0 - cb.lift[c]);
 		}
 	}

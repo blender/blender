@@ -480,6 +480,13 @@ static void sound_panel_sound(bSound *sound)
 
 /* ************************* Sequencer *********************** */
 
+typedef struct StripColorBalanceGUIHelper {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+} StripColorBalanceGUIHelper;
+
 #define SEQ_PANEL_EDITING 1
 #define SEQ_PANEL_INPUT   2
 #define SEQ_PANEL_FILTER  4
@@ -518,6 +525,108 @@ static char* seq_panel_blend_modes()
 		}
 	}
 	return string;
+}
+
+static char* seq_panel_color_balance_modes()
+{
+	static char string[2048];
+
+	sprintf(string, "Color balance mode: %%t|%s %%x%d|%s %%x%d",
+		"LiftGamGain", SEQ_COLOR_BALANCE_GUI_MODE_LGG,
+		"ASC CDL", SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL);
+
+	return string;
+}
+
+static void copy_to_color_balance_gui(StripColorBalance * cb)
+{
+	int c;
+	StripColorBalanceGUIHelper * cg = cb->gui;
+
+	for (c = 0; c < 3; c++) {
+		/* well in ACL terms,
+
+		   cb->lift  is actually 1 - offset
+		   cb->gamma is actually power
+		   cb->gain  is actually slope
+
+		   sorry for the confusion, that is for
+		   DNA backward compatibility...
+
+		   might better be renamed to low, mid, high (neutral terms)
+
+		   our lift / gamma / gain balancer sticks to neutral white
+		   (by default, can be switched with BW_FLIP)
+		   and therefore has:
+
+		   lift      is actually 1 - lift
+		   gain      is gain :)
+		   gamma     is actually power
+		*/
+
+		cg->lift[c] = cb->lift[c];
+		cg->gamma[c] = cb->gamma[c];
+		cg->gain[c] = cb->gain[c];
+
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_LGG) {
+			float offset = cg->lift[c];
+			float slope = cg->gain[c];
+
+			offset = 1 - offset;
+
+			cg->gain[c] = offset + slope;
+			cg->lift[c] = offset/(offset + slope);
+
+			cg->lift[c] = 1 - cg->lift[c];
+		
+		}
+
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT) {
+			cg->lift[c] = 1 - cg->lift[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA) {
+			cg->gamma[c] = 1 - cg->gamma[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN) {
+			cg->gain[c] = 1 - cg->gain[c];
+		}
+	}
+}
+
+static void copy_from_color_balance_gui(StripColorBalance * cb)
+{
+	int c;
+	StripColorBalanceGUIHelper * cg = cb->gui;
+
+	for (c = 0; c < 3; c++) {
+		/* see note above regarding confusing variable names */
+
+		cb->lift[c] = cg->lift[c];
+		cb->gamma[c] = cg->gamma[c];
+		cb->gain[c] = cg->gain[c];
+
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT) {
+			cb->lift[c] = 1 - cb->lift[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA) {
+			cb->gamma[c] = 1 - cb->gamma[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN) {
+			cb->gain[c] = 1 - cb->gain[c];
+		}
+
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_LGG) {
+			float lift = cb->lift[c];
+			float gain = cb->gain[c];
+
+			lift = 1 - lift;
+
+			cb->gain[c] = ( 1 - lift ) * gain;
+			cb->lift[c] = lift * gain;
+
+			cb->lift[c] = 1 - cb->lift[c];
+		}
+	}
 }
 
 static char* seq_panel_scenes()
@@ -948,19 +1057,30 @@ static void seq_panel_filter_video()
 		  1.0, 30.0, 100, 0, 
 		  "Only display every nth frame");
 
-	uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
-		     B_SEQ_BUT_RELOAD, "Use Color Balance", 
-		     10,50,240,19, &last_seq->flag, 
-		     0.0, 21.0, 100, 0, 
-		     "Activate Color Balance "
-		     "(3-Way color correction) on input");
-
+	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
+		uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+			     B_SEQ_BUT_RELOAD, "Use CB", 
+			     10,50,120,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Activate Color Balance "
+			     "(3-Way color correction) on input");
+	} else {
+		uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+			     B_SEQ_BUT_RELOAD, "Use Color Balance", 
+			     10,50,240,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Activate Color Balance "
+			     "(3-Way color correction) on input");
+	}
 
 	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
-		if (!last_seq->strip->color_balance) {
+		StripColorBalance * cb = last_seq->strip->color_balance;
+		StripColorBalanceGUIHelper * cg;
+		int xofs;
+
+		if (!cb) {
 			int c;
-			StripColorBalance * cb 
-				= last_seq->strip->color_balance 
+			cb = last_seq->strip->color_balance 
 				= MEM_callocN(
 					sizeof(struct StripColorBalance), 
 					"StripColorBalance");
@@ -971,43 +1091,111 @@ static void seq_panel_filter_video()
 			}
 		}
 
-		uiDefBut(block, LABEL, 0, "Lift",
-			 10,30,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, "Gamma",
-			 90,30,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, "Gain",
-			 170,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefButI(block, MENU, B_SEQ_BUT_COLOR_BALANCE, 
+			  seq_panel_color_balance_modes(), 
+			  130, 50, 120, 19, &cb->mode, 
+			  0,0,0,0, "Color balance mode");
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Lift",
-			  10,10,80,19, last_seq->strip->color_balance->lift, 
-			  0, 0, 0, 0, "Lift (shadows)");
+		if (!cb->gui) {
+			cb->gui	= MEM_callocN(
+				sizeof(struct StripColorBalanceGUIHelper), 
+				"StripColorBalanceGUIHelper");
+			copy_to_color_balance_gui(cb);
+			cb->gui->flag = cb->flag;
+		} 
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gamma",
-			  90,10,80,19, last_seq->strip->color_balance->gamma, 
-			  0, 0, 0, 0, "Gamma (midtones)");
+		cg = cb->gui;
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gain",
-			  170,10,80,19, last_seq->strip->color_balance->gain, 
-			  0, 0, 0, 0, "Gain (highlights)");
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL) {
+			uiDefBut(block, LABEL, 0, "Ofs (shad)",
+				 10,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Pow (midt)",
+				 90,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Slp (high)",
+				 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1-Offset",
+				  10,10,80,19, cg->lift, 
+				  0, 0, 0, 0, "1 - Offset (shadows)");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Gamma",
+				  90,10,80,19, cg->gamma, 
+				  0, 0, 0, 0, "Power (midtones)");
+			
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Slope",
+				  170,10,80,19, cg->gain, 
+				  0, 0, 0, 0, "Slope (highlights)");
+		} else {
+			uiDefBut(block, LABEL, 0, "Lift (shad)",
+				 10,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Gamma (mi)",
+				 90,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Gain (high)",
+				 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1-Lift",
+				  10,10,80,19, cg->lift, 
+				  0, 0, 0, 0, "1 - Lift (shadows)");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1/Gamma",
+				  90,10,80,19, cg->gamma, 
+				  0, 0, 0, 0, "1 / Gamma (midtones)");
+			
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Gain",
+				  170,10,80,19, cg->gain, 
+				  0, 0, 0, 0, "Gain (highlights)");
+		}
+
+		xofs = 10;
 
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_LIFT,
-			     B_SEQ_BUT_RELOAD, "Inv Lift", 
-			     10,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Lift");
+			     "Inverse");
+		xofs += 55;
+
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
+		xofs += 25;
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAMMA,
-			     B_SEQ_BUT_RELOAD, "Inv Gamma", 
-			     90,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Gamma");
+			     "Inverse");
+		xofs += 55;
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
+		xofs += 25;
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAIN,
-			     B_SEQ_BUT_RELOAD, "Inv Gain", 
-			     170,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Gain");
+			     "Inverse");
+		xofs += 55;
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
 	}
 
 
@@ -1398,6 +1586,19 @@ void do_sequencer_panels(unsigned short event)
 				    last_seq->strip->proxy->dir, 
 				    sel_proxy_file);
 		break;
+	case B_SEQ_BUT_COLOR_BALANCE: {
+		if (last_seq->strip && last_seq->strip->color_balance &&
+		    last_seq->strip->color_balance->gui) {
+			StripColorBalance * cb=last_seq->strip->color_balance;
+			if (cb->gui->flag != cb->flag) {
+				copy_to_color_balance_gui(cb);
+				cb->gui->flag = cb->flag;
+			} else {
+				copy_from_color_balance_gui(cb);
+			}
+		}
+		/* fall through */
+	}
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
 		update_seq_ipo_rect(last_seq);

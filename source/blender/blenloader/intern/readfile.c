@@ -3703,6 +3703,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				} else {
 					seq->strip->color_balance = 0;
 				}
+				if (seq->strip->color_balance) {
+					seq->strip->color_balance->gui = 0;
+				}
 			}
 		}
 		END_SEQ
