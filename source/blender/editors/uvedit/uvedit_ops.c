@@ -126,9 +126,6 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 				tf->tpage= ima;
 				tf->mode |= TF_TEX;
 				
-				if(ima->tpageflag & IMA_TILES) tf->mode |= TF_TILES;
-				else tf->mode &= ~TF_TILES;
-				
 				if(ima->id.us==0) id_us_plus(&ima->id);
 				else id_lib_extern(&ima->id);
 			}
@@ -150,7 +147,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 /* dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. */
-void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile, int dotile)
+void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -169,17 +166,8 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-		if(efa->h==0 && efa->f & SELECT) {
-			if(dotile==1) {
-				/* set tile flag */
-				if(ima->tpageflag & IMA_TILES)
-					tf->mode |= TF_TILES;
-				else
-					tf->mode &= ~TF_TILES;
-			}
-			else if(dotile==2)
-				tf->tile= curtile; /* set tile index */
-		}
+		if(efa->h==0 && efa->f & SELECT)
+			tf->tile= curtile; /* set tile index */
 	}
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
@@ -3005,7 +2993,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	RNA_int_get_array(op->ptr, "tile", tile);
-	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1], 1);
+	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 

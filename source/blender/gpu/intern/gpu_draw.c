@@ -393,7 +393,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 
 	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
-	GTS.tilemode= (tfmode & TF_TILES) || (ima && (ima->tpageflag & IMA_TWINANIM));
+	GTS.tilemode= (ima && (ima->tpageflag & (IMA_TILES|IMA_TWINANIM)));
 	GTS.tileXRep = 0;
 	GTS.tileYRep = 0;
 
@@ -423,7 +423,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 
-		if((tfmode & TF_TILES) && ima!=NULL)
+		if(ima && (ima->tpageflag & IMA_TILES))
 			glScalef(ima->xrep, ima->yrep, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);

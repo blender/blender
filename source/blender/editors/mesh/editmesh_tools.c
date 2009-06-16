@@ -4656,7 +4656,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 {
 	EditFace *efa;
 	MTFace *tface;
-	short	m_tex=0, m_tiles=0, m_shared=0,
+	short	m_tex=0, m_shared=0,
 			m_light=0, m_invis=0, m_collision=0,
 			m_twoside=0, m_obcolor=0, m_halo=0,
 			m_billboard=0, m_shadow=0, m_text=0,
@@ -4669,7 +4669,6 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 //	}
 	
 	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
-	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
 	add_numbut(2, TOG|SHO, "Light", 0, 0, &m_light, NULL);
 	add_numbut(3, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
 	add_numbut(4, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
@@ -4691,7 +4690,6 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 			m_billboard = 0;
 	
 	if (m_tex)			flag |= TF_TEX;
-	if (m_tiles)		flag |= TF_TILES;
 	if (m_shared)		flag |= TF_SHAREDCOL;
 	if (m_light)		flag |= TF_LIGHT;
 	if (m_invis)		flag |= TF_INVISIBLE;

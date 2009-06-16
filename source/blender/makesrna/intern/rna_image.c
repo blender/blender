@@ -217,7 +217,6 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_tile_set */
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces).");
 
 	prop= RNA_def_property(srna, "tiles_x", PROP_INT, PROP_NONE);
