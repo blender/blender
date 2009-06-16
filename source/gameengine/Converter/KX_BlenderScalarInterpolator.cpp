@@ -27,7 +27,7 @@
  */
 
 #include "KX_BlenderScalarInterpolator.h"
-#include "stdio.h"
+
 #include <cstring>
 
 extern "C" {

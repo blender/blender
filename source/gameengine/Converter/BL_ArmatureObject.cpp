@@ -38,6 +38,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "MT_Matrix4x4.h"
 
@@ -48,10 +49,12 @@
 BL_ArmatureObject::BL_ArmatureObject(
 				void* sgReplicationInfo, 
 				SG_Callbacks callbacks, 
-				Object *armature )
+				Object *armature,
+				Scene *scene)
 
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_objArma(armature),
+	m_scene(scene), // maybe remove later. needed for where_is_pose
 	m_framePose(NULL),
 	m_lastframe(0.0),
 	m_activeAct(NULL),
@@ -93,9 +96,9 @@ void BL_ArmatureObject::ApplyPose()
 {
 	m_armpose = m_objArma->pose;
 	m_objArma->pose = m_pose;
-
+	//m_scene->r.cfra++;
 	if(m_lastapplyframe != m_lastframe) {
-		where_is_pose(NULL, m_objArma); // XXX
+		where_is_pose(m_scene, m_objArma); // XXX
 		m_lastapplyframe = m_lastframe;
 	}
 }

@@ -57,6 +57,13 @@
 #include <config.h>
 #endif
 
+extern "C" {
+#include "BKE_animsys.h"
+#include "BKE_action.h"
+#include "RNA_access.h"
+#include "RNA_define.h"
+}
+
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose)
@@ -360,10 +367,31 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			
 			/* Get the underlying pose from the armature */
 			obj->GetPose(&m_pose);
-			
+
+// 2.4x function, 
 			/* Override the necessary channels with ones from the action */
 			// XXX extract_pose_from_action(m_pose, m_action, m_localtime);
+			
+			
+// 2.5x - replacement for extract_pose_from_action(...) above.
+			{
+				struct PointerRNA id_ptr;
+				Object *arm= obj->GetArmatureObject();
+				bPose *pose_back= arm->pose;
+				
+				arm->pose= m_pose;
+				RNA_id_pointer_create((ID *)arm, &id_ptr);
+				animsys_evaluate_action(&id_ptr, m_action, NULL, m_localtime);
+				
+				arm->pose= pose_back;
+			
+// 2.5x - could also do this but looks too high level, constraints use this, it works ok.
+//				Object workob; /* evaluate using workob */
+//				what_does_obaction((Scene *)obj->GetScene(), obj->GetArmatureObject(), &workob, m_pose, m_action, NULL, m_localtime);
+			}
 
+			// done getting the pose from the action
+			
 			/* Perform the user override (if any) */
 			if (m_userpose){
 				extract_pose_from_pose(m_pose, m_userpose);
