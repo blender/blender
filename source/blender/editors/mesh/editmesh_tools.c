@@ -1307,6 +1307,7 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
+	{7, "DISSOLVE",         "Dissolve Verts", ""},
 	{10,"VERT",		"Vertices", ""},
 	{1, "EDGE",		"Edges", ""},
 	{2, "FACE",		"Faces", ""},
@@ -1314,7 +1315,6 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{4, "EDGE_FACE","Edges & Faces", ""},
 	{5, "ONLY_FACE","Only Faces", ""},
 	{6, "EDGE_LOOP","Edge Loop", ""},
-	{7, "DISSOLVE","Dissolve Verts", ""},
 	{0, NULL, NULL, NULL}
 };
 

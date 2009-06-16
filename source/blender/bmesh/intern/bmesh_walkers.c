@@ -56,7 +56,7 @@ typedef struct loopWalker {
 
 typedef struct faceloopWalker {
 	struct faceloopWalker * prev;
-	BMFace *f;
+	BMLoop *l;
 } faceloopWalker;
 
 /*  NOTE: this comment is out of date, update it - joeedh
@@ -553,7 +553,6 @@ static void *loopWalker_yield(BMWalker *walker)
 static void *loopWalker_step(BMWalker *walker)
 {
 	loopWalker *lwalk = walker->currentstate, owalk;
-	BMIter iter;
 	BMEdge *e = lwalk->cur, *nexte = NULL;
 	BMLoop *l, *l2;
 	BMVert *v;
@@ -606,7 +605,7 @@ static void *loopWalker_step(BMWalker *walker)
 
 static void faceloopWalker_begin(BMWalker *walker, void *data)
 {
-	faceloopWalker *lwalk;
+	faceloopWalker *lwalk, owalk;
 	BMEdge *e = data;
 
 	BMW_pushstate(walker);
@@ -615,7 +614,20 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk = walker->currentstate;
 	lwalk->l = e->loop;
+	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
+	/*rewind*/
+	while (walker->currentstate) {
+		owalk = *((faceloopWalker*)walker->currentstate);
+		BMW_walk(walker);
+	}
+
+	BMW_pushstate(walker);
+	lwalk = walker->currentstate;
+	*lwalk = owalk;
+
+	BLI_ghash_free(walker->visithash, NULL, NULL);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 }
 
@@ -634,15 +646,20 @@ static void *faceloopWalker_step(BMWalker *walker)
 	BMFace *f = lwalk->l->f;
 	BMLoop *l = lwalk->l;
 
-	l = l->head.next->next;
-	l = l->radial.next->data;
-	
 	BMW_popstate(walker);
 
-	if (!BLI_ghash_haskey(walker->visithash, l->f)) {
+	l = l->head.next->next;
+	if (l == l->radial.next->data) {
+		l = l->head.prev->prev;
+	}
+	l = l->radial.next->data;
+
+	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->f)) {
 		BMW_pushstate(walker);
 		lwalk = walker->currentstate;
 		lwalk->l = l;
+
+		BLI_ghash_insert(walker->visithash, l->f, NULL);
 	}
 
 	return f;
