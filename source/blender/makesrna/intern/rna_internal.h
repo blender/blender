@@ -196,7 +196,7 @@ struct Mesh;
 void RNA_api_ui_layout(struct StructRNA *srna);
 struct Mesh *RNA_api_add_mesh(struct Main *main, char *name);
 void RNA_api_mesh_copy(struct Mesh *me, struct Mesh *from);
-void RNA_api_mesh_copy_applied(struct Mesh *me, struct Scene *sce, struct Object *ob, int apply_obmat);
+void RNA_api_mesh_copy_applied(struct Mesh *me, struct Scene *sce, struct Object *ob);
 
 /* ID Properties */
 

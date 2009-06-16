@@ -2041,14 +2041,11 @@ void RNA_api_mesh_copy(Mesh *me, Mesh *from)
 	copy_mesh_data(me, from);
 }
 
-void RNA_api_mesh_copy_applied(Mesh *me, Scene *sce, Object *ob, int apply_obmat)
+void RNA_api_mesh_copy_applied(Mesh *me, Scene *sce, Object *ob)
 {
 	DerivedMesh *dm= mesh_create_derived_view(sce, ob, CD_MASK_MESH);
 	DM_to_mesh(dm, me);
 	dm->release(dm);
-
-	if (apply_obmat) {
-	}
 }
 
 void RNA_api_mesh_transform(Mesh *me, float **mat)

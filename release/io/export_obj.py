@@ -1,7 +1,37 @@
 import bpy
 
+def write_obj(filepath, scene, ob):
+	out = open(filepath, 'w')
+
+	# create a temporary mesh
+	mesh = bpy.data.add_mesh("tmpmesh")
+
+	# copy data with modifiers applied
+	mesh.copy_applied(scene, ob)
+
+	# for vert in mesh.verts:
+	# ^ iterating that way doesn't work atm for some reason
+
+	for i in range(len(mesh.verts)):
+		vert = mesh.verts[i]
+		out.write('v {0} {1} {2}\n'.format(vert.co[0], vert.co[1], vert.co[2]))
+	
+	for i in range(len(mesh.faces)):
+		face = mesh.faces[i]
+		out.write('f')
+
+		# but this works
+		for index in face.verts:
+			out.write(' {0}'.format(index + 1))
+		out.write('\n')
+
+	# TODO: delete mesh here
+
+	out.close()
+	
 class SCRIPT_OT_export_obj(bpy.types.Operator):
-	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	'''A very basic OBJ exporter, writes only active object's mesh.'''
+
 	__label__ = 'Export OBJ'
 	
 	# List of operator properties, the attributes will be assigned
@@ -17,19 +47,12 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 		self.debug("exec")
 		self.debug("filename = " + self.filename)
 
-		self.debug("num selected objects: {0}".format(len(context.selected_objects)))
+		act = context.active_object
 
-		ob = bpy.data.objects["Cube"]
-		o = ob.data
-
-		m = bpy.data.add_mesh("tmpmesh")
-		m.copy_applied(context.scene, ob, True)
-
-		def vert(co):
-			return "{0}, {1}, {2}".format(co[0], co[1], co[2])
-
-		print("	  orig: {0} with totverts={1}".format(vert(o.verts[0].co), len(o.verts)))
-		print("applied: {0} with totverts={1}".format(vert(m.verts[0].co), len(m.verts)))
+		if act.type == 'MESH':
+			write_obj(self.filename, context.scene, act)
+		else:
+			self.debug("Active object is not a MESH.")
 
 		# XXX errors are silenced for some reason
 #		raise Exception("oops!")
@@ -38,9 +61,8 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		self.debug("invoke")
-#		context.add_fileselect(self.__operator__)
-#		return ('RUNNING_MODAL',)
-		return self.exec(context)
+		context.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # poll isnt working yet
 		self.debug("poll")
