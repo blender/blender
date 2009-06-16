@@ -31,6 +31,7 @@
 
 #include "Particle.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "BKE_object.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
