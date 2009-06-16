@@ -2215,7 +2215,7 @@ static char* ffmpeg_audio_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
        strcpy(formatstring, 
-	      "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d"
+	      "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d"
 #ifdef WITH_OGG
 	      "|%s %%x%d"
 #endif
