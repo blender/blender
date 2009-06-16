@@ -378,6 +378,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS			(1 << 21)
 #define USER_MMB_PASTE			(1 << 22)
+#define USER_DIRECTIONALORDER	(1 << 23)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

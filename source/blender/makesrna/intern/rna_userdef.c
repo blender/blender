@@ -1476,7 +1476,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_column_layout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_PLAINMENUS);
-	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox and do not flip the contents of any menu.");
+	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox.");
+
+	prop= RNA_def_property(srna, "directional_menus", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DIRECTIONALORDER);
+	RNA_def_property_ui_text(prop, "Contents Follow Opening Direction", "Otherwise menus, etc will always be top to bottom, left to right, no matter opening direction.");
 
 	/* snap to grid */
 	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
