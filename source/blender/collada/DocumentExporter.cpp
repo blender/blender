@@ -113,7 +113,7 @@ public:
 				if (checkTexcoords == true)
 					{
 						COLLADASW::Input input4(COLLADASW::TEXCOORD,
-												getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1);
+												getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 1);
 						til.push_back(input4);
 						//XXX
 						tris.setMaterial("material-symbol");
@@ -377,12 +377,12 @@ public:
 	void exportScene(Scene *sce) {
  		//<library_visual_scenes><visual_scene>
 		openVisualScene(sce->id.name, "");
-	
+		
 		//<node> for each mesh object
 		Base *base= (Base*) sce->base.first;
 		while(base) {
 			Object *ob = base->object;
-
+			
 			if (ob->type == OB_MESH && ob->data) {
 				COLLADASW::Node node(mSW);
 				node.start();
@@ -396,15 +396,20 @@ public:
 				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   ob_name));
 				//XXX hardcoded
-				/*COLLADASW::BindMaterial bm(mSW);
-				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-				std::string matid = "material";
-				COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-				iml.push_back(im);
-				instGeom.getBindMaterial() = bm;*/
+				Image *image = (Image*)G.main->image.first;
 				
+				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
+				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
+				
+				std::string matid = std::string(image->id.name) + "-material";
+				COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+				COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
+				im.push_back(bvi);
+				iml.push_back(im);
+
+				//
 				instGeom.add();
-			
+				
 				node.end();
 			}
 			base= base->next;
@@ -418,7 +423,7 @@ public:
 };
 
 /*----------------------------------------------------------*/
-//class for exporting textures
+//class for exporting images
 class ImagesExporter: COLLADASW::LibraryImages
 {
 public:
@@ -464,7 +469,7 @@ public:
 			ep.openProfile();
 			
 			//<newparam> <surface> <init_from>
-			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D);
+			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D, image->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
 			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
 			sio.setImageReference(image->id.name);
 			surface.setInitOption(sio);
@@ -474,7 +479,7 @@ public:
 			
 			//<lambert> <diffuse> <texture>	
 			COLLADASW::Texture texture(image->id.name);
-			texture.setTexcoord("myUVS");
+			texture.setTexcoord("myUVs");
 			texture.setSurface(surface);
 			texture.setSampler(sampler);
 			
