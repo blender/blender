@@ -67,6 +67,9 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 class TEXTURE_PT_mapping(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_mapping"
 	__label__ = "Mapping"
+	
+	def poll(self, context):
+		return (context.texture_slot and context.texture and context.texture.type != 'NONE')
 
 	def draw(self, context):
 		layout = self.layout
@@ -111,6 +114,9 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 class TEXTURE_PT_influence(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_influence"
 	__label__ = "Influence"
+	
+	def poll(self, context):
+		return (context.texture_slot and context.texture and context.texture.type != 'NONE')
 
 	def draw(self, context):
 		layout = self.layout
@@ -171,6 +177,7 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"
 	__label__ = "Colors"
+	__default_closed__ = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -519,3 +526,4 @@ bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
+

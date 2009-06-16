@@ -58,6 +58,7 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 class MATERIAL_PT_tangent(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_tangent"
 	__label__ = "Tangent Shading"
+	__default_closed__ = True
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -161,8 +162,14 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 				sub.itemR(mat, "roughness")
 		if mat.diffuse_shader == 'MINNAERT':
 			sub.itemR(mat, "darkness")
-		sub = split.column()
-		sub.itemR(mat, "params1_4", text="")
+		if mat.diffuse_shader == 'TOON':
+			sub.itemR(mat, "diffuse_toon_size", text="Size")
+			sub = split.column()
+			sub.itemR(mat, "diffuse_toon_smooth", text="Smooth")
+		if mat.diffuse_shader == 'FRESNEL':
+			sub.itemR(mat, "diffuse_fresnel", text="Fresnel")
+			sub = split.column()
+			sub.itemR(mat, "diffuse_fresnel_factor", text="Factor")
 		
 		layout.itemR(mat, "diffuse_ramp", text="Ramp")
 
@@ -183,25 +190,31 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		sub = split.column()
 		sub.itemR(mat, "specular_color", text="")
 		sub = split.column()
-		sub.itemR(mat, "specularity", text="Intensity", slider=True)
+		sub.itemR(mat, "specular_reflection", text="Reflection", slider=True)
 		
 		layout.itemR(mat, "spec_shader", text="Shader")
 		
 		split = layout.split()
 		
 		sub = split.column()
-		if (mat.spec_shader in ('COOKTORR', 'PHONG', 'BLINN')):
+		if mat.spec_shader in ('COOKTORR', 'PHONG', 'BLINN'):
 			sub.itemR(mat, "specular_hardness", text="Hardness")
-		if (mat.spec_shader in ('BLINN')):
-			sub.itemR(mat, "specular_refraction", text="IOR")
-		if (mat.spec_shader in ('WARDISO')):
+		if mat.spec_shader == 'BLINN':
+			sub = split.column()
+			sub.itemR(mat, "specular_ior", text="IOR")
+		if mat.spec_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
+		if mat.spec_shader == 'TOON':
+			sub.itemR(mat, "specular_toon_size", text="Size")
+			sub = split.column()
+			sub.itemR(mat, "specular_toon_smooth", text="Smooth")
 		
 		layout.itemR(mat, "specular_ramp", text="Ramp")
 
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
 	__label__ = "Subsurface Scattering"
+	__default_closed__ = True
 
 	def poll(self, context):
 		mat = context.material
@@ -238,6 +251,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raymir"
 	__label__ = "Ray Mirror"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		mat = context.material
@@ -279,6 +293,7 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raytransp"
 	__label__= "Ray Transparency"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		mat = context.material

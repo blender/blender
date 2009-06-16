@@ -18,7 +18,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		layout.template_header(context)
 		
 		if context.area.show_menus:
-			row = layout.row(align=True)
+			row = layout.row()
 			row.itemM(context, "SEQUENCER_MT_view")
 			
 			row.itemR(st, "display_mode")
