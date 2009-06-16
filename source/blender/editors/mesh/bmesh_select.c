@@ -805,14 +805,27 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 /* ***************************************************** */
 
 /* ****************  LOOP SELECTS *************** */
+static void walker_select(BMEditMesh *em, int walker, void *start, int select)
+{
+	BMesh *bm = em->bm;
+	BMHeader *h;
+	BMWalker walker;
 
+	BMW_Init(&walker, bm, walker, 0);
+	h = BMW_Begin(&walker, start);
+	for (; h; h=BMW_Step(&walker)) {
+		BM_Select(bm, h, select);
+	}
+	BMW_End(&walker);
+}
+
+#if 0
 /* selects quads in loop direction of indicated edge */
 /* only flush over edges with valence <= 2 */
-void faceloop_select(BMEditMesh *em, BMEdge *startedge, int select)
+void faceloop_select(EditMesh *em, EditEdge *startedge, int select)
 {
-#if 0 //BMESH_TODO
-	BMEdge *eed;
-	BMFace *efa;
+	EditEdge *eed;
+	EditFace *efa;
 	int looking= 1;
 	
 	/* in eed->f1 we put the valence (amount of faces in edge) */
@@ -875,8 +888,8 @@ void faceloop_select(BMEditMesh *em, BMEdge *startedge, int select)
 			if(efa->f1) EM_select_face(efa, select);
 		}
 	}
-#endif
 }
+#endif
 
 
 /* selects or deselects edges that:
@@ -890,19 +903,6 @@ void faceloop_select(BMEditMesh *em, BMEdge *startedge, int select)
 - if edge no face:
 	- has vertices with valence 2
 */
-static void edgeloop_select(BMEditMesh *em, BMEdge *starteed, int select)
-{
-	BMesh *bm = em->bm;
-	BMEdge *e;
-	BMWalker walker;
-
-	BMW_Init(&walker, bm, BMW_LOOP, 0);
-	e = BMW_Begin(&walker, starteed);
-	for (; e; e=BMW_Step(&walker)) {
-		BM_Select(bm, e, 1);
-	}
-	BMW_End(&walker);
-}
 
 /* 
    Almostly exactly the same code as faceloop select
@@ -1067,19 +1067,19 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		else if(extend) select=0;
 
 		if(em->selectmode & SCE_SELECT_FACE) {
-			faceloop_select(em, eed, select);
+			walker_select(em, BMW_FACELOOP, starteed, select);
 		}
 		else if(em->selectmode & SCE_SELECT_EDGE) {
 			if(ring)
 				edgering_select(em, eed, select);
 			else
-				edgeloop_select(em, eed, select);
+				walker_select(em, BMW_LOOP, starteed, select);
 		}
 		else if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(ring)
 				edgering_select(em, eed, select);
 			else 
-				edgeloop_select(em, eed, select);
+				walker_select(em, BMW_LOOP, starteed, select);
 		}
 
 		EDBM_selectmode_flush(em);

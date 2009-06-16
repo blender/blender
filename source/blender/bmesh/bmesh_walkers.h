@@ -40,24 +40,25 @@ for (; f; f=BMW_Step(&walker)) {
 BMW_End(&walker);
 */
 
-/*walk over connected geometry.  can restrict to a search flag,
-  or not, it's optional.*/
-#define BMW_SHELL	0
-
-/*walk over an edge loop.  search flag doesn't do anything.*/
-#define BMW_LOOP	1
-/*#define BMW_RING	2
-#define BMW_UVISLANDS	3*/
-/*walk over an island of flagged faces.  note, that this doesn't work on
-  non-manifold geometry.  it might be better to rewrite this to extract
-  boundary info from the island walker, rather then directly walking
-  over the boundary.  raises an error if it encouters nonmanifold
-  geometry.*/
-#define BMW_ISLANDBOUND	2
-
-/*walk over all faces in an island of tool flagged faces.*/
-#define BMW_ISLAND	3
-
-#define BMW_MAXWALKERS	4
+enum {
+	/*walk over connected geometry.  can restrict to a search flag,
+	or not, it's optional.*/
+	BMW_SHELL,
+	/*walk over an edge loop.  search flag doesn't do anything.*/
+	BMW_LOOP,
+	BMW_FACELOOP,
+	BMW_EDGERING,
+	/*#define BMW_RING	2
+	#define BMW_UVISLANDS	3*/
+	/*walk over an island of flagged faces.  note, that this doesn't work on
+	  non-manifold geometry.  it might be better to rewrite this to extract
+	  boundary info from the island walker, rather then directly walking
+	  over the boundary.  raises an error if it encouters nonmanifold
+	  geometry.*/
+	BMW_ISLANDBOUND,
+	/*walk over all faces in an island of tool flagged faces.*/
+	BMW_ISLAND,
+	BMW_MAXWALKERS,
+};
 
 #endif

@@ -48,11 +48,16 @@ typedef struct islandWalker {
 } islandWalker;
 
 typedef struct loopWalker {
-	struct islandWalker * prev;
+	struct loopWalker * prev;
 	BMEdge *cur, *start;
 	BMVert *lastv, *startv;
 	int startrad, stage2;
 } loopWalker;
+
+typedef struct faceloopWalker {
+	struct faceloopWalker * prev;
+	BMFace *f;
+} faceloopWalker;
 
 /*  NOTE: this comment is out of date, update it - joeedh
  *	BMWalker - change this to use the filters functions.
@@ -97,6 +102,10 @@ static void *islandWalker_step(BMWalker *walker);
 static void loopWalker_begin(BMWalker *walker, void *data);
 static void *loopWalker_yield(BMWalker *walker);
 static void *loopWalker_step(BMWalker *walker);
+
+static void faceloopWalker_begin(BMWalker *walker, void *data);
+static void *faceloopWalker_yield(BMWalker *walker);
+static void *faceloopWalker_step(BMWalker *walker);
 
 /* Pointer hiding*/
 typedef struct bmesh_walkerGeneric{
@@ -153,12 +162,12 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 			walker->yield = loopWalker_yield;
 			size = sizeof(loopWalker);
 			break;
-		//case BMW_RING:
-		//	walker->begin = ringwalker_Begin;
-		//	walker->step = ringwalker_Step;
-		//	walker->yield = ringwalker_Yield;
-		//	size = sizeof(ringWalker);
-		//	break;
+		case BMW_FACELOOP:
+			walker->begin = faceloopWalker_begin;
+			walker->step = faceloopWalker_step;
+			walker->yield = faceloopWalker_yield;
+			size = sizeof(faceloopWalker);
+			break;
 		default:
 			break;
 	}
@@ -594,3 +603,48 @@ static void *loopWalker_step(BMWalker *walker)
 	
 	return owalk.cur;
 }
+
+static void faceloopWalker_begin(BMWalker *walker, void *data)
+{
+	faceloopWalker *lwalk;
+	BMEdge *e = data;
+
+	BMW_pushstate(walker);
+
+	if (!e->loop) return;
+
+	lwalk = walker->currentstate;
+	lwalk->l = e->loop;
+
+	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
+}
+
+static void *faceloopWalker_yield(BMWalker *walker)
+{
+	faceloopWalker *lwalk = walker->currentstate;
+	
+	if (!lwalk) return NULL;
+
+	return lwalk->l->f;
+}
+
+static void *faceloopWalker_step(BMWalker *walker)
+{
+	faceloopWalker *lwalk = walker->currentstate;
+	BMFace *f = lwalk->l->f;
+	BMLoop *l = lwalk->l;
+
+	l = l->head.next->next;
+	l = l->radial.next->data;
+	
+	BMW_popstate(walker);
+
+	if (!BLI_ghash_haskey(walker->visithash, l->f)) {
+		BMW_pushstate(walker);
+		lwalk = walker->currentstate;
+		lwalk->l = l;
+	}
+
+	return f;
+}
+
