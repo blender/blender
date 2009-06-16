@@ -1314,6 +1314,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDPropertyTemplate val = {0};
@@ -1339,10 +1340,11 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			MEM_freeN(item);
 		}
 	}
+	else if(cprop->add){
+		cprop->add(ptr, r_ptr);
+	}
 	else
-		printf("RNA_property_collection_add %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
-
-	/* TODO: call cprop->add on non-ID props here */
+		printf("RNA_property_collection_add %s.%s: not implemented for this property.\n", ptr->type->identifier, prop->identifier);
 
 	if(r_ptr) {
 		if(idprop) {

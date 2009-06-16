@@ -484,6 +484,33 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 	tf->tpage= (struct Image*)id;
 }
 
+static void rna_Mesh_verts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	rna_iterator_array_begin(iter, me->mvert, sizeof(MVert), me->totvert, NULL);
+}
+
+/* extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example); */
+
+static void rna_Mesh_verts_add(PointerRNA *ptr, PointerRNA *ptr_item)
+{
+	Mesh *me= (Mesh*)ptr->data;
+
+	/*
+	// XXX if item is not MVert we fail silently
+	if (item->type == RNA_MeshVertex)
+		return;
+
+	// XXX this must be slow...
+	EditMesh *em= BKE_mesh_get_editmesh(me);
+
+	MVert *v = (MVert*)ptr_item->ptr->data;
+	addvertlist(em, v->co, NULL);
+
+	BKE_mesh_end_editmesh(me, em);
+	*/
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -1054,6 +1081,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_verts_begin", 0, 0, 0, 0, 0, 0, "rna_Mesh_verts_add");
 
 	prop= RNA_def_property(srna, "edges", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "medge", "totedge");
