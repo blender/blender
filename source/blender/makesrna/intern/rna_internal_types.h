@@ -78,6 +78,7 @@ typedef PointerRNA (*PropCollectionGetFunc)(struct CollectionPropertyIterator *i
 typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
 typedef PointerRNA (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key);
 typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key);
+typedef void (*PropCollectionAddFunc)(PointerRNA *ptr, PointerRNA *item);
 
 /* Container - generic abstracted container of RNA properties */
 typedef struct ContainerRNA {
@@ -243,6 +244,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
+	PropCollectionAddFunc add;
 
 	struct StructRNA *type;
 } CollectionPropertyRNA;

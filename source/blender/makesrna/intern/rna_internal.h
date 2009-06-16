@@ -254,7 +254,7 @@ void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 
 /* experimental */
-void *rna_iterator_array_add(void *ptr, void *data);
+void *rna_iterator_array_add(void *ptr, int itemsize, int length, void *item);
 
 /* Duplicated code since we can't link in blenlib */
 
