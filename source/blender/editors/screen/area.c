@@ -1106,6 +1106,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	PanelType *pt;
@@ -1143,7 +1144,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* draw panel */
 		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel= uiBeginPanel(ar, block, pt, &open);
+			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
 			if(vertical)
 				y -= header;
@@ -1161,7 +1162,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			}
 
 			if(open) {
-				panel->type= pt;
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
 
@@ -1173,8 +1173,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 				yco -= 2*style->panelspace;
 				uiEndPanel(block, w, -yco);
 			}
-			else
+			else {
 				yco= 0;
+				uiEndPanel(block, w, 0);
+			}
 
 			uiEndBlock(C, block);
 

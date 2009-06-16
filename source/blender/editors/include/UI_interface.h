@@ -491,7 +491,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
 void uiEndPanels(const struct bContext *C, struct ARegion *ar);
 
-struct Panel *uiBeginPanel(struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
+struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);
 
 /* Handlers
@@ -539,8 +539,6 @@ void UI_exit(void);
 
 uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
 uiBut *uiDefMenuSep(uiBlock *block);
-uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name);
-uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, char *propvalue, char *name);
 
 /* Layout
  *

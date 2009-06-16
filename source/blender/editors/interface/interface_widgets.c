@@ -874,9 +874,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		and offset the text label to accomodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
-			widget_draw_icon(but, but->icon, 0, rect);
+			widget_draw_icon(but, but->icon+but->iconadd, 0, rect);
 			
-			rect->xmin += UI_icon_get_width(but->icon);
+			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;

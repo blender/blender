@@ -1448,10 +1448,8 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 
 void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 {
-	uiBlock *block;
 	uiLayout *uRow, *uSplit, *uCol;
 	PropertyRNA *prop;
-	StructRNA *type;
 	int groups, cols, layers;
 	int group, col, layer, row;
 	
