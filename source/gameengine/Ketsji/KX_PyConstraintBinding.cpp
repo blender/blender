@@ -630,6 +630,7 @@ PyObject*	initPythonConstraintBinding()
 	
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&PhysicsConstraints_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), PhysicsConstraints_module_def.m_name, m);
 #else
 		m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
 		     PhysicsConstraints_module_documentation,

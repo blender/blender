@@ -204,6 +204,7 @@ PyObject* initVideoTexture(void)
 	
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&VideoTexture_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
 #else
 		m = Py_InitModule4("VideoTexture", moduleMethods,
 			"Module that allows to play video files on textures in GameBlender.",

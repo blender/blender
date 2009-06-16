@@ -99,6 +99,7 @@ PyObject *Geometry_Init(const char *from)
 	
 #if (PY_VERSION_HEX >= 0x03000000)
 	submodule = PyModule_Create(&M_Geometry_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
 #else
 	submodule = Py_InitModule3(from, M_Geometry_methods, M_Geometry_doc);
 #endif

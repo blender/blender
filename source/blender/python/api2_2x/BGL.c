@@ -1104,6 +1104,7 @@ PyObject *BGL_Init(const char *from)
 	PyObject *mod, *dict, *item;
 #if (PY_VERSION_HEX >= 0x03000000)
 	mod = PyModule_Create(&BGL_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), BGL_module_def.m_name, mod);
 #else
 	mod= Py_InitModule(from, BGL_methods);
 #endif
