@@ -634,9 +634,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	//WM_write_file(C, filename, op->reports);
 	collada_export(CTX_data_scene(C), filename);
 	
-	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
 
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_collada_export(wmOperatorType *ot)
@@ -646,6 +646,50 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	
 	ot->invoke= wm_collada_export_invoke;
 	ot->exec= wm_collada_export_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+}
+
+static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	// XXX: temporary
+	RNA_string_set(op->ptr, "filename", "/tmp/test.dae");
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_collada_import_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	
+	if(RNA_property_is_set(op->ptr, "filename"))
+		RNA_string_get(op->ptr, "filename", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
+	
+	//WM_write_file(C, filename, op->reports);
+	collada_import(CTX_data_scene(C), filename);
+	
+	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_collada_import(wmOperatorType *ot)
+{
+	ot->name= "Collada Import";
+	ot->idname= "WM_OT_collada_import";
+	
+	ot->invoke= wm_collada_import_invoke;
+	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= 0;
@@ -1498,6 +1542,7 @@ void wm_operatortype_init(void)
 
 	/* XXX: move these */
 	WM_operatortype_append(WM_OT_collada_export);
+	WM_operatortype_append(WM_OT_collada_import);
 }
 
 /* default keymap for windows and screens, only call once per WM */

@@ -170,6 +170,9 @@ BF_OPENCOLLADA_LIBPATH = '/usr/lib'
 BF_PCRE = ''
 BF_PCRE_LIB = 'pcre'
 BF_PCRE_LIBPATH = '/usr/lib'
+BF_EXPAT = '/usr'
+BF_EXPAT_LIB = 'expat'
+BF_EXPAT_LIBPATH = '/usr/lib'
 
 ##
 CC = 'gcc'

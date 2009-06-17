@@ -45,6 +45,7 @@ struct ModifierData;
 /* object_edit.c */
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);
+struct Object *ED_object_add_type(struct bContext *C, int type);
 
 	/* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);

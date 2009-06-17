@@ -290,6 +290,12 @@ static Object *object_add_type(bContext *C, int type)
 	return ob;
 }
 
+/* for COLLADA imp/exp */
+Object *ED_object_add_type(bContext *C, int type)
+{
+	return object_add_type(C, type);
+}
+
 /* for object add operator */
 static int object_add_exec(bContext *C, wmOperator *op)
 {

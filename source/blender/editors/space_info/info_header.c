@@ -279,6 +279,7 @@ static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 	// XXX: these should move
 	uiItemS(layout);
 	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiItemO(layout, NULL, 0, "WM_OT_collada_import"); 
 	uiItemO(layout, NULL, 0, "WM_OT_collada_export"); 
 
 #if 0

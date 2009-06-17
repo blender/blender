@@ -150,6 +150,7 @@ def setup_staticlibs(lenv):
 	if lenv['WITH_BF_COLLADA']:
 		libincs += Split(lenv['BF_OPENCOLLADA_LIBPATH'])
 		libincs += Split(lenv['BF_PCRE_LIBPATH'])
+        libincs += Split(lenv['BF_EXPAT_LIBPATH'])
 
 
 	return statlibs, libincs
@@ -198,6 +199,7 @@ def setup_syslibs(lenv):
 	if lenv['WITH_BF_COLLADA']:
 		syslibs.append(lenv['BF_OPENCOLLADA_LIB'])
 		syslibs.append(lenv['BF_PCRE_LIB'])
+        syslibs.append(lenv['BF_EXPAT_LIB'])
 
 
 	syslibs += lenv['LLIBS']
