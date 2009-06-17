@@ -36,6 +36,9 @@
 
 #include "BPY_extern.h"
 
+#include "../generic/bpy_internal_import.h" // our own imports
+
+
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
@@ -131,10 +134,17 @@ void BPY_start_python( int argc, char **argv )
 	/* bpy.* and lets us import it */
 	bpy_init_modules(); 
 
+	{ /* our own import and reload functions */
+		PyObject *item;
+		//PyObject *m = PyImport_AddModule("__builtin__");
+		//PyObject *d = PyModule_GetDict(m);
+		PyObject *d = PyEval_GetBuiltins(  );
+		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(bpy_reload_meth, NULL));	Py_DECREF(item);
+		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+	}
 	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
-	
 }
 
 void BPY_end_python( void )
@@ -164,6 +174,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	gilstate = PyGILState_Ensure();
 
 	BPY_update_modules(); /* can give really bad results if this isnt here */
+	bpy_import_main_set(CTX_data_main(C));
 	
 	py_dict = CreateGlobalDictionary(C);
 
@@ -201,6 +212,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	
 	Py_DECREF(py_dict);
 	PyGILState_Release(gilstate);
+	bpy_import_main_set(NULL);
 	
 	//BPY_end_python();
 	return py_result ? 1:0;
@@ -387,6 +399,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
+	bpy_import_main_set(CTX_data_main(C));
 	
 	while((de = readdir(dir)) != NULL) {
 		/* We could stat the file but easier just to let python
@@ -420,6 +433,8 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	
 	PySys_SetObject("path", sys_path_orig);
 	Py_DECREF(sys_path_orig);
+	
+	bpy_import_main_set(NULL);
 	
 	PyGILState_Release(gilstate);
 #ifdef TIME_REGISTRATION

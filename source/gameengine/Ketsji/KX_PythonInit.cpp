@@ -42,6 +42,13 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+extern "C" {
+	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
+	#include "BGL.h"
+}
+
 #include "KX_PythonInit.h"
 //python physics binding
 #include "KX_PyConstraintBinding.h"
@@ -84,20 +91,9 @@
 
 #include "KX_PythonInitTypes.h" 
 
-#if 0 //XXX25
-
 /* we only need this to get a list of libraries from the main struct */
 #include "DNA_ID.h"
 
-extern "C" {
-	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
-#if PY_VERSION_HEX < 0x03000000
-	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
-	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
-	#include "BGL.h"
-#endif
-}
-#endif //XXX25
 
 #include "marshal.h" /* python header for loading/saving dicts */
 
@@ -1380,10 +1376,9 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	}
 	
 	/* Import blender texts as python modules */
-	/* XXX 2.5
-	 * m= bpy_text_import(name, &found);
+	m= bpy_text_import(name, &found);
 	if (m)
-		return m; */
+		return m;
 	
 	if(found==0) /* if its found but could not import then it has its own error */
 		PyErr_Format(PyExc_ImportError, "Import of external Module %.20s not allowed.", name);
@@ -1407,9 +1402,9 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
 		return NULL;
 	
-	/* XXX 2.5 newmodule= bpy_text_reimport( module, &found );
+	newmodule= bpy_text_reimport( module, &found );
 	if (newmodule)
-		return newmodule; */
+		return newmodule;
 	
 	if (found==0) /* if its found but could not import then it has its own error */
 		PyErr_SetString(PyExc_ImportError, "reload(module): failed to reload from blenders internal text");
@@ -1490,8 +1485,8 @@ void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			/* XXX 2.5 PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item); */
-			/* XXX 2.5 PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item); */
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1636,7 +1631,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	setSandbox(level);
 	initPyTypes();
 	
-	/* XXX 2.5 bpy_import_main_set(maggie); */
+	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
 	
@@ -1654,7 +1649,7 @@ void exitGamePlayerPythonScripting()
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
 	Py_Finalize();
-	/* XXX 2.5 bpy_import_main_set(NULL); */
+	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
 }
 
@@ -1675,7 +1670,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	setSandbox(level);
 	initPyTypes();
 	
-	/* XXX 2.5 bpy_import_main_set(maggie); */
+	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
 
@@ -1688,7 +1683,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 void exitGamePythonScripting()
 {
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
-	/* XXX 2.5 bpy_import_main_set(NULL); */
+	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
 }
 
@@ -2000,28 +1995,20 @@ PyObject* initGameKeys()
 	return d;
 }
 
-#if PY_VERSION_HEX < 0x03000000
 PyObject* initMathutils()
 {
-	return NULL; //XXX Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
 }
 
 PyObject* initGeometry()
 {
-	return NULL; // XXX Geometry_Init("Geometry"); // Use as a top level module in BGE
+	return Geometry_Init("Geometry"); // Use as a top level module in BGE
 }
 
 PyObject* initBGL()
 {
-	return NULL; // XXX 2.5 BGL_Init("BGL"); // Use as a top level module in BGE
+	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
-#else // TODO Py3k conversion
-PyObject* initMathutils() {Py_INCREF(Py_None);return Py_None;}
-PyObject* initGeometry() {Py_INCREF(Py_None);return Py_None;}
-PyObject* initBGL() {Py_INCREF(Py_None);return Py_None;}
-#endif
-
-
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {
