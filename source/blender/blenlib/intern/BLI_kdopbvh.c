@@ -52,6 +52,7 @@ typedef struct BVHNode
 {
 	struct BVHNode **children;
 	struct BVHNode *parent; // some user defined traversed need that
+	struct BVHNode *skip[2];
 	float *bv;		// Bounding volume of all nodes, max 13 axis
 	int index;		// face, edge, vertex index
 	char totnode;	// how many nodes are used, used for speedup
@@ -355,6 +356,23 @@ int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNode *right)
+{
+	int i;
+	
+	node->skip[0] = left;
+	node->skip[1] = right;
+	
+	for (i = 0; i < node->totnode; i++)
+	{
+		if(i+1 < node->totnode)
+			build_skip_links(tree, node->children[i], left, node->children[i+1] );
+		else
+			build_skip_links(tree, node->children[i], left, right );
+
+		left = node->children[i];
+	}
+}
 
 /*
  * BVHTree bounding volumes functions
@@ -941,6 +959,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	for(i = 0; i < tree->totbranch; i++)
 		tree->nodes[tree->totleaf + i] = branches_array + i;
 
+	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
 	//bvhtree_info(tree);
 }
 
@@ -1513,6 +1532,37 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
+static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
+{
+	while(node)
+	{
+		float dist = fast_ray_nearest_hit(data, node);
+		if(dist >= data->hit.dist)
+		{
+			node = node->skip[1];
+			continue;
+		}
+
+		if(node->totnode == 0)
+		{
+			if(data->callback)
+				data->callback(data->userdata, node->index, &data->ray, &data->hit);
+			else
+			{
+				data->hit.index	= node->index;
+				data->hit.dist  = dist;
+				VECADDFAC(data->hit.co, data->ray.origin, data->ray.direction, dist);
+			}
+			
+			node = node->skip[1];
+		}
+		else
+		{
+			node = node->children[0];
+		}	
+	}
+}
+
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	int i;
@@ -1555,7 +1605,10 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	}
 
 	if(root)
+	{
 		dfs_raycast(&data, root);
+//		iterative_raycast(&data, root);
+ 	}
 
 
 	if(hit)
