@@ -121,6 +121,30 @@ static SpaceLink *logic_new(const bContext *C)
 	
 	BLI_addtail(&slogic->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
+
+	ar->v2d.tot.xmin=  0.0f;
+	ar->v2d.tot.ymin=  0.0f;
+	ar->v2d.tot.xmax= 1280;
+	ar->v2d.tot.ymax= 240.0f;
+	
+	ar->v2d.cur.xmin=  0.0f;
+	ar->v2d.cur.ymin=  0.0f;
+	ar->v2d.cur.xmax= 1280.0f;
+	ar->v2d.cur.ymax= 240.0f;
+	
+	ar->v2d.min[0]= 1.0f;
+	ar->v2d.min[1]= 1.0f;
+	
+	ar->v2d.max[0]= 32000.0f;
+	ar->v2d.max[1]= 32000.0f;
+	
+	ar->v2d.minzoom= 0.5f;
+	ar->v2d.maxzoom= 1.21f;
+	
+	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+	ar->v2d.keeptot= 0;
+	
 	
 	return (SpaceLink *)slogic;
 }
@@ -205,7 +229,7 @@ static void logic_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymaps */
 	keymap= WM_keymap_listbase(wm, "Logic Generic", SPACE_LOGIC, 0);
@@ -217,6 +241,7 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 //	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	float col[3];
 	
 	/* clear and setup matrix */
@@ -224,15 +249,18 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	/* we set view2d from own zoom and offset each time */
-//	image_main_area_set_view2d(sima, ar, scene);
-		
 	UI_view2d_view_ortho(C, v2d);
 	
-	/* scrollers? */
-	/*scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	logic_buttons((bContext *)C, ar);
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
-	UI_view2d_scrollers_free(scrollers);*/
+	UI_view2d_scrollers_free(scrollers);
+	
 }
 
 
@@ -306,11 +334,10 @@ void ED_spacetype_logic(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES|ED_KEYMAP_VIEW2D;
 	art->init= logic_main_area_init;
 	art->draw= logic_main_area_draw;
 	art->listener= logic_listener;
-	art->keymapflag= 0;
 
 	BLI_addhead(&st->regiontypes, art);
 	

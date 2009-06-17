@@ -165,6 +165,7 @@ typedef struct uiAfterFunc {
 	bContextStore *context;
 } uiAfterFunc;
 
+static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
@@ -525,6 +526,149 @@ static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *da
 }
 #endif
 
+
+static void ui_delete_active_linkline(uiBlock *block)
+{
+	uiBut *but;
+	uiLink *link;
+	uiLinkLine *line, *nline;
+	int a, b;
+	
+	but= block->buttons.first;
+	while(but) {
+		if(but->type==LINK && but->link) {
+			line= but->link->lines.first;
+			while(line) {
+				
+				nline= line->next;
+				
+				if(line->flag & UI_SELECT) {
+					BLI_remlink(&but->link->lines, line);
+					
+					link= line->from->link;
+					
+					/* are there more pointers allowed? */
+					if(link->ppoin) {
+						
+						if(*(link->totlink)==1) {
+							*(link->totlink)= 0;
+							MEM_freeN(*(link->ppoin));
+							*(link->ppoin)= NULL;
+						}
+						else {
+							b= 0;
+							for(a=0; a< (*(link->totlink)); a++) {
+								
+								if( (*(link->ppoin))[a] != line->to->poin ) {
+									(*(link->ppoin))[b]= (*(link->ppoin))[a];
+									b++;
+								}
+							}	
+							(*(link->totlink))--;
+						}
+					}
+					else {
+						*(link->poin)= NULL;
+					}
+					
+					MEM_freeN(line);
+				}
+				line= nline;
+			}
+		}
+		but= but->next;
+	}
+}
+
+
+static uiLinkLine *ui_is_a_link(uiBut *from, uiBut *to)
+{
+	uiLinkLine *line;
+	uiLink *link;
+	
+	link= from->link;
+	if(link) {
+		line= link->lines.first;
+		while(line) {
+			if(line->from==from && line->to==to) return line;
+			line= line->next;
+		}
+	}
+	return NULL;
+}
+
+static void ui_add_link(uiBut *from, uiBut *to)
+{
+	/* in 'from' we have to add a link to 'to' */
+	uiLink *link;
+	uiLinkLine *line;
+	void **oldppoin;
+	int a;
+	
+	if( (line= ui_is_a_link(from, to)) ) {
+		line->flag |= UI_SELECT;
+		ui_delete_active_linkline(from->block);
+		printf("already exists, means deletion now\n");
+		return;
+	}
+
+	if (from->type==LINK && to->type==INLINK) {
+		if( from->link->tocode != (int)to->hardmin ) {
+			printf("cannot link\n");
+			return;
+		}
+	}
+	else if(from->type==INLINK && to->type==LINK) {
+		if( to->link->tocode == (int)from->hardmin ) {
+			printf("cannot link\n");
+			return;
+		}
+	}
+	
+	link= from->link;
+	
+	/* are there more pointers allowed? */
+	if(link->ppoin) {
+		oldppoin= *(link->ppoin);
+		
+		(*(link->totlink))++;
+		*(link->ppoin)= MEM_callocN( *(link->totlink)*sizeof(void *), "new link");
+		
+		for(a=0; a< (*(link->totlink))-1; a++) {
+			(*(link->ppoin))[a]= oldppoin[a];
+		}
+		(*(link->ppoin))[a]= to->poin;
+		
+		if(oldppoin) MEM_freeN(oldppoin);
+	}
+	else {
+		*(link->poin)= to->poin;
+	}
+	
+}
+
+
+static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ARegion *ar= CTX_wm_region(C);
+	uiBut *bt;
+	
+	for(bt= but->block->buttons.first; bt; bt= bt->next) {
+		if( ui_mouse_inside_button(ar, bt, but->linkto[0]+ar->winrct.xmin, but->linkto[1]+ar->winrct.ymin) )
+			break;
+	}
+	if(bt && bt!=but) {
+		
+		if(but->type==LINK) ui_add_link(but, bt);
+		else ui_add_link(bt, but);
+
+		ui_apply_but_func(C, but);
+		data->retval= but->retval;
+	}
+	data->applied= 1;
+}
+
+
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
 	char *editstr;
@@ -640,6 +784,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 #endif
 		case LINK:
 		case INLINK:
+			ui_apply_but_LINK(C, but, data);
 			break;
 		default:
 			break;
@@ -2806,6 +2951,38 @@ static int ui_do_but_CHARTAB(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 }
 #endif
 
+
+static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	
+	but->linkto[0]= event->x-ar->winrct.xmin;
+	but->linkto[1]= event->y-ar->winrct.ymin;
+	
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type == LEFTMOUSE && event->val==KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if(event->type == LEFTMOUSE && but->block->handle) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_WAIT_RELEASE) {
+		
+		if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
+			if(!(but->flag & UI_SELECT))
+				data->cancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+
 static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 {
 	uiHandleButtonData *data;
@@ -2951,13 +3128,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		retval= ui_do_but_CHARTAB(C, block, but, data, event);
 		break;
 #endif
-	/* XXX 2.50 links not implemented yet */
-#if 0
+
 	case LINK:
 	case INLINK:
-		retval= retval= ui_do_but_LINK(block, but);
+		retval= ui_do_but_LINK(C, but, data, event);
 		break;
-#endif
 	}
 	
 	return retval;
@@ -3421,21 +3596,29 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	else if(data->state == BUTTON_STATE_WAIT_RELEASE) {
 		switch(event->type) {
 			case MOUSEMOVE:
-				/* deselect the button when moving the mouse away */
-				if(ui_mouse_inside_button(ar, but, event->x, event->y)) {
-					if(!(but->flag & UI_SELECT)) {
-						but->flag |= UI_SELECT;
-						data->cancel= 0;
-						ED_region_tag_redraw(data->region);
-					}
+				
+				if(ELEM(but->type,LINK, INLINK)) {
+					but->flag |= UI_SELECT;
+					ui_do_button(C, block, but, event);
+					ED_region_tag_redraw(data->region);
 				}
 				else {
-					if(but->flag & UI_SELECT) {
-						but->flag &= ~UI_SELECT;
-						data->cancel= 1;
-						ED_region_tag_redraw(data->region);
+					/* deselect the button when moving the mouse away */
+					if(ui_mouse_inside_button(ar, but, event->x, event->y)) {
+						if(!(but->flag & UI_SELECT)) {
+							but->flag |= UI_SELECT;
+							data->cancel= 0;
+							ED_region_tag_redraw(data->region);
+						}
 					}
-				}
+					else {
+						if(but->flag & UI_SELECT) {
+							but->flag &= ~UI_SELECT;
+							data->cancel= 1;
+							ED_region_tag_redraw(data->region);
+						}
+					}
+				}				
 				break;
 			default:
 				/* otherwise catch mouse release event */

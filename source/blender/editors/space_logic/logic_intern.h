@@ -51,5 +51,8 @@ void logic_header_buttons(const struct bContext *C, struct ARegion *ar);
 void logic_buttons_register(struct ARegionType *art);
 void LOGIC_OT_properties(struct wmOperatorType *ot);
 
+/* logic_window.c */
+void logic_buttons(struct bContext *C, struct ARegion *ar);
+
 #endif /* ED_LOGIC_INTERN_H */
 

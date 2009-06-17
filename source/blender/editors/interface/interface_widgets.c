@@ -40,6 +40,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -1550,6 +1551,76 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 
 }
 
+
+static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+{
+	float dist, vec[4][2];
+
+	vec[0][0]= rect->xmin;
+	vec[0][1]= rect->ymin;
+	vec[3][0]= rect->xmax;
+	vec[3][1]= rect->ymax;
+	
+	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
+	
+	vec[1][0]= vec[0][0]+dist;
+	vec[1][1]= vec[0][1];
+	
+	vec[2][0]= vec[3][0]-dist;
+	vec[2][1]= vec[3][1];
+	
+	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, 2);
+	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, 2);
+	
+	return 1;
+}
+
+#define LINK_RESOL	24
+void ui_draw_link_bezier(rcti *rect)
+{
+	float coord_array[LINK_RESOL+1][2];
+	
+	if(ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
+		float dist;
+		int i;
+		
+		/* we can reuse the dist variable here to increment the GL curve eval amount*/
+		dist = 1.0f/(float)LINK_RESOL;
+		
+		glEnable(GL_BLEND);
+		glEnable(GL_LINE_SMOOTH);
+		
+		glBegin(GL_LINE_STRIP);
+		for(i=0; i<=LINK_RESOL; i++) {
+			glVertex2fv(coord_array[i]);
+		}
+		glEnd();
+		
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+
+	}
+}
+
+
+static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+
+	if(but->flag & UI_SELECT) {
+		rcti rectlink;
+		
+		UI_ThemeColor(TH_TEXT_HI);
+		
+		rectlink.xmin= (rect->xmin+rect->xmax)/2;
+		rectlink.ymin= (rect->ymin+rect->ymax)/2;
+		rectlink.xmax= but->linkto[0];
+		rectlink.ymax= but->linkto[1];
+		
+		ui_draw_link_bezier(&rectlink);
+	}
+}
+
+
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb, wtb1;
@@ -2076,6 +2147,13 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case ROUNDBOX:
 				wt= widget_type(UI_WTYPE_BOX);
+				break;
+				
+			case LINK:
+			case INLINK:
+				wt= widget_type(UI_WTYPE_ICON);
+				wt->custom= widget_link;
+				
 				break;
 			
 			case BUT_EXTRA:

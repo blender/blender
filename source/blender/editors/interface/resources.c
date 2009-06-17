@@ -614,6 +614,7 @@ void ui_theme_init_userdef(void)
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
+	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
 	
 }
 
@@ -1245,6 +1246,7 @@ void init_userdef_do_versions(void)
 			if(btheme->tlogic.syntaxn[3]==0) {
 				/* re-uses syntax color storage */
 				btheme->tlogic= btheme->tv3d;
+				SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
 			}
 		}
 	}

@@ -398,18 +398,21 @@ void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 
 static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
 {
-	float vec1[2], vec2[2];
+	rcti rect;
 
 	if(line->from==NULL || line->to==NULL) return;
 	
-	vec1[0]= (line->from->x1+line->from->x2)/2.0;
-	vec1[1]= (line->from->y1+line->from->y2)/2.0;
-	vec2[0]= (line->to->x1+line->to->x2)/2.0;
-	vec2[1]= (line->to->y1+line->to->y2)/2.0;
+	rect.xmin= (line->from->x1+line->from->x2)/2.0;
+	rect.ymin= (line->from->y1+line->from->y2)/2.0;
+	rect.xmax= (line->to->x1+line->to->x2)/2.0;
+	rect.ymax= (line->to->y1+line->to->y2)/2.0;
 	
-	if(line->flag & UI_SELECT) glColor3ub(100,100,100);
-	else glColor3ub(0,0,0);
-	fdrawline(vec1[0], vec1[1], vec2[0], vec2[1]);
+	if(line->flag & UI_SELECT) 
+		glColor3ub(100,100,100);
+	else 
+		glColor3ub(0,0,0);
+
+	ui_draw_link_bezier(&rect);
 }
 
 static void ui_draw_links(uiBlock *block)
@@ -475,6 +478,8 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				but->selend= oldbut->selend;
 				but->softmin= oldbut->softmin;
 				but->softmax= oldbut->softmax;
+				but->linkto[0]= oldbut->linkto[0];
+				but->linkto[1]= oldbut->linkto[1];
 				found= 1;
 
 				oldbut->active= NULL;
@@ -733,8 +738,13 @@ static void ui_is_but_sel(uiBut *but)
 
 /* XXX 2.50 no links supported yet */
 
-#if 0
-static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
+static int uibut_contains_pt(uiBut *but, short *mval)
+{
+	return 0;
+
+}
+
+uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 {
 	uiBut *bt;
 	
@@ -745,7 +755,7 @@ static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 
 	if (bt) {
 		if (but->type==LINK && bt->type==INLINK) {
-			if( but->link->tocode == (int)bt->min ) {
+			if( but->link->tocode == (int)bt->hardmin ) {
 				return bt;
 			}
 		}
@@ -759,21 +769,6 @@ static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 	return NULL;
 }
 
-static int ui_is_a_link(uiBut *from, uiBut *to)
-{
-	uiLinkLine *line;
-	uiLink *link;
-	
-	link= from->link;
-	if(link) {
-		line= link->lines.first;
-		while(line) {
-			if(line->from==from && line->to==to) return 1;
-			line= line->next;
-		}
-	}
-	return 0;
-}
 
 static uiBut *ui_find_inlink(uiBlock *block, void *poin)
 {
@@ -839,98 +834,6 @@ void uiComposeLinks(uiBlock *block)
 	}
 }
 
-static void ui_add_link(uiBut *from, uiBut *to)
-{
-	/* in 'from' we have to add a link to 'to' */
-	uiLink *link;
-	void **oldppoin;
-	int a;
-	
-	if(ui_is_a_link(from, to)) {
-		printf("already exists\n");
-		return;
-	}
-	
-	link= from->link;
-
-	/* are there more pointers allowed? */
-	if(link->ppoin) {
-		oldppoin= *(link->ppoin);
-		
-		(*(link->totlink))++;
-		*(link->ppoin)= MEM_callocN( *(link->totlink)*sizeof(void *), "new link");
-
-		for(a=0; a< (*(link->totlink))-1; a++) {
-			(*(link->ppoin))[a]= oldppoin[a];
-		}
-		(*(link->ppoin))[a]= to->poin;
-		
-		if(oldppoin) MEM_freeN(oldppoin);
-	}
-	else {
-		*(link->poin)= to->poin;
-	}
-	
-}
-
-static int ui_do_but_LINK(uiBlock *block, uiBut *but)
-{
-	/* 
-	 * This button only visualizes, the dobutton mode
-	 * can add a new link, but then the whole system
-	 * should be redrawn/initialized. 
-	 * 
-	 */
-	uiBut *bt=0, *bto=NULL;
-	short sval[2], mval[2], mvalo[2], first= 1;
-
-	uiGetMouse(curarea->win, sval);
-	mvalo[0]= sval[0];
-	mvalo[1]= sval[1];
-	
-	while (get_mbut() & L_MOUSE) {
-		uiGetMouse(curarea->win, mval);
-
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || first) {			
-				/* clear completely, because of drawbuttons */
-			bt= ui_get_valid_link_button(block, but, mval);
-			if(bt) {
-				bt->flag |= UI_ACTIVE;
-				ui_draw_but(ar, bt);
-			}
-			if(bto && bto!=bt) {
-				bto->flag &= ~UI_ACTIVE;
-				ui_draw_but(ar, bto);
-			}
-			bto= bt;
-
-			if (!first) {
-				glutil_draw_front_xor_line(sval[0], sval[1], mvalo[0], mvalo[1]);
-			}
-			glutil_draw_front_xor_line(sval[0], sval[1], mval[0], mval[1]);
-
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-
-			first= 0;
-		}
-		else UI_wait_for_statechange();		
-	}
-	
-	if (!first) {
-		glutil_draw_front_xor_line(sval[0], sval[1], mvalo[0], mvalo[1]);
-	}
-
-	if(bt) {
-		if(but->type==LINK) ui_add_link(but, bt);
-		else ui_add_link(bt, but);
-
-		scrarea_queue_winredraw(curarea);
-	}
-
-	return 0;
-}
-#endif
 
 /* ************************************************ */
 

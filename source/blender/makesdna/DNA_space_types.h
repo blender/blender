@@ -369,8 +369,8 @@ typedef struct SpaceLogic {
 	
 	short blockhandler[8];
 	
-	short flag, pad;
-	int pad2;
+	short flag, scaflag;
+	int pad;
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceLogic;
