@@ -402,7 +402,13 @@ void			SumoPhysicsController::SetSimulatedTime(float)
 	
 void	SumoPhysicsController::WriteMotionStateToDynamics(bool)
 {
-
+	float tmp[4];
+	m_MotionState->getWorldPosition(tmp[0], tmp[1], tmp[2]);
+	MT_Point3 pos(tmp);
+	m_sumoObj->setPosition(pos);
+	m_MotionState->getWorldOrientation(tmp[0], tmp[1], tmp[2], tmp[3]);
+	MT_Quaternion quat(tmp);
+	m_sumoObj->setOrientation(quat);
 }
 // this is the actual callback from sumo, and the position/orientation
 //is written to the scenegraph, using the motionstate abstraction
@@ -493,3 +499,70 @@ float SumoPhysicsController::GetRadius() const
 	return 0.f;
 
 }
+
+///////////////////////////////////////////////////////////
+///A small utility class, SumoDefaultMotionState
+///
+///////////////////////////////////////////////////////////
+
+SumoDefaultMotionState::SumoDefaultMotionState()
+{
+	m_worldTransform.setIdentity();
+	m_localScaling.setValue(1.f,1.f,1.f);
+}
+
+
+SumoDefaultMotionState::~SumoDefaultMotionState()
+{
+
+}
+
+void	SumoDefaultMotionState::getWorldPosition(float& posX,float& posY,float& posZ)
+{
+	posX = m_worldTransform.getOrigin().x();
+	posY = m_worldTransform.getOrigin().y();
+	posZ = m_worldTransform.getOrigin().z();
+}
+
+void	SumoDefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
+{
+	scaleX = m_localScaling.x();
+	scaleY = m_localScaling.y();
+	scaleZ = m_localScaling.z();
+}
+
+void	SumoDefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
+{
+	MT_Quaternion quat = m_worldTransform.getRotation();
+	quatIma0 = quat.x();
+	quatIma1 = quat.y();
+	quatIma2 = quat.z();
+	quatReal = quat.w();
+}
+		
+void	SumoDefaultMotionState::getWorldOrientation(float* ori)
+{
+	m_worldTransform.getBasis().getValue(ori);
+}
+
+void	SumoDefaultMotionState::setWorldOrientation(const float* ori)
+{
+	m_worldTransform.getBasis().setValue(ori);
+}
+void	SumoDefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
+{
+	MT_Point3 pos(posX,posY,posZ);
+	m_worldTransform.setOrigin( pos );
+}
+
+void	SumoDefaultMotionState::setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
+{
+	MT_Quaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
+	m_worldTransform.setRotation( orn );
+}
+		
+void	SumoDefaultMotionState::calculateWorldTransformations()
+{
+
+}
+

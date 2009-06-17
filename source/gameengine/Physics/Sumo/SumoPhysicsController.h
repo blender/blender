@@ -30,6 +30,7 @@
 #define __SUMO_PHYSICSCONTROLLER_H
 
 #include "PHY_IPhysicsController.h"
+#include "PHY_IMotionState.h"
 #include "SM_Scene.h"
 #include "SM_Callback.h"
 
@@ -186,6 +187,31 @@ private:
 	class	PHY_IMotionState*	m_MotionState;
 	
 	
+};
+
+///SumoDefaultMotionState implements standard motionstate, using btTransform
+class	SumoDefaultMotionState : public PHY_IMotionState
+
+{
+	public:
+		SumoDefaultMotionState();
+
+		virtual ~SumoDefaultMotionState();
+
+		virtual void	getWorldPosition(float& posX,float& posY,float& posZ);
+		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
+		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
+		
+		virtual void	setWorldPosition(float posX,float posY,float posZ);
+		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	getWorldOrientation(float* ori);
+		virtual void	setWorldOrientation(const float* ori);
+		
+		virtual	void	calculateWorldTransformations();
+		
+		MT_Transform	m_worldTransform;
+		MT_Vector3		m_localScaling;
+
 };
 
 #endif //__SUMO_PHYSICSCONTROLLER_H

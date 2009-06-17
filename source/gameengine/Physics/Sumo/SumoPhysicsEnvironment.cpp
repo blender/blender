@@ -244,8 +244,8 @@ PHY_IPhysicsController*	SumoPhysicsEnvironment::CreateSphereController(float rad
 	//testing
 	MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));		
 	ob->setOrientation(rotquatje);
-
-	PHY_IPhysicsController* ctrl = new SumoPhysicsController(m_sumoScene,ob,0,false);
+	PHY_IMotionState* motionState = new SumoDefaultMotionState();
+	PHY_IPhysicsController* ctrl = new SumoPhysicsController(m_sumoScene,ob,motionState,false);
 	ctrl->SetMargin(radius);
 	return ctrl;
 }
@@ -256,8 +256,9 @@ PHY_IPhysicsController* SumoPhysicsEnvironment::CreateConeController(float coner
 	ob->setPosition(MT_Point3(0.f,0.f,0.f));
 	MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));		
 	ob->setOrientation(rotquatje);
+	PHY_IMotionState* motionState = new SumoDefaultMotionState();
 
-	PHY_IPhysicsController* ctrl = new SumoPhysicsController(m_sumoScene,ob,0,false);
+	PHY_IPhysicsController* ctrl = new SumoPhysicsController(m_sumoScene,ob,motionState,false);
 
 	return ctrl;
 }
