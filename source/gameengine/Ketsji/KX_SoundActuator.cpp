@@ -105,7 +105,8 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 
 	// do nothing on negative events, otherwise sounds are played twice!
 	bool bNegativeEvent = IsNegativeEvent();
-
+	bool bPositiveEvent = m_posevent;
+	
 	RemoveAllEvents();
 
 	if (!m_soundObject)
@@ -154,8 +155,17 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		// remember that we tried to stop the actuator
 		m_isplaying = false;
 	}
-	else
-	{
+	
+#if 1
+	// Warning: when de-activating the actuator, after a single negative event this runs again with...
+	// m_posevent==false && m_posevent==false, in this case IsNegativeEvent() returns false 
+	// and assumes this is a positive event.
+	// check that we actually have a positive event so as not to play sounds when being disabled.
+	else if(bPositiveEvent) { // <- added since 2.49
+#else
+	else {	// <- works in most cases except a loop-end sound will never stop unless
+			// the negative pulse is done continuesly
+#endif
 		if (!m_isplaying)
 		{
 			switch (m_type)
