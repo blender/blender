@@ -3,6 +3,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_image_types.h"
+#include "DNA_material_types.h"
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
@@ -10,6 +11,7 @@ extern "C"
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 
 #include "DocumentExporter.h"
 
@@ -61,7 +63,7 @@ public:
 			
 			// only meshes
 			if (ob->type == OB_MESH && ob->data) {
-
+				
 				DerivedMesh *dm = mesh_get_derived_final(sce, ob, CD_MASK_BAREMESH);
 				MVert *mverts = dm->getVertArray(dm);
 				MFace *mfaces = dm->getFaceArray(dm);
@@ -384,19 +386,31 @@ public:
 			Object *ob = base->object;
 			
 			if (ob->type == OB_MESH && ob->data) {
+				
 				COLLADASW::Node node(mSW);
 				node.start();
 
 				node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
 				// node.addRotate(); // XXX no conversion needed?
 				node.addScale(ob->size[0], ob->size[1], ob->size[2]);
-			
+				
 				COLLADASW::InstanceGeometry instGeom(mSW);
 				std::string ob_name(ob->id.name);
 				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   ob_name));
+				
+				for(int a = 0; a < ob->totcol; a++)
+					{
+						Material *ma = give_current_material(ob, a+1);
+						
+						COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
+						COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
+						std::string matid = std::string(ma->id.name);	
+						COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+						iml.push_back(im);
+					}
 				//XXX hardcoded
-				Image *image = (Image*)G.main->image.first;
+				/*Image *image = (Image*)G.main->image.first;
 				
 				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
 				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
@@ -405,7 +419,7 @@ public:
 				COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 				COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
 				im.push_back(bvi);
-				iml.push_back(im);
+				iml.push_back(im);*/
 
 				//
 				instGeom.add();
@@ -458,8 +472,19 @@ public:
 	{
 		
 		openLibrary();
-		
-		Image *image = (Image*)G.main->image.first;
+		Material *ma = (Material*)G.main->mat.first;
+		while(ma) {
+			
+			openEffect(std::string(ma->id.name) + "-effect");
+			COLLADASW::EffectProfile ep(mSW);
+			ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+			//open <profile_common>
+			ep.openProfile();
+			
+
+			ep.closeProfile();
+			ma = (Material*) ma->id.next;
+			/*	Image *image = (Image*)G.main->image.first;
 		while(image) {
 			
 			openEffect(std::string(image->id.name) + "-effect");
@@ -491,6 +516,7 @@ public:
 			ep.closeProfile();
 			closeEffect();
 			image = (Image*)image->id.next;
+		}*/
 		}
 		
 		closeLibrary();
@@ -506,17 +532,34 @@ public:
 	MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
 	void exportMaterials(Scene *sce)
 	{
+		
 		openLibrary();
-		Image *image = (Image*)G.main->image.first;
-		while(image) {
+		
+		Material *ma = (Material*)G.main->mat.first;
+		
+		while(ma) {
 			
-			openMaterial(std::string(image->id.name) + "-material");
-			std::string efid = std::string(image->id.name) + "-effect";
+			openMaterial(std::string(ma->id.name));
+			std::string efid = std::string(ma->id.name) + "-effect";
 			addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
 			closeMaterial();
-			image = (Image*)image->id.next;
+			
+			ma = (Material*) ma->id.next;
 		}
 		closeLibrary();
+		
+		/*
+		  Image *image = (Image*)G.main->image.first;
+		  while(image) {
+		  
+		  openMaterial(std::string(image->id.name) + "-material");
+		  std::string efid = std::string(image->id.name) + "-effect";
+		  addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
+		  closeMaterial();
+		  image = (Image*)image->id.next;
+		  }
+		*/
+		
 	}
 	
 	
