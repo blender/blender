@@ -49,7 +49,7 @@ TODO:
 History
 v1.35 - 2009.06.17 by migius
 - added export Cameras (ortho and persp) to VPORTs, incl. clipping
-- added export Cameras (ortho and persp) to  VIEWs, incl. clipping
+- added export Cameras (ortho and persp) to VIEWs, incl. clipping
 - export multiple-instances of Mesh-Objects as BLOCK/INSERTs
 - on start prints dxfLibrary version
 v1.34 - 2009.06.08 by migius
@@ -515,7 +515,7 @@ def	exportMesh(ob, mx, mx_n, me=None, **common):
 	entities = []
 	block = None
 	#print 'deb:exportMesh() given common=', common #---------
-	if 1: #temp off, debug only! #me==None:
+	if me==None:
 		me = ob.getData(mesh=1)
 	else:
 		me.getFromObject(ob)
@@ -1361,6 +1361,7 @@ def do_export(export_list, filepath):
 
 	# add Entities --------------------
 	BLOCKREGISTRY = {} # registry and map for BLOCKs
+	PERSPECTIVE = 0
 	something_ready = 0
 	selected_len = len(export_list)
 	sce = Scene.GetCurrent()
