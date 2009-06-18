@@ -148,6 +148,15 @@ BMOpDefine def_dissolvevertsop = {
 	0
 };
 
+BMOpDefine def_dissolveedgessop = {
+	"dissolveedges",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	{0} /*null-terminating sentinel*/},
+	dissolveedges_exec,
+	0
+};
+
 BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
@@ -243,6 +252,7 @@ BMOpDefine *opdefines[] = {
 	&def_subdop,
 	&def_triangop,
 	&def_dissolvefacesop,
+	&def_dissolveedgessop,
 	&def_dissolvevertsop,
 	&def_makefgonsop,
 	&def_extrudefaceregion,

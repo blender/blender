@@ -967,12 +967,17 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 			return OPERATOR_CANCELLED;
 	} 
 	else if(event==7) {
-		//"Dissolve Verts"
-		if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv",BM_SELECT))
-			return OPERATOR_CANCELLED;
-	}
-	else if(event==6) {
-		//"Erase Edge Loop";
+		//"Dissolve"
+		if (bem->selectmode & SCE_SELECT_FACE) {
+			if (!EDBM_CallOpf(bem, op, "dissolvefaces faces=%hf",BM_SELECT))
+				return OPERATOR_CANCELLED;
+		} else if (bem->selectmode & SCE_SELECT_EDGE) {
+			if (!EDBM_CallOpf(bem, op, "dissolveedges edges=%he",BM_SELECT))
+				return OPERATOR_CANCELLED;
+		} else if (bem->selectmode & SCE_SELECT_VERTEX) {
+			if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv",BM_SELECT))
+				return OPERATOR_CANCELLED;
+		}
 	}
 	else if(event==4) {
 		if (!EDBM_CallOpf(bem, op, "del geom=%hef context=%i", BM_SELECT, DEL_EDGESFACES))
@@ -1002,13 +1007,12 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
-	{7, "DISSOLVE",         "Dissolve Verts", ""},
+	{7, "DISSOLVE",         "Dissolve", ""},
 	{10,"VERT",		"Vertices", ""},
 	{1, "EDGE",		"Edges", ""},
 	{2, "FACE",		"Faces", ""},
 	{4, "EDGE_FACE","Edges & Faces", ""},
 	{5, "ONLY_FACE","Only Faces", ""},
-	{6, "EDGE_LOOP","Edge Loop", ""},
 	{0, NULL, NULL, NULL}
 };
 

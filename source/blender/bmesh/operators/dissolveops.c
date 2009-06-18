@@ -188,6 +188,51 @@ cleanup:
 	V_FREE(regions);
 }
 
+void dissolveedges_exec(BMesh *bm, BMOperator *op)
+{
+	BMOperator fop;
+	BMOIter oiter;
+	BMIter iter;
+	BMVert *v, **verts = NULL;
+	V_DECLARE(verts);
+	BMEdge *e;
+	BMFace *f;
+	int i;
+
+	BMO_ITER(e, &oiter, bm, op, "edges") {
+		if (BM_Edge_FaceCount(e) == 2) {
+			BMO_SetFlag(bm, e->v1, VERT_MARK);
+			BMO_SetFlag(bm, e->v2, VERT_MARK);
+
+			BM_Join_Faces(bm, e->loop->f, 
+				      ((BMLoop*)e->loop->radial.next->data)->f,
+				      e);
+		}
+	}
+
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (BMO_TestFlag(bm, v, VERT_MARK) && 
+			BM_Vert_EdgeCount(v) == 2) 
+		{
+			V_GROW(verts);
+			verts[V_COUNT(verts)-1] = v;
+		}
+	}
+
+	for (i=0; i<V_COUNT(verts); i++) {
+		BM_Collapse_Vert(bm, verts[i]->edge, verts[i], 1.0);
+	}
+	
+	V_FREE(verts);
+
+	//BMO_InitOpf(bm, &fop, "dissolvefaces faces=%ff", FACE_MARK);
+	//BMO_Exec_Op(bm, &fop);
+
+	//BMO_CopySlot(op, &fop, "regionout", "regionout");
+
+	//BMO_Finish_Op(bm, &fop);
+}
+
 static int test_extra_verts(BMesh *bm, BMVert *v)
 {
 	BMIter iter, liter, iter2, iter3;
