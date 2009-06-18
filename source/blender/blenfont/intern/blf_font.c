@@ -146,18 +146,20 @@ void blf_font_draw(FontBLF *font, char *str)
 
 			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
 				pen_x += delta.x >> 6;
-
+/*
 				if (pen_x < old_pen_x)
 					pen_x= old_pen_x;
+*/
 			}
 		}
 
 		if (font->flags & BLF_USER_KERNING) {
 			old_pen_x= pen_x;
 			pen_x += font->kerning;
-
+/*
 			if (pen_x < old_pen_x)
 				pen_x= old_pen_x;
+*/
 		}
 
 		/* do not return this loop if clipped, we want every character tested */
@@ -226,18 +228,20 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 
 			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
 				pen_x += delta.x >> 6;
-
+/*
 				if (pen_x < old_pen_x)
 					old_pen_x= pen_x;
+*/
 			}
 		}
 
 		if (font->flags & BLF_USER_KERNING) {
 			old_pen_x= pen_x;
 			pen_x += font->kerning;
-
+/*
 			if (pen_x < old_pen_x)
 				old_pen_x= pen_x;
+*/
 		}
 
 		gbox.xmin= g->box.xmin + pen_x;
