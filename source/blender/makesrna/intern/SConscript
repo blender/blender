@@ -22,7 +22,7 @@ generated_files.remove('rna_define.c')
 generated_files.remove('makesrna.c')
 generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
 
-# source_files.extend(env.Glob('../../editors/*/*_api.c'))
+source_files.extend(env.Glob('../../editors/*/*_api.c'))
 source_files.extend(env.Glob('rna_api.c'))
 
 makesrna_tool = env.Clone()
