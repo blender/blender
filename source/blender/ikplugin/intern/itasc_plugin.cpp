@@ -604,7 +604,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 				parent = joint;
 				joint = bone->name;
 				joint += ":RY";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0, tip);
 				weights.push_back(weight[1]);
 			}
 			break;
@@ -620,7 +620,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 				parent = joint;
 				joint = bone->name;
 				joint += ":RZ";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0, tip);
 				weights.push_back(weight[2]);
 			}
 			break;
@@ -636,7 +636,7 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 				parent = joint;
 				joint = bone->name;
 				joint += ":RY";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0);
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotY, 0.0, tip);
 				weights.push_back(weight[1]);
 			}
 			break;
