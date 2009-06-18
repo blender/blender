@@ -2028,35 +2028,11 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	}
 }
 
-/* Python API */
-void copy_mesh_data(Mesh *dest, Mesh *src);
-
-Mesh *RNA_api_add_mesh(Main *main, char *name)
-{
-	return add_mesh(name);
-}
-
-void RNA_api_mesh_copy(Mesh *me, Mesh *from)
-{
-	copy_mesh_data(me, from);
-}
-
-void RNA_api_mesh_copy_applied(Mesh *me, Scene *sce, Object *ob)
-{
-	DerivedMesh *dm= mesh_create_derived_view(sce, ob, CD_MASK_MESH);
-	DM_to_mesh(dm, me);
-	dm->release(dm);
-}
-
-void RNA_api_mesh_transform(Mesh *me, float **mat)
-{
-}
-
 /*
  * This version of copy_mesh doesn't allocate a new mesh,
  * instead it copies data between two existing meshes.
  *
- * XXX is this already possible with DerivedMesh?
+ * XXX not used anywhere...
  */
 void copy_mesh_data(Mesh *dest, Mesh *src)
 {

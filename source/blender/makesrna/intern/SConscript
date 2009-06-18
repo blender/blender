@@ -13,12 +13,17 @@ root_build_dir=normpath(env['BF_BUILDDIR'])
 source_files = env.Glob('*.c')
 source_files.remove('rna_access.c')
 
+api_runtime_files = env.Glob('*_api.c')
+for api_file in api_runtime_files:
+    source_files.remove(api_file)
+
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
 generated_files.remove('makesrna.c')
 generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
 
-source_files.extend(env.Glob('../../editors/*/*_api.c'))
+# source_files.extend(env.Glob('../../editors/*/*_api.c'))
+source_files.extend(env.Glob('rna_api.c'))
 
 makesrna_tool = env.Clone()
 rna = env.Clone()
@@ -110,8 +115,9 @@ else:
 		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 
 
+api_runtime_files.remove('rna_api.c')
 obj = ['intern/rna_access.c']
-for generated_file in generated_files:
+for generated_file in generated_files + api_runtime_files:
 	obj += ['intern/' + generated_file]
 
 Return ('obj')

@@ -188,15 +188,29 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 /* API functions */
 
+void RNA_api_ui_layout(struct StructRNA *srna);
+void RNA_api_mesh(struct StructRNA *srna);
+void RNA_api_wm(struct StructRNA *srna);
+void RNA_api_main(StructRNA *srna);
+
+#ifdef RNA_RUNTIME
+
+struct wmWindowManager;
+struct bContext;
+struct wmOperator;
 struct Main;
+struct Mesh;
 struct Scene;
 struct Object;
-struct Mesh;
 
-void RNA_api_ui_layout(struct StructRNA *srna);
-struct Mesh *RNA_api_add_mesh(struct Main *main, char *name);
-void RNA_api_mesh_copy(struct Mesh *me, struct Mesh *from);
-void RNA_api_mesh_copy_applied(struct Mesh *me, struct Scene *sce, struct Object *ob);
+void RNA_api_wm_add_fileselect(struct wmWindowManager *self, struct bContext *C, struct wmOperator *op);
+
+struct Mesh *RNA_api_main_add_mesh(struct Main *main, char *name);
+void RNA_api_main_remove_mesh(struct Main *main, struct Mesh *me);
+
+void RNA_api_mesh_make_rendermesh(struct Mesh *me, struct Scene *sce, struct Object *ob);
+
+#endif
 
 /* ID Properties */
 

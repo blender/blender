@@ -225,7 +225,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 	PointerRNA ptr_context;
-	PyObject ptr_operator;
+	PointerRNA ptr_operator;
 	PyObject *py_operator;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();

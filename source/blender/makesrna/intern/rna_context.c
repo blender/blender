@@ -146,11 +146,6 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_get", NULL, NULL);
-
-	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
-	RNA_def_function_ui_description(func, "Show up the file selector.");
-	prop= RNA_def_pointer(func, "op", "Operator", "", "Operator to call.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
 }
 
 #endif

@@ -1071,7 +1071,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	FunctionRNA *func;
 
 	srna= RNA_def_struct(brna, "Mesh", "ID");
 	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock to define geometric surfaces.");
@@ -1156,17 +1155,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
-	func= RNA_def_function(srna, "copy", "RNA_api_mesh_copy");
-	RNA_def_function_ui_description(func, "Copy mesh data.");
-	prop= RNA_def_pointer(func, "src", "Mesh", "", "A mesh to copy data from.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-
-	func= RNA_def_function(srna, "copy_applied", "RNA_api_mesh_copy_applied");
-	RNA_def_function_ui_description(func, "Copy mesh data from object with all modifiers applied.");
-	prop= RNA_def_pointer(func, "sce", "Scene", "", "Scene.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_pointer(func, "ob", "Object", "", "Object to copy data from.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
+	RNA_api_mesh(srna);
 }
 
 void RNA_def_mesh(BlenderRNA *brna)

@@ -33,6 +33,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
@@ -268,12 +269,7 @@ void RNA_def_main(BlenderRNA *brna)
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
 
-	func= RNA_def_function(srna, "add_mesh", "RNA_api_add_mesh");
-	RNA_def_function_ui_description(func, "Add a new mesh.");
-	prop= RNA_def_string(func, "name", "", 0, "", "New name for the datablock.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "A new mesh.");
-	RNA_def_function_return(func, prop);
+	RNA_api_main(srna);
 }
 
 #endif
