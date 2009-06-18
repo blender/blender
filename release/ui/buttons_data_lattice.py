@@ -14,7 +14,7 @@ class DATA_PT_lattice(DataButtonsPanel):
 	__label__ = "Lattice"
 	
 	def poll(self, context):
-		return (context.object.type == 'LATTICE')
+		return (context.object and context.object.type == 'LATTICE')
 
 	def draw(self, context):
 		layout = self.layout

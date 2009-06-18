@@ -24,7 +24,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 	__label__ = "Lamp"
 	
 	def poll(self, context):
-		return (context.object.type == 'LAMP')
+		return ((context.object and context.object.type == 'LAMP') or context.lamp)
 
 	def draw(self, context):
 		layout = self.layout

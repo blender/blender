@@ -14,7 +14,7 @@ class DATA_PT_camera(DataButtonsPanel):
 	__label__ = "Lens"
 	
 	def poll(self, context):
-		return (context.object.type == 'CAMERA')
+		return (context.object and context.object.type == 'CAMERA')
 
 	def draw(self, context):
 		layout = self.layout

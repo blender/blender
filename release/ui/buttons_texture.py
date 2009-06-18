@@ -13,6 +13,9 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_preview"
 	__label__ = "Preview"
 
+	def poll(self, context):
+		return (context.material or context.world or context.lamp or context.texture)
+
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
@@ -24,7 +27,7 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 	__label__ = "Texture"
 
 	def poll(self, context):
-		return (context.material or context.world or context.lamp)
+		return (context.material or context.world or context.lamp or context.texture)
 
 	def draw(self, context):
 		layout = self.layout

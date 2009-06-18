@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.object.type == 'TEXT' and context.curve)
+		return (context.object and context.object.type == 'TEXT' and context.curve)
 		
 class DATA_PT_shape_text(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_text"
@@ -15,7 +15,7 @@ class DATA_PT_shape_text(DataButtonsPanel):
 	
 	def poll(self, context):
 		ob = context.object
-		return (context.object.type == 'TEXT')
+		return (context.object and context.object.type == 'TEXT')
 
 	def draw(self, context):
 		layout = self.layout

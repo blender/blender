@@ -13,6 +13,9 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_preview"
 	__label__ = "Preview"
 
+	def poll(self, context):
+		return (context.material or context.material_slot)
+
 	def draw(self, context):
 		layout = self.layout
 		mat = context.material
@@ -24,7 +27,7 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 	__label__ = "Material"
 
 	def poll(self, context):
-		return (context.object != None)
+		return (context.material or context.material_slot)
 
 	def draw(self, context):
 		layout = self.layout

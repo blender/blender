@@ -7,14 +7,14 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.object.type == 'CURVE' and context.curve)
+		return (context.object and context.object.type == 'CURVE' and context.curve)
 
 class DATA_PT_shape_curve(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_curve"
 	__label__ = "Shape"
 	
 	def poll(self, context):
-		return (context.object.type == 'CURVE')
+		return (context.object and context.object.type == 'CURVE')
 
 	def draw(self, context):
 		layout = self.layout

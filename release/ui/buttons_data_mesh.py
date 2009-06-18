@@ -14,7 +14,7 @@ class DATA_PT_mesh(DataButtonsPanel):
 	__label__ = "Mesh"
 	
 	def poll(self, context):
-		return (context.object.type == 'MESH')
+		return (context.object and context.object.type == 'MESH')
 
 	def draw(self, context):
 		layout = self.layout

@@ -50,13 +50,13 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 	
 	def draw_header(self, context):
 		layout = self.layout
-		cloth = context.cloth.settings
+		cloth = context.cloth.collision_settings
 	
 		layout.itemR(cloth, "enable_collision", text="")
 
 	def draw(self, context):
 		layout = self.layout
-		cloth = context.cloth.settings
+		cloth = context.cloth.collision_settings
 		
 		layout.active = cloth.enable_collision	
 		

@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.object.type == 'EMPTY')
+		return (context.object and context.object.type == 'EMPTY')
 	
 class DATA_PT_empty(DataButtonsPanel):
 	__idname__ = "DATA_PT_empty"

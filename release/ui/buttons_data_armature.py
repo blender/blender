@@ -14,7 +14,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
 	__label__ = "Skeleton"
 	
 	def poll(self, context):
-		return (context.object.type == 'ARMATURE' or context.armature)
+		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
 
 	def draw(self, context):
 		layout = self.layout
