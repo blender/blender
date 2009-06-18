@@ -127,23 +127,29 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
  *
 */
 
-BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4, BMFace *example)
+BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, 
+			BMVert *v4, BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMVert *vtar[4];
 
-	edar[0] = v1->edge;
-	edar[1] = v1->edge;
-	edar[2] = v1->edge;
-	if (v4) edar[3] = v1->edge;
+	edar[0] = bmesh_disk_existedge(v1, v2);
+	edar[1] = bmesh_disk_existedge(v2, v3);
+	edar[2] = bmesh_disk_existedge(v3, v4? v4 : v1);
+	if (v4) edar[3] = bmesh_disk_existedge(v4, v1);
 	else edar[3] = NULL;
+
+	if (!edar[0]) edar[0] = BM_Make_Edge(bm, v1, v2, NULL, 0);
+	if (!edar[1]) edar[1] = BM_Make_Edge(bm, v2, v3, NULL, 0);
+	if (!edar[2]) edar[2] = BM_Make_Edge(bm, v3, v4?v4:v1, NULL, 0);
+	if (!edar[0] && v4) edar[0] = BM_Make_Edge(bm, v4, v1, NULL, 0);
 
 	vtar[0] = v1;
 	vtar[1] = v2;
 	vtar[2] = v3;
 	vtar[3] = v4;
 
-	return BM_Make_Quadtriangle(bm, vtar, edar, v4?4:3, example, 0);
+	return BM_Make_Quadtriangle(bm, vtar, edar, v4?4:3, example, nodouble);
 }
 
 /*remove the edge array bits from this. Its not really needed?*/

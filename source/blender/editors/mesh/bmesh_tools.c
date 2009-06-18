@@ -949,3 +949,129 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
+{
+	BMEditMesh *bem = ((Mesh*)obedit->data)->edit_btmesh;
+	
+	if(event<1) return OPERATOR_CANCELLED;
+
+	if(event==10 ) {
+		//"Erase Vertices";
+
+		if (!EDBM_CallOpf(bem, op, "del geom=%hv context=%i", BM_SELECT, DEL_VERTS))
+			return OPERATOR_CANCELLED;
+	} 
+	else if(event==7) {
+		//"Dissolve Verts"
+		if (!EDBM_CallOpf(bem, op, "dissolveverts verts=%hv",BM_SELECT))
+			return OPERATOR_CANCELLED;
+	}
+	else if(event==6) {
+		//"Erase Edge Loop";
+	}
+	else if(event==4) {
+		if (!EDBM_CallOpf(bem, op, "del geom=%hef context=%i", BM_SELECT, DEL_EDGESFACES))
+			return OPERATOR_CANCELLED;
+	} 
+	else if(event==1) {
+		//"Erase Edges"
+		if (!EDBM_CallOpf(bem, op, "del geom=%he context=%i", BM_SELECT, DEL_EDGES))
+			return OPERATOR_CANCELLED;
+	}
+	else if(event==2) {
+		//"Erase Faces";
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%i", BM_SELECT, DEL_FACES))
+			return OPERATOR_CANCELLED;
+	}
+	else if(event==5) {
+		//"Erase Only Faces";
+		if (!EDBM_CallOpf(bem, op, "del geom=%hf context=%d",
+		                  BM_SELECT, DEL_ONLYFACES))
+			return OPERATOR_CANCELLED;
+	}
+	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
+	return OPERATOR_FINISHED;
+}
+
+/* Note, these values must match delete_mesh() event values */
+static EnumPropertyItem prop_mesh_delete_types[] = {
+	{7, "DISSOLVE",         "Dissolve Verts", ""},
+	{10,"VERT",		"Vertices", ""},
+	{1, "EDGE",		"Edges", ""},
+	{2, "FACE",		"Faces", ""},
+	{4, "EDGE_FACE","Edges & Faces", ""},
+	{5, "ONLY_FACE","Only Faces", ""},
+	{6, "EDGE_LOOP","Edge Loop", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int delete_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+
+	delete_mesh(obedit, op, RNA_enum_get(op->ptr, "type"), scene);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete";
+	ot->idname= "MESH_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= delete_mesh_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/*props */
+	RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
+}
+
+
+static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
+{
+	BMOperator bmop;
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	
+	if (!EDBM_InitOpf(em, &bmop, op, "contextual_create geom=%hfev", BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT);
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edge_face_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Edge/Face";
+	ot->idname= "MESH_OT_edge_face_add";
+	
+	/* api callbacks */
+	ot->exec= addedgeface_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}

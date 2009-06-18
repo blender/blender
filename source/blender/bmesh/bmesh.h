@@ -223,8 +223,11 @@ void BM_Compute_Normals(struct BMesh *bm);
 struct BMVert *BM_Make_Vert(struct BMesh *bm, float co[3], struct BMVert *example);
 struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble);
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
-/*more easier to use version of BM_Make_Quadtriangle*/
-BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4, BMFace *example);
+
+/*more easier to use version of BM_Make_Quadtriangle.
+  creates edges if necassary.*/
+BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, 
+			BMVert *v4, BMFace *example, int nodouble);
 
 /*makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
 defining edges[0], and define the winding of the new face.*/

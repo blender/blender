@@ -265,7 +265,7 @@ void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	if( !(slot->slottype == BMOP_OPSLOT_MAT) )
-		return 0;
+		return;
 
 	slot->len = 4;
 	slot->data.p = BLI_memarena_alloc(op->arena, sizeof(float)*4*4);
@@ -683,6 +683,51 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag, int t
 		}
 	}
 }
+
+/*
+ *
+ * BMO_FLAG_BUFFER
+ *
+ * Header Flags elements in a slots buffer, automatically
+ * using the selection API where appropriate.
+ *
+*/
+
+void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMHeader **data =  slot->data.p;
+	int i;
+	
+	for(i = 0; i < slot->len; i++) {
+		BM_SetHFlag(data[i], flag);
+		if (flag & BM_SELECT)
+			BM_Select(bm, data[i], 1);
+	}
+}
+
+/*
+ *
+ * BMO_FLAG_BUFFER
+ *
+ * Removes flags from elements in a slots buffer, automatically
+ * using the selection API where appropriate.
+ *
+*/
+
+void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	BMHeader **data =  slot->data.p;
+	int i;
+	
+	for(i = 0; i < slot->len; i++) {
+		BM_ClearHFlag(data[i], flag);
+		if (flag & BM_SELECT)
+			BM_Select(bm, data[i], 0);
+	}
+}
+
 
 /*
  *

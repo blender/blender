@@ -221,6 +221,11 @@ void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, in
 /*clears tool-flag flag from all elements inside a slot array.*/
 void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
 
+/*tool-flags all elements inside an element slot array with flag flag.*/
+void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+/*clears tool-flag flag from all elements inside a slot array.*/
+void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+
 /*puts every element of type type (which is a bitmask) with header flag 
   flag, into a slot.*/
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);

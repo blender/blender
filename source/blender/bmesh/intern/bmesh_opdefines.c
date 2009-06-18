@@ -5,6 +5,28 @@
 
 /*applies a transform to vertices*/
 
+/*contextual_create is fkey, it creates
+  new faces, makes stuff from edge nets,
+  makes wire edges, etc.  it also dissolves
+  faces.*/
+BMOpDefine def_contextual_create= {
+	"contextual_create",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_contextual_create_exec,
+	0,
+};
+
+BMOpDefine def_edgenet_fill= {
+	"edgenet_fill",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_edgenet_fill_exec,
+	0,
+};
+
 BMOpDefine def_translate= {
 	"translate",
 	{{BMOP_OPSLOT_VEC, "vec"},
@@ -213,6 +235,8 @@ BMOpDefine *opdefines[] = {
 	&def_object_load_bmesh,
 	&def_transform,
 	&def_translate,
+	&def_edgenet_fill,
+	&def_contextual_create,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

@@ -711,37 +711,6 @@ static void addedgeface_mesh(Mesh *me, BMEditMesh *bem, wmOperator *op)
 	BKE_mesh_end_editmesh(me, em);
 }
 
-static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	
-	addedgeface_mesh((Mesh *)obedit->data, em, op);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
-	
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edge_face_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Make Edge/Face";
-	ot->idname= "MESH_OT_edge_face_add";
-	
-	/* api callbacks */
-	ot->exec= addedgeface_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-}
-
-
-
 /* ************************ primitives ******************* */
 
 // HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
