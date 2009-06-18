@@ -41,36 +41,36 @@
 #include "WM_types.h"
 
 EnumPropertyItem modifier_type_items[] ={
-	{eModifierType_Armature, "ARMATURE", "Armature", ""},
-	{eModifierType_Array, "ARRAY", "Array", ""},
-	{eModifierType_Bevel, "BEVEL", "Bevel", ""},
-	{eModifierType_Boolean, "BOOLEAN", "Boolean", ""},
-	{eModifierType_Build, "BUILD", "Build", ""},
-	{eModifierType_Cast, "CAST", "Cast", ""},
-	{eModifierType_Cloth, "CLOTH", "Cloth", ""},
-	{eModifierType_Collision, "COLLISION", "Collision", ""},
-	{eModifierType_Curve, "CURVE", "Curve", ""},
-	{eModifierType_Decimate, "DECIMATE", "Decimate", ""},
-	{eModifierType_Displace, "DISPLACE", "Displace", ""},
-	{eModifierType_EdgeSplit, "EDGE_SPLIT", "Edge Split", ""},
-	{eModifierType_Explode, "EXPLODE", "Explode", ""},
-	{eModifierType_Fluidsim, "FLUID_SIMULATION", "Fluid Simulation", ""},
-	{eModifierType_Hook, "HOOK", "Hook", ""},
-	{eModifierType_Lattice, "LATTICE", "Lattice", ""},
-	{eModifierType_Mask, "MASK", "Mask", ""},
-	{eModifierType_MeshDeform, "MESH_DEFORM", "Mesh Deform", ""},
-	{eModifierType_Mirror, "MIRROR", "Mirror", ""},
-	{eModifierType_Multires, "MULTIRES", "Multires", ""},
-	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", "Particle Instance", ""},
-	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", "Particle System", ""},
-	{eModifierType_Shrinkwrap, "SHRINKWRAP", "Shrinkwrap", ""},
-	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
-	{eModifierType_Smooth, "SMOOTH", "Smooth", ""},
-	{eModifierType_Softbody, "SOFTBODY", "Softbody", ""},
-	{eModifierType_Subsurf, "SUBSURF", "Subsurf", ""},
-	{eModifierType_UVProject, "UV_PROJECT", "UV Project", ""},
-	{eModifierType_Wave, "WAVE", "Wave", ""},
-	{0, NULL, NULL, NULL}};
+	{eModifierType_Armature, "ARMATURE", 0, "Armature", ""},
+	{eModifierType_Array, "ARRAY", 0, "Array", ""},
+	{eModifierType_Bevel, "BEVEL", 0, "Bevel", ""},
+	{eModifierType_Boolean, "BOOLEAN", 0, "Boolean", ""},
+	{eModifierType_Build, "BUILD", 0, "Build", ""},
+	{eModifierType_Cast, "CAST", 0, "Cast", ""},
+	{eModifierType_Cloth, "CLOTH", 0, "Cloth", ""},
+	{eModifierType_Collision, "COLLISION", 0, "Collision", ""},
+	{eModifierType_Curve, "CURVE", 0, "Curve", ""},
+	{eModifierType_Decimate, "DECIMATE", 0, "Decimate", ""},
+	{eModifierType_Displace, "DISPLACE", 0, "Displace", ""},
+	{eModifierType_EdgeSplit, "EDGE_SPLIT", 0, "Edge Split", ""},
+	{eModifierType_Explode, "EXPLODE", 0, "Explode", ""},
+	{eModifierType_Fluidsim, "FLUID_SIMULATION", 0, "Fluid Simulation", ""},
+	{eModifierType_Hook, "HOOK", 0, "Hook", ""},
+	{eModifierType_Lattice, "LATTICE", 0, "Lattice", ""},
+	{eModifierType_Mask, "MASK", 0, "Mask", ""},
+	{eModifierType_MeshDeform, "MESH_DEFORM", 0, "Mesh Deform", ""},
+	{eModifierType_Mirror, "MIRROR", 0, "Mirror", ""},
+	{eModifierType_Multires, "MULTIRES", 0, "Multires", ""},
+	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", 0, "Particle Instance", ""},
+	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", 0, "Particle System", ""},
+	{eModifierType_Shrinkwrap, "SHRINKWRAP", 0, "Shrinkwrap", ""},
+	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", 0, "Simple Deform", ""},
+	{eModifierType_Smooth, "SMOOTH", 0, "Smooth", ""},
+	{eModifierType_Softbody, "SOFTBODY", 0, "Softbody", ""},
+	{eModifierType_Subsurf, "SUBSURF", 0, "Subsurf", ""},
+	{eModifierType_UVProject, "UV_PROJECT", 0, "UV Project", ""},
+	{eModifierType_Wave, "WAVE", 0, "Wave", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 
 #ifdef RNA_RUNTIME
@@ -353,9 +353,9 @@ static void rna_ArrayModifier_curve_set(PointerRNA *ptr, PointerRNA value)
 static void rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static EnumPropertyItem prop_subdivision_type_items[] = {
-		{0, "CATMULL_CLARK", "Catmull-Clark", ""},
-		{1, "SIMPLE", "Simple", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
+		{1, "SIMPLE", 0, "Simple", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop= RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, type);
@@ -448,13 +448,13 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_deform_axis_items[] = {
-		{MOD_CURVE_POSX, "POS_X", "X", ""},
-		{MOD_CURVE_POSY, "POS_Y", "Y", ""},
-		{MOD_CURVE_POSZ, "POS_Z", "Z", ""},
-		{MOD_CURVE_NEGX, "NEG_X", "-X", ""},
-		{MOD_CURVE_NEGY, "NEG_Y", "-Y", ""},
-		{MOD_CURVE_NEGZ, "NEG_Z", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_CURVE_POSX, "POS_X", 0, "X", ""},
+		{MOD_CURVE_POSY, "POS_Y", 0, "Y", ""},
+		{MOD_CURVE_POSZ, "POS_Z", 0, "Z", ""},
+		{MOD_CURVE_NEGX, "NEG_X", 0, "-X", ""},
+		{MOD_CURVE_NEGY, "NEG_Y", 0, "-Y", ""},
+		{MOD_CURVE_NEGZ, "NEG_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CurveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Curve Modifier", "Curve deformation modifier.");
@@ -597,11 +597,11 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_WAV_MAP_LOCAL, "LOCAL", "Local", ""},
-		{MOD_WAV_MAP_GLOBAL, "GLOBAL", "Global", ""},
-		{MOD_WAV_MAP_OBJECT, "OBJECT", "Object", ""},
-		{MOD_WAV_MAP_UV, "MAP_UV", "UV", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_WAV_MAP_LOCAL, "LOCAL", 0, "Local", ""},
+		{MOD_WAV_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
+		{MOD_WAV_MAP_OBJECT, "OBJECT", 0, "Object", ""},
+		{MOD_WAV_MAP_UV, "MAP_UV", 0, "UV", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WaveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Wave Modifier", "Wave effect modifier.");
@@ -844,10 +844,10 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_operation_items[] = {
-		{eBooleanModifierOp_Intersect, "INTERSECT", "Intersect", ""},
-		{eBooleanModifierOp_Union, "UNION", "Union", ""},
-		{eBooleanModifierOp_Difference, "DIFFERENCE", "Difference", ""},
-		{0, NULL, NULL, NULL}};
+		{eBooleanModifierOp_Intersect, "INTERSECT", 0, "Intersect", ""},
+		{eBooleanModifierOp_Union, "UNION", 0, "Union", ""},
+		{eBooleanModifierOp_Difference, "DIFFERENCE", 0, "Difference", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BooleanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Boolean Modifier", "Boolean operations modifier.");
@@ -872,10 +872,10 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_fit_type_items[] = {
-		{MOD_ARR_FIXEDCOUNT, "FIXED_COUNT", "Fixed Count", ""},
-		{MOD_ARR_FITLENGTH, "FIT_LENGTH", "Fit Length", ""},
-		{MOD_ARR_FITCURVE, "FIT_CURVE", "Fit Curve", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_ARR_FIXEDCOUNT, "FIXED_COUNT", 0, "Fixed Count", ""},
+		{MOD_ARR_FITLENGTH, "FIT_LENGTH", 0, "Fit Length", ""},
+		{MOD_ARR_FITCURVE, "FIT_CURVE", 0, "Fit Curve", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArrayModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Array Modifier", "Array duplication modifier.");
@@ -1005,19 +1005,19 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_direction_items[] = {
-		{MOD_DISP_DIR_X, "X", "X", ""},
-		{MOD_DISP_DIR_Y, "Y", "Y", ""},
-		{MOD_DISP_DIR_Z, "Z", "Z", ""},
-		{MOD_DISP_DIR_NOR, "NORMAL", "Normal", ""},
-		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", "RGB to XYZ", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_DISP_DIR_X, "X", 0, "X", ""},
+		{MOD_DISP_DIR_Y, "Y", 0, "Y", ""},
+		{MOD_DISP_DIR_Z, "Z", 0, "Z", ""},
+		{MOD_DISP_DIR_NOR, "NORMAL", 0, "Normal", ""},
+		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_DISP_MAP_LOCAL, "LOCAL", "Map", ""},
-		{MOD_DISP_MAP_GLOBAL, "GLOBAL", "Global", ""},
-		{MOD_DISP_MAP_OBJECT, "OBJECT", "Object", ""},
-		{MOD_DISP_MAP_UV, "UV", "UV", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Map", ""},
+		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
+		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", ""},
+		{MOD_DISP_MAP_UV, "UV", 0, "UV", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "DisplaceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Displace Modifier", "Displacement modifier.");
@@ -1167,10 +1167,10 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_cast_type_items[] = {
-		{MOD_CAST_TYPE_SPHERE, "SPHERE", "Sphere", ""},
-		{MOD_CAST_TYPE_CYLINDER, "CYLINDER", "Cylinder", ""},
-		{MOD_CAST_TYPE_CUBOID, "CUBOID", "Cuboid", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_CAST_TYPE_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{MOD_CAST_TYPE_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
+		{MOD_CAST_TYPE_CUBOID, "CUBOID", 0, "Cuboid", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CastModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Cast Modifier", "Cast modifier to cast to other shapes.");
@@ -1412,16 +1412,16 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_limit_method_items[] = {
-		{0, "NONE", "None", "Bevel the entire mesh by a constant amount."},
-		{BME_BEVEL_ANGLE, "ANGLE", "Angle", "Only bevel edges with sharp enough angles between faces."},
-		{BME_BEVEL_WEIGHT, "WEIGHT", "Weight", "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode."},
-		{0, NULL, NULL, NULL}};
+		{0, "NONE", 0, "None", "Bevel the entire mesh by a constant amount."},
+		{BME_BEVEL_ANGLE, "ANGLE", 0, "Angle", "Only bevel edges with sharp enough angles between faces."},
+		{BME_BEVEL_WEIGHT, "WEIGHT", 0, "Weight", "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode."},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_edge_weight_method_items[] = {
-		{0, "AVERAGE", "Average", ""},
-		{BME_BEVEL_EMIN, "SHARPEST", "Sharpest", ""},
-		{BME_BEVEL_EMAX, "LARGEST", "Largest", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "AVERAGE", 0, "Average", ""},
+		{BME_BEVEL_EMIN, "SHARPEST", 0, "Sharpest", ""},
+		{BME_BEVEL_EMAX, "LARGEST", 0, "Largest", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BevelModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Bevel Modifier", "Bevel modifier to make edges and vertices more rounded.");
@@ -1465,10 +1465,10 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_mode_items[] = {
-		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACEPOINT", "Nearest Surface Point", ""},
-		{MOD_SHRINKWRAP_PROJECT, "PROJECT", "Project", ""},
-		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", "Nearest Vertex", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACEPOINT", 0, "Nearest Surface Point", ""},
+		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", ""},
+		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShrinkwrapModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Shrinkwrap Modifier", "Shrink wrapping modifier to shrink wrap and object to a target.");
@@ -1576,9 +1576,9 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_mode_items[] = {
-		{MOD_MASK_MODE_VGROUP, "VERTEX_GROUP", "Vertex Group", ""},
-		{MOD_MASK_MODE_ARM, "ARMATURE", "Armature", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_MASK_MODE_VGROUP, "VERTEX_GROUP", 0, "Vertex Group", ""},
+		{MOD_MASK_MODE_ARM, "ARMATURE", 0, "Armature", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MaskModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Mask Modifier", "Mask modifier to hide parts of the mesh.");
@@ -1615,11 +1615,11 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_mode_items[] = {
-		{MOD_SIMPLEDEFORM_MODE_TWIST, "TWIST", "Twist", ""},
-		{MOD_SIMPLEDEFORM_MODE_BEND, "BEND", "Bend", ""},
-		{MOD_SIMPLEDEFORM_MODE_TAPER, "TAPER", "Taper", ""},
-		{MOD_SIMPLEDEFORM_MODE_STRETCH, "STRETCH", "Stretch", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_SIMPLEDEFORM_MODE_TWIST, "TWIST", 0, "Twist", ""},
+		{MOD_SIMPLEDEFORM_MODE_BEND, "BEND", 0, "Bend", ""},
+		{MOD_SIMPLEDEFORM_MODE_TAPER, "TAPER", 0, "Taper", ""},
+		{MOD_SIMPLEDEFORM_MODE_STRETCH, "STRETCH", 0, "Stretch", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SimpleDeformModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "SimpleDeform Modifier", "Simple deformation modifier to apply effects such as twisting and bending.");

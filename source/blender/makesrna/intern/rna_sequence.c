@@ -40,6 +40,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
 static int rna_SequenceEditor_name_length(PointerRNA *ptr)
 {
 	return strlen("Sequence Editor");
@@ -356,41 +358,41 @@ static void rna_def_sequence(BlenderRNA *brna)
 	FunctionRNA *func;
 
 	static const EnumPropertyItem seq_type_items[]= {
-		{SEQ_IMAGE, "IMAGE", "Image", ""}, 
-		{SEQ_META, "META", "Meta", ""}, 
-		{SEQ_SCENE, "SCENE", "Scene", ""}, 
-		{SEQ_MOVIE, "MOVIE", "Movie", ""}, 
-		{SEQ_RAM_SOUND, "RAM_SOUND", "Ram Sound", ""}, 
-		{SEQ_HD_SOUND, "HD_SOUND", "HD Sound", ""}, 
-		{SEQ_MOVIE_AND_HD_SOUND, "MOVIE_AND_HD_SOUND", "Movie and HD Sound", ""}, 
-		{SEQ_EFFECT, "REPLACE", "Replace", ""}, 
-		{SEQ_CROSS, "CROSS", "Cross", ""}, 
-		{SEQ_ADD, "ADD", "Add", ""}, 
-		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-		{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
-		{SEQ_WIPE, "WIPE", "Wipe", ""}, 
-		{SEQ_GLOW, "GLOW", "Glow", ""}, 
-		{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
-		{SEQ_COLOR, "COLOR", "Color", ""}, 
-		{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}};
+		{SEQ_IMAGE, "IMAGE", 0, "Image", ""}, 
+		{SEQ_META, "META", 0, "Meta", ""}, 
+		{SEQ_SCENE, "SCENE", 0, "Scene", ""}, 
+		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""}, 
+		{SEQ_RAM_SOUND, "RAM_SOUND", 0, "Ram Sound", ""}, 
+		{SEQ_HD_SOUND, "HD_SOUND", 0, "HD Sound", ""}, 
+		{SEQ_MOVIE_AND_HD_SOUND, "MOVIE_AND_HD_SOUND", 0, "Movie and HD Sound", ""}, 
+		{SEQ_EFFECT, "REPLACE", 0, "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
+		{SEQ_ADD, "ADD", 0, "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""}, 
+		{SEQ_PLUGIN, "PLUGIN", 0, "plugin", ""}, 
+		{SEQ_WIPE, "WIPE", 0, "Wipe", ""}, 
+		{SEQ_GLOW, "GLOW", 0, "Glow", ""}, 
+		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""}, 
+		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
+		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
+		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
-		{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
-		{SEQ_CROSS, "CROSS", "Cross", ""}, 
-		{SEQ_ADD, "ADD", "Add", ""}, 
-		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-		{0, NULL, NULL, NULL}};
+		{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
+		{SEQ_ADD, "ADD", 0, "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""}, 
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
@@ -785,19 +787,19 @@ static void rna_def_wipe(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem wipe_type_items[]= {
-		{0, "SINGLE", "Single", ""}, 
-		{1, "DOUBLE", "Double", ""}, 
-		/* not used yet {2, "BOX", "Box", ""}, */
-		/* not used yet {3, "CROSS", "Cross", ""}, */
-		{4, "IRIS", "Iris", ""}, 
-		{5, "CLOCK", "Clock", ""}, 	
-		{0, NULL, NULL, NULL}
+		{0, "SINGLE", 0, "Single", ""}, 
+		{1, "DOUBLE", 0, "Double", ""}, 
+		/* not used yet {2, "BOX", 0, "Box", ""}, */
+		/* not used yet {3, "CROSS", 0, "Cross", ""}, */
+		{4, "IRIS", 0, "Iris", ""}, 
+		{5, "CLOCK", 0, "Clock", ""}, 	
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem wipe_direction_items[]= {
-		{0, "OUT", "Out", ""},
-		{1, "IN", "In", ""},
-		{0, NULL, NULL, NULL}
+		{0, "OUT", 0, "Out", ""},
+		{1, "IN", 0, "In", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence");
@@ -870,16 +872,16 @@ static void rna_def_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem interpolation_items[]= {
-		{0, "NONE", "None", "No interpolation."},
-		{1, "BILINEAR", "Bilinear", "Bilinear interpolation."},
-		{2, "BICUBIC", "Bicubic", "Bicubic interpolation."},
-		{0, NULL, NULL, NULL}
+		{0, "NONE", 0, "None", "No interpolation."},
+		{1, "BILINEAR", 0, "Bilinear", "Bilinear interpolation."},
+		{2, "BICUBIC", 0, "Bicubic", "Bicubic interpolation."},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem translation_unit_items[]= {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "PERCENT", "Percent", ""},
-		{0, NULL, NULL, NULL}
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "PERCENT", 0, "Percent", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence");

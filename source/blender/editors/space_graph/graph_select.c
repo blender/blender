@@ -340,11 +340,11 @@ void GRAPHEDIT_OT_keyframes_select_border(wmOperatorType *ot)
 
 /* defines for column-select mode */
 static EnumPropertyItem prop_column_select_types[] = {
-	{GRAPHKEYS_COLUMNSEL_KEYS, "KEYS", "On Selected Keyframes", ""},
-	{GRAPHKEYS_COLUMNSEL_CFRA, "CFRA", "On Current Frame", ""},
-	{GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", "On Selected Markers", ""},
-	{GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", "Between Min/Max Selected Markers", ""},
-	{0, NULL, NULL, NULL}
+	{GRAPHKEYS_COLUMNSEL_KEYS, "KEYS", 0, "On Selected Keyframes", ""},
+	{GRAPHKEYS_COLUMNSEL_CFRA, "CFRA", 0, "On Current Frame", ""},
+	{GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, "On Selected Markers", ""},
+	{GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, "Between Min/Max Selected Markers", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ------------------- */ 
@@ -526,11 +526,11 @@ void GRAPHEDIT_OT_keyframes_columnselect (wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
-	{GRAPHKEYS_LRSEL_TEST, "CHECK", "Check if Select Left or Right", ""},
-	{GRAPHKEYS_LRSEL_NONE, "OFF", "Don't select", ""},
-	{GRAPHKEYS_LRSEL_LEFT, "LEFT", "Before current frame", ""},
-	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", "After current frame", ""},
-	{0, NULL, NULL, NULL}
+	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+	{GRAPHKEYS_LRSEL_NONE, "OFF", 0, "Don't select", ""},
+	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
+	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ------------------- */

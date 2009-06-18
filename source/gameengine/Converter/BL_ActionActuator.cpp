@@ -51,10 +51,18 @@
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
+#include "KX_PyMath.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+extern "C" {
+#include "BKE_animsys.h"
+#include "BKE_action.h"
+#include "RNA_access.h"
+#include "RNA_define.h"
+}
 
 BL_ActionActuator::~BL_ActionActuator()
 {
@@ -359,15 +367,35 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			
 			/* Get the underlying pose from the armature */
 			obj->GetPose(&m_pose);
-			
+
+// 2.4x function, 
 			/* Override the necessary channels with ones from the action */
 			// XXX extract_pose_from_action(m_pose, m_action, m_localtime);
+			
+			
+// 2.5x - replacement for extract_pose_from_action(...) above.
+			{
+				struct PointerRNA id_ptr;
+				Object *arm= obj->GetArmatureObject();
+				bPose *pose_back= arm->pose;
+				
+				arm->pose= m_pose;
+				RNA_id_pointer_create((ID *)arm, &id_ptr);
+				animsys_evaluate_action(&id_ptr, m_action, NULL, m_localtime);
+				
+				arm->pose= pose_back;
+			
+// 2.5x - could also do this but looks too high level, constraints use this, it works ok.
+//				Object workob; /* evaluate using workob */
+//				what_does_obaction((Scene *)obj->GetScene(), obj->GetArmatureObject(), &workob, m_pose, m_action, NULL, m_localtime);
+			}
 
+			// done getting the pose from the action
+			
 			/* Perform the user override (if any) */
 			if (m_userpose){
 				extract_pose_from_pose(m_pose, m_userpose);
-//				clear_pose(m_userpose);
-				MEM_freeN(m_userpose);
+				game_free_pose(m_userpose); //cant use MEM_freeN(m_userpose) because the channels need freeing too.
 				m_userpose = NULL;
 			}
 #if 1
@@ -767,22 +795,55 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* args,
 	Py_RETURN_NONE;
 }
 
-/*
-PyObject* BL_ActionActuator::PyGetChannel(PyObject* args, 
-										   PyObject* kwds) {
-	char *string;
+PyObject* BL_ActionActuator::PyGetChannel(PyObject* value) {
+	char *string= PyString_AsString(value);
 	
-	if (PyArg_ParseTuple(args,"s:getChannel",&string))
-	{
-		m_propname = string;
-	}
-	else {
+	if (!string) {
+		PyErr_SetString(PyExc_TypeError, "expected a single string");
 		return NULL;
 	}
 	
-	Py_RETURN_NONE;
-}
+	bPoseChannel *pchan;
+	
+	
+	// get_pose_channel accounts for NULL pose, run on both incase one exists but
+	// the channel doesnt
+	if(		!(pchan=get_pose_channel(m_userpose, string)) &&
+			!(pchan=get_pose_channel(m_pose, string))  )
+	{
+		PyErr_SetString(PyExc_ValueError, "channel doesnt exist");
+		return NULL;
+	}
+
+	PyObject *ret = PyTuple_New(3);
+	
+	PyObject *list = PyList_New(3); 
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->loc[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->loc[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(pchan->loc[2]));
+	PyTuple_SET_ITEM(ret, 0, list);
+	
+	list = PyList_New(3);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->size[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->size[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(pchan->size[2]));
+	PyTuple_SET_ITEM(ret, 1, list);
+	
+	list = PyList_New(4);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(pchan->quat[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(pchan->quat[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(pchan->quat[2]));
+	PyList_SET_ITEM(list, 3, PyFloat_FromDouble(pchan->quat[3]));
+	PyTuple_SET_ITEM(ret, 2, list);
+
+	return ret;
+/*
+	return Py_BuildValue("([fff][fff][ffff])",
+		pchan->loc[0], pchan->loc[1], pchan->loc[2],
+		pchan->size[0], pchan->size[1], pchan->size[2],
+		pchan->quat[0], pchan->quat[1], pchan->quat[2], pchan->quat[3] );
 */
+}
 
 /* getType */
 const char BL_ActionActuator::GetType_doc[] =
@@ -857,76 +918,69 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 "\t - matrix    : A 4x4 matrix specifying the overriding transformation\n"
 "\t               as an offset from the bone's rest position.\n")
 {
-	float matrix[4][4];
+	BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
 	char *string;
-	PyObject* pylist;
-	bool	error = false;
-	int row,col;
-	int	mode = 0;	/* 0 for bone space, 1 for armature/world space */
+	PyObject *pymat= NULL;
+	PyObject *pyloc= NULL, *pysize= NULL, *pyquat= NULL;
+	bPoseChannel *pchan;
 	
-	if (!PyArg_ParseTuple(args,"sO|i:setChannel", &string, &pylist, &mode))
+	if(PyTuple_Size(args)==2) {
+		if (!PyArg_ParseTuple(args,"sO:setChannel", &string, &pymat)) // matrix
+			return NULL;
+	}
+	else if(PyTuple_Size(args)==4) {
+		if (!PyArg_ParseTuple(args,"sOOO:setChannel", &string, &pyloc, &pysize, &pyquat)) // loc/size/quat
+			return NULL;
+	}
+	else {
+		PyErr_SetString(PyExc_ValueError, "Expected a string and a 4x4 matrix (2 args) or a string and loc/size/quat sequences (4 args)");
 		return NULL;
-	
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		if (listval->GetCount() == 4)
-		{
-			for (row=0;row<4;row++) // each row has a 4-vector [x,y,z, w]
-			{
-				CListValue* vecval = (CListValue*)listval->GetValue(row);
-				for (col=0;col<4;col++)
-				{
-					matrix[row][col] = vecval->GetValue(col)->GetNumber();
-					
-				}
-			}
-		}
-		else
-		{
-			error = true;
-		}
-	}
-	else
-	{
-		// assert the list is long enough...
-		int numitems = PyList_Size(pylist);
-		if (numitems == 4)
-		{
-			for (row=0;row<4;row++) // each row has a 4-vector [x,y,z, w]
-			{
-				
-				PyObject* veclist = PyList_GetItem(pylist,row); // here we have a vector4 list
-				for (col=0;col<4;col++)
-				{
-					matrix[row][col] =  PyFloat_AsDouble(PyList_GetItem(veclist,col));
-					
-				}
-			}
-		}
-		else
-		{
-			error = true;
-		}
 	}
 	
-	if (!error)
-	{
-
-/*	DO IT HERE */
-		bPoseChannel *pchan= verify_pose_channel(m_userpose, string);
-
-		Mat4ToQuat(matrix, pchan->quat);
-		Mat4ToSize(matrix, pchan->size);
-		VECCOPY (pchan->loc, matrix[3]);
+	if(pymat) {
+		float matrix[4][4];
+		MT_Matrix4x4 mat;
 		
-		pchan->flag |= POSE_ROT|POSE_LOC|POSE_SIZE;
-
-		if (!m_userpose){
-			m_userpose = (bPose*)MEM_callocN(sizeof(bPose), "userPose");
+		if(!PyMatTo(pymat, mat))
+			return NULL;
+		
+		mat.setValue((const float *)matrix);
+		
+		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
+		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+		
+		if (!m_userpose) {
+			obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+			game_copy_pose(&m_userpose, m_pose);
 		}
+		pchan= verify_pose_channel(m_userpose, string); // adds the channel if its not there.
+		
+		VECCOPY (pchan->loc, matrix[3]);
+		Mat4ToSize(matrix, pchan->size);
+		Mat4ToQuat(matrix, pchan->quat);
+	}
+	else {
+		MT_Vector3 loc;
+		MT_Vector3 size;
+		MT_Vector4 quat;
+		
+		if (!PyVecTo(pyloc, loc) || !PyVecTo(pysize, size) || !PyVecTo(pyquat, quat))
+			return NULL;
+		
+		// same as above
+		if (!m_userpose) {
+			obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+			game_copy_pose(&m_userpose, m_pose);
+		}
+		pchan= verify_pose_channel(m_userpose, string);
+		
+		// for some reason loc.setValue(pchan->loc) fails
+		pchan->loc[0]= loc[0]; pchan->loc[1]= loc[1]; pchan->loc[2]= loc[2];
+		pchan->size[0]= size[0]; pchan->size[1]= size[1]; pchan->size[2]= size[2];
+		pchan->quat[0]= quat[0]; pchan->quat[1]= quat[1]; pchan->quat[2]= quat[2]; pchan->quat[3]= quat[3];
 	}
 	
+	pchan->flag |= POSE_ROT|POSE_LOC|POSE_SIZE;
 	Py_RETURN_NONE;
 }
 
@@ -986,7 +1040,7 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getFrame", (PyCFunction) BL_ActionActuator::sPyGetFrame, METH_VARARGS, (PY_METHODCHAR)GetFrame_doc},
 	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, (PY_METHODCHAR)GetFrameProperty_doc},
-//	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
+	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_O},
 	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, (PY_METHODCHAR)GetType_doc},
 	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
 	{"getContinue", (PyCFunction) BL_ActionActuator::sPyGetContinue, METH_NOARGS, 0},	

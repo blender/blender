@@ -415,8 +415,6 @@ void ED_spacetype_text(void)
 	
 	art->init= text_header_area_init;
 	art->draw= text_header_area_draw;
-	
-	text_header_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
 

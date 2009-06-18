@@ -1761,7 +1761,10 @@ void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys, Partic
 			where_is_object_time(scene, ob,pa->time);
 
 		/* get birth location from object		*/
-		psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		if(part->tanfac!=0.0)
+			psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		else
+			psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 		
 		/* save local coordinates for later		*/
 		VECCOPY(tloc,loc);

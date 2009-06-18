@@ -521,7 +521,7 @@ static int run_script_exec(bContext *C, wmOperator *op)
 #else
 	Text *text= CTX_data_edit_text(C);
 
-	if (BPY_run_python_script( C, NULL, text ))
+	if (BPY_run_python_script(C, NULL, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */
@@ -972,9 +972,9 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 
 enum { TO_SPACES, TO_TABS };
 static EnumPropertyItem whitespace_type_items[]= {
-	{TO_SPACES, "SPACES", "To Spaces", NULL},
-	{TO_TABS, "TABS", "To Tabs", NULL},
-	{0, NULL, NULL, NULL}};
+	{TO_SPACES, "SPACES", 0, "To Spaces", NULL},
+	{TO_TABS, "TABS", 0, "To Tabs", NULL},
+	{0, NULL, 0, NULL, NULL}};
 
 static int convert_whitespace_exec(bContext *C, wmOperator *op)
 {
@@ -1270,19 +1270,19 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 /************************ move operator ************************/
 
 static EnumPropertyItem move_type_items[]= {
-	{LINE_BEGIN, "LINE_BEGIN", "Line Begin", ""},
-	{LINE_END, "LINE_END", "Line End", ""},
-	{FILE_TOP, "FILE_TOP", "File Top", ""},
-	{FILE_BOTTOM, "FILE_BOTTOM", "File Bottom", ""},
-	{PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{PREV_WORD, "PREVIOUS_WORD", "Previous Word", ""},
-	{NEXT_WORD, "NEXT_WORD", "Next Word", ""},
-	{PREV_LINE, "PREVIOUS_LINE", "Previous Line", ""},
-	{NEXT_LINE, "NEXT_LINE", "Next Line", ""},
-	{PREV_PAGE, "PREVIOUS_PAGE", "Previous Page", ""},
-	{NEXT_PAGE, "NEXT_PAGE", "Next Page", ""},
-	{0, NULL, NULL, NULL}};
+	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
+	{LINE_END, "LINE_END", 0, "Line End", ""},
+	{FILE_TOP, "FILE_TOP", 0, "File Top", ""},
+	{FILE_BOTTOM, "FILE_BOTTOM", 0, "File Bottom", ""},
+	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{PREV_LINE, "PREVIOUS_LINE", 0, "Previous Line", ""},
+	{NEXT_LINE, "NEXT_LINE", 0, "Next Line", ""},
+	{PREV_PAGE, "PREVIOUS_PAGE", 0, "Previous Page", ""},
+	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 {
@@ -1613,11 +1613,11 @@ void TEXT_OT_jump(wmOperatorType *ot)
 /******************* delete operator **********************/
 
 static EnumPropertyItem delete_type_items[]= {
-	{DEL_NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{DEL_NEXT_WORD, "NEXT_WORD", "Next Word", ""},
-	{DEL_PREV_WORD, "PREVIOUS_WORD", "Previous Word", ""},
-	{0, NULL, NULL, NULL}};
+	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int delete_exec(bContext *C, wmOperator *op)
 {
@@ -2469,11 +2469,11 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 
 enum { RESOLVE_IGNORE, RESOLVE_RELOAD, RESOLVE_SAVE, RESOLVE_MAKE_INTERNAL };
 static EnumPropertyItem resolution_items[]= {
-	{RESOLVE_IGNORE, "IGNORE", "Ignore", ""},
-	{RESOLVE_RELOAD, "RELOAD", "Reload", ""},
-	{RESOLVE_SAVE, "SAVE", "Save", ""},
-	{RESOLVE_MAKE_INTERNAL, "MAKE_INTERNAL", "Make Internal", ""},
-	{0, NULL, NULL, NULL}};
+	{RESOLVE_IGNORE, "IGNORE", 0, "Ignore", ""},
+	{RESOLVE_RELOAD, "RELOAD", 0, "Reload", ""},
+	{RESOLVE_SAVE, "SAVE", 0, "Save", ""},
+	{RESOLVE_MAKE_INTERNAL, "MAKE_INTERNAL", 0, "Make Internal", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 /* returns 0 if file on disk is the same or Text is in memory only
    returns 1 if file has been modified on disk since last local edit

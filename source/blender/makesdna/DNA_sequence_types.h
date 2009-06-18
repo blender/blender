@@ -80,6 +80,9 @@ typedef struct StripProxy {
 	char dir[160];
 	char file[80];
 	struct anim *anim;
+	short size;
+	short quality;
+	int pad;
 } StripProxy;
 
 typedef struct Strip {

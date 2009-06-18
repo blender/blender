@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/editors
-DIRS = armature mesh animation object sculpt_paint datafiles transform screen curve gpencil physics preview uvedit space_outliner space_time space_view3d interface util  space_api space_graph space_image space_node space_buttons space_info space_file space_sound space_action space_nla space_script space_text space_sequencer
+DIRS = armature mesh animation object sculpt_paint datafiles transform screen curve gpencil physics preview uvedit space_outliner space_time space_view3d interface util  space_api space_graph space_image space_node space_buttons space_info space_file space_sound space_action space_nla space_script space_text space_sequencer space_logic
 
 include nan_subdirs.mk

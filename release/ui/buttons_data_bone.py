@@ -14,8 +14,8 @@ class BONE_PT_bone(BoneButtonsPanel):
 	__label__ = "Bone"
 
 	def draw(self, context):
-		bone = context.bone
 		layout = self.layout
+		bone = context.bone
 
 		split = layout.split()
 
@@ -51,4 +51,3 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "cyclic_offset")
 
 bpy.types.register(BONE_PT_bone)
-

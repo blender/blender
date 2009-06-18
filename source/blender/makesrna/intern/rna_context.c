@@ -55,25 +55,33 @@ static PointerRNA rna_Context_screen_get(PointerRNA *ptr)
 static PointerRNA rna_Context_area_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Area, CTX_wm_area(C));
+	PointerRNA newptr;
+	RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_Area, CTX_wm_area(C), &newptr);
+	return newptr;
 }
 
 static PointerRNA rna_Context_space_data_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Space, CTX_wm_space_data(C));
+	PointerRNA newptr;
+	RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_Space, CTX_wm_space_data(C), &newptr);
+	return newptr;
 }
 
 static PointerRNA rna_Context_region_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Region, CTX_wm_region(C));
+	PointerRNA newptr;
+	RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_Region, CTX_wm_region(C), &newptr);
+	return newptr;
 }
 
 /*static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_RegionData, CTX_wm_region_data(C));
+	PointerRNA newptr;
+	RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_RegionData, CTX_wm_region_data(C), &newptr);
+	return newptr;
 }*/
 
 static PointerRNA rna_Context_main_get(PointerRNA *ptr)

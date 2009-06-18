@@ -42,13 +42,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{CAM_PERSP, "PERSP", "Perspective", ""},
-		{CAM_ORTHO, "ORTHO", "Orthographic", ""},
-		{0, NULL, NULL, NULL}};
+		{CAM_PERSP, "PERSP", 0, "Perspective", ""},
+		{CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_lens_unit_items[] = {
-		{0, "MILLIMETERS", "Millimeters", ""},
-		{CAM_ANGLETOGGLE, "DEGREES", "Degrees", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "MILLIMETERS", 0, "Millimeters", ""},
+		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
 	RNA_def_struct_ui_text(srna, "Camera", "Camera datablock for storing camera settings.");

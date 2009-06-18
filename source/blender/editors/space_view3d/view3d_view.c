@@ -1382,6 +1382,82 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
+static ListBase queue_back;
+static void SaveState(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	GPU_state_init();
+
+	if(G.f & G_TEXTUREPAINT)
+		GPU_paint_set_mipmap(1);
+	
+	queue_back= win->queue;
+	
+	win->queue.first= win->queue.last= NULL;
+	
+	//XXX waitcursor(1);
+}
+
+static void RestoreState(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	if(G.f & G_TEXTUREPAINT)
+		GPU_paint_set_mipmap(0);
+
+	//XXX curarea->win_swap = 0;
+	//XXX curarea->head_swap=0;
+	//XXX allqueue(REDRAWVIEW3D, 1);
+	//XXX allqueue(REDRAWBUTSALL, 0);
+	//XXX reset_slowparents();
+	//XXX waitcursor(0);
+	//XXX G.qual= 0;
+	
+	win->queue= queue_back;
+	
+	glPopAttrib();
+}
+
+/* maybe we need this defined somewhere else */
+extern void StartKetsjiShell(struct bContext *C,int always_use_expand_framing);
+
+
+static int game_engine_exec(bContext *C, wmOperator *unused)
+{
+	Scene *startscene = CTX_data_scene(C);
+	
+#if GAMEBLENDER == 1
+	SaveState(C);
+	StartKetsjiShell(C, 1);
+	RestoreState(C);
+	
+	//XXX restore_all_scene_cfra(scene_cfra_store);
+	set_scene_bg(startscene);
+	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
+	
+#else
+	printf("GameEngine Disabled\n");
+#endif
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_game_start(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Start Game Engine";
+	ot->idname= "VIEW3D_OT_game_start";
+	
+	/* api callbacks */
+	ot->exec= game_engine_exec;
+	
+	ot->poll= ED_operator_view3d_active;
+}
+
 /* ************************************** */
 
 void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])

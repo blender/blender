@@ -761,11 +761,11 @@ static void rna_def_mtface(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static const EnumPropertyItem transp_items[]= {
-		{TF_SOLID, "OPAQUE", "Opaque", "Render color of textured face as color"},
-		{TF_ADD, "ADD", "Add", "Render face transparent and add color of face"},
-		{TF_ALPHA, "ALPHA", "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
-		{TF_CLIP, "CLIPALPHA", "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
-		{0, NULL, NULL, NULL}};
+		{TF_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
+		{TF_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
+		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
+		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock.");
@@ -805,10 +805,6 @@ static void rna_def_mtface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
 	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
-
-	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TILES);
-	RNA_def_property_ui_text(prop, "Tiles", "Use tilemode for face");
 
 	prop= RNA_def_property(srna, "light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_LIGHT);

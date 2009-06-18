@@ -626,26 +626,26 @@ static void rna_def_property(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem type_items[] = {
-		{PROP_BOOLEAN, "BOOLEAN", "Boolean", ""},
-		{PROP_INT, "INT", "Integer", ""},
-		{PROP_FLOAT, "FLOAT", "Float", ""},
-		{PROP_STRING, "STRING", "String", ""},
-		{PROP_ENUM, "ENUM", "Enumeration", ""},
-		{PROP_POINTER, "POINTER", "Pointer", ""},
-		{PROP_COLLECTION, "COLLECTION", "Collection", ""},
-		{0, NULL, NULL, NULL}};
+		{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
+		{PROP_INT, "INT", 0, "Integer", ""},
+		{PROP_FLOAT, "FLOAT", 0, "Float", ""},
+		{PROP_STRING, "STRING", 0, "String", ""},
+		{PROP_ENUM, "ENUM", 0, "Enumeration", ""},
+		{PROP_POINTER, "POINTER", 0, "Pointer", ""},
+		{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem subtype_items[] = {
-		{PROP_NONE, "NONE", "None", ""},
-		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number", ""},
-		{PROP_FILEPATH, "FILE_PATH", "File Path", ""},
-		{PROP_DIRPATH, "DIRECTORY_PATH", "Directory Path", ""},
-		{PROP_COLOR, "COLOR", "Color", ""},
-		{PROP_VECTOR, "VECTOR", "Vector", ""},
-		{PROP_MATRIX, "MATRIX", "Matrix", ""},
-		{PROP_ROTATION, "ROTATION", "Rotation", ""},
-		{PROP_NEVER_NULL, "NEVER_NULL", "Never Null", ""},
-		{PROP_PERCENTAGE, "PERCENTAGE", "Percentage", ""},
-		{0, NULL, NULL, NULL}};
+		{PROP_NONE, "NONE", 0, "None", ""},
+		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
+		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
+		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
+		{PROP_COLOR, "COLOR", 0, "Color", ""},
+		{PROP_VECTOR, "VECTOR", 0, "Vector", ""},
+		{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
+		{PROP_ROTATION, "ROTATION", 0, "Rotation", ""},
+		{PROP_NEVER_NULL, "NEVER_NULL", 0, "Never Null", ""},
+		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);
 	RNA_def_struct_ui_text(srna, "Property Definition", "RNA property definition.");

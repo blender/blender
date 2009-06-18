@@ -607,10 +607,10 @@ static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
 /******************* set style operator ********************/
 
 static EnumPropertyItem style_items[]= {
-	{CU_BOLD, "BOLD", "Bold", ""},
-	{CU_ITALIC, "ITALIC", "Italic", ""},
-	{CU_UNDERLINE, "UNDERLINE", "Underline", ""},
-	{0, NULL, NULL, NULL}};
+	{CU_BOLD, "BOLD", 0, "Bold", ""},
+	{CU_ITALIC, "ITALIC", 0, "Italic", ""},
+	{CU_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int set_style(bContext *C, int style, int clear)
 {
@@ -873,17 +873,17 @@ void FONT_OT_text_paste(wmOperatorType *ot)
 /************************ move operator ************************/
 
 static EnumPropertyItem move_type_items[]= {
-	{LINE_BEGIN, "LINE_BEGIN", "Line Begin", ""},
-	{LINE_END, "LINE_END", "Line End", ""},
-	{PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{PREV_WORD, "PREVIOUS_WORD", "Previous Word", ""},
-	{NEXT_WORD, "NEXT_WORD", "Next Word", ""},
-	{PREV_LINE, "PREVIOUS_LINE", "Previous Line", ""},
-	{NEXT_LINE, "NEXT_LINE", "Next Line", ""},
-	{PREV_PAGE, "PREVIOUS_PAGE", "Previous Page", ""},
-	{NEXT_PAGE, "NEXT_PAGE", "Next Page", ""},
-	{0, NULL, NULL, NULL}};
+	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
+	{LINE_END, "LINE_END", 0, "Line End", ""},
+	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{PREV_LINE, "PREVIOUS_LINE", 0, "Previous Line", ""},
+	{NEXT_LINE, "NEXT_LINE", 0, "Next Line", ""},
+	{PREV_PAGE, "PREVIOUS_PAGE", 0, "Previous Page", ""},
+	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int move_cursor(bContext *C, int type, int select)
 {
@@ -1164,13 +1164,13 @@ void FONT_OT_line_break(wmOperatorType *ot)
 /******************* delete operator **********************/
 
 static EnumPropertyItem delete_type_items[]= {
-	{DEL_ALL, "ALL", "All", ""},
-	{DEL_NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{DEL_SELECTION, "SELECTION", "Selection", ""},
-	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", "Next or Selection", ""},
-	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", "Previous or Selection", ""},
-	{0, NULL, NULL, NULL}};
+	{DEL_ALL, "ALL", 0, "All", ""},
+	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{DEL_SELECTION, "SELECTION", 0, "Selection", ""},
+	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
+	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int delete_exec(bContext *C, wmOperator *op)
 {
@@ -1407,7 +1407,7 @@ void make_editText(Object *obedit)
 		ef->copybuf= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "texteditcopybuf");
 		ef->copybufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditcopybufinfo");	
 		ef->oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
-		ef->oldstrinfo= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
+		ef->oldstrinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "oldstrbuf");
 	}
 	
 	// Convert the original text to wchar_t
@@ -1465,9 +1465,9 @@ void free_editText(Object *obedit)
 /********************** set case operator *********************/
 
 static EnumPropertyItem case_items[]= {
-	{CASE_LOWER, "LOWER", "Lower", ""},
-	{CASE_UPPER, "UPPER", "Upper", ""},
-	{0, NULL, NULL, NULL}};
+	{CASE_LOWER, "LOWER", 0, "Lower", ""},
+	{CASE_UPPER, "UPPER", 0, "Upper", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int set_case(bContext *C, int ccase)
 {

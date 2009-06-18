@@ -67,29 +67,29 @@ void rna_def_brush(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_blend_items[] = {
-		{BRUSH_BLEND_MIX, "MIX", "Mix", "Use mix blending mode while painting."},
-		{BRUSH_BLEND_ADD, "ADD", "Add", "Use add blending mode while painting."},
-		{BRUSH_BLEND_SUB, "SUB", "Subtract", "Use subtract blending mode while painting."},
-		{BRUSH_BLEND_MUL, "MUL", "Multiply", "Use multiply blending mode while painting."},
-		{BRUSH_BLEND_LIGHTEN, "LIGHTEN", "Lighten", "Use lighten blending mode while painting."},
-		{BRUSH_BLEND_DARKEN, "DARKEN", "Darken", "Use darken blending mode while painting."},
-		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", "Erase Alpha", "Erase alpha while painting."},
-		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", "Add Alpha", "Add alpha while painting."},
-		{0, NULL, NULL, NULL}};
+		{BRUSH_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
+		{BRUSH_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
+		{BRUSH_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
+		{BRUSH_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{BRUSH_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
+		{BRUSH_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
+		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_texture_mode_items[] = {
-		{BRUSH_TEX_DRAG, "TEX_DRAG", "Drag", ""},
-		{BRUSH_TEX_TILE, "TEX_TILE", "Tile", ""},
-		{BRUSH_TEX_3D, "TEX_3D", "3D", ""},
-		{0, NULL, NULL, NULL}};
+		{BRUSH_TEX_DRAG, "TEX_DRAG", 0, "Drag", ""},
+		{BRUSH_TEX_TILE, "TEX_TILE", 0, "Tile", ""},
+		{BRUSH_TEX_3D, "TEX_3D", 0, "3D", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_sculpt_tool_items[] = {
-		{SCULPT_TOOL_DRAW, "DRAW", "Draw", ""},
-		{SCULPT_TOOL_SMOOTH, "SMOOTH", "Smooth", ""},
-		{SCULPT_TOOL_PINCH, "PINCH", "Pinch", ""},
-		{SCULPT_TOOL_INFLATE, "INFLATE", "Inflate", ""},
-		{SCULPT_TOOL_GRAB, "GRAB", "Grab", ""},
-		{SCULPT_TOOL_LAYER, "LAYER", "Layer", ""},
-		{SCULPT_TOOL_FLATTEN, "FLATTEN", "Flatten", ""},
-		{0, NULL, NULL, NULL}};
+		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
+		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
+		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
+		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
+		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+ 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting.");

@@ -256,16 +256,16 @@ void rna_def_armature(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
-		{ARM_OCTA, "OCTAHEDRAL", "Octahedral", "Draw bones as octahedral shape (default)."},
-		{ARM_LINE, "STICK", "Stick", "Draw bones as simple 2D lines with dots."},
-		{ARM_B_BONE, "BBONE", "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
-		{0, NULL, NULL, NULL}};
+		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Draw bones as octahedral shape (default)."},
+		{ARM_LINE, "STICK", 0, "Stick", "Draw bones as simple 2D lines with dots."},
+		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
-		{ARM_GHOST_CUR, "CURRENT_FRAME", "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
-		{ARM_GHOST_RANGE, "RANGE", "In Range", "Draw Ghosts of poses within specified range."},
-		{ARM_GHOST_KEYS, "KEYS", "On Keyframes", "Draw Ghosts of poses on Keyframes."},
-		{0, NULL, NULL, NULL}};
+		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
+		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Draw Ghosts of poses within specified range."},
+		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Draw Ghosts of poses on Keyframes."},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");

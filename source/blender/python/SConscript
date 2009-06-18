@@ -15,3 +15,7 @@ if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc') and env['BF_DEBUG']:
 
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [140])
 
+
+# generic
+sources = env.Glob('generic/*.c')
+env.BlenderLib( libname = 'bf_gen_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361]) # ketsji is 360

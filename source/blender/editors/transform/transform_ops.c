@@ -56,29 +56,29 @@ static float VecOne[3] = {1, 1, 1};
 
 /* need constants for this */
 EnumPropertyItem proportional_mode_types[] = {
-		{0, "OFF", "Off", ""},
-		{1, "ON", "On", ""},
-		{2, "CONNECTED", "Connected", ""},
-		{0, NULL, NULL, NULL}
+		{0, "OFF", 0, "Off", ""},
+		{1, "ON", 0, "On", ""},
+		{2, "CONNECTED", 0, "Connected", ""},
+		{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem snap_mode_types[] = {
-		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", "Closest", ""},
-		{SCE_SNAP_TARGET_CENTER,  "CENTER", "Center", ""},
-		{SCE_SNAP_TARGET_MEDIAN,  "MEDIAN", "Median", ""},
-		{SCE_SNAP_TARGET_ACTIVE,  "ACTIVE", "Active", ""},
-		{0, NULL, NULL, NULL}
+		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", ""},
+		{SCE_SNAP_TARGET_CENTER,  "CENTER", 0, "Center", ""},
+		{SCE_SNAP_TARGET_MEDIAN,  "MEDIAN", 0, "Median", ""},
+		{SCE_SNAP_TARGET_ACTIVE,  "ACTIVE", 0, "Active", ""},
+		{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem proportional_falloff_types[] = {
-		{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
-		{PROP_SPHERE, "SPHERE", "Sphere", ""},
-		{PROP_ROOT, "ROOT", "Root", ""},
-		{PROP_SHARP, "SHARP", "Sharp", ""},
-		{PROP_LIN, "LINEAR", "Linear", ""},
-		{PROP_CONST, "CONSTANT", "Constant", ""},
-		{PROP_RANDOM, "RANDOM", "Random", ""},
-		{0, NULL, NULL, NULL}
+		{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{PROP_ROOT, "ROOT", 0, "Root", ""},
+		{PROP_SHARP, "SHARP", 0, "Sharp", ""},
+		{PROP_LIN, "LINEAR", 0, "Linear", ""},
+		{PROP_CONST, "CONSTANT", 0, "Constant", ""},
+		{PROP_RANDOM, "RANDOM", 0, "Random", ""},
+		{0, NULL, 0, NULL, NULL}
 };
 
 char OP_TRANSLATION[] = "TFM_OT_translation";
@@ -133,12 +133,12 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem orientation_items[]= {
-		{V3D_MANIP_GLOBAL, "GLOBAL", "Global", ""},
-		{V3D_MANIP_NORMAL, "NORMAL", "Normal", ""},
-		{V3D_MANIP_LOCAL, "LOCAL", "Local", ""},
-		{V3D_MANIP_VIEW, "VIEW", "View", ""},
-		{V3D_MANIP_CUSTOM, "CUSTOM", "Custom", ""},
-		{0, NULL, NULL, NULL}};
+		{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
+		{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
+		{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
+		{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
+		{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
@@ -484,33 +484,33 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem transform_mode_types[] = {
-			{TFM_INIT, "INIT", "Init", ""},
-			{TFM_DUMMY, "DUMMY", "Dummy", ""},
-			{TFM_TRANSLATION, "TRANSLATION", "Translation", ""},
-			{TFM_ROTATION, "ROTATION", "Rotation", ""},
-			{TFM_RESIZE, "RESIZE", "Resize", ""},
-			{TFM_TOSPHERE, "TOSPHERE", "Tosphere", ""},
-			{TFM_SHEAR, "SHEAR", "Shear", ""},
-			{TFM_WARP, "WARP", "Warp", ""},
-			{TFM_SHRINKFATTEN, "SHRINKFATTEN", "Shrinkfatten", ""},
-			{TFM_TILT, "TILT", "Tilt", ""},
-			{TFM_TRACKBALL, "TRACKBALL", "Trackball", ""},
-			{TFM_PUSHPULL, "PUSHPULL", "Pushpull", ""},
-			{TFM_CREASE, "CREASE", "Crease", ""},
-			{TFM_MIRROR, "MIRROR", "Mirror", ""},
-			{TFM_BONESIZE, "BONESIZE", "Bonesize", ""},
-			{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", "Bone_Envelope", ""},
-			{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", "Curve_Shrinkfatten", ""},
-			{TFM_BONE_ROLL, "BONE_ROLL", "Bone_Roll", ""},
-			{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", "Time_Translate", ""},
-			{TFM_TIME_SLIDE, "TIME_SLIDE", "Time_Slide", ""},
-			{TFM_TIME_SCALE, "TIME_SCALE", "Time_Scale", ""},
-			{TFM_TIME_EXTEND, "TIME_EXTEND", "Time_Extend", ""},
-			{TFM_BAKE_TIME, "BAKE_TIME", "Bake_Time", ""},
-			{TFM_BEVEL, "BEVEL", "Bevel", ""},
-			{TFM_BWEIGHT, "BWEIGHT", "Bweight", ""},
-			{TFM_ALIGN, "ALIGN", "Align", ""},
-			{0, NULL, NULL, NULL}
+			{TFM_INIT, "INIT", 0, "Init", ""},
+			{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
+			{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+			{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
+			{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+			{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
+			{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
+			{TFM_WARP, "WARP", 0, "Warp", ""},
+			{TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrinkfatten", ""},
+			{TFM_TILT, "TILT", 0, "Tilt", ""},
+			{TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
+			{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
+			{TFM_CREASE, "CREASE", 0, "Crease", ""},
+			{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
+			{TFM_BONESIZE, "BONESIZE", 0, "Bonesize", ""},
+			{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
+			{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
+			{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
+			{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
+			{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
+			{TFM_TIME_SCALE, "TIME_SCALE", 0, "Time_Scale", ""},
+			{TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time_Extend", ""},
+			{TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake_Time", ""},
+			{TFM_BEVEL, "BEVEL", 0, "Bevel", ""},
+			{TFM_BWEIGHT, "BWEIGHT", 0, "Bweight", ""},
+			{TFM_ALIGN, "ALIGN", 0, "Align", ""},
+			{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */

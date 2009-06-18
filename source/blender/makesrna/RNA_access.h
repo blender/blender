@@ -479,6 +479,8 @@ void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
+extern PointerRNA PointerRNA_NULL;
+
 /* Structs */
 
 const char *RNA_struct_identifier(StructRNA *type);
@@ -527,6 +529,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+int RNA_property_ui_icon(PropertyRNA *prop);
 
 /* Dynamic Property Information */
 

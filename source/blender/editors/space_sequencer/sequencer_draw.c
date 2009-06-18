@@ -741,7 +741,8 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	static int recursive= 0;
 	float zoom;
 	float zoomx, zoomy;
-	int render_size = 0;
+	float render_size = 0.0;
+	float proxy_size = 100.0;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -749,6 +750,8 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	render_size = sseq->render_size;
 	if (render_size == 0) {
 		render_size = scene->r.size;
+	} else {
+		proxy_size = render_size;
 	}
 	if (render_size < 0) {
 		return;
@@ -767,13 +770,13 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	else {
 		recursive= 1;
 		if (special_seq_update) {
-			ibuf= give_ibuf_seq_direct(scene, rectx, recty, (scene->r.cfra), render_size, special_seq_update);
+			ibuf= give_ibuf_seq_direct(scene, rectx, recty, (scene->r.cfra), proxy_size, special_seq_update);
 		} 
 		else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, render_size);
+			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, proxy_size);
 		} 
 		else {
-			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, render_size);
+			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, proxy_size);
 		}
 		recursive= 0;
 		
@@ -824,7 +827,7 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	
 	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		zoom /= render_size / 100.0;
+		zoom /= proxy_size / 100.0;
 		zoomx = zoom * ((float)scene->r.xasp / (float)scene->r.yasp);
 		zoomy = zoom;
 	} else {
@@ -960,8 +963,11 @@ void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
 	int rectx, recty;
 	int render_size = sseq->render_size;
+	int proxy_size = 100.0; 
 	if (render_size == 0) {
 		render_size = scene->r.size;
+	} else {
+		proxy_size = render_size;
 	}
 	if (render_size < 0) {
 		return;
@@ -973,7 +979,7 @@ void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		give_ibuf_prefetch_request(
 			rectx, recty, (scene->r.cfra), sseq->chanshown,
-			render_size);
+			proxy_size);
 	}
 }
 

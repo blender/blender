@@ -32,9 +32,23 @@
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_context.h"
 #include "BKE_image.h"
 
 #ifdef RNA_RUNTIME
+
+static void rna_Image_animated_update(bContext *C, PointerRNA *ptr)
+{
+	Image *ima= (Image*)ptr->data;
+	int  nr;
+
+	if(ima->flag & IMA_TWINANIM) {
+		nr= ima->xrep*ima->yrep;
+		if(ima->twsta>=nr) ima->twsta= 1;
+		if(ima->twend>=nr) ima->twend= nr-1;
+		if(ima->twsta>ima->twend) ima->twsta= 1;
+	}
+}
 
 #else
 
@@ -89,27 +103,27 @@ static void rna_def_image(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static const EnumPropertyItem prop_type_items[]= {
-		{IMA_TYPE_IMAGE, "IMAGE", "Image", ""},
-		{IMA_TYPE_MULTILAYER, "MULTILAYER", "Multilayer", ""},
-		{IMA_TYPE_UV_TEST, "UVTEST", "UV Test", ""},
-		{IMA_TYPE_R_RESULT, "RENDERRESULT", "Render Result", ""},
-		{IMA_TYPE_COMPOSITE, "COMPOSITING", "Compositing", ""},
-		{0, NULL, NULL, NULL}};
+		{IMA_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
+		{IMA_TYPE_MULTILAYER, "MULTILAYER", 0, "Multilayer", ""},
+		{IMA_TYPE_UV_TEST, "UVTEST", 0, "UV Test", ""},
+		{IMA_TYPE_R_RESULT, "RENDERRESULT", 0, "Render Result", ""},
+		{IMA_TYPE_COMPOSITE, "COMPOSITING", 0, "Compositing", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_source_items[]= {
-		{IMA_SRC_FILE, "FILE", "File", "Single image file"},
-		{IMA_SRC_SEQUENCE, "SEQUENCE", "Sequence", "Multiple image files, as a sequence"},
-		{IMA_SRC_MOVIE, "MOVIE", "Movie", "Movie file"},
-		{IMA_SRC_GENERATED, "GENERATED", "Generated", "Generated image"},
-		{IMA_SRC_VIEWER, "VIEWER", "Viewer", "Compositing node viewer"},
-		{0, NULL, NULL, NULL}};
+		{IMA_SRC_FILE, "FILE", 0, "File", "Single image file"},
+		{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Sequence", "Multiple image files, as a sequence"},
+		{IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
+		{IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
+		{IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
+		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_generated_type_items[]= {
-		{0, "BLANK", "Blank", "Generate a blank image"},
-		{1, "UVTESTGRID", "UV Test Grid", "Generated grid to test UV mappings"},
-		{0, NULL, NULL, NULL}};
+		{0, "BLANK", 0, "Blank", "Generate a blank image"},
+		{1, "UVTESTGRID", 0, "UV Test Grid", "Generated grid to test UV mappings"},
+		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_mapping_items[]= {
-		{0, "UV", "UV Coordinates", "Use UV coordinates for mapping the image"},
-		{IMA_REFLECT, "REFLECTION", "Reflection", "Use reflection mapping for mapping the image"},
-		{0, NULL, NULL, NULL}};
+		{0, "UV", 0, "UV Coordinates", "Use UV coordinates for mapping the image"},
+		{IMA_REFLECT, "REFLECTION", 0, "Reflection", "Use reflection mapping for mapping the image"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Image", "ID");
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image.");
@@ -180,19 +194,21 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Aspect", "Display Aspect for this image, does not affect rendering.");
 
 	prop= RNA_def_property(srna, "animated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* B_TWINANIM */
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TWINANIM);
 	RNA_def_property_ui_text(prop, "Animated", "Use as animated texture in the game engine.");
+	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twsta");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation Start", "Start frame of an animated texture.");
+	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twend");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation End", "End frame of an animated texture.");
+	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "animspeed");
@@ -200,7 +216,6 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second.");
 
 	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* B_SIMAGETILE */
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces).");
 

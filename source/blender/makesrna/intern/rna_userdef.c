@@ -891,6 +891,26 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
+static void rna_def_userdef_theme_space_logic(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	/* space_buts */
+	
+	srna= RNA_def_struct(brna, "ThemeLogicEditor", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_ui_text(srna, "Theme Logic Editor", "Theme settings for the Logic Editor.");
+	
+	rna_def_userdef_theme_spaces_main(srna, SPACE_LOGIC);
+	
+	prop= RNA_def_property(srna, "panel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Panel", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
+
 static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1321,6 +1341,11 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeNodeEditor");
 	RNA_def_property_ui_text(prop, "Node Editor", "");
 
+	prop= RNA_def_property(srna, "logic_editor", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tlogic");
+	RNA_def_property_struct_type(prop, "ThemeLogicEditor");
+	RNA_def_property_ui_text(prop, "Logic Editor", "");
+	
 	prop= RNA_def_property(srna, "outliner", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "toops");
 	RNA_def_property_struct_type(prop, "ThemeOutliner");
@@ -1357,6 +1382,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_outliner(brna);
 	rna_def_userdef_theme_space_info(brna);
 	rna_def_userdef_theme_space_sound(brna);
+	rna_def_userdef_theme_space_logic(brna);
 	rna_def_userdef_theme_colorset(brna);
 	rna_def_userdef_themes(brna);
 }
@@ -1396,15 +1422,15 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem view_zoom_styles[] = {
-		{USER_ZOOM_CONT, "CONTINUE", "Continue", "Old style zoom, continues while moving mouse up or down."},
-		{USER_ZOOM_DOLLY, "DOLLY", "Dolly", "Zooms in and out based on vertical mouse movement."},
-		{USER_ZOOM_SCALE, "SCALE", "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
-		{0, NULL, NULL, NULL}};
+		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down."},
+		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement."},
+		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem view_rotation_items[] = {
-		{0, "TURNTABLE", "Turntable", "Use turntable style rotation in the viewport."},
-		{USER_TRACKBALL, "TRACKBALL", "Trackball", "Use trackball style rotation in the viewport."},
-		{0, NULL, NULL, NULL}};
+		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport."},
+		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport."},
+		{0, NULL, 0, NULL, NULL}};
 
 
 	srna= RNA_def_struct(brna, "UserPreferencesView", NULL);
@@ -1476,7 +1502,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_column_layout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_PLAINMENUS);
-	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox and do not flip the contents of any menu.");
+	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox.");
+
+	prop= RNA_def_property(srna, "directional_menus", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DIRECTIONALORDER);
+	RNA_def_property_ui_text(prop, "Contents Follow Opening Direction", "Otherwise menus, etc will always be top to bottom, left to right, no matter opening direction.");
 
 	/* snap to grid */
 	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
@@ -1627,15 +1657,15 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem auto_key_modes[] = {
-		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", "Add/Replace Keys", ""},
-		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", "Replace Keys", ""},
-		{0, NULL, NULL, NULL}};
+		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace Keys", ""},
+		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace Keys", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem new_interpolation_types[] = {
-		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
-		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
-		{BEZT_IPO_BEZ, "BEZIER", "Bezier", ""},
-		{0, NULL, NULL, NULL}};
+		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
+		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -1780,30 +1810,30 @@ static void rna_def_userdef_language(BlenderRNA *brna)
 	
 	/* hardcoded here, could become dynamic somehow */
 	static EnumPropertyItem language_items[] = {
-		{0, "ENGLISH", "English", ""},
-		{1, "JAPANESE", "Japanese", ""},
-		{2, "DUTCH", "Dutch", ""},
-		{3, "ITALIAN", "Italian", ""},
-		{4, "GERMAN", "German", ""},
-		{5, "FINNISH", "Finnish", ""},
-		{6, "SWEDISH", "Swedish", ""},
-		{7, "FRENCH", "French", ""},
-		{8, "SPANISH", "Spanish", ""},
-		{9, "CATALAN", "Catalan", ""},
-		{10, "CZECH", "Czech", ""},
-		{11, "BRAZILIAN_PORTUGUESE", "Brazilian Portuguese", ""},
-		{12, "SIMPLIFIED_CHINESE", "Simplified Chinese", ""},
-		{13, "RUSSIAN", "Russian", ""},
-		{14, "CROATIAN", "Croatian", ""},
-		{15, "SERBIAN", "Serbian", ""},
-		{16, "UKRAINIAN", "Ukrainian", ""},
-		{17, "POLISH", "Polish", ""},
-		{18, "ROMANIAN", "Romanian", ""},
-		{19, "ARABIC", "Arabic", ""},
-		{20, "BULGARIAN", "Bulgarian", ""},
-		{21, "GREEK", "Greek", ""},
-		{22, "KOREAN", "Korean", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "ENGLISH", 0, "English", ""},
+		{1, "JAPANESE", 0, "Japanese", ""},
+		{2, "DUTCH", 0, "Dutch", ""},
+		{3, "ITALIAN", 0, "Italian", ""},
+		{4, "GERMAN", 0, "German", ""},
+		{5, "FINNISH", 0, "Finnish", ""},
+		{6, "SWEDISH", 0, "Swedish", ""},
+		{7, "FRENCH", 0, "French", ""},
+		{8, "SPANISH", 0, "Spanish", ""},
+		{9, "CATALAN", 0, "Catalan", ""},
+		{10, "CZECH", 0, "Czech", ""},
+		{11, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese", ""},
+		{12, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese", ""},
+		{13, "RUSSIAN", 0, "Russian", ""},
+		{14, "CROATIAN", 0, "Croatian", ""},
+		{15, "SERBIAN", 0, "Serbian", ""},
+		{16, "UKRAINIAN", 0, "Ukrainian", ""},
+		{17, "POLISH", 0, "Polish", ""},
+		{18, "ROMANIAN", 0, "Romanian", ""},
+		{19, "ARABIC", 0, "Arabic", ""},
+		{20, "BULGARIAN", 0, "Bulgarian", ""},
+		{21, "GREEK", 0, "Greek", ""},
+		{22, "KOREAN", 0, "Korean", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "UserPreferencesLanguage", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -1890,28 +1920,28 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
-		{0, "GL_CLAMP_OFF", "GL Texture Clamp Off", ""},
-		{8192, "GL_CLAMP_8192", "GL Texture Clamp 8192", ""},
-		{4096, "GL_CLAMP_4096", "GL Texture Clamp 4096", ""},
-		{2048, "GL_CLAMP_2048", "GL Texture Clamp 2048", ""},
-		{1024, "GL_CLAMP_1024", "GL Texture Clamp 1024", ""},
-		{512, "GL_CLAMP_512", "GL Texture Clamp 512", ""},
-		{256, "GL_CLAMP_256", "GL Texture Clamp 256", ""},
-		{128, "GL_CLAMP_128", "GL Texture Clamp 128", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "GL_CLAMP_OFF", 0, "GL Texture Clamp Off", ""},
+		{8192, "GL_CLAMP_8192", 0, "GL Texture Clamp 8192", ""},
+		{4096, "GL_CLAMP_4096", 0, "GL Texture Clamp 4096", ""},
+		{2048, "GL_CLAMP_2048", 0, "GL Texture Clamp 2048", ""},
+		{1024, "GL_CLAMP_1024", 0, "GL Texture Clamp 1024", ""},
+		{512, "GL_CLAMP_512", 0, "GL Texture Clamp 512", ""},
+		{256, "GL_CLAMP_256", 0, "GL Texture Clamp 256", ""},
+		{128, "GL_CLAMP_128", 0, "GL Texture Clamp 128", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_mixing_samples_items[] = {
-		{256, "AUDIO_SAMPLES_256", "256", "Set audio mixing buffer size to 256 samples"},
-		{512, "AUDIO_SAMPLES_512", "512", "Set audio mixing buffer size to 512 samples"},
-		{1024, "AUDIO_SAMPLES_1024", "1024", "Set audio mixing buffer size to 1024 samples"},
-		{2048, "AUDIO_SAMPLES_2048", "2048", "Set audio mixing buffer size to 2048 samples"},
-		{0, NULL, NULL, NULL}};
+		{256, "AUDIO_SAMPLES_256", 0, "256", "Set audio mixing buffer size to 256 samples"},
+		{512, "AUDIO_SAMPLES_512", 0, "512", "Set audio mixing buffer size to 512 samples"},
+		{1024, "AUDIO_SAMPLES_1024", 0, "1024", "Set audio mixing buffer size to 1024 samples"},
+		{2048, "AUDIO_SAMPLES_2048", 0, "2048", "Set audio mixing buffer size to 2048 samples"},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem draw_method_items[] = {
-		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
-		{USER_DRAW_OVERLAP, "OVERLAP", "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
-		{USER_DRAW_FULL, "FULL", "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
-		{0, NULL, NULL, NULL}};
+		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", 0, "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
+		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
+		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -2075,14 +2105,14 @@ void RNA_def_userdef(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem user_pref_sections[] = {
-		{0, "VIEW_CONTROLS", "View & Controls", ""},
-		{1, "EDIT_METHODS", "Edit Methods", ""},
-		{2, "LANGUAGE_COLORS", "Language & Colors", ""},
-		{3, "AUTO_SAVE", "Auto Save", ""},
-		{4, "SYSTEM_OPENGL", "System & OpenGL", ""},
-		{5, "FILE_PATHS", "File Paths", ""},
-		{6, "THEMES", "Themes", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "VIEW_CONTROLS", 0, "View & Controls", ""},
+		{1, "EDIT_METHODS", 0, "Edit Methods", ""},
+		{2, "LANGUAGE_COLORS", 0, "Language & Colors", ""},
+		{3, "AUTO_SAVE", 0, "Auto Save", ""},
+		{4, "SYSTEM_OPENGL", 0, "System & OpenGL", ""},
+		{5, "FILE_PATHS", 0, "File Paths", ""},
+		{6, "THEMES", 0, "Themes", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_userdef_dothemes(brna);
 	rna_def_userdef_solidlight(brna);

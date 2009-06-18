@@ -27,7 +27,14 @@
  */
 
 #include "KX_BlenderGL.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "BLF_api.h"
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,6 +65,7 @@
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_material_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_global.h"
 #include "BKE_bmfont.h"
@@ -68,7 +76,7 @@ extern "C" {
 //XXX #include "BIF_mywindow.h"
 //XXX #include "BIF_toolbox.h"
 //XXX #include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
-
+void wm_window_swap_buffers(wmWindow *win); // wm_window.h
 }
 
 /* end of blender block */
@@ -86,8 +94,10 @@ void BL_warp_pointer(int x,int y)
 	//XXX warp_pointer(x,y);
 }
 
-void BL_SwapBuffers()
+void BL_SwapBuffers(wmWindow *win)
 {
+	//wmWindow *window= CTX_wm_window(C);
+	wm_window_swap_buffers(win);
 	//XXX myswapbuffers();
 }
 
@@ -214,7 +224,7 @@ void BL_NormalMouse()
 #define MAX_FILE_LENGTH 512
 
 
-void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
+void BL_MakeScreenShot(struct ARegion *ar, const char* filename)
 {
 	char copyfilename[MAX_FILE_LENGTH];
 	strcpy(copyfilename,filename);

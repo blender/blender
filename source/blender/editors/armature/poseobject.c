@@ -500,9 +500,9 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", "Select Child", ""},
-	{0, NULL, NULL, NULL}
+	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+	{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */

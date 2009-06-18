@@ -40,14 +40,14 @@ void RNA_def_vpaint(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_mode_items[] = {
-		{0, "MIX", "Mix", "Use mix blending mode while painting."},
-		{1, "ADD", "Add", "Use add blending mode while painting."},
-		{2, "SUB", "Subtract", "Use subtract blending mode while painting."},
-		{3, "MUL", "Multiply", "Use multiply blending mode while painting."},
-		{4, "BLUR", "Blur", "Blur the color with surrounding values"},
-		{5, "LIGHTEN", "Lighten", "Use lighten blending mode while painting."},
-		{6, "DARKEN", "Darken", "Use darken blending mode while painting."},
-		{0, NULL, NULL, NULL}};
+		{0, "MIX", 0, "Mix", "Use mix blending mode while painting."},
+		{1, "ADD", 0, "Add", "Use add blending mode while painting."},
+		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
+		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
+		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
+		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "VPaint", NULL);
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of the Vpaint tool.");

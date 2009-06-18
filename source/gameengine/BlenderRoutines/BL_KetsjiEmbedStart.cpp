@@ -66,16 +66,18 @@
 #include "SYS_System.h"
 
 	/***/
-
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+
 #include "BKE_utildefines.h"
 //XXX #include "BIF_screen.h"
 //XXX #include "BIF_scrarea.h"
 
-#include "BKE_main.h"	
+#include "BKE_main.h"
+//#include "BKE_context.h"
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
 #include "DNA_scene_types.h"
@@ -84,14 +86,19 @@
 #include "GPU_extensions.h"
 #include "Value.h"
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 //XXX #include "BSE_headerbuttons.h"
-void update_for_newframe();
+#include "../../blender/windowmanager/WM_types.h"
+#include "../../blender/windowmanager/wm_window.h"
+#include "../../blender/windowmanager/wm_event_system.h"
 #ifdef __cplusplus
 }
 #endif
+
 
 static BlendFileData *load_game_data(char *filename)
 {
@@ -111,18 +118,28 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct ScrArea *area,
-								 struct ARegion *ar,
-								 char* scenename,
-								 struct Main* maggie1,
-								 struct SpaceIpo *sipo,
-								 int always_use_expand_framing)
+
+/* screw it, BKE_context.h is complaining! */
+extern "C" struct wmWindow *CTX_wm_window(const bContext *C);
+extern "C" struct ScrArea *CTX_wm_area(const bContext *C);
+extern "C" struct ARegion *CTX_wm_region(const bContext *C);
+extern "C" struct Scene *CTX_data_scene(const bContext *C);
+extern "C" struct Main *CTX_data_main(const bContext *C);
+
+extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_framing)
 {
+	/* context values */
+	struct wmWindow *win= CTX_wm_window(C);
+	struct ScrArea *area= CTX_wm_area(C); // curarea
+	struct ARegion *ar= CTX_wm_region(C);
+	struct Scene *scene= CTX_data_scene(C);
+	struct Main* maggie1= CTX_data_main(C);
+	
+	
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
-	Scene *scene= NULL; // XXX give as arg
 	Main* blenderdata = maggie1;
 
-	char* startscenename = scenename;
+	char* startscenename = scene->id.name+2;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE], oldsce[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
@@ -156,7 +173,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -236,7 +253,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 		for (i = 0; i < 16; i++)
 		{
-			float *projmat_linear; 			//XXX = (float*) area->winmat;
+			float *projmat_linear= (float*) rv3d->winmat;
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
@@ -342,7 +359,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
@@ -424,7 +441,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					exitrequested = ketsjiengine->GetExitCode();
 					
 					// kick the engine
-					bool render = ketsjiengine->NextFrame();
+					bool render = ketsjiengine->NextFrame(); // XXX 2.5 Bug, This is never true! FIXME-  Campbell
 					
 					if (render)
 					{
@@ -432,26 +449,37 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 						ketsjiengine->Render();
 					}
 					
+					wm_window_process_events_nosleep(C);
+					
 					// test for the ESC key
-					while (0) //XXX while (qtest())
+					//XXX while (qtest())
+					while(wmEvent *event= (wmEvent *)win->queue.first)
 					{
-						short val; 
-						unsigned short event = 0; //XXX extern_qread(&val);
+						short val = 0;
+						//unsigned short event = 0; //XXX extern_qread(&val);
 						
-						if (keyboarddevice->ConvertBlenderEvent(event,val))
+						if (keyboarddevice->ConvertBlenderEvent(event->type,event->val))
 							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
 						
 							/* Coordinate conversion... where
 							* should this really be?
 						*/
-						if (event==MOUSEX) {
-							val = 0;//XXX val - scrarea_get_win_x(area);
-						} else if (event==MOUSEY) {
-							val = 0;//XXX scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
+						if (event->type==MOUSEMOVE) {
+							/* Note nice! XXX 2.5 event hack */
+							val = event->x - ar->winrct.xmin;
+							mousedevice->ConvertBlenderEvent(MOUSEX, val);
+							
+							val = ar->winy - (event->y - ar->winrct.ymin) - 1;
+							mousedevice->ConvertBlenderEvent(MOUSEY, val);
+						}
+						else {
+							mousedevice->ConvertBlenderEvent(event->type,event->val);
 						}
 						
-						mousedevice->ConvertBlenderEvent(event,val);
+						BLI_remlink(&win->queue, event);
+						wm_event_free(event);
 					}
+					
 				}
 				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
@@ -558,11 +586,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	PyGILState_Release(gilstate);
 }
 
-extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
+extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
+								 struct ScrArea *area,
 								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
     int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -597,7 +625,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		bool usemat = false;
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, ar);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -650,7 +678,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			cframe=blscene->r.cfra;
 			startFrame = blscene->r.sfra;
 			blscene->r.cfra=startFrame;
-			update_for_newframe();
+			// update_for_newframe(); // XXX scene_update_for_newframe wont cut it!
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
 		}
 
@@ -661,7 +689,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=true;
 			
@@ -724,7 +752,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 					// kick the engine
 					ketsjiengine->NextFrame();
 				    blscene->r.cfra=blscene->r.cfra+1;
-				    update_for_newframe();
+				    // update_for_newframe(); // XXX scene_update_for_newframe wont cut it
 					
 				}
 				exitstring = ketsjiengine->GetExitString();

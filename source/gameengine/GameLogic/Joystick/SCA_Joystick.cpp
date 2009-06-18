@@ -158,12 +158,13 @@ bool SCA_Joystick::aAxisIsPositive(int axis_single)
 
 bool SCA_Joystick::aAnyButtonPressIsPositive(void)
 {
+#ifndef DISABLE_SDL
 	/* this is needed for the "all events" option
 	 * so we know if there are no buttons pressed */
 	for (int i=0; i<m_buttonmax; i++)
 		if (SDL_JoystickGetButton(m_private->m_joystick, i))
 			return true;
-		
+#endif
 	return false;
 }
 

@@ -221,20 +221,25 @@ def write(filename, objects,
 		file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 	
 	# Get the container mesh. - used for applying modifiers and non mesh objects.
-	containerMesh = meshName = tempMesh = None
-	for meshName in Blender.NMesh.GetNames():
-		if meshName.startswith(temp_mesh_name):
-			tempMesh = Mesh.Get(meshName)
-			if not tempMesh.users:
-				containerMesh = tempMesh
-	if not containerMesh:
-		containerMesh = Mesh.New(temp_mesh_name)
+
+# 	containerMesh = meshName = tempMesh = None
+# 	for meshName in Blender.NMesh.GetNames():
+# 		if meshName.startswith(temp_mesh_name):
+# 			tempMesh = Mesh.Get(meshName)
+# 			if not tempMesh.users:
+# 				containerMesh = tempMesh
+# 	if not containerMesh:
+# 		containerMesh = Mesh.New(temp_mesh_name)
+
+    # XXX this mesh is not removed
+    # XXX this mesh should not be in database
+    containerMesh = bpy.data.add_mesh(temp_mesh_name)
 	
 	if EXPORT_ROTX90:
 		mat_xrot90= Blender.Mathutils.RotationMatrix(-90, 4, 'x')
 		
-	del meshName
-	del tempMesh
+# 	del meshName
+# 	del tempMesh
 	
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1

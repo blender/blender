@@ -1001,9 +1001,9 @@ void GRAPHEDIT_OT_keyframes_sample (wmOperatorType *ot)
 
 /* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_graphkeys_expo_types[] = {
-	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant Extrapolation", ""},
-	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", "Linear Extrapolation", ""},
-	{0, NULL, NULL, NULL}
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for setting extrapolation mode for keyframes */
@@ -1371,12 +1371,12 @@ void GRAPHEDIT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{GRAPHKEYS_SNAP_CFRA, "CFRA", "Current frame", ""},
-	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", "Nearest Frame", ""}, // XXX as single entry?
-	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", "Nearest Second", ""}, // XXX as single entry?
-	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", "Nearest Marker", ""},
-	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", "Flatten Handles", ""},
-	{0, NULL, NULL, NULL}
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
+	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
+	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
+	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", 0, "Flatten Handles", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for snapping keyframes to frame-times */
@@ -1466,11 +1466,11 @@ void GRAPHEDIT_OT_keyframes_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", "Current frame", ""},
-	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", "Vertical Axis", ""},
-	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", "Horizontal Axis", ""},
-	{GRAPHKEYS_MIRROR_MARKER, "MARKER", "First Selected Marker", ""},
-	{0, NULL, NULL, NULL}
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "Current frame", ""},
+	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "Vertical Axis", ""},
+	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "Horizontal Axis", ""},
+	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "First Selected Marker", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for mirroring keyframes */

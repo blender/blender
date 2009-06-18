@@ -75,7 +75,7 @@ static int theme_regionid= RGN_TYPE_WINDOW;
 
 void ui_resources_init(void)
 {
-	UI_icons_init(BIFICONID_LAST+1);
+	UI_icons_init(BIFICONID_LAST);
 }
 
 void ui_resources_free(void)
@@ -155,6 +155,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				break;
 			case SPACE_NODE:
 				ts= &btheme->tnode;
+				break;
+			case SPACE_LOGIC:
+				ts= &btheme->tlogic;
 				break;
 			default:
 				ts= &btheme->tv3d;
@@ -398,6 +401,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->toops);
 	ui_theme_init_new_do(&btheme->ttime);
 	ui_theme_init_new_do(&btheme->tnode);
+	ui_theme_init_new_do(&btheme->tlogic);
 	
 }
 
@@ -608,6 +612,10 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 
+	/* space logic */
+	btheme->tlogic= btheme->tv3d;
+	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
+	
 }
 
 
@@ -1233,6 +1241,13 @@ void init_userdef_do_versions(void)
 
 			if(btheme->tui.wcol_num.outline[3]==0)
 				ui_widget_color_init(&btheme->tui);
+			
+			/* Logic editor theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tlogic.syntaxn[3]==0) {
+				/* re-uses syntax color storage */
+				btheme->tlogic= btheme->tv3d;
+				SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
+			}
 		}
 	}
 	

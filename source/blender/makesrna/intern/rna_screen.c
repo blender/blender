@@ -33,12 +33,12 @@
 #include "DNA_scene_types.h"
 
 EnumPropertyItem region_type_items[] = {
-	{RGN_TYPE_WINDOW, "WINDOW", "Window", ""},
-	{RGN_TYPE_HEADER, "HEADER", "Header", ""},
-	{RGN_TYPE_CHANNELS, "CHANNELS", "Channels", ""},
-	{RGN_TYPE_TEMPORARY, "TEMPORARY", "Temporary", ""},
-	{RGN_TYPE_UI, "UI", "UI", ""},
-	{0, NULL, NULL, NULL}};
+	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
+	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
+	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
+	{RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
+	{RGN_TYPE_UI, "UI", 0, "UI", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 

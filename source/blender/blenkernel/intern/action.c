@@ -800,6 +800,7 @@ void calc_action_range(const bAction *act, float *start, float *end, int incl_hi
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
 /* exported to game engine */
+/* Note! this assumes both poses are aligned, this isnt always true when dealing with user poses */
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;
@@ -810,7 +811,7 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 		return;
 	}
 
-	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
+	for (schan=src->chanbase.first; (schan && pchan); schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
 }

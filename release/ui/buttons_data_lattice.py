@@ -12,12 +12,16 @@ class DataButtonsPanel(bpy.types.Panel):
 class DATA_PT_lattice(DataButtonsPanel):
 	__idname__ = "DATA_PT_lattice"
 	__label__ = "Lattice"
+	
+	def poll(self, context):
+		return (context.object.type == 'LATTICE')
 
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		lat = context.lattice
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 

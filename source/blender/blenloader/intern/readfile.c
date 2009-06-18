@@ -4733,6 +4733,14 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
+			else if(sl->spacetype==SPACE_LOGIC) {
+				SpaceLogic *slogic= (SpaceLogic *)sl;
+				
+				if(slogic->gpd) {
+					slogic->gpd= newdataadr(fd, slogic->gpd);
+					direct_link_gpencil(fd, slogic->gpd);
+				}
+			}
 			else if(sl->spacetype==SPACE_SEQ) {
 				SpaceSeq *sseq= (SpaceSeq *)sl;
 				if(sseq->gpd) {
@@ -9129,6 +9137,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				SEQP_BEGIN(ed, seq) {
+					if (seq->strip && seq->strip->proxy){
+						if (sce->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				SEQ_END
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

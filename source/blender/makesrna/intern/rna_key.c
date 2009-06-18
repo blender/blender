@@ -277,10 +277,10 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
-		{0, NULL, NULL, NULL}};
+		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");

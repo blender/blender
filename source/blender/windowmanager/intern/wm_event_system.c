@@ -76,7 +76,7 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 	BLI_addtail(&win->queue, event);
 }
 
-static void wm_event_free(wmEvent *event)
+void wm_event_free(wmEvent *event)
 {
 	if(event->customdata && event->customdatafree)
 		MEM_freeN(event->customdata);

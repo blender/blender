@@ -120,9 +120,9 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	StructRNA *srna;
     PropertyRNA *prop;
 	static EnumPropertyItem prop_handle_type_items[] = {
-        {0, "AUTO", "Auto Handle", ""},
-        {CUMA_VECTOR, "VECTOR", "Vector Handle", ""},
-		{0, NULL, NULL, NULL}
+        {0, "AUTO", 0, "Auto Handle", ""},
+        {CUMA_VECTOR, "VECTOR", 0, "Vector Handle", ""},
+		{0, NULL, 0, NULL, NULL}
     };
 
 	srna= RNA_def_struct(brna, "CurveMapPoint", NULL);
@@ -152,9 +152,9 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	StructRNA *srna;
     PropertyRNA *prop;
 	static EnumPropertyItem prop_extend_items[] = {
-        {0, "HORIZONTAL", "Horizontal", ""},
-        {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", "Extrapolated", ""},
-		{0, NULL, NULL, NULL}
+        {0, "HORIZONTAL", 0, "Horizontal", ""},
+        {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
+		{0, NULL, 0, NULL, NULL}
     };
 
 	srna= RNA_def_struct(brna, "CurveMap", NULL);

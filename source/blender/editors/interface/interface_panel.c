@@ -69,6 +69,7 @@
 #define PNL_ACTIVE			2
 #define PNL_WAS_ACTIVE		4
 #define PNL_ANIM_ALIGN		8
+#define PNL_NEW_ADDED		16
 
 typedef enum uiHandlePanelState {
 	PANEL_STATE_DRAG,
@@ -157,18 +158,20 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 	pa->ofsy= papar->ofsy + papar->sizey-pa->sizey;
 }
 
-Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt, int *open)
+Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 {
 	uiStyle *style= U.uistyles.first;
 	Panel *pa, *patab, *palast, *panext;
-	char *panelname= pt->label;
-	char *tabname= pt->label;
+	char *drawname= pt->label;
+	char *idname= pt->idname;
+	char *tabname= pt->idname;
 	char *hookname= NULL;
 	int newpanel;
+	int align= panel_aligned(sa, ar);
 	
 	/* check if Panel exists, then use that one */
 	for(pa=ar->panels.first; pa; pa=pa->next)
-		if(strncmp(pa->panelname, panelname, UI_MAX_NAME_STR)==0)
+		if(strncmp(pa->panelname, idname, UI_MAX_NAME_STR)==0)
 			if(strncmp(pa->tabname, tabname, UI_MAX_NAME_STR)==0)
 				break;
 	
@@ -181,13 +184,21 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 		/* new panel */
 		pa= MEM_callocN(sizeof(Panel), "new panel");
 		pa->type= pt;
-		BLI_strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
+		BLI_strncpy(pa->panelname, idname, UI_MAX_NAME_STR);
 		BLI_strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
+
+		if(pt->flag & PNL_DEFAULT_CLOSED) {
+			if(align == BUT_VERTICAL)
+				pa->flag |= PNL_CLOSEDY;
+			else
+				pa->flag |= PNL_CLOSEDX;
+		}
 	
 		pa->ofsx= 0;
 		pa->ofsy= style->panelouter;
 		pa->sizex= 0;
 		pa->sizey= 0;
+		pa->runtime_flag |= PNL_NEW_ADDED;
 
 		BLI_addtail(&ar->panels, pa);
 		
@@ -206,6 +217,8 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 			} 
 		}
 	}
+
+	BLI_strncpy(pa->drawname, drawname, UI_MAX_NAME_STR);
 
 	/* if a new panel is added, we insert it right after the panel
 	 * that was last added. this way new panels are inserted in the
@@ -235,7 +248,6 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 	if(pa->flag & PNL_CLOSED) return pa;
 
 	*open= 1;
-	pa->drawname[0]= 0; /* otherwise closes panels show wrong title */
 	
 	return pa;
 }
@@ -244,13 +256,20 @@ void uiEndPanel(uiBlock *block, int width, int height)
 {
 	Panel *pa= block->panel;
 
-	if(pa->sizex != width || pa->sizey != height) {
-		pa->runtime_flag |= PNL_ANIM_ALIGN;
-		pa->ofsy += pa->sizey-height;
+	if(pa->runtime_flag & PNL_NEW_ADDED) {
+		pa->runtime_flag &= ~PNL_NEW_ADDED;
+		pa->sizex= width;
+		pa->sizey= height;
 	}
+	else if(!(width == 0 || height == 0)) {
+		if(pa->sizex != width || pa->sizey != height) {
+			pa->runtime_flag |= PNL_ANIM_ALIGN;
+			pa->ofsy += pa->sizey-height;
+		}
 
-	pa->sizex= width;
-	pa->sizey= height;
+		pa->sizex= width;
+		pa->sizey= height;
+	}
 }
 
 #if 0

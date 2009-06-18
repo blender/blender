@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <ft2build.h>
 
@@ -143,11 +144,12 @@ void blf_font_draw(FontBLF *font, char *str)
 			delta.x= 0;
 			delta.y= 0;
 
-			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
-			pen_x += delta.x >> 6;
+			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+				pen_x += delta.x >> 6;
 
-			if (pen_x < old_pen_x)
-				pen_x= old_pen_x;
+				if (pen_x < old_pen_x)
+					pen_x= old_pen_x;
+			}
 		}
 
 		if (font->flags & BLF_USER_KERNING) {
@@ -174,7 +176,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
 	rctf gbox;
-	int pen_x, pen_y, old_pen_x;
+	float pen_x, pen_y, old_pen_x;
 	int i, has_kerning;
 
 	if (!font->glyph_cache)
@@ -222,11 +224,12 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 			delta.x= 0;
 			delta.y= 0;
 
-			FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
-			pen_x += delta.x >> 6;
+			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+				pen_x += delta.x >> 6;
 
-			if (pen_x < old_pen_x)
-				old_pen_x= pen_x;
+				if (pen_x < old_pen_x)
+					old_pen_x= pen_x;
+			}
 		}
 
 		if (font->flags & BLF_USER_KERNING) {
@@ -318,7 +321,7 @@ void blf_font_fill(FontBLF *font)
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;
 	font->clip_rec.ymax= 0.0f;
-	font->flags= BLF_USER_KERNING;
+	font->flags= BLF_USER_KERNING | BLF_FONT_KERNING;
 	font->dpi= 0;
 	font->size= 0;
 	font->kerning= 0.0f;

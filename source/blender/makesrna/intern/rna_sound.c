@@ -46,17 +46,17 @@ static void rna_def_sample(BlenderRNA *brna)
 
 	/* sound types */
 	static EnumPropertyItem prop_sample_type_items[] = {
-		{SAMPLE_INVALID, "INVALID", "Invalid", ""},
-		{SAMPLE_UNKNOWN, "UNKNOWN", "Unknown", ""},
-		{SAMPLE_RAW, "RAW", "Raw", ""},
-		{SAMPLE_WAV, "WAV", "WAV", "Uncompressed"},
-		{SAMPLE_MP2, "MP2", "MP2", "MPEG-1 Audio Layer 2"},
-		{SAMPLE_MP3, "MP3", "MP3", "MPEG-1 Audio Layer 3"},
-		{SAMPLE_OGG_VORBIS, "OGG_VORBIS", "Ogg Vorbis", ""},
-		{SAMPLE_WMA, "WMA", "WMA", "Windows Media Audio"},
-		{SAMPLE_ASF, "ASF", "ASF", "Windows Advanced Systems Format"},
-		{SAMPLE_AIFF, "AIFF", "AIFF", "Audio Interchange File Format"},
-		{0, NULL, NULL, NULL}};
+		{SAMPLE_INVALID, "INVALID", 0, "Invalid", ""},
+		{SAMPLE_UNKNOWN, "UNKNOWN", 0, "Unknown", ""},
+		{SAMPLE_RAW, "RAW", 0, "Raw", ""},
+		{SAMPLE_WAV, "WAV", 0, "WAV", "Uncompressed"},
+		{SAMPLE_MP2, "MP2", 0, "MP2", "MPEG-1 Audio Layer 2"},
+		{SAMPLE_MP3, "MP3", 0, "MP3", "MPEG-1 Audio Layer 3"},
+		{SAMPLE_OGG_VORBIS, "OGG_VORBIS", 0, "Ogg Vorbis", ""},
+		{SAMPLE_WMA, "WMA", 0, "WMA", "Windows Media Audio"},
+		{SAMPLE_ASF, "ASF", 0, "ASF", "Windows Advanced Systems Format"},
+		{SAMPLE_AIFF, "AIFF", 0, "AIFF", "Audio Interchange File Format"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SoundSample", "ID");
 	RNA_def_struct_sdna(srna, "bSample");

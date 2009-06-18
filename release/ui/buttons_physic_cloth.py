@@ -15,8 +15,7 @@ class Physic_PT_cloth(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		md = context.cloth
-		cloth = md.settings
+		cloth = context.cloth.settings
 		
 		split = layout.split()
 		
@@ -51,16 +50,14 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 	
 	def draw_header(self, context):
 		layout = self.layout
-		md = context.cloth
-		cloth = md.collision_settings
+		cloth = context.cloth.settings
 	
 		layout.itemR(cloth, "enable_collision", text="")
 
 	def draw(self, context):
 		layout = self.layout
+		cloth = context.cloth.settings
 		
-		md = context.cloth
-		cloth = md.collision_settings
 		layout.active = cloth.enable_collision	
 		
 		col = layout.column_flow()
@@ -82,16 +79,14 @@ class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
 	
 	def draw_header(self, context):
 		layout = self.layout
-		md = context.cloth
-		cloth = md.settings
+		cloth = context.cloth.settings
 	
 		layout.itemR(cloth, "stiffness_scaling", text="")
 
 	def draw(self, context):
 		layout = self.layout
+		cloth = context.cloth.settings
 		
-		md = context.cloth
-		cloth = md.settings
 		layout.active = cloth.stiffness_scaling	
 		
 		split = layout.split()

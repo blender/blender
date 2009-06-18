@@ -1245,10 +1245,10 @@ static int sculpt_brush_curve_preset_exec(bContext *C, wmOperator *op)
 static void SCULPT_OT_brush_curve_preset(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_mode_items[] = {
-		{BRUSH_PRESET_SHARP, "SHARP", "Sharp Curve", ""},
-		{BRUSH_PRESET_SMOOTH, "SMOOTH", "Smooth Curve", ""},
-		{BRUSH_PRESET_MAX, "MAX", "Max Curve", ""},
-		{0, NULL, NULL, NULL}};
+		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp Curve", ""},
+		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth Curve", ""},
+		{BRUSH_PRESET_MAX, "MAX", 0, "Max Curve", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
 	ot->idname= "SCULPT_OT_brush_curve_preset";

@@ -715,9 +715,9 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 }
 
 static EnumPropertyItem lasso_select_types[] = {
-	{0, "SELECT", "Select", ""},
-	{1, "DESELECT", "Deselect", ""},
-	{0, NULL, NULL, NULL}
+	{0, "SELECT", 0, "Select", ""},
+	{1, "DESELECT", 0, "Deselect", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -1526,9 +1526,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 
 /* *****************Selection Operators******************* */
 static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
+	{0, "EXCLUSIVE", 0, "Exclusive", ""},
+	{1, "EXTEND", 0, "Extend", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ****** Border Select ****** */

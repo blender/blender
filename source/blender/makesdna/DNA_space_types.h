@@ -361,6 +361,21 @@ typedef struct SpaceNode {
 #define SNODE_TEX_WORLD		1
 #define SNODE_TEX_BRUSH		2
 
+typedef struct SpaceLogic {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;
+	
+	short blockhandler[8];
+	
+	short flag, scaflag;
+	int pad;
+	
+	struct bGPdata *gpd;		/* grease-pencil data */
+} SpaceLogic;
+
+
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -753,8 +768,8 @@ enum {
 	SPACE_SCRIPT,
 	SPACE_TIME,
 	SPACE_NODE,
-	SPACEICONMAX = SPACE_NODE
-/*	SPACE_LOGIC	*/
+	SPACE_LOGIC,
+	SPACEICONMAX = SPACE_LOGIC
 };
 
 #endif

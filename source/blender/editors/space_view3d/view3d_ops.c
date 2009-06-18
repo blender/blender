@@ -85,6 +85,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_drawtype);
 	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	WM_operatortype_append(VIEW3D_OT_localview);
+	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_layers);
 	
 	WM_operatortype_append(VIEW3D_OT_properties);
@@ -172,6 +173,8 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANUP);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
 	
 	/* layers, shift + alt are properties set in invoke() */
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_layers", ONEKEY, KM_PRESS, KM_ANY, 0)->ptr, "nr", 1);
