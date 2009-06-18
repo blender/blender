@@ -177,6 +177,8 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) 
 
 		BMEdit_Free(em);
 		*em = *emcopy;
+
+		MEM_freeN(emcopy);
 		return 0;
 	} else {
 		BMEdit_Free(em->emcopy);
