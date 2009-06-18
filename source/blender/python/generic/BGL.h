@@ -41,7 +41,8 @@
 #endif
 
 #include <Python.h>
-#include "BIF_gl.h"
+#include <GL/glew.h>
+#include "../intern/bpy_compat.h"
 
 PyObject *BGL_Init( const char *from );
 

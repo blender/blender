@@ -37,6 +37,7 @@ extern "C" {
 struct bContext;
 struct ID;
 struct Main;
+struct ReportList;
 
 /* Types */
 
@@ -719,13 +720,13 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
 void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
 
-int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
-int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms);
+int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
+int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);
 
-int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
-int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...);
-int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
-int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args);
+int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
+int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...);
+int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
+int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args);
 
 /* ID */
 

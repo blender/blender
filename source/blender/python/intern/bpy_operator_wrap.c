@@ -40,6 +40,8 @@
 #include "bpy_compat.h"
 #include "bpy_util.h"
 
+#include "../generic/bpy_internal_import.h" // our own imports
+
 #define PYOP_ATTR_PROP			"__props__"
 #define PYOP_ATTR_UINAME		"__label__"
 #define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
@@ -181,6 +183,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *py_operator;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
+
+	bpy_import_main_set(CTX_data_main(C));
 	
 	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solutuon for this.
 
@@ -233,7 +237,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 			PyTuple_SET_ITEM(args, 2, pyop_dict_from_event(event));
 		}
 		else if (mode==PYOP_EXEC) {
-			item= PyObject_GetAttrString(py_class, "exec");
+			item= PyObject_GetAttrString(py_class, "execute");
 			args = PyTuple_New(2);
 			
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
@@ -292,7 +296,10 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		
 		while(flag_def->name) {
 			if (ret_flag & flag_def->flag) {
-				flag_str[1] ? sprintf(flag_str, "%s | %s", flag_str, flag_def->name) : strcpy(flag_str, flag_def->name);
+				if(flag_str[1])
+					sprintf(flag_str, "%s | %s", flag_str, flag_def->name);
+				else
+					strcpy(flag_str, flag_def->name);
 			}
 			flag_def++;
 		}
@@ -302,10 +309,11 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		Py_DECREF(item);
 		strcpy(class_name, _PyUnicode_AsString(item));
 
-		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "exec" : "invoke", flag_str);
+		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "execute" : "invoke", flag_str);
 	}
 
 	PyGILState_Release(gilstate);
+	bpy_import_main_set(NULL);
 
 	return ret_flag;
 }
@@ -355,7 +363,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
-	if (PyObject_HasAttrString(py_class, "exec"))
+	if (PyObject_HasAttrString(py_class, "execute"))
 		ot->exec= PYTHON_OT_exec;
 	if (PyObject_HasAttrString(py_class, "poll"))
 		ot->poll= PYTHON_OT_poll;
@@ -408,6 +416,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 {	
 	PyObject *base_class, *item;
+	wmOperatorType *ot;
 	
 	
 	char *idname= NULL;
@@ -418,7 +427,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"exec",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"execute",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
@@ -438,9 +447,10 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	Py_DECREF(item);
 	idname =  _PyUnicode_AsString(item);
 	
-	if (WM_operatortype_find(idname)) {
-		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name \"%s\"", idname);
-		return NULL;
+	/* remove if it already exists */
+	if ((ot=WM_operatortype_find(idname))) {
+		Py_XDECREF((PyObject*)ot->pyop_data);
+		WM_operatortype_remove(idname);
 	}
 	
 	/* If we have properties set, check its a list of dicts */

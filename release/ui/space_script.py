@@ -61,8 +61,8 @@ class SCRIPT_MT_export(bpy.types.Menu):
 class SCRIPT_OT_reload_scripts(bpy.types.Operator):
     __label__ = 'Reload Scripts'
 
-    def exec(self, context):
-        print("SCRIPT_OT_reload_scripts: exec")
+    def execute(self, context):
+        print("SCRIPT_OT_reload_scripts: execute")
 
         # add ../io to sys.path
 
@@ -116,7 +116,7 @@ class SCRIPT_OT_reload_scripts(bpy.types.Operator):
 
     def invoke(self, context, event):
         print("SCRIPT_OT_reload_scripts: invoke")
-        return self.exec(context)
+        return self.execute(context)
 
     def poll(self, context):
         pass
@@ -129,3 +129,4 @@ if (hasattr(bpy.ops, "SCRIPT_OT_reload_scripts")):
     bpy.ops.remove(bpy.ops.SCRIPT_OT_reload_scripts)
 
 bpy.ops.add(SCRIPT_OT_reload_scripts)
+

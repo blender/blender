@@ -584,7 +584,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine.");
 }
 
-static StructRNA *rna_def_object(BlenderRNA *brna)
+static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -739,7 +739,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0, 0); /* don't dereference pointer! */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0, 0, 0); /* don't dereference pointer! */
 	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
@@ -799,11 +799,11 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 
-	/*
-	// error on compile
-	prop= RNA_def_float_matrix(srna, "mat", 16, NULL, 0.0f, 0.0f, "Matrix", "Transform matrix of the object.", 0.0f, 0.0f);
+	/* matrix */
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
-	*/
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
 
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
@@ -1109,8 +1109,8 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key index.");
-	
-	return srna;
+
+	RNA_api_object(srna);
 }
 
 void RNA_def_object(BlenderRNA *brna)

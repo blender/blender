@@ -32,6 +32,7 @@
 #define EXPP_bpy_import_h
 
 #include <Python.h>
+#include "../intern/bpy_compat.h"
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 

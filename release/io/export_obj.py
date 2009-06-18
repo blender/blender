@@ -4,10 +4,7 @@ def write_obj(filepath, scene, ob):
 	out = open(filepath, 'w')
 
 	# create a temporary mesh
-	mesh = bpy.data.add_mesh("tmpmesh")
-
-	# copy data with modifiers applied
-	mesh.copy_applied(scene, ob)
+	mesh = ob.create_render_mesh(scene)
 
 	# for vert in mesh.verts:
 	# ^ iterating that way doesn't work atm for some reason
@@ -25,7 +22,8 @@ def write_obj(filepath, scene, ob):
 			out.write(' {0}'.format(index + 1))
 		out.write('\n')
 
-	# TODO: delete mesh here
+	# delete mesh gain
+	bpy.data.remove_mesh(mesh)
 
 	out.close()
 	
@@ -37,13 +35,13 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 	__props__ = [
-		bpy.props["StringProperty"](attr="filename", name="filename")
+		bpy.props.StringProperty(attr="filename", name="filename")
 		]
 
 	def debug(self, message):
 		print("{0}: {1}".format(self.__class__.__name__, message))
 
-	def exec(self, context):
+	def execute(self, context):
 		self.debug("exec")
 		self.debug("filename = " + self.filename)
 
@@ -61,9 +59,13 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		self.debug("invoke")
-		context.add_fileselect(self.__operator__)
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
 		return ('RUNNING_MODAL',)
 	
 	def poll(self, context): # poll isnt working yet
 		self.debug("poll")
 		return True
+
+bpy.ops.add(SCRIPT_OT_export_obj)
+

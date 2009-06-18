@@ -188,29 +188,11 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 /* API functions */
 
-void RNA_api_ui_layout(struct StructRNA *srna);
+void RNA_api_main(struct StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
+void RNA_api_object(struct StructRNA *srna);
+void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
-void RNA_api_main(StructRNA *srna);
-
-#ifdef RNA_RUNTIME
-
-struct wmWindowManager;
-struct bContext;
-struct wmOperator;
-struct Main;
-struct Mesh;
-struct Scene;
-struct Object;
-
-void RNA_api_wm_add_fileselect(struct wmWindowManager *self, struct bContext *C, struct wmOperator *op);
-
-struct Mesh *RNA_api_main_add_mesh(struct Main *main, char *name);
-void RNA_api_main_remove_mesh(struct Main *main, struct Mesh *me);
-
-void RNA_api_mesh_make_rendermesh(struct Mesh *me, struct Scene *sce, struct Object *ob);
-
-#endif
 
 /* ID Properties */
 
@@ -251,9 +233,6 @@ void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_listbase_end(struct CollectionPropertyIterator *iter);
 
-/* experimental */
-void *rna_iterator_listbase_add(ListBase *lb, void *item);
-
 typedef struct ArrayIterator {
 	char *ptr;
 	char *endptr;
@@ -266,9 +245,6 @@ void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
-
-/* experimental */
-void *rna_iterator_array_add(void *ptr, int itemsize, int length, void *item);
 
 /* Duplicated code since we can't link in blenlib */
 

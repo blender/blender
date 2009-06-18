@@ -32,6 +32,7 @@
 #define EXPP_euler_h
 
 #include <Python.h>
+#include "../intern/bpy_compat.h"
 
 extern PyTypeObject euler_Type;
 

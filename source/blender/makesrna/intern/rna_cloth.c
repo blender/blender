@@ -31,6 +31,8 @@
 #include "rna_internal.h"
 
 #include "BKE_cloth.h"
+#include "BKE_modifier.h"
+
 #include "DNA_cloth_types.h"
 
 #ifdef RNA_RUNTIME
@@ -129,6 +131,22 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 	sim->gravity[2]= values[2];
 }
 
+static char *rna_ClothSettings_path(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
+
+	return BLI_sprintfN("modifiers[%s].settings", md->name);
+}
+
+static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
+
+	return BLI_sprintfN("modifiers[%s].collision_settings", md->name);
+}
+
 #else
 
 static void rna_def_cloth_sim_settings(BlenderRNA *brna)
@@ -139,6 +157,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ClothSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Cloth Settings", "Cloth simulation settings for an object.");
 	RNA_def_struct_sdna(srna, "ClothSimSettings");
+	RNA_def_struct_path_func(srna, "rna_ClothSettings_path");
 	
 	/* goal */
 	
@@ -297,6 +316,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ClothCollisionSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Cloth Collision Settings", "Cloth simulation settings for self collision and collision with other objects.");
 	RNA_def_struct_sdna(srna, "ClothCollSettings");
+	RNA_def_struct_path_func(srna, "rna_ClothCollisionSettings_path");
 
 	/* general collision */
 

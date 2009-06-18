@@ -2027,39 +2027,3 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 		vc->em= me->edit_mesh;
 	}
 }
-
-/*
- * This version of copy_mesh doesn't allocate a new mesh,
- * instead it copies data between two existing meshes.
- *
- * XXX not used anywhere...
- */
-void copy_mesh_data(Mesh *dest, Mesh *src)
-{
-	int totvert, totedge, totface;
-	int has_layer;
-
-	CustomData_free(&dest->vdata, dest->totvert);
-	CustomData_free(&dest->edata, dest->totedge);
-	CustomData_free(&dest->fdata, dest->totface);
-
-	memset(&dest->vdata, 0, sizeof(dest->vdata));
-	memset(&dest->edata, 0, sizeof(dest->edata));
-	memset(&dest->fdata, 0, sizeof(dest->fdata));
-
-	totvert = dest->totvert = src->totvert;
-	totedge = dest->totedge = src->totedge;
-	totface = dest->totface = src->totface;
-
-	CustomData_copy(&src->vdata, &dest->vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
-	CustomData_copy(&src->edata, &dest->edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
-	CustomData_copy(&src->fdata, &dest->fdata, CD_MASK_MESH, CD_DUPLICATE, totface);
-
-	CustomData_has_layer(&dest->vdata, CD_MVERT);
-
-	CustomData_add_layer(&dest->vdata, CD_MVERT, CD_ASSIGN, src->mvert, totvert);
-	CustomData_add_layer(&dest->edata, CD_MEDGE, CD_ASSIGN, src->medge, totedge);
-	CustomData_add_layer(&dest->fdata, CD_MFACE, CD_ASSIGN, src->mface, totface);
-
-	mesh_update_customdata_pointers(dest);
-}

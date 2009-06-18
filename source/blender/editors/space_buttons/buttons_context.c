@@ -574,8 +574,14 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if(CTX_data_equals(member, "cloth")) {
-		set_pointer_type(path, result, &RNA_ClothModifier);
-		return 1;
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
+			CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
+			return 1;
+		}
 	}
 	else if(CTX_data_equals(member, "soft_body")) {
 		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);

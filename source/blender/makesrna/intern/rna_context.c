@@ -102,7 +102,6 @@ void RNA_def_context(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	FunctionRNA *func;
 
 	srna= RNA_def_struct(brna, "Context", NULL);
 	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context.");
