@@ -831,9 +831,9 @@ void MESH_OT_select_all_toggle(wmOperatorType *ot)
 
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
-#if 0 //BMESH_TODO
 	ViewContext vc;
-	EditVert *eve, *v1;
+	BMVert *eve, *v1;
+	BMIter iter;
 	float min[3], max[3];
 	int done= 0;
 	
@@ -841,8 +841,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	
 	INIT_MINMAX(min, max);
 	
-	for(v1= vc.em->verts.first;v1; v1=v1->next) {
-		if(v1->f & SELECT) {
+	BM_ITER(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_TestHFlag(v1, BM_SELECT)) {
 			DO_MINMAX(v1->co, min, max);
 			done= 1;
 		}
@@ -850,16 +850,18 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* call extrude? */
 	if(done) {
-		EditEdge *eed;
+		BMEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
 		
 		/* check for edges that are half selected, use for rotation */
 		done= 0;
-		for(eed= vc.em->edges.first; eed; eed= eed->next) {
-			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
-				if(eed->v1->f & SELECT) VecSubf(vec, eed->v1->co, eed->v2->co);
-				else VecSubf(vec, eed->v2->co, eed->v1->co);
+		BM_ITER(eed, &iter, vc.em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(eed->v1, BM_SELECT) ^ BM_TestHFlag(eed->v2, BM_SELECT)) {
+				if(BM_TestHFlag(eed->v1, BM_SELECT)) 
+					VecSubf(vec, eed->v1->co, eed->v2->co);
+				else 
+					VecSubf(vec, eed->v2->co, eed->v1->co);
 				VecAddf(nor, nor, vec);
 				done= 1;
 			}
@@ -903,12 +905,14 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		extrudeflag(vc.obedit, vc.em, SELECT, nor);
-		rotateflag(vc.em, SELECT, cent, mat);
-		translateflag(vc.em, SELECT, min);
-		
-		recalc_editnormals(vc.em);
+
+		EDBM_Extrude_edge(vc.obedit, vc.em, SELECT, nor);
+		EDBM_CallOpf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+			BM_SELECT, cent, mat);
+		EDBM_CallOpf(vc.em, op, "translate verts=%hv vec=%v",
+			BM_SELECT, min);
 	}
+	/*
 	else {
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
@@ -927,13 +931,13 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		
 		eve->f= SELECT;
 	}
-	
+	*/
+
 	//retopo_do_all();
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit); 
 	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
-#endif
 }
 
 void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)

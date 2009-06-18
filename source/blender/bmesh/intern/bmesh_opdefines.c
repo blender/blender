@@ -27,6 +27,16 @@ BMOpDefine def_edgenet_fill= {
 	0,
 };
 
+BMOpDefine def_rotate = {
+	"rotate",
+	{{BMOP_OPSLOT_VEC, "cent"},
+	 {BMOP_OPSLOT_MAT, "mat"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_rotate_exec,
+	0,
+};
+
 BMOpDefine def_translate= {
 	"translate",
 	{{BMOP_OPSLOT_VEC, "vec"},
@@ -235,6 +245,7 @@ BMOpDefine *opdefines[] = {
 	&def_object_load_bmesh,
 	&def_transform,
 	&def_translate,
+	&def_rotate,
 	&def_edgenet_fill,
 	&def_contextual_create,
 };

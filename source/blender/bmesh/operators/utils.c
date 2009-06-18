@@ -53,11 +53,30 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op) {
 	BMVert *v;
 	float mat[4][4], vec[3];
 	
-	BMO_Get_Vec(op, "offset", vec);
+	BMO_Get_Vec(op, "vec", vec);
 
 	Mat4One(mat);
 	VECCOPY(mat[3], vec);
 
 	BMO_CallOpf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
+}
+
+void bmesh_rotate_exec(BMesh *bm, BMOperator *op) {
+	BMOIter iter;
+	BMVert *v;
+	float mat[4][4], vec[3];
+	
+	BMO_Get_Vec(op, "cent", vec);
+	
+	/*there has to be a proper matrix way to do this, but
+	  this is how editmesh did it and I'm too tired to think
+	  through the math right now.*/
+	VecMulf(vec, -1);
+	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
+
+	BMO_CallOpf(bm, "transform mat=%s verts=%s", op, "mat", op, "verts");
+
+	VecMulf(vec, -1);
+	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
