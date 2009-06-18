@@ -18,8 +18,9 @@
 #include "StringValue.h"
 #include "VoidValue.h"
 #include <algorithm>
-#include <stdint.h>
 #include "BoolValue.h"
+
+#include "BLO_sys_types.h" /* for intptr_t support */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
