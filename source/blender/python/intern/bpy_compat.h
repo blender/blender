@@ -88,6 +88,24 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 #endif
 
 
+#ifndef ssizeargfunc
+#define ssizeargfunc intargfunc
+#endif
+
+#ifndef ssizessizeargfunc
+#define ssizessizeargfunc intintargfunc
+#endif
+
+#ifndef ssizeobjargproc
+#define ssizeobjargproc intobjargproc
+#endif
+
+#ifndef ssizessizeobjargproc
+#define ssizessizeobjargproc intintobjargproc
+#endif
+
+
+
 /* defined in bpy_util.c */
 #if PY_VERSION_HEX < 0x03000000
 PyObject *Py_CmpToRich(int op, int cmp);

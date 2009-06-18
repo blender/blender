@@ -32,6 +32,7 @@
 #define EXPP_quat_h
 
 #include <Python.h>
+#include "../intern/bpy_compat.h"
 
 extern PyTypeObject quaternion_Type;
 

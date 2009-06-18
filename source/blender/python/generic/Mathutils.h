@@ -32,6 +32,7 @@
 #define EXPP_Mathutils_H
 
 #include <Python.h>
+#include "../intern/bpy_compat.h"
 #include "vector.h"
 #include "matrix.h"
 #include "quat.h"

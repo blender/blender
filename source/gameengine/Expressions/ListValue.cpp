@@ -18,6 +18,7 @@
 #include "StringValue.h"
 #include "VoidValue.h"
 #include <algorithm>
+#include <stdint.h>
 #include "BoolValue.h"
 
 #ifdef HAVE_CONFIG_H
