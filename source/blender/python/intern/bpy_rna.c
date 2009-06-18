@@ -1760,7 +1760,44 @@ PyObject *BPY_rna_types(void)
 	return (PyObject *)self;
 }
 
+static struct PyMethodDef props_methods[] = {
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{NULL, NULL, 0, NULL}
+};
 
+#if PY_VERSION_HEX >= 0x03000000
+static struct PyModuleDef props_module = {
+	PyModuleDef_HEAD_INIT,
+	"bpyprops",
+	"",
+	-1,/* multiple "initialization" just copies the module dict. */
+	props_methods,
+	NULL, NULL, NULL, NULL
+};
+#endif
+
+PyObject *BPY_rna_props( void )
+{
+	PyObject *submodule, *mod;
+#if PY_VERSION_HEX >= 0x03000000
+	submodule= PyModule_Create(&props_module);
+#else /* Py2.x */
+	submodule= Py_InitModule3( "bpy.props", props_methods, "" );
+#endif
+	
+	mod = PyModule_New("props");
+	PyModule_AddObject( submodule, "props", mod );
+	
+	/* INCREF since its its assumed that all these functions return the
+	 * module with a new ref like PyDict_New, since they are passed to
+	  * PyModule_AddObject which steals a ref */
+	Py_INCREF(submodule);
+	
+	return submodule;
+}
 
 /* Orphan functions, not sure where they should go */
 
@@ -1780,7 +1817,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if (self) {
+	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
 		RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
 		Py_RETURN_NONE;
@@ -1807,7 +1844,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if (self) {
+	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
 		RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
 		Py_RETURN_NONE;
@@ -1834,13 +1871,40 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if (self) {
+	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
 		RNA_def_boolean(srna, id, def, name, description);
 		Py_RETURN_NONE;
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
+		PyTuple_SET_ITEM(ret, 1, kw);
+		Py_INCREF(kw);
+		return ret;
+	}
+}
+
+PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	static char *kwlist[] = {"attr", "name", "description", "maxlen", "default", NULL};
+	char *id, *name="", *description="", *def="";
+	int maxlen=0;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
+		return NULL;
+	
+	if (PyTuple_Size(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+	
+	if (self && PyCObject_Check(self)) {
+		StructRNA *srna = PyCObject_AsVoidPtr(self);
+		RNA_def_string(srna, id, def, maxlen, name, description);
+		Py_RETURN_NONE;
+	} else {
+		PyObject *ret = PyTuple_New(2);
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_StringProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
 		Py_INCREF(kw);
 		return ret;

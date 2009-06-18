@@ -59,6 +59,7 @@ static void bpy_init_modules( void )
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
 	PyModule_AddObject( mod, "ops", BPY_operator_module() );
 	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
 	
@@ -103,6 +104,7 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 			{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{NULL, NULL, 0, NULL}
 		};
 		
@@ -369,70 +371,76 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	DIR *dir; 
 	struct dirent *de;
 	char *file_extension;
+	char *dirname;
 	char path[FILE_MAX];
-	char *dirname= BLI_gethome_folder("ui");
-	int filelen; /* filename length */
+	char *dirs[] = {"io", "ui", NULL};
+	int a, filelen; /* filename length */
 	
 	PyGILState_STATE gilstate;
 	PyObject *mod;
 	PyObject *sys_path_orig;
 	PyObject *sys_path_new;
-	
-	if(!dirname)
-		return;
-	
-	dir = opendir(dirname);
 
-	if(!dir)
-		return;
-	
 	gilstate = PyGILState_Ensure();
-	
-	/* backup sys.path */
-	sys_path_orig= PySys_GetObject("path");
-	Py_INCREF(sys_path_orig); /* dont free it */
-	
-	sys_path_new= PyList_New(1);
-	PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
-	PySys_SetObject("path", sys_path_new);
-	Py_DECREF(sys_path_new);
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
-	
-	while((de = readdir(dir)) != NULL) {
-		/* We could stat the file but easier just to let python
-		 * import it and complain if theres a problem */
+
+	for(a=0; dirs[a]; a++) {
+		dirname= BLI_gethome_folder(dirs[a]);
+
+		if(!dirname)
+			continue;
+
+		dir = opendir(dirname);
+
+		if(!dir)
+			continue;
+
+		/* backup sys.path */
+		sys_path_orig= PySys_GetObject("path");
+		Py_INCREF(sys_path_orig); /* dont free it */
 		
-		file_extension = strstr(de->d_name, ".py");
-		
-		if(file_extension && *(file_extension + 3) == '\0') {
-			filelen = strlen(de->d_name);
-			BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
+		sys_path_new= PyList_New(1);
+		PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
+		PySys_SetObject("path", sys_path_new);
+		Py_DECREF(sys_path_new);
 			
-			mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
-			if (mod) {
-				if (reload) {
-					PyObject *mod_orig= mod;
-					mod= PyImport_ReloadModule(mod);
-					Py_DECREF(mod_orig);
+		while((de = readdir(dir)) != NULL) {
+			/* We could stat the file but easier just to let python
+			 * import it and complain if theres a problem */
+			
+			file_extension = strstr(de->d_name, ".py");
+			
+			if(file_extension && *(file_extension + 3) == '\0') {
+				filelen = strlen(de->d_name);
+				BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
+				
+				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
+				if (mod) {
+					if (reload) {
+						PyObject *mod_orig= mod;
+						mod= PyImport_ReloadModule(mod);
+						Py_DECREF(mod_orig);
+					}
 				}
-			}
-			
-			if(mod) {
-				Py_DECREF(mod); /* could be NULL from reloading */
-			} else {
-				BPy_errors_to_report(NULL); // TODO - reports
-				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+				
+				if(mod) {
+					Py_DECREF(mod); /* could be NULL from reloading */
+				} else {
+					BPy_errors_to_report(NULL); // TODO - reports
+					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+				}
+
 			}
 		}
-	}
 
-	closedir(dir);
-	
-	PySys_SetObject("path", sys_path_orig);
-	Py_DECREF(sys_path_orig);
+		closedir(dir);
+
+		PySys_SetObject("path", sys_path_orig);
+		Py_DECREF(sys_path_orig);
+	}
 	
 	bpy_import_main_set(NULL);
 	
