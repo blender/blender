@@ -224,10 +224,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_CTRL , 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_ALT , 0)->ptr,"clear",1);
+	//RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_ALT , 0)->ptr,"clear",1);
 
-	WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_CTRL , 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
+	//WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_CTRL , 0);
+	//RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
 
 	/* temp hotkeys! */
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -235,8 +235,13 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_faces_select_similar", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
 	
 	/* selection mode */
-	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
-	
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_selection_type", ONEKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(kmi->ptr, "type", 1);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_selection_type", TWOKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(kmi->ptr, "type", 2);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_selection_type", THREEKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(kmi->ptr, "type", 3);
+
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
@@ -245,8 +250,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/* tools */
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
-	WM_keymap_add_item(keymap, "MESH_OT_vertices_smooth", THREEKEY, KM_PRESS, KM_CTRL , 0);
-	WM_keymap_add_item(keymap, "MESH_OT_flip_editnormals", THREEKEY, KM_PRESS, KM_ALT , 0);
+	//WM_keymap_add_item(keymap, "MESH_OT_vertices_smooth", THREEKEY, KM_PRESS, KM_CTRL , 0);
+	//WM_keymap_add_item(keymap, "MESH_OT_flip_editnormals", THREEKEY, KM_PRESS, KM_ALT , 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_subdivs", WKEY, KM_PRESS, 0, 0); // this is the menu
 	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);

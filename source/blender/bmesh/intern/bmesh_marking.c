@@ -62,8 +62,8 @@ void BM_SelectMode_Flush(BMesh *bm)
 
 	if(bm->selectmode & SCE_SELECT_VERTEX) {
 		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)) {
-			if(BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT)) BM_SetHFlag(e, 1);
-			else BM_ClearHFlag(e, 0);
+			if(BM_TestHFlag(e->v1, BM_SELECT) && BM_TestHFlag(e->v2, BM_SELECT)) BM_SetHFlag(e, BM_SELECT);
+			else BM_ClearHFlag(e, BM_SELECT);
 		}
 		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
 			totsel = 0;
@@ -75,9 +75,9 @@ void BM_SelectMode_Flush(BMesh *bm)
 			} while(l != f->loopbase);
 			
 			if(totsel == f->len) 
-				BM_SetHFlag(f, 1);
+				BM_SetHFlag(f, BM_SELECT);
 			else
-				BM_ClearHFlag(f, 0);
+				BM_ClearHFlag(f, BM_SELECT);
 		}
 	}
 	else if(bm->selectmode & SCE_SELECT_EDGE) {
@@ -91,9 +91,9 @@ void BM_SelectMode_Flush(BMesh *bm)
 			}while(l!=f->loopbase);
 			
 			if(totsel == f->len) 
-				BM_SetHFlag(f, 1);
+				BM_SetHFlag(f, BM_SELECT);
 			else 
-				BM_ClearHFlag(f, 0);
+				BM_ClearHFlag(f, BM_SELECT);
 		}
 	}
 

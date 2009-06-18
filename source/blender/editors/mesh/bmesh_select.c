@@ -1333,11 +1333,11 @@ void EDBM_selectmode_set(BMEditMesh *em)
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		BMIter iter;
 		
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		/*eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
 		
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);
+		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);*/
 
 		EDBM_selectmode_flush(em);
 	}

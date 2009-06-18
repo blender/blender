@@ -2998,47 +2998,6 @@ static void mesh_selection_type(Scene *scene, EditMesh *em, int val)
 //		if (EM_texFaceCheck())
 	}
 }
-
-static EnumPropertyItem prop_mesh_edit_types[] = {
-	{1, "VERT", "Vertices", ""},
-	{2, "EDGE", "Edges", ""},
-	{3, "FACE", "Faces", ""},
-	{0, NULL, NULL, NULL}
-};
-
-static int mesh_selection_type_exec(bContext *C, wmOperator *op)
-{		
-	
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-
-	mesh_selection_type(CTX_data_scene(C), em, RNA_enum_get(op->ptr,"type"));
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_selection_type(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Selection Mode";
-	ot->idname= "MESH_OT_selection_type";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= mesh_selection_type_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Set the mesh selection type");
-	
-}
 /* ************************* SEAMS AND EDGES **************** */
 
 static int editmesh_mark_seam(bContext *C, wmOperator *op)
