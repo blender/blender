@@ -127,7 +127,7 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
-	int i = 0;
+	int i = 0, j;
 	
 	if (tm->looptris) MEM_freeN(tm->looptris);
 
@@ -152,6 +152,7 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 				looptris[i*3] = l;
 				looptris[i*3+1] = (BMLoop*)l->head.next;
 				looptris[i*3+2] = f->loopbase;
+
 				i += 1;
 			}
 		} else {
@@ -161,7 +162,10 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 			EditFace *efa;
 
 			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-			for (; l; l=BMIter_Step(&liter)) {
+			for (j=0; l; l=BMIter_Step(&liter), j++) {
+				/*mark order*/
+				l->head.eflag2 = j;
+
 				v = BLI_addfillvert(l->v->co);
 				v->tmp.p = l;
 				
@@ -182,10 +186,18 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 				V_GROW(looptris);
 				V_GROW(looptris);
 				V_GROW(looptris);
-
+				
 				looptris[i*3] = efa->v1->tmp.p;
 				looptris[i*3+1] = efa->v2->tmp.p;
 				looptris[i*3+2] = efa->v3->tmp.p;
+
+				if (looptris[i*3]->head.eflag2 > looptris[i*3+1]->head.eflag2);
+					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
+				if (looptris[i*3+1]->head.eflag2 > looptris[i*3+2]->head.eflag2);
+					SWAP(BMLoop*, looptris[i*3+1], looptris[i*3+2]);
+				if (looptris[i*3]->head.eflag2 > looptris[i*3+1]->head.eflag2);
+					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
+
 				i += 1;
 			}
 			BLI_end_edgefill();

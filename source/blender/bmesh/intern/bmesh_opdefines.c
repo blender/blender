@@ -225,6 +225,9 @@ BMOpDefine def_dupeop = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "origout"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "newout"},
+	/*facemap maps from source faces to dupe
+	  faces, and from dupe faces to source faces.*/
+	{BMOP_OPSLOT_MAPPING, "facemap"},
 	{BMOP_OPSLOT_MAPPING, "boundarymap"},
 	{BMOP_OPSLOT_MAPPING, "isovertmap"},
 	{0} /*null-terminating sentinel*/},

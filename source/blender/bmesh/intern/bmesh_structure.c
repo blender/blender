@@ -206,6 +206,9 @@ void bmesh_free_edge(BMesh *bm, BMEdge *e){
 	BLI_mempool_free(bm->epool, e);
 }
 void bmesh_free_poly(BMesh *bm, BMFace *f){
+	if (f == bm->act_face)
+		bm->act_face = NULL;
+
 	bm->totface--;
 	CustomData_bmesh_free_block(&bm->pdata, &f->data);
 	BLI_mempool_free(bm->flagpool, f->head.flags);

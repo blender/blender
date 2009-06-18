@@ -101,7 +101,9 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
  *  Copy an existing face from one bmesh to another.
  *
 */
-static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_mesh, BMEdge **edar, GHash *vhash, GHash *ehash)
+static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
+			 BMFace *source_face, BMesh *target_mesh, 
+			 BMEdge **edar, GHash *vhash, GHash *ehash)
 {
 	BMVert *target_vert1, *target_vert2;
 	BMLoop *source_loop, *target_loop;
@@ -121,7 +123,11 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	
 	/*create new face*/
 	target_face = BM_Make_Ngon(target_mesh, target_vert1, target_vert2, edar, source_face->len, 0);	
-	
+	BMO_Insert_MapPointer(source_mesh, op, 
+	         "facemap", source_face, target_face);
+	BMO_Insert_MapPointer(source_mesh, op, 
+	         "facemap", target_face, source_face);
+
 	BM_Copy_Attributes(source_mesh, target_mesh, source_face, target_face);
 
 	/*mark the face for output*/
@@ -189,7 +195,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 					BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE);
 				}
 			}
-			copy_face(source, f, target, edar, vhash, ehash);
+			copy_face(op, source, f, target, edar, vhash, ehash);
 			BMO_SetFlag(source, (BMHeader*)f, DUPE_DONE);
 		}
 	}

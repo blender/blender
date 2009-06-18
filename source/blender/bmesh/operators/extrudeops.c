@@ -101,8 +101,11 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	                         EXT_DEL, DEL_ONLYTAGGED);
 
 	BMO_CopySlot(op, &dupeop, "edgefacein", "geom");
-	
 	BMO_Exec_Op(bm, &dupeop);
+
+	if (bm->act_face && BMO_TestFlag(bm, bm->act_face, EXT_INPUT))
+		bm->act_face = BMO_Get_MapPointer(bm, &dupeop, "facemap", bm->act_face);
+
 	if (delorig) BMO_Exec_Op(bm, &delop);
 	
 	/*if not delorig, reverse loops of original faces*/
@@ -113,7 +116,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
-
+	
 	BMO_CopySlot(&dupeop, op, "newout", "geomout");
 	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap");
 	for (; e; e=BMO_IterStep(&siter)) {

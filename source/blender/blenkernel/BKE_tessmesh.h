@@ -28,6 +28,9 @@ typedef struct BMEditSelection
   and not BMesh.  Mesh->editbmesh will store a pointer to this structure.*/
 typedef struct BMEditMesh {
 	struct BMesh *bm;
+
+	/*this is for undoing failed operations*/
+	struct BMEditMesh *emcopy;
 	
 	/*we store tesselations as triplets of three loops,
 	  which each define a triangle.*/

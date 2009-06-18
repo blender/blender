@@ -158,6 +158,8 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ..
 		return 0;
 	}
 
+	em->emcopy = BMEdit_Copy(em);
+
 	va_end(list);
 }
 
@@ -169,24 +171,17 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) 
 	BMO_Finish_Op(em->bm, bmop);
 
 	if (BMO_GetError(em->bm, &errmsg, NULL)) {
+		BMEditMesh *emcopy = em->emcopy;
+
 		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
-		/*BMESH_TODOwe should really undo here or something, back 
-		  out of the failed op :/*/
+
+		BMEdit_Free(em);
+		*em = *emcopy;
 		return 0;
-	}
-
-	return 1;
-}
-
-/*returns 0 on error, 1 on success*/
-static int finalize_bmop(BMesh *bm, BMEditMesh *em, wmOperator *op, int report) {
-	char *errmsg;
-
-	if (BMO_GetError(bm, &errmsg, NULL)) {
-		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
-		/*BMESH_TODOwe should really undo here or something, back 
-		  out of the failed op :/*/
-		return 0;
+	} else {
+		BMEdit_Free(em->emcopy);
+		MEM_freeN(em->emcopy);
+		em->emcopy = NULL;
 	}
 
 	return 1;
@@ -207,12 +202,12 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 		return 0;
 	}
 
+	em->emcopy = BMEdit_Copy(em);
+
 	BMO_Exec_Op(bm, &bmop);
-	BMO_Finish_Op(bm, &bmop);
 
 	va_end(list);
-
-	return finalize_bmop(bm, em, op, 1);
+	return EDBM_FinishOp(em, &bmop, op, 1);
 }
 
 int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
@@ -228,12 +223,12 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 		return 0;
 	}
 
+	em->emcopy = BMEdit_Copy(em);
+
 	BMO_Exec_Op(bm, &bmop);
-	BMO_Finish_Op(bm, &bmop);
 
 	va_end(list);
-
-	return finalize_bmop(bm, em, NULL, 0);
+	return EDBM_FinishOp(em, &bmop, NULL, 0);
 }
 
 void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
