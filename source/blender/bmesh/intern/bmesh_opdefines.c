@@ -3,7 +3,14 @@
 
 #include <stdio.h>
 
-/*applies a transform to vertices*/
+BMOpDefine def_makevert = {
+	"makevert",
+	{{BMOP_OPSLOT_VEC, "co"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "newvertout"},
+	{0, /*null-terminating sentinel*/}},
+	bmesh_makevert_exec,
+	0,
+};
 
 /*contextual_create is fkey, it creates
   new faces, makes stuff from edge nets,
@@ -47,6 +54,7 @@ BMOpDefine def_translate= {
 };
 
 
+/*applies a transform to vertices*/
 BMOpDefine def_transform = {
 	"transform",
 	{{BMOP_OPSLOT_MAT, "mat"},
@@ -248,6 +256,7 @@ BMOpDefine *opdefines[] = {
 	&def_rotate,
 	&def_edgenet_fill,
 	&def_contextual_create,
+	&def_makevert,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

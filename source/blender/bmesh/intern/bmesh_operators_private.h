@@ -28,5 +28,7 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op);
 void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op);
 void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op);
 void bmesh_rotate_exec(BMesh *bm, BMOperator *op);
+void bmesh_makevert_exec(BMesh *bm, BMOperator *op);
+
 
 #endif

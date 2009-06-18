@@ -32,6 +32,15 @@
  *
 */
 
+void bmesh_makevert_exec(BMesh *bm, BMOperator *op) {
+	float vec[3];
+
+	BMO_Get_Vec(op, "co", vec);
+
+	BMO_SetFlag(bm, BM_Make_Vert(bm, vec, NULL), 1);	
+	BMO_Flag_To_Slot(bm, op, "newvertout", 1, BM_VERT);
+}
+
 void bmesh_transform_exec(BMesh *bm, BMOperator *op) {
 	BMOIter iter;
 	BMVert *v;

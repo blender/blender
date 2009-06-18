@@ -450,7 +450,6 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 {
 	BMOperator bmop;
-	BMIter iter;
 	BMOIter siter;
 	BMVert *v;
 
@@ -912,26 +911,27 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_CallOpf(vc.em, op, "translate verts=%hv vec=%v",
 			BM_SELECT, min);
 	}
-	/*
 	else {
-		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
+		BMOperator bmop;
+		BMOIter oiter;
 		
 		VECCOPY(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		
-		eve= addvertlist(vc.em, 0, NULL);
 
-		Mat3CpyMat4(mat, vc.obedit->obmat);
-		Mat3Inv(imat, mat);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
+		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
+		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
 		
-		VECCOPY(eve->co, min);
-		Mat3MulVecfl(imat, eve->co);
-		VecSubf(eve->co, eve->co, vc.obedit->obmat[3]);
-		
-		eve->f= SELECT;
+		EDBM_InitOpf(vc.em, &bmop, op, "makevert co=%v", min);
+		BMO_Exec_Op(vc.em->bm, &bmop);
+
+		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout") {
+			BM_Select(vc.em->bm, v1, 1);
+		}
+
+		if (!EDBM_FinishOp(vc.em, &bmop, op, 1))
+			return OPERATOR_CANCELLED;
 	}
-	*/
 
 	//retopo_do_all();
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit); 
