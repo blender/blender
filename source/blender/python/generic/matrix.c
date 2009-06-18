@@ -387,7 +387,6 @@ PyObject *Matrix_copy(MatrixObject * self)
 /*free the py_object*/
 static void Matrix_dealloc(MatrixObject * self)
 {
-	Py_XDECREF(self->coerced_object);
 	PyMem_Free(self->matrix);
 	/*only free py_data*/
 	if(self->data.py_data){
@@ -395,35 +394,7 @@ static void Matrix_dealloc(MatrixObject * self)
 	}
 	PyObject_DEL(self);
 }
-/*----------------------------getattr()(internal) ----------------*/
-/*object.attribute access (get)*/
-static PyObject *Matrix_getattr(MatrixObject * self, char *name)
-{
-	if(STREQ(name, "rowSize")) {
-		return PyLong_FromLong((long) self->rowSize);
-	} else if(STREQ(name, "colSize")) {
-		return PyLong_FromLong((long) self->colSize);
-	}
-	if(STREQ(name, "wrapped")){
-		if(self->wrapped == Py_WRAP)
-			Py_RETURN_TRUE;
-		else 
-			Py_RETURN_FALSE;
-	}
-#if 0 //XXX
-	return Py_FindMethod(Matrix_methods, (PyObject *) self, name);
-#else
-	PyErr_SetString(PyExc_AttributeError, "blender 2.5 is not finished yet");
-	return NULL;
-#endif
-}
-/*----------------------------setattr()(internal) ----------------*/
-/*object.attribute access (set)*/
-static int Matrix_setattr(MatrixObject * self, char *name, PyObject * v)
-{
-	/* This is not supported. */
-	return (-1);
-}
+
 /*----------------------------print object (internal)-------------*/
 /*print the object to screen*/
 static PyObject *Matrix_repr(MatrixObject * self)
@@ -672,7 +643,7 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 	mat1 = (MatrixObject*)m1;
 	mat2 = (MatrixObject*)m2;
 
-	if(mat1->coerced_object || mat2->coerced_object){
+	if(!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: arguments not valid for this operation....");
 		return NULL;
 	}
@@ -701,7 +672,7 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 	mat1 = (MatrixObject*)m1;
 	mat2 = (MatrixObject*)m2;
 
-	if(mat1->coerced_object || mat2->coerced_object){
+	if(!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
 		PyErr_SetString(PyExc_AttributeError, "Matrix addition: arguments not valid for this operation....");
 		return NULL;
 	}
@@ -728,22 +699,31 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	double dot = 0.0f;
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
-	PyObject *f = NULL;
 
-	mat1 = (MatrixObject*)m1;
-	mat2 = (MatrixObject*)m2;
+	if(MatrixObject_Check(m1))	mat1 = (MatrixObject*)m1;
+	if(MatrixObject_Check(m2))	mat2 = (MatrixObject*)m2;
 
-	if(mat1->coerced_object){
-		if (PyFloat_Check(mat1->coerced_object) || 
-			PyLong_Check(mat1->coerced_object)){	/*FLOAT/INT * MATRIX*/
-			f = PyNumber_Float(mat1->coerced_object);
-			if(f == NULL) { /*parsed item not a number*/
-				PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
-				return NULL;
+	if(mat1 && mat2) { /*MATRIX * MATRIX*/
+		if(mat1->colSize != mat2->rowSize){
+			PyErr_SetString(PyExc_AttributeError,"Matrix multiplication: matrix A rowsize must equal matrix B colsize");
+			return NULL;
+		}
+		for(x = 0; x < mat1->rowSize; x++) {
+			for(y = 0; y < mat2->colSize; y++) {
+				for(z = 0; z < mat1->colSize; z++) {
+					dot += (mat1->matrix[x][z] * mat2->matrix[z][y]);
+				}
+				mat[((x * mat1->rowSize) + y)] = (float)dot;
+				dot = 0.0f;
 			}
-
-			scalar = (float)PyFloat_AS_DOUBLE(f);
-			Py_DECREF(f);
+		}
+		
+		return newMatrixObject(mat, mat1->rowSize, mat2->colSize, Py_NEW);
+	}
+	
+	if(mat1==NULL){
+		scalar=PyFloat_AsDouble(m1); // may not be a float...
+		if ((scalar == -1.0 && PyErr_Occurred())==0) { /*FLOAT/INT * MATRIX, this line annoys theeth, lets see if he finds it */
 			for(x = 0; x < mat2->rowSize; x++) {
 				for(y = 0; y < mat2->colSize; y++) {
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
@@ -751,22 +731,18 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			}
 			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW);
 		}
-	}else{
-		if(mat2->coerced_object){
-			/* MATRIX * VECTOR   operation is now being done by vector */
-			/*if(VectorObject_Check(mat2->coerced_object)){ 
-				vec = (VectorObject*)mat2->coerced_object;
-				return column_vector_multiplication(mat1, vec);
-			}else */
-			if (PyFloat_Check(mat2->coerced_object) || PyLong_Check(mat2->coerced_object)){	/*MATRIX * FLOAT/INT*/
-				f = PyNumber_Float(mat2->coerced_object);
-				if(f == NULL) { /*parsed item not a number*/
-					PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation\n");
-					return NULL;
-				}
-
-				scalar = (float)PyFloat_AS_DOUBLE(f);
-				Py_DECREF(f);
+		
+		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
+		return NULL;
+	}
+	else /* if(mat1) { */ {
+		
+		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
+			return column_vector_multiplication(mat1, (VectorObject *)m2);
+		}
+		else {
+			scalar= PyFloat_AsDouble(m2);
+			if ((scalar == -1.0 && PyErr_Occurred())==0) { /* MATRIX*FLOAT/INT */
 				for(x = 0; x < mat1->rowSize; x++) {
 					for(y = 0; y < mat1->colSize; y++) {
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
@@ -774,22 +750,9 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				}
 				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 			}
-		}else{  /*MATRIX * MATRIX*/
-			if(mat1->colSize != mat2->rowSize){
-				PyErr_SetString(PyExc_AttributeError,"Matrix multiplication: matrix A rowsize must equal matrix B colsize");
-				return NULL;
-			}
-			for(x = 0; x < mat1->rowSize; x++) {
-				for(y = 0; y < mat2->colSize; y++) {
-					for(z = 0; z < mat1->colSize; z++) {
-						dot += (mat1->matrix[x][z] * mat2->matrix[z][y]);
-					}
-					mat[((x * mat1->rowSize) + y)] = (float)dot;
-					dot = 0.0f;
-				}
-			}
-			return newMatrixObject(mat, mat1->rowSize, mat2->colSize, Py_NEW);
 		}
+		PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation");
+		return NULL;
 	}
 
 	PyErr_SetString(PyExc_TypeError, "Matrix multiplication: arguments not acceptable for this operation\n");
@@ -799,29 +762,7 @@ static PyObject* Matrix_inv(MatrixObject *self)
 {
 	return Matrix_Invert(self);
 }
-/*------------------------coerce(obj, obj)-----------------------
-  coercion of unknown types to type MatrixObject for numeric protocols.
 
-  Coercion() is called whenever a math operation has 2 operands that
- it doesn't understand how to evaluate. 2+Matrix for example. We want to 
- evaluate some of these operations like: (vector * 2), however, for math
- to proceed, the unknown operand must be cast to a type that python math will
- understand. (e.g. in the case above case, 2 must be cast to a vector and 
- then call vector.multiply(vector, scalar_cast_as_vector)*/
-static int Matrix_coerce(PyObject ** m1, PyObject ** m2)
-{
-	if(VectorObject_Check(*m2) || PyFloat_Check(*m2) || PyLong_Check(*m2)) {
-		PyObject *coerced = (PyObject *)(*m2);
-		Py_INCREF(coerced);
-		*m2 = newMatrixObject(NULL,3,3,Py_NEW);
-		((MatrixObject*)*m2)->coerced_object = coerced;
-		Py_INCREF (*m1);
-		return 0;
-	}
-
-	PyErr_SetString(PyExc_TypeError, "matrix.coerce(): unknown operand - can't coerce for numeric protocols");
-	return -1;
-}
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
 	(inquiry) Matrix_len,					/* sq_length */
@@ -850,17 +791,42 @@ static PyNumberMethods Matrix_NumMethods = {
 	(binaryfunc) 0,							/* __and__ */
 	(binaryfunc) 0,							/* __xor__ */
 	(binaryfunc) 0,							/* __or__ */
-#if 0 // XXX 2.5
-	(coercion) Matrix_coerce,				/* __coerce__ */
-#else
-	0,
-#endif
+	/*(coercion)*/ 0,							/* __coerce__ */
 	(unaryfunc) 0,							/* __int__ */
 	(unaryfunc) 0,							/* __long__ */
 	(unaryfunc) 0,							/* __float__ */
 	(unaryfunc) 0,							/* __oct__ */
 	(unaryfunc) 0,							/* __hex__ */
 };
+
+static PyObject *Matrix_getRowSize( MatrixObject * self, void *type )
+{
+	return PyLong_FromLong((long) self->rowSize);
+}
+
+static PyObject *Matrix_getColSize( MatrixObject * self, void *type )
+{
+	return PyLong_FromLong((long) self->colSize);
+}
+
+static PyObject *Matrix_getWrapped( MatrixObject * self, void *type )
+{
+	if (self->wrapped == Py_WRAP)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef Matrix_getseters[] = {
+	{"rowSize", (getter)Matrix_getRowSize, (setter)NULL, "", NULL},
+	{"colSize", (getter)Matrix_getColSize, (setter)NULL, "", NULL},
+	{"wrapped", (getter)Matrix_getWrapped, (setter)NULL, "", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 /*------------------PY_OBECT DEFINITION--------------------------*/
 PyTypeObject matrix_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
@@ -875,8 +841,8 @@ PyTypeObject matrix_Type = {
 	0,								/*tp_itemsize*/
 	(destructor)Matrix_dealloc,		/*tp_dealloc*/
 	0,								/*tp_print*/
-	(getattrfunc)Matrix_getattr,	/*tp_getattr*/
-	(setattrfunc) Matrix_setattr,	/*tp_setattr*/
+	0,								/*tp_getattr*/
+	0,								/*tp_setattr*/
 	0,								/*tp_compare*/
 	(reprfunc) Matrix_repr,			/*tp_repr*/
 	&Matrix_NumMethods,				/*tp_as_number*/
@@ -896,9 +862,9 @@ PyTypeObject matrix_Type = {
 	0,								/*tp_weaklistoffset*/
 	0,								/*tp_iter*/
 	0,								/*tp_iternext*/
-	0,								/*tp_methods*/
+	Matrix_methods,					/*tp_methods*/
 	0,								/*tp_members*/
-	0,								/*tp_getset*/
+	Matrix_getseters,				/*tp_getset*/
 	0,								/*tp_base*/
 	0,								/*tp_dict*/
 	0,								/*tp_descr_get*/
@@ -949,7 +915,6 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 	self->data.py_data = NULL;
 	self->rowSize = rowSize;
 	self->colSize = colSize;
-	self->coerced_object = NULL;
 
 	if(type == Py_WRAP){
 		self->data.blend_data = mat;

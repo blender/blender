@@ -64,18 +64,6 @@ PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args );
-//DEPRECATED	
-PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CopyQuat(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CrossVecs(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_CrossQuats(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_DotQuats(PyObject * self, PyObject * args);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);

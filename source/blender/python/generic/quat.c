@@ -208,7 +208,6 @@ PyObject *Quaternion_copy(QuaternionObject * self)
 //free the py_object
 static void Quaternion_dealloc(QuaternionObject * self)
 {
-	Py_XDECREF(self->coerced_object);
 	//only free py_data
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
@@ -377,13 +376,14 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 	float quat[4];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
-	quat1 = (QuaternionObject*)q1;
-	quat2 = (QuaternionObject*)q2;
-
-	if(quat1->coerced_object || quat2->coerced_object){
+	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
 		PyErr_SetString(PyExc_AttributeError, "Quaternion addition: arguments not valid for this operation....\n");
 		return NULL;
 	}
+	
+	quat1 = (QuaternionObject*)q1;
+	quat2 = (QuaternionObject*)q2;
+	
 	for(x = 0; x < 4; x++) {
 		quat[x] = quat1->quat[x] + quat2->quat[x];
 	}
@@ -398,13 +398,14 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 	float quat[4];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
-	quat1 = (QuaternionObject*)q1;
-	quat2 = (QuaternionObject*)q2;
-
-	if(quat1->coerced_object || quat2->coerced_object){
+	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
 		PyErr_SetString(PyExc_AttributeError, "Quaternion addition: arguments not valid for this operation....\n");
 		return NULL;
 	}
+	
+	quat1 = (QuaternionObject*)q1;
+	quat2 = (QuaternionObject*)q2;
+	
 	for(x = 0; x < 4; x++) {
 		quat[x] = quat1->quat[x] - quat2->quat[x];
 	}
@@ -419,86 +420,53 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	float quat[4], scalar;
 	double dot = 0.0f;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
-	PyObject *f = NULL;
 	VectorObject *vec = NULL;
 
 	quat1 = (QuaternionObject*)q1;
 	quat2 = (QuaternionObject*)q2;
 
-	if(quat1->coerced_object){
-		if (PyFloat_Check(quat1->coerced_object) || 
-			PyLong_Check(quat1->coerced_object)){	// FLOAT/INT * QUAT
-			f = PyNumber_Float(quat1->coerced_object);
-			if(f == NULL) { // parsed item not a number
-				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
-				return NULL;
-			}
-
-			scalar = (float)PyFloat_AS_DOUBLE(f);
-			Py_DECREF(f);
+	if(QuaternionObject_Check(q1) && QuaternionObject_Check(q2)) { /* QUAT*QUAT (dot product) */
+		for(x = 0; x < 4; x++) {
+			dot += quat1->quat[x] * quat1->quat[x];
+		}
+		return PyFloat_FromDouble(dot);
+	}
+	
+	/* the only case this can happen (for a supported type is "FLOAT*QUAT" ) */
+	if(!QuaternionObject_Check(q1)) {
+		scalar= PyFloat_AsDouble(q1);
+		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* FLOAT*QUAT */
 			for(x = 0; x < 4; x++) {
 				quat[x] = quat2->quat[x] * scalar;
 			}
 			return newQuaternionObject(quat, Py_NEW);
 		}
-	}else{
-		if(quat2->coerced_object){
-			if (PyFloat_Check(quat2->coerced_object) || 
-				PyLong_Check(quat2->coerced_object)){	// QUAT * FLOAT/INT
-				f = PyNumber_Float(quat2->coerced_object);
-				if(f == NULL) { // parsed item not a number
-					PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
-					return NULL;
-				}
-
-				scalar = (float)PyFloat_AS_DOUBLE(f);
-				Py_DECREF(f);
-				for(x = 0; x < 4; x++) {
-					quat[x] = quat1->quat[x] * scalar;
-				}
-				return newQuaternionObject(quat, Py_NEW);
-			}else if(VectorObject_Check(quat2->coerced_object)){  //QUAT * VEC
-				vec = (VectorObject*)quat2->coerced_object;
-				if(vec->size != 3){
-					PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
-					return NULL;
-				}
-				return quat_rotation((PyObject*)quat1, (PyObject*)vec);
+		PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: val * quat, val is not an acceptable type");
+		return NULL;
+	}
+	else { /* QUAT*SOMETHING */
+		if(VectorObject_Check(q2)){  /* QUAT*VEC */
+			vec = (VectorObject*)q2;
+			if(vec->size != 3){
+				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
+				return NULL;
 			}
-		}else{  //QUAT * QUAT (dot product)
+			return quat_rotation((PyObject*)quat1, (PyObject*)vec);
+		}
+		
+		scalar= PyFloat_AsDouble(q2);
+		if ((scalar == -1.0 && PyErr_Occurred())==0) { /* QUAT*FLOAT */
 			for(x = 0; x < 4; x++) {
-				dot += quat1->quat[x] * quat1->quat[x];
+				quat[x] = quat1->quat[x] * scalar;
 			}
-			return PyFloat_FromDouble(dot);
+			return newQuaternionObject(quat, Py_NEW);
 		}
 	}
-
+	
 	PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: arguments not acceptable for this operation\n");
 	return NULL;
 }
-//------------------------coerce(obj, obj)-----------------------
-//coercion of unknown types to type QuaternionObject for numeric protocols
-/*Coercion() is called whenever a math operation has 2 operands that
- it doesn't understand how to evaluate. 2+Matrix for example. We want to 
- evaluate some of these operations like: (vector * 2), however, for math
- to proceed, the unknown operand must be cast to a type that python math will
- understand. (e.g. in the case above case, 2 must be cast to a vector and 
- then call vector.multiply(vector, scalar_cast_as_vector)*/
-static int Quaternion_coerce(PyObject ** q1, PyObject ** q2)
-{
-	if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyLong_Check(*q2)) {
-		PyObject *coerced = (PyObject *)(*q2);
-		Py_INCREF(coerced);
-		
-		*q2 = newQuaternionObject(NULL,Py_NEW);
-		((QuaternionObject*)*q2)->coerced_object = coerced;
-		Py_INCREF (*q1);
-		return 0;
-	}
 
-	PyErr_SetString(PyExc_TypeError, "quaternion.coerce(): unknown operand - can't coerce for numeric protocols");
-	return -1;
-}
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
 	(inquiry) Quaternion_len,					/* sq_length */
@@ -527,11 +495,7 @@ static PyNumberMethods Quaternion_NumMethods = {
 	(binaryfunc) 0,								/* __and__ */
 	(binaryfunc) 0,								/* __xor__ */
 	(binaryfunc) 0,								/* __or__ */
-#if 0 //XXX 2.5
-	(coercion)  Quaternion_coerce,				/* __coerce__ */
-#else
-	0,
-#endif
+	/*(coercion)*/  0,								/* __coerce__ */
 	(unaryfunc) 0,								/* __int__ */
 	(unaryfunc) 0,								/* __long__ */
 	(unaryfunc) 0,								/* __float__ */
@@ -740,7 +704,6 @@ PyObject *newQuaternionObject(float *quat, int type)
 	self = PyObject_NEW(QuaternionObject, &quaternion_Type);
 	self->data.blend_data = NULL;
 	self->data.py_data = NULL;
-	self->coerced_object = NULL;
 
 	if(type == Py_WRAP){
 		self->data.blend_data = quat;

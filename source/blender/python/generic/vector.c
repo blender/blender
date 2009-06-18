@@ -428,8 +428,8 @@ static PyObject *Vector_item(VectorObject * self, int i)
   sequence accessor (set)*/
 static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 {
-	
-	if(!(PyNumber_Check(ob))) { /* parsed item not a number */
+	float scalar= (float)PyFloat_AsDouble(ob);
+	if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "vector[index] = x: index argument not a number\n");
 		return -1;
 	}
@@ -438,7 +438,7 @@ static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range\n");
 		return -1;
 	}
-	self->vec[i] = (float)PyFloat_AsDouble(ob);
+	self->vec[i] = scalar;
 	return 0;
 }
 
@@ -468,7 +468,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 			     PyObject * seq)
 {
 	int i, y, size = 0;
-	float vec[4];
+	float vec[4], scalar;
 	PyObject *v;
 
 	CLAMP(begin, 0, self->size);
@@ -489,13 +489,14 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 			return -1;
 		}
 		
-		if(!PyNumber_Check(v)) { /* parsed item not a number */
+		scalar= (float)PyFloat_AsDouble(v);
+		if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 			Py_DECREF(v);
 			PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: sequence argument not a number\n");
 			return -1;
 		}
 
-		vec[i] = (float)PyFloat_AsDouble(v);
+		vec[i] = scalar;
 		Py_DECREF(v);
 	}
 	/*parsed well - now set in vector*/
@@ -628,6 +629,7 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+	float scalar;
 	
 	if VectorObject_Check(v1)
 		vec1= (VectorObject *)v1;
@@ -658,23 +660,9 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		v2= v1;
 	}
 	
-	if (PyNumber_Check(v2)) {
-		/* VEC * NUM */
-		int i;
-		float vec[4];
-		float scalar = (float)PyFloat_AsDouble( v2 );
-		
-		for(i = 0; i < vec1->size; i++) {
-			vec[i] = vec1->vec[i] *	scalar;
-		}
-		return newVectorObject(vec, vec1->size, Py_NEW);
-		
-	} else if (MatrixObject_Check(v2)) {
+	if (MatrixObject_Check(v2)) {
 		/* VEC * MATRIX */
-		if (v1==v2) /* mat*vec, we have swapped the order */
-			return column_vector_multiplication((MatrixObject*)v2, vec1);
-		else /* vec*mat */
-			return row_vector_multiplication(vec1, (MatrixObject*)v2);
+		return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
 		QuaternionObject *quat = (QuaternionObject*)v2;
 		if(vec1->size != 3) {
@@ -682,6 +670,16 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			return NULL;
 		}
 		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
+	}
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		int i;
+		float vec[4];
+		
+		for(i = 0; i < vec1->size; i++) {
+			vec[i] = vec1->vec[i] * scalar;
+		}
+		return newVectorObject(vec, vec1->size, Py_NEW);
+		
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
@@ -694,21 +692,11 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
 	int i;
+	float scalar;
 	
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
-	if (PyNumber_Check(v2)) {
-		/* VEC * NUM */
-		float scalar = (float)PyFloat_AsDouble( v2 );
-		
-		for(i = 0; i < vec->size; i++) {
-			vec->vec[i] *=	scalar;
-		}
-		
-		Py_INCREF( v1 );
-		return v1;
-		
-	} else if (MatrixObject_Check(v2)) {
+	if (MatrixObject_Check(v2)) {
 		float vecCopy[4];
 		int x,y, size = vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
@@ -739,6 +727,17 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		Py_INCREF( v1 );
 		return v1;
 	}
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*=FLOAT */
+		
+		for(i = 0; i < vec->size; i++) {
+			vec->vec[i] *=	scalar;
+		}
+		
+		Py_INCREF( v1 );
+		return v1;
+		
+	}
+	
 	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
 	return NULL;
 }
@@ -747,7 +746,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
   divide*/
 static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 {
-	int i, size;
+	int i;
 	float vec[4], scalar;
 	VectorObject *vec1 = NULL;
 	
@@ -757,28 +756,28 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1; /* vector */
 	
-	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+	scalar = (float)PyFloat_AsDouble(v2);
+	if(scalar== -1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
 		return NULL;
 	}
-	scalar = (float)PyFloat_AsDouble(v2);
 	
 	if(scalar==0.0) { /* not a vector */
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
 		return NULL;
 	}
-	size = vec1->size;
-	for(i = 0; i < size; i++) {
+	
+	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
-	return newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW);
 }
 
-/*------------------------obj / obj------------------------------
+/*------------------------obj /= obj------------------------------
   divide*/
 static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 {
-	int i, size;
+	int i;
 	float scalar;
 	VectorObject *vec1 = NULL;
 	
@@ -788,20 +787,18 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	}*/
 	
 	vec1 = (VectorObject*)v1; /* vector */
-	
-	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+
+	scalar = (float)PyFloat_AsDouble(v2);
+	if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
 		return NULL;
 	}
-
-	scalar = (float)PyFloat_AsDouble(v2);
 	
 	if(scalar==0.0) { /* not a vector */
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
 		return NULL;
 	}
-	size = vec1->size;
-	for(i = 0; i < size; i++) {
+	for(i = 0; i < vec1->size; i++) {
 		vec1->vec[i] /=	scalar;
 	}
 	Py_INCREF( v1 );
@@ -820,24 +817,6 @@ static PyObject *Vector_neg(VectorObject *self)
 
 	return newVectorObject(vec, self->size, Py_NEW);
 }
-/*------------------------coerce(obj, obj)-----------------------
-  coercion of unknown types to type VectorObject for numeric protocols
-  Coercion() is called whenever a math operation has 2 operands that
- it doesn't understand how to evaluate. 2+Matrix for example. We want to 
- evaluate some of these operations like: (vector * 2), however, for math
- to proceed, the unknown operand must be cast to a type that python math will
- understand. (e.g. in the case above case, 2 must be cast to a vector and 
- then call vector.multiply(vector, scalar_cast_as_vector)*/
-
-
-static int Vector_coerce(PyObject ** v1, PyObject ** v2)
-{
-	/* Just incref, each functon must raise errors for bad types */
-	Py_INCREF (*v1);
-	Py_INCREF (*v2);
-	return 0;
-}
-
 
 /*------------------------tp_doc*/
 static char VectorObject_doc[] = "This is a wrapper for vector objects.";
@@ -949,15 +928,6 @@ static PySequenceMethods Vector_SeqMethods = {
 	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
 	(ssizessizeobjargproc) Vector_ass_slice,		/* sq_ass_slice */
 };
-
-
-/* For numbers without flag bit Py_TPFLAGS_CHECKTYPES set, all
-   arguments are guaranteed to be of the object's type (modulo
-   coercion hacks -- i.e. if the type's coercion function
-   returns other types, then these are allowed as well).  Numbers that
-   have the Py_TPFLAGS_CHECKTYPES flag bit set should check *both*
-   arguments for proper type and implement the necessary conversions
-   in the slot functions themselves. */
  
 static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
@@ -977,11 +947,7 @@ static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) NULL,							/* __and__ */
 	(binaryfunc) NULL,							/* __xor__ */
 	(binaryfunc) NULL,							/* __or__ */
-#if 0 //XXX 2.5
-	(coercion)  Vector_coerce,					/* __coerce__ */
-#else
-	0,
-#endif
+	/*(coercion)*/ NULL,							/* __coerce__ */
 	(unaryfunc) NULL,							/* __int__ */
 	(unaryfunc) NULL,							/* __long__ */
 	(unaryfunc) NULL,							/* __float__ */
@@ -1095,11 +1061,11 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 	double dot = 0.0f, param;
 	int i;
 	
-	if (!PyNumber_Check(value)) {
-		PyErr_SetString( PyExc_TypeError, "expected a number for the vector axis" );
+	param= PyFloat_AsDouble( value );
+	if(param==-1.0 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "length must be set to a number");
 		return -1;
 	}
-	param= PyFloat_AsDouble( value );
 	
 	if (param < 0) {
 		PyErr_SetString( PyExc_TypeError, "cannot set a vectors length to a negative value" );
@@ -1229,12 +1195,13 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < listLen)
 		{
 			item = PyList_GetItem(value, axisB);
-			if (!PyNumber_Check(item))
-			{
+			scalarVal = (float)PyFloat_AsDouble(item);
+			
+			if (scalarVal==-1.0 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.\n");
 				return -1;
 			}
-			scalarVal = (float)PyFloat_AsDouble(item);
+			
 			
 			axisA = swizzleClosure & SWIZZLE_AXIS;
 			vecTemp[axisA] = scalarVal;
@@ -1245,10 +1212,9 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 		memcpy(self->vec, vecTemp, axisB * sizeof(float));
 		return 0;
 	}
-	else if (PyNumber_Check(value))
+	else if (((scalarVal = (float)PyFloat_AsDouble(value)) == -1.0 && PyErr_Occurred())==0)
 	{
 		/* Assign the same value to each axis. */
-		scalarVal = (float)PyFloat_AsDouble(value);
 		swizzleClosure = (unsigned int) closure;
 		while (swizzleClosure & SWIZZLE_VALID_AXIS)
 		{
@@ -1729,12 +1695,7 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-#if 0 //XXX 2.5
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES,         /* long tp_flags; */
-#else
 	Py_TPFLAGS_DEFAULT,
-#endif
-
 	VectorObject_doc,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */

@@ -48,11 +48,7 @@ typedef struct _Matrix {
 	int rowSize;
 	int colSize;
 	int wrapped;			/*is wrapped data?*/
-	PyObject *coerced_object;
 } MatrixObject;
-/*coerced_object is a pointer to the object that it was
-coerced from when a dummy vector needs to be created from
-the coerce() function for numeric protocol operations*/
 
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
