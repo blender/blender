@@ -6,28 +6,6 @@ Import ('env')
 sources = env.Glob('*.cpp')
 defs = ''
 
-# Mathutils C files.
-
-if env['BF_PYTHON_VERSION'].startswith('3'):
-	# TODO - py3 support
-	sources.extend([\
-		'#source/blender/python/generic/Mathutils.c',\
-		'#source/blender/python/generic/Geometry.c',\
-		'#source/blender/python/generic/euler.c',\
-		'#source/blender/python/generic/matrix.c',\
-		'#source/blender/python/generic/quat.c',\
-		'#source/blender/python/generic/vector.c',\
-	])
-	
-	sources.extend([\
-		'#source/blender/python/generic/BGL.c'
-	])
-	
-	sources.extend([\
-		'#source/blender/python/generic/bpy_internal_import.c'
-	])
-
-
 incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal_import.h, be very careful
 
 incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
