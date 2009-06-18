@@ -88,6 +88,7 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 #endif
 
 
+#if PY_VERSION_HEX < 0x03000000
 #ifndef ssizeargfunc
 #define ssizeargfunc intargfunc
 #endif
@@ -102,6 +103,7 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 
 #ifndef ssizessizeobjargproc
 #define ssizessizeobjargproc intintobjargproc
+#endif
 #endif
 
 

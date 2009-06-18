@@ -28,7 +28,7 @@
 #
 #
 
-LIBNAME = python
+LIBNAME = gen_python
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk

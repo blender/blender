@@ -221,6 +221,7 @@ IF(UNIX)
     blender_radiosity 
     blender_ONL 
     bf_python 
+    bf_gen_python 
     bf_blenkernel 
     bf_nodes
 	bf_gpu
@@ -269,6 +270,7 @@ IF(UNIX)
     extern_qhull 
     bf_moto 
     bf_python
+    bf_gen_python
     bf_quicktime
     extern_binreloc
     extern_glew
