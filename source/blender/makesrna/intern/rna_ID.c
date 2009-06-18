@@ -246,12 +246,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
-
-	/* XXX temporary for testing */
-	func= RNA_def_function(srna, "rename", "rename_id");
-	RNA_def_function_ui_description(func, "Rename this ID datablock.");
-	prop= RNA_def_string(func, "name", "", 0, "", "New name for the datablock.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
 }
 
 static void rna_def_library(BlenderRNA *brna)

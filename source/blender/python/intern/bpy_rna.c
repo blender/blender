@@ -1310,11 +1310,19 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 	ret= NULL;
 	if (err==0) {
 		/* call function */
-		RNA_function_call(self_ptr, self_func, parms);
+		ReportList reports;
+		bContext *C= BPy_GetContext();
+
+		BKE_reports_init(&reports, RPT_STORE);
+		RNA_function_call(C, &reports, self_ptr, self_func, parms);
+
+		err= (BPy_reports_to_error(&reports))? -1: 0;
+		BKE_reports_clear(&reports);
 
 		/* return value */
-		if(pret)
-			ret= pyrna_param_to_py(&funcptr, pret, retdata);
+		if(err==0)
+			if(pret)
+				ret= pyrna_param_to_py(&funcptr, pret, retdata);
 	}
 
 	/* cleanup */
@@ -2121,7 +2129,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 	C= BPy_GetContext();
 
 	/* call the register callback */
-	BKE_reports_init(&reports, RPT_PRINT);
+	BKE_reports_init(&reports, RPT_STORE);
 	srna= reg(C, &reports, py_class, bpy_class_validate, bpy_class_call, bpy_class_free);
 
 	if(!srna) {

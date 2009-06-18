@@ -35,6 +35,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#ifdef RNA_RUNTIME
+
+#else
+
 #define DEF_ICON(name) {name, #name, 0, #name, ""},
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
@@ -242,4 +246,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
 }
+
+#endif
 

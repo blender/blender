@@ -245,6 +245,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
+	FunctionRNA *add, *remove;
 
 	struct StructRNA *type;
 } CollectionPropertyRNA;

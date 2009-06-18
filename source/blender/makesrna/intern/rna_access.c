@@ -33,7 +33,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
+#include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -725,7 +727,7 @@ int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 	return 0;
 }
 
-void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	prop= rna_ensure_property(prop);
 
@@ -1321,6 +1323,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
+	//CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDPropertyTemplate val = {0};
@@ -1346,8 +1349,17 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			MEM_freeN(item);
 		}
 	}
+#if 0
+	else if(cprop->add){
+		if(!(cprop->add->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
+			ParameterList *params= RNA_parameter_list_create(ptr, cprop->add);
+			RNA_function_call(NULL, NULL, ptr, cprop->add, params);
+			RNA_parameter_list_free(params);
+		}
+	}
+#endif
 	else
-		printf("RNA_property_collection_add %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
+		printf("RNA_property_collection_add %s.%s: not implemented for this property.\n", ptr->type->identifier, prop->identifier);
 
 	if(r_ptr) {
 		if(idprop) {
@@ -1365,6 +1377,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
 	IDProperty *idprop;
+	//CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDProperty tmp, *array;
@@ -1385,6 +1398,15 @@ void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 		}
 	}
 	else if(prop->flag & PROP_IDPROPERTY);
+#if 0
+	else if(cprop->remove){
+		if(!(cprop->remove->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
+			ParameterList *params= RNA_parameter_list_create(ptr, cprop->remove);
+			RNA_function_call(NULL, NULL, ptr, cprop->remove, params);
+			RNA_parameter_list_free(params);
+		}
+	}
+#endif
 	else
 		printf("RNA_property_collection_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
 }
@@ -2524,10 +2546,10 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void
 		RNA_parameter_set(parms, parm, value);
 }
 
-int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
+int RNA_function_call(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
 	if(func->call) {
-		func->call(ptr, parms);
+		func->call(C, reports, ptr, parms);
 
 		return 0;
 	}
@@ -2535,33 +2557,33 @@ int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 	return -1;
 }
 
-int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms)
+int RNA_function_call_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms)
 {
 	FunctionRNA *func;
 
 	func= RNA_struct_find_function(ptr, identifier);
 
 	if(func)
-		return RNA_function_call(ptr, func, parms);
+		return RNA_function_call(C, reports, ptr, func, parms);
 
 	return -1;
 }
 
-int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
+int RNA_function_call_direct(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
 {
 	va_list args;
 	int ret;
 
 	va_start(args, format);
 
-	ret= RNA_function_call_direct_va(ptr, func, format, args);
+	ret= RNA_function_call_direct_va(C, reports, ptr, func, format, args);
 
 	va_end(args);
 
 	return ret;
 }
 
-int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...)
+int RNA_function_call_direct_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...)
 {
 	FunctionRNA *func;
 
@@ -2573,7 +2595,7 @@ int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, con
 
 		va_start(args, format);
 
-		ret= RNA_function_call_direct_va(ptr, func, format, args);
+		ret= RNA_function_call_direct_va(C, reports, ptr, func, format, args);
 
 		va_end(args);
 
@@ -2715,7 +2737,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 	return 0;
 }
 
-int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args)
+int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args)
 {
 	PointerRNA funcptr;
 	ParameterList *parms;
@@ -2810,7 +2832,7 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 	}
 
 	if (err==0)
-		err= RNA_function_call(ptr, func, parms);
+		err= RNA_function_call(C, reports, ptr, func, parms);
 
 	/* XXX throw error when more parameters than those needed are passed or leave silent? */
 	if (err==0 && pret && ofs<flen && format[ofs++]=='R') {
@@ -2870,14 +2892,14 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 	return err;
 }
 
-int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args)
+int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args)
 {
 	FunctionRNA *func;
 
 	func= RNA_struct_find_function(ptr, identifier);
 
 	if(func)
-		return RNA_function_call_direct_va(ptr, func, format, args);
+		return RNA_function_call_direct_va(C, reports, ptr, func, format, args);
 
 	return 0;
 }

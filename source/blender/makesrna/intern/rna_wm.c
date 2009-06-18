@@ -160,6 +160,8 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "operators", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Operator");
 	RNA_def_property_ui_text(prop, "Operators", "Operator registry.");
+
+	RNA_api_wm(srna);
 }
 
 void RNA_def_wm(BlenderRNA *brna)
