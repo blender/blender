@@ -2354,7 +2354,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co = NULL, *dx = NULL, *dy = NULL, fact, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
-	int tex_nr, rgb= 0;
+	int i, tex_nr, rgb= 0;
 	
 	if (R.r.scemode & R_NO_TEX) return;
 	tex_nr= 0;
@@ -2430,21 +2430,33 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 			
 			if(shi->osatex) {
-				if(mtex->projx) {
-					dxt[0]= mtex->size[0]*dx[mtex->projx-1];
-					dyt[0]= mtex->size[0]*dy[mtex->projx-1];
+				if (!dx) {
+					for(i=0;i<2;i++) { 
+						dxt[i] = dyt[i] = 0.0;
+					}
+				} else {
+					if(mtex->projx) {
+						dxt[0]= mtex->size[0]*dx[mtex->projx-1];
+						dyt[0]= mtex->size[0]*dy[mtex->projx-1];
+					} else {
+						dxt[0]= 0.0;
+						dyt[0]= 0.0;
+					}
+					if(mtex->projy) {
+						dxt[1]= mtex->size[1]*dx[mtex->projy-1];
+						dyt[1]= mtex->size[1]*dy[mtex->projy-1];
+					} else {
+						dxt[1]= 0.0;
+						dyt[1]= 0.0;
+					}
+					if(mtex->projz) {
+						dxt[2]= mtex->size[2]*dx[mtex->projz-1];
+						dyt[2]= mtex->size[2]*dy[mtex->projz-1];
+					} else {
+						dxt[2]= 0.0;
+						dyt[2]= 0.0;
+					}
 				}
-				else dxt[0]= 0.0;
-				if(mtex->projy) {
-					dxt[1]= mtex->size[1]*dx[mtex->projy-1];
-					dyt[1]= mtex->size[1]*dy[mtex->projy-1];
-				}
-				else dxt[1]= 0.0;
-				if(mtex->projx) {
-					dxt[2]= mtex->size[2]*dx[mtex->projz-1];
-					dyt[2]= mtex->size[2]*dy[mtex->projz-1];
-				}
-				else dxt[2]= 0.0;
 			}
 			
 			/* texture */
