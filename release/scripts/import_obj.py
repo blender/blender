@@ -9,7 +9,7 @@ Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 
 __author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
-__version__= "2.11"
+__version__= "2.12"
 
 __bpydoc__= """\
 This script imports a Wavefront OBJ files to Blender.
@@ -21,7 +21,8 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Script copyright (C) Campbell J Barton 2007
+# Script copyright (C) Campbell J Barton 2007-2009
+# - V2.12- bspline import/export added (funded by PolyDimensions GmbH)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
