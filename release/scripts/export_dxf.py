@@ -7,7 +7,7 @@
  Tooltip: 'Export geometry to DXF/DWG-r12 (Drawing eXchange Format).'
 """
 
-__version__ = "1.35 - 2009.06.17"
+__version__ = "1.35 - 2009.06.18"
 __author__  = "Remigiusz Fiedler (AKA migius)"
 __license__ = "GPL"
 __url__  = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -43,11 +43,11 @@ TODO:
 - wip: write drawing extends for automatic view positioning in CAD
 - wip: fix text-objects in persp-projection
 - wip: translate current 3D-View to *ACTIVE-VPORT
-- wip: export multiple-instances of Curve-Objects as BLOCK/INSERTs
 - wip: fix support Include-Duplis, cause not conform with INSERT-method
 
 History
-v1.35 - 2009.06.17 by migius
+v1.35 - 2009.06.18 by migius
+- export multiple-instances of Curve-Objects as BLOCK/INSERTs
 - added export Cameras (ortho and persp) to VPORTs, incl. clipping
 - added export Cameras (ortho and persp) to VIEWs, incl. clipping
 - export multiple-instances of Mesh-Objects as BLOCK/INSERTs
@@ -183,6 +183,7 @@ SHADOWS = 0 # sun/shadows simulation
 CAMERA = 1 # selected camera index
 PERSPECTIVE = 0 # projection (camera) type: perspective, opposite to orthographic
 CAMERAVIEW = 0 # use camera for projection, opposite is 3d-view
+INSTANCES = 1 # Export instances of Mesh/Curve as BLOCK/INSERTs   on/off
 APPLY_MODIFIERS = 1
 INCLUDE_DUPLIS = 0
 OUTPUT_DWG = 0 #optional save to DWG with extern converter
@@ -531,7 +532,7 @@ def	exportMesh(ob, mx, mx_n, me=None, **common):
 		#print 'deb:exportMesh() me.name=', me.name #---------
 		#print 'deb:exportMesh() me.users=', me.users #---------
 		# check if there are more instances of this mesh (if used by other objects), then write to BLOCK/INSERT
-		if me.users>1 and not PROJECTION:
+		if GUI_A['instances_on'].val and me.users>1 and not PROJECTION:
 			if me.name in BLOCKREGISTRY.keys():
 				insert_name = BLOCKREGISTRY[me.name]
 				# write INSERT to entities
@@ -999,130 +1000,194 @@ def exportCurve(ob, mx, mw, **common):
 	entities = []
 	block = None
 	curve = ob.getData()
-	WCS_loc = ob.loc # WCS_loc is object location in WorldCoordSystem
-	#WCS_loc = [0.0,0.0,0.0]
-	#print 'deb: WCS_loc=', WCS_loc #---------
-	sizeX = ob.SizeX
-	sizeY = ob.SizeY
-	sizeZ = ob.SizeZ
-	rotX  = ob.RotX
-	rotY  = ob.RotY
-	rotZ  = ob.RotZ
-	#print 'deb: sizeX=%s, sizeY=%s' %(sizeX, sizeY) #---------
-
-	Thickness,Extrusion,ZRotation,Elevation = None,None,None,None
-	AXaxis = mx[0].copy().resize3D() # = ArbitraryXvector
-	OCS_origin = [0,0,0]
-	if not PROJECTION:
-		#Extrusion, ZRotation, Elevation = getExtrusion(mx)
-		Extrusion, AXaxis = getExtrusion(mx)
-
-		# no thickness/width for POLYLINEs converted into ScreenCS
-		#print 'deb: curve.ext1=', curve.ext1 #---------
-		if curve.ext1: Thickness = curve.ext1 * sizeZ
-		if curve.ext2 and sizeX==sizeY:
-			Width = curve.ext2 * sizeX
-		if "POLYLINE"==curve_as_list[GUI_A['curve_as'].val]: # export as POLYLINE
-			ZRotation,Zrotmatrix,OCS_origin,ECS_origin = getTargetOrientation(mx,Extrusion,\
-				AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ)
-	
-	for cur in curve:
-		#print 'deb: START cur=', cur #--------------
-		points = []
-		if cur.isNurb():
-			for point in cur:
-				#print 'deb:isNurb point=', point #---------
-				vec = point[0:3]
-				#print 'deb: vec=', vec #---------
-				pkt = Mathutils.Vector(vec)
-				#print 'deb: pkt=', pkt #---------
-				points.append(pkt)
+	#print 'deb: curve=', dir(curve) #---------
+	# TODO: should be: if curve.users>1 and not (PERSPECTIVE or (PROJECTION and HIDDEN_MODE):
+	if GUI_A['instances_on'].val and curve.users>1 and not PROJECTION:
+		if curve.name in BLOCKREGISTRY.keys():
+			insert_name = BLOCKREGISTRY[curve.name]
+			# write INSERT to entities
+			entities = exportInsert(ob, mx,insert_name, **common)
 		else:
-			for point in cur:
-				#print 'deb:isBezier point=', point.getTriple() #---------
-				vec = point.getTriple()[1]
-				#print 'deb: vec=', vec #---------
-				pkt = Mathutils.Vector(vec)
-				#print 'deb: pkt=', pkt #---------
-				points.append(pkt)
+			# generate geom_output in ObjectCS
+			imx = Mathutils.Matrix().identity()
+			WCS_loc = [0,0,0] # WCS_loc is object location in WorldCoordSystem
+			#print 'deb: WCS_loc=', WCS_loc #---------
+			sizeX = sizeY = sizeZ = 1.0
+			rotX  = rotY  = rotZ = 0.0
+			Thickness,Extrusion,ZRotation,Elevation = None,None,None,None
+			ZRotation,Zrotmatrix,OCS_origin,ECS_origin = None,None,None,None
+			AXaxis = imx[0].copy().resize3D() # = ArbitraryXvector
+			OCS_origin = [0,0,0]
+			if not PROJECTION:
+				#Extrusion, ZRotation, Elevation = getExtrusion(mx)
+				Extrusion, AXaxis = getExtrusion(imx)
+		
+				# no thickness/width for POLYLINEs converted into Screen-C-S
+				#print 'deb: curve.ext1=', curve.ext1 #---------
+				if curve.ext1: Thickness = curve.ext1 * sizeZ
+				if curve.ext2 and sizeX==sizeY:
+					Width = curve.ext2 * sizeX
+				if "POLYLINE"==curve_as_list[GUI_A['curve_as'].val]: # export as POLYLINE
+					ZRotation,Zrotmatrix,OCS_origin,ECS_origin = getTargetOrientation(imx,Extrusion,\
+						AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ)
 
-		#print 'deb: points', points #--------------
-		if len(points)>1:
-			c = curve_as_list[GUI_A['curve_as'].val]
+			entities = writeCurveEntities(curve, imx,
+				Thickness,Extrusion,ZRotation,Elevation,AXaxis,Zrotmatrix,
+				WCS_loc,OCS_origin,ECS_origin,sizeX,sizeY,sizeZ,
+				**common)
 
-			if c=="POLYLINE": # export Curve as POLYLINE
-				if not PROJECTION:
-					# recalculate points(2d=X,Y) into Entity-Coords-System
-					for p in points: # list of vectors
-						p[0] *= sizeX
-						p[1] *= sizeY
-						p2 = p * Zrotmatrix
-						p2[0] += ECS_origin[0]
-						p2[1] += ECS_origin[1]
-						p[0],p[1] = p2[0],p2[1]
-				else:
+			if entities: # if not empty block
+				# write BLOCK definition and INSERT entity
+				# BLOCKREGISTRY = dictionary 'blender_name':'dxf_name'.append(me.name)
+				BLOCKREGISTRY[curve.name]=validDXFr12name(('CU_'+ curve.name))
+				insert_name = BLOCKREGISTRY[curve.name]
+				block = DXF.Block(insert_name,flag=0,base=(0,0,0),entities=entities)
+				# write INSERT as entity
+				entities = exportInsert(ob, mx, insert_name, **common)
+
+	else: # no other instances, so go the standard way
+		WCS_loc = ob.loc # WCS_loc is object location in WorldCoordSystem
+		#print 'deb: WCS_loc=', WCS_loc #---------
+		sizeX = ob.SizeX
+		sizeY = ob.SizeY
+		sizeZ = ob.SizeZ
+		rotX  = ob.RotX
+		rotY  = ob.RotY
+		rotZ  = ob.RotZ
+		#print 'deb: sizeX=%s, sizeY=%s' %(sizeX, sizeY) #---------
+	
+		Thickness,Extrusion,ZRotation,Elevation = None,None,None,None
+		ZRotation,Zrotmatrix,OCS_origin,ECS_origin = None,None,None,None
+		AXaxis = mx[0].copy().resize3D() # = ArbitraryXvector
+		OCS_origin = [0,0,0]
+		if not PROJECTION:
+			#Extrusion, ZRotation, Elevation = getExtrusion(mx)
+			Extrusion, AXaxis = getExtrusion(mx)
+	
+			# no thickness/width for POLYLINEs converted into Screen-C-S
+			#print 'deb: curve.ext1=', curve.ext1 #---------
+			if curve.ext1: Thickness = curve.ext1 * sizeZ
+			if curve.ext2 and sizeX==sizeY:
+				Width = curve.ext2 * sizeX
+			if "POLYLINE"==curve_as_list[GUI_A['curve_as'].val]: # export as POLYLINE
+				ZRotation,Zrotmatrix,OCS_origin,ECS_origin = getTargetOrientation(mx,Extrusion,\
+					AXaxis,WCS_loc,sizeX,sizeY,sizeZ,rotX,rotY,rotZ)
+		entities = writeCurveEntities(curve, mx,
+				Thickness,Extrusion,ZRotation,Elevation,AXaxis,Zrotmatrix,
+				WCS_loc,OCS_origin,ECS_origin,sizeX,sizeY,sizeZ,
+				**common)
+
+	return entities, block
+
+
+#-------------------------------------------------
+def writeCurveEntities(curve, mx,
+		Thickness,Extrusion,ZRotation,Elevation,AXaxis,Zrotmatrix,
+		WCS_loc,OCS_origin,ECS_origin,sizeX,sizeY,sizeZ,
+		**common):
+	"""help routine for exportCurve()
+	"""
+	entities = []
+	
+	if 1:
+		for cur in curve:
+			#print 'deb: START cur=', cur #--------------
+			points = []
+			if cur.isNurb():
+				for point in cur:
+					#print 'deb:isNurb point=', point #---------
+					vec = point[0:3]
+					#print 'deb: vec=', vec #---------
+					pkt = Mathutils.Vector(vec)
+					#print 'deb: pkt=', pkt #---------
+					points.append(pkt)
+			else:
+				for point in cur:
+					#print 'deb:isBezier point=', point.getTriple() #---------
+					vec = point.getTriple()[1]
+					#print 'deb: vec=', vec #---------
+					pkt = Mathutils.Vector(vec)
+					#print 'deb: pkt=', pkt #---------
+					points.append(pkt)
+	
+			#print 'deb: points', points #--------------
+			if len(points)>1:
+				c = curve_as_list[GUI_A['curve_as'].val]
+
+				if c=="POLYLINE": # export Curve as POLYLINE
+					if not PROJECTION:
+						# recalculate points(2d=X,Y) into Entity-Coords-System
+						for p in points: # list of vectors
+							p[0] *= sizeX
+							p[1] *= sizeY
+							p2 = p * Zrotmatrix
+							p2[0] += ECS_origin[0]
+							p2[1] += ECS_origin[1]
+							p[0],p[1] = p2[0],p2[1]
+					else:
+						points = projected_co(points, mx)
+					#print 'deb: points', points #--------------
+	
+					if cur.isCyclic(): closed = 1
+					else: closed = 0
+					points = toGlobalOrigin(points)
+	
+					if DEBUG: curve_drawBlender(points,OCS_origin,closed) #deb: draw to scene
+
+					common['extrusion']= Extrusion
+					##common['rotation']= ZRotation
+					##common['elevation']= Elevation
+					common['thickness']= Thickness
+					#print 'deb: common=', common #------------------
+	
+					if 0: #DEBUG
+						p=AXaxis[:3]
+						entities.append(DXF.Line([[0,0,0], p],**common))
+						p=ECS_origin[:3]
+						entities.append(DXF.Line([[0,0,0], p],**common))
+						common['color']= 5
+						p=OCS_origin[:3]
+						entities.append(DXF.Line([[0,0,0], p],**common))
+						#OCS_origin=[0,0,0] #only debug----------------
+						dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
+						entities.append(dxfPLINE)
+	
+					dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
+					entities.append(dxfPLINE)
+					if Thickness:
+						common['thickness']= -Thickness
+						dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
+						entities.append(dxfPLINE)
+	
+				elif c=="LINEs": # export Curve as multiple LINEs
 					points = projected_co(points, mx)
-				#print 'deb: points', points #--------------
-
-				if cur.isCyclic(): closed = 1
-				else: closed = 0
-				points = toGlobalOrigin(points)
-
-				if DEBUG: curve_drawBlender(points,OCS_origin,closed) #deb: draw to scene
-				common['extrusion']= Extrusion
-				##common['rotation']= ZRotation
-				##common['elevation']= Elevation
-				common['thickness']= Thickness
-				#print 'deb: common=', common #------------------
-
-				if 0: #DEBUG
-					p=AXaxis[:3]
-					entities.append(DXF.Line([[0,0,0], p],**common))
-					p=ECS_origin[:3]
-					entities.append(DXF.Line([[0,0,0], p],**common))
-					common['color']= 5
-					p=OCS_origin[:3]
-					entities.append(DXF.Line([[0,0,0], p],**common))
-					#OCS_origin=[0,0,0] #only debug----------------
-					dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
-					entities.append(dxfPLINE)
-
-				dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
-				entities.append(dxfPLINE)
-				if Thickness:
-					common['thickness']= -Thickness
-					dxfPLINE = DXF.PolyLine(points,OCS_origin,closed,**common)
-					entities.append(dxfPLINE)
-
-			elif c=="LINEs": # export Curve as multiple LINEs
-				points = projected_co(points, mx)
-				if cur.isCyclic(): points.append(points[0])
-				#print 'deb: points', points #--------------
-				points = toGlobalOrigin(points)
-
-				if DEBUG: curve_drawBlender(points,WCS_loc,closed) #deb: draw to scene
-				common['extrusion']= Extrusion
-				common['elevation']= Elevation
-				common['thickness']= Thickness
-				#print 'deb: common=', common #------------------
-				for i in range(len(points)-1):
-					linepoints = [points[i], points[i+1]]
-					dxfLINE = DXF.Line(linepoints,**common)
-					entities.append(dxfLINE)
-				if Thickness:
-					common['thickness']= -Thickness
+					if cur.isCyclic(): points.append(points[0])
+					#print 'deb: points', points #--------------
+					points = toGlobalOrigin(points)
+	
+					if DEBUG: curve_drawBlender(points,WCS_loc,closed) #deb: draw to scene
+					common['extrusion']= Extrusion
+					common['elevation']= Elevation
+					common['thickness']= Thickness
+					#print 'deb: common=', common #------------------
 					for i in range(len(points)-1):
 						linepoints = [points[i], points[i+1]]
 						dxfLINE = DXF.Line(linepoints,**common)
 						entities.append(dxfLINE)
+					if Thickness:
+						common['thickness']= -Thickness
+						for i in range(len(points)-1):
+							linepoints = [points[i], points[i+1]]
+							dxfLINE = DXF.Line(linepoints,**common)
+							entities.append(dxfLINE)
+	
+				elif c=="POINTs": # export Curve as multiple POINTs
+					points = projected_co(points, mx)
+					for p in points:
+						dxfPOINT = DXF.Point(points=[p],**common)
+						entities.append(dxfPOINT)
+	return entities
 
-			elif c=="POINTs": # export Curve as multiple POINTs
-				points = projected_co(points, mx)
-				for p in points:
-					dxfPOINT = DXF.Point(points=[p],**common)
-					entities.append(dxfPOINT)
-
-	return entities, block
 
 #-----------------------------------------------------
 def getClipBox(camera):
@@ -1847,6 +1912,7 @@ keywords_org = {
 	'outputDWG_on' : OUTPUT_DWG,
 	'to_polyline_on': POLYLINES,
 	'to_polyface_on': POLYFACES,
+	'instances_on': INSTANCES,
 	'apply_modifiers_on': APPLY_MODIFIERS,
 	'include_duplis_on': INCLUDE_DUPLIS,
 	'camera_selected': CAMERA,
@@ -1883,7 +1949,7 @@ keywords_org = {
 	'group_as' : 0,
 	'parent_as' : 0,
 	'proxy_as' : 0,
-	'camera_as': 4,
+	'camera_as': 3,
 	'lamp_as' : 2,
 	}
 
@@ -2258,7 +2324,7 @@ def draw_UI():  #---------------------------------------------------------------
 	but_3c = common_column  #button 3.column
 	menu_w = (3 * butt_margin) + but_0c + but_1c + but_2c + but_3c  #menu width
 
-	simple_menu_h = 240
+	simple_menu_h = 260
 	extend_menu_h = 345
 	menu_h = simple_menu_h		# y is menu upper.y
 	if config_UI.val:
@@ -2549,6 +2615,11 @@ def draw_UI():  #---------------------------------------------------------------
 	y -= 20
 	b0, b0_ = but0c, but_0c + butt_margin +but_1c
 	GUI_A['to_polyline_on'] = Draw.Toggle('POLYLINE-Mode', EVENT_PRESETPLINE, b0, y, b0_, 20, GUI_A['to_polyline_on'].val, "Export to POLYLINE/POLYFACEs, otherwise to LINEs/3DFACEs   on/off")
+	#b0, b0_ = but2c, but_2c + butt_margin + but_3c
+
+	y -= 20
+	b0, b0_ = but0c, but_0c + butt_margin +but_1c
+	GUI_A['instances_on'] = Draw.Toggle('Instances as BLOCKs', EVENT_NONE, b0, y, b0_, 20, GUI_A['instances_on'].val, "Export instances (multi-users) of Mesh/Curve as BLOCK/INSERTs   on/off")
 	#b0, b0_ = but2c, but_2c + butt_margin + but_3c
 
 	y -= 20
