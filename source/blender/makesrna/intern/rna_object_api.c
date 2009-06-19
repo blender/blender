@@ -32,13 +32,18 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#define OBJECT_API_PROP_DUPLILIST "dupli_list"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_anim.h"
+#include "BKE_report.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 /* copied from init_render_mesh (render code) */
 Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
@@ -64,19 +69,100 @@ Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
 	return me;
 }
 
+/* When no longer needed, duplilist should be freed with Object.free_duplilist */
+void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *reports)
+{
+	PointerRNA obptr;
+	PointerRNA dobptr;
+	Scene *sce;
+	ListBase *lb;
+	DupliObject *dob;
+	PropertyRNA *prop;
+
+	if (!(ob->transflag & OB_DUPLI)) {
+		BKE_report(reports, RPT_ERROR, "Object does not have duplis.");
+		return;
+	}
+
+	sce= CTX_data_scene(C);
+
+	RNA_id_pointer_create(&ob->id, &obptr);
+
+	if (!(prop= RNA_struct_find_property(&obptr, OBJECT_API_PROP_DUPLILIST))) {
+		// hint: all Objects will now have this property defined
+		prop= RNA_def_collection_runtime(obptr->type, OBJECT_API_PROP_DUPLILIST, "DupliObject", "Dupli list", "List of object's duplis");
+	}
+
+	RNA_property_collection_clear(&obptr, prop);
+	lb= object_duplilist(sce, ob);
+
+	for(dob= (DupliObject*)lb->first; dob; dob= dob->next) {
+		RNA_pointer_create(NULL, &RNA_Object, dob, &dobptr);
+		RNA_property_collection_add(&obptr, prop, &dobptr);
+		dob = dob->next;
+	}
+
+	/*
+	  Now we need to free duplilist with
+
+	  free_object_duplilist(lb);
+
+	  We can't to it here since DupliObjects are in use,
+	  but we also can't do it in another function since lb
+	  isn't stored...
+
+	  So we free lb, but not DupliObjects - these will have to be freed with Object.free_duplilist
+	 */
+
+	MEM_freeN(lb);
+}
+
+void rna_Object_free_duplilist(Object *ob, ReportList *reports)
+{
+	PointerRNA obptr;
+	PropertyRNA *prop;
+	CollectionPropertyIterator iter;
+
+	RNA_id_pointer_create(&ob->id, &obptr);
+
+	if (!(prop= RNA_struct_find_property(&obptr, OBJECT_API_PROP_DUPLILIST))) {
+		BKE_report(reports, RPT_ERROR, "Object has no duplilist property.");
+		return;
+	}
+
+	/* free each allocated DupliObject */
+	RNA_property_collection_begin(&obptr, prop, &iter);
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		MEM_freeN(iter.ptr.data);
+	}
+	RNA_property_collection_end(&iter);
+
+	RNA_property_collection_clear(&obptr, prop);
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
 {
 	FunctionRNA *func;
-	PropertyRNA *prop;
+	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "create_render_mesh", "rna_Object_create_render_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
-	prop= RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
-	RNA_def_function_return(func, prop);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
+	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object. When no longer needed, it should be freed with free_dupli_list.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_collection(func, OBJECT_API_PROP_DUPLILIST, "DupliObject", "Dupli list", "List of objects's duplis.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
+	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 }
 
 #endif
