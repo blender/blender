@@ -68,6 +68,7 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -184,7 +185,10 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	uiSetRoundBox(15); /* all corners rounded */
 	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
-	/* draw strip outline - different colors are used here... */
+	
+	/* draw strip outline 
+	 *	- color used here is to indicate active vs non-active
+	 */
 	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
 		/* strip should appear 'sunken', so draw a light border around it */
 		glColor3f(0.9f, 1.0f, 0.9f); // FIXME: hardcoded temp-hack colors
@@ -193,7 +197,16 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 		/* strip should appear to stand out, so draw a dark border around it */
 		glColor3f(0.0f, 0.0f, 0.0f);
 	}
+	
+	/* - line style: dotted for muted */
+	if (strip->flag & NLASTRIP_FLAG_MUTED)
+		setlinestyle(4);
+		
+	/* draw outline */
 	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
+	
+	/* reset linestyle */
+	setlinestyle(0);
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */

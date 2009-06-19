@@ -59,6 +59,8 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
+#include "BIF_transform.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -506,11 +508,21 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 		WM_event_add_notifier(C, NC_SCENE, NULL);
 		
-		/* done + allow for tweaking to be invoked */
-		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+		/* done */
+		return OPERATOR_FINISHED;
 	}
 	else
 		return OPERATOR_CANCELLED;
+}
+
+static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	nlaedit_duplicate_exec(C, op);
+	
+	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE); // XXX
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
 }
 
 void NLAEDIT_OT_duplicate (wmOperatorType *ot)
@@ -521,11 +533,15 @@ void NLAEDIT_OT_duplicate (wmOperatorType *ot)
 	ot->description= "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals.";
 	
 	/* api callbacks */
+	ot->invoke= nlaedit_duplicate_invoke;
 	ot->exec= nlaedit_duplicate_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 /* ******************** Delete Strips Operator ***************************** */
