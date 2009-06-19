@@ -1515,14 +1515,7 @@ void do_versions_ipos_to_animato(Main *main)
 			/* Add AnimData block */
 			adt= BKE_id_add_animdata(id);
 			
-			/* IPO first */
-			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL);
-				ob->ipo->id.us--;
-				ob->ipo= NULL;
-			}
-			
-			/* now Action */
+			/* Action first - so that Action name get conserved */
 			if (ob->action) {
 				action_to_animdata(id, ob->action);
 				
@@ -1531,6 +1524,13 @@ void do_versions_ipos_to_animato(Main *main)
 					ob->action->id.us--;
 					ob->action= NULL;
 				}
+			}
+			
+			/* IPO second... */
+			if (ob->ipo) {
+				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ob->ipo->id.us--;
+				ob->ipo= NULL;
 			}
 			
 			/* finally NLA */
