@@ -112,7 +112,7 @@ void fcurve_free_modifiers(struct FCurve *fcu);
 struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
 void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
 
-short fcurve_has_suitable_modifier(FCurve *fcu, int mtype, short acttype);
+short fcurve_has_suitable_modifier(struct FCurve *fcu, int mtype, short acttype);
 
 float evaluate_time_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float cvalue, float evaltime);
 void evaluate_value_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float *cvalue, float evaltime);
