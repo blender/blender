@@ -409,7 +409,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				
 				/* Find percentages */
 				newweight = (m_blendframe/(float)m_blendin);
-				// XXX blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
+				game_blend_poses(m_pose, m_blendpose, 1.0 - newweight);
 
 				/* Increment current blending percentage */
 				m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
