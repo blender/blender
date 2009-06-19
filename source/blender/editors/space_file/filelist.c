@@ -113,7 +113,6 @@ typedef struct FileList
 	int numfiles;
 	int numfiltered;
 	char dir[FILE_MAX];
-	short type;
 	int has_func;
 	short prv_w;
 	short prv_h;
@@ -171,7 +170,7 @@ static int compare_name(const void *a1, const void *a2)
 	if( strcmp(entry1->relname, "..")==0 ) return (-1);
 	if( strcmp(entry2->relname, "..")==0 ) return (1);
 	
-	return (BLI_strcasecmp(entry1->relname,entry2->relname));
+	return (BLI_natstrcmp(entry1->relname,entry2->relname));
 }
 
 static int compare_date(const void *a1, const void *a2)	
@@ -202,7 +201,7 @@ static int compare_date(const void *a1, const void *a2)
 	if ( entry1->s.st_mtime < entry2->s.st_mtime) return 1;
 	if ( entry1->s.st_mtime > entry2->s.st_mtime) return -1;
 	
-	else return BLI_strcasecmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname,entry2->relname);
 }
 
 static int compare_size(const void *a1, const void *a2)	
@@ -232,7 +231,7 @@ static int compare_size(const void *a1, const void *a2)
 	
 	if ( entry1->s.st_size < entry2->s.st_size) return 1;
 	if ( entry1->s.st_size > entry2->s.st_size) return -1;
-	else return BLI_strcasecmp(entry1->relname,entry2->relname);
+	else return BLI_natstrcmp(entry1->relname,entry2->relname);
 }
 
 static int compare_extension(const void *a1, const void *a2) {
@@ -358,12 +357,6 @@ void filelist_free_icons()
 struct FileList*	filelist_new()
 {
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
-	p->filelist = 0;
-	p->numfiles = 0;
-	p->dir[0] = '\0';
-	p->type = 0;
-	p->has_func = 0;
-	p->filter = 0;
 	return p;
 }
 
@@ -373,7 +366,6 @@ struct FileList*	filelist_copy(struct FileList* filelist)
 	BLI_strncpy(p->dir, filelist->dir, FILE_MAX);
 	p->filelist = NULL;
 	p->fidx = NULL;
-	p->type = filelist->type;
 
 	return p;
 }
@@ -413,6 +405,7 @@ void filelist_free(struct FileList* filelist)
 	filelist->filelist = 0;	
 	filelist->filter = 0;
 	filelist->numfiltered =0;
+	filelist->hide_dot =0;
 }
 
 int	filelist_numfiles(struct FileList* filelist)
@@ -510,48 +503,46 @@ void filelist_loadimage(struct FileList* filelist, int index)
 
 	if (!filelist->filelist[fidx].image)
 	{
-		if (filelist->type != FILE_MAIN)
-		{
-			if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {				
-				imb = IMB_thumb_read(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL);
-			} 
-			if (imb) {
-				if (imb->x > imb->y) {
-					scaledx = (float)imgwidth;
-					scaledy =  ( (float)imb->y/(float)imb->x )*imgwidth;
+
+		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {				
+			imb = IMB_thumb_read(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL);
+		} 
+		if (imb) {
+			if (imb->x > imb->y) {
+				scaledx = (float)imgwidth;
+				scaledy =  ( (float)imb->y/(float)imb->x )*imgwidth;
+			}
+			else {
+				scaledy = (float)imgheight;
+				scaledx =  ( (float)imb->x/(float)imb->y )*imgheight;
+			}
+			ex = (short)scaledx;
+			ey = (short)scaledy;
+			
+			dx = imgwidth - ex;
+			dy = imgheight - ey;
+			
+			// IMB_scaleImBuf(imb, ex, ey);
+			filelist->filelist[fidx].image = imb;
+		} else {
+			/* prevent loading image twice */
+			FileImage* limg = filelist->loadimages.first;
+			short found= 0;
+			while(limg) {
+				if (limg->index == fidx) {
+					found= 1;
+					break;
 				}
-				else {
-					scaledy = (float)imgheight;
-					scaledx =  ( (float)imb->x/(float)imb->y )*imgheight;
-				}
-				ex = (short)scaledx;
-				ey = (short)scaledy;
-				
-				dx = imgwidth - ex;
-				dy = imgheight - ey;
-				
-				// IMB_scaleImBuf(imb, ex, ey);
-				filelist->filelist[fidx].image = imb;
-			} else {
-				/* prevent loading image twice */
-				FileImage* limg = filelist->loadimages.first;
-				short found= 0;
-				while(limg) {
-					if (limg->index == fidx) {
-						found= 1;
-						break;
-					}
-					limg= limg->next;
-				}
-				if (!found) {
-					FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
-					limg->index= fidx;
-					limg->lock= 0;
-					limg->filelist= filelist;
-					BLI_addtail(&filelist->loadimages, limg);
-				}
-			}		
-		}
+				limg= limg->next;
+			}
+			if (!found) {
+				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
+				limg->index= fidx;
+				limg->lock= 0;
+				limg->filelist= filelist;
+				BLI_addtail(&filelist->loadimages, limg);
+			}
+		}		
 	}
 }
 
@@ -824,16 +815,6 @@ void filelist_swapselect(struct FileList* filelist)
 		if(act) file->flags &= ~ACTIVE;
 		else file->flags |= ACTIVE;
 	}
-}
-
-void filelist_settype(struct FileList* filelist, int type)
-{
-	filelist->type = type;
-}
-
-short filelist_gettype(struct FileList* filelist)
-{
-	return filelist->type;
 }
 
 void filelist_sort(struct FileList* filelist, short sort)

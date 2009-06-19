@@ -25,23 +25,23 @@ TODO:
 #ifndef SLIDER_CONSTRAINT_H
 #define SLIDER_CONSTRAINT_H
 
-//-----------------------------------------------------------------------------
+
 
 #include "LinearMath/btVector3.h"
 #include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
-//-----------------------------------------------------------------------------
+
 
 class btRigidBody;
 
-//-----------------------------------------------------------------------------
+
 
 #define SLIDER_CONSTRAINT_DEF_SOFTNESS		(btScalar(1.0))
 #define SLIDER_CONSTRAINT_DEF_DAMPING		(btScalar(1.0))
 #define SLIDER_CONSTRAINT_DEF_RESTITUTION	(btScalar(0.7))
 
-//-----------------------------------------------------------------------------
+
 
 class btSliderConstraint : public btTypedConstraint
 {
@@ -126,6 +126,7 @@ protected:
 public:
 	// constructors
     btSliderConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
+    btSliderConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameB);
     btSliderConstraint();
 	// overrides
     virtual void	buildJacobian();
@@ -223,7 +224,7 @@ public:
 	btVector3 getAncorInB(void);
 };
 
-//-----------------------------------------------------------------------------
+
 
 #endif //SLIDER_CONSTRAINT_H
 

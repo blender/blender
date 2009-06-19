@@ -42,16 +42,17 @@ void RNA_def_camera(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{CAM_PERSP, "PERSP", "Perspective", ""},
-		{CAM_ORTHO, "ORTHO", "Orthographic", ""},
-		{0, NULL, NULL, NULL}};
+		{CAM_PERSP, "PERSP", 0, "Perspective", ""},
+		{CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_lens_unit_items[] = {
-		{0, "MILLIMETERS", "Millimeters", ""},
-		{CAM_ANGLETOGGLE, "DEGREES", "Degrees", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "MILLIMETERS", 0, "Millimeters", ""},
+		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
 	RNA_def_struct_ui_text(srna, "Camera", "Camera datablock for storing camera settings.");
+	RNA_def_struct_ui_icon(srna, ICON_CAMERA_DATA);
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -61,7 +62,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	
 	/* Number values */
 
-	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "passepartalpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view.");
@@ -75,13 +76,13 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "Camera near clipping distance.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
-	RNA_def_property_range(prop, 1.0f, 5000.0f);
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip End", "Camera far clipping distance.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
@@ -158,6 +159,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 }

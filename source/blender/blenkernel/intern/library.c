@@ -142,6 +142,12 @@ void id_us_plus(ID *id)
 	}
 }
 
+void id_us_min(ID *id)
+{
+	if(id)
+		id->us--;
+}
+
 ListBase *wich_libbase(Main *mainlib, short type)
 {
 	switch( type ) {

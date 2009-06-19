@@ -41,9 +41,6 @@ struct TextLine;
 struct wmOperatorType;
 struct wmWindowManager;
 
-/* text_header.c */
-void text_header_register(struct ARegionType *art);
-
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);
 

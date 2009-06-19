@@ -25,10 +25,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
 #include "DNA_ID.h"
+
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 
@@ -55,11 +58,41 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	test_idbutton(id->name+2);
 }
 
-StructRNA *rna_ID_refine(PointerRNA *ptr)
+short RNA_type_to_ID_code(StructRNA *type)
 {
-	ID *id= (ID*)ptr->data;
+	if(RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
+	if(RNA_struct_is_a(type, &RNA_Armature)) return ID_AR;
+	if(RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
+	if(RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
+	if(RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
+	if(RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
+	if(RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
+	//if(RNA_struct_is_a(type, &RNA_Ipo)) return case ID_IP;
+	if(RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
+	if(RNA_struct_is_a(type, &RNA_Lamp)) return ID_LA;
+	if(RNA_struct_is_a(type, &RNA_Library)) return ID_LI;
+	if(RNA_struct_is_a(type, &RNA_Lattice)) return ID_LT;
+	if(RNA_struct_is_a(type, &RNA_Material)) return ID_MA;
+	if(RNA_struct_is_a(type, &RNA_MetaBall)) return ID_MB;
+	if(RNA_struct_is_a(type, &RNA_NodeTree)) return ID_NT;
+	if(RNA_struct_is_a(type, &RNA_Mesh)) return ID_ME;
+	if(RNA_struct_is_a(type, &RNA_Object)) return ID_OB;
+	if(RNA_struct_is_a(type, &RNA_ParticleSettings)) return ID_PA;
+	if(RNA_struct_is_a(type, &RNA_Scene)) return ID_SCE;
+	if(RNA_struct_is_a(type, &RNA_Screen)) return ID_SCR;
+	if(RNA_struct_is_a(type, &RNA_Sound)) return ID_SO;
+	if(RNA_struct_is_a(type, &RNA_Text)) return ID_TXT;
+	if(RNA_struct_is_a(type, &RNA_Texture)) return ID_TE;
+	if(RNA_struct_is_a(type, &RNA_VectorFont)) return ID_VF;
+	if(RNA_struct_is_a(type, &RNA_World)) return ID_WO;
+	if(RNA_struct_is_a(type, &RNA_WindowManager)) return ID_WM;
 
-	switch(GS(id->name)) {
+	return 0;
+}
+
+StructRNA *ID_code_to_RNA_type(short idcode)
+{
+	switch(idcode) {
 		case ID_AC: return &RNA_Action;
 		case ID_AR: return &RNA_Armature;
 		case ID_BR: return &RNA_Brush;
@@ -88,6 +121,13 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_WM: return &RNA_WindowManager;
 		default: return &RNA_ID;
 	}
+}
+
+StructRNA *rna_ID_refine(PointerRNA *ptr)
+{
+	ID *id= (ID*)ptr->data;
+
+	return ID_code_to_RNA_type(GS(id->name));
 }
 
 IDProperty *rna_ID_idproperties(PointerRNA *ptr, int create)
@@ -182,7 +222,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");
-	RNA_def_struct_flag(srna, STRUCT_ID);
+	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 	RNA_def_struct_idproperties_func(srna, "rna_ID_idproperties");
 
@@ -206,12 +246,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
-
-	/* XXX temporary for testing */
-	func= RNA_def_function(srna, "rename", "rename_id");
-	RNA_def_function_ui_description(func, "Rename this ID datablock.");
-	prop= RNA_def_string(func, "name", "", 0, "", "New name for the datablock.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
 }
 
 static void rna_def_library(BlenderRNA *brna)
@@ -221,6 +255,7 @@ static void rna_def_library(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Library", "ID");
 	RNA_def_struct_ui_text(srna, "Library", "External .blend file from which data is linked.");
+	RNA_def_struct_ui_icon(srna, ICON_LIBRARY_DATA_DIRECT);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");

@@ -3075,8 +3075,8 @@ static void apply_spring_memory(Object *ob)
 	int a;
 	float b,l,r;
 
-    b = sb->plastic;
 	if (sb && sb->totspring){
+		b = sb->plastic;
 		for(a=0; a<sb->totspring; a++) {
 			bs  = &sb->bspring[a];
 			bp1 =&sb->bpoint[bs->v1];
@@ -3546,9 +3546,9 @@ static void springs_from_particles(Object *ob)
 	int a,k;
 	float hairmat[4][4];
 
-	psys= ob->soft->particles;
-	sb= ob->soft;	
-	if(ob && sb && psys) { 	
+	if(ob && ob->soft && ob->soft->particles) { 	
+		psys= ob->soft->particles;
+		sb= ob->soft;	
 		psmd = psys_get_modifier(ob, psys);
 
 		bp= sb->bpoint;

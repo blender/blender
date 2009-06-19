@@ -67,7 +67,9 @@ typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct PointerRNA *ptr);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
+typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
 typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
@@ -126,6 +128,8 @@ struct PropertyRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 
 	/* property type as it appears to the outside */
 	PropertyType type;
@@ -213,6 +217,7 @@ typedef struct EnumPropertyRNA {
 
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
+	PropEnumItemFunc itemf;
 
 	const EnumPropertyItem *item;
 	int totitem;
@@ -225,6 +230,7 @@ typedef struct PointerPropertyRNA {
 
 	PropPointerGetFunc get;
 	PropPointerSetFunc set;
+	PropPointerTypeFunc typef;
 
 	struct StructRNA *type;
 } PointerPropertyRNA;
@@ -239,6 +245,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
+	FunctionRNA *add, *remove;
 
 	struct StructRNA *type;
 } CollectionPropertyRNA;
@@ -263,6 +270,8 @@ struct StructRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 	
 	/* property that defines the name */
 	PropertyRNA *nameproperty;

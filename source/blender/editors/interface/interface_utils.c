@@ -35,13 +35,17 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "BLI_blenlib.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -62,186 +66,6 @@
 #define DEF_BUT_HEIGHT		20
 
 /*************************** RNA Utilities ******************************/
-
-int UI_GetIconRNA(PointerRNA *ptr)
-{
-	StructRNA *rnatype= ptr->type;
-
-	if(rnatype == &RNA_Scene)
-		return ICON_SCENE_DATA;
-	else if(rnatype == &RNA_World)
-		return ICON_WORLD_DATA;
-	else if(rnatype == &RNA_Object)
-		return ICON_OBJECT_DATA;
-	else if(rnatype == &RNA_Mesh)
-		return ICON_MESH_DATA;
-	else if(rnatype == &RNA_MeshVertex)
-		return ICON_VERTEXSEL;
-	else if(rnatype == &RNA_MeshEdge)
-		return ICON_EDGESEL;
-	else if(rnatype == &RNA_MeshFace)
-		return ICON_FACESEL;
-	else if(rnatype == &RNA_MeshTextureFace)
-		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_VertexGroup)
-		return ICON_GROUP_VERTEX;
-	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_GROUP_VERTEX;
-	else if(rnatype == &RNA_Curve)
-		return ICON_CURVE_DATA;
-	else if(rnatype == &RNA_MetaBall)
-		return ICON_META_DATA;
-	else if(rnatype == &RNA_MetaElement)
-		return ICON_OUTLINER_DATA_META;
-	else if(rnatype == &RNA_Lattice)
-		return ICON_LATTICE_DATA;
-	else if(rnatype == &RNA_Armature)
-		return ICON_ARMATURE_DATA;
-	else if(rnatype == &RNA_Bone)
-		return ICON_BONE_DATA;
-	else if(rnatype == &RNA_Camera)
-		return ICON_CAMERA_DATA;
-	else if(rnatype == &RNA_LocalLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_AreaLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_SpotLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_SunLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_HemiLamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_Lamp)
-		return ICON_LAMP_DATA;
-	else if(rnatype == &RNA_Group)
-		return ICON_GROUP;
-	else if(rnatype == &RNA_ParticleSystem)
-		return ICON_PARTICLE_DATA;
-	else if(rnatype == &RNA_ParticleSettings)
-		return ICON_PARTICLE_DATA;
-	else if(rnatype == &RNA_Material)
-		return ICON_MATERIAL_DATA;
-	else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_TextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_WorldTextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_MaterialTextureSlot)
-		return ICON_TEXTURE_DATA;
-	else if(rnatype == &RNA_Image)
-		return ICON_IMAGE_DATA;
-	else if(rnatype == &RNA_Screen)
-		return ICON_SPLITSCREEN;
-	else if(rnatype == &RNA_NodeTree)
-		return ICON_NODE;
-	else if(rnatype == &RNA_Text)
-		return ICON_TEXT;
-	else if(rnatype == &RNA_Sound)
-		return ICON_SOUND;
-	else if(rnatype == &RNA_Brush)
-		return ICON_BRUSH_DATA;
-	else if(rnatype == &RNA_VectorFont)
-		return ICON_FONT_DATA;
-	else if(rnatype == &RNA_Library)
-		return ICON_LIBRARY_DATA_DIRECT;
-	else if(rnatype == &RNA_Action)
-		return ICON_ACTION;
-	else if(rnatype == &RNA_FCurve)
-		return ICON_ANIM_DATA;
-	//else if(rnatype == &RNA_Ipo)
-	//	return ICON_ANIM_DATA;
-	else if(rnatype == &RNA_Key)
-		return ICON_SHAPEKEY_DATA;
-	else if(rnatype == &RNA_Main)
-		return ICON_BLENDER;
-	else if(rnatype == &RNA_Struct)
-		return ICON_RNA;
-	else if(rnatype == &RNA_Property)
-		return ICON_RNA;
-	else if(rnatype == &RNA_BooleanProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_IntProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_FloatProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_StringProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumPropertyItem)
-		return ICON_RNA;
-	else if(rnatype == &RNA_PointerProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_CollectionProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_GameObjectSettings)
-		return ICON_GAME;
-	else if(rnatype == &RNA_ScriptLink)
-		return ICON_PYTHON;
-	
-	/* modifiers */
-	else if(rnatype == &RNA_SubsurfModifier)
-		return ICON_MOD_SUBSURF;
-	else if(rnatype == &RNA_ArmatureModifier)
-		return ICON_MOD_ARMATURE;
-	else if(rnatype == &RNA_LatticeModifier)
-		return ICON_MOD_LATTICE;
-	else if(rnatype == &RNA_CurveModifier)
-		return ICON_MOD_CURVE;
-	else if(rnatype == &RNA_BuildModifier)
-		return ICON_MOD_BUILD;
-	else if(rnatype == &RNA_MirrorModifier)
-		return ICON_MOD_MIRROR;
-	else if(rnatype == &RNA_DecimateModifier)
-		return ICON_MOD_DECIM;
-	else if(rnatype == &RNA_WaveModifier)
-		return ICON_MOD_WAVE;
-	else if(rnatype == &RNA_HookModifier)
-		return ICON_HOOK;
-	else if(rnatype == &RNA_SoftbodyModifier)
-		return ICON_MOD_SOFT;
-	else if(rnatype == &RNA_BooleanModifier)
-		return ICON_MOD_BOOLEAN;
-	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_ParticleSystemModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_EdgeSplitModifier)
-		return ICON_MOD_EDGESPLIT;
-	else if(rnatype == &RNA_ArrayModifier)
-		return ICON_MOD_ARRAY;
-	else if(rnatype == &RNA_UVProjectModifier)
-		return ICON_MOD_UVPROJECT;
-	else if(rnatype == &RNA_DisplaceModifier)
-		return ICON_MOD_DISPLACE;
-	else if(rnatype == &RNA_ShrinkwrapModifier)
-		return ICON_MOD_SHRINKWRAP;
-	else if(rnatype == &RNA_CastModifier)
-		return ICON_MOD_CAST;
-	else if(rnatype == &RNA_MeshDeformModifier)
-		return ICON_MOD_MESHDEFORM;
-	else if(rnatype == &RNA_BevelModifier)
-		return ICON_MOD_BEVEL;
-	else if(rnatype == &RNA_SmoothModifier)
-		return ICON_MOD_SMOOTH;
-	else if(rnatype == &RNA_SimpleDeformModifier)
-		return ICON_MOD_SIMPLEDEFORM;
-	else if(rnatype == &RNA_MaskModifier)
-		return ICON_MOD_MASK;
-	else if(rnatype == &RNA_ClothModifier)
-		return ICON_MOD_CLOTH;
-	else if(rnatype == &RNA_ExplodeModifier)
-		return ICON_MOD_EXPLODE;
-	else if(rnatype == &RNA_CollisionModifier)
-		return ICON_MOD_PHYSICS;
-	else if(rnatype == &RNA_FluidSimulationModifier)
-		return ICON_MOD_FLUIDSIM;
-	else if(rnatype == &RNA_MultiresModifier)
-		return ICON_MOD_MULTIRES;
-	else
-		return ICON_DOT;
-}
 
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
 {
@@ -268,7 +92,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			else if(icon)
 				but= uiDefIconTextButR(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else
-				but= uiDefButR(block, TOG, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+				but= uiDefButR(block, OPTION, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_INT:
@@ -294,8 +118,8 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)
-				pptr.type= RNA_property_pointer_type(prop);
-			icon= UI_GetIconRNA(&pptr);
+				pptr.type= RNA_property_pointer_type(ptr, prop);
+			icon= RNA_struct_ui_icon(pptr.type);
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
@@ -333,12 +157,12 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		split = uiLayoutSplit(layout);
+		split = uiLayoutSplit(layout, 0.5f);
 
 		name= (char*)RNA_property_ui_name(prop);
 
 		uiItemL(uiLayoutColumn(split, 0), name, 0);
-		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0);
+		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0, 0);
 	}
 
 	RNA_property_collection_end(&iter);
@@ -366,16 +190,24 @@ void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *pt
 		name= (char*)RNA_property_ui_name(prop);
 		col= uiLayoutColumn(layout, 1);
 		uiItemL(col, name, 0);
-		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0);
+		
+		/* temp hack to show normal button for spin/screw */
+		if(strcmp(name, "Axis")==0) {
+			uiDefButR(uiLayoutGetBlock(layout), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
+		}
+		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
 	}
 	
 	RNA_property_collection_end(&iter);
 }
 
+
 /***************************** ID Utilities *******************************/
+/* note, C code version, will be replaced with version in interface_templates.c */
 
 typedef struct uiIDPoinParams {
 	uiIDPoinFunc func;
+	ListBase *lb;
 	ID *id;
 	short id_code;
 	short browsenr;
@@ -383,16 +215,12 @@ typedef struct uiIDPoinParams {
 
 static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 {
-	Main *bmain;
-	ListBase *lb;
 	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+	ListBase *lb= params->lb;
 	uiIDPoinFunc func= params->func;
 	ID *id= params->id, *idtest;
 	int nr, event= GET_INT_FROM_POINTER(arg_event);
 
-	bmain= CTX_data_main(C);
-	lb= wich_libbase(bmain, params->id_code);
-	
 	if(event == UI_ID_BROWSE && params->browsenr == 32767)
 		event= UI_ID_ADD_NEW;
 	else if(event == UI_ID_BROWSE && params->browsenr == 32766)
@@ -459,21 +287,83 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 		func(C, id, event);
 }
 
+/* ***************************** ID Search browse menu ********************** */
+
+static void id_search_call_cb(struct bContext *C, void *arg_params, void *item)
+{
+	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+
+	if(item && params->func)
+		params->func(C, item, UI_ID_BROWSE);
+
+}
+
+static void id_search_cb(const struct bContext *C, void *arg_params, char *str, uiSearchItems *items)
+{
+	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
+	ID *id;
+	
+	for(id= params->lb->first; id; id= id->next) {
+		
+		if(BLI_strcasestr(id->name+2, str)) {
+			if(0==uiSearchItemAdd(items, id->name+2, id))
+				break;
+		}
+	}
+}
+
+static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_params)
+{
+	static char search[256];
+	static uiIDPoinParams params;
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	/* params is malloced, can be freed by parent button */
+	params= *((uiIDPoinParams*)arg_params);
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+/* ****************** */
+
 int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events)
 {
-	ListBase *lb;
 	uiBut *but;
 	uiIDPoinParams *params, *dup_params;
-	char *str=NULL, str1[10];
+	char str1[10];
 	int len, add_addbutton=0;
 
 	/* setup struct that we will pass on with the buttons */
 	params= MEM_callocN(sizeof(uiIDPoinParams), "uiIDPoinParams");
+	params->lb= wich_libbase(bmain, id_code);
 	params->id= id;
 	params->id_code= id_code;
 	params->func= func;
-
-	lb= wich_libbase(bmain, id_code);
 
 	/* create buttons */
 	uiBlockBeginAlign(block);
@@ -495,45 +385,11 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 
 	/* browse menu */
 	if(events & UI_ID_BROWSE) {
-		char *extrastr= NULL;
-		
-		if(ELEM4(id_code, ID_MA, ID_TE, ID_BR, ID_PA))
-			add_addbutton= 1;
-		
-		if(ELEM8(id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) || id_code == ID_PA)
-			extrastr= "ADD NEW %x 32767";
-		else if(id_code==ID_TXT)
-			extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
-		else if(id_code==ID_SO)
-			extrastr= "OPEN NEW %x 32766";
-
-		/* XXX should be moved out of this function
-		uiBlockSetButLock(block, G.scene->id.lib!=0, "Can't edit external libdata");
-		if( id_code==ID_SCE || id_code==ID_SCR ) uiBlockClearButLock(block); */
-		
-		/* XXX should be moved out of this function
-		if(curarea->spacetype==SPACE_BUTS)
-			uiBlockSetButLock(block, id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, "Cannot perform in EditMode"); */
-		
-		if(parid)
-			uiBlockSetButLock(block, parid->lib!=0, "Can't edit external libdata");
-
-		if(lb) {
-			if(id_code!=ID_IM || (events & UI_ID_BROWSE_RENDER))
-				IDnames_to_pupstring(&str, NULL, extrastr, lb, id, &params->browsenr);
-			else
-				IMAnames_to_pupstring(&str, NULL, extrastr, lb, id, &params->browsenr);
-		}
-
-		dup_params= MEM_dupallocN(params);
-		but= uiDefButS(block, MENU, 0, str, x, y, DEF_ICON_BUT_WIDTH, DEF_BUT_HEIGHT, &dup_params->browsenr, 0, 0, 0, 0, "Browse existing choices, or add new");
-		uiButSetNFunc(but, idpoin_cb, dup_params, SET_INT_IN_POINTER(UI_ID_BROWSE));
+		uiDefBlockButN(block, id_search_menu, MEM_dupallocN(params), "", x, y, DEF_ICON_BUT_WIDTH, DEF_BUT_HEIGHT, "Browse ID data");
 		x+= DEF_ICON_BUT_WIDTH;
-		
-		uiBlockClearButLock(block);
-	
-		MEM_freeN(str);
 	}
+	
+	
 
 	/* text button with name */
 	if(id) {
@@ -1091,5 +947,130 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	uiDefBut(block, BUT_CURVE, event, "", 
 			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
 			  cumap, 0.0f, 1.0f, 0, 0, "");
+}
+
+#define B_BANDCOL 1
+
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			// XXX if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(C, coba, NULL);
+	ED_undo_push(C, "Add colorband");
+}
+
+static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+	ED_undo_push(C, "Delete colorband");
+	// XXX BIF_preview_changed(ID_TE);
+}
+
+
+/* offset aligns from bottom, standard width 300, height 115 */
+static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, int redraw)
+{
+	CBData *cbd;
+	uiBut *bt;
+	
+	if(coba==NULL) return;
+	
+	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
+	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	
+	uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+		236+xoffs, 95+yoffs, 64, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+
+	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active color");
+	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
+	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active color");
+	uiBlockEndAlign(block);
+}
+
+static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+
+	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+		xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+}
+
+void colorband_buttons(uiBlock *block, ColorBand *coba, rctf *butr, int small)
+{
+	if(small)
+		colorband_buttons_small(block, coba, butr, 0);
+	else
+		colorband_buttons_large(block, coba, 0, 0, 0);
 }
 

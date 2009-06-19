@@ -87,17 +87,16 @@ extern "C"
 //XXX #include "BSE_editipo_types.h"
 #include "DNA_ipo_types.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h" // eval_icu
 #include "DNA_space_types.h"
 }
 
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
-							struct SpaceIpo*	sipo,
 							class KX_KetsjiEngine* engine
 							)
 							: m_maggie(maggie),
-							m_sipo(sipo),
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
 							m_usemat(false),
@@ -114,11 +113,11 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete sumoshapes
 	
 
-	int numipolists = m_map_blender_to_gameipolist.size();
-	for (i=0; i<numipolists; i++) {
-		BL_InterpolatorList *ipoList= *m_map_blender_to_gameipolist.at(i);
+	int numAdtLists = m_map_blender_to_gameAdtList.size();
+	for (i=0; i<numAdtLists; i++) {
+		BL_InterpolatorList *adtList= *m_map_blender_to_gameAdtList.at(i);
 
-		delete (ipoList);
+		delete (adtList);
 	}
 
 	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator itw = m_worldinfos.begin();
@@ -549,12 +548,12 @@ void KX_BlenderSceneConverter::RegisterGameMesh(
 
 
 RAS_MeshObject *KX_BlenderSceneConverter::FindGameMesh(
-									struct Mesh *for_blendermesh,
-									unsigned int onlayer)
+									struct Mesh *for_blendermesh/*,
+									unsigned int onlayer*/)
 {
 	RAS_MeshObject** meshp = m_map_mesh_to_gamemesh[CHashedPtr(for_blendermesh)];
 	
-	if (meshp && onlayer==(*meshp)->GetLightLayer()) {
+	if (meshp/* && onlayer==(*meshp)->GetLightLayer()*/) {
 		return *meshp;
 	} else {
 		return NULL;
@@ -574,18 +573,18 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *ipoList,
-									struct Ipo *for_ipo)
+									BL_InterpolatorList *adtList,
+									struct AnimData *for_adt)
 {
-	m_map_blender_to_gameipolist.insert(CHashedPtr(for_ipo), ipoList);
+	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_adt), adtList);
 }
 
 
 
 BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct Ipo *for_ipo)
+									struct AnimData *for_adt)
 {
-	BL_InterpolatorList **listp = m_map_blender_to_gameipolist[CHashedPtr(for_ipo)];
+	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_adt)];
 		
 	return listp?*listp:NULL;
 }
@@ -640,14 +639,14 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
  * When deleting an IPO curve from Python, check if the IPO is being
  * edited and if so clear the pointer to the old curve.
  */
-void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo)
+void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu )
 {
-	if (!sipo)
+#if 0 //XXX
+	if (!G.sipo)
 		return;
 
 	int i;
-#if 0 //XXX
-	EditIpo *ei= (EditIpo *)sipo->editipo;
+	EditIpo *ei= (EditIpo *)G.sipo->editipo;
 	if (!ei) return;
 
 	for(i=0; i<G.sipo->totipo; i++, ei++) {
@@ -668,7 +667,9 @@ extern "C"
 	//XXX struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
 	//XXX void testhandles_ipocurve(struct IpoCurve *icu);
 	void insert_vert_icu(struct IpoCurve *, float, float, short);
-	void Mat3ToEul(float tmat[][3], float *eul);
+	float eval_icu(struct IpoCurve *icu, float ipotime);
+	//void Mat3ToEul(float tmat[][3], float *eul);
+	void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
 }
 
 IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
@@ -750,7 +751,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								if( tmpicu->bezt )
 									MEM_freeN( tmpicu->bezt );
 								MEM_freeN( tmpicu );
-								localDel_ipoCurve( tmpicu ,m_sipo);
+								localDel_ipoCurve( tmpicu );
 							}
 					  	}
 					} else
@@ -818,7 +819,6 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
 	}
 }
 
-#define TEST_HANDLES_GAME2IPO 0
 
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
@@ -842,138 +842,83 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
-				if (blenderObject)
+				if (blenderObject && blenderObject->ipo)
 				{
-
-					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
-					float eulerAngles[3];	
-					float tmat[3][3];
-					for (int r=0;r<3;r++)
-					{
-						for (int c=0;c<3;c++)
-						{
-							tmat[r][c] = orn[c][r];
-						}
-					}
-					Mat3ToEul(tmat, eulerAngles);
-					
-					for(int x = 0; x < 3; x++) {
-						eulerAngles[x] *= (float) (180 / 3.14159265f);
-					}
-
-					eulerAngles[0]/=10.f;
-					eulerAngles[1]/=10.f;
-					eulerAngles[2]/=10.f;
-
-
-
-					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
+					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
 					
+					float eulerAngles[3];	
+					float eulerAnglesOld[3] = {0.0f, 0.0f, 0.0f};						
+					float tmat[3][3];
+					
+					// XXX animato
+#if 0
 					Ipo* ipo = blenderObject->ipo;
-					if (ipo)
-					{
 
-						//create the curves, if not existing
+					//create the curves, if not existing, set linear if new
 
-					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
-					
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
-					
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
-
-
-
-					//fill the curves with data
-
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-						if (icu1)
-						{
-							float curVal = position.x();
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-							//XXX testhandles_ipocurve(icu1);
-#endif
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-						if (icu1)
-						{
-							float curVal = position.y();
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-
-							//XXX testhandles_ipocurve(icu1);
-#endif
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-						if (icu1)
-						{
-							float curVal = position.z();
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-							//XXX testhandles_ipocurve(icu1);
-#endif
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-						if (icu1)
-						{
-							float curVal = eulerAngles[0];
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-
-							//XXX testhandles_ipocurve(icu1);
-#endif
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-						if (icu1)
-						{
-							float curVal = eulerAngles[1];
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-
-							//XXX testhandles_ipocurve(icu1);
-#endif
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-						if (icu1)
-						{
-							float curVal = eulerAngles[2];
-							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
-#ifdef TEST_HANDLES_GAME2IPO
-							
-							//XXX testhandles_ipocurve(icu1);
-#endif
-
-						}
-
+					IpoCurve *icu_lx = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
+					if (!icu_lx) {
+						icu_lx = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
+						if(icu_lx) icu_lx->ipo = IPO_LIN;
 					}
+					IpoCurve *icu_ly = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
+					if (!icu_ly) {
+						icu_ly = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
+						if(icu_ly) icu_ly->ipo = IPO_LIN;
+					}
+					IpoCurve *icu_lz = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
+					if (!icu_lz) {
+						icu_lz = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
+						if(icu_lz) icu_lz->ipo = IPO_LIN;
+					}
+					IpoCurve *icu_rx = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
+					if (!icu_rx) {
+						icu_rx = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
+						if(icu_rx) icu_rx->ipo = IPO_LIN;
+					}
+					IpoCurve *icu_ry = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
+					if (!icu_ry) {
+						icu_ry = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
+						if(icu_ry) icu_ry->ipo = IPO_LIN;
+					}
+					IpoCurve *icu_rz = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
+					if (!icu_rz) {
+						icu_rz = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
+						if(icu_rz) icu_rz->ipo = IPO_LIN;
+					}
+					
+					if(icu_rx) eulerAnglesOld[0]= eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if(icu_ry) eulerAnglesOld[1]= eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if(icu_rz) eulerAnglesOld[2]= eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					
+					// orn.getValue((float *)tmat); // uses the wrong ordering, cant use this
+					for (int r=0;r<3;r++)
+						for (int c=0;c<3;c++)
+							tmat[r][c] = orn[c][r];
+					
+					// Mat3ToEul(tmat, eulerAngles); // better to use Mat3ToCompatibleEul
+					Mat3ToCompatibleEul(tmat, eulerAngles, eulerAnglesOld);
+					
+					//eval_icu
+					for(int x = 0; x < 3; x++)
+						eulerAngles[x] *= (float) ((180 / 3.14159265f) / 10.0);
+					
+					//fill the curves with data
+					if (icu_lx) insert_vert_icu(icu_lx, frameNumber, position.x(), 1);
+					if (icu_ly) insert_vert_icu(icu_ly, frameNumber, position.y(), 1);
+					if (icu_lz) insert_vert_icu(icu_lz, frameNumber, position.z(), 1);
+					if (icu_rx) insert_vert_icu(icu_rx, frameNumber, eulerAngles[0], 1);
+					if (icu_ry) insert_vert_icu(icu_ry, frameNumber, eulerAngles[1], 1);
+					if (icu_rz) insert_vert_icu(icu_rz, frameNumber, eulerAngles[2], 1);
+					
+					// Handles are corrected at the end, testhandles_ipocurve isnt needed yet
+#endif
 				}
 			}
-
 		}
-		
-	
-	}	
-	
-
+	}
 }
 
 
@@ -998,100 +943,21 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
-				if (blenderObject)
+				if (blenderObject && blenderObject->ipo)
 				{
-
-					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
-					float eulerAngles[3];	
-					float tmat[3][3];
-					for (int r=0;r<3;r++)
-					{
-						for (int c=0;c<3;c++)
-						{
-							tmat[r][c] = orn[c][r];
-						}
-					}
-					Mat3ToEul(tmat, eulerAngles);
-					
-					for(int x = 0; x < 3; x++) {
-						eulerAngles[x] *= (float) (180 / 3.14159265f);
-					}
-
-					eulerAngles[0]/=10.f;
-					eulerAngles[1]/=10.f;
-					eulerAngles[2]/=10.f;
-
-
-
-					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
-					//const MT_Point3& position = gameObj->NodeGetWorldPosition();
-					
+					// XXX animato
+#if 0
 					Ipo* ipo = blenderObject->ipo;
-					if (ipo)
-					{
-
-						//create the curves, if not existing
-
-					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
 					
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
-					
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
-
-					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-					//XXX if (!icu1)
-					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
-
-
-
-					//fill the curves with data
-
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-						if (icu1)
-						{
-							//XXX testhandles_ipocurve(icu1);
-						}
-
-					}
+					//create the curves, if not existing
+					//testhandles_ipocurve checks for NULL
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"LocX"));
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"LocY"));
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ"));
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotX"));
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotY"));
+					testhandles_ipocurve(findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ"));
+#endif
 				}
 			}
 

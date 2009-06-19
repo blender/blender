@@ -47,16 +47,17 @@ void rna_def_metaelement(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{MB_BALL, "BALL", "Ball", ""},
-		{MB_TUBE, "TUBE", "Tube", ""},
-		{MB_PLANE, "PLANE", "Plane", ""},
-		{MB_ELIPSOID, "ELLIPSOID", "Ellipsoid", ""}, // NOTE: typo at original definition!
-		{MB_CUBE, "CUBE", "Cube", ""},
-		{0, NULL, NULL, NULL}};
+		{MB_BALL, "BALL", 0, "Ball", ""},
+		{MB_TUBE, "TUBE", 0, "Tube", ""},
+		{MB_PLANE, "PLANE", 0, "Plane", ""},
+		{MB_ELIPSOID, "ELLIPSOID", 0, "Ellipsoid", ""}, // NOTE: typo at original definition!
+		{MB_CUBE, "CUBE", 0, "Cube", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaElement", NULL);
-	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock.");
 	RNA_def_struct_sdna(srna, "MetaElem");
+	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock.");
+	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -104,14 +105,15 @@ void rna_def_metaball(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_update_items[] = {
-		{MB_UPDATE_ALWAYS, "UPDATE_ALWAYS", "Always", "While editing, update metaball always."},
-		{MB_UPDATE_HALFRES, "HALFRES", "Half Resolution", "While editing, update metaball in half resolution."},
-		{MB_UPDATE_FAST, "FAST", "Fast", "While editing, update metaball without polygonization."},
-		{MB_UPDATE_NEVER, "NEVER", "Never", "While editing, don't update metaball at all."},
-		{0, NULL, NULL, NULL}};
+		{MB_UPDATE_ALWAYS, "UPDATE_ALWAYS", 0, "Always", "While editing, update metaball always."},
+		{MB_UPDATE_HALFRES, "HALFRES", 0, "Half Resolution", "While editing, update metaball in half resolution."},
+		{MB_UPDATE_FAST, "FAST", 0, "Fast", "While editing, update metaball without polygonization."},
+		{MB_UPDATE_NEVER, "NEVER", 0, "Never", "While editing, don't update metaball at all."},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaBall", "ID");
 	RNA_def_struct_ui_text(srna, "MetaBall", "Metaball datablock to defined blobby surfaces.");
+	RNA_def_struct_ui_icon(srna, ICON_META_DATA);
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "elems", NULL);

@@ -734,6 +734,7 @@ int join_armature(Scene *scene, View3D *v3d)
 						VecSubf(delta, curbone->tail, curbone->head);
 						vec_roll_to_mat3(delta, curbone->roll, temp);
 						
+						Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
 						Mat4MulMat34(premat, temp, mat);
 						
 						Mat4MulVecfl(mat, curbone->head);
@@ -1956,9 +1957,9 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 
 
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{0, "GLOBALUP", "Z-Axis Up", ""},
-	{1, "CURSOR", "Z-Axis to Cursor", ""},
-	{0, NULL, NULL, NULL}
+	{0, "GLOBALUP", 0, "Z-Axis Up", ""},
+	{1, "CURSOR", 0, "Z-Axis to Cursor", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
@@ -3488,9 +3489,9 @@ static int armature_subdivs_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_subdivs(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", "Simple", ""},
-		{1, "MULTI", "Multi", ""},
-		{0, NULL, NULL}};
+ 		{0, "SIMPLE", 0, "Simple", ""},
+		{1, "MULTI", 0, "Multi", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "subdivs";
@@ -3668,9 +3669,9 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 }
 
 static EnumPropertyItem prop_editarm_make_parent_types[] = {
-	{ARM_PAR_CONNECT, "CONNECTED", "Connected", ""},
-	{ARM_PAR_OFFSET, "OFFSET", "Keep Offset", ""},
-	{0, NULL, NULL, NULL}
+	{ARM_PAR_CONNECT, "CONNECTED", 0, "Connected", ""},
+	{ARM_PAR_OFFSET, "OFFSET", 0, "Keep Offset", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int armature_parent_set_exec(bContext *C, wmOperator *op) 
@@ -3784,9 +3785,9 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_editarm_clear_parent_types[] = {
-	{1, "CLEAR", "Clear Parent", ""},
-	{2, "DISCONNECT", "Disconnect Bone", ""},
-	{0, NULL, NULL, NULL}
+	{1, "CLEAR", 0, "Clear Parent", ""},
+	{2, "DISCONNECT", 0, "Disconnect Bone", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static void editbone_clear_parent(EditBone *ebone, int mode)
@@ -3972,9 +3973,9 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", "Select Child", ""},
-	{0, NULL, NULL, NULL}
+	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+	{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */

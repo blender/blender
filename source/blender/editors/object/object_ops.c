@@ -101,6 +101,9 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
+	WM_operatortype_append(OBJECT_OT_modifier_mdef_bind);
+
+	WM_operatortype_append(OBJECT_OT_constraint_add);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

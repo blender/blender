@@ -1064,6 +1064,7 @@ static void sculpt_update_mesh_elements(bContext *C)
 {
 	SculptSession *ss = CTX_data_tool_settings(C)->sculpt->session;
 	Object *ob = CTX_data_active_object(C);
+	int oldtotvert = ss->totvert;
 
 	if((ss->multires = sculpt_multires_active(ob))) {
 		DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
@@ -1082,7 +1083,10 @@ static void sculpt_update_mesh_elements(bContext *C)
 		ss->face_normals = NULL;
 	}
 
-	if(ss->totvert != ss->fmap_size) {
+	if(ss->totvert != oldtotvert) {
+		if(ss->projverts) MEM_freeN(ss->projverts);
+		ss->projverts = NULL;
+
 		if(ss->fmap) MEM_freeN(ss->fmap);
 		if(ss->fmap_mem) MEM_freeN(ss->fmap_mem);
 		create_vert_face_map(&ss->fmap, &ss->fmap_mem, ss->mface, ss->totvert, ss->totface);
@@ -1241,10 +1245,10 @@ static int sculpt_brush_curve_preset_exec(bContext *C, wmOperator *op)
 static void SCULPT_OT_brush_curve_preset(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_mode_items[] = {
-		{BRUSH_PRESET_SHARP, "SHARP", "Sharp Curve", ""},
-		{BRUSH_PRESET_SMOOTH, "SMOOTH", "Smooth Curve", ""},
-		{BRUSH_PRESET_MAX, "MAX", "Max Curve", ""},
-		{0, NULL, NULL, NULL}};
+		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp Curve", ""},
+		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth Curve", ""},
+		{BRUSH_PRESET_MAX, "MAX", 0, "Max Curve", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
 	ot->idname= "SCULPT_OT_brush_curve_preset";
@@ -1517,6 +1521,7 @@ static void sculpt_flush_update(bContext *C)
 		
 		mmd->undo_verts = s->session->mvert;
 		mmd->undo_verts_tot = s->session->totvert;
+		multires_mark_as_modified(CTX_data_active_object(C));
 	}
 
 	ED_region_tag_redraw(ar);

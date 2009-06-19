@@ -319,6 +319,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+
 /* ***************** Debug menu ************************* */
 
 static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
@@ -372,6 +373,97 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	
 	RNA_def_int(ot->srna, "debugval", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
 }
+
+/* ***************** Search menu ************************* */
+static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	
+	if(ot)
+		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				char name[256];
+				int len= strlen(ot->name);
+				
+				/* display name for menu, can hold hotkey */
+				BLI_strncpy(name, ot->name, 256);
+				
+				/* check for hotkey */
+				if(len < 256-6) {
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, &name[len+1], 256-len-1))
+						name[len]= '|';
+				}
+				
+				if(0==uiSearchItemAdd(items, name, ot))
+					break;
+			}
+		}
+	}
+}
+
+static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
+{
+	static char search[256]= "";
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+static int wm_search_menu_exec(bContext *C, wmOperator *op)
+{
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	uiPupBlock(C, wm_block_search_menu, op);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_search_menu(wmOperatorType *ot)
+{
+	ot->name= "Search Menu";
+	ot->idname= "WM_OT_search_menu";
+	
+	ot->invoke= wm_search_menu_invoke;
+	ot->exec= wm_search_menu_exec;
+	ot->poll= WM_operator_winactive;
+}
+
 
 
 /* ************ window / screen operator definitions ************** */
@@ -1411,10 +1503,10 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_mode_items[] = {
-		{WM_RADIALCONTROL_SIZE, "SIZE", "Size", ""},
-		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", "Strength", ""},
-		{WM_RADIALCONTROL_ANGLE, "ANGLE", "Angle", ""},
-		{0, NULL, NULL, NULL}};
+		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
+		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
+		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* Should be set in custom invoke() */
 	RNA_def_float(ot->srna, "initial_value", 0, 0, FLT_MAX, "Initial Value", "", 0, FLT_MAX);
@@ -1428,6 +1520,7 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 	/* Internal */
 	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 }
+
 
 /* ************************** timer for testing ***************** */
 
@@ -1496,12 +1589,12 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 static void WM_OT_ten_timer(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_type_items[] = {
-	{0, "DRAW", "Draw Region", ""},
-	{1, "DRAWSWAP", "Draw Region + Swap", ""},
-	{2, "DRAWWINSWAP", "Draw Window + Swap", ""},
-	{3, "ANIMSTEP", "Anim Step", ""},
-	{4, "UNDO", "Undo/Redo", ""},
-	{0, NULL, NULL, NULL}};
+	{0, "DRAW", 0, "Draw Region", ""},
+	{1, "DRAWSWAP", 0, "Draw Region + Swap", ""},
+	{2, "DRAWWINSWAP", 0, "Draw Window + Swap", ""},
+	{3, "ANIMSTEP", 0, "Anim Step", ""},
+	{4, "UNDO", 0, "Undo/Redo", ""},
+	{0, NULL, 0, NULL, NULL}};
 	
 	ot->name= "Ten Timer";
 	ot->idname= "WM_OT_ten_timer";
@@ -1539,6 +1632,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_ten_timer);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_search_menu);
 
 	/* XXX: move these */
 	WM_operatortype_append(WM_OT_collada_export);
@@ -1567,6 +1661,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", FKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
 }
 

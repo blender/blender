@@ -545,7 +545,7 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specularity";
+			return "specular_reflection";
 		
 		case MA_HARD:
 			return "specular_hardness";
@@ -1169,7 +1169,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
 		/* add the 'only int values' flag */
-		fcu->flag |= FCURVE_INT_VALUES;		
+		fcu->flag |= (FCURVE_INT_VALUES|FCURVE_DISCRETE_VALUES);		
 		
 		/* for each bit we have to remap + check for:
 		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),
@@ -1741,3 +1741,4 @@ void do_versions_ipos_to_animato(Main *main)
 	
 	printf("INFO: Animato convert done \n"); // xxx debug
 }
+

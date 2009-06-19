@@ -32,8 +32,6 @@
 
 #include "KX_PhysicsEngineEnums.h"
 
-#include "MT_CmMatrix4x4.h"
-
 #include <vector>
 #include <set>
 #include <list>
@@ -43,7 +41,7 @@
 #include "SG_IObject.h"
 #include "SCA_IScene.h"
 #include "MT_Transform.h"
-#include "SND_Scene.h"
+
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
@@ -110,16 +108,16 @@ protected:
 	 * LogicEndFrame() via a call to RemoveObject().
 	 */
 	CListValue*	m_euthanasyobjects;
-	/**
-	* The list of objects that couldn't be released during logic update.
-	* for example, AddObject actuator sometimes releases an object that was cached from previous frame
-	*/
-	CListValue*	m_delayReleaseObjects;
 
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	
+	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
+										// the Dlist is not object that must be updated
+										// the Qlist is for objects that needs to be rescheduled
+										// for updates after udpate is over (slow parent, bone parent)
 
 	/**
 	 *  The tree of objects in the scene.
@@ -190,20 +188,6 @@ protected:
 	 * The active camera for the scene
 	 */
 	KX_Camera* m_active_camera;
-
-	/** 
-	 * The projection and view matrices of this scene 
-	 * The projection matrix is computed externally by KX_Engine	
-	 * The view mat is stored as a side effect of GetViewMatrix()
-	 * and is totally unnessary.
-	 */
-	MT_CmMatrix4x4				m_projectionmat;
-	MT_CmMatrix4x4				m_viewmat;
-
-	/** Desired canvas width set at design time. */
-	unsigned int m_canvasDesignWidth;
-	/** Desired canvas height set at design time. */
-	unsigned int m_canvasDesignHeight;
 
 	/**
 	 * Another temporary variable outstaying its welcome
@@ -318,6 +302,8 @@ public:
 	/**
 	 * Update all transforms according to the scenegraph.
 	 */
+	static bool KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene);
+	static bool KX_ScenegraphRescheduleFunc(SG_IObject* node,void* gameobj,void* scene);
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
 	bool IsObjectInGroup(CValue* gameobj)
@@ -335,8 +321,6 @@ public:
 	void RemoveObject(CValue* gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
-	void DelayedReleaseObject(CValue* gameobj);
-
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
@@ -420,25 +404,6 @@ public:
 		void
 	SetCameraOnTop(
 		class KX_Camera*
-	);
-
-	/** Return the viewmatrix as used by the last frame. */
-		MT_CmMatrix4x4&			
-	GetViewMatrix(
-	);
-
-	/** 
-	 * Return the projectionmatrix as used by the last frame. This is
-	 * set by hand :) 
-	 */
-		MT_CmMatrix4x4&			
-	GetProjectionMatrix(
-	);
-
-	/** Sets the projection matrix. */
-		void					
-	SetProjectionMatrix(
-		MT_CmMatrix4x4& pmat
 	);
 
 	/**
@@ -592,14 +557,16 @@ public:
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_objects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects_inactive(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_lights(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_cameras(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
-	/* for dir(), python3 uses __dir__() */
-	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
+	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual PyObject* py_getattro_dict();
+	
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 	virtual int py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 

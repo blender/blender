@@ -94,8 +94,6 @@ BF_SOLID_LIB = 'extern_solid'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-WITH_BF_YAFRAY = True
-
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr

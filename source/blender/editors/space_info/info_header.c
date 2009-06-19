@@ -262,23 +262,22 @@ uiBlock *info_externalfiles(bContext *C, ARegion *ar, void *arg_unused)
 static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_read_homefile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_open_mainfile"); 
 //	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
 //	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiItemS(layout);
 	
-	uiLayoutContext(layout, WM_OP_EXEC_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_mainfile"); 
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
 
 	// XXX: these should move
 	uiItemS(layout);
-	uiLayoutContext(layout, WM_OP_INVOKE_AREA);
 	uiItemO(layout, NULL, 0, "WM_OT_collada_import"); 
 	uiItemO(layout, NULL, 0, "WM_OT_collada_export"); 
 
@@ -393,6 +392,40 @@ static void scene_idpoin_handle(bContext *C, ID *id, int event)
 	}
 }
 
+static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	
+	if(ot)
+		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				char name[256];
+				int len= strlen(ot->name);
+				
+				/* display name for menu, can hold hotkey */
+				BLI_strncpy(name, ot->name, 256);
+				
+				/* check for hotkey */
+				if(len < 256-6) {
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, &name[len+1], 256-len-1))
+						name[len]= '|';
+				}
+				
+				if(0==uiSearchItemAdd(items, name, ot))
+					break;
+			}
+		}
+	}
+}
 
 void info_header_buttons(const bContext *C, ARegion *ar)
 {
@@ -458,6 +491,16 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", xco+5,yco,85,19, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 		xco+= 90;
 	}
+	
+	{
+		static char search[256]= "";
+		uiBut *but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, xco+5, yco, 120, 19, "");
+		
+		uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
+
+		xco+= 125;
+	}
+
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);

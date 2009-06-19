@@ -51,6 +51,7 @@ blenderdeps = [] # don't manipulate this one outside this module!
 
 possible_types = ['core'] # can be set in ie. SConstruct
 libs = {}
+vcp = []
 
 def getresources():
 	return resources
@@ -126,8 +127,6 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
 	if lenv['WITH_BF_FFMPEG']:
 		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
-	if lenv['WITH_BF_STATICCXX']:
-		statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
 	if lenv['WITH_BF_OPENEXR']:
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
@@ -140,6 +139,8 @@ def setup_staticlibs(lenv):
 			statlibs += Split(lenv['BF_OPENAL_LIB_STATIC'])
 	if lenv['WITH_BF_STATICOPENGL']:
 		statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
+	if lenv['WITH_BF_STATICCXX']:
+		statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
 
 	if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
 		statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
@@ -194,6 +195,7 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_OPENGL_LIB'])
 	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross', 'win64-vc'):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
+
 	if lenv['WITH_BF_LCMS']:
 		syslibs.append(lenv['BF_LCMS_LIB'])
 	if lenv['WITH_BF_COLLADA']:
@@ -416,7 +418,8 @@ class BlenderEnvironment(SConsEnvironment):
 		SConsEnvironment.Default(self, res)
 		resources.append(res)
 
-	def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None):	   
+	def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None):
+		global vcp
 		if not self or not libname or not sources:
 			print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
 			self.Exit()
@@ -462,12 +465,24 @@ class BlenderEnvironment(SConsEnvironment):
 				targetdir = '#'+targetdir
 			lib = lenv.Library(target= targetdir, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
+			if self['BF_MSVS'] and self['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+				#if targetdir[0] == '#':
+				#	targetdir = targetdir[1:-1]
+				print "! ",targetdir+ '.vcproj' # + self['MSVSPROJECTSUFFIX']
+				vcproject = self.MSVSProject(target = targetdir + '.vcproj', # + self['MSVSPROJECTSUFFIX'],
+						 srcs = sources,
+						 buildtarget = lib,
+						 variant = 'Release',
+						 auto_build_solution=0)
+				vcp.append(vcproject)
+				SConsEnvironment.Default(self, vcproject)
 		else:
 			print bc.WARNING+'Not building '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC+' for '+bc.OKBLUE+'BF_QUICK'+bc.ENDC
 		# note: libs is a global
 		add_lib_to_dict(self, libs, libtype, libname, priority)
 
 	def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
+		global vcp
 		print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
 		lenv = self.Clone()
 		if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
@@ -505,6 +520,12 @@ class BlenderEnvironment(SConsEnvironment):
 			brs = lenv.Command(f, prog, [bsc])
 			SConsEnvironment.Default(self, brs)
 		SConsEnvironment.Default(self, prog)
+		if self['BF_MSVS'] and self['OURPLATFORM'] in ('win32-vc', 'win64-vc') and progname == 'blender':
+			print "! ",builddir + "/" + progname + '.sln'
+			sln = self.MSVSProject(target = builddir + "/" + progname + '.sln',
+					 projects= vcp,
+					 variant = 'Release')
+			SConsEnvironment.Default(self, sln)
 		program_list.append(prog)
 		if  lenv['OURPLATFORM']=='darwin':
 			lenv['BINARYKIND'] = binarykind

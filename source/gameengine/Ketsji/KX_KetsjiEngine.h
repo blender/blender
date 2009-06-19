@@ -103,6 +103,8 @@ private:
 	double				m_previousClockTime;//previous clock time
 	double				m_remainingTime;
 
+	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
+	static int				m_maxPhysicsFrame;	/* maximum number of consecutive physics frame */
 	static double			m_ticrate;
 	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
@@ -127,6 +129,7 @@ private:
 	MT_CmMatrix4x4	m_overrideCamViewMat;
 	float			m_overrideCamNear;
 	float			m_overrideCamFar;
+	float			m_overrideCamLens;
 
 	bool m_stereo;
 	int m_curreye;
@@ -210,7 +213,7 @@ public:
 	RAS_IRenderTools*	    GetRenderTools(){return m_rendertools;};
 
 	/// Dome functions
-	void			InitDome(float size, short res, short mode, short angle, float resbuf, struct Text* text); 
+	void			InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text); 
 	void			EndDome();
 	void			RenderDome();
 	bool			m_usedome;
@@ -251,6 +254,7 @@ public:
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideClipping(float near, float far);
+	void SetCameraOverrideLens(float lens);
 	
 	/**
 	 * Sets display of all frames.
@@ -269,6 +273,7 @@ public:
 	 */
 	double GetClockTime(void) const;
 
+	double GetRealTime(void) const;
 	/**
 	 * Returns the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
@@ -283,6 +288,22 @@ public:
 	 * Sets the number of logic updates per second.
 	 */
 	static void SetTicRate(double ticrate);
+	/**
+	 * Gets the maximum number of logic frame before render frame
+	 */
+	static int GetMaxLogicFrame();
+	/**
+	 * Sets the maximum number of logic frame before render frame
+	 */
+	static void SetMaxLogicFrame(int frame);
+	/**
+	 * Gets the maximum number of physics frame before render frame
+	 */
+	static int GetMaxPhysicsFrame();
+	/**
+	 * Sets the maximum number of physics frame before render frame
+	 */
+	static void SetMaxPhysicsFrame(int frame);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)

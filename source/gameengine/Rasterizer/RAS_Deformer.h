@@ -34,23 +34,47 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
+#include <stdlib.h>
 #include "GEN_Map.h"
+
+struct DerivedMesh;
 
 class RAS_Deformer
 {
 public:
-	RAS_Deformer(){};
+	RAS_Deformer() : m_pMesh(NULL), m_bDynamic(false) {};
 	virtual ~RAS_Deformer(){};
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)=0;
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
 	virtual bool Update(void)=0;
-	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)=0;
+	virtual bool UpdateBuckets(void)=0;
+	virtual RAS_Deformer *GetReplica()=0;
+	virtual void ProcessReplica()=0;
 	virtual bool SkipVertexTransform()
 	{
 		return false;
 	}
+	virtual bool ShareVertexArray()
+	{
+		return true;
+	}
+	virtual bool UseVertexArray()
+	{
+		return true;
+	}
+	// true when deformer produces varying vertex (shape or armature)
+	bool IsDynamic()
+	{
+		return m_bDynamic;
+	}
+	virtual struct DerivedMesh* GetFinalMesh()
+	{
+		return NULL;
+	}
+
 protected:
 	class RAS_MeshObject	*m_pMesh;
+	bool  m_bDynamic;	
 };
 
 #endif

@@ -25,6 +25,8 @@
 #ifndef RNA_INTERNAL_H
 #define RNA_INTERNAL_H
 
+#include "UI_resources.h"
+
 #include "rna_internal_types.h"
 
 #define RNA_MAGIC ((int)~0)
@@ -186,7 +188,11 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 /* API functions */
 
+void RNA_api_main(struct StructRNA *srna);
+void RNA_api_mesh(struct StructRNA *srna);
+void RNA_api_object(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
+void RNA_api_wm(struct StructRNA *srna);
 
 /* ID Properties */
 

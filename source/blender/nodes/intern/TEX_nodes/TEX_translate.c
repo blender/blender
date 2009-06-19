@@ -31,7 +31,7 @@
 
 static bNodeSocketType inputs[]= { 
 	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{ SOCK_VECTOR, 1, "Offset",   0.0f, 0.0f, 0.0f, 0.0f,  -1.0f, 1.0f },
+	{ SOCK_VECTOR, 1, "Offset",   0.0f, 0.0f, 0.0f, 0.0f,  -10000.0f, 10000.0f },
 	{ -1, 0, "" } 
 };
 

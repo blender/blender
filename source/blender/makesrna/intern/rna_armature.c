@@ -32,6 +32,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
@@ -110,6 +112,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Bone", NULL);
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
+	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -253,19 +256,20 @@ void rna_def_armature(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
-		{ARM_OCTA, "OCTAHEDRAL", "Octahedral", "Draw bones as octahedral shape (default)."},
-		{ARM_LINE, "STICK", "Stick", "Draw bones as simple 2D lines with dots."},
-		{ARM_B_BONE, "BBONE", "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
-		{0, NULL, NULL, NULL}};
+		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Draw bones as octahedral shape (default)."},
+		{ARM_LINE, "STICK", 0, "Stick", "Draw bones as simple 2D lines with dots."},
+		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
-		{ARM_GHOST_CUR, "CURRENT_FRAME", "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
-		{ARM_GHOST_RANGE, "RANGE", "In Range", "Draw Ghosts of poses within specified range."},
-		{ARM_GHOST_KEYS, "KEYS", "On Keyframes", "Draw Ghosts of poses on Keyframes."},
-		{0, NULL, NULL, NULL}};
+		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
+		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Draw Ghosts of poses within specified range."},
+		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Draw Ghosts of poses on Keyframes."},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
 	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");
+	RNA_def_struct_ui_icon(srna, ICON_ARMATURE_DATA);
 	
 	RNA_def_struct_sdna(srna, "bArmature");
 	
@@ -292,6 +296,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, NULL);
 	
 		/* layer protection */
 	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_NONE);

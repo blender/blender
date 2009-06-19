@@ -67,7 +67,7 @@ public:
 	virtual ~KX_RaySensor();
 	virtual CValue* GetReplica();
 
-	virtual bool Evaluate(CValue* event);
+	virtual bool Evaluate();
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
@@ -87,6 +87,7 @@ public:
 
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 	
 	// Deprecated ----->

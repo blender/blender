@@ -100,7 +100,7 @@ protected:
 	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
 	int				m_texco_num;
 	int				m_attrib_num;
-	int				m_last_blendmode;
+	//int				m_last_blendmode;
 	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
@@ -163,9 +163,9 @@ public:
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
 	virtual void	SetViewMatrix(
 						const MT_Matrix4x4 & mat,
-						const MT_Vector3& campos,
-						const MT_Point3 &camLoc,
-						const MT_Quaternion &camOrientQuat
+						const MT_Matrix3x3 & ori,
+						const MT_Point3 & pos,
+						bool perspective
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
@@ -190,6 +190,7 @@ public:
 
 	void			DisableFog();
 	virtual void	DisplayFog();
+	virtual bool	IsFogEnabled();
 
 	virtual void	SetBackColor(
 						float red,
@@ -213,6 +214,15 @@ public:
 							float frustfar,
 							float focallength,
 							bool perspective
+						);
+
+	virtual MT_Matrix4x4 GetOrthoMatrix(
+							float left,
+							float right,
+							float bottom,
+							float top,
+							float frustnear,
+							float frustfar
 						);
 
 	virtual void	SetSpecularity(

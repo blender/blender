@@ -40,6 +40,7 @@ void		wm_window_free			(bContext *C, wmWindow *win);
 void		wm_window_title				(wmWindowManager *wm, wmWindow *win);
 void		wm_window_add_ghostwindows	(wmWindowManager *wm);
 void		wm_window_process_events	(const bContext *C);
+void		wm_window_process_events_nosleep(const bContext *C);
 
 void		wm_window_make_drawable(bContext *C, wmWindow *win);
 

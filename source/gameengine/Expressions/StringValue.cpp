@@ -34,7 +34,7 @@ effect: constructs a new CStringValue
 	m_strString = "[Illegal String constructor call]";
 }
 
-CStringValue::CStringValue(STR_String txt,STR_String name,AllocationTYPE alloctype)
+CStringValue::CStringValue(const char *txt,const char *name,AllocationTYPE alloctype)
 /*
 pre:
 effect: constructs a new CStringValue containing text txt
@@ -133,7 +133,7 @@ bool CStringValue::IsEqual(const STR_String & other)
 CValue* CStringValue::GetReplica()
 { 
 	CStringValue* replica = new CStringValue(*this);
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 	return replica;
 };
 

@@ -41,6 +41,7 @@ void RNA_def_scriptlink(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ScriptLink", NULL);
 	RNA_def_struct_ui_text(srna, "Script Link", "Scripts linked to a datablock, to be executed on changes to the datablock.");
+	RNA_def_struct_ui_icon(srna, ICON_PYTHON);
 }
 
 #endif

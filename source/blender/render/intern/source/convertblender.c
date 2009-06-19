@@ -114,18 +114,6 @@
 #include "zbuf.h"
 #include "sunsky.h"
 
-#ifndef DISABLE_YAFRAY /* disable yafray */
-
-#include "YafRay_Api.h"
-
-/* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.
- * Same is true for lamp coords & vec.
- * Duplicated data objects & dupliframe/duplivert objects are only stored once,
- * only the matrix is stored for all others, in yafray these objects are instances of the original.
- * The main changes are in RE_Database_FromScene().
- */
-
-#endif /* disable yafray */
 
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
 /* or for checking vertex normal flips */
@@ -1471,7 +1459,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if(part==NULL || pars==NULL || !psys_check_enabled(ob, psys))
 		return 0;
 	
-	if(part->draw_as==PART_DRAW_OB || part->draw_as==PART_DRAW_GR || part->draw_as==PART_DRAW_NOT)
+	if(part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
 		return 1;
 
 /* 2. start initialising things */
@@ -1534,7 +1522,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		sd.mcol = MEM_callocN(sd.totcol * sizeof(MCol), "particle_mcols");
 
 /* 2.2 setup billboards */
-	if(part->draw_as == PART_DRAW_BB) {
+	if(part->ren_as == PART_DRAW_BB) {
 		int first_uv = CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
 
 		bb.uv[0] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[0]);
@@ -1589,7 +1577,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	Mat3Transp(nmat);
 
 /* 2.6 setup strand rendering */
-	if(part->draw_as == PART_DRAW_PATH && psys->pathcache){
+	if(part->ren_as == PART_DRAW_PATH && psys->pathcache){
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
 		if(path_nbr) {
@@ -1772,7 +1760,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(parent->num < psmd->dm->getNumFaces(psmd->dm))
 						num = parent->num;
 
-				get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
+				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
 			}
 
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
@@ -1869,8 +1857,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					strand->totvert++;
 				}
 				else{
-					sd.first = 0;
-					sd.time = time;
 					sd.size = hasize;
 
 					if(k==1){
@@ -1878,7 +1864,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						sd.time = 0.0f;
 						VECSUB(loc0,loc1,loc);
 						VECADD(loc0,loc1,loc0);
+
+						render_new_particle(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed);
 					}
+
+					sd.first = 0;
+					sd.time = time;
 
 					if(k)
 						render_new_particle(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
@@ -1896,10 +1887,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				continue;
 
 			VECCOPY(loc,state.co);
-			if(part->draw_as!=PART_DRAW_BB)
+			if(part->ren_as!=PART_DRAW_BB)
 				MTC_Mat4MulVecfl(re->viewmat,loc);
 
-			switch(part->draw_as) {
+			switch(part->ren_as) {
 				case PART_DRAW_LINE:
 					sd.line = 1;
 					sd.time = 0.0f;
@@ -2570,7 +2561,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	if(need_orco) orcobase= orco= get_object_orco(re, ob);
 
 	displist.first= displist.last= 0;
-	makeDispListSurf(re->scene, ob, &displist, 1);
+	makeDispListSurf(re->scene, ob, &displist, 1, 0);
 
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
@@ -3468,22 +3459,6 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	}
 	else lar->ray_totsamp= 0;
 	
-#ifndef DISABLE_YAFRAY
-	/* yafray: photonlight and other params */
-	if (re->r.renderer==R_YAFRAY) {
-		lar->YF_numphotons = la->YF_numphotons;
-		lar->YF_numsearch = la->YF_numsearch;
-		lar->YF_phdepth = la->YF_phdepth;
-		lar->YF_useqmc = la->YF_useqmc;
-		lar->YF_causticblur = la->YF_causticblur;
-		lar->YF_ltradius = la->YF_ltradius;
-		lar->YF_bufsize = la->YF_bufsize;
-		lar->YF_glowint = la->YF_glowint;
-		lar->YF_glowofs = la->YF_glowofs;
-		lar->YF_glowtype = la->YF_glowtype;
-	}
-#endif /* disable yafray */
-
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {
 		if(lar->spotsi>170.0) lar->spotsi= 170.0;
@@ -4407,7 +4382,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	}
 
 	for(psys=obd->particlesystem.first; psys; psys=psys->next)
-		if(!ELEM5(psys->part->draw_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
+		if(!ELEM5(psys->part->ren_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
 			return 0;
 
 	/* don't allow lamp, animated duplis, or radio render */
@@ -4430,7 +4405,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 	
 	if(ob->transflag & OB_DUPLIPARTS) {
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			if(ELEM(psys->part->draw_as, PART_DRAW_OB, PART_DRAW_GR)) {
+			if(ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 				if(enable)
 					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 				else

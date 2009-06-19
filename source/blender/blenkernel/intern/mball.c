@@ -296,7 +296,10 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	splitIDname(basis->id.name+2, basisname, &basisnr);
 	totelem= 0;
 
-	next_object(scene, 0, 0, 0);
+	/* XXX recursion check, see scene.c, just too simple code this next_object() */
+	if(F_ERROR==next_object(scene, 0, 0, 0))
+		return NULL;
+	
 	while(next_object(scene, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {

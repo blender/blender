@@ -127,7 +127,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	PointerRNA ptr;
 	uiBlock *block;
 	
-	block= uiLayoutBlock(pa->layout);
+	block= uiLayoutGetBlock(pa->layout);
 
 	/* only for operators that are registered and did an undo push */
 	for(op= wm->operators.last; op; op= op->prev)

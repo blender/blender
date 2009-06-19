@@ -157,7 +157,16 @@ void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 	AZone *az;
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
-		int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
+		int xs, ys;
+		
+		if(az->type==AZONE_AREA) {
+			xs= (az->x1+az->x2)/2;
+			ys= (az->y1+az->y2)/2;
+		}
+		else {
+			xs= az->x3;
+			ys= az->y3;
+		}
 
 		/* test if inside */
 		if(BLI_in_rcti(&ar->winrct, xs, ys)) {
@@ -187,6 +196,28 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
 }
 
+static void region_draw_azone(ScrArea *sa, AZone *az)
+{
+	if(az->ar==NULL) return;
+	
+	UI_SetTheme(sa->spacetype, az->ar->type->regionid);
+	
+	UI_ThemeColor(TH_BACK);
+	glBegin(GL_TRIANGLES);
+	glVertex2s(az->x1, az->y1);
+	glVertex2s(az->x2, az->y2);
+	glVertex2s(az->x3, az->y3);
+	glEnd();
+	
+	UI_ThemeColorShade(TH_BACK, 50);
+	sdrawline(az->x1, az->y1, az->x3, az->y3);
+	
+	UI_ThemeColorShade(TH_BACK, -50);
+	sdrawline(az->x2, az->y2, az->x3, az->y3);
+
+}
+
+
 /* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
@@ -204,9 +235,11 @@ void ED_area_overdraw(bContext *C)
 		AZone *az;
 		for(az= sa->actionzones.first; az; az= az->next) {
 			if(az->do_draw) {
-				if(az->type==AZONE_TRI) {
+				if(az->type==AZONE_AREA)
 					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
-				}
+				else if(az->type==AZONE_REGION)
+					region_draw_azone(sa, az);
+				
 				az->do_draw= 0;
 			}
 		}
@@ -360,7 +393,123 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 	}
 }
 
+/* ************************************************************ */
+
+
+#define AZONESPOT		12
+static void area_azone_initialize(ScrArea *sa) 
+{
+	AZone *az;
+	
+	/* reinitalize entirely, regions add azones too */
+	BLI_freelistN(&sa->actionzones);
+	
+	/* set area action zones */
+	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+	BLI_addtail(&(sa->actionzones), az);
+	az->type= AZONE_AREA;
+	az->x1= sa->totrct.xmin;
+	az->y1= sa->totrct.ymin;
+	az->x2= sa->totrct.xmin + AZONESPOT-1;
+	az->y2= sa->totrct.ymin + AZONESPOT-1;
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	
+	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+	BLI_addtail(&(sa->actionzones), az);
+	az->type= AZONE_AREA;
+	az->x1= sa->totrct.xmax+1;
+	az->y1= sa->totrct.ymax+1;
+	az->x2= sa->totrct.xmax-AZONESPOT+1;
+	az->y2= sa->totrct.ymax-AZONESPOT+1;
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+}
+
+static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge) 
+{
+	AZone *az, *azt;
+	
+	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+	BLI_addtail(&(sa->actionzones), az);
+	az->type= AZONE_REGION;
+	az->ar= ar;
+	az->edge= edge;
+	
+	if(edge=='t') {
+		az->x1= ar->winrct.xmin+AZONESPOT;
+		az->y1= ar->winrct.ymax;
+		az->x2= ar->winrct.xmin+2*AZONESPOT;
+		az->y2= ar->winrct.ymax;
+		az->x3= (az->x1+az->x2)/2;
+		az->y3= az->y2+AZONESPOT/2;
+		BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y3);
+	}
+	else if(edge=='b') {
+		az->x1= ar->winrct.xmin+AZONESPOT;
+		az->y1= ar->winrct.ymin;
+		az->x2= ar->winrct.xmin+2*AZONESPOT;
+		az->y2= ar->winrct.ymin;
+		az->x3= (az->x1+az->x2)/2;
+		az->y3= az->y2-AZONESPOT/2;
+		BLI_init_rcti(&az->rect, az->x1, az->x2, az->y3, az->y1);
+	}
+	else if(edge=='l') {
+		az->x1= ar->winrct.xmin;
+		az->y1= ar->winrct.ymax-AZONESPOT;
+		az->x2= ar->winrct.xmin;
+		az->y2= ar->winrct.ymax-2*AZONESPOT;
+		az->x3= az->x2-AZONESPOT/2;
+		az->y3= (az->y1+az->y2)/2;
+		BLI_init_rcti(&az->rect, az->x3, az->x1, az->y1, az->y2);
+	}
+	else { // if(edge=='r') {
+		az->x1= ar->winrct.xmax;
+		az->y1= ar->winrct.ymax-AZONESPOT;
+		az->x2= ar->winrct.xmax;
+		az->y2= ar->winrct.ymax-2*AZONESPOT;
+		az->x3= az->x2+AZONESPOT/2;
+		az->y3= (az->y1+az->y2)/2;
+		BLI_init_rcti(&az->rect, az->x1, az->x3, az->y1, az->y2);
+	}
+	
+	/* if more azones on 1 spot, set offset */
+	for(azt= sa->actionzones.first; azt; azt= azt->next) {
+		if(az!=azt) {
+			if(az->x1==azt->x1 && az->y1==azt->y1) {
+				if(edge=='t' || edge=='b') {
+					az->x1+= AZONESPOT;
+					az->x2+= AZONESPOT;
+					az->x3+= AZONESPOT;
+					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y3);
+				}
+				else {
+					az->y1-= AZONESPOT;
+					az->y2-= AZONESPOT;
+					az->y3-= AZONESPOT;
+					BLI_init_rcti(&az->rect, az->x1, az->x3, az->y1, az->y2);
+				}
+			}
+		}
+	}
+	
+}
+
+
 /* *************************************************************** */
+
+static void region_azone_add(ScrArea *sa, ARegion *ar, int alignment)
+{
+	 /* edge code (t b l r) is where azone will be drawn */
+	
+	if(alignment==RGN_ALIGN_TOP)
+		region_azone_initialize(sa, ar, 'b');
+	else if(alignment==RGN_ALIGN_BOTTOM)
+		region_azone_initialize(sa, ar, 't');
+	else if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT))
+		region_azone_initialize(sa, ar, 'l');
+	else if(ELEM(alignment, RGN_ALIGN_LEFT, RGN_OVERLAP_LEFT))
+		region_azone_initialize(sa, ar, 'r');
+								
+}
 
 /* dir is direction to check, not the splitting edge direction! */
 static int rct_fits(rcti *rect, char dir, int size)
@@ -373,7 +522,7 @@ static int rct_fits(rcti *rect, char dir, int size)
 	}
 }
 
-static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
+static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int quad)
 {
 	rcti *remainder_prev= remainder;
 	int prefsizex, prefsizey;
@@ -382,6 +531,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 	if(ar==NULL)
 		return;
 	
+	/* no returns in function, winrct gets set in the end again */
 	BLI_init_rcti(&ar->winrct, 0, 0, 0, 0);
 	
 	/* for test; allow split of previously defined region */
@@ -540,7 +690,27 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			ar->prev->winy= ar->prev->winrct.ymax - ar->prev->winrct.ymin + 1;
 		}
 	}
-	region_rect_recursive(ar->next, remainder, quad);
+
+	/* set winrect for azones */
+	if(ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
+		ar->winrct= *remainder;
+		
+		if(alignment==RGN_ALIGN_TOP)
+			ar->winrct.ymin= ar->winrct.ymax;
+		else if(alignment==RGN_ALIGN_BOTTOM)
+			ar->winrct.ymax= ar->winrct.ymin;
+		else if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT))
+			ar->winrct.xmin= ar->winrct.xmax;
+		else if(ELEM(alignment, RGN_ALIGN_LEFT, RGN_OVERLAP_LEFT))
+			ar->winrct.xmax= ar->winrct.xmin;
+		else /* prevent winrct to be valid */
+			ar->winrct.xmax= ar->winrct.xmin;
+	}
+	/* in end, add azones, where appropriate */
+	region_azone_add(sa, ar, alignment);
+
+
+	region_rect_recursive(sa, ar->next, remainder, quad);
 }
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
@@ -562,40 +732,6 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	sa->winy= sa->totrct.ymax-sa->totrct.ymin+1;
 }
 
-
-#define AZONESPOT		12
-void area_azone_initialize(ScrArea *sa) 
-{
-	AZone *az;
-	if(sa->actionzones.first==NULL) {
-		/* set action zones - should these actually be ARegions? With these we can easier check area hotzones */
-		/* (ton) for time being just area, ARegion split is not foreseen on user level */
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&(sa->actionzones), az);
-		az->type= AZONE_TRI;
-		az->pos= AZONE_SW;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&(sa->actionzones), az);
-		az->type= AZONE_TRI;
-		az->pos= AZONE_NE;
-	}
-	
-	for(az= sa->actionzones.first; az; az= az->next) {
-		if(az->pos==AZONE_SW) {
-			az->x1= sa->totrct.xmin;
-			az->y1= sa->totrct.ymin;
-			az->x2= sa->totrct.xmin + AZONESPOT-1;
-			az->y2= sa->totrct.ymin + AZONESPOT-1;
-		} 
-		else if (az->pos==AZONE_NE) {
-			az->x1= sa->totrct.xmax+1;
-			az->y1= sa->totrct.ymax+1;
-			az->x2= sa->totrct.xmax-AZONESPOT+1;
-			az->y2= sa->totrct.ymax-AZONESPOT+1;
-		}
-	}
-}
 
 /* used for area initialize below */
 static void region_subwindow(wmWindowManager *wm, wmWindow *win, ARegion *ar)
@@ -659,9 +795,12 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	/* area sizes */
 	area_calc_totrct(sa, win->sizex, win->sizey);
 	
+	/* clear all azones, add the area triange widgets */
+	area_azone_initialize(sa);
+
 	/* region rect sizes */
 	rect= sa->totrct;
-	region_rect_recursive(sa->regionbase.first, &rect, 0);
+	region_rect_recursive(sa, sa->regionbase.first, &rect, 0);
 	
 	/* default area handlers */
 	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
@@ -686,7 +825,6 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		}
 		
 	}
-	area_azone_initialize(sa);
 }
 
 /* externally called for floating regions like menus */
@@ -699,6 +837,11 @@ void ED_region_init(bContext *C, ARegion *ar)
 	
 	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
+	
+	/* UI convention */
+	wmLoadIdentity();
+	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
+	
 }
 
 
@@ -905,6 +1048,7 @@ static char *windowtype_pup(void)
 		   "|Outliner %x3" //232
 		   "|Buttons Window %x4" //251
 		   "|Node Editor %x16"
+		   "|Logic Editor %x17"
 		   "|%l" //254
 		   
 		   "|File Browser %x5" //290
@@ -963,6 +1107,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	PanelType *pt;
@@ -994,13 +1139,13 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
 		if(context)
-			if(!pt->context || strcmp(context, pt->context) != 0)
+			if(pt->context[0] && strcmp(context, pt->context) != 0)
 				continue;
 
 		/* draw panel */
 		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel= uiBeginPanel(ar, block, pt, &open);
+			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
 			if(vertical)
 				y -= header;
@@ -1018,7 +1163,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			}
 
 			if(open) {
-				panel->type= pt;
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
 
@@ -1030,8 +1174,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 				yco -= 2*style->panelspace;
 				uiEndPanel(block, w, -yco);
 			}
-			else
+			else {
 				yco= 0;
+				uiEndPanel(block, w, 0);
+			}
 
 			uiEndBlock(C, block);
 

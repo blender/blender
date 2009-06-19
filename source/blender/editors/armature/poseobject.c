@@ -500,9 +500,9 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", "Select Child", ""},
-	{0, NULL, NULL, NULL}
+	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+	{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
@@ -1688,18 +1688,25 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 	if (ob->pose == NULL)
 		return;
 	
-	/* find selected bones */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
-			/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
-			pchan->bone->flag &= ~BONE_UNKEYED;
+	/* if the object has an action, restore pose to the pose defined by the action by clearing pose on selected bones */
+	if (ob->action) {
+		/* find selected bones */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+				/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
+				pchan->bone->flag &= ~BONE_UNKEYED;
+			}
 		}
+		
+		/* clear pose locking flag 
+		 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
+		 */
+		ob->pose->flag |= POSE_DO_UNLOCK;
 	}
-	
-	/* clear pose locking flag 
-	 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
-	 */
-	ob->pose->flag |= POSE_DO_UNLOCK;
+	else {
+		/* no action, so restore entire pose to rest pose (cannot restore only selected bones) */
+		rest_pose(ob->pose);
+	}
 	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");

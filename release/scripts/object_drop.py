@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Drop Onto Ground'
-Blender: 245
+Blender: 249
 Group: 'Object'
 Tooltip: 'Drop the selected objects onto "ground" objects'
 """
 __author__= "Campbell Barton"
 __url__= ["blender.org", "blenderartists.org"]
-__version__= "1.0"
+__version__= "1.1"
 
 __bpydoc__= """
 """
@@ -36,6 +36,7 @@ __bpydoc__= """
 
 
 from Blender import Draw, Geometry, Mathutils, Window
+from Blender.Mathutils import Vector, AngleBetweenVecs, RotationMatrix
 import bpy
 
 
@@ -44,6 +45,8 @@ GLOBALS['GROUND_SOURCE'] = [Draw.Create(1), Draw.Create(0)]
 GLOBALS['GROUND_GROUP_NAME'] = Draw.Create('terrain')
 GLOBALS['DROP_AXIS'] = [Draw.Create(1), Draw.Create(0)]						# on what axis will we drop?
 GLOBALS['DROP_OVERLAP_CHECK'] = Draw.Create(1)				# is the terrain a single skin?
+GLOBALS['DROP_ORIENT'] = Draw.Create(1)
+GLOBALS['DROP_ORIENT_VALUE'] = Draw.Create(100.0)
 GLOBALS['EVENT'] = 2
 GLOBALS['MOUSE'] = None
 
@@ -52,19 +55,18 @@ def collect_terrain_triangles(obs_terrain):
 	me = bpy.data.meshes.new()
 	
 	for ob in obs_terrain:
-		# this matrix takes the object and drop matrix into account
-		ob_mat = ob.matrixWorld # * drop_matrix
-		
 		def blend_face_to_terrain_tris(f):
-			cos = [v.co*ob_mat for v in f]
-			if len(cos) == 4:	return [(cos[0], cos[1], cos[2]), (cos[0], cos[2], cos[3])]
-			else:				return [(cos[0], cos[1], cos[2]), ]
+			no = f.no
+			cos = [v.co for v in f]
+			if len(cos) == 4:	return [(cos[0], cos[1], cos[2], no), (cos[0], cos[2], cos[3], no)]
+			else:				return [(cos[0], cos[1], cos[2], no), ]
 		
 		# Clear
 		me.verts = None
 		try:	me.getFromObject(ob)
 		except:	pass
 		
+		me.transform(ob.matrixWorld)
 		for f in me.faces: # may be [], thats ok
 			terrain_tris.extend( blend_face_to_terrain_tris(f) )
 	
@@ -72,30 +74,34 @@ def collect_terrain_triangles(obs_terrain):
 	return terrain_tris
 
 def calc_drop_loc(ob, terrain_tris, axis):
-	pt = Mathutils.Vector(ob.loc)
+	pt = Vector(ob.loc)
 	
 	isect = None
 	isect_best = None
+	isect_best_no = None
 	isect_best_len = 0.0
 	
-	for t1,t2,t3 in terrain_tris:
+	for t1,t2,t3, no in terrain_tris:
 		#if Geometry.PointInTriangle2D(pt, t1,t2,t3):
 		isect = Mathutils.Intersect(t1, t2, t3, axis, pt, 1) # 1==clip
 		if isect:
 			if not GLOBALS['DROP_OVERLAP_CHECK'].val:
 				# Find the first location
-				return isect
+				return isect, no
 			else:
 				if isect_best:
 					isect_len = (pt-isect).length
 					if isect_len < isect_best_len:
 						isect_best_len = isect_len
 						isect_best = isect
+						isect_best_no = no
 					
 				else:
 					isect_best_len = (pt-isect).length
 					isect_best = isect;
-	return isect_best
+					isect_best_no = no
+	
+	return isect_best, isect_best_no
 
 
 def error_nogroup():
@@ -135,13 +141,28 @@ def terrain_clamp(event, value):
 	
 	
 	if GLOBALS['DROP_AXIS'][0].val:
-		axis = Mathutils.Vector(0,0,-1)
+		axis = Vector(0,0,-1)
 	else:
-		axis = Mathutils.Vector(Window.GetViewVector())
+		axis = Vector(Window.GetViewVector())
+	
+	do_orient = GLOBALS['DROP_ORIENT'].val
+	do_orient_val = GLOBALS['DROP_ORIENT_VALUE'].val/100.0
+	if not do_orient_val: do_orient = False
 	
 	for ob in obs_clamp:
-		loc = calc_drop_loc(ob, terrain_tris, axis)
+		loc, no = calc_drop_loc(ob, terrain_tris, axis)
 		if loc:
+			if do_orient:
+				try:	ang = AngleBetweenVecs(no, axis)
+				except:ang = 0.0
+				if ang > 90.0:
+					no = -no
+					ang = 180.0-ang
+				
+				if ang > 0.0001:
+					ob_matrix = ob.matrixWorld * RotationMatrix(ang * do_orient_val, 4, 'r', axis.cross(no))
+					ob.setMatrix(ob_matrix)
+			
 			ob.loc = loc
 	
 	# to make the while loop exist
@@ -175,7 +196,8 @@ def do_ground_group_name(e,v):
 	if not g:	error_nogroup()
 	GLOBALS['EVENT'] = e
 	
-
+def do_dummy(e,v):
+	GLOBALS['EVENT'] = e
 
 EVENT_NONE = 0
 EVENT_EXIT = 1
@@ -185,7 +207,7 @@ def terain_clamp_ui():
 	# Only to center the UI
 	x,y = GLOBALS['MOUSE']
 	x-=40
-	y-=60
+	y-=70
 	
 	Draw.Label('Drop Axis', x-70,y+120, 60, 20)
 	Draw.BeginAlign()
@@ -204,7 +226,13 @@ def terain_clamp_ui():
 	
 	GLOBALS['DROP_OVERLAP_CHECK'] = Draw.Toggle('Overlapping Terrain', EVENT_NONE, x-70, y+20, 190, 20, GLOBALS['DROP_OVERLAP_CHECK'].val, "Check all terrain triangles and use the top most (slow)")
 	
-	Draw.PushButton('Drop Objects', EVENT_EXIT, x+20, y-10, 100, 20, 'Drop the selected objects', terrain_clamp)
+	Draw.BeginAlign()
+	GLOBALS['DROP_ORIENT'] = Draw.Toggle('Orient Normal', EVENT_REDRAW, x-70, y-10, 110, 20, GLOBALS['DROP_ORIENT'].val, "Rotate objects to the face normal", do_dummy)
+	if GLOBALS['DROP_ORIENT'].val:
+		GLOBALS['DROP_ORIENT_VALUE'] = Draw.Number('', EVENT_NONE, x+40, y-10, 80, 20, GLOBALS['DROP_ORIENT_VALUE'].val, 0.0, 100.0, "Percentage to orient 0.0 - 100.0")
+	Draw.EndAlign()
+	
+	Draw.PushButton('Drop Objects', EVENT_EXIT, x+20, y-40, 100, 20, 'Drop the selected objects', terrain_clamp)
 	
 	# So moving the mouse outside the popup exits the while loop
 	GLOBALS['EVENT'] = EVENT_EXIT

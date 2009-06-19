@@ -50,6 +50,7 @@ void RNA_def_group(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks.");
+	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 
 	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
@@ -60,7 +61,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);

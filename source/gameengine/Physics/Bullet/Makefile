@@ -51,4 +51,6 @@ CPPFLAGS += -I../../Expressions
 CPPFLAGS += -I../../GameLogic
 CPPFLAGS += -I../../SceneGraph
 CPPFLAGS += -I../../../../source/blender/makesdna
+CPPFLAGS += -I../../../../source/blender/blenkernel
+CPPFLAGS += -I../../../../source/blender/blenlib
 

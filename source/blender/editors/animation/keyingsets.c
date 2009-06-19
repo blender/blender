@@ -106,10 +106,10 @@ void ANIM_OT_keyingset_add_destination (wmOperatorType *ot)
 {
 	// XXX: this is also defined in rna_animation.c
 	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
-		{0, NULL, NULL, NULL}};
+		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
+		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
+		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
 	ot->name= "Add Keying Set Destination";

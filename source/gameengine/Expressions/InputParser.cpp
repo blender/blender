@@ -38,7 +38,7 @@
 // cool things like (IF(LOD==1,CCurvedValue,IF(LOD==2,CCurvedValue2)) etc...
 #include "IfExpr.h" 
 
-#if defined(WIN32) || defined(WIN64)
+#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
 #define strcasecmp	_stricmp
 
 #ifndef strtoll
@@ -66,7 +66,7 @@ CParser::~CParser()
 
 
 
-void CParser::ScanError(STR_String str)
+void CParser::ScanError(const char *str)
 {
 	// sets the global variable errmsg to an errormessage with
 	// contents str, appending if it already exists
@@ -81,7 +81,7 @@ void CParser::ScanError(STR_String str)
 
 
 
-CExpression* CParser::Error(STR_String str)
+CExpression* CParser::Error(const char *str)
 {
 	// makes and returns a new CConstExpr filled with an CErrorValue
 	// with string str
@@ -537,7 +537,7 @@ CExpression *CParser::Expr() {
 }
 
 CExpression* CParser::ProcessText
-(STR_String intext) {
+(const char *intext) {
 	
 	// and parses the string in intext and returns it.
 	
@@ -574,7 +574,7 @@ CExpression* CParser::ProcessText
 
 
 
-float CParser::GetFloat(STR_String txt)
+float CParser::GetFloat(STR_String& txt)
 {
 	// returns parsed text into a float
 	// empty string returns -1
@@ -599,7 +599,7 @@ float CParser::GetFloat(STR_String txt)
 	return result;
 }
 
-CValue* CParser::GetValue(STR_String txt, bool bFallbackToText)
+CValue* CParser::GetValue(STR_String& txt, bool bFallbackToText)
 {
 	// returns parsed text into a value, 
 	// empty string returns NULL value !
@@ -636,32 +636,3 @@ void CParser::SetContext(CValue* context)
 	}
 	m_identifierContext = context;
 }
-
-
-
-
-PyObject*	CParserPyMake(PyObject* ignored,PyObject* args)
-{
-	char* txt;
-	if (!PyArg_ParseTuple(args,"s",&txt))
-		return NULL;
-	CParser parser;
-	CExpression* expr = parser.ProcessText(txt);
-	CValue* val = expr->Calculate();
-	expr->Release();
-	return val->GetProxy();
-}
-
-static PyMethodDef	CParserMethods[] = 
-{
-	{ "calc", CParserPyMake , METH_VARARGS},
-	{ NULL,NULL}	// Sentinel
-};
-
-extern "C" {
-	void initExpressionModule(void)
-	{
-		Py_InitModule("Expression",CParserMethods);
-	}
-}
-

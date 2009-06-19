@@ -1,4 +1,4 @@
-		
+
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -7,29 +7,45 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == 'MESH')
+		return (context.mesh != None)
+
+class DATA_PT_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_mesh"
+	__label__ = "Mesh"
 	
+	def poll(self, context):
+		return (context.object and context.object.type == 'MESH')
 
-class DATA_PT_surface(DataButtonsPanel):
-		__idname__ = "DATA_PT_surface"
-		__label__ = "Surface"
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		mesh = context.mesh
+		space = context.space_data
 
-		def draw(self, context):
-			mesh = context.main.meshes[0]
-			layout = self.layout
+		split = layout.split(percentage=0.65)
 
-			if not mesh:
-				return
+		if ob:
+			split.template_ID(context, ob, "data")
+			split.itemS()
+		elif mesh:
+			split.template_ID(context, space, "pin_id")
+			split.itemS()
+
+		if mesh:
+			layout.itemS()
+
 			split = layout.split()
 		
-			sub = split.column()
-			sub.itemR(mesh, "autosmooth")
-			sub.itemR(mesh, "autosmooth_angle", text="Angle")
+			col = split.column()
+			col.itemR(mesh, "autosmooth")
+			colsub = col.column()
+			colsub.active = mesh.autosmooth
+			colsub.itemR(mesh, "autosmooth_angle", text="Angle")
 			sub = split.column()
 			sub.itemR(mesh, "vertex_normal_flip")
 			sub.itemR(mesh, "double_sided")
-			row = layout.row()
-			row.itemR(mesh, "texco_mesh")			
-						
-bpy.types.register(DATA_PT_surface)		
+			
+			layout.itemR(mesh, "texco_mesh")			
+					
+bpy.types.register(DATA_PT_mesh)

@@ -924,7 +924,7 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 	}
 
 	/* always displist to make this work like derivedmesh */

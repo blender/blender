@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/python
-DIRS = intern
+DIRS = intern generic
 
 include nan_subdirs.mk

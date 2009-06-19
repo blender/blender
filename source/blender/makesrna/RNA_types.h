@@ -91,13 +91,20 @@ typedef enum PropertyFlag {
 	 * and collections */
 	PROP_ANIMATEABLE = 2,
 
+	/* icon */
+	PROP_ICONS_CONSECUTIVE = 4096,
+
 	/* function paramater flags */
 	PROP_REQUIRED = 4,
 	PROP_RETURN = 8,
+	PROP_RNAPTR = 2048,
 
 	/* registering */
 	PROP_REGISTER = 16,
 	PROP_REGISTER_OPTIONAL = 16|32,
+
+	/* pointers */
+	PROP_ID_REFCOUNT = 64,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,
@@ -130,6 +137,7 @@ typedef struct CollectionPointerLink {
 typedef struct EnumPropertyItem {
 	int value;
 	const char *identifier;
+	int icon;
 	const char *name;
 	const char *description;
 } EnumPropertyItem;
@@ -153,11 +161,13 @@ typedef struct ParameterIterator {
 /* Function */
 
 typedef enum FunctionFlag {
-	FUNC_TYPESTATIC = 1, /* for static functions, FUNC_ STATIC is taken by some windows header it seems */
+	FUNC_NO_SELF = 1, /* for static functions */
+	FUNC_USE_CONTEXT = 2,
+	FUNC_USE_REPORTS = 4,
 
 	/* registering */
-	FUNC_REGISTER = 2,
-	FUNC_REGISTER_OPTIONAL = 2|4,
+	FUNC_REGISTER = 8,
+	FUNC_REGISTER_OPTIONAL = 8|16,
 
 	/* internal flags */
 	FUNC_BUILTIN = 128,
@@ -165,19 +175,20 @@ typedef enum FunctionFlag {
 	FUNC_RUNTIME = 512
 } FunctionFlag;
 
-typedef void (*CallFunc)(PointerRNA *ptr, ParameterList *parms);
+typedef void (*CallFunc)(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, ParameterList *parms);
 
 typedef struct FunctionRNA FunctionRNA;
 
 /* Struct */
 
 typedef enum StructFlag {
-	/* indicates that this struct is an ID struct */
+	/* indicates that this struct is an ID struct, and to use refcounting */
 	STRUCT_ID = 1,
+	STRUCT_ID_REFCOUNT = 2,
 
 	/* internal flags */
-	STRUCT_RUNTIME = 2,
-	STRUCT_GENERATED = 4
+	STRUCT_RUNTIME = 4,
+	STRUCT_GENERATED = 8
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

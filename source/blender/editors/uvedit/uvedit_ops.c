@@ -126,9 +126,6 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 				tf->tpage= ima;
 				tf->mode |= TF_TEX;
 				
-				if(ima->tpageflag & IMA_TILES) tf->mode |= TF_TILES;
-				else tf->mode &= ~TF_TILES;
-				
 				if(ima->id.us==0) id_us_plus(&ima->id);
 				else id_lib_extern(&ima->id);
 			}
@@ -150,7 +147,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 /* dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. */
-void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile, int dotile)
+void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -169,17 +166,8 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-		if(efa->h==0 && efa->f & SELECT) {
-			if(dotile==1) {
-				/* set tile flag */
-				if(ima->tpageflag & IMA_TILES)
-					tf->mode |= TF_TILES;
-				else
-					tf->mode &= ~TF_TILES;
-			}
-			else if(dotile==2)
-				tf->tile= curtile; /* set tile index */
-		}
+		if(efa->h==0 && efa->f & SELECT)
+			tf->tile= curtile; /* set tile index */
 	}
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
@@ -963,9 +951,9 @@ static int mirror_exec(bContext *C, wmOperator *op)
 void UV_OT_mirror(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'x', "MIRROR_X", "Mirror X", "Mirror UVs over X axis."},
-		{'y', "MIRROR_Y", "Mirror Y", "Mirror UVs over Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
+		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Mirror";
@@ -1068,10 +1056,10 @@ static int align_exec(bContext *C, wmOperator *op)
 void UV_OT_align(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'a', "ALIGN_AUTO", "Align Auto", "Automatically choose the axis on which there is most alignment already."},
-		{'x', "ALIGN_X", "Align X", "Align UVs on X axis."},
-		{'y', "ALIGN_Y", "Align Y", "Align UVs on Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already."},
+		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis."},
+		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Align";
@@ -2326,9 +2314,9 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_cursor(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "SELECTION", "Selection", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "SELECTION", 0, "Selection", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Cursor";
@@ -2561,10 +2549,10 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_selection(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "CURSOR", "Cursor", ""},
-		{2, "ADJACENT_UNSELECTED", "Adjacent Unselected", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "CURSOR", 0, "Cursor", ""},
+		{2, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Selection";
@@ -3005,7 +2993,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	RNA_int_get_array(op->ptr, "tile", tile);
-	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1], 1);
+	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 

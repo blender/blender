@@ -24,25 +24,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(
-  BlenderRoutines
-  Converter
-  Expressions
-  GameLogic
-  Ketsji
-  Ketsji/KXNetwork
-  Network
-  Network/LoopBackNetwork
-  Physics/common
-  Physics/Dummy
-  Rasterizer
-  Rasterizer/RAS_OpenGLRasterizer
-  SceneGraph
-  Physics/Bullet
-  Physics/Sumo
-  VideoTexture
-)
+ADD_SUBDIRECTORY(BlenderRoutines)
+ADD_SUBDIRECTORY(Converter)
+ADD_SUBDIRECTORY(Expressions)
+ADD_SUBDIRECTORY(GameLogic)
+ADD_SUBDIRECTORY(Ketsji)
+ADD_SUBDIRECTORY(Ketsji/KXNetwork)
+ADD_SUBDIRECTORY(Network)
+ADD_SUBDIRECTORY(Network/LoopBackNetwork)
+ADD_SUBDIRECTORY(Physics/common)
+ADD_SUBDIRECTORY(Physics/Dummy)
+ADD_SUBDIRECTORY(Rasterizer)
+ADD_SUBDIRECTORY(Rasterizer/RAS_OpenGLRasterizer)
+ADD_SUBDIRECTORY(SceneGraph)
+ADD_SUBDIRECTORY(Physics/Bullet)
+ADD_SUBDIRECTORY(Physics/Sumo)
+ADD_SUBDIRECTORY(VideoTexture)
 
 IF(WITH_PLAYER)
-  SUBDIRS(GamePlayer)
+  ADD_SUBDIRECTORY(GamePlayer)
 ENDIF(WITH_PLAYER)

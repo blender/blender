@@ -157,6 +157,8 @@ typedef struct PanelType {
 	int			space_type;
 	int			region_type;
 
+	int 		flag;
+
 	/* verify if the panel should draw or not */
 	int			(*poll)(const struct bContext *, struct PanelType *);
 	/* draw header (optional) */

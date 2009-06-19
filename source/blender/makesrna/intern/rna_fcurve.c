@@ -35,15 +35,15 @@
 #include "MEM_guardedalloc.h"
 
 EnumPropertyItem fmodifier_type_items[] = {
-	{FMODIFIER_TYPE_NULL, "NULL", "Invalid", ""},
-	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
-	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
-	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
-	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
-	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
-	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
-	{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
-	{0, NULL, NULL, NULL}};
+	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
+	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator", ""},
+	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope", ""},
+	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", ""},
+	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", ""},
+	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
+	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
+	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -220,11 +220,11 @@ static void rna_def_fmodifier_generator_common(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_items[] = {
-		{FCM_GENERATOR_POLYNOMIAL, "POLYNOMIAL", "Expanded Polynomial", ""},
-		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", "Factorised Polynomial", ""},
-		{FCM_GENERATOR_FUNCTION, "FUNCTION", "Built-In Function", ""},
-		{FCM_GENERATOR_EXPRESSION, "EXPRESSION", "Expression", ""},
-		{0, NULL, NULL, NULL}};
+		{FCM_GENERATOR_POLYNOMIAL, "POLYNOMIAL", 0, "Expanded Polynomial", ""},
+		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", 0, "Factorised Polynomial", ""},
+		{FCM_GENERATOR_FUNCTION, "FUNCTION", 0, "Built-In Function", ""},
+		{FCM_GENERATOR_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	/* struct wrapping settings */
 	RNA_def_struct_sdna_from(srna, "FMod_Generator", "data");	
@@ -279,12 +279,12 @@ static void rna_def_fmodifier_generator_function(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{0, "SIN", "Sine", ""},
-		{1, "COS", "Cosine", ""},
-		{2, "TAN", "Tangent", ""},
-		{3, "SQRT", "Square Root", ""},
-		{4, "LN", "Natural Logarithm", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "SIN", 0, "Sine", ""},
+		{1, "COS", 0, "Cosine", ""},
+		{2, "TAN", 0, "Tangent", ""},
+		{3, "SQRT", 0, "Square Root", ""},
+		{4, "LN", 0, "Natural Logarithm", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	
 	srna= RNA_def_struct(brna, "FModifierGenerator_Function", "FModifier");
@@ -336,11 +336,11 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{FCM_EXTRAPOLATE_NONE, "NONE", "No Cycles", "Don't do anything."},
-		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", "Repeat Motion", "Repeat keyframe range as-is."},
-		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", "Repeat with Offset", "Repeat keyframe range, but with offset based on gradient between values"},
-		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", "Repeat Mirrored", "Alternate between forward and reverse playback of keyframe range"},
-		{0, NULL, NULL, NULL}};
+		{FCM_EXTRAPOLATE_NONE, "NONE", 0, "No Cycles", "Don't do anything."},
+		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", 0, "Repeat Motion", "Repeat keyframe range as-is."},
+		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", 0, "Repeat with Offset", "Repeat keyframe range, but with offset based on gradient between values"},
+		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", 0, "Repeat Mirrored", "Alternate between forward and reverse playback of keyframe range"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierCycles", "FModifier");
 	RNA_def_struct_ui_text(srna, "Cycles F-Curve Modifier", "Repeats the values of the modified F-Curve.");
@@ -428,11 +428,11 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_modification_items[] = {
-		{FCM_NOISE_MODIF_REPLACE, "REPLACE", "Replace", ""},
-		{FCM_NOISE_MODIF_ADD, "ADD", "Add", ""},
-		{FCM_NOISE_MODIF_SUBTRACT, "SUBTRACT", "Subtract", ""},
-		{FCM_NOISE_MODIF_MULTIPLY, "MULTIPLY", "Multiply", ""},
-		{0, NULL, NULL, NULL}};
+		{FCM_NOISE_MODIF_REPLACE, "REPLACE", 0, "Replace", ""},
+		{FCM_NOISE_MODIF_ADD, "ADD", 0, "Add", ""},
+		{FCM_NOISE_MODIF_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+		{FCM_NOISE_MODIF_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierNoise", "FModifier");
 	RNA_def_struct_ui_text(srna, "Noise F-Curve Modifier", "Gives randomness to the modified F-Curve.");
@@ -542,10 +542,10 @@ void rna_def_channeldriver(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{DRIVER_TYPE_AVERAGE, "AVERAGE", "Averaged Value", ""},
-		{DRIVER_TYPE_PYTHON, "SCRIPTED", "Scripted Expression", ""},
-		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", "Rotational Difference", ""},
-		{0, NULL, NULL, NULL}};
+		{DRIVER_TYPE_AVERAGE, "AVERAGE", 0, "Averaged Value", ""},
+		{DRIVER_TYPE_PYTHON, "SCRIPTED", 0, "Scripted Expression", ""},
+		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", 0, "Rotational Difference", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Driver", NULL);
 	RNA_def_struct_sdna(srna, "ChannelDriver");
@@ -575,17 +575,18 @@ void rna_def_fcurve(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_extend_items[] = {
-		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant", ""},
-		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", "Linear", ""},
-		{0, NULL, NULL, NULL}};
+		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant", ""},
+		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_mode_color_items[] = {
-		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", "Automatic Rainbow", ""},
-		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", "Automatic XYZ to RGB", ""},
-		{FCURVE_COLOR_CUSTOM, "CUSTOM", "User Defined", ""},
-		{0, NULL, NULL, NULL}};
+		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", 0, "Automatic Rainbow", ""},
+		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Automatic XYZ to RGB", ""},
+		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FCurve", NULL);
 	RNA_def_struct_ui_text(srna, "F-Curve", "F-Curve defining values of a period of time.");
+	RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
 
 	/* Enums */
 	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);

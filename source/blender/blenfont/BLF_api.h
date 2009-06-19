@@ -85,7 +85,7 @@ float BLF_height_default(char *str);
 void BLF_rotation(float angle);
 void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
 void BLF_blur(int size);
-
+void BLF_kerning(float space);
 
 void BLF_enable(int option);
 void BLF_disable(int option);
@@ -117,6 +117,8 @@ void BLF_dir_free(char **dirs, int count);
 /* font->flags. */
 #define BLF_ROTATION (1<<0)
 #define BLF_CLIPPING (1<<1)
+#define BLF_FONT_KERNING (1<<2)
+#define BLF_USER_KERNING (1<<3)
 
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0

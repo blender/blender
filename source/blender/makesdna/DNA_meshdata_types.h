@@ -239,7 +239,7 @@ typedef struct PartialVisibility {
 #define TF_LIGHT		16
 
 #define TF_SHAREDCOL	64
-#define TF_TILES		128
+#define TF_TILES		128		/* deprecated */
 #define TF_BILLBOARD	256
 #define TF_TWOSIDE		512
 #define TF_INVISIBLE	1024

@@ -806,7 +806,8 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glEnable(GL_LIGHT7);
 	glEnable(GL_LIGHTING);
 	
-	VECCOPY(dir, (float *)but->poin);
+	ui_get_but_vectorf(but, dir);
+
 	dir[3]= 0.0f;	/* glLight needs 4 args, 0.0 is sun */
 	glLightfv(GL_LIGHT7, GL_POSITION, dir); 
 	glLightfv(GL_LIGHT7, GL_DIFFUSE, diffn); 
@@ -817,7 +818,12 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	/* transform to button */
 	glPushMatrix();
 	glTranslatef(rect->xmin + 0.5f*(rect->xmax-rect->xmin), rect->ymin+ 0.5f*(rect->ymax-rect->ymin), 0.0f);
-	size= (rect->xmax-rect->xmin)/200.f;
+	
+	if( rect->xmax-rect->xmin < rect->ymax-rect->ymin)
+		size= (rect->xmax-rect->xmin)/200.f;
+	else
+		size= (rect->ymax-rect->ymin)/200.f;
+	
 	glScalef(size, size, size);
 	
 	if(displist==0) {

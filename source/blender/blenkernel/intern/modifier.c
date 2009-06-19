@@ -117,6 +117,72 @@ static struct DerivedMesh *NewBooleanDerivedMesh() {return NULL;}
 
 //XXX #include "BIF_meshlaplacian.h"
 
+/* Utility */
+
+static int is_last_displist(Object *ob)
+{
+	Curve *cu = ob->data;
+	static int curvecount=0, totcurve=0;
+
+	if(curvecount == 0){
+		DispList *dl;
+
+		totcurve = 0;
+		for(dl=cu->disp.first; dl; dl=dl->next)
+			totcurve++;
+	}
+
+	curvecount++;
+
+	if(curvecount == totcurve){
+		curvecount = 0;
+		return 1;
+	}
+
+	return 0;
+}
+
+static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)[3], int orco)
+{
+	DerivedMesh *dm= NULL;
+
+	if(ob->type==OB_MESH) {
+		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+
+		if(vertexCos) {
+			CDDM_apply_vert_coords(dm, vertexCos);
+			//CDDM_calc_normals(dm);
+		}
+		
+		if(orco)
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+	}
+	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+		Object *tmpobj;
+		Curve *tmpcu;
+
+		if(is_last_displist(ob)) {
+			/* copies object and modifiers (but not the data) */
+			tmpobj= copy_object(ob);
+			tmpcu = (Curve *)tmpobj->data;
+			tmpcu->id.us--;
+
+			/* copies the data */
+			tmpobj->data = copy_curve((Curve *) ob->data);
+
+			makeDispListCurveTypes(scene, tmpobj, 1);
+			nurbs_to_mesh(tmpobj);
+
+			dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
+			//CDDM_calc_normals(dm);
+
+			free_libblock_us(&G.main->object, tmpobj);
+		}
+	}
+
+	return dm;
+}
+
 /***/
 
 static int noneModifier_isDisabled(ModifierData *md)
@@ -143,7 +209,7 @@ static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->name, cmd->name, 32);
 }
 
-CustomDataMask curveModifier_requiredDataMask(ModifierData *md)
+CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -187,7 +253,7 @@ static void curveModifier_updateDepgraph(
 
 static void curveModifier_deformVerts(
 				      ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -203,7 +269,7 @@ static void curveModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	curveModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+	curveModifier_deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -219,7 +285,7 @@ static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tlmd->name, lmd->name, 32);
 }
 
-CustomDataMask latticeModifier_requiredDataMask(ModifierData *md)
+CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -276,7 +342,7 @@ static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 
 static void latticeModifier_deformVerts(
 					ModifierData *md, Object *ob, DerivedMesh *derivedData,
-     float (*vertexCos)[3], int numVerts)
+     float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -295,7 +361,7 @@ static void latticeModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	latticeModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+	latticeModifier_deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -602,7 +668,7 @@ static void maskModifier_copyData(ModifierData *md, ModifierData *target)
 	strcpy(tmmd->vgroup, mmd->vgroup);
 }
 
-static CustomDataMask maskModifier_requiredDataMask(ModifierData *md)
+static CustomDataMask maskModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	return (1 << CD_MDEFORMVERT);
 }
@@ -3330,7 +3396,7 @@ static void bevelModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
 }
 
-CustomDataMask bevelModifier_requiredDataMask(ModifierData *md)
+CustomDataMask bevelModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3410,7 +3476,7 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
-CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
+CustomDataMask displaceModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -3686,7 +3752,7 @@ static void displaceModifier_do(
 
 static void displaceModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
@@ -3753,7 +3819,7 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->aspecty = umd->aspecty;
 }
 
-CustomDataMask uvprojectModifier_requiredDataMask(ModifierData *md)
+CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -4219,7 +4285,7 @@ int smoothModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask smoothModifier_requiredDataMask(ModifierData *md)
+CustomDataMask smoothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	SmoothModifierData *smd = (SmoothModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -4371,7 +4437,7 @@ static void smoothModifier_do(
 
 static void smoothModifier_deformVerts(
 				       ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	   float (*vertexCos)[3], int numVerts)
+	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
@@ -4448,7 +4514,7 @@ int castModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-CustomDataMask castModifier_requiredDataMask(ModifierData *md)
+CustomDataMask castModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -4951,7 +5017,7 @@ static void castModifier_cuboid_do(
 
 static void castModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	CastModifierData *cmd = (CastModifierData *)md;
@@ -5079,7 +5145,7 @@ static void waveModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask waveModifier_requiredDataMask(ModifierData *md)
+CustomDataMask waveModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5354,7 +5420,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 static void waveModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
@@ -5416,7 +5482,7 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 
-CustomDataMask armatureModifier_requiredDataMask(ModifierData *md)
+CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -5459,7 +5525,7 @@ static void armatureModifier_updateDepgraph(
 
 static void armatureModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
@@ -5530,7 +5596,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(thmd->name, hmd->name, 32);
 }
 
-CustomDataMask hookModifier_requiredDataMask(ModifierData *md)
+CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -5580,7 +5646,7 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 static void hookModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 	float vec[3], mat[4][4];
@@ -5701,7 +5767,7 @@ static void hookModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts);
+	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -5710,7 +5776,7 @@ static void hookModifier_deformVertsEM(
 
 static void softbodyModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
@@ -5789,7 +5855,7 @@ static void clothModifier_updateDepgraph(
 	}
 }
 
-CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
+CustomDataMask clothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 
@@ -5898,7 +5964,7 @@ static int collisionModifier_dependsOnTime(ModifierData *md)
 
 static void collisionModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts)
+       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	DerivedMesh *dm = NULL;
@@ -6046,7 +6112,8 @@ static void surfaceModifier_freeData(ModifierData *md)
 			MEM_freeN(surmd->bvhtree);
 		}
 
-		surmd->dm->release(surmd->dm);
+		if(surmd->dm)
+			surmd->dm->release(surmd->dm);
 		
 		surmd->bvhtree = NULL;
 		surmd->dm = NULL;
@@ -6060,7 +6127,7 @@ static int surfaceModifier_dependsOnTime(ModifierData *md)
 
 static void surfaceModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts)
+       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
 	unsigned int numverts = 0, i = 0;
@@ -6070,7 +6137,7 @@ static void surfaceModifier_deformVerts(
 
 	/* if possible use/create DerivedMesh */
 	if(derivedData) surmd->dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) surmd->dm = CDDM_from_mesh(ob->data, ob);
+	else surmd->dm = get_original_dm(md->scene, ob, NULL, 0);
 	
 	if(!ob->pd)
 	{
@@ -6172,7 +6239,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	return derivedData;
 }
 
-CustomDataMask booleanModifier_requiredDataMask(ModifierData *md)
+CustomDataMask booleanModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
 
@@ -6220,11 +6287,26 @@ static void particleSystemModifier_copyData(ModifierData *md, ModifierData *targ
 	tpsmd->psys = psmd->psys;
 }
 
-CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
+CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	CustomDataMask dataMask = 0;
+	Material *ma;
+	MTex *mtex;
 	int i;
+
+	ma= give_current_material(ob, psmd->psys->part->omat);
+	if(ma) {
+		for(i=0; i<MAX_MTEX; i++) {
+			mtex=ma->mtex[i];
+			if(mtex && (ma->septex & (1<<i))==0)
+				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
+					dataMask |= (1 << CD_MTFACE);
+		}
+	}
+
+	if(psmd->psys->part->tanfac!=0.0)
+		dataMask |= (1 << CD_MTFACE);
 
 	/* ask for vertexgroups if we need them */
 	for(i=0; i<PSYS_TOT_VG; i++){
@@ -6242,33 +6324,11 @@ CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
 	
 	return dataMask;
 }
-static int is_last_displist(Object *ob)
-{
-	Curve *cu = ob->data;
-	static int curvecount=0, totcurve=0;
 
-	if(curvecount==0){
-		DispList *dl;
-
-		totcurve=0;
-		for(dl=cu->disp.first; dl; dl=dl->next){
-			totcurve++;
-		}
-	}
-
-	curvecount++;
-
-	if(curvecount==totcurve){
-		curvecount=0;
-		return 1;
-	}
-
-	return 0;
-}
 /* saves the current emitter state for a particle system and calculates particles */
 static void particleSystemModifier_deformVerts(
 					       ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	    float (*vertexCos)[3], int numVerts)
+	    float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
@@ -6283,43 +6343,13 @@ static void particleSystemModifier_deformVerts(
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	if(dm==0){
-		if(ob->type==OB_MESH){
-			dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+	if(dm==0) {
+		dm= get_original_dm(md->scene, ob, vertexCos, 1);
 
-			CDDM_apply_vert_coords(dm, vertexCos);
-			//CDDM_calc_normals(dm);
-			
-			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+		if(!dm)
+			return;
 
-			needsFree=1;
-		}
-		else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)){
-			Object *tmpobj;
-			Curve *tmpcu;
-
-			if(is_last_displist(ob)){
-				/* copies object and modifiers (but not the data) */
-				tmpobj= copy_object( ob );
-				tmpcu = (Curve *)tmpobj->data;
-				tmpcu->id.us--;
-
-				/* copies the data */
-				tmpobj->data = copy_curve( (Curve *) ob->data );
-
-				makeDispListCurveTypes(md->scene, tmpobj, 1 );
-				nurbs_to_mesh( tmpobj );
-
-				dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
-				//CDDM_calc_normals(dm);
-
-				free_libblock_us( &G.main->object, tmpobj );
-
-				needsFree=1;
-			}
-			else return;
-		}
-		else return;
+		needsFree= 1;
 	}
 
 	/* clear old dm */
@@ -6347,8 +6377,7 @@ static void particleSystemModifier_deformVerts(
 		  psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
 		/* in file read dm hasn't really changed but just wasn't saved in file */
 
-		psys->recalc |= PSYS_RECALC_HAIR;
-		psys->recalc |= PSYS_DISTR;
+		psys->recalc |= PSYS_RECALC_RESET;
 		psmd->flag |= eParticleSystemFlag_DM_changed;
 
 		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
@@ -6623,7 +6652,7 @@ static int explodeModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
 }
-CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
+CustomDataMask explodeModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -7537,7 +7566,7 @@ static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->object = mmd->object;
 }
 
-CustomDataMask meshdeformModifier_requiredDataMask(ModifierData *md)
+CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierData *md)
 {	
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -7659,6 +7688,14 @@ static void meshdeformModifier_do(
 	}
 	else
 		cagedm= mmd->object->derivedFinal;
+
+	/* if we don't have one computed, use derivedmesh from data
+	 * without any modifiers */
+	if(!cagedm) {
+		cagedm= get_original_dm(md->scene, mmd->object, NULL, 0);
+		if(cagedm)
+			cagedm->needsFree= 1;
+	}
 	
 	if(!cagedm)
 		return;
@@ -7789,14 +7826,16 @@ static void meshdeformModifier_do(
 
 static void meshdeformModifier_deformVerts(
 					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	float (*vertexCos)[3], int numVerts)
+	float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm;
 
-	if(!derivedData && ob->type==OB_MESH)
-		dm= CDDM_from_mesh(ob->data, ob);
-	else
-		dm= derivedData;
+	if (!derivedData) {
+		dm= get_original_dm(md->scene, ob, NULL, 0);
+		if (dm == NULL) return;
+	}
+	else dm= derivedData;
+
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
@@ -7868,6 +7907,8 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 		}
 		CDDM_calc_normals(final);
 
+		MultiresDM_mark_as_modified(final);
+
 		MEM_freeN(mmd->undo_verts);
 		mmd->undo_signal = 0;
 		mmd->undo_verts = NULL;
@@ -7906,7 +7947,7 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->subsurfLevels = smd->subsurfLevels;
 }
 
-CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
+CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -7937,10 +7978,10 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 	walk(userData, ob, &smd->auxTarget);
 }
 
-static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -7950,7 +7991,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dm != NULL && (dataMask & CD_MVERT))
+		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -7966,7 +8007,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
 	if(dataMask)
 	{
@@ -7975,7 +8016,7 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dm != NULL && (dataMask & CD_MVERT))
+		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -8025,7 +8066,7 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 }
 
-static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
+static CustomDataMask simpledeformModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -8051,10 +8092,10 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
 }
 
-static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -8081,7 +8122,7 @@ static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, Deriv
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
-	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
 	if(dataMask)
@@ -8693,7 +8734,20 @@ int modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
+int modifier_isEnabled(ModifierData *md, int required_mode)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	if((md->mode & required_mode) != required_mode) return 0;
+	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(md->mode & eModifierMode_DisableTemporary) return 0;
+	if(required_mode & eModifierMode_Editmode)
+		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	
+	return 1;
+}
+
+LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
 	LinkNode *dataMasks = NULL;
 	LinkNode *curr, *prev;
@@ -8703,7 +8757,9 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		CustomDataMask mask = 0;
 
-		if(mti->requiredDataMask) mask = mti->requiredDataMask(md);
+		if(modifier_isEnabled(md, required_mode))
+			if(mti->requiredDataMask)
+				mask = mti->requiredDataMask(ob, md);
 
 		BLI_linklist_prepend(&dataMasks, SET_INT_IN_POINTER(mask));
 	}
@@ -8905,8 +8961,10 @@ void modifier_freeTemporaryData(ModifierData *md)
 	if(md->type == eModifierType_Armature) {
 		ArmatureModifierData *amd= (ArmatureModifierData*)md;
 
-		if(amd->prevCos)
+		if(amd->prevCos) {
 			MEM_freeN(amd->prevCos);
+			amd->prevCos= NULL;
+		}
 	}
 }
 

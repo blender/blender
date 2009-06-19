@@ -22,12 +22,13 @@ Written by: Marcus Hennix
 #include "LinearMath/btMinMax.h"
 #include <new>
 
-//-----------------------------------------------------------------------------
 
+
+//#define CONETWIST_USE_OBSOLETE_SOLVER true
 #define CONETWIST_USE_OBSOLETE_SOLVER false
 #define CONETWIST_DEF_FIX_THRESH btScalar(.05f)
 
-//-----------------------------------------------------------------------------
+
 
 btConeTwistConstraint::btConeTwistConstraint()
 :btTypedConstraint(CONETWIST_CONSTRAINT_TYPE),
@@ -63,13 +64,13 @@ void btConeTwistConstraint::init()
 	m_bMotorEnabled = false;
 	m_maxMotorImpulse = btScalar(-1);
 
-	setLimit(btScalar(1e30), btScalar(1e30), btScalar(1e30));
+	setLimit(btScalar(BT_LARGE_FLOAT), btScalar(BT_LARGE_FLOAT), btScalar(BT_LARGE_FLOAT));
 	m_damping = btScalar(0.01);
 	m_fixThresh = CONETWIST_DEF_FIX_THRESH;
 }
 
 
-//-----------------------------------------------------------------------------
+
 
 void btConeTwistConstraint::getInfo1 (btConstraintInfo1* info)
 {
@@ -99,9 +100,9 @@ void btConeTwistConstraint::getInfo1 (btConstraintInfo1* info)
 			info->nub--;
 		}
 	}
-} // btConeTwistConstraint::getInfo1()
+}
 	
-//-----------------------------------------------------------------------------
+
 
 void btConeTwistConstraint::getInfo2 (btConstraintInfo2* info)
 {
@@ -230,7 +231,7 @@ void btConeTwistConstraint::getInfo2 (btConstraintInfo2* info)
 	}
 }
 	
-//-----------------------------------------------------------------------------
+
 
 void	btConeTwistConstraint::buildJacobian()
 {
@@ -239,6 +240,7 @@ void	btConeTwistConstraint::buildJacobian()
 		m_appliedImpulse = btScalar(0.);
 		m_accTwistLimitImpulse = btScalar(0.);
 		m_accSwingLimitImpulse = btScalar(0.);
+		m_accMotorImpulse = btVector3(0.,0.,0.);
 
 		if (!m_angularOnly)
 		{
@@ -277,7 +279,7 @@ void	btConeTwistConstraint::buildJacobian()
 	}
 }
 
-//-----------------------------------------------------------------------------
+
 
 void	btConeTwistConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep)
 {
@@ -406,10 +408,10 @@ void	btConeTwistConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolver
 
 			}
 		}
-		else // no motor: do a little damping
+		else if (m_damping > SIMD_EPSILON) // no motor: do a little damping
 		{
-			const btVector3& angVelA = getRigidBodyA().getAngularVelocity();
-			const btVector3& angVelB = getRigidBodyB().getAngularVelocity();
+			btVector3 angVelA; bodyA.getAngularVelocity(angVelA);
+			btVector3 angVelB; bodyB.getAngularVelocity(angVelB);
 			btVector3 relVel = angVelB - angVelA;
 			if (relVel.length2() > SIMD_EPSILON)
 			{
@@ -490,7 +492,7 @@ void	btConeTwistConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolver
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 void	btConeTwistConstraint::updateRHS(btScalar	timeStep)
 {
@@ -498,7 +500,7 @@ void	btConeTwistConstraint::updateRHS(btScalar	timeStep)
 
 }
 
-//-----------------------------------------------------------------------------
+
 
 void btConeTwistConstraint::calcAngleInfo()
 {
@@ -584,12 +586,12 @@ void btConeTwistConstraint::calcAngleInfo()
 			m_twistAxis.normalize();
 		}
 	}
-} // btConeTwistConstraint::calcAngleInfo()
+}
 
 
 static btVector3 vTwist(1,0,0); // twist axis in constraint's space
 
-//-----------------------------------------------------------------------------
+
 
 void btConeTwistConstraint::calcAngleInfo2()
 {
@@ -597,13 +599,34 @@ void btConeTwistConstraint::calcAngleInfo2()
 	m_twistLimitSign = btScalar(0.);
 	m_solveTwistLimit = false;
 	m_solveSwingLimit = false;
+	// compute rotation of A wrt B (in constraint space)
+	if (m_bMotorEnabled && (!m_useSolveConstraintObsolete))
+	{	// it is assumed that setMotorTarget() was alredy called 
+		// and motor target m_qTarget is within constraint limits
+		// TODO : split rotation to pure swing and pure twist
+		// compute desired transforms in world
+		btTransform trPose(m_qTarget);
+		btTransform trA = getRigidBodyA().getCenterOfMassTransform() * m_rbAFrame;
+		btTransform trB = getRigidBodyB().getCenterOfMassTransform() * m_rbBFrame;
+		btTransform trDeltaAB = trB * trPose * trA.inverse();
+		btQuaternion qDeltaAB = trDeltaAB.getRotation();
+		btVector3 swingAxis = 	btVector3(qDeltaAB.x(), qDeltaAB.y(), qDeltaAB.z());
+		m_swingAxis = swingAxis;
+		m_swingAxis.normalize();
+		m_swingCorrection = qDeltaAB.getAngle();
+		if(!btFuzzyZero(m_swingCorrection))
+		{
+			m_solveSwingLimit = true;
+		}
+		return;
+	}
+
 
 	{
 		// compute rotation of A wrt B (in constraint space)
 		btQuaternion qA = getRigidBodyA().getCenterOfMassTransform().getRotation() * m_rbAFrame.getRotation();
 		btQuaternion qB = getRigidBodyB().getCenterOfMassTransform().getRotation() * m_rbBFrame.getRotation();
 		btQuaternion qAB = qB.inverse() * qA;
-
 		// split rotation into cone and twist
 		// (all this is done from B's perspective. Maybe I should be averaging axes...)
 		btVector3 vConeNoTwist = quatRotate(qAB, vTwist); vConeNoTwist.normalize();
@@ -756,7 +779,7 @@ void btConeTwistConstraint::calcAngleInfo2()
 			m_twistAngle = btScalar(0.f);
 		}
 	}
-} // btConeTwistConstraint::calcAngleInfo2()
+}
 
 
 
@@ -982,8 +1005,5 @@ void btConeTwistConstraint::setMotorTargetInConstraintSpace(const btQuaternion &
 }
 
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 
 

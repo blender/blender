@@ -70,7 +70,7 @@ CValue* SCA_ExpressionController::GetReplica()
 	replica->m_exprText = m_exprText;
 	replica->m_exprCache = NULL;
 	// this will copy properties and so on...
-	CValue::AddDataToReplica(replica);
+	replica->ProcessReplica();
 
 	return replica;
 }
@@ -115,37 +115,14 @@ void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 			value->Release();
 
 		}
-		//m_exprCache->Release();
-		//m_exprCache = NULL;
 	}
-
-	/*
-
-	for (vector<SCA_ISensor*>::const_iterator is=m_linkedsensors.begin();
-	!(is==m_linkedsensors.end());is++)
-	{
-		SCA_ISensor* sensor = *is;
-		if (!sensor->IsPositiveTrigger())
-		{
-			sensorresult = false;
-			break;
-		}
-	}
-	
-	  */
-	
-	CValue* newevent = new CBoolValue(expressionresult);
 
 	for (vector<SCA_IActuator*>::const_iterator i=m_linkedactuators.begin();
 	!(i==m_linkedactuators.end());i++)
 	{
 		SCA_IActuator* actua = *i;
-		logicmgr->AddActiveActuator(actua,newevent);
+		logicmgr->AddActiveActuator(actua,expressionresult);
 	}
-	//printf("expr %d.",expressionresult);
-	// every actuator that needs the event, has a it's own reference to it now so
-	// release it (so to be clear: if there is no actuator, it's deleted right now)
-	newevent->Release();
 }
 
 
@@ -161,7 +138,7 @@ CValue* SCA_ExpressionController::FindIdentifier(const STR_String& identifiernam
 		SCA_ISensor* sensor = *is;
 		if (sensor->GetName() == identifiername)
 		{
-			identifierval = new CBoolValue(sensor->IsPositiveTrigger());
+			identifierval = new CBoolValue(sensor->GetState());
 			//identifierval = sensor->AddRef();
 		}
 

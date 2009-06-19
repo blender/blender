@@ -1285,7 +1285,7 @@ void GPU_materials_free()
 
 	GPU_material_free(&defmaterial);
 
-	for(ob=G.main->object.first; ma; ma=ma->id.next)
+	for(ob=G.main->object.first; ob; ob=ob->id.next)
 		GPU_lamp_free(ob);
 }
 
@@ -1304,6 +1304,16 @@ void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 	VECCOPY(lamp->co, mat[3]);
 	Mat4CpyMat4(lamp->obmat, mat);
 	Mat4Invert(lamp->imat, mat);
+}
+
+void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
+{
+	lamp->energy = energy;
+	if(lamp->mode & LA_NEG) lamp->energy= -lamp->energy;
+
+	lamp->col[0]= r* lamp->energy;
+	lamp->col[1]= g* lamp->energy;
+	lamp->col[2]= b* lamp->energy;
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)

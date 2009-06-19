@@ -748,7 +748,7 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, Vie
 	FCurve *fcu;
 	
 	/* draw with thick dotted lines */
-	setlinestyle(1);
+	setlinestyle(10);
 	glLineWidth(3.0f);
 	
 	/* anti-aliased lines for less jagged appearance */

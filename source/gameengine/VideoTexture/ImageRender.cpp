@@ -181,7 +181,6 @@ void ImageRender::Render()
         frustrum.camnear = -mirrorOffset[2];
         frustrum.camfar = -mirrorOffset[2]+m_clip;
     }
-    const float ortho = 100.0;
     const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
 
     // The screen area that ImageViewport will copy is also the rendering zone
@@ -214,43 +213,47 @@ void ImageRender::Render()
 		float farfrust = m_camera->GetCameraFar();
         float aspect_ratio = 1.0f;
         Scene *blenderScene = m_scene->GetBlenderScene();
+		MT_Matrix4x4 projmat;
 
-        if (orthographic) {
-			lens *= ortho;
-			nearfrust = (nearfrust + 1.0)*ortho;
-			farfrust *= ortho;
-		}
 		// compute the aspect ratio from frame blender scene settings so that render to texture
         // works the same in Blender and in Blender player
         if (blenderScene->r.ysch != 0)
-            aspect_ratio = float(blenderScene->r.xsch) / float(blenderScene->r.ysch);
+            aspect_ratio = float(blenderScene->r.xsch*blenderScene->r.xasp) / float(blenderScene->r.ysch*blenderScene->r.yasp);
 
-        RAS_FramingManager::ComputeDefaultFrustum(
-            nearfrust,
-            farfrust,
-            lens,
-            aspect_ratio,
-            frustrum);
-		
-		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
-			frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+		if (orthographic) {
 
+			RAS_FramingManager::ComputeDefaultOrtho(
+				nearfrust,
+				farfrust,
+				m_camera->GetScale(),
+				aspect_ratio,
+				frustrum
+			);
+
+			projmat = m_rasterizer->GetOrthoMatrix(
+				frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+		} else 
+		{
+			RAS_FramingManager::ComputeDefaultFrustum(
+				nearfrust,
+				farfrust,
+				lens,
+				aspect_ratio,
+				frustrum);
+			
+			projmat = m_rasterizer->GetFrustumMatrix(
+				frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+		}
 		m_camera->SetProjectionMatrix(projmat);
 	}
 
 	MT_Transform camtrans(m_camera->GetWorldToCamera());
-	if (!m_camera->GetCameraData()->m_perspective)
-		camtrans.getOrigin()[2] *= ortho;
 	MT_Matrix4x4 viewmat(camtrans);
 	
-	m_rasterizer->SetViewMatrix(viewmat, m_camera->NodeGetWorldPosition(),
-		m_camera->GetCameraLocation(), m_camera->GetCameraOrientation());
+	m_rasterizer->SetViewMatrix(viewmat, m_camera->NodeGetWorldOrientation(), m_camera->NodeGetWorldPosition(), m_camera->GetCameraData()->m_perspective);
 	m_camera->SetModelviewMatrix(viewmat);
     // restore the stereo mode now that the matrix is computed
     m_rasterizer->SetStereoMode(stereomode);
-
-    // do not update the mesh transform, we don't want to do it more than once per frame
-    //m_scene->UpdateMeshTransformations();
 
 	m_scene->CalculateVisibleMeshes(m_rasterizer,m_camera);
 
@@ -373,8 +376,13 @@ static PyGetSetDef imageRenderGetSets[] =
 // define python type
 PyTypeObject ImageRenderType =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.ImageRender",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -553,8 +561,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     float yaxis[3] = {0.f, 1.f, 0.f};
     float mirrorMat[3][3];
     float left, right, top, bottom, back;
-	
-	m_camera= new KX_Camera(scene, KX_Scene::m_callbacks, camdata);
+	// make sure this camera will delete its node
+	m_camera= new KX_Camera(scene, KX_Scene::m_callbacks, camdata, true, true);
 	m_camera->SetName("__mirror__cam__");
     // don't add the camera to the scene object list, it doesn't need to be accessible
     m_owncamera = true;
@@ -707,8 +715,13 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 // define python type
 PyTypeObject ImageMirrorType =
 { 
-	PyObject_HEAD_INIT(NULL)
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                         /*ob_size*/
+#endif
 	"VideoTexture.ImageMirror",   /*tp_name*/
 	sizeof(PyImage),          /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

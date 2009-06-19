@@ -66,6 +66,8 @@ typedef struct uiFont {
 typedef struct uiFontStyle {
 	short uifont_id;		/* saved in file, 0 is default */
 	short points;			/* actual size depends on 'global' dpi */
+	float kerning;			/* kerning space between characters. */
+	float pad;
 	short italic, bold;		/* style hint */
 	short shadow;			/* value is amount of pixels blur */
 	short shadx, shady;		/* shadow offset in pixels */
@@ -124,6 +126,7 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_regular, wcol_tool, wcol_radio, wcol_text, wcol_option;
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
+	uiWidgetColors wcol_box;
 	
 	char iconfile[80];	// FILE_MAXFILE length
 	
@@ -241,6 +244,7 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+	ThemeSpace tlogic;
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
@@ -375,6 +379,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS			(1 << 21)
 #define USER_MMB_PASTE			(1 << 22)
+#define USER_DIRECTIONALORDER	(1 << 23)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

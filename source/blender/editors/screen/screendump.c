@@ -309,7 +309,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	WM_jobs_timer(steve, 0.1, 0, NC_SCREEN|ND_SCREENCAST);
 	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob);
 	
-	WM_jobs_start(steve);
+	WM_jobs_start(CTX_wm_manager(C), steve);
 	
 	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENCAST, screen);
 	

@@ -50,8 +50,9 @@ struct KX_ClientObjectInfo
 		STATIC,
 		ACTOR,
 		RESERVED1,
-		RADAR,
-		NEAR
+		SENSOR,
+		OBSENSOR,
+		OBACTORSENSOR
 	}		m_type;
 	KX_GameObject*	m_gameobject;
 	void*		m_auxilary_info;
@@ -84,6 +85,7 @@ public:
 	}
 	
 	bool isActor() { return m_type <= ACTOR; }
+	bool isSensor() { return m_type >= SENSOR && m_type <= OBACTORSENSOR; }
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H

@@ -663,7 +663,7 @@ bool GPG_Application::startEngine(void)
 	*/
 	
 	// create a scene converter, create and convert the stratingscene
-	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie,0, m_ketsjiengine);
+	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie, m_ketsjiengine);
 	if (m_sceneconverter)
 	{
 		STR_String startscenename = m_startSceneName.Ptr();
@@ -693,6 +693,7 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+		initGeometry();
 		initBGL();
 #ifdef WITH_FFMPEG
         initVideoTexture();
@@ -700,7 +701,7 @@ bool GPG_Application::startEngine(void)
 
 		//initialize Dome Settings
 		if(m_startScene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-			m_ketsjiengine->InitDome(m_startScene->r.domesize, m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometext);
+			m_ketsjiengine->InitDome(m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometilt, m_startScene->r.dometext);
 
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict

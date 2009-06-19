@@ -83,6 +83,10 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 				// if so, store the initial local rotation
 				// this is needed to revert the effect of the parent inverse node (TBC)
 				m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
+				// use registration mechanism rather than AddRef, it creates zombie objects
+				m_parentobj->RegisterActuator(this);
+				// GetParent did AddRef, undo here
+				m_parentobj->Release();
 			}
 		}
 	}
@@ -189,7 +193,7 @@ KX_TrackToActuator::~KX_TrackToActuator()
 	if (m_object)
 		m_object->UnregisterActuator(this);
 	if (m_parentobj)
-		m_parentobj->Release();
+		m_parentobj->UnregisterActuator(this);
 } /* end of destructor */
 
 void KX_TrackToActuator::ProcessReplica()
@@ -198,7 +202,7 @@ void KX_TrackToActuator::ProcessReplica()
 	if (m_object)
 		m_object->RegisterActuator(this);
 	if (m_parentobj)
-		m_parentobj->AddRef();
+		m_parentobj->RegisterActuator(this);
 	SCA_IActuator::ProcessReplica();
 }
 
@@ -209,6 +213,11 @@ bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
 	{
 		// this object is being deleted, we cannot continue to track it.
 		m_object = NULL;
+		return true;
+	}
+	if (clientobj == m_parentobj)
+	{
+		m_parentobj = NULL;
 		return true;
 	}
 	return false;
@@ -227,9 +236,9 @@ void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 	void **h_parobj = (*obj_map)[m_parentobj];
 	if (h_parobj) {
 		if (m_parentobj)
-			m_parentobj->Release();
+			m_parentobj->UnregisterActuator(this);
 		m_parentobj= (KX_GameObject*)(*h_parobj);
-		m_parentobj->AddRef();
+		m_parentobj->RegisterActuator(this);
 	}
 }
 
@@ -425,8 +434,13 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TrackToActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_TrackToActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -490,7 +504,7 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 	KX_GameObject *gameobj;
 		
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_TrackToActuator"))
-		return 1; // ConvertPythonToGameObject sets the error
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_object != NULL)
 		actuator->m_object->UnregisterActuator(actuator);	
@@ -500,13 +514,17 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 	if (actuator->m_object)
 		actuator->m_object->RegisterActuator(actuator);
 		
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 }
 
 
 PyObject* KX_TrackToActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_TrackToActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_TrackToActuator::py_setattro(PyObject *attr, PyObject* value)

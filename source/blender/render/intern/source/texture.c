@@ -2029,6 +2029,10 @@ void do_material_tex(ShadeInput *shi)
 					shi->amb= texture_value_blend(mtex->def_var, shi->amb, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->amb<0.0) shi->amb= 0.0;
 					else if(shi->amb>1.0) shi->amb= 1.0;
+					
+					shi->ambr= shi->amb*R.wrld.ambr;
+					shi->ambg= shi->amb*R.wrld.ambg;
+					shi->ambb= shi->amb*R.wrld.ambb;
 				}
 			}
 		}
@@ -2414,13 +2418,13 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			
 			
 			/* placement */
-			if(mtex->projx) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
+			if(mtex->projx && co) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
 			else texvec[0]= mtex->size[0]*(mtex->ofs[0]);
 			
-			if(mtex->projy) texvec[1]= mtex->size[1]*(co[mtex->projy-1]+mtex->ofs[1]);
+			if(mtex->projy && co) texvec[1]= mtex->size[1]*(co[mtex->projy-1]+mtex->ofs[1]);
 			else texvec[1]= mtex->size[1]*(mtex->ofs[1]);
 			
-			if(mtex->projz) texvec[2]= mtex->size[2]*(co[mtex->projz-1]+mtex->ofs[2]);
+			if(mtex->projz && co) texvec[2]= mtex->size[2]*(co[mtex->projz-1]+mtex->ofs[2]);
 			else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 			
 			if(shi->osatex) {

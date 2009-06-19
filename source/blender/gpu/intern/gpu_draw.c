@@ -79,29 +79,24 @@ void GPU_render_text(MTFace *tface, int mode,
 	const char *textstr, int textlen, unsigned int *col,
 	float *v1, float *v2, float *v3, float *v4, int glattrib)
 {
-	if (mode & TF_BMFONT) {
-		Image* ima;
-		int characters, index, character;
+	if ((mode & TF_BMFONT) && (textlen>0) && tface->tpage) {
+		Image* ima = (Image*)tface->tpage;
+		int index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 		float advance_tab;
 		
-		
 		/* multiline */
-		float line_start= 0.0f, line_height; 
+		float line_start= 0.0f, line_height;
+		
 		if (v4)
 			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
 		else
 			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
 		line_height *= 1.2; /* could be an option? */
 		/* end multiline */
+
 		
-		characters = textlen;
-
-		ima = (Image*)tface->tpage;
-		if (ima == NULL)
-			characters = 0;
-
-		// color has been set
+		/* color has been set */
 		if (tface->mode & TF_OBCOL)
 			col= NULL;
 		else if (!col)
@@ -116,7 +111,7 @@ void GPU_render_text(MTFace *tface, int mode,
 		advance_tab= advance * 4; /* tab width could also be an option */
 		
 		
-		for (index = 0; index < characters; index++) {
+		for (index = 0; index < textlen; index++) {
 			float uv[4][2];
 
 			// lets calculate offset stuff
@@ -398,7 +393,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 
 	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
-	GTS.tilemode= (tfmode & TF_TILES) || (ima && (ima->tpageflag & IMA_TWINANIM));
+	GTS.tilemode= (ima && (ima->tpageflag & (IMA_TILES|IMA_TWINANIM)));
 	GTS.tileXRep = 0;
 	GTS.tileYRep = 0;
 
@@ -428,7 +423,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 
-		if((tfmode & TF_TILES) && ima!=NULL)
+		if(ima && (ima->tpageflag & IMA_TILES))
 			glScalef(ima->xrep, ima->yrep, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);

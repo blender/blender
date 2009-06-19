@@ -156,6 +156,8 @@
 
 #include "readfile.h"
 
+#include "PIL_time.h"
+
 #include <errno.h>
 
 /*
@@ -611,10 +613,16 @@ static BHeadN *get_bhead(FileData *fd)
 	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
-
+	
 	if (fd) {
 		if ( ! fd->eof) {
 
+			/* not strictly needed but shuts valgrind up
+			 * since uninitialized memory gets compared */
+			memset(&bhead8, 0, sizeof(BHead8));
+			memset(&bhead4, 0, sizeof(BHead4));
+			memset(&bhead,  0, sizeof(BHead));
+			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can
 			// be a big or little endian BHead4 or BHead8 structure.
@@ -1489,6 +1497,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
+			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= brush->mtex[a];
 				if(mtex)
@@ -3146,6 +3156,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->colfaces= newdataadr(fd, lvl->colfaces);
 		}
 	}
+
+	/* Gracefully handle corrupted mesh */
+	if(mesh->mr && !mesh->mr->verts) {
+		/* If totals match, simply load the current mesh verts into multires */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		else {
+			/* Otherwise, we can't recover the data, silently remove multires */
+			multires_free(mesh->mr);
+			mesh->mr = NULL;
+		}
+	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
@@ -3337,6 +3359,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bAddObjectActuator *eoa= act->data;
 					if(eoa) eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
+				}
 				else if(act->type==ACT_EDIT_OBJECT) {
 					bEditObjectActuator *eoa= act->data;
 					if(eoa==NULL) {
@@ -3345,6 +3371,15 @@ static void lib_link_object(FileData *fd, Main *main)
 					else {
 						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
 						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					}
+				}
+				else if(act->type==ACT_OBJECT) {
+					bObjectActuator *oa= act->data;
+					if(oa==NULL) {
+						init_actuator(act);
+					}
+					else {
+						oa->reference= newlibadr(fd, ob->id.lib, oa->reference);
 					}
 				}
 				else if(act->type==ACT_SCENE) {
@@ -3450,6 +3485,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 			smd->emCache = smd->mCache = 0;
+		}
+		else if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			
+			amd->prevCos= NULL;
 		}
 		else if (md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
@@ -3787,12 +3827,19 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
+			
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 			if(sce->toolsettings->sculpt)
 				sce->toolsettings->sculpt->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
-
+			if(sce->toolsettings->vpaint)
+				sce->toolsettings->vpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
+			if(sce->toolsettings->wpaint)
+				sce->toolsettings->wpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->wpaint->brush);
+			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {
@@ -3957,6 +4004,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				if (seq->flag & SEQ_USE_PROXY) {
 					seq->strip->proxy = newdataadr(
 						fd, seq->strip->proxy);
+					seq->strip->proxy->anim = 0;
 				} else {
 					seq->strip->proxy = 0;
 				}
@@ -4190,6 +4238,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceButs *sbuts= (SpaceButs *)sl;
 						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
+						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						if(main->versionfile<132)
 							butspace_version_132(sbuts);
 					}
@@ -4388,9 +4437,26 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
 				}
+				else if(sl->spacetype==SPACE_IPO) {
+					/* XXX animato */
+#if 0
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
+					if(sipo->blocktype==ID_SEQ) 
+						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
+					else 
+						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+					
+					// not free sipo->ipokey, creates dependency with src/
+					if(sipo->editipo) MEM_freeN(sipo->editipo);
+					sipo->editipo= NULL;
+#endif
+				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
+					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, 0);
 					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
@@ -4655,6 +4721,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, sima->gpd);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->iuser.scene= NULL;
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
@@ -4666,12 +4733,24 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
+			else if(sl->spacetype==SPACE_LOGIC) {
+				SpaceLogic *slogic= (SpaceLogic *)sl;
+				
+				if(slogic->gpd) {
+					slogic->gpd= newdataadr(fd, slogic->gpd);
+					direct_link_gpencil(fd, slogic->gpd);
+				}
+			}
 			else if(sl->spacetype==SPACE_SEQ) {
 				SpaceSeq *sseq= (SpaceSeq *)sl;
 				if(sseq->gpd) {
 					sseq->gpd= newdataadr(fd, sseq->gpd);
 					direct_link_gpencil(fd, sseq->gpd);
 				}
+			}
+			else if(sl->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= (SpaceButs *)sl;
+				sbuts->path= NULL;
 			}
 		}
 		
@@ -5521,6 +5600,16 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
+
+#if 0
+			case SPACE_BUTS:
+				/* context UI region */
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_TOP;
+				break;
+#endif
 		}
 	}
 
@@ -6743,26 +6832,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 						}
 						else if(sbuts->mainb==BUTS_MAT) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 						}
 						else if(sbuts->mainb==BUTS_TEX) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
 						}
 						else if(sbuts->mainb==BUTS_ANIM) {
 							sbuts->mainb= CONTEXT_OBJECT;
 						}
 						else if(sbuts->mainb==BUTS_WORLD) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
 						}
 						else if(sbuts->mainb==BUTS_RENDER) {
 							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+							//sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
 						}
 						else if(sbuts->mainb==BUTS_GAME) {
 							sbuts->mainb= CONTEXT_LOGIC;
@@ -6772,7 +6861,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 						else if(sbuts->mainb==BUTS_RADIO) {
 							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+							//sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
 						}
 						else if(sbuts->mainb==BUTS_CONSTRAINT) {
 							sbuts->mainb= CONTEXT_OBJECT;
@@ -8399,7 +8488,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						part->draw_as = PART_DRAW_PATH;
 						part->type = PART_HAIR;
-						psys->recalc |= PSYS_RECALC_HAIR;
+						psys->recalc |= PSYS_RECALC_REDO;
 
 						part->normfac *= fac;
 						part->randfac *= fac;
@@ -8835,7 +8924,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* Adjustments needed after Bullets update */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->damping *= 0.635f;
-			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+			ob->rdamping = 0.1 + (0.8f * ob->rdamping);
 		}
 	}
 	
@@ -8847,15 +8936,58 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->r.domeangle = 180;
 			sce->r.domemode = 1;
-			sce->r.domesize = 1.0f;
 			sce->r.domeres = 4;
 			sce->r.domeresbuf = 1.0f;
+			sce->r.dometilt = 0;
 		}
 		/* DBVT culling by default */
 		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
 			wrld->mode |= WO_DBVT_CULLING;
 			wrld->occlusionRes = 128;
 		}
+	}
+
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 5)) {
+		Object *ob;
+		World *wrld;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->m_contactProcessingThreshold = 1.; //pad3 is used for m_contactProcessingThreshold
+			if(ob->parent) {
+				/* check if top parent has compound shape set and if yes, set this object
+				   to compound shaper as well (was the behaviour before, now it's optional) */
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				while (parent && parent->parent != NULL) {
+					parent = newlibadr(fd, lib, parent->parent);
+				}
+				if(parent) {
+					if (parent->gameflag & OB_CHILD)
+						ob->gameflag |= OB_CHILD;
+				}
+			}
+		}
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->ticrate = 60;
+			wrld->maxlogicstep = 5;
+			wrld->physubstep = 1;
+			wrld->maxphystep = 5;
+		}
+	}
+
+	if (main->versionfile < 249) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next)
+			sce->r.renderer= 0;
+		
+	}
+	
+	// correct introduce of seed for wind force
+	if (main->versionfile < 249 && main->subversionfile < 1) {
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd)
+				ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+		}
+	
 	}
 
 	if (main->versionfile < 250) {
@@ -8865,6 +8997,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		Scene *sce;
 		Tex *tx;
+		ParticleSettings *part;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -8905,6 +9038,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
 		for(me= main->mesh.first; me; me= me->id.next) {
 			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+		}
+
+		/* particle settings conversion */
+		for(part= main->particle.first; part; part= part->id.next) {
+			if(part->draw_as) {
+				if(part->draw_as == PART_DRAW_DOT) {
+					part->ren_as = PART_DRAW_HALO;
+					part->draw_as = PART_DRAW_REND;
+				}
+				else if(part->draw_as <= PART_DRAW_AXIS) {
+					part->ren_as = PART_DRAW_HALO;
+				}
+				else {
+					part->ren_as = part->draw_as;
+					part->draw_as = PART_DRAW_REND;
+				}
+			}
 		}
 	}
 
@@ -8966,7 +9116,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
                                        
 					multires_load_old(dm, me->mr);
 
-					*MultiresDM_get_flags(dm) |= MULTIRES_DM_UPDATE_ALWAYS;
+					MultiresDM_mark_as_modified(dm);
 					dm->release(dm);
 					orig->release(orig);
 
@@ -8986,6 +9136,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				SEQP_BEGIN(ed, seq) {
+					if (seq->strip && seq->strip->proxy){
+						if (sce->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				SEQ_END
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -9812,6 +9991,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 				expand_doit(fd, mainvar, eoa->ob);
 				expand_doit(fd, mainvar, eoa->me);
 			}
+		}
+		else if(act->type==ACT_OBJECT) {
+			bObjectActuator *oa= act->data;
+			expand_doit(fd, mainvar, oa->reference);
 		}
 		else if(act->type==ACT_SCENE) {
 			bSceneActuator *sa= act->data;

@@ -565,8 +565,13 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ConstraintActuator::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_ConstraintActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -625,7 +630,7 @@ PyAttributeDef KX_ConstraintActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RW_CHECK("direction",-FLT_MAX,FLT_MAX,KX_ConstraintActuator,m_refDirection,3,pyattr_check_direction),
 	KX_PYATTRIBUTE_INT_RW("option",0,0xFFFF,false,KX_ConstraintActuator,m_option),
 	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_ConstraintActuator,m_activeTime),
-	KX_PYATTRIBUTE_STRING_RW("property",0,32,true,KX_ConstraintActuator,m_property),
+	KX_PYATTRIBUTE_STRING_RW("propName",0,32,true,KX_ConstraintActuator,m_property),
 	KX_PYATTRIBUTE_FLOAT_RW("min",-FLT_MAX,FLT_MAX,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("distance",-FLT_MAX,FLT_MAX,KX_ConstraintActuator,m_minimumBound),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-FLT_MAX,FLT_MAX,KX_ConstraintActuator,m_maximumBound),
@@ -637,6 +642,10 @@ PyAttributeDef KX_ConstraintActuator::Attributes[] = {
 PyObject* KX_ConstraintActuator::py_getattro(PyObject *attr) 
 {
 	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_ConstraintActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
 }
 
 int KX_ConstraintActuator::py_setattro(PyObject *attr, PyObject* value)
@@ -749,9 +758,9 @@ PyObject* KX_ConstraintActuator::PyGetDirection(){
 	ShowDeprecationWarning("getDirection()", "the direction property");
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
 	return retVal;
 }
 

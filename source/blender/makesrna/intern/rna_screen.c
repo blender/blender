@@ -33,12 +33,12 @@
 #include "DNA_scene_types.h"
 
 EnumPropertyItem region_type_items[] = {
-	{RGN_TYPE_WINDOW, "WINDOW", "Window", ""},
-	{RGN_TYPE_HEADER, "HEADER", "Header", ""},
-	{RGN_TYPE_CHANNELS, "CHANNELS", "Channels", ""},
-	{RGN_TYPE_TEMPORARY, "TEMPORARY", "Temporary", ""},
-	{RGN_TYPE_UI, "UI", "UI", ""},
-	{0, NULL, NULL, NULL}};
+	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
+	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
+	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
+	{RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
+	{RGN_TYPE_UI, "UI", 0, "UI", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -90,6 +90,7 @@ static void rna_def_bscreen(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Screen", "ID");
 	RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
 	RNA_def_struct_ui_text(srna, "Screen", "Screen datablock, defining the layout of areas in a window.");
+	RNA_def_struct_ui_icon(srna, ICON_SPLITSCREEN);
 	
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen.");

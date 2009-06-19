@@ -42,8 +42,10 @@
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -284,7 +286,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		}
 
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
 
 		converted = 1;
@@ -368,10 +370,13 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
 }
 
+/****************** multires subdivide operator *********************/
+
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	MultiresModifierData *mmd = find_multires_modifier(ob);
+	PointerRNA ptr = CTX_data_pointer_get(C, "modifier");
+	MultiresModifierData *mmd = (RNA_struct_is_a(ptr.type, &RNA_Modifier))? ptr.data: NULL;
 
 	if(mmd) {
 		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
@@ -389,6 +394,80 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 
 	ot->exec= multires_subdivide_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ mdef bind operator *********************/
+
+static int modifier_mdef_bind_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
+	return RNA_struct_is_a(ptr.type, &RNA_MeshDeformModifier);
+}
+
+static int modifier_mdef_bind_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
+	Object *ob= ptr.id.data;
+	MeshDeformModifierData *mmd= ptr.data;
+
+	if(mmd->bindcos) {
+		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
+		mmd->bindweights= NULL;
+		mmd->bindcos= NULL;
+		mmd->dyngrid= NULL;
+		mmd->dyninfluences= NULL;
+		mmd->dynverts= NULL;
+		mmd->totvert= 0;
+		mmd->totcagevert= 0;
+		mmd->totinfluence= 0;
+	}
+	else {
+		DerivedMesh *dm;
+		int mode= mmd->modifier.mode;
+
+		/* force modifier to run, it will call binding routine */
+		mmd->needbind= 1;
+		mmd->modifier.mode |= eModifierMode_Realtime;
+
+		if(ob->type == OB_MESH) {
+			dm= mesh_create_derived_view(scene, ob, 0);
+			dm->release(dm);
+		}
+		else if(ob->type == OB_LATTICE) {
+			lattice_calc_modifiers(scene, ob);
+		}
+		else if(ob->type==OB_MBALL) {
+			makeDispListMBall(scene, ob);
+		}
+		else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			makeDispListCurveTypes(scene, ob, 0);
+		}
+
+		mmd->needbind= 0;
+		mmd->modifier.mode= mode;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_mdef_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mesh Deform Bind";
+	ot->description = "Bind mesh to cage in mesh deform modifier.";
+	ot->idname= "OBJECT_OT_modifier_mdef_bind";
+	
+	/* api callbacks */
+	ot->poll= modifier_mdef_bind_poll;
+	ot->exec= modifier_mdef_bind_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -466,4 +545,90 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 	return block;
 }
 #endif
+
+#if 0
+static void modifiers_clearHookOffset(bContext *C, void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	
+	if (hmd->object) {
+		Mat4Invert(hmd->object->imat, hmd->object->obmat);
+		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		ED_undo_push(C, "Clear hook offset");
+	}
+}
+
+static void modifiers_cursorHookCenter(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX 
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	if(G.vd) {
+		float *curs = give_cursor();
+		float bmat[3][3], imat[3][3];
+
+		where_is_object(ob);
+	
+		Mat3CpyMat4(bmat, ob->obmat);
+		Mat3Inv(imat, bmat);
+
+		curs= give_cursor();
+		hmd->cent[0]= curs[0]-ob->obmat[3][0];
+		hmd->cent[1]= curs[1]-ob->obmat[3][1];
+		hmd->cent[2]= curs[2]-ob->obmat[3][2];
+		Mat3MulVecfl(imat, hmd->cent);
+
+		ED_undo_push(C, "Hook cursor center");
+	}*/
+}
+
+static void modifiers_selectHook(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	hook_select(hmd);*/
+}
+
+static void modifiers_reassignHook(bContext *C, void *ob_v, void *md_v)
+{
+	/* XXX ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	float cent[3];
+	int *indexar, tot, ok;
+	char name[32];
+		
+	ok= hook_getIndexArray(&tot, &indexar, name, cent);
+
+	if (!ok) {
+		uiPupMenuError(C, "Requires selected vertices or active Vertex Group");
+	} else {
+		if (hmd->indexar) {
+			MEM_freeN(hmd->indexar);
+		}
+
+		VECCOPY(hmd->cent, cent);
+		hmd->indexar = indexar;
+		hmd->totindex = tot;
+	}*/
+}
+
+void modifiers_explodeFacepa(bContext *C, void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+
+	emd->flag |= eExplodeFlag_CalcFaces;
+}
+
+void modifiers_explodeDelVg(bContext *C, void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+#endif
+
 

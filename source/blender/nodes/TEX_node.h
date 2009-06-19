@@ -59,6 +59,7 @@ extern bNodeType tex_node_distance;
 extern bNodeType tex_node_rotate;
 extern bNodeType tex_node_translate;
 extern bNodeType tex_node_scale;
+extern bNodeType tex_node_at;
 
 extern bNodeType tex_node_compose;
 extern bNodeType tex_node_decompose;

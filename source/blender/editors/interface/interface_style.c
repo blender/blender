@@ -91,6 +91,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
 	style->paneltitle.points= 13;
+	style->paneltitle.kerning= 0.0;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;
 	style->paneltitle.shady= -2;
@@ -99,6 +100,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
+	style->grouplabel.kerning= 0.0;
 	style->grouplabel.shadow= 3;
 	style->grouplabel.shadx= 1;
 	style->grouplabel.shady= -1;
@@ -106,6 +108,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
 	style->widgetlabel.points= 11;
+	style->widgetlabel.kerning= 0.0;
 	style->widgetlabel.shadow= 3;
 	style->widgetlabel.shadx= 1;
 	style->widgetlabel.shady= -1;
@@ -114,6 +117,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
+	style->widget.kerning= 0.0;
 	style->widget.shadowalpha= 0.25f;
 
 	style->columnspace= 5;
@@ -164,16 +168,16 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	
 	uiStyleFontSet(fs);
 	
-	height= BLF_height("A");
+	height= BLF_height("2");	/* correct offset is on baseline, the j is below that */
 	yofs= floor( 0.5f*(rect->ymax - rect->ymin - height));
 
 	if(fs->align==UI_STYLE_TEXT_CENTER)
 		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(str)));
 	else if(fs->align==UI_STYLE_TEXT_RIGHT)
-		xofs= rect->xmax - rect->xmin - BLF_width(str);
+		xofs= rect->xmax - rect->xmin - BLF_width(str) - 1;
 	
 	/* clip is very strict, so we give it some space */
-	BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
+	BLF_clipping(rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);
 	BLF_enable(BLF_CLIPPING);
 	
 	if(fs->shadow) 
@@ -263,5 +267,6 @@ void uiStyleFontSet(uiFontStyle *fs)
 	
 	BLF_set(font->blf_id);
 	BLF_size(fs->points, U.dpi);
+	BLF_kerning(fs->kerning);
 }
 

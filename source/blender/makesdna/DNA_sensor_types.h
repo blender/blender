@@ -158,7 +158,8 @@ typedef struct bSensor {
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
 	short level;  /* Whether the sensor is level base (edge by default) */
-	int pad;
+	short tap;
+	short pad;
 } bSensor;
 
 typedef struct bJoystickSensor {

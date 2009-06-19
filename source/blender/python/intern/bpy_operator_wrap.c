@@ -40,6 +40,8 @@
 #include "bpy_compat.h"
 #include "bpy_util.h"
 
+#include "../generic/bpy_internal_import.h" // our own imports
+
 #define PYOP_ATTR_PROP			"__props__"
 #define PYOP_ATTR_UINAME		"__label__"
 #define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
@@ -137,19 +139,6 @@ static PyObject *pyop_dict_from_event(wmEvent *event)
 	return dict;
 }
 
-/* TODO - a whole traceback would be ideal */
-static void pyop_error_report(ReportList *reports)
-{
-	PyObject *exception, *v, *tb;
-	PyErr_Fetch(&exception, &v, &tb);
-	if (exception == NULL)
-		return;
-	/* Now we know v != NULL too */
-	BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(v));
-	
-	PyErr_Print();
-}
-
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
 	{"CANCELLED", OPERATOR_CANCELLED},
@@ -189,8 +178,13 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PyObject *args;
 	PyObject *ret= NULL, *py_class_instance, *item= NULL;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
+	PointerRNA ptr_context;
+	PointerRNA ptr_operator;
+	PyObject *py_operator;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
+
+	bpy_import_main_set(CTX_data_main(C));
 	
 	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solutuon for this.
 
@@ -224,16 +218,29 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 			RNA_property_collection_end(&iter);
 		}
-		
+
+		/* set operator pointer RNA as instance "__operator__" attribute */
+		RNA_pointer_create(NULL, &RNA_Operator, op, &ptr_operator);
+		py_operator= pyrna_struct_CreatePyObject(&ptr_operator);
+		PyObject_SetAttrString(py_class_instance, "__operator__", py_operator);
+		Py_DECREF(py_operator);
+
+		RNA_pointer_create(NULL, &RNA_Context, C, &ptr_context);
 		
 		if (mode==PYOP_INVOKE) {
 			item= PyObject_GetAttrString(py_class, "invoke");
-			args = PyTuple_New(2);
-			PyTuple_SET_ITEM(args, 1, pyop_dict_from_event(event));
+			args = PyTuple_New(3);
+
+			// PyTuple_SET_ITEM "steals" object reference, it is
+			// an object passed shouldn't be DECREF'ed
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
+			PyTuple_SET_ITEM(args, 2, pyop_dict_from_event(event));
 		}
 		else if (mode==PYOP_EXEC) {
-			item= PyObject_GetAttrString(py_class, "exec");
-			args = PyTuple_New(1);
+			item= PyObject_GetAttrString(py_class, "execute");
+			args = PyTuple_New(2);
+			
+			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
 		}
 		else if (mode==PYOP_POLL) {
 			item= PyObject_GetAttrString(py_class, "poll");
@@ -250,13 +257,13 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	}
 	
 	if (ret == NULL) { /* covers py_class_instance failing too */
-		pyop_error_report(op->reports);
+		BPy_errors_to_report(op->reports);
 	}
 	else {
 		if (mode==PYOP_POLL) {
 			if (PyBool_Check(ret) == 0) {
 				PyErr_SetString(PyExc_ValueError, "Python poll function return value ");
-				pyop_error_report(op->reports);
+				BPy_errors_to_report(op->reports);
 			}
 			else {
 				ret_flag= ret==Py_True ? 1:0;
@@ -264,21 +271,49 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 			
 		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
-			pyop_error_report(op->reports);
-			
+			BPy_errors_to_report(op->reports);
+
+			ret_flag = OPERATOR_CANCELLED;
 		}
 		/* there is no need to copy the py keyword dict modified by
 		 * pyot->py_invoke(), back to the operator props since they are just
 		 * thrown away anyway
 		 *
 		 * If we ever want to do this and use the props again,
-		 * it can be done with - PYOP_props_from_dict(op->ptr, kw)
+		 * it can be done with - pyrna_pydict_to_props(op->ptr, kw, "")
 		 */
 		
 		Py_DECREF(ret);
 	}
 
+	/* print operator return value */
+	if (mode != PYOP_POLL) {
+		char flag_str[100];
+		char class_name[100];
+		BPY_flag_def *flag_def = pyop_ret_flags;
+
+		strcpy(flag_str, "");
+		
+		while(flag_def->name) {
+			if (ret_flag & flag_def->flag) {
+				if(flag_str[1])
+					sprintf(flag_str, "%s | %s", flag_str, flag_def->name);
+				else
+					strcpy(flag_str, flag_def->name);
+			}
+			flag_def++;
+		}
+
+		/* get class name */
+		item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
+		Py_DECREF(item);
+		strcpy(class_name, _PyUnicode_AsString(item));
+
+		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "execute" : "invoke", flag_str);
+	}
+
 	PyGILState_Release(gilstate);
+	bpy_import_main_set(NULL);
 
 	return ret_flag;
 }
@@ -328,7 +363,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
-	if (PyObject_HasAttrString(py_class, "exec"))
+	if (PyObject_HasAttrString(py_class, "execute"))
 		ot->exec= PYTHON_OT_exec;
 	if (PyObject_HasAttrString(py_class, "poll"))
 		ot->poll= PYTHON_OT_poll;
@@ -381,6 +416,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 {	
 	PyObject *base_class, *item;
+	wmOperatorType *ot;
 	
 	
 	char *idname= NULL;
@@ -391,8 +427,8 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"exec",	'f', 1,	BPY_CLASS_ATTR_OPTIONAL},
-		{"invoke",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"execute",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
 	};
@@ -411,9 +447,10 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	Py_DECREF(item);
 	idname =  _PyUnicode_AsString(item);
 	
-	if (WM_operatortype_find(idname)) {
-		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name \"%s\"", idname);
-		return NULL;
+	/* remove if it already exists */
+	if ((ot=WM_operatortype_find(idname))) {
+		Py_XDECREF((PyObject*)ot->pyop_data);
+		WM_operatortype_remove(idname);
 	}
 	
 	/* If we have properties set, check its a list of dicts */

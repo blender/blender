@@ -46,17 +46,17 @@ static void rna_def_sample(BlenderRNA *brna)
 
 	/* sound types */
 	static EnumPropertyItem prop_sample_type_items[] = {
-		{SAMPLE_INVALID, "INVALID", "Invalid", ""},
-		{SAMPLE_UNKNOWN, "UNKNOWN", "Unknown", ""},
-		{SAMPLE_RAW, "RAW", "Raw", ""},
-		{SAMPLE_WAV, "WAV", "WAV", "Uncompressed"},
-		{SAMPLE_MP2, "MP2", "MP2", "MPEG-1 Audio Layer 2"},
-		{SAMPLE_MP3, "MP3", "MP3", "MPEG-1 Audio Layer 3"},
-		{SAMPLE_OGG_VORBIS, "OGG_VORBIS", "Ogg Vorbis", ""},
-		{SAMPLE_WMA, "WMA", "WMA", "Windows Media Audio"},
-		{SAMPLE_ASF, "ASF", "ASF", "Windows Advanced Systems Format"},
-		{SAMPLE_AIFF, "AIFF", "AIFF", "Audio Interchange File Format"},
-		{0, NULL, NULL, NULL}};
+		{SAMPLE_INVALID, "INVALID", 0, "Invalid", ""},
+		{SAMPLE_UNKNOWN, "UNKNOWN", 0, "Unknown", ""},
+		{SAMPLE_RAW, "RAW", 0, "Raw", ""},
+		{SAMPLE_WAV, "WAV", 0, "WAV", "Uncompressed"},
+		{SAMPLE_MP2, "MP2", 0, "MP2", "MPEG-1 Audio Layer 2"},
+		{SAMPLE_MP3, "MP3", 0, "MP3", "MPEG-1 Audio Layer 3"},
+		{SAMPLE_OGG_VORBIS, "OGG_VORBIS", 0, "Ogg Vorbis", ""},
+		{SAMPLE_WMA, "WMA", 0, "WMA", "Windows Media Audio"},
+		{SAMPLE_ASF, "ASF", 0, "ASF", "Windows Advanced Systems Format"},
+		{SAMPLE_AIFF, "AIFF", 0, "AIFF", "Audio Interchange File Format"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SoundSample", "ID");
 	RNA_def_struct_sdna(srna, "bSample");
@@ -64,30 +64,30 @@ static void rna_def_sample(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_sample_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Types", "");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Filename", "Full path filename of the sample");
 
 	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_ui_text(prop, "Length", "The length of sample in seconds");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "rate", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Rate", "Sample rate in kHz");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "bits", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Bits", "Bit-depth of sample");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Channels", "Number of channels (mono=1; stereo=2)");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 }
 
 static void rna_def_soundlistener(BlenderRNA *brna)
@@ -117,12 +117,12 @@ static void rna_def_soundlistener(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "num_sounds_blender", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "numsoundsblender");
 	RNA_def_property_ui_text(prop, "Total Sounds in Blender", "The total number of sounds currently linked and available.");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "num_sounds_gameengine", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "numsoundsgameengine");
 	RNA_def_property_ui_text(prop, "Total Sounds in Game Engine", "The total number of sounds in the Game Engine.");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 #endif
 
@@ -134,6 +134,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Sound", "ID");
 	RNA_def_struct_sdna(srna, "bSound");
 	RNA_def_struct_ui_text(srna, "Sound", "Sound datablock referencing an external or packed sound file.");
+	RNA_def_struct_ui_icon(srna, ICON_SOUND);
 
 	//rna_def_ipo_common(srna);
 

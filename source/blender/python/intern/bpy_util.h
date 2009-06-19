@@ -47,6 +47,8 @@ void PyObSpit(char *name, PyObject *var);
 void PyLineSpit(void);
 void BPY_getFileAndNum(char **filename, int *lineno);
 
+PyObject *BPY_exception_buffer(void);
+
 /* own python like utility function */
 PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 
@@ -73,5 +75,10 @@ char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
 /* error reporting */
 int BPy_reports_to_error(struct ReportList *reports);
+int BPy_errors_to_report(struct ReportList *reports);
+
+/* TODO - find a better solution! */
+struct bContext *BPy_GetContext(void);
+void BPy_SetContext(struct bContext *C);
 
 #endif

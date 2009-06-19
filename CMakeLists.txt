@@ -67,7 +67,6 @@ OPTION(WITH_OPENJPEG		"Enable OpenJpeg Support (http://www.openjpeg.org/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
-OPTION(WITH_YAFRAY		"Enable Yafray (Renderer)"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -99,20 +98,6 @@ IF(UNIX)
       SET(WITH_OPENAL OFF)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
-
-  FIND_LIBRARY(ALUT_LIBRARY
-    NAMES alut
-    PATHS
-    /usr/local/lib
-    /usr/lib
-    /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
-  )
-  IF(ALUT_LIBRARY)
-    SET(OPENAL_LIB ${OPENAL_LIB} ${ALUT_LIBRARY})
-  ENDIF(ALUT_LIBRARY)
 
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
@@ -289,7 +274,7 @@ IF(WIN32)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avcodec-51 avformat-52 avdevice-52 avutil-49 swscale-0)
+  SET(FFMPEG_LIB avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
   IF(CMAKE_CL_64)
@@ -469,20 +454,18 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 #-----------------------------------------------------------------------------
 # Libraries
 FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
-SUBDIRS(
-  intern
-  extern
-  source
-)
+ADD_SUBDIRECTORY(intern)
+ADD_SUBDIRECTORY(extern)
+ADD_SUBDIRECTORY(source)
 
 
 #-----------------------------------------------------------------------------
 # Blender Application
-SUBDIRS(source/creator)
+ADD_SUBDIRECTORY(source/creator)
 
 
 #-----------------------------------------------------------------------------
 # Blender Player
 IF(WITH_PLAYER)
-  SUBDIRS(blenderplayer)
+  ADD_SUBDIRECTORY(blenderplayer)
 ENDIF(WITH_PLAYER)

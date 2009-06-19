@@ -24,10 +24,12 @@
 # ***** END GPL LICENSE BLOCK *****
 
 FILE(GLOB SRC intern/*.c)
+FILE(GLOB GENSRC generic/*.c)
 
 SET(INC 
   . ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
   ../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
+  ../../../extern/glew/include
 )
 
 IF(WITH_OPENEXR)
@@ -47,3 +49,5 @@ ENDIF(WITH_FFMPEG)
 ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
 
 BLENDERLIB(bf_python "${SRC}" "${INC}")
+BLENDERLIB(bf_gen_python "${GENSRC}" "${INC}")
+

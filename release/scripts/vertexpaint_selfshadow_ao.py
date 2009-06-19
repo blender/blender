@@ -45,7 +45,6 @@ import BPyMesh
 
 def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
 	Window.WaitCursor(1)
-	DotVecs = Mathutils.DotVecs
 	Ang= Mathutils.AngleBetweenVecs
 	
 	BPyMesh.meshCalcNormals(me)
@@ -63,7 +62,7 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 		for v in f.v:
 			vno=v.no # get a scaled down normal.
 			
-			dot= DotVecs(vno, v.co) - DotVecs(vno, fc)
+			dot= vno.dot(v.co) - vno.dot(fc)
 			vert_tone_count[v.index]+=1
 			try:
 				a= Ang(vno, fno)
@@ -180,6 +179,10 @@ def main():
 	
 	t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
+	
+	if ob.modifiers:
+		me.update()
+	
 	print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()

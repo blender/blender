@@ -129,6 +129,22 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			// done with propval, release it
 			propval->Release();
 		}
+		
+		
+		/* Warn if we double up on attributes, this isnt quite right since it wont find inherited attributes however there arnt many */
+		for(PyAttributeDef *attrdef = KX_GameObject::Attributes; attrdef->m_name; attrdef++) {
+			if(strcmp(prop->name, attrdef->m_name)==0) {
+				printf("Warning! user defined property name \"%s\" is also a python attribute for object \"%s\"\n\tUse ob[\"%s\"] syntax to avoid conflict\n", prop->name, object->id.name+2, prop->name);
+				break;
+			}
+		}
+		for(PyMethodDef *methdef = KX_GameObject::Methods; methdef->ml_name; methdef++) {
+			if(strcmp(prop->name, methdef->ml_name)==0) {
+				printf("Warning! user defined property name \"%s\" is also a python method for object \"%s\"\n\tUse ob[\"%s\"] syntax to avoid conflict\n", prop->name, object->id.name+2, prop->name);
+				break;
+			}
+		}
+		/* end warning check */
 
 		prop = prop->next;
 	}

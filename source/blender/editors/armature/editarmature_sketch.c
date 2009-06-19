@@ -2273,6 +2273,7 @@ void sk_applyCutGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		pt.type = PT_EXACT;
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
 		VECCOPY(pt.p, isect->p);
+		VECCOPY(pt.no, isect->stroke->points[isect->before].no);
 		
 		sk_insertStrokePoint(isect->stroke, &pt, isect->after);
 	}
@@ -2314,6 +2315,7 @@ void sk_applyTrimGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch)
 		pt.type = PT_EXACT;
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
 		VECCOPY(pt.p, isect->p);
+		VECCOPY(pt.no, isect->stroke->points[isect->before].no);
 		
 		VecSubf(stroke_dir, isect->stroke->points[isect->after].p, isect->stroke->points[isect->before].p);
 		

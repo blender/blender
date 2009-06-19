@@ -86,7 +86,7 @@ void KX_MouseFocusSensor::Init()
 	m_hitNormal.setValue(0,0,1);
 }
 
-bool KX_MouseFocusSensor::Evaluate(CValue* event)
+bool KX_MouseFocusSensor::Evaluate()
 {
 	bool result = false;
 	bool obHasFocus = false;
@@ -119,7 +119,7 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
          * mode is never used, because the converter never makes this
          * sensor for a mouse-key event. It is here for
          * completeness. */
-		result = SCA_MouseSensor::Evaluate(event);
+		result = SCA_MouseSensor::Evaluate();
 		m_positive_event = (m_val!=0);
 	}
 
@@ -197,13 +197,15 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * division by 0.0...*/
 	
 	RAS_Rect area, viewport;
+	short m_y_inv = m_kxengine->GetCanvas()->GetHeight()-m_y;
+	
 	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
 	
 	/* Check if the mouse is in the viewport */
 	if ((	m_x < viewport.m_x2 &&	// less then right
 			m_x > viewport.m_x1 &&	// more then then left
-			m_y < viewport.m_y2 &&	// below top
-			m_y > viewport.m_y1) == 0)	// above bottom
+			m_y_inv < viewport.m_y2 &&	// below top
+			m_y_inv > viewport.m_y1) == 0)	// above bottom
 	{
 		return false;
 	}
@@ -217,6 +219,10 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	MT_Vector4 frompoint;
 	MT_Vector4 topoint;
 	
+	/* m_y_inv - inverting for a bounds check is only part of it, now make relative to view bounds */
+	m_y_inv = (viewport.m_y2 - m_y_inv) + viewport.m_y1;
+	
+	
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! - see from point Z values */
 	
@@ -229,19 +235,18 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 *	behind of the near and far clip planes.
 	 */ 
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y - y_lb) / height),
+						1.0 - (2 * (m_y_inv - y_lb) / height),
+						/*cam->GetCameraData()->m_perspective ? 0.0:cdata->m_clipstart,*/ /* real clipstart is scaled in ortho for some reason, zero is ok */
 						0.0, /* nearclip, see above comments */
 						1.0 );
 	
 	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y-y_lb) / height),
-						1.0, /* farclip, see above comments */
+						1.0 - (2 * (m_y_inv-y_lb) / height),
+						cam->GetCameraData()->m_perspective ? 1.0:cam->GetCameraData()->m_clipend, /* farclip, see above comments */
 						1.0 );
 
 	/* camera to world  */
 	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
-	if (!cam->GetCameraData()->m_perspective)
-		wcs_camcs_tranform.getOrigin()[2] *= 100.0;
 	MT_Transform cams_wcs_transform;
 	cams_wcs_transform.invert(wcs_camcs_tranform);
 	
@@ -335,8 +340,13 @@ const MT_Vector3& KX_MouseFocusSensor::HitNormal() const
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_MouseFocusSensor::Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"KX_MouseFocusSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -385,6 +395,10 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 
 PyObject* KX_MouseFocusSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_MouseSensor);
+}
+
+PyObject* KX_MouseFocusSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_MouseSensor);
 }
 
 
