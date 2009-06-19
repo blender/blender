@@ -440,6 +440,94 @@ void NLAEDIT_OT_add_transition (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Duplicate Strips Operator ************************** */
+/* Duplicates the selected NLA-Strips, putting them on new tracks above the one
+ * the originals were housed in.
+ */
+ 
+static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	short done = 0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* duplicate strips in tracks starting from the last one so that we're 
+	 * less likely to duplicate strips we just duplicated...
+	 */
+	for (ale= anim_data.last; ale; ale= ale->prev) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
+		NlaStrip *strip, *nstrip, *next;
+		NlaTrack *track;
+		
+		for (strip= nlt->strips.first; strip; strip= next) {
+			next= strip->next;
+			
+			/* if selected, split the strip at its midpoint */
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* make a copy (assume that this is possible) */
+				nstrip= copy_nlastrip(strip);
+				
+				/* in case there's no space in the track above, or we haven't got a reference to it yet, try adding */
+				if (BKE_nlatrack_add_strip(nlt->next, nstrip) == 0) {
+					/* need to add a new track above the one above the current one
+					 *	- if the current one is the last one, nlt->next will be NULL, which defaults to adding 
+					 *	  at the top of the stack anyway...
+					 */
+					track= add_nlatrack(adt, nlt->next);
+					BKE_nlatrack_add_strip(track, nstrip);
+				}
+				
+				/* deselect the original */
+				strip->flag &= ~NLASTRIP_FLAG_SELECT;
+				
+				done++;
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	if (done) {
+		/* set notifier that things have changed */
+		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+		WM_event_add_notifier(C, NC_SCENE, NULL);
+		
+		/* done + allow for tweaking to be invoked */
+		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	}
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void NLAEDIT_OT_duplicate (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate Strips";
+	ot->idname= "NLAEDIT_OT_duplicate";
+	ot->description= "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_duplicate_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************** Delete Strips Operator ***************************** */
 /* Deletes the selected NLA-Strips */
 

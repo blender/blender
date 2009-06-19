@@ -143,17 +143,23 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLA_OT_add_tracks");
-	uiItemBooleanO(layout, "Add Tracks Above Selected", 0, "NLA_OT_add_tracks", "above_selected", 1);
-	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_actionclip");
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_transition");
-	
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_duplicate");
 	uiItemO(layout, NULL, 0, "NLAEDIT_OT_split");
 	
 	uiItemS(layout);
 	
 	uiItemO(layout, NULL, 0, "NLAEDIT_OT_delete");
+}
+
+static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_actionclip");
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_transition");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLA_OT_add_tracks");
+	uiItemBooleanO(layout, "Add Tracks Above Selected", 0, "NLA_OT_add_tracks", "above_selected", 1);
 }
 
 /* ------------------ */
@@ -196,6 +202,9 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 		uiDefMenuBut(block, nla_editmenu, NULL, "Edit", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
+		xmax= GetButStringLength("Add");
+		uiDefMenuBut(block, nla_addmenu, NULL, "Add", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);

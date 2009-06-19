@@ -95,6 +95,7 @@ void NLAEDIT_OT_tweakmode_exit(wmOperatorType *ot);
 void NLAEDIT_OT_add_actionclip(wmOperatorType *ot);
 void NLAEDIT_OT_add_transition(wmOperatorType *ot);
 
+void NLAEDIT_OT_duplicate(wmOperatorType *ot);
 void NLAEDIT_OT_delete(wmOperatorType *ot);
 void NLAEDIT_OT_split(wmOperatorType *ot);
 
