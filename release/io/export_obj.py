@@ -41,7 +41,7 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 	def debug(self, message):
 		print("{0}: {1}".format(self.__class__.__name__, message))
 
-	def execute(self, context):
+	def execute_(self, context):
 		self.debug("exec")
 		self.debug("filename = " + self.filename)
 
@@ -54,6 +54,18 @@ class SCRIPT_OT_export_obj(bpy.types.Operator):
 
 		# XXX errors are silenced for some reason
 #		raise Exception("oops!")
+
+		return ('FINISHED',)
+
+	def execute(self, context):
+		self.debug("exec")
+		
+		act = context.active_object
+
+		act.create_dupli_list()
+		print("{0} has {1} dupli objects".format(act.name, len(act.dupli_list)))
+
+		act.free_dupli_list()
 
 		return ('FINISHED',)
 	
