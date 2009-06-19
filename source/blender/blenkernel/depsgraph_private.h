@@ -65,6 +65,7 @@ typedef struct DagNode
 	void * first_ancestor;
 	int ancestor_count;
 	int lay;			// accumulated layers of its relations + itself
+	int scelay;			// layers due to being in scene
 	int lasttime;		// if lasttime != DagForest->time, this node was not evaluated yet for flushing
 	int BFS_dist;		// BFS distance
 	int DFS_dist;		// DFS distance
@@ -93,6 +94,7 @@ typedef struct DagNodeQueue
 typedef struct DagForest 
 {
 	ListBase DagNode;
+	struct GHash *nodeHash;
 	int numNodes;
 	int is_acyclic;
 	int time;		// for flushing/tagging, compare with node->lasttime

@@ -32,6 +32,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -46,10 +47,35 @@
 
 #include "rna_internal.h"
 
-/* Exit */
+/* Init/Exit */
+
+void RNA_init()
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	for(srna=BLENDER_RNA.structs.first; srna; srna=srna->cont.next) {
+		if(!srna->cont.prophash) {
+			srna->cont.prophash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+
+			for(prop=srna->cont.properties.first; prop; prop=prop->next)
+				if(!(prop->flag & PROP_BUILTIN))
+					BLI_ghash_insert(srna->cont.prophash, (void*)prop->identifier, prop);
+		}
+	}
+}
 
 void RNA_exit()
 {
+	StructRNA *srna;
+
+	for(srna=BLENDER_RNA.structs.first; srna; srna=srna->cont.next) {
+		if(srna->cont.prophash) {
+			BLI_ghash_free(srna->cont.prophash, NULL, NULL);
+			srna->cont.prophash= NULL;
+		}
+	}
+
 	RNA_free(&BLENDER_RNA);
 }
 
@@ -388,24 +414,13 @@ int RNA_struct_is_a(StructRNA *type, StructRNA *srna)
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	int i = 0;
+	PropertyRNA *iterprop= RNA_struct_iterator_property(ptr->type);
+	PointerRNA propptr;
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-	prop= NULL;
-
-	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
-		if(strcmp(identifier, RNA_property_identifier(iter.ptr.data)) == 0) {
-			prop= iter.ptr.data;
-			break;
-		}
-	}
-
-	RNA_property_collection_end(&iter);
-
-	return prop;
+	if(RNA_property_collection_lookup_string(ptr, iterprop, identifier, &propptr))
+		return propptr.data;
+	
+	return NULL;
 }
 
 /* Find the property which uses the given nested struct */
@@ -1643,12 +1658,18 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 		buf= MEM_callocN(sizeof(char)*(len+1), "rna_path_token");
 
 	/* copy string, taking into account escaped ] */
-	for(p=*path, i=0, j=0; i<len; i++, p++) {
-		if(*p == '\\' && *(p+1) == ']');
-		else buf[j++]= *p;
-	}
+	if(bracket) {
+		for(p=*path, i=0, j=0; i<len; i++, p++) {
+			if(*p == '\\' && *(p+1) == ']');
+			else buf[j++]= *p;
+		}
 
-	buf[j]= 0;
+		buf[j]= 0;
+	}
+	else {
+		memcpy(buf, *path, sizeof(char)*len);
+		buf[len]= '\0';
+	}
 
 	/* set path to start of next token */
 	if(*p == ']') p++;
@@ -1660,8 +1681,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 
 int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *prop, *iterprop;
+	PropertyRNA *prop;
 	PointerRNA curptr, nextptr;
 	char fixedbuf[256], *token;
 	int len, intkey;
@@ -1676,18 +1696,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 		if(!token)
 			return 0;
 
-		iterprop= RNA_struct_iterator_property(curptr.type);
-		RNA_property_collection_begin(&curptr, iterprop, &iter);
-		prop= NULL;
-
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(strcmp(token, RNA_property_identifier(iter.ptr.data)) == 0) {
-				prop= iter.ptr.data;
-				break;
-			}
-		}
-
-		RNA_property_collection_end(&iter);
+		prop= RNA_struct_find_property(&curptr, token);
 
 		if(token != fixedbuf)
 			MEM_freeN(token);

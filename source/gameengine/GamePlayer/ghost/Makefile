@@ -68,6 +68,7 @@ CPPFLAGS += -I../../../blender/blenlib
 CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
+CPPFLAGS += -I../../../blender/makesrna
 CPPFLAGS += -I../../../blender/readblenfile
 CPPFLAGS += -I../../../blender/gpu
 
