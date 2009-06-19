@@ -1500,7 +1500,7 @@ void rna_iterator_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb,
 	ListBaseIterator *internal;
 
 	internal= MEM_callocN(sizeof(ListBaseIterator), "ListBaseIterator");
-	internal->link= lb->first;
+	internal->link= (lb)? lb->first: NULL;
 	internal->skip= skip;
 
 	iter->internal= internal;

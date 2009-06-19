@@ -54,6 +54,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_armature.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -249,16 +250,29 @@ static int buttons_context_path_bone(ButsContextPath *path)
 {
 	bArmature *arm;
 	Bone *bone;
+	EditBone *edbo;
 
 	/* if we have an armature, get the active bone */
 	if(buttons_context_path_data(path, OB_ARMATURE)) {
 		arm= path->ptr[path->len-1].data;
-		bone= find_active_bone(arm->bonebase.first);
 
-		if(bone) {
-			RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+		if(arm->edbo) {
+			for(edbo=arm->edbo->first; edbo; edbo=edbo->next) {
+				if(edbo->flag & BONE_ACTIVE) {
+					RNA_pointer_create(&arm->id, &RNA_EditBone, edbo, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
+		}
+		else {
+			bone= find_active_bone(arm->bonebase.first);
+
+			if(bone) {
+				RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
 	}
 
@@ -567,6 +581,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if(CTX_data_equals(member, "bone")) {
 		set_pointer_type(path, result, &RNA_Bone);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "edit_bone")) {
+		set_pointer_type(path, result, &RNA_EditBone);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_system")) {

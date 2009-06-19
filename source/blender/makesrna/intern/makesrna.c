@@ -702,8 +702,10 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 	else {
 		if(manualfunc)
 			fprintf(f, "\n	%s(iter, ptr);\n", manualfunc);
-		else
+		else if(dp->dnapointerlevel == 0)
 			fprintf(f, "\n	rna_iterator_listbase_begin(iter, &data->%s, NULL);\n", dp->dnaname);
+		else
+			fprintf(f, "\n	rna_iterator_listbase_begin(iter, data->%s, NULL);\n", dp->dnaname);
 	}
 
 	getfunc= rna_alloc_function_name(srna->identifier, prop->identifier, "get");
