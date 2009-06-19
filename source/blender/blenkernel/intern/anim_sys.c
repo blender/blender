@@ -558,13 +558,20 @@ typedef struct NlaEvalStrip {
 	
 	short track_index;			/* the index of the track within the list */
 	short strip_mode;			/* which end of the strip are we looking at */
+	
+	float strip_time;			/* time at which which strip is being evaluated */
 } NlaEvalStrip;
 
 /* NlaEvalStrip->strip_mode */
 enum {
+		/* standard evaluation */
 	NES_TIME_BEFORE = -1,
 	NES_TIME_WITHIN,
 	NES_TIME_AFTER,
+	
+		/* transition-strip evaluations */
+	NES_TIME_TRANSITION_START,
+	NES_TIME_TRANSITION_END,
 } eNlaEvalStrip_StripMode;
 
 
@@ -583,10 +590,10 @@ typedef struct NlaEvalChannel {
 
 /* ---------------------- */
 
-/* non clipped mapping for strip-time <-> global time 
+/* non clipped mapping for strip-time <-> global time (for Action-Clips)
  *	invert = convert action-strip time to global time 
  */
-static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
+static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short invert)
 {
 	float length, actlength, repeat, scale;
 	
@@ -603,8 +610,8 @@ static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
 	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
 	
 	/* length of strip */
-	length = strip->end - strip->start;
-	if (IS_EQ(length, 0.0f)) length= actlength * scale * repeat;
+	length= actlength * scale * repeat;
+	if (IS_EQ(length, 0.0f)) length= strip->end - strip->start;
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
@@ -623,6 +630,48 @@ static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
 	}
 }
 
+/* non clipped mapping for strip-time <-> global time (for Transitions)
+ *	invert = convert action-strip time to global time 
+ */
+static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short invert)
+{
+	float length;
+	
+	/* length of strip */
+	length= strip->end - strip->start;
+	
+	/* reversed = play strip backwards */
+	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
+		/* invert = convert within-strip-time to global time */
+		if (invert)
+			return strip->end - (length * cframe);
+		else
+			return (strip->end - cframe) / length;
+	}
+	else {
+		/* invert = convert within-strip-time to global time */
+		if (invert)
+			return (length * cframe) + strip->start;
+		else
+			return (cframe - strip->start) / length;
+	}
+}
+
+/* non clipped mapping for strip-time <-> global time
+ *	invert = convert action-strip time to global time 
+ */
+static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
+{
+	switch (strip->type) {
+		case NLASTRIP_TYPE_TRANSITION: /* transition */
+			return nlastrip_get_frame_transition(strip, cframe, invert);
+		
+		case NLASTRIP_TYPE_CLIP: /* action-clip (default) */
+		default:
+			return nlastrip_get_frame_actionclip(strip, cframe, invert);
+	}	
+}
+
 /* calculate influence of strip based for given frame based on blendin/out values */
 static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 {
@@ -631,7 +680,6 @@ static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 	strip->blendout= (float)fabs(strip->blendout);
 	
 	/* result depends on where frame is in respect to blendin/out values */
-	// the +0.0001 factors are to combat rounding errors
 	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
 		/* there is some blend-in */
 		return (float)fabs(cframe - strip->start) / (strip->blendin);
@@ -746,12 +794,13 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	 *	- negative influence is not supported yet... how would that be defined?
 	 */
 	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
-	// TODO: should we clamp the time to only be on the endpoints of the strip?
 	nlastrip_evaluate_controls(estrip, ctime);
 	if (estrip->influence <= 0.0f) // XXX is it useful to invert the strip?
 		return;
 		
-	/* check if strip has valid data to evaluate */
+	/* check if strip has valid data to evaluate,
+	 * and/or perform any additional type-specific actions
+	 */
 	switch (estrip->type) {
 		case NLASTRIP_TYPE_CLIP: 
 			/* clip must have some action to evaluate */
@@ -760,9 +809,12 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 			break;
 		case NLASTRIP_TYPE_TRANSITION:
 			/* there must be strips to transition from and to (i.e. prev and next required) */
-			// TODO: what happens about cross-track transitions? 
 			if (ELEM(NULL, estrip->prev, estrip->next))
 				return;
+				
+			/* evaluate controls for the relevant extents of the bordering strips... */
+			nlastrip_evaluate_controls(estrip->prev, estrip->start);
+			nlastrip_evaluate_controls(estrip->next, estrip->end);
 			break;
 	}
 	
@@ -773,6 +825,7 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	nes->strip= estrip;
 	nes->strip_mode= side;
 	nes->track_index= index;
+	nes->strip_time= estrip->strip_time;
 	
 	BLI_addtail(list, nes);
 }
@@ -847,6 +900,8 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 		nec->prop= prop;
 		nec->index= fcu->array_index;
 	}
+	else
+		*newChan= 0;
 	
 	/* we can now return */
 	return nec;
@@ -856,6 +911,7 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, short newChan, float value)
 {
 	NlaStrip *strip= nes->strip;
+	short blendmode= strip->blendmode;
 	float inf= strip->influence;
 	
 	/* if channel is new, just store value regardless of blending factors, etc. */
@@ -863,13 +919,19 @@ static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, shor
 		nec->value= value;
 		return;
 	}
+		
+	/* if this is being performed as part of transition evaluation, incorporate
+	 * an additional weighting factor for the influence
+	 */
+	if (nes->strip_mode == NES_TIME_TRANSITION_END) 
+		inf *= nes->strip_time;
 	
 	/* premultiply the value by the weighting factor */
 	if (IS_EQ(inf, 0)) return;
 	value *= inf;
 	
 	/* perform blending */
-	switch (strip->blendmode) {
+	switch (blendmode) {
 		case NLASTRIP_MODE_ADD:
 			/* simply add the scaled value on to the stack */
 			nec->value += value;
@@ -938,8 +1000,80 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 	}
 }
 
+/* evaluate transition strip */
+static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+{
+	ListBase tmp_channels = {NULL, NULL};
+	NlaEvalChannel *nec, *necn, *necd;
+	NlaEvalStrip tmp_nes;
+	NlaStrip *s1, *s2;
+	
+	/* get the two strips to operate on 
+	 *	- we use the endpoints of the strips directly flanking our strip
+	 *	  using these as the endpoints of the transition (destination and source)
+	 *	- these should have already been determined to be valid...
+	 *	- if this strip is being played in reverse, we need to swap these endpoints
+	 *	  otherwise they will be interpolated wrong
+	 */
+	if (nes->strip->flag & NLASTRIP_FLAG_REVERSE) {
+		s1= nes->strip->next;
+		s2= nes->strip->prev;
+	}
+	else {
+		s1= nes->strip->prev;
+		s2= nes->strip->next;
+	}
+	
+	/* prepare template for 'evaluation strip' 
+	 *	- based on the transition strip's evaluation strip data
+	 *	- strip_mode is NES_TIME_TRANSITION_* based on which endpoint
+	 *	- strip_time is the 'normalised' (i.e. in-strip) time for evaluation,
+	 *	  which doubles up as an additional weighting factor for the strip influences
+	 *	  which allows us to appear to be 'interpolating' between the two extremes
+	 */
+	tmp_nes= *nes;
+	
+	/* evaluate these strips into a temp-buffer (tmp_channels) */
+		/* first strip */
+	tmp_nes.strip_mode= NES_TIME_TRANSITION_START;
+	tmp_nes.strip= s1;
+	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_nes);
+	
+		/* second strip */
+	tmp_nes.strip_mode= NES_TIME_TRANSITION_END;
+	tmp_nes.strip= s2;
+	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_nes);
+	
+	
+	/* optimise - abort if no channels */
+	if (tmp_channels.first == NULL)
+		return;
+	
+	
+	/* accumulate results in tmp_channels buffer to the accumulation buffer */
+	for (nec= tmp_channels.first; nec; nec= necn) {
+		/* get pointer to next channel in case we remove the current channel from the temp-buffer */
+		necn= nec->next;
+		
+		/* try to find an existing matching channel for this setting in the accumulation buffer */
+		necd= nlaevalchan_find_match(channels, &nec->ptr, nec->prop, nec->index);
+		
+		/* if there was a matching channel already in the buffer, accumulate to it,
+		 * otherwise, add the current channel to the buffer for efficiency
+		 */
+		if (necd)
+			nlaevalchan_accumulate(necd, nes, 0, nec->value);
+		else {
+			BLI_remlink(&tmp_channels, nec);
+			BLI_addtail(channels, nec);
+		}
+	}
+	
+	/* free temp-channels that haven't been assimilated into the buffer */
+	BLI_freelistN(&tmp_channels);
+}
+
 /* evaluates the given evaluation strip */
-// TODO: only evaluate here, but flush in one go using the accumulated channels at end...
 static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
 {
 	/* actions to take depend on the type of strip */
@@ -948,7 +1082,7 @@ static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip
 			nlastrip_evaluate_actionclip(ptr, channels, nes);
 			break;
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
-			// XXX code this...
+			nlastrip_evaluate_transition(ptr, channels, nes);
 			break;
 	}
 }

@@ -110,7 +110,7 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLA_OT_view_all");
+	//uiItemO(layout, NULL, 0, "NLA_OT_view_all");
 	
 	if (sa->full) 
 		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
@@ -145,6 +145,9 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemO(layout, NULL, 0, "NLA_OT_add_tracks");
 	uiItemBooleanO(layout, "Add Tracks Above Selected", 0, "NLA_OT_add_tracks", "above_selected", 1);
+	
+	uiItemO(layout, NULL, 0, "NLA_OT_add_actionclip");
+	uiItemO(layout, NULL, 0, "NLA_OT_add_transition");
 	
 	uiItemO(layout, NULL, 0, "NLAEDIT_OT_split");
 	

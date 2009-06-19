@@ -202,11 +202,20 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	char str[256];
 	rctf rect;
 	
-	/* for now, just init the string with a fixed-format */
-	if (strip->act)
-		sprintf(str, "%d | Act: %s | %.2f <-> %.2f", index, strip->act->id.name+2, strip->start, strip->end);
-	else
-		sprintf(str, "%d | Act: <NONE>", index);
+	/* for now, just init the string with fixed-formats */
+	switch (strip->type) {
+		case NLASTRIP_TYPE_TRANSITION: /* Transition */
+			sprintf(str, "%d | Transition | %.2f <-> %.2f", index, strip->start, strip->end);
+			break;
+		
+		case NLASTRIP_TYPE_CLIP:	/* Action-Clip (default) */
+		default:
+			if (strip->act)
+				sprintf(str, "%d | Act: %s | %.2f <-> %.2f", index, strip->act->id.name+2, strip->start, strip->end);
+			else
+				sprintf(str, "%d | Act: <NONE>", index); // xxx... need a better format?
+			break;
+	}
 	
 	/* set text colour - if colours (see above) are light, draw black text, otherwise draw white */
 	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))
@@ -295,7 +304,9 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					AnimData *adt= BKE_animdata_from_id(ale->id);
 					
-					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data */
+					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
+					 * and a second darker rect within which we draw keyframe indicator dots if there's data
+					 */
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glEnable(GL_BLEND);
 					

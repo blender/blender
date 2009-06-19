@@ -134,6 +134,9 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLAEDIT_OT_tweakmode_enter);
 	WM_operatortype_append(NLAEDIT_OT_tweakmode_exit);
 	
+	WM_operatortype_append(NLAEDIT_OT_add_actionclip);
+	WM_operatortype_append(NLAEDIT_OT_add_transition);
+	
 	WM_operatortype_append(NLAEDIT_OT_delete);
 	WM_operatortype_append(NLAEDIT_OT_split);
 }
@@ -207,6 +210,10 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 		 */
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
+		
+		/* add strips */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_add_actionclip", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_add_transition", TKEY, KM_PRESS, KM_SHIFT, 0);
 		
 		/* delete */
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_delete", XKEY, KM_PRESS, 0, 0);

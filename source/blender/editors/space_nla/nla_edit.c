@@ -48,6 +48,8 @@
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -215,6 +217,229 @@ void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
 /* *********************************************** */
 /* NLA Editing Operations */
 
+/* ******************** Add Action-Clip Operator ***************************** */
+/* Add a new Action-Clip strip to the active track (or the active block if no space in the track) */
+
+/* pop up menu allowing user to choose the action to use */
+static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Main *m= CTX_data_main(C);
+	bAction *act;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	
+	pup= uiPupMenuBegin(C, "Add Action Clip", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* loop through Actions in Main database, adding as items in the menu */
+	for (act= m->action.first; act; act= act->id.next)
+		uiItemStringO(layout, act->id.name+2, 0, "NLAEDIT_OT_add_actionclip", "action", act->id.name);
+	uiItemS(layout);
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+/* add the specified action as new strip */
+static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	Scene *scene;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, items;
+	
+	bAction *act = NULL;
+	char actname[22];
+	float cfra;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	scene= ac.scene;
+	cfra= (float)CFRA;
+		
+	/* get action to use */
+	RNA_string_get(op->ptr, "action", actname);
+	act= (bAction *)find_id("AC", actname+2);
+	
+	if (act == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
+		//printf("Add strip - actname = '%s' \n", actname);
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* get a list of the editable tracks being shown in the NLA
+	 *	- this is limited to active ones for now, but could be expanded to 
+	 */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	items= ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	if (items == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No active track(s) to add strip to.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* for every active track, try to add strip to free space in track or to the top of the stack if no space */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
+		NlaStrip *strip= NULL;
+		
+		/* create a new strip, and offset it to start on the current frame */
+		strip= add_nlastrip(act);
+		
+		strip->end 		+= (cfra - strip->start);
+		strip->start	 = cfra;
+		
+		/* firstly try adding strip to our current track, but if that fails, add to a new track */
+		if (BKE_nlatrack_add_strip(nlt, strip) == 0) {
+			/* trying to add to the current failed (no space), 
+			 * so add a new track to the stack, and add to that...
+			 */
+			nlt= add_nlatrack(adt, NULL);
+			BKE_nlatrack_add_strip(nlt, strip);
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_add_actionclip (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Action Strip";
+	ot->idname= "NLAEDIT_OT_add_actionclip";
+	ot->description= "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track.";
+	
+	/* api callbacks */
+	ot->invoke= nlaedit_add_actionclip_invoke;
+	ot->exec= nlaedit_add_actionclip_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+		// TODO: this would be nicer as an ID-pointer...
+	RNA_def_string(ot->srna, "action", "", 21, "Action", "Name of Action to add as a new Action-Clip Strip.");
+}
+
+/* ******************** Add Transition Operator ***************************** */
+/* Add a new transition strip between selected strips */
+
+/* add the specified action as new strip */
+static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	int done = 0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each track, find pairs of strips to add transitions to */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *s1, *s2;
+		
+		/* get initial pair of strips */
+		if ELEM(nlt->strips.first, NULL, nlt->strips.last)
+			continue;
+		s1= nlt->strips.first;
+		s2= s1->next;
+		
+		/* loop over strips */
+		for (; s1 && s2; s1=s2, s2=s2->next) {
+			NlaStrip *strip;
+			
+			/* check if both are selected */
+			if ELEM(0, (s1->flag & NLASTRIP_FLAG_SELECT), (s2->flag & NLASTRIP_FLAG_SELECT))
+				continue;
+			/* check if there's space between the two */
+			if (IS_EQ(s1->end, s2->start))
+				continue;
+				
+			/* allocate new strip */
+			strip= MEM_callocN(sizeof(NlaStrip), "NlaStrip");
+			BLI_insertlinkafter(&nlt->strips, s1, strip);
+			
+			/* set the type */
+			strip->type= NLASTRIP_TYPE_TRANSITION;
+			
+			/* generic settings 
+			 *	- selected flag to highlight this to the user
+			 *	- auto-blends to ensure that blend in/out values are automatically 
+			 *	  determined by overlaps of strips
+			 */
+			strip->flag = NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_AUTO_BLENDS;
+			
+			/* range is simply defined as the endpoints of the adjacent strips */
+			strip->start 	= s1->end;
+			strip->end 		= s2->start;
+			
+			/* scale and repeat aren't of any use, but shouldn't ever be 0 */
+			strip->scale= 1.0f;
+			strip->repeat = 1.0f;
+			
+			/* make note of this */
+			done++;
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* was anything added? */
+	if (done) {
+		/* set notifier that things have changed */
+		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+		WM_event_add_notifier(C, NC_SCENE, NULL);
+		
+		/* done */
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Needs at least a pair of adjacent selected strips.");
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void NLAEDIT_OT_add_transition (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Transition";
+	ot->idname= "NLAEDIT_OT_add_transition";
+	ot->description= "Add a transition strip between two adjacent selected strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_add_transition_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************** Delete Strips Operator ***************************** */
 /* Deletes the selected NLA-Strips */
 
@@ -230,7 +455,7 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* get a list of the AnimData blocks being shown in the NLA */
+	/* get a list of the editable tracks being shown in the NLA */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
@@ -292,7 +517,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* get a list of the AnimData blocks being shown in the NLA */
+	/* get a list of editable tracks being shown in the NLA */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	

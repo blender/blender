@@ -293,9 +293,8 @@ NlaStrip *add_nlastrip (bAction *act)
 /* Add new NLA-strip to the top of the NLA stack - i.e. into the last track if space, or a new one otherwise */
 NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 {
-	NlaStrip *strip, *ns;
+	NlaStrip *strip;
 	NlaTrack *nlt;
-	short not_added = 1;
 	
 	/* sanity checks */
 	if ELEM(NULL, adt, act)
@@ -306,35 +305,14 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 	if (strip == NULL)
 		return NULL;
 	
-	/* check if the last NLA-track (if it exists) has any space for this strip:
-	 *	- if so, add this strip to that track
-	 */
-	if ( (adt->nla_tracks.last == NULL) || 
-		 (BKE_nlatrack_has_space(adt->nla_tracks.last, strip->start, strip->end)==0) ) 
-	{
-		/* no space, so add to a new track... */
+	/* firstly try adding strip to last track, but if that fails, add to a new track */
+	if (BKE_nlatrack_add_strip(adt->nla_tracks.last, strip) == 0) {
+		/* trying to add to the last track failed (no track or no space), 
+		 * so add a new track to the stack, and add to that...
+		 */
 		nlt= add_nlatrack(adt, NULL);
+		BKE_nlatrack_add_strip(nlt, strip);
 	}
-	else 
-	{
-		/* there's some space, so add to this track... */
-		nlt= adt->nla_tracks.last;
-	}
-	
-	/* find the right place to add the strip to the nominated track */
-	for (ns= nlt->strips.first; ns; ns= ns->next) {
-		/* if current strip occurs after the new strip, add it before */
-		if (ns->start > strip->end) {
-			BLI_insertlinkbefore(&nlt->strips, ns, strip);
-			not_added= 0;
-			break;
-		}
-	}
-	if (not_added) {
-		/* just add to the end of the list of the strips then... */
-		BLI_addtail(&nlt->strips, strip);
-	}
-	
 	
 	/* returns the strip added */
 	return strip;
@@ -490,6 +468,40 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 	nlt->strips.last= tmp.last;
 }
 
+/* Add the given NLA-Strip to the given NLA-Track, assuming that it 
+ * isn't currently attached to another one 
+ */
+short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
+{
+	NlaStrip *ns;
+	short not_added = 1;
+	
+	/* sanity checks */
+	if ELEM(NULL, nlt, strip)
+		return 0;
+		
+	/* check if any space to add */
+	if (BKE_nlatrack_has_space(nlt, strip->start, strip->end)==0)
+		return 0;
+	
+	/* find the right place to add the strip to the nominated track */
+	for (ns= nlt->strips.first; ns; ns= ns->next) {
+		/* if current strip occurs after the new strip, add it before */
+		if (ns->start > strip->end) {
+			BLI_insertlinkbefore(&nlt->strips, ns, strip);
+			not_added= 0;
+			break;
+		}
+	}
+	if (not_added) {
+		/* just add to the end of the list of the strips then... */
+		BLI_addtail(&nlt->strips, strip);
+	}
+	
+	/* added... */
+	return 1;
+}
+
 /* NLA Strips -------------------------------------- */
 
 /* Find the active NLA-strip within the given track */
@@ -571,7 +583,7 @@ short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 	/* should be first now */
 	return 1;
 }
-
+ 
 /* Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA

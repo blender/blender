@@ -144,11 +144,38 @@ static int nla_panel_context(const bContext *C, PointerRNA *nlt_ptr, PointerRNA 
 	return found;
 }
 
+#if 0
 static int nla_panel_poll(const bContext *C, PanelType *pt)
 {
 	return nla_panel_context(C, NULL, NULL);
 }
+#endif
 
+static int nla_track_panel_poll(const bContext *C, PanelType *pt)
+{
+	PointerRNA ptr;
+	return (nla_panel_context(C, &ptr, NULL) && (ptr.data != NULL));
+}
+
+static int nla_strip_panel_poll(const bContext *C, PanelType *pt)
+{
+	PointerRNA ptr;
+	return (nla_panel_context(C, NULL, &ptr) && (ptr.data != NULL));
+}
+
+static int nla_strip_actclip_panel_poll(const bContext *C, PanelType *pt)
+{
+	PointerRNA ptr;
+	NlaStrip *strip;
+	
+	if (!nla_panel_context(C, NULL, &ptr))
+		return 0;
+	if (ptr.data == NULL)
+		return 0;
+	
+	strip= ptr.data;
+	return (strip->type == NLASTRIP_TYPE_CLIP);
+}
 
 /* -------------- */
 
@@ -162,8 +189,6 @@ static void nla_panel_track (const bContext *C, Panel *pa)
 	
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, &nlt_ptr, NULL))
-		return;
-	if (nlt_ptr.data == NULL)
 		return;
 
 	block= uiLayoutGetBlock(layout);
@@ -184,8 +209,6 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, NULL, &strip_ptr))
-		return;
-	if (strip_ptr.data == NULL)
 		return;
 
 	block= uiLayoutGetBlock(layout);
@@ -239,8 +262,6 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, NULL, &strip_ptr))
 		return;
-	if (strip_ptr.data == NULL)
-		return;
 	
 	// XXX FIXME: move this check into a poll callback
 	if (RNA_enum_get(&strip_ptr, "type") != NLASTRIP_TYPE_CLIP)
@@ -279,8 +300,6 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, NULL, &strip_ptr))
 		return;
-	if (strip_ptr.data == NULL)
-		return;
 		
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
@@ -289,6 +308,24 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	// strip_time
 	// animated_influence
 	// animated_time
+}
+
+/* F-Modifiers for active NLA-Strip */
+static void nla_panel_modifiers(const bContext *C, Panel *pa)
+{
+	PointerRNA strip_ptr;
+	uiLayout *layout= pa->layout;
+	//uiLayout *column, *row, *subcol;
+	uiBlock *block;
+
+	/* check context and also validity of pointer */
+	if (!nla_panel_context(C, NULL, &strip_ptr))
+		return;
+		
+	block= uiLayoutGetBlock(layout);
+	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
+		
+	// TODO...
 }
 
 /* ******************* general ******************************** */
@@ -302,35 +339,35 @@ void nla_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "NLA_PT_track");
 	strcpy(pt->label, "Active Track");
 	pt->draw= nla_panel_track;
-	pt->poll= nla_panel_poll;
+	pt->poll= nla_track_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype nla panel properties");
 	strcpy(pt->idname, "NLA_PT_properties");
 	strcpy(pt->label, "Active Strip");
 	pt->draw= nla_panel_properties;
-	pt->poll= nla_panel_poll;
+	pt->poll= nla_strip_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype nla panel properties");
 	strcpy(pt->idname, "NLA_PT_actionclip");
 	strcpy(pt->label, "Action Clip");
 	pt->draw= nla_panel_actclip;
-	pt->poll= nla_panel_poll; // XXX need a special one to check for 'action clip' types only
+	pt->poll= nla_strip_actclip_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype nla panel evaluation");
 	strcpy(pt->idname, "NLA_PT_evaluation");
 	strcpy(pt->label, "Evaluation");
 	pt->draw= nla_panel_evaluation;
-	pt->poll= nla_panel_poll;
+	pt->poll= nla_strip_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype nla panel modifiers");
 	strcpy(pt->idname, "NLA_PT_modifiers");
 	strcpy(pt->label, "Modifiers");
-	//pt->draw= nla_panel_modifiers;
-	pt->poll= nla_panel_poll;
+	pt->draw= nla_panel_modifiers;
+	pt->poll= nla_strip_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

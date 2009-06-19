@@ -2242,6 +2242,42 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
 		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
+/* Do we have any modifiers which match certain criteria 
+ *	- mtype - type of modifier (if 0, doesn't matter)
+ *	- acttype - type of action to perform (if -1, doesn't matter)
+ */
+short fcurve_has_suitable_modifier (FCurve *fcu, int mtype, short acttype)
+{
+	FModifier *fcm;
+	
+	/* if there are no specific filtering criteria, just skip */
+	if ((mtype == 0) && (acttype == 0))
+		return (fcu && fcu->modifiers.first);
+		
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->modifiers.first)
+		return 0;
+		
+	/* find the first mdifier fitting these criteria */
+	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		short mOk=1, aOk=1; /* by default 1, so that when only one test, won't fail */
+		
+		/* check if applicable ones are fullfilled */
+		if (mtype)
+			mOk= (fcm->type == mtype);
+		if (acttype > -1)
+			aOk= (fmi->acttype == acttype);
+			
+		/* if both are ok, we've found a hit */
+		if (mOk && aOk)
+			return 1;
+	}
+	
+	/* no matches */
+	return 0;
+}  
+
 /* Evaluation API --------------------------- */
 
 /* evaluate time modifications imposed by some F-Curve Modifiers
