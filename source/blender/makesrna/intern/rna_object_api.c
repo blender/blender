@@ -108,20 +108,19 @@ static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *rep
 		return;
 	}
 
-	sce= CTX_data_scene(C);
-
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if (!(prop= RNA_struct_find_property(&obptr, OBJECT_API_PROP_DUPLILIST))) {
 		// hint: all Objects will now have this property defined
-		prop= RNA_def_collection_runtime(obptr.type, OBJECT_API_PROP_DUPLILIST, &RNA_DupliObject, "Dupli list", "List of object's duplis");
+		prop= RNA_def_collection_runtime(obptr.type, OBJECT_API_PROP_DUPLILIST, &RNA_DupliObject, "Dupli list", "");
 	}
 
 	RNA_property_collection_clear(&obptr, prop);
+	sce= CTX_data_scene(C);
 	ob->duplilist= object_duplilist(sce, ob);
 
 	for(dob= (DupliObject*)ob->duplilist->first; dob; dob= dob->next) {
-		RNA_pointer_create(NULL, &RNA_Object, dob, &dobptr);
+		RNA_pointer_create(NULL, &RNA_DupliObject, dob, &dobptr);
 		RNA_property_collection_add(&obptr, prop, &dobptr);
 		dob = dob->next;
 	}
@@ -143,8 +142,10 @@ static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 
 	RNA_property_collection_clear(&obptr, prop);
 
-	free_object_duplilist(ob->duplilist);
-	ob->duplilist= NULL;
+	if (ob->duplilist) {
+		free_object_duplilist(ob->duplilist);
+		ob->duplilist= NULL;
+	}
 }
 
 #else
