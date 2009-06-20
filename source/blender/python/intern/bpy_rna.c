@@ -1011,22 +1011,30 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 		CollectionPropertyIterator iter;
 		PropertyRNA *nameprop;
 		char name[256], *nameptr;
+		int i= 0;
 
 		ret = PyList_New(0);
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
-				
+			if(iter.ptr.data) {
 				/* add to python list */
-				item = Py_BuildValue("(NN)", PyUnicode_FromString( nameptr ), pyrna_struct_CreatePyObject(&iter.ptr));
+				item= PyTuple_New(2);
+				if(nameprop = RNA_struct_name_property(iter.ptr.type)) {
+					nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+					PyTuple_SET_ITEM(item, 0, PyUnicode_FromString( nameptr ));
+					if ((char *)&name != nameptr)
+						MEM_freeN(nameptr);
+				}
+				else {
+					PyTuple_SET_ITEM(item, 0, PyLong_FromSsize_t(i)); /* a bit strange but better then returning an empty list */
+				}
+				PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&iter.ptr));
+				
 				PyList_Append(ret, item);
 				Py_DECREF(item);
-				/* done */
 				
-				if ((char *)&name != nameptr)
-					MEM_freeN(nameptr);
+				i++;
 			}
 		}
 		RNA_property_collection_end(&iter);
@@ -1039,23 +1047,22 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 {
 	PyObject *ret;
+	
 	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
 		PyErr_SetString( PyExc_TypeError, "values() is only valid for collection types" );
 		ret = NULL;
 	} else {
 		PyObject *item;
 		CollectionPropertyIterator iter;
-		PropertyRNA *nameprop;
-		
+		PropertyRNA *iterprop;
 		ret = PyList_New(0);
 		
+		//iterprop= RNA_struct_iterator_property(self->ptr.type);
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-				item = pyrna_struct_CreatePyObject(&iter.ptr);
-				PyList_Append(ret, item);
-				Py_DECREF(item);
-			}
+			item = pyrna_struct_CreatePyObject(&iter.ptr);
+			PyList_Append(ret, item);
+			Py_DECREF(item);
 		}
 		RNA_property_collection_end(&iter);
 	}
