@@ -46,20 +46,27 @@
 #define OBJECT_API_PROP_DUPLILIST "dupli_list"
 
 /* copied from init_render_mesh (render code) */
-Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
+Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *reports)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	DerivedMesh *dm;
 	Mesh *me;
+	Scene *sce;
+
+	sce= CTX_data_scene(C);
 	
 	/* TODO: other types */
-	if(ob->type != OB_MESH)
+	if(ob->type != OB_MESH) {
+		BKE_report(reports, RPT_ERROR, "Object should be of type MESH.");
 		return NULL;
+	}
 	
-	dm= mesh_create_derived_render(scene, ob, mask);
+	dm= mesh_create_derived_render(sce, ob, mask);
 
-	if(!dm)
+	if(!dm) {
+		/* TODO: report */
 		return NULL;
+	}
 
 	me= add_mesh("tmp_render_mesh");
 	me->id.us--; /* we don't assign it to anything */
@@ -133,11 +140,10 @@ void RNA_api_object(StructRNA *srna)
 
 	func= RNA_def_function(srna, "create_render_mesh", "rna_Object_create_render_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
-
+	
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object. When no longer needed, it should be freed with free_dupli_list.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
