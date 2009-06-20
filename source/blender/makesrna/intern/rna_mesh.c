@@ -38,11 +38,14 @@
 
 #ifdef RNA_RUNTIME
 
-/*static float rna_MeshVertex_no_get(PointerRNA *ptr, int index)
+static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
-	return mvert->no[index]/32767.0f;
-}*/
+
+	value[0]= mvert->no[0]/32767.0f;
+	value[1]= mvert->no[1]/32767.0f;
+	value[2]= mvert->no[2]/32767.0f;
+}
 
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
 {
@@ -629,10 +632,11 @@ static void rna_def_mvert(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	/*prop= RNA_def_property(srna, "no", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_funcs(prop, "rna_MeshVertex_no_get", NULL, NULL);
+	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "no");
+	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);

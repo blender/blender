@@ -92,7 +92,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		ob->data= id;
 		test_object_materials(id);
 
-		if(GS(id->name)==ID_CU )
+		if(GS(id->name)==ID_CU)
 			test_curve_type(ob);
 		else if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(ob, ob->data);
