@@ -1341,10 +1341,22 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
+		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* curves */
-	// TODO...
+		/* we need to perform a special hack here to ensure that the ctime 
+		 * value of the curve gets set in case there's no animation for that
+		 *	- it needs to be set before animation is evaluated just so that 
+		 *	  animation can successfully override...
+		 */
+	for (id= main->curve.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Curve *cu= (Curve *)id;
+		
+		cu->ctime= ctime;
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
+	}
 	
 	/* meshes */
 	// TODO...

@@ -827,6 +827,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 	char buf[512];
 	int dummy_index= 0;
 	
+	/* hack: if constname is set, we can only be dealing with an Constraint curve */
+	if (constname)
+		blocktype= ID_CO;
+	
 	/* get property name based on blocktype */
 	switch (blocktype) {
 		case ID_OB: /* object */
@@ -842,7 +846,7 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			break;
 			
 		case ID_CO: /* constraint */
-			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);
+			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);	
 			break;
 			
 		case ID_TE: /* texture */
@@ -872,7 +876,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			
 		/* XXX problematic blocktypes */
 		case ID_CU: /* curve */
-			propname= "speed"; // XXX this was a 'dummy curve' that didn't really correspond to any real var...
+			/* this used to be a 'dummy' curve which got evaluated on the fly... 
+			 * now we've got real var for this!
+			 */
+			propname= "eval_time";
 			break;
 			
 		case ID_SEQ: /* sequencer strip */

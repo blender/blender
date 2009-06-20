@@ -1569,14 +1569,14 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	}
 	/* catch exceptions: curve paths used as a duplicator */
 	else if(enable_cu_speed) {
-		ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);
-		
-#if 0 // XXX old animation system
-		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-			ctime /= cu->pathlen;
-			CLAMP(ctime, 0.0, 1.0);
-		}
-#endif // XXX old animation system
+		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
+		 * but this will only work if it actually is animated... 
+		 *
+		 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
+		 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+		 */
+		ctime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
 		ctime= scene->r.cfra - give_timeoffset(ob);
