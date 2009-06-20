@@ -37,6 +37,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # OpenGL and Python
 CPPFLAGS += $(OGL_CPPFLAGS)
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 # PreProcessor stuff 

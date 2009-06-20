@@ -10,10 +10,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 		
 		split = layout.split()
 		
@@ -34,10 +32,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 		
 		layout.itemR(rd, "output_path")
 		
@@ -133,16 +129,15 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
 	def draw_header(self, context):
+		layout = self.layout
 		rd = context.scene.render_data
 
-		layout = self.layout
 		layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
-		scene = context.scene
-		rd = scene.render_data
-
 		layout = self.layout
+		rd = context.scene.render_data
+
 		layout.active = rd.antialiasing
 
 		split = layout.split()
@@ -163,14 +158,12 @@ class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="Render Still", icon=109)
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon=111)
+		row.itemO("SCREEN_OT_render", text="Render Still", icon='ICON_IMAGE_COL')
+		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon='ICON_SEQUENCE')
 		
 		row = layout.row()
 		row.itemR(rd, "do_composite")
@@ -204,9 +197,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 	__label__ = "Dimensions"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
+		
+		scene = context.scene
 		rd = scene.render_data
 		
 		split = layout.split()
@@ -248,10 +241,9 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		layout.itemR(rd, "stamp", text="")
 
 	def draw(self, context):
-		scene = context.scene
-		rd = scene.render_data
-
 		layout = self.layout
+		rd = context.scene.render_data
+
 		layout.active = rd.stamp
 
 		split = layout.split()

@@ -1399,10 +1399,10 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_mode_items[] = {
-		{WM_RADIALCONTROL_SIZE, "SIZE", "Size", ""},
-		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", "Strength", ""},
-		{WM_RADIALCONTROL_ANGLE, "ANGLE", "Angle", ""},
-		{0, NULL, NULL, NULL}};
+		{WM_RADIALCONTROL_SIZE, "SIZE", 0, "Size", ""},
+		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", 0, "Strength", ""},
+		{WM_RADIALCONTROL_ANGLE, "ANGLE", 0, "Angle", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* Should be set in custom invoke() */
 	RNA_def_float(ot->srna, "initial_value", 0, 0, FLT_MAX, "Initial Value", "", 0, FLT_MAX);
@@ -1484,12 +1484,12 @@ static int ten_timer_exec(bContext *C, wmOperator *op)
 static void WM_OT_ten_timer(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_type_items[] = {
-	{0, "DRAW", "Draw Region", ""},
-	{1, "DRAWSWAP", "Draw Region + Swap", ""},
-	{2, "DRAWWINSWAP", "Draw Window + Swap", ""},
-	{3, "ANIMSTEP", "Anim Step", ""},
-	{4, "UNDO", "Undo/Redo", ""},
-	{0, NULL, NULL, NULL}};
+	{0, "DRAW", 0, "Draw Region", ""},
+	{1, "DRAWSWAP", 0, "Draw Region + Swap", ""},
+	{2, "DRAWWINSWAP", 0, "Draw Window + Swap", ""},
+	{3, "ANIMSTEP", 0, "Anim Step", ""},
+	{4, "UNDO", 0, "Undo/Redo", ""},
+	{0, NULL, 0, NULL, NULL}};
 	
 	ot->name= "Ten Timer";
 	ot->idname= "WM_OT_ten_timer";

@@ -136,29 +136,29 @@ static void rna_def_field(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem field_type_items[] = {
-		{0, "NONE", "None", ""},
-		{PFIELD_FORCE, "SPHERICAL", "Spherical", ""},
-		{PFIELD_VORTEX, "VORTEX", "Vortex", ""},
-		{PFIELD_MAGNET, "MAGNET", "Magnetic", ""},
-		{PFIELD_WIND, "WIND", "Wind", ""},
-		{PFIELD_GUIDE, "GUIDE", "Curve Guide", ""},
-		{PFIELD_TEXTURE, "TEXTURE", "Texture", ""},
-		{PFIELD_HARMONIC, "HARMONIC", "Harmonic", ""},
-		{PFIELD_CHARGE, "CHARGE", "Charge", ""},
-		{PFIELD_LENNARDJ, "LENNARDJ", "Lennard-Jones", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "NONE", 0, "None", ""},
+		{PFIELD_FORCE, "SPHERICAL", 0, "Spherical", ""},
+		{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
+		{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
+		{PFIELD_WIND, "WIND", 0, "Wind", ""},
+		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
+		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
+		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
+		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
+		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem falloff_items[] = {
-		{PFIELD_FALL_SPHERE, "SPHERE", "Sphere", ""},
-		{PFIELD_FALL_TUBE, "TUBE", "Tube", ""},
-		{PFIELD_FALL_CONE, "CONE", "Cone", ""},
-		{0, NULL, NULL, NULL}};
+		{PFIELD_FALL_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{PFIELD_FALL_TUBE, "TUBE", 0, "Tube", ""},
+		{PFIELD_FALL_CONE, "CONE", 0, "Cone", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem texture_items[] = {
-		{PFIELD_TEX_RGB, "RGB", "RGB", ""},
-		{PFIELD_TEX_GRAD, "GRADIENT", "Gradient", ""},
-		{PFIELD_TEX_CURL, "CURL", "Curl", ""},
-		{0, NULL, NULL, NULL}};
+		{PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
+		{PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
+		{PFIELD_TEX_CURL, "CURL", 0, "Curl", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");

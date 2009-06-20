@@ -36,6 +36,7 @@ struct Scene;
 struct DagNodeQueue;
 struct DagForest;
 struct DagNode;
+struct GHash;
 
 /* **** DAG relation types *** */
 

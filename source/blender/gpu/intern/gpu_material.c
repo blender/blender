@@ -1285,7 +1285,7 @@ void GPU_materials_free()
 
 	GPU_material_free(&defmaterial);
 
-	for(ob=G.main->object.first; ma; ma=ma->id.next)
+	for(ob=G.main->object.first; ob; ob=ob->id.next)
 		GPU_lamp_free(ob);
 }
 

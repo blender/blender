@@ -129,6 +129,7 @@ private:
 	MT_CmMatrix4x4	m_overrideCamViewMat;
 	float			m_overrideCamNear;
 	float			m_overrideCamFar;
+	float			m_overrideCamLens;
 
 	bool m_stereo;
 	int m_curreye;
@@ -253,6 +254,7 @@ public:
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideClipping(float near, float far);
+	void SetCameraOverrideLens(float lens);
 	
 	/**
 	 * Sets display of all frames.

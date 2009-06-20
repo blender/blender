@@ -41,14 +41,14 @@
 
 /* prop_mode needs to be accessible from transform operator */
 EnumPropertyItem prop_mode_items[] ={
-	{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
-	{PROP_SPHERE, "SPHERE", "Sphere", ""},
-	{PROP_ROOT, "ROOT", "Root", ""},
-	{PROP_SHARP, "SHARP", "Sharp", ""},
-	{PROP_LIN, "LINEAR", "Linear", ""},
-	{PROP_CONST, "CONSTANT", "Constant", ""},
-	{PROP_RANDOM, "RANDOM", "Random", ""},
-	{0, NULL, NULL, NULL}};
+	{PROP_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+	{PROP_SPHERE, "SPHERE", 0, "Sphere", ""},
+	{PROP_ROOT, "ROOT", 0, "Root", ""},
+	{PROP_SHARP, "SHARP", 0, "Sharp", ""},
+	{PROP_LIN, "LINEAR", 0, "Linear", ""},
+	{PROP_CONST, "CONSTANT", 0, "Constant", ""},
+	{PROP_RANDOM, "RANDOM", 0, "Random", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -172,161 +172,161 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem pixel_filter_items[] ={
-		{R_FILTER_BOX, "BOX", "Box", ""},
-		{R_FILTER_TENT, "TENT", "Tent", ""},
-		{R_FILTER_QUAD, "QUADRATIC", "Quadratic", ""},
-		{R_FILTER_CUBIC, "CUBIC", "Cubic", ""},
-		{R_FILTER_CATROM, "CATMULLROM", "Catmull-Rom", ""},
-		{R_FILTER_GAUSS, "GAUSSIAN", "Gaussian", ""},
-		{R_FILTER_MITCH, "MITCHELL", "Mitchell-Netravali", ""},
-		{0, NULL, NULL, NULL}};
+		{R_FILTER_BOX, "BOX", 0, "Box", ""},
+		{R_FILTER_TENT, "TENT", 0, "Tent", ""},
+		{R_FILTER_QUAD, "QUADRATIC", 0, "Quadratic", ""},
+		{R_FILTER_CUBIC, "CUBIC", 0, "Cubic", ""},
+		{R_FILTER_CATROM, "CATMULLROM", 0, "Catmull-Rom", ""},
+		{R_FILTER_GAUSS, "GAUSSIAN", 0, "Gaussian", ""},
+		{R_FILTER_MITCH, "MITCHELL", 0, "Mitchell-Netravali", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem alpha_mode_items[] ={
-		{R_ADDSKY, "SKY", "Sky", "Transparent pixels are filled with sky color"},
-		{R_ALPHAPREMUL, "PREMUL", "Premultiplied", "Transparent RGB pixels are multiplied by the alpha channel"},
-		{R_ALPHAKEY, "STRAIGHT", "Straight Alpha", "Transparent RGB and alpha pixels are unmodified"},
-		{0, NULL, NULL, NULL}};
+		{R_ADDSKY, "SKY", 0, "Sky", "Transparent pixels are filled with sky color"},
+		{R_ALPHAPREMUL, "PREMUL", 0, "Premultiplied", "Transparent RGB pixels are multiplied by the alpha channel"},
+		{R_ALPHAKEY, "STRAIGHT", 0, "Straight Alpha", "Transparent RGB and alpha pixels are unmodified"},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem color_mode_items[] ={
-		{R_PLANESBW, "BW", "BW", "Images are saved with BW (grayscale) data"},
-		{R_PLANES24, "RGB", "RGB", "Images are saved with RGB (color) data"},
-		{R_PLANES32, "RGBA", "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
-		{0, NULL, NULL, NULL}};
+		{R_PLANESBW, "BW", 0, "BW", "Images are saved with BW (grayscale) data"},
+		{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
+		{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem octree_resolution_items[] = {
-		{64, "OCTREE_RES_64", "64", ""},
-		{128, "OCTREE_RES_128", "128", ""},
-		{256, "OCTREE_RES_256", "256", ""},
-		{512, "OCTREE_RES_512", "512", ""},
-		{0, NULL, NULL, NULL}};
+		{64, "OCTREE_RES_64", 0, "64", ""},
+		{128, "OCTREE_RES_128", 0, "128", ""},
+		{256, "OCTREE_RES_256", 0, "256", ""},
+		{512, "OCTREE_RES_512", 0, "512", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem fixed_oversample_items[] = {
-		{5, "OVERSAMPLE_5", "5", ""},
-		{8, "OVERSAMPLE_8", "8", ""},
-		{11, "OVERSAMPLE_11", "11", ""},
-		{16, "OVERSAMPLE_16", "16", ""},
-		{0, NULL, NULL, NULL}};
+		{5, "OVERSAMPLE_5", 0, "5", ""},
+		{8, "OVERSAMPLE_8", 0, "8", ""},
+		{11, "OVERSAMPLE_11", 0, "11", ""},
+		{16, "OVERSAMPLE_16", 0, "16", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", "Even", "Even Fields First"},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd", "Odd Fields First"},
-		{0, NULL, NULL, NULL}};
+		{0, "FIELDS_EVENFIRST", 0, "Even", "Even Fields First"},
+		{R_ODDFIELD, "FIELDS_ODDFIRST", 0, "Odd", "Odd Fields First"},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
-		{0, "THREADS_AUTO", "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
-		{R_FIXED_THREADS, "THREADS_FIXED", "Fixed", "Manually determine the number of threads"},
-		{0, NULL, NULL, NULL}};
+		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
+		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem stamp_font_size_items[] = {
-		{1, "STAMP_FONT_TINY", "Tiny", ""},
-		{2, "STAMP_FONT_SMALL", "Small", ""},
-		{3, "STAMP_FONT_MEDIUM", "Medium", ""},
-		{0, "STAMP_FONT_LARGE", "Large", ""},
-		{4, "STAMP_FONT_EXTRALARGE", "Extra Large", ""},
-		{0, NULL, NULL, NULL}};
+		{1, "STAMP_FONT_TINY", 0, "Tiny", ""},
+		{2, "STAMP_FONT_SMALL", 0, "Small", ""},
+		{3, "STAMP_FONT_MEDIUM", 0, "Medium", ""},
+		{0, "STAMP_FONT_LARGE", 0, "Large", ""},
+		{4, "STAMP_FONT_EXTRALARGE", 0, "Extra Large", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	
 	static EnumPropertyItem image_type_items[] = {
-		{R_FRAMESERVER, "FRAMESERVER", "Frame Server", ""},
+		{R_FRAMESERVER, "FRAMESERVER", 0, "Frame Server", ""},
 #ifdef WITH_FFMPEG
-		{R_FFMPEG, "FFMPEG", "FFMpeg", ""},
+		{R_FFMPEG, "FFMPEG", 0, "FFMpeg", ""},
 #endif
-		{R_AVIRAW, "AVIRAW", "AVI Raw", ""},
-		{R_AVIJPEG, "AVIJPEG", "AVI JPEG", ""},
+		{R_AVIRAW, "AVIRAW", 0, "AVI Raw", ""},
+		{R_AVIJPEG, "AVIJPEG", 0, "AVI JPEG", ""},
 #ifdef _WIN32
-		{R_AVICODEC, "AVICODEC", "AVI Codec", ""},
+		{R_AVICODEC, "AVICODEC", 0, "AVI Codec", ""},
 #endif
 #ifdef WITH_QUICKTIME
-		{R_QUICKTIME, "QUICKTIME", "QuickTime", ""},
+		{R_QUICKTIME, "QUICKTIME", 0, "QuickTime", ""},
 #endif
-		{R_TARGA, "TARGA", "Targa", ""},
-		{R_RAWTGA, "RAWTARGA", "Targa Raw", ""},
-		{R_PNG, "PNG", "PNG", ""},
-		//{R_DDS, "DDS", "DDS", ""}, // XXX not yet implemented
+		{R_TARGA, "TARGA", 0, "Targa", ""},
+		{R_RAWTGA, "RAWTARGA", 0, "Targa Raw", ""},
+		{R_PNG, "PNG", 0, "PNG", ""},
+		//{R_DDS, "DDS", 0, "DDS", ""}, // XXX not yet implemented
 //#ifdef WITH_OPENJPEG
-		{R_JP2, "JPEG2000", "JPEG 2000", ""},
+		{R_JP2, "JPEG2000", 0, "JPEG 2000", ""},
 //#endif		
-		{R_BMP, "BMP", "BMP", ""},
-		{R_JPEG90, "JPEG", "JPEG", ""},
-		{R_HAMX, "HAMX", "HamX", ""},
-		{R_IRIS, "IRIS", "Iris", ""},
-		{R_RADHDR, "RADHDR", "Radiance HDR", ""},
-		{R_CINEON, "CINEON", "Cineon", ""},
-		{R_DPX, "DPX", "DPX", ""},
+		{R_BMP, "BMP", 0, "BMP", ""},
+		{R_JPEG90, "JPEG", 0, "JPEG", ""},
+		{R_HAMX, "HAMX", 0, "HamX", ""},
+		{R_IRIS, "IRIS", 0, "Iris", ""},
+		{R_RADHDR, "RADHDR", 0, "Radiance HDR", ""},
+		{R_CINEON, "CINEON", 0, "Cineon", ""},
+		{R_DPX, "DPX", 0, "DPX", ""},
 #ifdef __sgi
-		{R_MOVIE, "MOVIE", "Movie", ""},
+		{R_MOVIE, "MOVIE", 0, "Movie", ""},
 #endif
 //#ifdef WITH_OPENEXR
-		{R_OPENEXR, "OPENEXR", "OpenEXR", ""},
-		{R_MULTILAYER, "MULTILAYER", "MultiLayer", ""},
+		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
+		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
 //#endif
-		{R_TIFF, "TIFF", "TIFF", ""},	// XXX only with G.have_libtiff
-		{0, NULL, NULL, NULL}};
+		{R_TIFF, "TIFF", 0, "TIFF", ""},	// XXX only with G.have_libtiff
+		{0, NULL, 0, NULL, NULL}};
 		
 //#ifdef WITH_OPENEXR	
 	static EnumPropertyItem exr_codec_items[] = {
-		{0, "NONE", "None", ""},
-		{1, "PXR24", "Pxr24 (lossy)", ""},
-		{2, "ZIP", "ZIP (lossless)", ""},
-		{3, "PIZ", "PIZ (lossless)", ""},
-		{4, "RLE", "RLE (lossless)", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "NONE", 0, "None", ""},
+		{1, "PXR24", 0, "Pxr24 (lossy)", ""},
+		{2, "ZIP", 0, "ZIP (lossless)", ""},
+		{3, "PIZ", 0, "PIZ (lossless)", ""},
+		{4, "RLE", 0, "RLE (lossless)", ""},
+		{0, NULL, 0, NULL, NULL}};
 //#endif
 
 //#ifdef WITH_OPENJPEG
 	static EnumPropertyItem jp2_preset_items[] = {
-		{0, "NO_PRESET", "No Preset", ""},
-		{1, "R_JPEG2K_CINE_PRESET", "Cinema 24fps 2048x1080", ""},
-		{2, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cinema 48fps 2048x1080", ""},
-		{3, "R_JPEG2K_CINE_PRESET", "Cinema 24fps 4096x2160", ""},
-		{4, "R_JPEG2K_CINE_PRESET", "Cine-Scope 24fps 2048x858", ""},
-		{5, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cine-Scope 48fps 2048x858", ""},
-		{6, "R_JPEG2K_CINE_PRESET", "Cine-Flat 24fps 1998x1080", ""},
-		{7, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", "Cine-Flat 48fps 1998x1080", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "NO_PRESET", 0, "No Preset", ""},
+		{1, "R_JPEG2K_CINE_PRESET", 0, "Cinema 24fps 2048x1080", ""},
+		{2, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
+		{3, "R_JPEG2K_CINE_PRESET", 0, "Cinema 24fps 4096x2160", ""},
+		{4, "R_JPEG2K_CINE_PRESET", 0, "Cine-Scope 24fps 2048x858", ""},
+		{5, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
+		{6, "R_JPEG2K_CINE_PRESET", 0, "Cine-Flat 24fps 1998x1080", ""},
+		{7, "R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem jp2_depth_items[] = {
-		{0, "8", "8", ""},
-		{R_JPEG2K_12BIT, "16", "16", ""},
-		{R_JPEG2K_16BIT, "32", "32", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "8", 0, "8", ""},
+		{R_JPEG2K_12BIT, "16", 0, "16", ""},
+		{R_JPEG2K_16BIT, "32", 0, "32", ""},
+		{0, NULL, 0, NULL, NULL}};
 //#endif
 
 /*
 #ifdef WITH_FFMPEG
 	static EnumPropertyItem ffmpeg_format_items[] = {
-		{FFMPEG_MPEG1, "MPEG1", "MPEG-1", ""},
-		{FFMPEG_MPEG2, "MPEG2", "MPEG-2", ""},
-		{FFMPEG_MPEG4, "MPEG4", "MPEG-4", ""},
-		{FFMPEG_AVI, "AVI", "Avi", ""},
-		{FFMPEG_MOV, "QUICKTIME", "Quicktime", ""},
-		{FFMPEG_DV, "DV", "DV", ""},
-		{FFMPEG_H264, "H264", "H264", ""},
-		{FFMPEG_XVID, "XVID", "XVid", ""},
-		{FFMPEG_OGG, "OGG", "OGG", ""},
-		{FFMPEG_FLV, "FLASH", "Flash", ""},
-		{0, NULL, NULL, NULL}};
+		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
+		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
+		{FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
+		{FFMPEG_AVI, "AVI", 0, "Avi", ""},
+		{FFMPEG_MOV, "QUICKTIME", 0, "Quicktime", ""},
+		{FFMPEG_DV, "DV", 0, "DV", ""},
+		{FFMPEG_H264, "H264", 0, "H264", ""},
+		{FFMPEG_XVID, "XVID", 0, "XVid", ""},
+		{FFMPEG_OGG, "OGG", 0, "OGG", ""},
+		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem ffmpeg_codec_items[] = {
-		{CODEC_ID_MPEG1VIDEO, "MPEG1", "MPEG-1", ""},
-		{CODEC_ID_MPEG2VIDEO, "MPEG2", "MPEG-2", ""},
-		{CODEC_ID_MPEG4, "MPEG4", "MPEG-4(divx)", ""},
-		{CODEC_ID_HUFFYUV, "HUFFYUV", "HuffYUV", ""},
-		{CODEC_ID_DVVIDEO, "DV", "DV", ""},
-		{CODEC_ID_H264, "H264", "H264", ""},
-		{CODEC_ID_XVID, "XVID", "XVid", ""},
-		{CODEC_ID_THEORA, "THEORA", "OGG Theora", ""},
-		{CODEC_ID_FLV1, "FLASH", "FlashVideo1", ""},
-		{0, NULL, NULL, NULL}};
+		{CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
+		{CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
+		{CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
+		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
+		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
+		{CODEC_ID_H264, "H264", 0, "H264", ""},
+		{CODEC_ID_XVID, "XVID", 0, "XVid", ""},
+		{CODEC_ID_THEORA, "THEORA", 0, "OGG Theora", ""},
+		{CODEC_ID_FLV1, "FLASH", 0, "FlashVideo1", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
-		{CODEC_ID_MP2, "MP2", "MP2", ""},
-		{CODEC_ID_MP3, "MP3", "MP3", ""},
-		{CODEC_ID_AC3, "AC3", "AC3", ""},
-		{CODEC_ID_AAC, "AAC", "AAC", ""},
-		{CODEC_ID_VORBIS, "VORBIS", "Vorbis", ""},
-		{CODEC_ID_PCM_S16LE, "PCM", "PCM", ""},
-		{0, NULL, NULL, NULL}};
+		{CODEC_ID_MP2, "MP2", 0, "MP2", ""},
+		{CODEC_ID_MP3, "MP3", 0, "MP3", ""},
+		{CODEC_ID_AC3, "AC3", 0, "AC3", ""},
+		{CODEC_ID_AAC, "AAC", 0, "AAC", ""},
+		{CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
+		{CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
+		{0, NULL, 0, NULL, NULL}};
 #endif
 */
 
@@ -840,9 +840,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem unwrapper_items[] = {
-		{0, "CONFORMAL", "Conformal", ""},
-		{1, "ANGLEBASED", "Angle Based", ""}, 
-		{0, NULL, NULL, NULL}};
+		{0, "CONFORMAL", 0, "Conformal", ""},
+		{1, "ANGLEBASED", 0, "Angle Based", ""}, 
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
@@ -866,7 +866,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
 
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);

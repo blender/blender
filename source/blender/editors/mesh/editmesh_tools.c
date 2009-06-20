@@ -966,7 +966,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= spin_mesh_invoke;
 	ot->exec= spin_mesh_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1073,7 +1073,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= screw_mesh_invoke;
 	ot->exec= screw_mesh_exec;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1273,14 +1273,14 @@ void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 
 /* Note, these values must match delete_mesh() event values */
 static EnumPropertyItem prop_mesh_delete_types[] = {
-	{10,"VERT",		"Vertices", ""},
-	{1, "EDGE",		"Edges", ""},
-	{2, "FACE",		"Faces", ""},
-	{3, "ALL",		"All", ""},
-	{4, "EDGE_FACE","Edges & Faces", ""},
-	{5, "ONLY_FACE","Only Faces", ""},
-	{6, "EDGE_LOOP","Edge Loop", ""},
-	{0, NULL, NULL, NULL}
+	{10,"VERT",		0, "Vertices", ""},
+	{1, "EDGE",		0, "Edges", ""},
+	{2, "FACE",		0, "Faces", ""},
+	{3, "ALL",		0, "All", ""},
+	{4, "EDGE_FACE",0, "Edges & Faces", ""},
+	{5, "ONLY_FACE",0, "Only Faces", ""},
+	{6, "EDGE_LOOP",0, "Edge Loop", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int delete_mesh_exec(bContext *C, wmOperator *op)
@@ -4656,7 +4656,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 {
 	EditFace *efa;
 	MTFace *tface;
-	short	m_tex=0, m_tiles=0, m_shared=0,
+	short	m_tex=0, m_shared=0,
 			m_light=0, m_invis=0, m_collision=0,
 			m_twoside=0, m_obcolor=0, m_halo=0,
 			m_billboard=0, m_shadow=0, m_text=0,
@@ -4669,7 +4669,6 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 //	}
 	
 	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
-	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
 	add_numbut(2, TOG|SHO, "Light", 0, 0, &m_light, NULL);
 	add_numbut(3, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
 	add_numbut(4, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
@@ -4691,7 +4690,6 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 			m_billboard = 0;
 	
 	if (m_tex)			flag |= TF_TEX;
-	if (m_tiles)		flag |= TF_TILES;
 	if (m_shared)		flag |= TF_SHAREDCOL;
 	if (m_light)		flag |= TF_LIGHT;
 	if (m_invis)		flag |= TF_INVISIBLE;
@@ -4997,7 +4995,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_rip_invoke;
-	ot->poll= ED_operator_editmesh; // XXX + v3d!
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -6646,11 +6644,11 @@ static int subdivs_exec(bContext *C, wmOperator *op)
 void MESH_OT_subdivs(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", "Simple", ""},
-		{1, "MULTI", "Multi", ""},
-		{2, "FRACTAL", "Fractal", ""},
-		{3, "SMOOTH", "Smooth", ""},
-		{0, NULL, NULL}};
+		{0, "SIMPLE", 0, "Simple", ""},
+		{1, "MULTI", 0, "Multi", ""},
+		{2, "FRACTAL", 0, "Fractal", ""},
+		{3, "SMOOTH", 0, "Smooth", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "subdivs";

@@ -1439,3 +1439,54 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 	}
 }
 
+/********************* Layer Buttons Template ************************/
+
+// TODO:
+//	- option for showing extra info like whether layer has contents?
+//	- for now, grouping of layers is determined by dividing up the length of 
+//	  the array of layer bitflags
+
+void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
+{
+	uiLayout *uRow, *uSplit, *uCol;
+	PropertyRNA *prop;
+	int groups, cols, layers;
+	int group, col, layer, row;
+	
+	if (!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("uiTemplateLayer: layers property not found: %s\n", propname);
+		return;
+	}
+	
+	/* the number of layers determines the way we group them 
+	 *	- we want 2 rows only (for now)
+	 *	- the number of columns (cols) is the total number of buttons per row
+	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
+	 *	- for now, only split into groups if if group will have at least 5 items
+	 */
+	layers= RNA_property_array_length(prop);
+	cols= (layers / 2) + (layers % 2);
+	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
+	
+	/* layers are laid out going across rows, with the columns being divided into groups */
+	uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	
+	for (group= 0; group < groups; group++) {
+		uCol= uiLayoutColumn(uSplit, 1);
+		
+		for (row= 0; row < 2; row++) {
+			uRow= uiLayoutRow(uCol, 1);
+			layer= groups*cols*row + cols*group;
+			
+			/* add layers as toggle buts */
+			for (col= 0; (col < cols) && (layer < layers); col++, layer++) {
+				int icon=0; // XXX - add some way of setting this...
+				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, 0, 0, 1);
+			}
+		}
+	}
+}

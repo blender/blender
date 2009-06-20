@@ -492,7 +492,7 @@ void BLF_mode(int mode)
 		font->mode= mode;
 }
 
-void BLF_kerning(int space)
+void BLF_kerning(float space)
 {
 	FontBLF *font;
 

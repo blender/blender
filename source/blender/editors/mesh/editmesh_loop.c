@@ -458,10 +458,10 @@ typedef struct CutCurve {
 #define KNIFE_MULTICUT	3
 
 static EnumPropertyItem knife_items[]= {
-	{KNIFE_EXACT, "EXACT", "Exact", ""},
-	{KNIFE_MIDPOINT, "MIDPOINTS", "Midpoints", ""},
-	{KNIFE_MULTICUT, "MULTICUT", "Multicut", ""},
-	{0, NULL, NULL}
+	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
+	{KNIFE_MIDPOINT, "MIDPOINTS", 0, "Midpoints", ""},
+	{KNIFE_MULTICUT, "MULTICUT", 0, "Multicut", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */

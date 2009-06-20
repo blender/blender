@@ -1300,9 +1300,23 @@ int psys_threads_init_distribution(ParticleThread *threads, Scene *scene, Derive
 	/* for hair, sort by origindex, allows optimizations in rendering */
 	/* however with virtual parents the children need to be in random order */
 	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0)) {
-		COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
-		if(COMPARE_ORIG_INDEX)
-			qsort(index, totpart, sizeof(int), compare_orig_index);
+		if(from != PART_FROM_PARTICLE) {
+			COMPARE_ORIG_INDEX = NULL;
+
+			if(from == PART_FROM_VERT) {
+				if(dm->numVertData)
+					COMPARE_ORIG_INDEX= dm->getVertDataArray(dm, CD_ORIGINDEX);
+			}
+			else {
+				if(dm->numFaceData)
+					COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+			}
+
+			if(COMPARE_ORIG_INDEX) {
+				qsort(index, totpart, sizeof(int), compare_orig_index);
+				COMPARE_ORIG_INDEX = NULL;
+			}
+		}
 	}
 
 	/* weights are no longer used except for FROM_PARTICLE, which needs them zeroed for indexing */
@@ -1747,7 +1761,10 @@ void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys, Partic
 			where_is_object_time(scene, ob,pa->time);
 
 		/* get birth location from object		*/
-		psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		if(part->tanfac!=0.0)
+			psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		else
+			psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 		
 		/* save local coordinates for later		*/
 		VECCOPY(tloc,loc);

@@ -244,17 +244,17 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 /* ******************* add object operator ****************** */
 
 static EnumPropertyItem prop_object_types[] = {
-	{OB_EMPTY, "EMPTY", "Empty", ""},
-	{OB_MESH, "MESH", "Mesh", ""},
-	{OB_CURVE, "CURVE", "Curve", ""},
-	{OB_SURF, "SURFACE", "Surface", ""},
-	{OB_FONT, "TEXT", "Text", ""},
-	{OB_MBALL, "META", "Meta", ""},
-	{OB_LAMP, "LAMP", "Lamp", ""},
-	{OB_CAMERA, "CAMERA", "Camera", ""},
-	{OB_ARMATURE, "ARMATURE", "Armature", ""},
-	{OB_LATTICE, "LATTICE", "Lattice", ""},
-	{0, NULL, NULL, NULL}
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_CURVE, "CURVE", 0, "Curve", ""},
+	{OB_SURF, "SURFACE", 0, "Surface", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{OB_MBALL, "META", 0, "Meta", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -321,16 +321,16 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 /* ******  work both in and outside editmode ****** */
 
 static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", "Plane", ""},
-	{1, "CUBE", "Cube", ""},
-	{2, "CIRCLE", "Circle", ""},
-	{3, "UVSPHERE", "UVsphere", ""},
-	{4, "ICOSPHERE", "Icosphere", ""},
-	{5, "CYLINDER", "Cylinder", ""},
-	{6, "CONE", "Cone", ""},
-	{7, "GRID", "Grid", ""},
-	{8, "MONKEY", "Monkey", ""},
-	{0, NULL, NULL, NULL}
+	{0, "PLANE", 0, "Plane", ""},
+	{1, "CUBE", 0, "Cube", ""},
+	{2, "CIRCLE", 0, "Circle", ""},
+	{3, "UVSPHERE", 0, "UVsphere", ""},
+	{4, "ICOSPHERE", 0, "Icosphere", ""},
+	{5, "CYLINDER", 0, "Cylinder", ""},
+	{6, "CONE", 0, "Cone", ""},
+	{7, "GRID", 0, "Grid", ""},
+	{8, "MONKEY", 0, "Monkey", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_mesh_exec(bContext *C, wmOperator *op)
@@ -405,12 +405,12 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", "NURBS Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", "Path", ""},
-	{0, NULL, NULL, NULL}
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", 0, "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", 0, "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", 0, "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", 0, "Path", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_curve_exec(bContext *C, wmOperator *op)
@@ -479,13 +479,13 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_surface_types[]= {
-	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
-	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
-	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", "NURBS Surface", ""},
-	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", "NURBS Tube", ""},
-	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", "NURBS Sphere", ""},
-	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", "NURBS Donut", ""},
-	{0, NULL, NULL, NULL}
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", 0, "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", 0, "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", 0, "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", 0, "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", 0, "NURBS Donut", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_surface_exec(bContext *C, wmOperator *op)
@@ -1366,10 +1366,10 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 /* ******************** clear parent operator ******************* */
 
 static EnumPropertyItem prop_clear_parent_types[] = {
-	{0, "CLEAR", "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
-	{2, "CLEAR_INVERSE", "Clear Parent Inverse", ""},
-	{0, NULL, NULL, NULL}
+	{0, "CLEAR", 0, "Clear Parent", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* note, poll should check for editable scene */
@@ -1422,9 +1422,9 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 
 
 static EnumPropertyItem prop_clear_track_types[] = {
-	{0, "CLEAR", "Clear Track", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
-	{0, NULL, NULL, NULL}
+	{0, "CLEAR", 0, "Clear Track", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* note, poll should check for editable scene */
@@ -1471,9 +1471,9 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 
 /* *****************Selection Operators******************* */
 static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
+	{0, "EXCLUSIVE", 0, "Exclusive", ""},
+	{1, "EXTEND", 0, "Extend", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ****** Select by Type ****** */
@@ -1526,13 +1526,13 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 /* ****** selection by links *******/
 
 static EnumPropertyItem prop_select_linked_types[] = {
-	{1, "IPO", "Object IPO", ""}, // XXX depreceated animation system stuff...
-	{2, "OBDATA", "Ob Data", ""},
-	{3, "MATERIAL", "Material", ""},
-	{4, "TEXTURE", "Texture", ""},
-	{5, "DUPGROUP", "Dupligroup", ""},
-	{6, "PARTICLE", "Particle System", ""},
-	{0, NULL, NULL, NULL}
+	{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
+	{2, "OBDATA", 0, "Ob Data", ""},
+	{3, "MATERIAL", 0, "Material", ""},
+	{4, "TEXTURE", 0, "Texture", ""},
+	{5, "DUPGROUP", 0, "Dupligroup", ""},
+	{6, "PARTICLE", 0, "Particle System", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_select_linked_exec(bContext *C, wmOperator *op)
@@ -2085,9 +2085,9 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_set_restrictview_types[] = {
-	{0, "SELECTED", "Selected", ""},
-	{1, "UNSELECTED", "Unselected ", ""},
-	{0, NULL, NULL, NULL}
+	{0, "SELECTED", 0, "Selected", ""},
+	{1, "UNSELECTED", 0, "Unselected ", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_restrictview_set_exec(bContext *C, wmOperator *op)
@@ -2462,16 +2462,16 @@ void make_proxy(Scene *scene)
 #define PAR_TRIA		8
 
 static EnumPropertyItem prop_make_parent_types[] = {
-	{PAR_OBJECT, "OBJECT", "Object", ""},
-	{PAR_ARMATURE, "ARMATURE", "Armature Deform", ""},
-	{PAR_BONE, "BONE", "Bone", ""},
-	{PAR_CURVE, "CURVE", "Curve Deform", ""},
-	{PAR_FOLLOW, "FOLLOW", "Follow Path", ""},
-	{PAR_PATH_CONST, "PATH_CONST", "Path Constraint", ""},
-	{PAR_LATTICE, "LATTICE", "Lattice Deform", ""},
-	{PAR_VERTEX, "VERTEX", "Vertex", ""},
-	{PAR_TRIA, "TRIA", "Triangle", ""},
-	{0, NULL, NULL, NULL}
+	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
+	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_BONE, "BONE", 0, "Bone", ""},
+	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
+	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
+	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
+	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
+	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
+	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int test_parent_loop(Object *par, Object *ob)
@@ -2655,10 +2655,10 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 
 /* *** make track ***** */
 static EnumPropertyItem prop_make_track_types[] = {
-	{1, "TRACKTO", "TrackTo Constraint", ""},
-	{2, "LOCKTRACK", "LockTrack Constraint", ""},
-	{3, "OLDTRACK", "Old Track", ""},
-	{0, NULL, NULL, NULL}
+	{1, "TRACKTO", 0, "TrackTo Constraint", ""},
+	{2, "LOCKTRACK", 0, "LockTrack Constraint", ""},
+	{3, "OLDTRACK", 0, "Old Track", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int track_set_exec(bContext *C, wmOperator *op)
@@ -2831,10 +2831,10 @@ void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
 /* ******************* Set Object Center ********************** */
 
 static EnumPropertyItem prop_set_center_types[] = {
-	{0, "CENTER", "ObData to Center", "Move object data around Object center"},
-	{1, "CENTERNEW", "Center New", "Move Object center to center of object data"},
-	{2, "CENTERCURSOR", "Center Cursor", "Move Object Center to position of the 3d cursor"},
-	{0, NULL, NULL, NULL}
+	{0, "CENTER", 0, "ObData to Center", "Move object data around Object center"},
+	{1, "CENTERNEW", 0, "Center New", "Move Object center to center of object data"},
+	{2, "CENTERCURSOR", 0, "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* 0 == do center, 1 == center new, 2 == center cursor */

@@ -113,8 +113,8 @@ typedef struct {
 	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0) \
 	{ \
 		ShowDeprecationWarning_func(old_way, new_way); \
+ \
 		WarnLink *wlink_last= GetDeprecationWarningLinkLast(); \
-		ShowDeprecationWarning_func(old_way, new_way); \
 		wlink.warn_done = true; \
 		wlink.link = NULL; \
 	 \

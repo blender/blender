@@ -54,6 +54,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_armature.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -249,16 +250,29 @@ static int buttons_context_path_bone(ButsContextPath *path)
 {
 	bArmature *arm;
 	Bone *bone;
+	EditBone *edbo;
 
 	/* if we have an armature, get the active bone */
 	if(buttons_context_path_data(path, OB_ARMATURE)) {
 		arm= path->ptr[path->len-1].data;
-		bone= find_active_bone(arm->bonebase.first);
 
-		if(bone) {
-			RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+		if(arm->edbo) {
+			for(edbo=arm->edbo->first; edbo; edbo=edbo->next) {
+				if(edbo->flag & BONE_ACTIVE) {
+					RNA_pointer_create(&arm->id, &RNA_EditBone, edbo, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
+		}
+		else {
+			bone= find_active_bone(arm->bonebase.first);
+
+			if(bone) {
+				RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
 	}
 
@@ -478,8 +492,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 0;
 
 	/* here we handle context, getting data from precomputed path */
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {
+			"world", "object", "meshe", "armature", "lattice", "curve",
+			"meta_ball", "lamp", "camera", "material", "material_slot",
+			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
+			"cloth", "soft_body", "fluid", NULL};
 
-	if(CTX_data_equals(member, "world")) {
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "world")) {
 		set_pointer_type(path, result, &RNA_World);
 		return 1;
 	}
@@ -569,13 +592,23 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_Bone);
 		return 1;
 	}
+	else if(CTX_data_equals(member, "edit_bone")) {
+		set_pointer_type(path, result, &RNA_EditBone);
+		return 1;
+	}
 	else if(CTX_data_equals(member, "particle_system")) {
 		set_pointer_type(path, result, &RNA_ParticleSystem);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "cloth")) {
-		set_pointer_type(path, result, &RNA_ClothModifier);
-		return 1;
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
+			CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
+			return 1;
+		}
 	}
 	else if(CTX_data_equals(member, "soft_body")) {
 		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);

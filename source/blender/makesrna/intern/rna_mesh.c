@@ -38,11 +38,14 @@
 
 #ifdef RNA_RUNTIME
 
-/*static float rna_MeshVertex_no_get(PointerRNA *ptr, int index)
+static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
-	return mvert->no[index]/32767.0f;
-}*/
+
+	value[0]= mvert->no[0]/32767.0f;
+	value[1]= mvert->no[1]/32767.0f;
+	value[2]= mvert->no[2]/32767.0f;
+}
 
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
 {
@@ -80,76 +83,77 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 	medge->crease= (char)(CLAMPIS(value*255.0f, 0, 255));
 }
 
+/* notice red and blue are swapped */
 static void rna_MeshColor_color1_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	values[0]= (&mcol[0].r)[0]/255.0f;
+	values[2]= (&mcol[0].r)[0]/255.0f;
 	values[1]= (&mcol[0].r)[1]/255.0f;
-	values[2]= (&mcol[0].r)[2]/255.0f;
+	values[0]= (&mcol[0].r)[2]/255.0f;
 }
 
 static void rna_MeshColor_color1_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	(&mcol[0].r)[0]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
+	(&mcol[0].r)[2]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
 	(&mcol[0].r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
-	(&mcol[0].r)[2]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+	(&mcol[0].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
 static void rna_MeshColor_color2_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	values[0]= (&mcol[1].r)[0]/255.0f;
+	values[2]= (&mcol[1].r)[0]/255.0f;
 	values[1]= (&mcol[1].r)[1]/255.0f;
-	values[2]= (&mcol[1].r)[2]/255.0f;
+	values[0]= (&mcol[1].r)[2]/255.0f;
 }
 
 static void rna_MeshColor_color2_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	(&mcol[1].r)[0]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
+	(&mcol[1].r)[2]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
 	(&mcol[1].r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
-	(&mcol[1].r)[2]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+	(&mcol[1].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
 static void rna_MeshColor_color3_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	values[0]= (&mcol[2].r)[0]/255.0f;
+	values[2]= (&mcol[2].r)[0]/255.0f;
 	values[1]= (&mcol[2].r)[1]/255.0f;
-	values[2]= (&mcol[2].r)[2]/255.0f;
+	values[0]= (&mcol[2].r)[2]/255.0f;
 }
 
 static void rna_MeshColor_color3_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	(&mcol[2].r)[0]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
+	(&mcol[2].r)[2]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
 	(&mcol[2].r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
-	(&mcol[2].r)[2]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+	(&mcol[2].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
 static void rna_MeshColor_color4_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	values[0]= (&mcol[3].r)[0]/255.0f;
+	values[2]= (&mcol[3].r)[0]/255.0f;
 	values[1]= (&mcol[3].r)[1]/255.0f;
-	values[2]= (&mcol[3].r)[2]/255.0f;
+	values[0]= (&mcol[3].r)[2]/255.0f;
 }
 
 static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol= (MCol*)ptr->data;
 
-	(&mcol[3].r)[0]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
+	(&mcol[3].r)[2]= (char)(CLAMPIS(values[0]*255.0f, 0, 255));
 	(&mcol[3].r)[1]= (char)(CLAMPIS(values[1]*255.0f, 0, 255));
-	(&mcol[3].r)[2]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
+	(&mcol[3].r)[0]= (char)(CLAMPIS(values[2]*255.0f, 0, 255));
 }
 
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)
@@ -628,10 +632,11 @@ static void rna_def_mvert(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	/*prop= RNA_def_property(srna, "no", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_funcs(prop, "rna_MeshVertex_no_get", NULL, NULL);
+	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "no");
+	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
@@ -646,7 +651,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bevel Weight", "Weight used by the Bevel modifier 'Only Vertices' option");
 
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_MeshVertex_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshVertex_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this vertex is member of.");
 }
@@ -734,11 +739,11 @@ static void rna_def_mtface(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static const EnumPropertyItem transp_items[]= {
-		{TF_SOLID, "OPAQUE", "Opaque", "Render color of textured face as color"},
-		{TF_ADD, "ADD", "Add", "Render face transparent and add color of face"},
-		{TF_ALPHA, "ALPHA", "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
-		{TF_CLIP, "CLIPALPHA", "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
-		{0, NULL, NULL, NULL}};
+		{TF_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
+		{TF_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
+		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
+		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock.");
@@ -761,7 +766,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTextureFace");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_MeshTextureFaceLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshTextureFaceLayer_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshTextureFaceLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshTextureFaceLayer_data_length", 0, 0, 0, 0);
 
 	srna= RNA_def_struct(brna, "MeshTextureFace", NULL);
 	RNA_def_struct_sdna(srna, "MTFace");
@@ -778,10 +783,6 @@ static void rna_def_mtface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
 	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
-
-	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TILES);
-	RNA_def_property_ui_text(prop, "Tiles", "Use tilemode for face");
 
 	prop= RNA_def_property(srna, "light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_LIGHT);
@@ -902,7 +903,7 @@ static void rna_def_mcol(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshColor");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_MeshColorLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshColorLayer_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshColorLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshColorLayer_data_length", 0, 0, 0, 0);
 
 	srna= RNA_def_struct(brna, "MeshColor", NULL);
 	RNA_def_struct_sdna(srna, "MCol");
@@ -911,21 +912,25 @@ static void rna_def_mcol(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "color1", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_MeshColor_color1_get", "rna_MeshColor_color1_set", NULL);
 	RNA_def_property_ui_text(prop, "Color 1", "");
 
 	prop= RNA_def_property(srna, "color2", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_MeshColor_color2_get", "rna_MeshColor_color2_set", NULL);
 	RNA_def_property_ui_text(prop, "Color 2", "");
 
 	prop= RNA_def_property(srna, "color3", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_MeshColor_color3_get", "rna_MeshColor_color3_set", NULL);
 	RNA_def_property_ui_text(prop, "Color 3", "");
 
 	prop= RNA_def_property(srna, "color4", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_MeshColor_color4_get", "rna_MeshColor_color4_set", NULL);
 	RNA_def_property_ui_text(prop, "Color 4", "");
 }
@@ -948,7 +953,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshFloatProperty");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_MeshFloatPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshFloatPropertyLayer_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshFloatPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshFloatPropertyLayer_data_length", 0, 0, 0, 0);
 
 	srna= RNA_def_struct(brna, "MeshFloatProperty", NULL);
 	RNA_def_struct_sdna(srna, "MFloatProperty");
@@ -972,7 +977,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshIntProperty");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_MeshIntPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshIntPropertyLayer_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshIntPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshIntPropertyLayer_data_length", 0, 0, 0, 0);
 
 	srna= RNA_def_struct(brna, "MeshIntProperty", NULL);
 	RNA_def_struct_sdna(srna, "MIntProperty");
@@ -996,7 +1001,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshStringProperty");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_MeshStringPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshStringPropertyLayer_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MeshStringPropertyLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshStringPropertyLayer_data_length", 0, 0, 0, 0);
 
 	srna= RNA_def_struct(brna, "MeshStringProperty", NULL);
 	RNA_def_struct_sdna(srna, "MStringProperty");
@@ -1053,6 +1058,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
+	// XXX RNA_def_property_collection_funcs(prop, "rna_Mesh_verts_begin", 0, 0, 0, 0, 0, 0, "add_verts", "remove_verts");
 
 	prop= RNA_def_property(srna, "edges", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "medge", "totedge");
@@ -1071,31 +1077,31 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
-	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_layers_begin", 0, 0, 0, "rna_Mesh_uv_layers_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_layers_begin", 0, 0, 0, "rna_Mesh_uv_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_ui_text(prop, "UV Layers", "");
 
 	prop= RNA_def_property(srna, "vcol_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
-	RNA_def_property_collection_funcs(prop, "rna_Mesh_vcol_layers_begin", 0, 0, 0, "rna_Mesh_vcol_layers_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_vcol_layers_begin", 0, 0, 0, "rna_Mesh_vcol_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
 	RNA_def_property_ui_text(prop, "Vertex Color Layers", "");
 
 	prop= RNA_def_property(srna, "float_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
-	RNA_def_property_collection_funcs(prop, "rna_Mesh_float_layers_begin", 0, 0, 0, "rna_Mesh_float_layers_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_float_layers_begin", 0, 0, 0, "rna_Mesh_float_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshFloatPropertyLayer");
 	RNA_def_property_ui_text(prop, "Float Property Layers", "");
 
 	prop= RNA_def_property(srna, "int_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
-	RNA_def_property_collection_funcs(prop, "rna_Mesh_int_layers_begin", 0, 0, 0, "rna_Mesh_int_layers_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_int_layers_begin", 0, 0, 0, "rna_Mesh_int_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshIntPropertyLayer");
 	RNA_def_property_ui_text(prop, "Int Property Layers", "");
 
 	prop= RNA_def_property(srna, "string_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
-	RNA_def_property_collection_funcs(prop, "rna_Mesh_string_layers_begin", 0, 0, 0, "rna_Mesh_string_layers_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Mesh_string_layers_begin", 0, 0, 0, "rna_Mesh_string_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshStringPropertyLayer");
 	RNA_def_property_ui_text(prop, "String Property Layers", "");
 
@@ -1126,6 +1132,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
+
+	RNA_api_mesh(srna);
 }
 
 void RNA_def_mesh(BlenderRNA *brna)

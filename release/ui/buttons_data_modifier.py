@@ -5,11 +5,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
 	__context__ = "modifier"
-
-	def poll(self, context):
-		ob = context.object
-		return (ob and ob.type in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'LATTICE'))
-		
+	
 class DATA_PT_modifiers(DataButtonsPanel):
 	__idname__ = "DATA_PT_modifiers"
 	__label__ = "Modifiers"
@@ -211,6 +207,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "texture")
 		layout.itemR(md, "midlevel")
 		layout.itemR(md, "strength")
+		layout.itemR(md, "direction")
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinate_object", text="Object")

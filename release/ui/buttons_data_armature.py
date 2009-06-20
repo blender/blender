@@ -12,12 +12,16 @@ class DataButtonsPanel(bpy.types.Panel):
 class DATA_PT_skeleton(DataButtonsPanel):
 	__idname__ = "DATA_PT_skeleton"
 	__label__ = "Skeleton"
+	
+	def poll(self, context):
+		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
 
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		arm = context.armature
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
@@ -45,17 +49,17 @@ class DATA_PT_skeleton(DataButtonsPanel):
 			
 			sub = split.column()
 			sub.itemL(text="Layers:")
-			sub.itemL(text="LAYERS")
-			#sub.itemR(arm, "layer")
-			#sub.itemR(arm, "layer_protection")
+			sub.template_layers(arm, "layer")
+			sub.itemL(text="Protected Layers:")
+			sub.template_layers(arm, "layer_protection")
 
 class DATA_PT_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_display"
 	__label__ = "Display"
 	
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 
@@ -74,8 +78,8 @@ class DATA_PT_paths(DataButtonsPanel):
 	__label__ = "Paths"
 
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 		
@@ -102,8 +106,8 @@ class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
 
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 

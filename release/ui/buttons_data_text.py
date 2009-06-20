@@ -7,18 +7,22 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.object
-		return (ob and ob.type == 'TEXT')
+		return (context.object and context.object.type == 'TEXT' and context.curve)
 		
 class DATA_PT_shape_text(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_text"
-	__label__ = "Shape"
+	__label__ = "Shape Text"
+	
+	def poll(self, context):
+		ob = context.object
+		return (context.object and context.object.type == 'TEXT')
 
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		curve = context.curve
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
@@ -59,8 +63,8 @@ class DATA_PT_font(DataButtonsPanel):
 	__label__ = "Font"
 
 	def draw(self, context):
-		text = context.curve
 		layout = self.layout
+		text = context.curve
 
 		layout.row()
 		layout.itemR(text, "font")
@@ -90,8 +94,8 @@ class DATA_PT_paragraph(DataButtonsPanel):
 	__label__ = "Paragraph"
 
 	def draw(self, context):
-		text = context.curve
 		layout = self.layout
+		text = context.curve
 
 		layout.itemL(text="Align:")
 		layout.itemR(text, "spacemode", expand=True)
@@ -109,14 +113,16 @@ class DATA_PT_paragraph(DataButtonsPanel):
 		sub.itemR(text, "x_offset", text="X")
 		sub.itemR(text, "y_offset", text="Y")
 		sub.itemR(text, "wrap")
-			
+
+"""		
 class DATA_PT_textboxes(DataButtonsPanel):
 		__idname__ = "DATA_PT_textboxes"
 		__label__ = "Text Boxes"
 
 		def draw(self, context):
-			text = context.curve
 			layout = self.layout
+			text = context.curve
+"""
 
 bpy.types.register(DATA_PT_shape_text)	
 bpy.types.register(DATA_PT_font)

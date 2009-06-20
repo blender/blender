@@ -1393,6 +1393,7 @@ static void update_picker_hex(uiBlock *block, float *rgb)
 	}
 }
 
+/* also used by small picker, be careful with name checks below... */
 void ui_update_block_buts_hsv(uiBlock *block, float *hsv)
 {
 	uiBut *bt;
@@ -1406,7 +1407,7 @@ void ui_update_block_buts_hsv(uiBlock *block, float *hsv)
 	update_picker_hex(block, rgb);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->type==HSVCUBE) {
+		if(ELEM(bt->type, HSVCUBE, HSVCIRCLE)) {
 			VECCOPY(bt->hsv, hsv);
 			ui_set_but_hsv(bt);
 		}
@@ -1480,6 +1481,7 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
 	wmWindow *win= CTX_wm_window(C);
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *col= (float *)col1;
 	float *fp, hsv[3];
 	
@@ -1495,6 +1497,18 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 	ui_update_block_buts_hsv(but1->block, hsv);
 	update_picker_hex(but1->block, col);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
+}
+
+static void do_hsv_cb(bContext *C, void *bt1, void *unused)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* bt1 is num but, hsv1 is pointer to original color in hsv space*/
@@ -1502,6 +1516,7 @@ static void do_palette_cb(bContext *C, void *bt1, void *col1)
 static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *hsv= (float *)hsv1;
 	float *fp= NULL;
 	
@@ -1514,6 +1529,9 @@ static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	} 
 	ui_update_block_buts_hsv(but1->block, hsv);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* bt1 is num but, col1 is pointer to original color */
@@ -1521,6 +1539,7 @@ static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 static void do_palette2_cb(bContext *C, void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	float *rgb= (float *)col1;
 	float *fp= NULL;
 	
@@ -1533,14 +1552,21 @@ static void do_palette2_cb(bContext *C, void *bt1, void *col1)
 		hsv_to_rgb(fp[0], fp[1], fp[2], rgb, rgb+1, rgb+2);
 	} 
 	ui_update_block_buts_hsv(but1->block, fp);
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 static void do_palette_hex_cb(bContext *C, void *bt1, void *hexcl)
 {
 	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
 	char *hexcol= (char *)hexcl;
 	
 	ui_update_block_buts_hex(but1->block, hexcol);	
+
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
 }
 
 /* used for both 3d view and image window */
@@ -1623,8 +1649,10 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	
 	// the cube intersection
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
+	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
 
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
+	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
 
 	// palette
 	
@@ -1674,22 +1702,103 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiBlockEndAlign(block);
 }
 
+/* bt1 is num but, hsv1 is pointer to original color in hsv space*/
+/* callback to handle changes */
+static void do_picker_small_cb(bContext *C, void *bt1, void *hsv1)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but1->block->handle;
+	float *hsv= (float *)hsv1;
+	float *fp= NULL;
+	
+	fp= (float *)but1->poin;
+	rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
+
+	ui_update_block_buts_hsv(but1->block, hsv);
+	
+	if(popup)
+		popup->menuretval= UI_RETURN_UPDATE;
+}
+
+
+/* only the color, a circle, slider */
+void uiBlockPickerSmall(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
+{
+	uiBut *bt;
+	
+	VECCOPY(old, col);	// old color stored there, for palette_cb to work
+	
+	/* HS circle */
+	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK,SPICK, col, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+
+	/* value */
+	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK+DPICK,0,14,SPICK, col, 0.0, 0.0, 4, 0, "");
+	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+
+}
+
+static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *event)
+{
+	float add= 0.0f;
+	
+	if(event->type==WHEELUPMOUSE)
+		add= 0.05f;
+	else if(event->type==WHEELDOWNMOUSE)
+		add= -0.05f;
+	
+	if(add!=0.0f) {
+		uiBut *but;
+		
+		for(but= block->buttons.first; but; but= but->next) {
+			if(but->type==HSVCUBE && but->active==NULL) {
+				uiPopupBlockHandle *popup= block->handle;
+				float col[3];
+				
+				ui_get_but_vectorf(but, col);
+				
+				rgb_to_hsv(col[0], col[1], col[2], but->hsv, but->hsv+1, but->hsv+2);
+				but->hsv[2]= CLAMPIS(but->hsv[2]+add, 0.0f, 1.0f);
+				hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
+
+				ui_set_but_vectorf(but, col);
+				
+				ui_update_block_buts_hsv(block, but->hsv);
+				if(popup)
+					popup->menuretval= UI_RETURN_UPDATE;
+				
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
+	wmWindow *win= CTX_wm_window(C); // XXX temp, needs to become keymap to detect type?
 	uiBut *but= arg_but;
 	uiBlock *block;
 	static float hsvcol[3], oldcol[3];
 	static char hexcol[128];
 	
 	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 	
 	VECCOPY(handle->retvec, but->editvec);
-	uiBlockPickerButtons(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
-
+	if(win->eventstate->shift) {
+		uiBlockPickerButtons(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
+		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
+		uiBoundsBlock(block, 3);
+	}
+	else {
+		uiBlockPickerSmall(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
+		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_OUT_1;
+		uiBoundsBlock(block, 10);
+		
+		block->block_event_func= ui_picker_small_wheel;
+	}		
 	/* and lets go */
 	block->direction= UI_TOP;
-	uiBoundsBlock(block, 3);
 	
 	return block;
 }
@@ -1839,6 +1948,9 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 	md= decompose_menu_string(info->instr);
 
 	rows= md->nitems;
+	if(rows<1)
+		rows= 1;
+	
 	columns= 1;
 
 	/* size and location, title slightly bigger for bold */

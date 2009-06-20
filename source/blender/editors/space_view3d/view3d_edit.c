@@ -1320,14 +1320,14 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 /* ********************* Changing view operator ****************** */
 
 static EnumPropertyItem prop_view_items[] = {
-	{V3D_VIEW_FRONT, "FRONT", "Front", "View From the Front"},
-	{V3D_VIEW_BACK, "BACK", "Back", "View From the Back"},
-	{V3D_VIEW_LEFT, "LEFT", "Left", "View From the Left"},
-	{V3D_VIEW_RIGHT, "RIGHT", "Right", "View From the Right"},
-	{V3D_VIEW_TOP, "TOP", "Top", "View From the Top"},
-	{V3D_VIEW_BOTTOM, "BOTTOM", "Bottom", "View From the Bottom"},
-	{V3D_VIEW_CAMERA, "CAMERA", "Camera", "View From the active amera"},
-	{0, NULL, NULL, NULL}};
+	{V3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
+	{V3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
+	{V3D_VIEW_LEFT, "LEFT", 0, "Left", "View From the Left"},
+	{V3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
+	{V3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
+	{V3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
+	{V3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
+	{0, NULL, 0, NULL, NULL}};
 
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo)
 {
@@ -1479,11 +1479,11 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {
-	{V3D_VIEW_STEPLEFT, "ORBITLEFT", "Orbit Left", "Orbit the view around to the Left"},
-	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", "Orbit Right", "Orbit the view around to the Right"},
-	{V3D_VIEW_STEPUP, "ORBITUP", "Orbit Up", "Orbit the view Up"},
-	{V3D_VIEW_STEPDOWN, "ORBITDOWN", "Orbit Down", "Orbit the view Down"},
-	{0, NULL, NULL, NULL}};
+	{V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, "Orbit Left", "Orbit the view around to the Left"},
+	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the Right"},
+	{V3D_VIEW_STEPUP, "ORBITUP", 0, "Orbit Up", "Orbit the view Up"},
+	{V3D_VIEW_STEPDOWN, "ORBITDOWN", 0, "Orbit Down", "Orbit the view Down"},
+	{0, NULL, 0, NULL, NULL}};
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
@@ -1547,11 +1547,11 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_view_pan_items[] = {
-	{V3D_VIEW_PANLEFT, "PANLEFT", "Pan Left", "Pan the view to the Left"},
-	{V3D_VIEW_PANRIGHT, "PANRIGHT", "Pan Right", "Pan the view to the Right"},
-	{V3D_VIEW_PANUP, "PANUP", "Pan Up", "Pan the view Up"},
-	{V3D_VIEW_PANDOWN, "PANDOWN", "Pan Down", "Pan the view Down"},
-	{0, NULL, NULL, NULL}};
+	{V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the Left"},
+	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the Right"},
+	{V3D_VIEW_PANUP, "PANUP", 0, "Pan Up", "Pan the view Up"},
+	{V3D_VIEW_PANDOWN, "PANDOWN", 0, "Pan Down", "Pan the view Down"},
+	{0, NULL, 0, NULL, NULL}};
 
 static int viewpan_exec(bContext *C, wmOperator *op)
 {

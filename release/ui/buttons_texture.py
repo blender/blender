@@ -7,19 +7,19 @@ class TextureButtonsPanel(bpy.types.Panel):
 	__context__ = "texture"
 	
 	def poll(self, context):
-		return (context.texture != None)
-
+		return (context.texture != None and context.texture.type != 'NONE')
+		
 class TEXTURE_PT_preview(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_preview"
 	__label__ = "Preview"
 
 	def poll(self, context):
-		return (context.texture or context.material)
+		return (context.material or context.world or context.lamp or context.texture)
 
 	def draw(self, context):
 		layout = self.layout
-
 		tex = context.texture
+		
 		layout.template_preview(tex)
 
 class TEXTURE_PT_texture(TextureButtonsPanel):
@@ -27,10 +27,11 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 	__label__ = "Texture"
 
 	def poll(self, context):
-		return (context.texture or context.material or context.world or context.lamp)
+		return (context.material or context.world or context.lamp or context.texture)
 
 	def draw(self, context):
 		layout = self.layout
+		
 		tex = context.texture
 		ma = context.material
 		la = context.lamp
@@ -69,6 +70,9 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 class TEXTURE_PT_mapping(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_mapping"
 	__label__ = "Mapping"
+	
+	def poll(self, context):
+		return (context.texture_slot and context.texture and context.texture.type != 'NONE')
 
 	def draw(self, context):
 		layout = self.layout
@@ -80,8 +84,7 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 		col.itemL(text="Coordinates:")
 		col = split.column()
 		col.itemR(tex, "texture_coordinates", text="")
-		
-		
+
 		if tex.texture_coordinates == 'UV':
 			row = layout.row()
 			row.itemR(tex, "uv_layer")
@@ -97,14 +100,15 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 			col.itemR(tex, "mapping", text="")
 
 		split = layout.split()
+		
 		col = split.column()
 		col.itemR(tex, "from_dupli")
 		
 		col = split.column()
-		colrow = col.row()
-		colrow.itemR(tex, "x_mapping", text="")
-		colrow.itemR(tex, "y_mapping", text="")
-		colrow.itemR(tex, "z_mapping", text="")
+		row = col.row()
+		row.itemR(tex, "x_mapping", text="")
+		row.itemR(tex, "y_mapping", text="")
+		row.itemR(tex, "z_mapping", text="")
 
 		row = layout.row()
 		row.column().itemR(tex, "offset")
@@ -113,9 +117,13 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 class TEXTURE_PT_influence(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_influence"
 	__label__ = "Influence"
+	
+	def poll(self, context):
+		return (context.texture_slot and context.texture and context.texture.type != 'NONE')
 
 	def draw(self, context):
 		layout = self.layout
+		
 		textype = context.texture
 		tex = context.texture_slot
 		
@@ -172,6 +180,7 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"
 	__label__ = "Colors"
+	__default_closed__ = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -520,3 +529,4 @@ bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
+

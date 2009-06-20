@@ -665,7 +665,6 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 		}
 		
 		if(ok==0) {
-			printf("added shader job\n");
 			ED_preview_shader_job(C, sa, idp, newx, newy);
 		}
 	}	

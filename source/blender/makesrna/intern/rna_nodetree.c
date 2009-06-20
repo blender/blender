@@ -76,6 +76,7 @@ typedef struct NodeInfo
 	const char *enum_name;
 	const char *struct_name;
 	const char *base_name;
+	int icon;
 	const char *ui_name;
 	const char *ui_desc;
 } NodeInfo;
@@ -146,6 +147,7 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 		if(node->defined && node->category == category) {
 			item->value = i;
 			item->identifier = node->enum_name;
+			item->icon = node->icon;
 			item->name = node->ui_name;
 			item->description = node->ui_desc;
 		
@@ -173,25 +175,25 @@ static void def_math(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem items[] = {
-		{ 0, "ADD",          "Add",          ""},
-		{ 1, "SUBTRACT",     "Subtract",     ""},
-		{ 2, "MULTIPLY",     "Multiply",     ""},
-		{ 3, "DIVIDE",       "Divide",       ""},
-		{ 4, "SINE",         "Sine",         ""},
-		{ 5, "COSINE",       "Cosine",       ""},
-		{ 6, "TANGENT",      "Tangent",      ""},
-		{ 7, "ARCSINE",      "Arcsine",      ""},
-		{ 8, "ARCCOSINE",    "Arccosine",    ""},
-		{ 9, "ARCTANGENT",   "Arctangent",   ""},
-		{10, "POWER",        "Power",        ""},
-		{11, "LOGARITHM",    "Logarithm",    ""},
-		{12, "MINIMUM",      "Minimum",      ""},
-		{13, "MAXIMUM",      "Maximum",      ""},
-		{14, "ROUND",        "Round",        ""},
-		{15, "LESS_THAN",    "Less Than",    ""},
-		{16, "GREATER_THAN", "Greater Than", ""},
+		{ 0, "ADD",          0, "Add",          ""},
+		{ 1, "SUBTRACT",     0, "Subtract",     ""},
+		{ 2, "MULTIPLY",     0, "Multiply",     ""},
+		{ 3, "DIVIDE",       0, "Divide",       ""},
+		{ 4, "SINE",         0, "Sine",         ""},
+		{ 5, "COSINE",       0, "Cosine",       ""},
+		{ 6, "TANGENT",      0, "Tangent",      ""},
+		{ 7, "ARCSINE",      0, "Arcsine",      ""},
+		{ 8, "ARCCOSINE",    0, "Arccosine",    ""},
+		{ 9, "ARCTANGENT",   0, "Arctangent",   ""},
+		{10, "POWER",        0, "Power",        ""},
+		{11, "LOGARITHM",    0, "Logarithm",    ""},
+		{12, "MINIMUM",      0, "Minimum",      ""},
+		{13, "MAXIMUM",      0, "Maximum",      ""},
+		{14, "ROUND",        0, "Round",        ""},
+		{15, "LESS_THAN",    0, "Less Than",    ""},
+		{16, "GREATER_THAN", 0, "Greater Than", ""},
 		
-		{0, NULL, NULL, NULL}
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
@@ -205,14 +207,14 @@ static void def_vector_math(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem items[] = {
-		{0, "ADD",           "Add",           ""},
-		{1, "SUBTRACT",      "Subtract",      ""},
-		{2, "AVERAGE",       "Average",       ""},
-		{3, "DOT_PRODUCT",   "Dot Product",   ""},
-		{4, "CROSS_PRODUCT", "Cross Product", ""},
-		{5, "NORMALIZE",     "Normalize",     ""},
+		{0, "ADD",           0, "Add",           ""},
+		{1, "SUBTRACT",      0, "Subtract",      ""},
+		{2, "AVERAGE",       0, "Average",       ""},
+		{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
+		{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
+		{5, "NORMALIZE",     0, "Normalize",     ""},
 		
-		{0, NULL, NULL, NULL}
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
@@ -275,23 +277,23 @@ static void def_mix_rgb(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem blend_type_items[] = {
-		{ 0, "MIX",        "Mix",         ""},
-		{ 1, "ADD",        "Add",         ""},
-		{ 3, "SUBTRACT",   "Subtract",    ""},
-		{ 2, "MULTIPLY",   "Multiply",    ""},
-		{ 4, "SCREEN",     "Screen",      ""},
-		{ 9, "OVERLAY",    "Overlay",     ""},
-		{ 5, "DIVIDE",     "Divide",      ""},
-		{ 6, "DIFFERENCE", "Difference",  ""},
-		{ 7, "DARKEN",     "Darken",      ""},
-		{ 8, "LIGHTEN",    "Lighten",     ""},
-		{10, "DODGE",      "Dodge",       ""},
-		{11, "BURN",       "Burn",        ""},
-		{15, "COLOR",      "Color",       ""},
-		{14, "VALUE",      "Value",       ""},
-		{13, "SATURATION", "Saturation",  ""},
-		{12, "HUE",        "Hue",         ""},
-		{0, NULL, NULL, NULL}
+		{ 0, "MIX",        0, "Mix",         ""},
+		{ 1, "ADD",        0, "Add",         ""},
+		{ 3, "SUBTRACT",   0, "Subtract",    ""},
+		{ 2, "MULTIPLY",   0, "Multiply",    ""},
+		{ 4, "SCREEN",     0, "Screen",      ""},
+		{ 9, "OVERLAY",    0, "Overlay",     ""},
+		{ 5, "DIVIDE",     0, "Divide",      ""},
+		{ 6, "DIFFERENCE", 0, "Difference",  ""},
+		{ 7, "DARKEN",     0, "Darken",      ""},
+		{ 8, "LIGHTEN",    0, "Lighten",     ""},
+		{10, "DODGE",      0, "Dodge",       ""},
+		{11, "BURN",       0, "Burn",        ""},
+		{15, "COLOR",      0, "Color",       ""},
+		{14, "VALUE",      0, "Value",       ""},
+		{13, "SATURATION", 0, "Saturation",  ""},
+		{12, "HUE",        0, "Hue",         ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
@@ -393,15 +395,15 @@ static void def_cmp_blur(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem filter_type_items[] = {
-		{R_FILTER_BOX,        "FLAT",       "Flat",          ""},
-		{R_FILTER_TENT,       "TENT",       "Tent",          ""},
-		{R_FILTER_QUAD,       "QUAD",       "Quadratic",     ""},
-		{R_FILTER_CUBIC,      "CUBIC",      "Cubic",         ""},
-		{R_FILTER_GAUSS,      "GAUSS",      "Gaussian",      ""},
-		{R_FILTER_FAST_GAUSS, "FAST_GAUSS", "Fast Gaussian", ""},
-		{R_FILTER_CATROM,     "CATROM",     "Catrom",        ""},
-		{R_FILTER_MITCH,      "MITCH",      "Mitch",         ""},
-		{0, NULL, NULL, NULL}
+		{R_FILTER_BOX,        "FLAT",       0, "Flat",          ""},
+		{R_FILTER_TENT,       "TENT",       0, "Tent",          ""},
+		{R_FILTER_QUAD,       "QUAD",       0, "Quadratic",     ""},
+		{R_FILTER_CUBIC,      "CUBIC",      0, "Cubic",         ""},
+		{R_FILTER_GAUSS,      "GAUSS",      0, "Gaussian",      ""},
+		{R_FILTER_FAST_GAUSS, "FAST_GAUSS", 0, "Fast Gaussian", ""},
+		{R_FILTER_CATROM,     "CATROM",     0, "Catrom",        ""},
+		{R_FILTER_MITCH,      "MITCH",      0, "Mitch",         ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
@@ -471,14 +473,14 @@ static void def_cmp_filter(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem type_items[] = {
-		{0, "SOFTEN",  "Soften",  ""},
-		{1, "SHARPEN", "Sharpen", ""},
-		{2, "LAPLACE", "Laplace", ""},
-		{3, "SOBEL",   "Sobel",   ""},
-		{4, "PREWITT", "Prewitt", ""},
-		{5, "KIRSCH",  "Kirsch",  ""},
-		{6, "SHADOW",  "Shadow",  ""},
-		{0, NULL, NULL, NULL}
+		{0, "SOFTEN",  0, "Soften",  ""},
+		{1, "SHARPEN", 0, "Sharpen", ""},
+		{2, "LAPLACE", 0, "Laplace", ""},
+		{3, "SOBEL",   0, "Sobel",   ""},
+		{4, "PREWITT", 0, "Prewitt", ""},
+		{5, "KIRSCH",  0, "Kirsch",  ""},
+		{6, "SHADOW",  0, "Shadow",  ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -550,11 +552,11 @@ static void def_cmp_image(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	/*static EnumPropertyItem type_items[] = {
-		{IMA_SRC_FILE,      "IMAGE",     "Image",     ""},
+		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
 		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
 		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
 		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
-		{0, NULL, NULL, NULL}
+		{0, NULL, 0, NULL, NULL}
 	};*/
 	
 	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -627,26 +629,26 @@ static void def_cmp_output_file(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{R_TARGA,   "TARGA",        "Targa",        ""},
-		{R_RAWTGA,  "RAW_TARGA",    "Targa Raw",    ""},
-		{R_PNG,     "PNG",          "PNG",          ""},
-		{R_BMP,     "BMP",          "BMP",          ""},
-		{R_JPEG90,  "JPEG",         "JPEG",         ""},
-		{R_IRIS,    "IRIS",         "IRIS",         ""},
-		{R_RADHDR,  "RADIANCE_HDR", "Radiance HDR", ""},
-		{R_CINEON,  "CINEON",       "Cineon",       ""},
-		{R_DPX,     "DPX",          "DPX",          ""},
-		{R_OPENEXR, "OPENEXR",      "OpenEXR",      ""},
-		{0, NULL, NULL, NULL}
+		{R_TARGA,   "TARGA",        0, "Targa",        ""},
+		{R_RAWTGA,  "RAW_TARGA",    0, "Targa Raw",    ""},
+		{R_PNG,     "PNG",          0, "PNG",          ""},
+		{R_BMP,     "BMP",          0, "BMP",          ""},
+		{R_JPEG90,  "JPEG",         0, "JPEG",         ""},
+		{R_IRIS,    "IRIS",         0, "IRIS",         ""},
+		{R_RADHDR,  "RADIANCE_HDR", 0, "Radiance HDR", ""},
+		{R_CINEON,  "CINEON",       0, "Cineon",       ""},
+		{R_DPX,     "DPX",          0, "DPX",          ""},
+		{R_OPENEXR, "OPENEXR",      0, "OpenEXR",      ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	static EnumPropertyItem openexr_codec_items[] = {
-		{0, "NONE",  "None",           ""},
-		{1, "PXR24", "Pxr24 (lossy)",  ""},
-		{2, "ZIP",   "ZIP (lossless)", ""},
-		{3, "PIZ",   "PIX (lossless)", ""},
-		{4, "RLE",   "RLE (lossless)", ""},
-		{0, NULL, NULL, NULL}
+		{0, "NONE",  0, "None",           ""},
+		{1, "PXR24", 0, "Pxr24 (lossy)",  ""},
+		{2, "ZIP",   0, "ZIP (lossless)", ""},
+		{3, "PIZ",   0, "PIX (lossless)", ""},
+		{4, "RLE",   0, "RLE (lossless)", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
@@ -702,10 +704,10 @@ static void def_cmp_scale(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem space_items[] = {
-		{0, "RELATIVE",   "Relative",   ""},
-		{1, "ABSOLUTE",   "Absolute",   ""},
-		{2, "SCENE_SIZE", "Scene Size", ""},
-		{0, NULL, NULL, NULL}
+		{0, "RELATIVE",   0, "Relative",   ""},
+		{1, "ABSOLUTE",   0, "Absolute",   ""},
+		{2, "SCENE_SIZE", 0, "Scene Size", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
@@ -719,11 +721,11 @@ static void def_cmp_diff_matte(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem color_space_items[] = {
-		{1, "RGB", "RGB",   ""},
-		{2, "HSV", "HSV",   ""},
-		{3, "YUV", "YUV",   ""},
-		{4, "YCC", "YCbCr", ""},
-		{0, NULL, NULL, NULL}
+		{1, "RGB", 0, "RGB",   ""},
+		{2, "HSV", 0, "HSV",   ""},
+		{3, "YUV", 0, "YUV",   ""},
+		{4, "YCC", 0, "YCbCr", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
@@ -757,10 +759,10 @@ static void def_cmp_color_spill(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem channel_items[] = {
-		{1, "R", "Red",   ""},
-		{2, "G", "Green", ""},
-		{3, "B", "Blue",  ""},
-		{0, NULL, NULL, NULL}
+		{1, "R", 0, "Red",   ""},
+		{2, "G", 0, "Green", ""},
+		{3, "B", 0, "Blue",  ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
@@ -812,11 +814,11 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem color_space_items[] = {
-		{1, "RGB", "RGB",   ""},
-		{2, "HSV", "HSV",   ""},
-		{3, "YUV", "YUV",   ""},
-		{4, "YCC", "YCbCr", ""},
-		{0, NULL, NULL, NULL}
+		{1, "RGB", 0, "RGB",   ""},
+		{2, "HSV", 0, "HSV",   ""},
+		{3, "YUV", 0, "YUV",   ""},
+		{4, "YCC", 0, "YCbCr", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
@@ -850,10 +852,10 @@ static void def_cmp_flip(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem axis_items[] = {
-		{0, "X",  "X",     ""},
-		{1, "Y",  "Y",     ""},
-		{2, "XY", "X & Y", ""},
-		{0, NULL, NULL, NULL}
+		{0, "X",  0, "X",     ""},
+		{1, "Y",  0, "Y",     ""},
+		{2, "XY", 0, "X & Y", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
@@ -867,9 +869,9 @@ static void def_cmp_splitviewer(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem axis_items[] = {
-		{0, "X",  "X",     ""},
-		{1, "Y",  "Y",     ""},
-		{0, NULL, NULL, NULL}
+		{0, "X",  0, "X",     ""},
+		{1, "Y",  0, "Y",     ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
@@ -907,14 +909,14 @@ static void def_cmp_defocus(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem bokeh_items[] = {
-		{8, "OCTAGON",  "Octagonal",  "8 sides"},
-		{7, "HEPTAGON", "Heptagonal", "7 sides"},
-		{6, "HEXAGON",  "Hexagonal",  "6 sides"},
-		{5, "PENTAGON", "Pentagonal", "5 sides"},
-		{4, "SQUARE",   "Square",     "4 sides"},
-		{3, "TRIANGLE", "Triangular", "3 sides"},
-		{0, "CIRCLE",   "Circular",   ""},
-		{0, NULL, NULL, NULL}
+		{8, "OCTAGON",  0, "Octagonal",  "8 sides"},
+		{7, "HEPTAGON", 0, "Heptagonal", "7 sides"},
+		{6, "HEXAGON",  0, "Hexagonal",  "6 sides"},
+		{5, "PENTAGON", 0, "Pentagonal", "5 sides"},
+		{4, "SQUARE",   0, "Square",     "4 sides"},
+		{3, "TRIANGLE", 0, "Triangular", "3 sides"},
+		{0, "CIRCLE",   0, "Circular",   ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	RNA_def_struct_sdna_from(srna, "NodeDefocus", "storage");
@@ -1085,9 +1087,9 @@ static void def_cmp_premul_key(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{0, "KEY_TO_PREMUL", "Key to Premul", ""},
-		{1, "PREMUL_TO_KEY", "Premul to Key", ""},
-		{0, NULL, NULL, NULL}
+		{0, "KEY_TO_PREMUL", 0, "Key to Premul", ""},
+		{1, "PREMUL_TO_KEY", 0, "Premul to Key", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -1102,18 +1104,18 @@ static void def_cmp_glare(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{3, "GHOSTS",      "Ghosts",      ""},
-		{2, "STREAKS",     "Streaks",     ""},
-		{1, "FOG_GLOW",    "Fog Glow",    ""},
-		{0, "SIMPLE_STAR", "Simple Star", ""},
-		{0, NULL, NULL, NULL}
+		{3, "GHOSTS",      0, "Ghosts",      ""},
+		{2, "STREAKS",     0, "Streaks",     ""},
+		{1, "FOG_GLOW",    0, "Fog Glow",    ""},
+		{0, "SIMPLE_STAR", 0, "Simple Star", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	/*static EnumPropertyItem quality_items[] = {
-		{0, "HIGH",   "High",   ""},
-		{1, "MEDIUM", "Medium", ""},
-		{2, "LOW",    "Low",    ""},
-		{0, NULL, NULL, NULL}
+		{0, "HIGH",   0, "High",   ""},
+		{1, "MEDIUM", 0, "Medium", ""},
+		{2, "LOW",    0, "Low",    ""},
+		{0, NULL, 0, NULL, NULL}
 	};*/
 	
 	RNA_def_struct_sdna_from(srna, "NodeGlare", "storage");
@@ -1172,9 +1174,9 @@ static void def_cmp_tonemap(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{1, "RD_PHOTORECEPTOR", "R/D Photoreceptor", ""},
-		{0, "RH_SIMPLE",        "Rh Simple",         ""},
-		{0, NULL, NULL, NULL}
+		{1, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
+		{0, "RH_SIMPLE",        0, "Rh Simple",         ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 	
 	RNA_def_struct_sdna_from(srna, "NodeTonemap", "storage");

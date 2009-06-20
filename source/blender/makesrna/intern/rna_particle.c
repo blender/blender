@@ -160,18 +160,18 @@ static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
 }
 
 static EnumPropertyItem from_items[] = {
-	{PART_FROM_VERT, "VERT", "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", "Volume", ""},
-	{0, NULL, NULL, NULL}
+	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem reactor_from_items[] = {
-	{PART_FROM_VERT, "VERT", "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", "Volume", ""},
-	{PART_FROM_PARTICLE, "PARTICLE", "Particle", ""},
-	{0, NULL, NULL, NULL}
+	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem *rna_Particle_from_itemf(PointerRNA *ptr)
@@ -185,39 +185,39 @@ static EnumPropertyItem *rna_Particle_from_itemf(PointerRNA *ptr)
 }
 
 static EnumPropertyItem draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", "None", ""},
-	{PART_DRAW_REND, "RENDER", "Rendered", ""},
-	{PART_DRAW_DOT, "DOT", "Point", ""},
-	{PART_DRAW_CIRC, "CIRC", "Circle", ""},
-	{PART_DRAW_CROSS, "CROSS", "Cross", ""},
-	{PART_DRAW_AXIS, "AXIS", "Axis", ""},
-	{0, NULL, NULL, NULL}
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
+	{PART_DRAW_CIRC, "CIRC", 0, "Circle", ""},
+	{PART_DRAW_CROSS, "CROSS", 0, "Cross", ""},
+	{PART_DRAW_AXIS, "AXIS", 0, "Axis", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem hair_draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", "None", ""},
-	{PART_DRAW_REND, "RENDER", "Rendered", ""},
-	{PART_DRAW_PATH, "PATH", "Path", ""},
-	{0, NULL, NULL, NULL}
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", "None", ""},
-	{PART_DRAW_HALO, "HALO", "Halo", ""},
-	{PART_DRAW_LINE, "LINE", "Line", ""},
-	{PART_DRAW_PATH, "PATH", "Path", ""},
-	{PART_DRAW_OB, "OBJECT", "Object", ""},
-	{PART_DRAW_GR, "GROUP", "Group", ""},
-	{PART_DRAW_BB, "BILLBOARD", "Billboard", ""},
-	{0, NULL, NULL, NULL}
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
+	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem hair_ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", "None", ""},
-	{PART_DRAW_PATH, "PATH", "Path", ""},
-	{PART_DRAW_OB, "OBJECT", "Object", ""},
-	{PART_DRAW_GR, "GROUP", "Group", ""},
-	{0, NULL, NULL, NULL}
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem *rna_Particle_draw_as_itemf(PointerRNA *ptr)
@@ -313,12 +313,12 @@ static void rna_def_particle(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem alive_items[] = {
-		{PARS_KILLED, "KILLED", "Killed", ""},
-		{PARS_DEAD, "DEAD", "Dead", ""},
-		{PARS_UNBORN, "UNBORN", "Unborn", ""},
-		{PARS_ALIVE, "ALIVE", "Alive", ""},
-		{PARS_DYING, "DYING", "Dying", ""},
-		{0, NULL, NULL, NULL}
+		{PARS_KILLED, "KILLED", 0, "Killed", ""},
+		{PARS_DEAD, "DEAD", 0, "Dead", ""},
+		{PARS_UNBORN, "UNBORN", 0, "Unborn", ""},
+		{PARS_ALIVE, "ALIVE", 0, "Alive", ""},
+		{PARS_DYING, "DYING", 0, "Dying", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "Particle", NULL);
@@ -453,115 +453,115 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem type_items[] = {
-		{PART_EMITTER, "EMITTER", "Emitter", ""},
-		{PART_REACTOR, "REACTOR", "Reactor", ""},
-		{PART_HAIR, "HAIR", "Hair", ""},
-		{0, NULL, NULL, NULL}
+		{PART_EMITTER, "EMITTER", 0, "Emitter", ""},
+		{PART_REACTOR, "REACTOR", 0, "Reactor", ""},
+		{PART_HAIR, "HAIR", 0, "Hair", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem dist_items[] = {
-		{PART_DISTR_JIT, "JIT", "Jittered", ""},
-		{PART_DISTR_RAND, "RAND", "Random", ""},
-		{PART_DISTR_GRID, "GRID", "Grid", ""},
-		{0, NULL, NULL, NULL}
+		{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
+		{PART_DISTR_RAND, "RAND", 0, "Random", ""},
+		{PART_DISTR_GRID, "GRID", 0, "Grid", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem phys_type_items[] = {
-		{PART_PHYS_NO, "NO", "No", ""},
-		{PART_PHYS_NEWTON, "NEWTON", "Newtonian", ""},
-		{PART_PHYS_KEYED, "KEYED", "Keyed", ""},
-		{PART_PHYS_BOIDS, "BOIDS", "Boids", ""},
-		{0, NULL, NULL, NULL}
+		{PART_PHYS_NO, "NO", 0, "No", ""},
+		{PART_PHYS_NEWTON, "NEWTON", 0, "Newtonian", ""},
+		{PART_PHYS_KEYED, "KEYED", 0, "Keyed", ""},
+		{PART_PHYS_BOIDS, "BOIDS", 0, "Boids", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem rot_mode_items[] = {
-		{0, "NONE", "None", ""},
-		{PART_ROT_NOR, "NOR", "Normal", ""},
-		{PART_ROT_VEL, "VEL", "Velocity", ""},
-		{PART_ROT_GLOB_X, "GLOB_X", "Global X", ""},
-		{PART_ROT_GLOB_Y, "GLOB_Y", "Global Y", ""},
-		{PART_ROT_GLOB_Z, "GLOB_Z", "Global Z", ""},
-		{PART_ROT_OB_X, "OB_X", "Object X", ""},
-		{PART_ROT_OB_Y, "OB_Y", "Object Y", ""},
-		{PART_ROT_OB_Z, "OB_Z", "Object Z", ""},
-		{0, NULL, NULL, NULL}
+		{0, "NONE", 0, "None", ""},
+		{PART_ROT_NOR, "NOR", 0, "Normal", ""},
+		{PART_ROT_VEL, "VEL", 0, "Velocity", ""},
+		{PART_ROT_GLOB_X, "GLOB_X", 0, "Global X", ""},
+		{PART_ROT_GLOB_Y, "GLOB_Y", 0, "Global Y", ""},
+		{PART_ROT_GLOB_Z, "GLOB_Z", 0, "Global Z", ""},
+		{PART_ROT_OB_X, "OB_X", 0, "Object X", ""},
+		{PART_ROT_OB_Y, "OB_Y", 0, "Object Y", ""},
+		{PART_ROT_OB_Z, "OB_Z", 0, "Object Z", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem ave_mode_items[] = {
-		{0, "NONE", "None", ""},
-		{PART_AVE_SPIN, "SPIN", "Spin", ""},
-		{PART_AVE_RAND, "RAND", "Random", ""} ,
-		{0, NULL, NULL, NULL}
+		{0, "NONE", 0, "None", ""},
+		{PART_AVE_SPIN, "SPIN", 0, "Spin", ""},
+		{PART_AVE_RAND, "RAND", 0, "Random", ""} ,
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem react_event_items[] = {
-		{PART_EVENT_DEATH, "DEATH", "Death", ""},
-		{PART_EVENT_COLLIDE, "COLLIDE", "Collision", ""},
-		{PART_EVENT_NEAR, "NEAR", "Near", ""},
-		{0, NULL, NULL, NULL}
+		{PART_EVENT_DEATH, "DEATH", 0, "Death", ""},
+		{PART_EVENT_COLLIDE, "COLLIDE", 0, "Collision", ""},
+		{PART_EVENT_NEAR, "NEAR", 0, "Near", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem child_type_items[] = {
-		{0, "NONE", "None", ""},
-		{PART_CHILD_PARTICLES, "PARTICLES", "Particles", ""},
-		{PART_CHILD_FACES, "FACES", "Faces", ""},
-		{0, NULL, NULL, NULL}
+		{0, "NONE", 0, "None", ""},
+		{PART_CHILD_PARTICLES, "PARTICLES", 0, "Particles", ""},
+		{PART_CHILD_FACES, "FACES", 0, "Faces", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	//TODO: names, tooltips
 	static EnumPropertyItem rot_from_items[] = {
-		{PART_ROT_KEYS, "KEYS", "keys", ""},
-		{PART_ROT_ZINCR, "ZINCR", "zincr", ""},
-		{PART_ROT_IINCR, "IINCR", "iincr", ""},
-		{0, NULL, NULL, NULL}
+		{PART_ROT_KEYS, "KEYS", 0, "keys", ""},
+		{PART_ROT_ZINCR, "ZINCR", 0, "zincr", ""},
+		{PART_ROT_IINCR, "IINCR", 0, "iincr", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem integrator_type_items[] = {
-		{PART_INT_EULER, "EULER", "Euler", ""},
-		{PART_INT_MIDPOINT, "MIDPOINT", "Midpoint", ""},
-		{PART_INT_RK4, "RK4", "RK4", ""},
-		{0, NULL, NULL, NULL}
+		{PART_INT_EULER, "EULER", 0, "Euler", ""},
+		{PART_INT_MIDPOINT, "MIDPOINT", 0, "Midpoint", ""},
+		{PART_INT_RK4, "RK4", 0, "RK4", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem kink_type_items[] = {
-		{PART_KINK_NO, "NO", "Nothing", ""},
-		{PART_KINK_CURL, "CURL", "Curl", ""},
-		{PART_KINK_RADIAL, "RADIAL", "Radial", ""},
-		{PART_KINK_WAVE, "WAVE", "Wave", ""},
-		{PART_KINK_BRAID, "BRAID", "Braid", ""},
-		{0, NULL, NULL, NULL}
+		{PART_KINK_NO, "NO", 0, "Nothing", ""},
+		{PART_KINK_CURL, "CURL", 0, "Curl", ""},
+		{PART_KINK_RADIAL, "RADIAL", 0, "Radial", ""},
+		{PART_KINK_WAVE, "WAVE", 0, "Wave", ""},
+		{PART_KINK_BRAID, "BRAID", 0, "Braid", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem kink_axis_items[] = {
-		{0, "X", "X", ""},
-		{1, "Y", "Y", ""},
-		{2, "Z", "Z", ""},
-		{0, NULL, NULL, NULL}
+		{0, "X", 0, "X", ""},
+		{1, "Y", 0, "Y", ""},
+		{2, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem bb_align_items[] = {
-		{PART_BB_X, "X", "X", ""},
-		{PART_BB_Y, "Y", "Y", ""},
-		{PART_BB_Z, "Z", "Z", ""},
-		{PART_BB_VIEW, "VIEW", "View", ""},
-		{PART_BB_VEL, "VEL", "Velocity", ""},
-		{0, NULL, NULL, NULL}
+		{PART_BB_X, "X", 0, "X", ""},
+		{PART_BB_Y, "Y", 0, "Y", ""},
+		{PART_BB_Z, "Z", 0, "Z", ""},
+		{PART_BB_VIEW, "VIEW", 0, "View", ""},
+		{PART_BB_VEL, "VEL", 0, "Velocity", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem bb_anim_items[] = {
-		{PART_BB_ANIM_NONE, "NONE", "None", ""},
-		{PART_BB_ANIM_TIME, "TIME", "Time", ""},
-		{PART_BB_ANIM_ANGLE, "ANGLE", "Angle", ""},
-		//{PART_BB_ANIM_OFF_TIME, "OFF_TIME", "off_time", ""},
-		//{PART_BB_ANIM_OFF_ANGLE, "OFF_ANGLE", "off_angle", ""},
-		{0, NULL, NULL, NULL}
+		{PART_BB_ANIM_NONE, "NONE", 0, "None", ""},
+		{PART_BB_ANIM_TIME, "TIME", 0, "Time", ""},
+		{PART_BB_ANIM_ANGLE, "ANGLE", 0, "Angle", ""},
+		//{PART_BB_ANIM_OFF_TIME, "OFF_TIME", 0, "off_time", ""},
+		//{PART_BB_ANIM_OFF_ANGLE, "OFF_ANGLE", 0, "off_angle", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem bb_split_offset_items[] = {
-		{PART_BB_OFF_NONE, "NONE", "None", ""},
-		{PART_BB_OFF_LINEAR, "LINEAR", "Linear", ""},
-		{PART_BB_OFF_RANDOM, "RANDOM", "Random", ""},
-		{0, NULL, NULL, NULL}
+		{PART_BB_OFF_NONE, "NONE", 0, "None", ""},
+		{PART_BB_OFF_LINEAR, "LINEAR", 0, "Linear", ""},
+		{PART_BB_OFF_RANDOM, "RANDOM", 0, "Random", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna= RNA_def_struct(brna, "ParticleSettings", "ID");

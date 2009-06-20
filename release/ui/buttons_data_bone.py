@@ -7,15 +7,17 @@ class BoneButtonsPanel(bpy.types.Panel):
 	__context__ = "bone"
 	
 	def poll(self, context):
-		return (context.bone != None)
+		return (context.bone or context.edit_bone)
 
 class BONE_PT_bone(BoneButtonsPanel):
 	__idname__ = "BONE_PT_bone"
 	__label__ = "Bone"
 
 	def draw(self, context):
-		bone = context.bone
 		layout = self.layout
+		bone = context.bone
+		if not bone:
+			bone = context.edit_bone
 
 		split = layout.split()
 
@@ -35,11 +37,12 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "multiply_vertexgroup_with_envelope", text="Multiply")
 
 		sub = split.column()
-		#sub.itemR(bone, "layer")
+		sub.itemL(text="Layers:")
+		sub.template_layers(bone, "layer")
+		
 		sub.itemL(text="Display:")
 		sub.itemR(bone, "draw_wire", text="Wireframe")
-		sub.itemR(bone, "editmode_hidden", text="Hide (EditMode)")
-		sub.itemR(bone, "pose_channel_hidden", text="Hide (PoseMode)")
+		sub.itemR(bone, "hidden", text="Hide")
 
 		sub.itemL(text="Curved Bones:")
 		sub.itemR(bone, "bbone_segments", text="Segments")
@@ -49,4 +52,3 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "cyclic_offset")
 
 bpy.types.register(BONE_PT_bone)
-

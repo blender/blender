@@ -42,7 +42,15 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	Scene *scene= sc->scene;
 	Base *base;
 
-	if(CTX_data_equals(member, "scene")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {
+			"scene", "selected_objects", "selected_bases", "active_base",
+			"active_object", "edit_object", NULL};
+
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "scene")) {
 		CTX_data_id_pointer_set(result, &scene->id);
 		return 1;
 	}

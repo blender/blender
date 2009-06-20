@@ -99,7 +99,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Deformed Location", "");
 
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this point is member of.");
 }
@@ -110,10 +110,10 @@ static void rna_def_lattice(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
-		{0, NULL, NULL, NULL}};
+		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lattice", "ID");
 	RNA_def_struct_ui_text(srna, "Lattice", "Lattice datablock defining a grid for deforming other objects.");
@@ -159,7 +159,7 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "LatticePoint");
-	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Points of the lattice.");
 }
 

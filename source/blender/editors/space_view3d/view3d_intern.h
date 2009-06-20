@@ -120,6 +120,8 @@ void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
+void VIEW3D_OT_game_start(struct wmOperatorType *ot);
+
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 

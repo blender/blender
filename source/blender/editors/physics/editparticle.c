@@ -2347,8 +2347,8 @@ void PARTICLE_OT_brush_radial_control(wmOperatorType *ot)
 enum { DEL_PARTICLE, DEL_KEY };
 
 static EnumPropertyItem delete_type_items[]= {
-	{DEL_PARTICLE, "PARTICLE", "Particle", ""},
-	{DEL_KEY, "KEY", "Key", ""},
+	{DEL_PARTICLE, "PARTICLE", 0, "Particle", ""},
+	{DEL_KEY, "KEY", 0, "Key", ""},
 	{0, NULL, NULL}};
 
 static void set_delete_particle(PEData *data, int pa_index)
@@ -2563,15 +2563,15 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 /*********************** set brush operator **********************/
 
 static EnumPropertyItem brush_type_items[]= {
-	{PE_BRUSH_NONE, "NONE", "None", ""},
-	{PE_BRUSH_COMB, "COMB", "Comb", ""},
-	{PE_BRUSH_SMOOTH, "SMOOTH", "Smooth", ""},
-	{PE_BRUSH_WEIGHT, "WEIGHT", "Weight", ""},
-	{PE_BRUSH_ADD, "ADD", "Add", ""},
-	{PE_BRUSH_LENGTH, "LENGTH", "Length", ""},
-	{PE_BRUSH_PUFF, "PUFF", "Puff", ""},
-	{PE_BRUSH_CUT, "CUT", "Cut", ""},
-	{0, NULL, NULL, NULL}
+	{PE_BRUSH_NONE, "NONE", 0, "None", ""},
+	{PE_BRUSH_COMB, "COMB", 0, "Comb", ""},
+	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", ""},
+	{PE_BRUSH_ADD, "ADD", 0, "Add", ""},
+	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", ""},
+	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", ""},
+	{PE_BRUSH_CUT, "CUT", 0, "Cut", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int set_brush_exec(bContext *C, wmOperator *op)

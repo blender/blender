@@ -271,7 +271,7 @@ Documentation for the GameLogic Module.
 @var KX_PARENT_REMOVE:
 @var KX_PARENT_SET:
 
-@group Shader: MODELMATRIX*, MODELVIEWMATRIX*, VIEWMATRIX*, CAM_POS, CONSTANT_TIMER
+@group Shader: MODELMATRIX*, MODELVIEWMATRIX*, VIEWMATRIX*, CAM_POS, CONSTANT_TIMER, SHD_TANGENT
 @var VIEWMATRIX:
 @var VIEWMATRIX_INVERSE:
 @var VIEWMATRIX_INVERSETRANSPOSE:
@@ -285,8 +285,8 @@ Documentation for the GameLogic Module.
 @var MODELVIEWMATRIX_INVERSETRANSPOSE:
 @var MODELVIEWMATRIX_TRANSPOSE:
 @var CAM_POS: Current camera position
-@var CONSTANT_TIMER: Current camera position
-@var SHD_TANGENT: Current camera position
+@var CONSTANT_TIMER: User a timer for the uniform value.
+@var SHD_TANGENT: Not yet documented.
 
 @group Blender Material: BL_*
 @var BL_DST_ALPHA:
@@ -302,6 +302,13 @@ Documentation for the GameLogic Module.
 @var BL_ZERO:
 
 @group Deprecated: addActiveActuator
+
+@var globalDict:	A dictionary that is saved between loading blend files so you can use
+					it to store inventory and other variables you want to store between
+					scenes and blend files. It can also be written to a file and loaded
+					later on with the game load/save actuators.
+					note: only python built in types such as int/string/bool/float/tuples/lists
+					can be saved, GameObjects, Actuators etc will not work as expectred.
 """
 
 import GameTypes
@@ -439,6 +446,14 @@ def setPhysicsTicRate(ticrate):
 	
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
+	"""
+
+def EvalExpression(text):
+	"""
+	Evaluate the string as an expression, similar to the expression controller logic brick.
+	@param text: The expression to evaluate.
+	@type text: string
+	@return: The result of the expression. The type depends on the expression.
 	"""
 
 #{ Utility functions

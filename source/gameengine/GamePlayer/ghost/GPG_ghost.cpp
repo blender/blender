@@ -86,6 +86,8 @@ extern "C"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
+#include "RNA_define.h"
+
 #ifdef WIN32
 #include <windows.h>
 #ifdef NDEBUG
@@ -343,6 +345,8 @@ int main(int argc, char** argv)
 		  ::DisposeNibReference(nibRef);
     */
 #endif // __APPLE__
+
+	RNA_init();
 
 	init_nodesystem();
 	

@@ -595,6 +595,12 @@ void wm_window_process_events(const bContext *C)
 		PIL_sleep_ms(5);
 }
 
+void wm_window_process_events_nosleep(const bContext *C) 
+{
+	if(GHOST_ProcessEvents(g_system, 0))
+		GHOST_DispatchEvents(g_system);
+}
+
 /* exported as handle callback to bke blender.c */
 void wm_window_testbreak(void)
 {

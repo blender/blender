@@ -168,7 +168,7 @@ typedef struct FontBLF {
 	int size;
 
 	/* kerning space, user setting. */
-	int kerning;
+	float kerning;
 
 	/* max texture size. */
 	int max_tex_size;

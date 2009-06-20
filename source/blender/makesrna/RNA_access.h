@@ -37,6 +37,7 @@ extern "C" {
 struct bContext;
 struct ID;
 struct Main;
+struct ReportList;
 
 /* Types */
 
@@ -163,6 +164,7 @@ extern StructRNA RNA_DomainFluidSettings;
 extern StructRNA RNA_Driver;
 extern StructRNA RNA_DriverTarget;
 extern StructRNA RNA_EdgeSplitModifier;
+extern StructRNA RNA_EditBone;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
@@ -479,6 +481,8 @@ void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
+extern PointerRNA PointerRNA_NULL;
+
 /* Structs */
 
 const char *RNA_struct_identifier(StructRNA *type);
@@ -527,6 +531,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+int RNA_property_ui_icon(PropertyRNA *prop);
 
 /* Dynamic Property Information */
 
@@ -716,13 +721,13 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
 void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
 
-int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
-int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms);
+int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
+int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);
 
-int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
-int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...);
-int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
-int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args);
+int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
+int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...);
+int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
+int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args);
 
 /* ID */
 

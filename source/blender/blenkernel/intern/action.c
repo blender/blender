@@ -581,6 +581,77 @@ void game_copy_pose(bPose **dst, bPose *src)
 	*dst=out;
 }
 
+
+/* Only allowed for Poses with identical channels */
+void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
+{
+	short mode= ACTSTRIPMODE_BLEND;
+	
+	bPoseChannel *dchan;
+	const bPoseChannel *schan;
+	bConstraint *dcon, *scon;
+	float dstweight;
+	int i;
+
+	switch (mode){
+	case ACTSTRIPMODE_BLEND:
+		dstweight = 1.0F - srcweight;
+		break;
+	case ACTSTRIPMODE_ADD:
+		dstweight = 1.0F;
+		break;
+	default :
+		dstweight = 1.0F;
+	}
+	
+	schan= src->chanbase.first;
+	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
+		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
+			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
+			
+			/* Do the transformation blend */
+			if (schan->flag & POSE_ROT) {
+				/* quat interpolation done separate */
+				if (schan->rotmode == PCHAN_ROT_QUAT) {
+					float dquat[4], squat[4];
+					
+					QUATCOPY(dquat, dchan->quat);
+					QUATCOPY(squat, schan->quat);
+					if (mode==ACTSTRIPMODE_BLEND)
+						QuatInterpol(dchan->quat, dquat, squat, srcweight);
+					else {
+						QuatMulFac(squat, srcweight);
+						QuatMul(dchan->quat, dquat, squat);
+					}
+					
+					NormalQuat(dchan->quat);
+				}
+			}
+
+			for (i=0; i<3; i++) {
+				/* blending for loc and scale are pretty self-explanatory... */
+				if (schan->flag & POSE_LOC)
+					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
+				if (schan->flag & POSE_SIZE)
+					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
+				
+				/* euler-rotation interpolation done here instead... */
+				// FIXME: are these results decent?
+				if ((schan->flag & POSE_ROT) && (schan->rotmode))
+					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
+			}
+			dchan->flag |= schan->flag;
+		}
+		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
+			/* no 'add' option for constraint blending */
+			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
+		}
+	}
+	
+	/* this pose is now in src time */
+	dst->ctime= src->ctime;
+}
+
 void game_free_pose(bPose *pose)
 {
 	if (pose) {
@@ -800,6 +871,7 @@ void calc_action_range(const bAction *act, float *start, float *end, int incl_hi
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
 /* exported to game engine */
+/* Note! this assumes both poses are aligned, this isnt always true when dealing with user poses */
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;
@@ -810,7 +882,7 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 		return;
 	}
 
-	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
+	for (schan=src->chanbase.first; (schan && pchan); schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
 }
@@ -1036,75 +1108,6 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	}
 	
 	VecAddf(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
-}
-
-
-/* Only allowed for Poses with identical channels */
-void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
-{
-	bPoseChannel *dchan;
-	const bPoseChannel *schan;
-	bConstraint *dcon, *scon;
-	float dstweight;
-	int i;
-	
-	switch (mode){
-	case ACTSTRIPMODE_BLEND:
-		dstweight = 1.0F - srcweight;
-		break;
-	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
-	default :
-		dstweight = 1.0F;
-	}
-	
-	schan= src->chanbase.first;
-	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
-		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
-			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
-			
-			/* Do the transformation blend */
-			if (schan->flag & POSE_ROT) {
-				/* quat interpolation done separate */
-				if (schan->rotmode == PCHAN_ROT_QUAT) {
-					float dquat[4], squat[4];
-					
-					QUATCOPY(dquat, dchan->quat);
-					QUATCOPY(squat, schan->quat);
-					if (mode==ACTSTRIPMODE_BLEND)
-						QuatInterpol(dchan->quat, dquat, squat, srcweight);
-					else {
-						QuatMulFac(squat, srcweight);
-						QuatMul(dchan->quat, dquat, squat);
-					}
-					
-					NormalQuat(dchan->quat);
-				}
-			}
-
-			for (i=0; i<3; i++) {
-				/* blending for loc and scale are pretty self-explanatory... */
-				if (schan->flag & POSE_LOC)
-					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
-				if (schan->flag & POSE_SIZE)
-					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-				
-				/* euler-rotation interpolation done here instead... */
-				// FIXME: are these results decent?
-				if ((schan->flag & POSE_ROT) && (schan->rotmode))
-					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
-			}
-			dchan->flag |= schan->flag;
-		}
-		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
-			/* no 'add' option for constraint blending */
-			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
-		}
-	}
-	
-	/* this pose is now in src time */
-	dst->ctime= src->ctime;
 }
 
 typedef struct NlaIpoChannel {
