@@ -875,6 +875,19 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 
 		RNA_property_collection_end(&iter);
 	}
+
+	if(self->ptr.type == &RNA_Context) {
+		ListBase lb = CTX_data_dir_get(self->ptr.data);
+		LinkData *link;
+
+		for(link=lb.first; link; link=link->next) {
+			pystring = PyUnicode_FromString(link->data);
+			PyList_Append(ret, pystring);
+			Py_DECREF(pystring);
+		}
+
+		BLI_freelistN(&lb);
+	}
 	
 	return ret;
 }
