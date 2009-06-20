@@ -38,6 +38,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "BLI_ghash.h"
+
 #include "rna_internal.h"
 
 /* Global used during defining */
@@ -557,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* copy from struct to derive stuff, a bit clumsy since we can't
 		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
+		srna->cont.prophash= NULL;
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
 		srna->py_type= NULL;
@@ -604,7 +607,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, 0, 0, 0);
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string", 0, 0);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -923,8 +926,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				break;
 		}
 	}
-	else
+	else {
 		prop->flag |= PROP_IDPROPERTY|PROP_RUNTIME;
+#ifdef RNA_RUNTIME
+		if(cont->prophash)
+			BLI_ghash_insert(cont->prophash, (void*)prop->identifier, prop);
+#endif
+	}
 
 	rna_addtail(&cont->properties, prop);
 

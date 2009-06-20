@@ -7,7 +7,7 @@ class BoneButtonsPanel(bpy.types.Panel):
 	__context__ = "bone"
 	
 	def poll(self, context):
-		return (context.bone != None)
+		return (context.bone or context.edit_bone)
 
 class BONE_PT_bone(BoneButtonsPanel):
 	__idname__ = "BONE_PT_bone"
@@ -16,6 +16,8 @@ class BONE_PT_bone(BoneButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		bone = context.bone
+		if not bone:
+			bone = context.edit_bone
 
 		split = layout.split()
 
@@ -40,8 +42,7 @@ class BONE_PT_bone(BoneButtonsPanel):
 		
 		sub.itemL(text="Display:")
 		sub.itemR(bone, "draw_wire", text="Wireframe")
-		sub.itemR(bone, "editmode_hidden", text="Hide (EditMode)")
-		sub.itemR(bone, "pose_channel_hidden", text="Hide (PoseMode)")
+		sub.itemR(bone, "hidden", text="Hide")
 
 		sub.itemL(text="Curved Bones:")
 		sub.itemR(bone, "bbone_segments", text="Segments")

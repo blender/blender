@@ -234,6 +234,9 @@ static char brush_size(Sculpt *sd)
    special multiplier found experimentally to scale the strength factor. */
 static float brush_strength(Sculpt *sd, StrokeCache *cache)
 {
+	/* Primary strength input; square it to make lower values more sensitive */
+	float alpha = sd->brush->alpha * sd->brush->alpha;
+
 	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
 	float flip= cache->flip ? -1:1;
@@ -244,18 +247,17 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	
 	switch(sd->brush->sculpt_tool){
 	case SCULPT_TOOL_DRAW:
-	case SCULPT_TOOL_LAYER:
-		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
+	case SCULPT_TOOL_INFLATE:
+		return alpha * dir * pressure * flip; /*XXX: not sure why? was multiplied by G.vd->grid */;
+	case SCULPT_TOOL_FLATTEN:
 	case SCULPT_TOOL_SMOOTH:
-		return sd->brush->alpha / .5 * pressure * anchored;
+		return alpha * 4 * pressure;
 	case SCULPT_TOOL_PINCH:
-		return sd->brush->alpha / 10.0f * dir * pressure * flip * anchored;
+		return alpha / 2 * dir * pressure * flip;
 	case SCULPT_TOOL_GRAB:
 		return 1;
-	case SCULPT_TOOL_INFLATE:
-		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored;
-	case SCULPT_TOOL_FLATTEN:
-		return sd->brush->alpha / 5.0f * pressure * anchored;
+	case SCULPT_TOOL_LAYER:
+		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
 	default:
 		return 0;
 	}
@@ -354,10 +356,10 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_
 	
 	while(node){
 		float *co= ss->mvert[node->Index].co;
-		
-		const float val[3]= {co[0]+area_normal[0]*node->Fade*ss->cache->scale[0],
-		                     co[1]+area_normal[1]*node->Fade*ss->cache->scale[1],
-		                     co[2]+area_normal[2]*node->Fade*ss->cache->scale[2]};
+
+		const float val[3]= {co[0]+area_normal[0]*ss->cache->radius*node->Fade*ss->cache->scale[0],
+		                     co[1]+area_normal[1]*ss->cache->radius*node->Fade*ss->cache->scale[1],
+		                     co[2]+area_normal[2]*ss->cache->radius*node->Fade*ss->cache->scale[2]};
 		                     
 		sculpt_clip(ss->cache, co, val);
 		
@@ -412,18 +414,21 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 static void do_smooth_brush(SculptSession *ss, const ListBase* active_verts)
 {
 	ActiveData *node= active_verts->first;
-
-	while(node){
-		float *co= ss->mvert[node->Index].co;
-		float avg[3], val[3];
-
-		neighbor_average(ss, avg, node->Index);
-		val[0] = co[0]+(avg[0]-co[0])*node->Fade;
-		val[1] = co[1]+(avg[1]-co[1])*node->Fade;
-		val[2] = co[2]+(avg[2]-co[2])*node->Fade;
-
-		sculpt_clip(ss->cache, co, val);
-		node= node->next;
+	int i;
+	
+	for(i = 0; i < 2; ++i) {
+		while(node){
+			float *co= ss->mvert[node->Index].co;
+			float avg[3], val[3];
+			
+			neighbor_average(ss, avg, node->Index);
+			val[0] = co[0]+(avg[0]-co[0])*node->Fade;
+			val[1] = co[1]+(avg[1]-co[1])*node->Fade;
+			val[2] = co[2]+(avg[2]-co[2])*node->Fade;
+			
+			sculpt_clip(ss->cache, co, val);
+			node= node->next;
+		}
 	}
 }
 
@@ -467,33 +472,33 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, const ListBase *active
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	const float bstr= brush_strength(sd, ss->cache);
+	float lim= brush_strength(sd, ss->cache);
+
+	if(sd->brush->flag & BRUSH_DIR_IN)
+		lim = -lim;
 
 	calc_area_normal(sd, area_normal, active_verts);
 
 	while(node){
 		float *disp= &ss->cache->layer_disps[node->Index];
 		
-		if((bstr > 0 && *disp < bstr) ||
-		  (bstr < 0 && *disp > bstr)) {
+		if((lim > 0 && *disp < lim) ||
+		   (lim < 0 && *disp > lim)) {
 		  	float *co= ss->mvert[node->Index].co;
+			float val[3];
 		  	
 			*disp+= node->Fade;
 
-			if(bstr < 0) {
-				if(*disp < bstr)
-					*disp = bstr;
-			} else {
-				if(*disp > bstr)
-					*disp = bstr;
-			}
+			if(lim < 0 && *disp < lim)
+				*disp = lim;
+			else if(lim > 0 && *disp > lim)
+					*disp = lim;
 
-			{
-				const float val[3]= {ss->cache->mesh_store[node->Index][0]+area_normal[0] * *disp*ss->cache->scale[0],
-				                     ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1],
-				                     ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2]};
-				sculpt_clip(ss->cache, co, val);
-			}
+			val[0] = ss->cache->mesh_store[node->Index][0]+area_normal[0] * *disp*ss->cache->scale[0];
+			val[1] = ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1];
+			val[2] = ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2];
+			//VecMulf(val, ss->cache->radius);
+			sculpt_clip(ss->cache, co, val);
 		}
 
 		node= node->next;
@@ -512,7 +517,7 @@ static void do_inflate_brush(SculptSession *ss, const ListBase *active_verts)
 		add[0]= no[0]/ 32767.0f;
 		add[1]= no[1]/ 32767.0f;
 		add[2]= no[2]/ 32767.0f;
-		VecMulf(add, node->Fade);
+		VecMulf(add, node->Fade * ss->cache->radius);
 		add[0]*= ss->cache->scale[0];
 		add[1]*= ss->cache->scale[1];
 		add[2]*= ss->cache->scale[2];

@@ -301,7 +301,11 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 
-	if(CTX_data_equals(member, "edit_image")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {"edit_image", NULL};
+		CTX_data_dir_set(result, dir);
+	}
+	else if(CTX_data_equals(member, "edit_image")) {
 		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
 		return 1;
 	}

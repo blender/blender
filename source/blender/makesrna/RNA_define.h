@@ -42,6 +42,8 @@ extern "C" {
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+
+void RNA_init(void);
 void RNA_exit(void);
 
 /* Struct */

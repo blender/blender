@@ -36,65 +36,53 @@
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] = "The Blender Mathutils module\n\n";
-static char M_Mathutils_Vector_doc[] = "() - create a new vector object from a list of floats";
-static char M_Mathutils_Matrix_doc[] = "() - create a new matrix object from a list of floats";
-static char M_Mathutils_Quaternion_doc[] = "() - create a quaternion from a list or an axis of rotation and an angle";
-static char M_Mathutils_Euler_doc[] = "() - create and return a new euler object";
 static char M_Mathutils_Rand_doc[] = "() - return a random number";
-static char M_Mathutils_CrossVecs_doc[] = "() - returns a vector perpedicular to the 2 vectors crossed";
-static char M_Mathutils_CopyVec_doc[] = "() - create a copy of vector";
-static char M_Mathutils_DotVecs_doc[] = "() - return the dot product of two vectors";
 static char M_Mathutils_AngleBetweenVecs_doc[] = "() - returns the angle between two vectors in degrees";
 static char M_Mathutils_MidpointVecs_doc[] = "() - return the vector to the midpoint between two vectors";
-static char M_Mathutils_MatMultVec_doc[] = "() - multiplies a matrix by a column vector";
-static char M_Mathutils_VecMultMat_doc[] = "() - multiplies a row vector by a matrix";
 static char M_Mathutils_ProjectVecs_doc[] =	"() - returns the projection vector from the projection of vecA onto vecB";
 static char M_Mathutils_RotationMatrix_doc[] = "() - construct a rotation matrix from an angle and axis of rotation";
 static char M_Mathutils_ScaleMatrix_doc[] =	"() - construct a scaling matrix from a scaling factor";
 static char M_Mathutils_OrthoProjectionMatrix_doc[] = "() - construct a orthographic projection matrix from a selected plane";
 static char M_Mathutils_ShearMatrix_doc[] = "() - construct a shearing matrix from a plane of shear and a shear factor";
-static char M_Mathutils_CopyMat_doc[] = "() - create a copy of a matrix";
 static char M_Mathutils_TranslationMatrix_doc[] = "(vec) - create a translation matrix from a vector";
-static char M_Mathutils_CopyQuat_doc[] = "() - copy quatB to quatA";
-static char M_Mathutils_CopyEuler_doc[] = "() - copy eulB to eultA";
-static char M_Mathutils_CrossQuats_doc[] = "() - return the mutliplication of two quaternions";
-static char M_Mathutils_DotQuats_doc[] = "() - return the dot product of two quaternions";
 static char M_Mathutils_Slerp_doc[] = "() - returns the interpolation between two quaternions";
 static char M_Mathutils_DifferenceQuats_doc[] = "() - return the angular displacment difference between two quats";
-static char M_Mathutils_RotateEuler_doc[] = "() - rotate euler by an axis and angle";
 static char M_Mathutils_Intersect_doc[] = "(v1, v2, v3, ray, orig, clip=1) - returns the intersection between a ray and a triangle, if possible, returns None otherwise";
 static char M_Mathutils_TriangleArea_doc[] = "(v1, v2, v3) - returns the area size of the 2D or 3D triangle defined";
 static char M_Mathutils_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
 static char M_Mathutils_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
 static char M_Mathutils_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
 //-----------------------METHOD DEFINITIONS ----------------------
+
+static PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * value);
+static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args);
+static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args );
+static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args );
+static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args );
+static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args );
+static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args );
+
 struct PyMethodDef M_Mathutils_methods[] = {
 	{"Rand", (PyCFunction) M_Mathutils_Rand, METH_VARARGS, M_Mathutils_Rand_doc},
-	{"Vector", (PyCFunction) M_Mathutils_Vector, METH_VARARGS, M_Mathutils_Vector_doc},
-	{"CrossVecs", (PyCFunction) M_Mathutils_CrossVecs, METH_VARARGS, M_Mathutils_CrossVecs_doc},
-	{"DotVecs", (PyCFunction) M_Mathutils_DotVecs, METH_VARARGS, M_Mathutils_DotVecs_doc},
 	{"AngleBetweenVecs", (PyCFunction) M_Mathutils_AngleBetweenVecs, METH_VARARGS, M_Mathutils_AngleBetweenVecs_doc},
 	{"MidpointVecs", (PyCFunction) M_Mathutils_MidpointVecs, METH_VARARGS, M_Mathutils_MidpointVecs_doc},
-	{"VecMultMat", (PyCFunction) M_Mathutils_VecMultMat, METH_VARARGS, M_Mathutils_VecMultMat_doc},
 	{"ProjectVecs", (PyCFunction) M_Mathutils_ProjectVecs, METH_VARARGS, M_Mathutils_ProjectVecs_doc},
-	{"CopyVec", (PyCFunction) M_Mathutils_CopyVec, METH_VARARGS, M_Mathutils_CopyVec_doc},
-	{"Matrix", (PyCFunction) M_Mathutils_Matrix, METH_VARARGS, M_Mathutils_Matrix_doc},
 	{"RotationMatrix", (PyCFunction) M_Mathutils_RotationMatrix, METH_VARARGS, M_Mathutils_RotationMatrix_doc},
 	{"ScaleMatrix", (PyCFunction) M_Mathutils_ScaleMatrix, METH_VARARGS, M_Mathutils_ScaleMatrix_doc},
 	{"ShearMatrix", (PyCFunction) M_Mathutils_ShearMatrix, METH_VARARGS, M_Mathutils_ShearMatrix_doc},
 	{"TranslationMatrix", (PyCFunction) M_Mathutils_TranslationMatrix, METH_O, M_Mathutils_TranslationMatrix_doc},
-	{"CopyMat", (PyCFunction) M_Mathutils_CopyMat, METH_VARARGS, M_Mathutils_CopyMat_doc},
 	{"OrthoProjectionMatrix", (PyCFunction) M_Mathutils_OrthoProjectionMatrix,  METH_VARARGS, M_Mathutils_OrthoProjectionMatrix_doc},
-	{"MatMultVec", (PyCFunction) M_Mathutils_MatMultVec, METH_VARARGS, M_Mathutils_MatMultVec_doc},
-	{"Quaternion", (PyCFunction) M_Mathutils_Quaternion, METH_VARARGS, M_Mathutils_Quaternion_doc},
-	{"CopyQuat", (PyCFunction) M_Mathutils_CopyQuat, METH_VARARGS, M_Mathutils_CopyQuat_doc},
-	{"CrossQuats", (PyCFunction) M_Mathutils_CrossQuats, METH_VARARGS, M_Mathutils_CrossQuats_doc},
-	{"DotQuats", (PyCFunction) M_Mathutils_DotQuats, METH_VARARGS, M_Mathutils_DotQuats_doc},
 	{"DifferenceQuats", (PyCFunction) M_Mathutils_DifferenceQuats, METH_VARARGS,M_Mathutils_DifferenceQuats_doc},
 	{"Slerp", (PyCFunction) M_Mathutils_Slerp, METH_VARARGS, M_Mathutils_Slerp_doc},
-	{"Euler", (PyCFunction) M_Mathutils_Euler, METH_VARARGS, M_Mathutils_Euler_doc},
-	{"CopyEuler", (PyCFunction) M_Mathutils_CopyEuler, METH_VARARGS, M_Mathutils_CopyEuler_doc},
-	{"RotateEuler", (PyCFunction) M_Mathutils_RotateEuler, METH_VARARGS, M_Mathutils_RotateEuler_doc},
 	{"Intersect", ( PyCFunction ) M_Mathutils_Intersect, METH_VARARGS, M_Mathutils_Intersect_doc},
 	{"TriangleArea", ( PyCFunction ) M_Mathutils_TriangleArea, METH_VARARGS, M_Mathutils_TriangleArea_doc},
 	{"TriangleNormal", ( PyCFunction ) M_Mathutils_TriangleNormal, METH_VARARGS, M_Mathutils_TriangleNormal_doc},
@@ -102,6 +90,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"LineIntersect", ( PyCFunction ) M_Mathutils_LineIntersect, METH_VARARGS, M_Mathutils_LineIntersect_doc},
 	{NULL, NULL, 0, NULL}
 };
+
 /*----------------------------MODULE INIT-------------------------*/
 /* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
 
@@ -141,6 +130,12 @@ PyObject *Mathutils_Init(const char *from)
 #else
 	submodule = Py_InitModule3(from, M_Mathutils_methods, M_Mathutils_doc);
 #endif
+	
+	/* each type has its own new() function */
+	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );
+	PyModule_AddObject( submodule, "Matrix",		(PyObject *)&matrix_Type );
+	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
+	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
 	
 	return (submodule);
 }
@@ -272,7 +267,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 
 //----------------------------------Mathutils.Rand() --------------------
 //returns a random number between a high and low value
-PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)
 {
 	float high, low, range;
 	double drand;
@@ -300,108 +295,9 @@ PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)
 	return PyFloat_FromDouble(drand);
 }
 //----------------------------------VECTOR FUNCTIONS---------------------
-//----------------------------------Mathutils.Vector() ------------------
-// Supports 2D, 3D, and 4D vector objects both int and float values
-// accepted. Mixed float and int values accepted. Ints are parsed to float 
-PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args)
-{
-	PyObject *listObject = NULL;
-	int size, i;
-	float vec[4], f;
-	PyObject *v;
-
-	size = PySequence_Length(args);
-	if (size == 1) {
-		listObject = PySequence_GetItem(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			Py_XDECREF(listObject);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d vector
-		return newVectorObject(NULL, 3, Py_NEW); 
-	} else {
-		Py_INCREF(args);
-		listObject = args;
-	}
-
-	if (size<2 || size>4) { // Invalid vector size
-		Py_XDECREF(listObject);
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-		return NULL;
-	}
-
-	for (i=0; i<size; i++) {
-		v=PySequence_GetItem(listObject, i);
-		if (v==NULL) { // Failed to read sequence
-			Py_XDECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-			return NULL;
-		}
-
-		f= PyFloat_AsDouble(v);
-		if(f==-1 && PyErr_Occurred()) { // parsed item not a number
-			Py_DECREF(v);
-			Py_XDECREF(listObject);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-			return NULL;
-		}
-
-		vec[i]= f;
-		Py_DECREF(v);
-	}
-	Py_DECREF(listObject);
-	return newVectorObject(vec, size, Py_NEW);
-}
-//----------------------------------Mathutils.CrossVecs() ---------------
-//finds perpendicular vector - only 3D is supported
-PyObject *M_Mathutils_CrossVecs(PyObject * self, PyObject * args)
-{
-	PyObject *vecCross = NULL;
-	VectorObject *vec1 = NULL, *vec2 = NULL;
-
-	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.CrossVecs(): expects (2) 3D vector objects\n");
-		return NULL;
-	}
-	
-	if(vec1->size != 3 || vec2->size != 3) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.CrossVecs(): expects (2) 3D vector objects\n");
-		return NULL;
-	}
-	vecCross = newVectorObject(NULL, 3, Py_NEW);
-	Crossf(((VectorObject*)vecCross)->vec, vec1->vec, vec2->vec);
-	return vecCross;
-}
-//----------------------------------Mathutils.DotVec() -------------------
-//calculates the dot product of two vectors
-PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args)
-{
-	VectorObject *vec1 = NULL, *vec2 = NULL;
-	double dot = 0.0f;
-	int x;
-
-	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.DotVecs(): expects (2) vector objects of the same size\n");
-		return NULL;
-	}
-	
-	if(vec1->size != vec2->size) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.DotVecs(): expects (2) vector objects of the same size\n");
-		return NULL;
-	}
-
-	for(x = 0; x < vec1->size; x++) {
-		dot += vec1->vec[x] * vec2->vec[x];
-	}
-	return PyFloat_FromDouble(dot);
-}
 //----------------------------------Mathutils.AngleBetweenVecs() ---------
 //calculates the angle between 2 vectors
-PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
@@ -443,7 +339,7 @@ AttributeError2:
 }
 //----------------------------------Mathutils.MidpointVecs() -------------
 //calculates the midpoint between 2 vectors
-PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float vec[4];
@@ -465,7 +361,7 @@ PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 }
 //----------------------------------Mathutils.ProjectVecs() -------------
 //projects vector 1 onto vector 2
-PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float vec[4]; 
@@ -497,94 +393,10 @@ PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 	return newVectorObject(vec, size, Py_NEW);
 }
 //----------------------------------MATRIX FUNCTIONS--------------------
-//----------------------------------Mathutils.Matrix() -----------------
-//mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
-//create a new matrix type
-PyObject *M_Mathutils_Matrix(PyObject * self, PyObject * args)
-{
-	PyObject *listObject = NULL;
-	PyObject *argObject, *m, *s, *f;
-	MatrixObject *mat;
-	int argSize, seqSize = 0, i, j;
-	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-	argSize = PySequence_Length(args);
-	if(argSize > 4){	//bad arg nums
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
-		return NULL;
-	} else if (argSize == 0) { //return empty 4D matrix
-		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW);
-	}else if (argSize == 1){
-		//copy constructor for matrix objects
-		argObject = PySequence_GetItem(args, 0);
-		if(MatrixObject_Check(argObject)){
-			mat = (MatrixObject*)argObject;
-
-			argSize = mat->rowSize; //rows
-			seqSize = mat->colSize; //col
-			for(i = 0; i < (seqSize * argSize); i++){
-				matrix[i] = mat->contigPtr[i];
-			}
-		}
-		Py_DECREF(argObject);
-	}else{ //2-4 arguments (all seqs? all same size?)
-		for(i =0; i < argSize; i++){
-			argObject = PySequence_GetItem(args, i);
-			if (PySequence_Check(argObject)) { //seq?
-				if(seqSize){ //0 at first
-					if(PySequence_Length(argObject) != seqSize){ //seq size not same
-						Py_DECREF(argObject);
-						PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
-						return NULL;
-					}
-				}
-				seqSize = PySequence_Length(argObject);
-			}else{ //arg not a sequence
-				Py_XDECREF(argObject);
-				PyErr_SetString(PyExc_TypeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
-				return NULL;
-			}
-			Py_DECREF(argObject);
-		}
-		//all is well... let's continue parsing
-		listObject = args;
-		for (i = 0; i < argSize; i++){
-			m = PySequence_GetItem(listObject, i);
-			if (m == NULL) { // Failed to read sequence
-				PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
-				return NULL;
-			}
-
-			for (j = 0; j < seqSize; j++) {
-				s = PySequence_GetItem(m, j);
-				if (s == NULL) { // Failed to read sequence
-					Py_DECREF(m);
-					PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
-					return NULL;
-				}
-
-				f = PyNumber_Float(s);
-				if(f == NULL) { // parsed item is not a number
-					Py_DECREF(m);
-					Py_DECREF(s);
-					PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
-					return NULL;
-				}
-
-				matrix[(seqSize*i)+j]=(float)PyFloat_AS_DOUBLE(f);
-				Py_DECREF(f);
-				Py_DECREF(s);
-			}
-			Py_DECREF(m);
-		}
-	}
-	return newMatrixObject(matrix, argSize, seqSize, Py_NEW);
-}
 //----------------------------------Mathutils.RotationMatrix() ----------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //creates a rotation matrix
-PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 {
 	VectorObject *vec = NULL;
 	char *axis = NULL;
@@ -713,7 +525,7 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 }
 //----------------------------------Mathutils.TranslationMatrix() -------
 //creates a translation matrix
-PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * vec)
+static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * vec)
 {
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
@@ -737,7 +549,7 @@ PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * vec)
 //----------------------------------Mathutils.ScaleMatrix() -------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //creates a scaling matrix
-PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 {
 	VectorObject *vec = NULL;
 	float norm = 0.0f, factor;
@@ -811,7 +623,7 @@ PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 //----------------------------------Mathutils.OrthoProjectionMatrix() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //creates an ortho projection matrix
-PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args)
 {
 	VectorObject *vec = NULL;
 	char *plane;
@@ -909,7 +721,7 @@ PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args)
 }
 //----------------------------------Mathutils.ShearMatrix() -------------
 //creates a shear matrix
-PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 {
 	int matSize;
 	char *plane;
@@ -975,167 +787,10 @@ PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 	return newMatrixObject(mat, matSize, matSize, Py_NEW);
 }
 //----------------------------------QUATERNION FUNCTIONS-----------------
-//----------------------------------Mathutils.Quaternion() --------------
-PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args)
-{
-	PyObject *listObject = NULL, *n, *q, *f;
-	int size, i;
-	float quat[4];
-	double norm = 0.0f, angle = 0.0f;
 
-	size = PySequence_Length(args);
-	if (size == 1 || size == 2) { //seq?
-		listObject = PySequence_GetItem(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-			if ((size == 4 && PySequence_Length(args) !=1) || 
-				(size == 3 && PySequence_Length(args) !=2) || (size >4 || size < 3)) { 
-				// invalid args/size
-				Py_DECREF(listObject);
-				PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-				return NULL;
-			}
-	   		if(size == 3){ //get angle in axis/angle
-				n = PySequence_GetItem(args, 1);
-				if(n == NULL) { // parsed item not a number or getItem fail
-					Py_DECREF(listObject);
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-				
-				angle = PyFloat_AsDouble(n);
-				Py_DECREF(n);
-				
-				if (angle==-1 && PyErr_Occurred()) {
-					Py_DECREF(listObject);
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-			}
-		}else{
-			Py_DECREF(listObject); /* assume the list is teh second arg */
-			listObject = PySequence_GetItem(args, 1);
-			if (size>1 && PySequence_Check(listObject)) {
-				size = PySequence_Length(listObject);
-				if (size != 3) { 
-					// invalid args/size
-					Py_DECREF(listObject);
-					PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-				n = PySequence_GetItem(args, 0);
-				if(n == NULL) { // parsed item not a number or getItem fail
-					Py_DECREF(listObject);
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-				angle = PyFloat_AsDouble(n);
-				Py_DECREF(n);
-				
-				if (angle==-1 && PyErr_Occurred()) {
-					Py_DECREF(listObject);
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-			} else { // argument was not a sequence
-				Py_XDECREF(listObject);
-				PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-				return NULL;
-			}
-		}
-	} else if (size == 0) { //returns a new empty quat
-		return newQuaternionObject(NULL, Py_NEW); 
-	} else {
-		Py_INCREF(args);
-		listObject = args;
-	}
-
-	if (size == 3) { // invalid quat size
-		if(PySequence_Length(args) != 2){
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-	}else{
-		if(size != 4){
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-	}
-
-	for (i=0; i<size; i++) { //parse
-		q = PySequence_GetItem(listObject, i);
-		if (q == NULL) { // Failed to read sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-
-		f = PyNumber_Float(q);
-		if(f == NULL) { // parsed item not a number
-			Py_DECREF(q);
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-
-		quat[i] = (float)PyFloat_AS_DOUBLE(f);
-		Py_DECREF(f);
-		Py_DECREF(q);
-	}
-	if(size == 3){ //calculate the quat based on axis/angle
-		norm = sqrt(quat[0] * quat[0] + quat[1] * quat[1] + quat[2] * quat[2]);
-		quat[0] /= (float)norm;
-		quat[1] /= (float)norm;
-		quat[2] /= (float)norm;
-
-		angle = angle * (Py_PI / 180);
-		quat[3] =(float) (sin(angle/ 2.0f)) * quat[2];
-		quat[2] =(float) (sin(angle/ 2.0f)) * quat[1];
-		quat[1] =(float) (sin(angle/ 2.0f)) * quat[0];
-		quat[0] =(float) (cos(angle/ 2.0f));
-	}
-
-	Py_DECREF(listObject);
-	return newQuaternionObject(quat, Py_NEW);
-}
-//----------------------------------Mathutils.CrossQuats() ----------------
-//quaternion multiplication - associate not commutative
-PyObject *M_Mathutils_CrossQuats(PyObject * self, PyObject * args)
-{
-	QuaternionObject *quatU = NULL, *quatV = NULL;
-	float quat[4];
-
-	if(!PyArg_ParseTuple(args, "O!O!", &quaternion_Type, &quatU, &quaternion_Type, &quatV)) {
-		PyErr_SetString(PyExc_TypeError,"Mathutils.CrossQuats(): expected Quaternion types");
-		return NULL;
-	}
-	QuatMul(quat, quatU->quat, quatV->quat);
-
-	return newQuaternionObject(quat, Py_NEW);
-}
-//----------------------------------Mathutils.DotQuats() ----------------
-//returns the dot product of 2 quaternions
-PyObject *M_Mathutils_DotQuats(PyObject * self, PyObject * args)
-{
-	QuaternionObject *quatU = NULL, *quatV = NULL;
-	double dot = 0.0f;
-	int x;
-
-	if(!PyArg_ParseTuple(args, "O!O!", &quaternion_Type, &quatU, &quaternion_Type, &quatV)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.DotQuats(): expected Quaternion types");
-		return NULL;
-	}
-
-	for(x = 0; x < 4; x++) {
-		dot += quatU->quat[x] * quatV->quat[x];
-	}
-	return PyFloat_FromDouble(dot);
-}
 //----------------------------------Mathutils.DifferenceQuats() ---------
 //returns the difference between 2 quaternions
-PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 {
 	QuaternionObject *quatU = NULL, *quatV = NULL;
 	float quat[4], tempQuat[4];
@@ -1162,7 +817,7 @@ PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 }
 //----------------------------------Mathutils.Slerp() ------------------
 //attemps to interpolate 2 quaternions and return the result
-PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
+static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 {
 	QuaternionObject *quatU = NULL, *quatV = NULL;
 	float quat[4], quat_u[4], quat_v[4], param;
@@ -1218,67 +873,9 @@ PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 	return newQuaternionObject(quat, Py_NEW);
 }
 //----------------------------------EULER FUNCTIONS----------------------
-//----------------------------------Mathutils.Euler() -------------------
-//makes a new euler for you to play with
-PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args)
-{
-
-	PyObject *listObject = NULL;
-	int size, i;
-	float eul[3];
-	PyObject *e, *f;
-
-	size = PySequence_Length(args);
-	if (size == 1) {
-		listObject = PySequence_GetItem(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d euler
-		return newEulerObject(NULL, Py_NEW); 
-	} else {
-		Py_INCREF(args);
-		listObject = args;
-	}
-
-	if (size != 3) { // Invalid euler size
-		Py_DECREF(listObject);
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
-		return NULL;
-	}
-
-	for (i=0; i<size; i++) {
-		e = PySequence_GetItem(listObject, i);
-		if (e == NULL) { // Failed to read sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-
-		f = PyNumber_Float(e);
-		if(f == NULL) { // parsed item not a number
-			Py_DECREF(e);
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-
-		eul[i]=(float)PyFloat_AS_DOUBLE(f);
-		Py_DECREF(f);
-		Py_DECREF(e);
-	}
-	Py_DECREF(listObject);
-	return newEulerObject(eul, Py_NEW);
-}
-
 //---------------------------------INTERSECTION FUNCTIONS--------------------
 //----------------------------------Mathutils.Intersect() -------------------
-PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
+static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 {
 	VectorObject *ray, *ray_off, *vec1, *vec2, *vec3;
 	float dir[3], orig[3], v1[3], v2[3], v3[3], e1[3], e2[3], pvec[3], tvec[3], qvec[3];
@@ -1348,7 +945,7 @@ PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 }
 //----------------------------------Mathutils.LineIntersect() -------------------
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
-PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
+static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 {
 	PyObject * tuple;
 	VectorObject *vec1, *vec2, *vec3, *vec4;
@@ -1412,7 +1009,7 @@ PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 
 //---------------------------------NORMALS FUNCTIONS--------------------
 //----------------------------------Mathutils.QuadNormal() -------------------
-PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
+static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1;
 	VectorObject *vec2;
@@ -1459,7 +1056,7 @@ PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 }
 
 //----------------------------Mathutils.TriangleNormal() -------------------
-PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
+static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1, *vec2, *vec3;
 	float v1[3], v2[3], v3[3], e1[3], e2[3], n[3];
@@ -1493,7 +1090,7 @@ PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 
 //--------------------------------- AREA FUNCTIONS--------------------
 //----------------------------------Mathutils.TriangleArea() -------------------
-PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
+static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1, *vec2, *vec3;
 	float v1[3], v2[3], v3[3];
@@ -1532,145 +1129,6 @@ PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "only 2D,3D vectors are supported\n" );
 		return NULL;
 	}
-}
-//#############################DEPRECATED################################
-//#######################################################################
-//----------------------------------Mathutils.CopyMat() -----------------
-//copies a matrix into a new matrix
-PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args)
-{
-	PyObject *matrix = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.CopyMat(): deprecated :use Mathutils.Matrix() to copy matrices\n");
-		--warning;
-	}
-
-	matrix = M_Mathutils_Matrix(self, args);
-	if(matrix == NULL)
-		return NULL; //error string already set if we get here
-	else
-		return matrix;
-}
-//----------------------------------Mathutils.CopyVec() -----------------
-//makes a new vector that is a copy of the input
-PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args)
-{
-	PyObject *vec = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.CopyVec(): Deprecated: use Mathutils.Vector() to copy vectors\n");
-		--warning;
-	}
-
-	vec = M_Mathutils_Vector(self, args);
-	if(vec == NULL)
-		return NULL; //error string already set if we get here
-	else
-		return vec;
-}
-//----------------------------------Mathutils.CopyQuat() --------------
-//Copies a quaternion to a new quat
-PyObject *M_Mathutils_CopyQuat(PyObject * self, PyObject * args)
-{
-	PyObject *quat = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.CopyQuat(): Deprecated: use Mathutils.Quaternion() to copy vectors\n");
-		--warning;
-	}
-
-	quat = M_Mathutils_Quaternion(self, args);
-	if(quat == NULL)
-		return NULL; //error string already set if we get here
-	else
-		return quat;
-}
-//----------------------------------Mathutils.CopyEuler() ---------------
-//copies a euler to a new euler
-PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args)
-{
-	PyObject *eul = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.CopyEuler(): deprecated:use Mathutils.Euler() to copy vectors\n");
-		--warning;
-	}
-
-	eul = M_Mathutils_Euler(self, args);
-	if(eul == NULL)
-		return NULL; //error string already set if we get here
-	else
-		return eul;
-}
-//----------------------------------Mathutils.RotateEuler() ------------
-//rotates a euler a certain amount and returns the result
-//should return a unique euler rotation (i.e. no 720 degree pitches :)
-PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args)
-{
-	EulerObject *Eul = NULL;
-	float angle;
-	char *axis;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.RotateEuler(): Deprecated:use Euler.rotate() to rotate a euler\n");
-		--warning;
-	}
-
-	if(!PyArg_ParseTuple(args, "O!fs", &euler_Type, &Eul, &angle, &axis)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.RotateEuler(): expected euler type & float & string");
-		return NULL;
-	}
-
-	Euler_Rotate(Eul, Py_BuildValue("fs", angle, axis));
-	Py_RETURN_NONE;
-}
-//----------------------------------Mathutils.MatMultVec() --------------
-//COLUMN VECTOR Multiplication (Matrix X Vector)
-PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args)
-{
-	MatrixObject *mat = NULL;
-	VectorObject *vec = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.MatMultVec(): Deprecated: use matrix * vec to perform column vector multiplication\n");
-		--warning;
-	}
-
-	//get pyObjects
-	if(!PyArg_ParseTuple(args, "O!O!", &matrix_Type, &mat, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.MatMultVec(): MatMultVec() expects a matrix and a vector object - in that order\n");
-		return NULL;
-	}
-
-	return column_vector_multiplication(mat, vec);
-}
-//----------------------------------Mathutils.VecMultMat() ---------------
-//ROW VECTOR Multiplication - Vector X Matrix
-PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args)
-{
-	MatrixObject *mat = NULL;
-	VectorObject *vec = NULL;
-	static char warning = 1;
-
-	if( warning ) {
-		printf("Mathutils.VecMultMat(): Deprecated: use vec * matrix to perform row vector multiplication\n");
-		--warning;
-	}
-
-	//get pyObjects
-	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec, &matrix_Type, &mat)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.VecMultMat(): VecMultMat() expects a vector and matrix object - in that order\n");
-		return NULL;
-	}
-
-	return row_vector_multiplication(vec, mat);
 }
 
 /* Utility functions */

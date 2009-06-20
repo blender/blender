@@ -40,20 +40,32 @@
 #define SWIZZLE_AXIS       0x3
 
 /*-------------------------DOC STRINGS ---------------------------*/
-char Vector_Zero_doc[] = "() - set all values in the vector to 0";
-char Vector_Normalize_doc[] = "() - normalize the vector";
-char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
-char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
-char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
-char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
-char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
-char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
-char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
-char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
-char Vector_copy_doc[] = "() - return a copy of the vector";
-char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
+static char Vector_Zero_doc[] = "() - set all values in the vector to 0";
+static char Vector_Normalize_doc[] = "() - normalize the vector";
+static char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
+static char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
+static char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
+static char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
+static char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
+static char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
+static char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
+static char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
+static char Vector_copy_doc[] = "() - return a copy of the vector";
+static char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
-struct PyMethodDef Vector_methods[] = {
+static PyObject *Vector_Zero( VectorObject * self );
+static PyObject *Vector_Normalize( VectorObject * self );
+static PyObject *Vector_Negate( VectorObject * self );
+static PyObject *Vector_Resize2D( VectorObject * self );
+static PyObject *Vector_Resize3D( VectorObject * self );
+static PyObject *Vector_Resize4D( VectorObject * self );
+static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args );
+static PyObject *Vector_Reflect( VectorObject * self, PyObject * value );
+static PyObject *Vector_Cross( VectorObject * self, VectorObject * value );
+static PyObject *Vector_Dot( VectorObject * self, VectorObject * value );
+static PyObject *Vector_copy( VectorObject * self );
+
+static struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
 	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, Vector_Normalize_doc},
 	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, Vector_Negate_doc},
@@ -69,10 +81,61 @@ struct PyMethodDef Vector_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+//----------------------------------Mathutils.Vector() ------------------
+// Supports 2D, 3D, and 4D vector objects both int and float values
+// accepted. Mixed float and int values accepted. Ints are parsed to float 
+static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyObject *listObject = NULL;
+	int size, i;
+	float vec[4], f;
+	PyObject *v;
+
+	size = PyTuple_GET_SIZE(args); /* we know its a tuple because its an arg */
+	if (size == 1) {
+		listObject = PyTuple_GET_ITEM(args, 0);
+		if (PySequence_Check(listObject)) {
+			size = PySequence_Length(listObject);
+		} else { // Single argument was not a sequence
+			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+	} else if (size == 0) {
+		//returns a new empty 3d vector
+		return newVectorObject(NULL, 3, Py_NEW); 
+	} else {
+		listObject = args;
+	}
+
+	if (size<2 || size>4) { // Invalid vector size
+		PyErr_SetString(PyExc_AttributeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+		return NULL;
+	}
+
+	for (i=0; i<size; i++) {
+		v=PySequence_GetItem(listObject, i);
+		if (v==NULL) { // Failed to read sequence
+			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+
+		f= PyFloat_AsDouble(v);
+		if(f==-1 && PyErr_Occurred()) { // parsed item not a number
+			Py_DECREF(v);
+			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+
+		vec[i]= f;
+		Py_DECREF(v);
+	}
+	return newVectorObject(vec, size, Py_NEW);
+}
+
 /*-----------------------------METHODS---------------------------- */
 /*----------------------------Vector.zero() ----------------------
   set the vector data to 0,0,0 */
-PyObject *Vector_Zero(VectorObject * self)
+static PyObject *Vector_Zero(VectorObject * self)
 {
 	int i;
 	for(i = 0; i < self->size; i++) {
@@ -83,7 +146,7 @@ PyObject *Vector_Zero(VectorObject * self)
 }
 /*----------------------------Vector.normalize() -----------------
   normalize the vector data to a unit vector */
-PyObject *Vector_Normalize(VectorObject * self)
+static PyObject *Vector_Normalize(VectorObject * self)
 {
 	int i;
 	float norm = 0.0f;
@@ -102,7 +165,7 @@ PyObject *Vector_Normalize(VectorObject * self)
 
 /*----------------------------Vector.resize2D() ------------------
   resize the vector to x,y */
-PyObject *Vector_Resize2D(VectorObject * self)
+static PyObject *Vector_Resize2D(VectorObject * self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize wrapped data - only python vectors\n");
@@ -120,7 +183,7 @@ PyObject *Vector_Resize2D(VectorObject * self)
 }
 /*----------------------------Vector.resize3D() ------------------
   resize the vector to x,y,z */
-PyObject *Vector_Resize3D(VectorObject * self)
+static PyObject *Vector_Resize3D(VectorObject * self)
 {
 	if (self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize wrapped data - only python vectors\n");
@@ -141,7 +204,7 @@ PyObject *Vector_Resize3D(VectorObject * self)
 }
 /*----------------------------Vector.resize4D() ------------------
   resize the vector to x,y,z,w */
-PyObject *Vector_Resize4D(VectorObject * self)
+static PyObject *Vector_Resize4D(VectorObject * self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize wrapped data - only python vectors");
@@ -164,7 +227,7 @@ PyObject *Vector_Resize4D(VectorObject * self)
 }
 /*----------------------------Vector.toTrackQuat(track, up) ----------------------
   extract a quaternion from the vector and the track and up axis */
-PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
+static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 {
 	float vec[3], quat[4];
 	char *strack, *sup;
@@ -279,7 +342,7 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
   return a reflected vector on the mirror normal
   ((2 * DotVecs(vec, mirror)) * mirror) - vec
   using arithb.c would be nice here */
-PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
+static PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 {
 	VectorObject *mirrvec;
 	float mirror[3];
@@ -326,7 +389,7 @@ PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 	return newVectorObject(reflect, self->size, Py_NEW);
 }
 
-PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
+static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 {
 	VectorObject *vecCross = NULL;
 
@@ -345,7 +408,7 @@ PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 	return (PyObject *)vecCross;
 }
 
-PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
+static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 {
 	double dot = 0.0;
 	int x;
@@ -368,7 +431,7 @@ PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 
 /*----------------------------Vector.copy() --------------------------------------
   return a copy of the vector */
-PyObject *Vector_copy(VectorObject * self)
+static PyObject *Vector_copy(VectorObject * self)
 {
 	return newVectorObject(self->vec, self->size, Py_NEW);
 }
@@ -428,8 +491,8 @@ static PyObject *Vector_item(VectorObject * self, int i)
   sequence accessor (set)*/
 static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 {
-	
-	if(!(PyNumber_Check(ob))) { /* parsed item not a number */
+	float scalar= (float)PyFloat_AsDouble(ob);
+	if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "vector[index] = x: index argument not a number\n");
 		return -1;
 	}
@@ -438,7 +501,7 @@ static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range\n");
 		return -1;
 	}
-	self->vec[i] = (float)PyFloat_AsDouble(ob);
+	self->vec[i] = scalar;
 	return 0;
 }
 
@@ -468,7 +531,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 			     PyObject * seq)
 {
 	int i, y, size = 0;
-	float vec[4];
+	float vec[4], scalar;
 	PyObject *v;
 
 	CLAMP(begin, 0, self->size);
@@ -489,13 +552,14 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 			return -1;
 		}
 		
-		if(!PyNumber_Check(v)) { /* parsed item not a number */
+		scalar= (float)PyFloat_AsDouble(v);
+		if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 			Py_DECREF(v);
 			PyErr_SetString(PyExc_TypeError, "vector[begin:end] = []: sequence argument not a number\n");
 			return -1;
 		}
 
-		vec[i] = (float)PyFloat_AsDouble(v);
+		vec[i] = scalar;
 		Py_DECREF(v);
 	}
 	/*parsed well - now set in vector*/
@@ -628,6 +692,7 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+	float scalar;
 	
 	if VectorObject_Check(v1)
 		vec1= (VectorObject *)v1;
@@ -658,23 +723,9 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		v2= v1;
 	}
 	
-	if (PyNumber_Check(v2)) {
-		/* VEC * NUM */
-		int i;
-		float vec[4];
-		float scalar = (float)PyFloat_AsDouble( v2 );
-		
-		for(i = 0; i < vec1->size; i++) {
-			vec[i] = vec1->vec[i] *	scalar;
-		}
-		return newVectorObject(vec, vec1->size, Py_NEW);
-		
-	} else if (MatrixObject_Check(v2)) {
+	if (MatrixObject_Check(v2)) {
 		/* VEC * MATRIX */
-		if (v1==v2) /* mat*vec, we have swapped the order */
-			return column_vector_multiplication((MatrixObject*)v2, vec1);
-		else /* vec*mat */
-			return row_vector_multiplication(vec1, (MatrixObject*)v2);
+		return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
 		QuaternionObject *quat = (QuaternionObject*)v2;
 		if(vec1->size != 3) {
@@ -682,6 +733,16 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			return NULL;
 		}
 		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
+	}
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
+		int i;
+		float vec[4];
+		
+		for(i = 0; i < vec1->size; i++) {
+			vec[i] = vec1->vec[i] * scalar;
+		}
+		return newVectorObject(vec, vec1->size, Py_NEW);
+		
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
@@ -694,21 +755,11 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
 	int i;
+	float scalar;
 	
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
-	if (PyNumber_Check(v2)) {
-		/* VEC * NUM */
-		float scalar = (float)PyFloat_AsDouble( v2 );
-		
-		for(i = 0; i < vec->size; i++) {
-			vec->vec[i] *=	scalar;
-		}
-		
-		Py_INCREF( v1 );
-		return v1;
-		
-	} else if (MatrixObject_Check(v2)) {
+	if (MatrixObject_Check(v2)) {
 		float vecCopy[4];
 		int x,y, size = vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
@@ -739,6 +790,17 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		Py_INCREF( v1 );
 		return v1;
 	}
+	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*=FLOAT */
+		
+		for(i = 0; i < vec->size; i++) {
+			vec->vec[i] *=	scalar;
+		}
+		
+		Py_INCREF( v1 );
+		return v1;
+		
+	}
+	
 	PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
 	return NULL;
 }
@@ -747,7 +809,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
   divide*/
 static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 {
-	int i, size;
+	int i;
 	float vec[4], scalar;
 	VectorObject *vec1 = NULL;
 	
@@ -757,28 +819,28 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1; /* vector */
 	
-	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+	scalar = (float)PyFloat_AsDouble(v2);
+	if(scalar== -1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
 		return NULL;
 	}
-	scalar = (float)PyFloat_AsDouble(v2);
 	
 	if(scalar==0.0) { /* not a vector */
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
 		return NULL;
 	}
-	size = vec1->size;
-	for(i = 0; i < size; i++) {
+	
+	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
-	return newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW);
 }
 
-/*------------------------obj / obj------------------------------
+/*------------------------obj /= obj------------------------------
   divide*/
 static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 {
-	int i, size;
+	int i;
 	float scalar;
 	VectorObject *vec1 = NULL;
 	
@@ -788,20 +850,18 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	}*/
 	
 	vec1 = (VectorObject*)v1; /* vector */
-	
-	if(!PyNumber_Check(v2)) { /* parsed item not a number */
+
+	scalar = (float)PyFloat_AsDouble(v2);
+	if(scalar==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError, "Vector division: Vector must be divided by a float\n");
 		return NULL;
 	}
-
-	scalar = (float)PyFloat_AsDouble(v2);
 	
 	if(scalar==0.0) { /* not a vector */
 		PyErr_SetString(PyExc_ZeroDivisionError, "Vector division: divide by zero error.\n");
 		return NULL;
 	}
-	size = vec1->size;
-	for(i = 0; i < size; i++) {
+	for(i = 0; i < vec1->size; i++) {
 		vec1->vec[i] /=	scalar;
 	}
 	Py_INCREF( v1 );
@@ -820,24 +880,6 @@ static PyObject *Vector_neg(VectorObject *self)
 
 	return newVectorObject(vec, self->size, Py_NEW);
 }
-/*------------------------coerce(obj, obj)-----------------------
-  coercion of unknown types to type VectorObject for numeric protocols
-  Coercion() is called whenever a math operation has 2 operands that
- it doesn't understand how to evaluate. 2+Matrix for example. We want to 
- evaluate some of these operations like: (vector * 2), however, for math
- to proceed, the unknown operand must be cast to a type that python math will
- understand. (e.g. in the case above case, 2 must be cast to a vector and 
- then call vector.multiply(vector, scalar_cast_as_vector)*/
-
-
-static int Vector_coerce(PyObject ** v1, PyObject ** v2)
-{
-	/* Just incref, each functon must raise errors for bad types */
-	Py_INCREF (*v1);
-	Py_INCREF (*v2);
-	return 0;
-}
-
 
 /*------------------------tp_doc*/
 static char VectorObject_doc[] = "This is a wrapper for vector objects.";
@@ -860,7 +902,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 
 /*------------------------tp_richcmpr
   returns -1 execption, 0 false, 1 true */
-PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
 	int result = 0;
@@ -949,15 +991,6 @@ static PySequenceMethods Vector_SeqMethods = {
 	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
 	(ssizessizeobjargproc) Vector_ass_slice,		/* sq_ass_slice */
 };
-
-
-/* For numbers without flag bit Py_TPFLAGS_CHECKTYPES set, all
-   arguments are guaranteed to be of the object's type (modulo
-   coercion hacks -- i.e. if the type's coercion function
-   returns other types, then these are allowed as well).  Numbers that
-   have the Py_TPFLAGS_CHECKTYPES flag bit set should check *both*
-   arguments for proper type and implement the necessary conversions
-   in the slot functions themselves. */
  
 static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
@@ -977,11 +1010,7 @@ static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) NULL,							/* __and__ */
 	(binaryfunc) NULL,							/* __xor__ */
 	(binaryfunc) NULL,							/* __or__ */
-#if 0 //XXX 2.5
-	(coercion)  Vector_coerce,					/* __coerce__ */
-#else
-	0,
-#endif
+	/*(coercion)*/ NULL,							/* __coerce__ */
 	(unaryfunc) NULL,							/* __int__ */
 	(unaryfunc) NULL,							/* __long__ */
 	(unaryfunc) NULL,							/* __float__ */
@@ -1095,11 +1124,11 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 	double dot = 0.0f, param;
 	int i;
 	
-	if (!PyNumber_Check(value)) {
-		PyErr_SetString( PyExc_TypeError, "expected a number for the vector axis" );
+	param= PyFloat_AsDouble( value );
+	if(param==-1.0 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "length must be set to a number");
 		return -1;
 	}
-	param= PyFloat_AsDouble( value );
 	
 	if (param < 0) {
 		PyErr_SetString( PyExc_TypeError, "cannot set a vectors length to a negative value" );
@@ -1229,12 +1258,13 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < listLen)
 		{
 			item = PyList_GetItem(value, axisB);
-			if (!PyNumber_Check(item))
-			{
+			scalarVal = (float)PyFloat_AsDouble(item);
+			
+			if (scalarVal==-1.0 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.\n");
 				return -1;
 			}
-			scalarVal = (float)PyFloat_AsDouble(item);
+			
 			
 			axisA = swizzleClosure & SWIZZLE_AXIS;
 			vecTemp[axisA] = scalarVal;
@@ -1245,10 +1275,9 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 		memcpy(self->vec, vecTemp, axisB * sizeof(float));
 		return 0;
 	}
-	else if (PyNumber_Check(value))
+	else if (((scalarVal = (float)PyFloat_AsDouble(value)) == -1.0 && PyErr_Occurred())==0)
 	{
 		/* Assign the same value to each axis. */
-		scalarVal = (float)PyFloat_AsDouble(value);
 		swizzleClosure = (unsigned int) closure;
 		while (swizzleClosure & SWIZZLE_VALID_AXIS)
 		{
@@ -1729,12 +1758,7 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-#if 0 //XXX 2.5
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES,         /* long tp_flags; */
-#else
 	Py_TPFLAGS_DEFAULT,
-#endif
-
 	VectorObject_doc,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
@@ -1766,7 +1790,7 @@ PyTypeObject vector_Type = {
 	0,                          /* long tp_dictoffset; */
 	NULL,                       /* initproc tp_init; */
 	NULL,                       /* allocfunc tp_alloc; */
-	NULL,                       /* newfunc tp_new; */
+	Vector_new,                 /* newfunc tp_new; */
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
 	/* For PyObject_IS_GC */
@@ -1824,7 +1848,7 @@ PyObject *newVectorObject(float *vec, int size, int type)
   #######################################################################
   ----------------------------Vector.negate() --------------------
   set the vector to it's negative -x, -y, -z */
-PyObject *Vector_Negate(VectorObject * self)
+static PyObject *Vector_Negate(VectorObject * self)
 {
 	int i;
 	for(i = 0; i < self->size; i++) {

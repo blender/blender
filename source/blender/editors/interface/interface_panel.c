@@ -70,6 +70,7 @@
 #define PNL_WAS_ACTIVE		4
 #define PNL_ANIM_ALIGN		8
 #define PNL_NEW_ADDED		16
+#define PNL_FIRST			32
 
 typedef enum uiHandlePanelState {
 	PANEL_STATE_DRAG,
@@ -528,7 +529,7 @@ static void rectf_scale(rctf *rect, float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
-	Panel *panel= block->panel, *prev;
+	Panel *panel= block->panel;
 	rcti headrect;
 	rctf itemrect;
 	int ofsx;
@@ -541,14 +542,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	headrect.ymin= headrect.ymax;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
-	/* divider only when there's a previous panel */
-	prev= panel->prev;
-	while(prev) {
-		if(prev->runtime_flag & PNL_ACTIVE) break;
-		prev= prev->prev;
-	}
-	
-	if(panel->sortorder != 0) {
+	if(!(panel->runtime_flag & PNL_FIRST)) {
 		float minx= rect->xmin+5.0f/block->aspect;
 		float maxx= rect->xmax-5.0f/block->aspect;
 		float y= headrect.ymax;
@@ -848,7 +842,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-	Panel *panot, *panew, *patest, *pa;
+	Panel *panot, *panew, *patest, *pa, *firstpa;
 	
 	/* offset contents */
 	for(block= ar->uiblocks.first; block; block= block->next)
@@ -887,6 +881,16 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 		else
 			uiAlignPanelStep(sa, ar, 1.0, 0);
 	}
+
+	/* tag first panel */
+	firstpa= NULL;
+	for(block= ar->uiblocks.first; block; block=block->next)
+		if(block->active && block->panel)
+			if(!firstpa || block->panel->sortorder < firstpa->sortorder)
+				firstpa= block->panel;
+	
+	if(firstpa)
+		firstpa->runtime_flag |= PNL_FIRST;
 
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {

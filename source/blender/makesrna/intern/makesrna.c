@@ -702,8 +702,10 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 	else {
 		if(manualfunc)
 			fprintf(f, "\n	%s(iter, ptr);\n", manualfunc);
-		else
+		else if(dp->dnapointerlevel == 0)
 			fprintf(f, "\n	rna_iterator_listbase_begin(iter, &data->%s, NULL);\n", dp->dnaname);
+		else
+			fprintf(f, "\n	rna_iterator_listbase_begin(iter, data->%s, NULL);\n", dp->dnaname);
 	}
 
 	getfunc= rna_alloc_function_name(srna->identifier, prop->identifier, "get");
@@ -1486,8 +1488,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	if(nest != NULL) {
 		len= strlen(nest);
 
-		strnest= MEM_mallocN(sizeof(char)*(len+1), "rna_generate_property -> strnest");
-		errnest= MEM_mallocN(sizeof(char)*(len+1), "rna_generate_property -> errnest");
+		strnest= MEM_mallocN(sizeof(char)*(len+2), "rna_generate_property -> strnest");
+		errnest= MEM_mallocN(sizeof(char)*(len+2), "rna_generate_property -> errnest");
 
 		strcpy(strnest, "_"); strcat(strnest, nest);
 		strcpy(errnest, "."); strcat(errnest, nest);
@@ -1711,6 +1713,8 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		if(func->cont.prev) fprintf(f, "(FunctionRNA*)&rna_%s_%s_func,\n", srna->identifier, ((FunctionRNA*)func->cont.prev)->identifier);
 		else fprintf(f, "NULL,\n");
 
+		fprintf(f, "\tNULL,\n");
+
 		parm= func->cont.properties.first;
 		if(parm) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s_%s, ", srna->identifier, func->identifier, parm->identifier);
 		else fprintf(f, "\t{NULL, ");
@@ -1741,6 +1745,8 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	else fprintf(f, "\t{NULL, ");
 	if(srna->cont.prev) fprintf(f, "(ContainerRNA *)&RNA_%s,\n", ((StructRNA*)srna->cont.prev)->identifier);
 	else fprintf(f, "NULL,\n");
+
+	fprintf(f, "\tNULL,\n");
 
 	prop= srna->cont.properties.first;
 	if(prop) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s, ", srna->identifier, prop->identifier);

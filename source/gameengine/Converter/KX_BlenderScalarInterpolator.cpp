@@ -43,6 +43,9 @@ float BL_ScalarInterpolator::GetValue(float currentTime) const {
 }
 
 BL_InterpolatorList::BL_InterpolatorList(struct AnimData *adt) {
+	if(adt->action==NULL)
+		return;
+	
 	for(FCurve *fcu= (FCurve *)adt->action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
 		if(fcu->rna_path) {
 			BL_ScalarInterpolator *new_ipo = new BL_ScalarInterpolator(fcu); 

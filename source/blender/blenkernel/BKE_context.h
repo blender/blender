@@ -126,12 +126,14 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 
 /* Data Context
 
-   - note: listbases consist of LinkData items and must be
-     freed with BLI_freelistN! */
+   - listbases consist of CollectionPointerLink items and must be
+     freed with BLI_freelistN!
+   - the dir listbase consits of LinkData items */
 
-PointerRNA CTX_data_pointer_get(bContext *C, const char *member);
-ListBase CTX_data_collection_get(bContext *C, const char *member);
-void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
+PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
+ListBase CTX_data_collection_get(const bContext *C, const char *member);
+ListBase CTX_data_dir_get(const bContext *C);
+void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
@@ -139,7 +141,10 @@ void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
+void CTX_data_dir_set(bContextDataResult *result, const char **member);
+
 int CTX_data_equals(const char *member, const char *str);
+int CTX_data_dir(const char *member);
 
 /*void CTX_data_pointer_set(bContextDataResult *result, void *data);
 void CTX_data_list_add(bContextDataResult *result, void *data);*/

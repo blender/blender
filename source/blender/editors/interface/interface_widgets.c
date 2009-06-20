@@ -1876,7 +1876,9 @@ static void widget_disabled(rcti *rect)
 	/* can't use theme TH_BACK or TH_PANEL... undefined */
 	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
 	glColor4f(col[0], col[1], col[2], 0.5f);
-	glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	/* need -1 and +1 to make it work right for aligned buttons,
+	 * but problem may be somewhere else? */
+	glRectf(rect->xmin-1, rect->ymin, rect->xmax, rect->ymax+1);
 
 	glDisable(GL_BLEND);
 }

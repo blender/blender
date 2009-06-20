@@ -164,6 +164,7 @@ extern StructRNA RNA_DomainFluidSettings;
 extern StructRNA RNA_Driver;
 extern StructRNA RNA_DriverTarget;
 extern StructRNA RNA_EdgeSplitModifier;
+extern StructRNA RNA_EditBone;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;

@@ -34,6 +34,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_ghash.h"
+
 /* Struct */
 
 static void rna_Struct_identifier_get(PointerRNA *ptr, char *value)
@@ -275,6 +277,51 @@ void rna_builtin_properties_next(CollectionPropertyIterator *iter)
 PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 {
 	return rna_Struct_properties_get(iter);
+}
+
+PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	IDProperty *group, *idp;
+	PointerRNA propptr;
+
+	memset(&propptr, 0, sizeof(propptr));
+	srna= ptr->type;
+
+	do {
+		if(srna->cont.prophash) {
+			prop= BLI_ghash_lookup(srna->cont.prophash, (void*)key);
+
+			if(prop) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+
+		for(prop=srna->cont.properties.first; prop; prop=prop->next) {
+			if(!(prop->flag & PROP_BUILTIN) && strcmp(prop->identifier, key)==0) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+	} while((srna=srna->base));
+
+	group= RNA_struct_idproperties(ptr, 0);
+
+	if(group) {
+		for(idp=group->data.group.first; idp; idp=idp->next) {
+			if(strcmp(idp->name, key) == 0) {
+				propptr.type= &RNA_Property;
+				propptr.data= idp;
+				return propptr;
+			}
+		}
+	}
+
+	return propptr;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)

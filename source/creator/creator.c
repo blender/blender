@@ -77,6 +77,8 @@
 
 #include "WM_api.h"
 
+#include "RNA_define.h"
+
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
@@ -310,11 +312,13 @@ int main(int argc, char **argv)
 
 	BLI_where_am_i(bprogname, argv[0]);
 	
+	RNA_init();
+
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
 	pluginapi_force_ref();
-	
+
 	init_nodesystem();
 	
 	initglobals();	/* blender.c */

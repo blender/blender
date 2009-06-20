@@ -207,6 +207,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "texture")
 		layout.itemR(md, "midlevel")
 		layout.itemR(md, "strength")
+		layout.itemR(md, "direction")
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinate_object", text="Object")

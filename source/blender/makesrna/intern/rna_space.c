@@ -62,7 +62,7 @@ EnumPropertyItem space_type_items[] = {
 #define DC_ALPHA {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."}
 #define DC_Z {SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."}
 #ifdef WITH_LCMS
-#define DC_LCMS SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."}
+#define DC_LCMS {SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."}
 #else
 #define DC_LCMS {0, NULL, 0, NULL, NULL}
 #endif
