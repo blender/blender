@@ -212,19 +212,25 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
 static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
-	char str[256];
+	char str[256], dir[3];
 	rctf rect;
+	
+	/* 'dir' - direction that strip is played in */
+	if (strip->flag & NLASTRIP_FLAG_REVERSE)
+		sprintf(dir, "<-");
+	else
+		sprintf(dir, "->");
 	
 	/* for now, just init the string with fixed-formats */
 	switch (strip->type) {
 		case NLASTRIP_TYPE_TRANSITION: /* Transition */
-			sprintf(str, "%d | Transition | %.2f <-> %.2f", index, strip->start, strip->end);
+			sprintf(str, "%d | Transition | %.2f %s %.2f", index, strip->start, dir, strip->end);
 			break;
 		
 		case NLASTRIP_TYPE_CLIP:	/* Action-Clip (default) */
 		default:
 			if (strip->act)
-				sprintf(str, "%d | Act: %s | %.2f <-> %.2f", index, strip->act->id.name+2, strip->start, strip->end);
+				sprintf(str, "%d | Act: %s | %.2f %s %.2f", index, strip->act->id.name+2, strip->start, dir, strip->end);
 			else
 				sprintf(str, "%d | Act: <NONE>", index); // xxx... need a better format?
 			break;

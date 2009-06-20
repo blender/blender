@@ -648,7 +648,6 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	/* if block is already in tweakmode, just leave, but we should report 
 	 * that this block is in tweakmode (as our returncode)
 	 */
-	// FIXME: hopefully the flag is correct!
 	if (adt->flag & ADT_NLA_EDIT_ON)
 		return 1;
 		
@@ -707,6 +706,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 /* Exit tweakmode for this AnimData block */
 void BKE_nla_tweakmode_exit (AnimData *adt)
 {
+	NlaStrip *strip;
 	NlaTrack *nlt;
 	
 	/* verify that data is valid */
@@ -719,9 +719,15 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 		
 	// TODO: need to sync the user-strip with the new state of the action!
 		
-	/* for all NLA-tracks, clear the 'disabled' flag */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)
+	/* for all NLA-tracks, clear the 'disabled' flag
+	 * for all NLA-strips, clear the 'tweak-user' flag
+	 */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
 		nlt->flag &= ~NLATRACK_DISABLED;
+		
+		for (strip= nlt->strips.first; strip; strip= strip->next) 
+			strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
+	}
 	
 	/* handle AnimData level changes:
 	 *	- 'temporary' active action needs its usercount decreased, since we're removing this reference

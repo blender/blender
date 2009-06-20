@@ -492,8 +492,8 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 					BKE_nlatrack_add_strip(track, nstrip);
 				}
 				
-				/* deselect the original */
-				strip->flag &= ~NLASTRIP_FLAG_SELECT;
+				/* deselect the original and the active flag */
+				strip->flag &= ~(NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
 				
 				done++;
 			}
@@ -666,6 +666,9 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 				
 				strip->actend= midaframe;
 				nstrip->actstart= midaframe;
+				
+				/* clear the active flag from the copy */
+				nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
 			}
 		}
 	}
