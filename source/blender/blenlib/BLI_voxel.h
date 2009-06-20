@@ -21,25 +21,20 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Raul Fernandez Hernandez (Farsthary), Matt Ebb.
+ * Contributor(s): Matt Ebb, Raul Fernandez Hernandez (Farsthary).
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef VOXELDATA_H
-#define VOXELDATA_H 
+#ifndef BLI_VOXEL_H
+#define BLI_VOXEL_H
 
-struct Render;
-struct TexResult;
+/* find the index number of a voxel, given x/y/z integer coords and resolution vector */
+#define V_I(x, y, z, res) ( (z)*(res)[1]*(res)[0] + (y)*(res)[0] + (x) )
 
-typedef struct VoxelDataHeader
-{
-	int resolX, resolY, resolZ;
-	int frames;
-} VoxelDataHeader;
+/* all input coordinates must be in bounding box 0.0 - 1.0 */
+float voxel_sample_nearest(float *data, int *res, float *co);
+float voxel_sample_trilinear(float *data, int *res, float *co);
+float voxel_sample_tricubic(float *data, int *res, float *co);
 
-void make_voxeldata(struct Render *re);
-void free_voxeldata(struct Render *re);
-int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres);
-
-#endif /* VOXELDATA_H */
+#endif /* BLI_VOXEL_H */

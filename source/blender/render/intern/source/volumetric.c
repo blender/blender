@@ -36,6 +36,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_voxel.h"
 
 #include "RE_shader_ext.h"
 #include "RE_raytrace.h"
@@ -139,79 +140,27 @@ static float vol_get_depth_cutoff(struct ShadeInput *shi)
 	return shi->mat->vol_depth_cutoff;
 }
 
-/* SHADING */
-
-static float D(ShadeInput *shi, int rgb, int x, int y, int z)
-{
-	const int res = shi->mat->vol_precache_resolution;
-	CLAMP(x, 0, res-1);
-	CLAMP(y, 0, res-1);
-	CLAMP(z, 0, res-1);
-	return shi->obi->volume_precache[rgb*res*res*res + x*res*res + y*res + z];
-}
-
-static inline float lerp(float t, float v1, float v2) {
-	return (1.f - t) * v1 + t * v2;
-}
-
 /* trilinear interpolation */
 static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
 {
-	const int res = shi->mat->vol_precache_resolution;
-	float voxx, voxy, voxz;
-	int vx, vy, vz;
-	float dx, dy, dz;
-	float d00, d10, d01, d11, d0, d1, d_final;
+	VolumePrecache *vp = shi->obi->volume_precache;
 	float bbmin[3], bbmax[3], dim[3];
-	int rgb;
+	float sample_co[3];
 	
-	if (!shi->obi->volume_precache) return;
+	if (!vp) return;
 	
+	/* convert input coords to 0.0, 1.0 */
 	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
 	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
 	VecSubf(dim, bbmax, bbmin);
-	
-	voxx = ((co[0] - bbmin[0]) / dim[0]) * res - 0.5f;
-	voxy = ((co[1] - bbmin[1]) / dim[1]) * res - 0.5f;
-	voxz = ((co[2] - bbmin[2]) / dim[2]) * res - 0.5f;
-	
-	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
-	
-	dx = voxx - vx; dy = voxy - vy; dz = voxz - vz;
-	
-	for (rgb=0; rgb < 3; rgb++) {
-		d00 = lerp(dx, D(shi, rgb, vx, vy, vz), 		D(shi, rgb, vx+1, vy, vz));
-		d10 = lerp(dx, D(shi, rgb, vx, vy+1, vz), 		D(shi, rgb, vx+1, vy+1, vz));
-		d01 = lerp(dx, D(shi, rgb, vx, vy, vz+1), 		D(shi, rgb, vx+1, vy, vz+1));
-		d11 = lerp(dx, D(shi, rgb, vx, vy+1, vz+1), 	D(shi, rgb, vx+1, vy+1, vz+1));
-		d0 = lerp(dy, d00, d10);
-		d1 = lerp(dy, d01, d11);
-		d_final = lerp(dz, d0, d1);
-		
-		scatter_col[rgb] = d_final;
-	}
-}
 
-/* no interpolation */
-static void vol_get_precached_scattering_nearest(ShadeInput *shi, float *scatter_col, float *co)
-{
-	const int res = shi->mat->vol_precache_resolution;
-	int x,y,z;
-	float bbmin[3], bbmax[3], dim[3];
+	sample_co[0] = ((co[0] - bbmin[0]) / dim[0]);
+	sample_co[1] = ((co[1] - bbmin[1]) / dim[1]);
+	sample_co[2] = ((co[2] - bbmin[2]) / dim[2]);
 
-	if (!shi->obi->volume_precache) return;
-	
-	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
-	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
-	VecSubf(dim, bbmax, bbmin);
-	
-	x = (int)(((co[0] - bbmin[0]) / dim[0]) * res);
-	y = (int)(((co[1] - bbmin[1]) / dim[1]) * res);
-	z = (int)(((co[2] - bbmin[2]) / dim[2]) * res);
-	
-	scatter_col[0] = shi->obi->volume_precache[0*res*res*res + x*res*res + y*res + z];
-	scatter_col[1] = shi->obi->volume_precache[1*res*res*res + x*res*res + y*res + z];
-	scatter_col[2] = shi->obi->volume_precache[2*res*res*res + x*res*res + y*res + z];
+	scatter_col[0] = voxel_sample_trilinear(vp->data_r, vp->res, sample_co);
+	scatter_col[1] = voxel_sample_trilinear(vp->data_g, vp->res, sample_co);
+	scatter_col[2] = voxel_sample_trilinear(vp->data_b, vp->res, sample_co);
 }
 
 float vol_get_density(struct ShadeInput *shi, float *co)

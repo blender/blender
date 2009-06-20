@@ -1053,67 +1053,7 @@ static void texture_panel_pointdensity_modify(Tex *tex)
 
 }
 
-static void texture_panel_voxeldata(Tex *tex)
-{
-	uiBlock *block;
-	VoxelData *vd;
-	short yco=PANEL_YMAX;
 
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voxeldata", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Voxel Data", "Texture", PANELX, PANELY, PANELW, PANELH+YSPACE)==0) return;
-	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
-
-	if(tex->vd==NULL) {
-		tex->vd= BKE_add_voxeldata();
-	}
-
-	if(tex->vd) {
-		vd= tex->vd;
-		
-		uiDefBut(block, LABEL, B_NOP, "Data source:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-			
-		uiDefIconTextBut(block, BUT, B_VOXELDATA_LOAD, ICON_FILESEL, "Open",
-			X4CLM1, yco-=BUTH, BUTW4, BUTH, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "",
-			X4CLM2+XSPACE, yco, BUTW2+BUTW4+2*XSPACE, BUTH, &vd->source_path, 0.0, 79.0, 0, 0, "File path to the voxel data set");
-
-		yco -= YSPACE;
-		
-		uiDefBut(block, LABEL, B_NOP, "Interpolation:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-		uiDefButI(block, MENU, B_REDR, "None %x0|Linear %x1|Tricubic %x2",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &vd->interp_type, 0.0, 0.0, 0, 0, "Interpolation type");		
-		
-		yco -= YSPACE;
-		
-		uiDefButF(block, NUM, B_REDR, "Intensity: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(vd->int_multiplier), 0.0001, 10000.0, 0, 0, "Multiplier to scale up or down the texture's intensity");
-		
-		yco = PANEL_YMAX - 2*BUTH - 2*YSPACE;
-		
-		uiDefBut(block, LABEL, B_NOP, "Resolution:",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-		uiBlockBeginAlign(block);
-		uiDefButI(block, NUM, B_REDR, "X: ",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolX), 1, 10000, 0, 0, "Resolution of the voxel data");
-		uiDefButI(block, NUM, B_REDR, "Y: ",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolY), 1, 10000, 0, 0, "Resolution of the voxel data");
-		uiDefButI(block, NUM, B_REDR, "Z: ",
-			X2CLM2, yco-= BUTH, BUTW2, BUTH, &(vd->resolZ), 1, 10000, 0, 0, "Resolution of the voxel data");
-		uiBlockEndAlign(block);
-		
-		yco -= YSPACE;
-		
-		uiBlockBeginAlign(block);
-		uiDefButI(block,TOG, B_REDR, "Still",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still), 0,1, 0, 0, "Use a still frame from the data sequence for the entire rendered animation");
-		if (vd->still) uiDefButI(block, NUM, B_REDR, "Frame: ",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still_frame), 1, 10000, 0, 0, "The frame to pause on for the entire rendered animation");	
-		uiBlockEndAlign(block);
-		
-	}
-}
 
 static char *layer_menu(RenderResult *rr, short *curlay)
 {
@@ -1787,6 +1727,144 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		for(a=5; a<10; a++) 
 			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
+		
+	}
+}
+
+static void texture_panel_voxeldata(Tex *tex)
+{
+	uiBlock *block;
+	VoxelData *vd;
+	short yco=PANEL_YMAX;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voxeldata", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Voxel Data", "Texture", PANELX, PANELY, PANELW, PANELH+BUTH+2*YSPACE)==0) return;
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	if(tex->vd==NULL) {
+		tex->vd= BKE_add_voxeldata();
+	}
+	
+	if(tex->vd) {
+		vd= tex->vd;
+		
+		uiDefBut(block, LABEL, B_NOP, "Data source:",
+				 X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		
+		if (vd->file_format != TEX_VD_IMAGE_SEQUENCE) {
+			uiDefIconTextBut(block, BUT, B_VOXELDATA_LOAD, ICON_FILESEL, "Open",
+							 X4CLM1, yco-=BUTH, BUTW4, BUTH, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, TEX, 0, "",
+					 X4CLM2+XSPACE, yco, BUTW2+BUTW4+2*XSPACE, BUTH, &vd->source_path, 0.0, 79.0, 0, 0, "File path to the voxel data set");
+		}
+		else {
+			char *strp;
+			char str[128];
+			ImageUser *iuser = &(tex->iuser);
+			uiBut *but;
+			
+			/* Browse */
+			IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), NULL, &iuser->menunr);
+			
+			uiBlockBeginAlign(block);
+			but= uiDefButS(block, MENU, B_REDR, strp,
+						   X2CLM1, yco-=BUTH, ICONBUTW, BUTH, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
+			uiButSetFunc(but, image_browse_cb, &(tex->ima), iuser);
+			
+			MEM_freeN(strp);
+			
+			if (tex->ima) {
+				uiSetButLock(tex->ima->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+				but= uiDefIconBut(block, BUT, B_REDR, ICON_FILESEL,
+								  X2CLM1+ICONBUTW, yco, X2CLM1+ICONBUTW, BUTH, 0, 0, 0, 0, 0, "Open Fileselect to load new Image");
+				uiButSetFunc(but, image_load_fs_cb, &(tex->ima), iuser);
+				
+				but= uiDefBut(block, TEX, B_IDNAME, "IM:",
+							  X2CLM1+2*ICONBUTW, yco, PANEL_XMAX-4*ICONBUTW-BUTW4, BUTH, tex->ima->id.name+2, 0.0, 21.0, 0, 0, "Current Image Datablock name.");
+				uiButSetFunc(but, test_idbutton_cb, tex->ima->id.name, NULL);
+				
+				but= uiDefBut(block, BUT, B_REDR, "Reload",
+					PANEL_XMAX-2*ICONBUTW-BUTW4, yco, BUTW4, BUTH, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
+				uiButSetFunc(but, image_reload_cb, &(tex->ima), iuser);
+				
+				but= uiDefIconBut(block, BUT, B_REDR, ICON_X,
+					PANEL_XMAX-2*ICONBUTW, yco, ICONBUTW, BUTH, 0, 0, 0, 0, 0, "Unlink Image block");
+				uiButSetFunc(but, image_unlink_cb, &(tex->ima), NULL);
+				
+				sprintf(str, "%d", tex->ima->id.us);
+				uiDefBut(block, BUT, B_NOP, str,
+					PANEL_XMAX-ICONBUTW, yco, ICONBUTW, BUTH, 0, 0, 0, 0, 0, "Only displays number of users of Image block");
+				uiBlockEndAlign(block);
+				
+				yco -= (BUTH);
+				
+				uiBlockBeginAlign(block);
+				uiDefButI(block, NUM, B_NOP, "Slices:",
+					X2CLM1, yco, BUTW2, BUTH, &iuser->frames, 1.0, MAXFRAMEF, 0, 0, "Number of images in the sequence");
+				uiDefButI(block, NUM, B_NOP, "Offset:",
+					X2CLM2, yco, BUTW2, BUTH, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the file number to consider as the start of the sequence");
+				uiBlockEndAlign(block);
+				
+			} else {
+				but= uiDefBut(block, BUT, B_REDR, "Load",
+					X2CLM1+ICONBUTW, yco, BUTW2-ICONBUTW, BUTH, NULL, 0, 0, 0, 0, "Load new Image");
+				uiButSetFunc(but, image_load_fs_cb, &(tex->ima), iuser);
+			}
+		}
+		
+		yco -= YSPACE;
+		
+		uiDefBut(block, LABEL, B_NOP, "Interpolation:",
+				 X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButI(block, MENU, B_REDR, "None %x0|Linear %x1|Tricubic %x2",
+				  X2CLM1, yco-=BUTH, BUTW2, BUTH, &vd->interp_type, 0.0, 0.0, 0, 0, "Interpolation type");
+		
+		yco -= YSPACE;
+		
+		uiDefBut(block, LABEL, B_NOP, "Extend:",
+				 X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, "Repeat %x3|Clip %x2|Extend %x1",
+				  X2CLM1, yco-=BUTH, BUTW2, BUTH, &(tex->extend), 0.0, 0.0, 0, 0, "Extrapolation type");
+		
+		yco -= YSPACE;
+		
+		uiDefButF(block, NUM, B_REDR, "Intensity: ",
+				  X2CLM1, yco-=BUTH, BUTW2, BUTH, &(vd->int_multiplier), 0.0001, 10000.0, 0, 0, "Multiplier to scale up or down the texture's intensity");
+		
+		yco = PANEL_YMAX - 2*BUTH - YSPACE;
+		if (vd->file_format == TEX_VD_IMAGE_SEQUENCE) yco -= BUTH;
+		
+		uiDefBut(block, LABEL, B_NOP, "File Format:",
+				 X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, "Blender Voxel %x0|Raw (8 bit) %x1|Image Sequence %x3",
+				  X2CLM2, yco-=BUTH, BUTW2, BUTH, &vd->file_format, 0.0, 0.0, 0, 0, "File format of the voxel data file");	
+		
+		if (ELEM(vd->file_format, TEX_VD_RAW_8BIT, TEX_VD_RAW_16BIT)) {
+			uiDefBut(block, LABEL, B_NOP, "Resolution:",
+					 X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButI(block, NUM, B_REDR, "X: ",
+					  X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolX), 1, 10000, 0, 0, "Resolution of the voxel data");
+			uiDefButI(block, NUM, B_REDR, "Y: ",
+					  X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolY), 1, 10000, 0, 0, "Resolution of the voxel data");
+			uiDefButI(block, NUM, B_REDR, "Z: ",
+					  X2CLM2, yco-= BUTH, BUTW2, BUTH, &(vd->resolZ), 1, 10000, 0, 0, "Resolution of the voxel data");
+			uiBlockEndAlign(block);
+		
+			yco -= YSPACE;
+		}	
+		
+		if (vd->file_format == TEX_VD_BLENDERVOXEL) {
+			yco -= (BUTH+YSPACE);
+			uiBlockBeginAlign(block);
+			uiDefButI(block,TOG, B_REDR, "Still",
+				  X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still), 0,1, 0, 0, "Use a still frame from the data sequence for the entire rendered animation");
+			if (vd->still)
+				uiDefButI(block, NUM, B_REDR, "Frame: ",
+						  X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still_frame), 1, 10000, 0, 0, "The frame to pause on for the entire rendered animation");	
+			uiBlockEndAlign(block);
+		}
+		
 		
 	}
 }

@@ -290,8 +290,8 @@ typedef struct ObjectInstanceRen {
 	float dupliorco[3], dupliuv[2];
 	float (*duplitexmat)[4];
 	
-	float *volume_precache;
-
+	struct VolumePrecache *volume_precache;
+	
 	float *vectors;
 	int totvector;
 } ObjectInstanceRen;
@@ -426,12 +426,19 @@ typedef struct VolPrecachePart
 	int minx, maxx;
 	int miny, maxy;
 	int minz, maxz;
-	int res;
+	int res[3];
 	float bbmin[3];
 	float voxel[3];
 	int working, done;
 } VolPrecachePart;
 
+typedef struct VolumePrecache
+{
+	int res[3];
+	float *data_r;
+	float *data_g;
+	float *data_b;
+} VolumePrecache;
 
 /* ------------------------------------------------------------------------- */
 

@@ -165,9 +165,10 @@ typedef struct PointDensity {
 typedef struct VoxelData {
 	int resolX, resolY, resolZ;
 	int interp_type;
-
+	short file_format;
+	short flag;
+	
 	float int_multiplier;
-	float vxpad;
 	
 	int still, still_frame;
 	char source_path[240];
@@ -480,13 +481,20 @@ typedef struct TexMapping {
 #define POINT_DATA_VEL		1
 #define POINT_DATA_LIFE		2
 
-/******************** Voxel Data *****************************/ 
-#define TEX_VD_CUBIC              0
-#define TEX_VD_PARALLELOGRAM      1
- 
+/******************** Voxel Data *****************************/
+/* flag */
+
+
+/* interpolation */
 #define TEX_VD_NEARESTNEIGHBOR		0
-#define TEX_VD_LINEAR			1
+#define TEX_VD_LINEAR				1
 #define TEX_VD_TRICUBIC				2
+
+/* file format */
+#define TEX_VD_BLENDERVOXEL		0
+#define TEX_VD_RAW_8BIT			1
+#define TEX_VD_RAW_16BIT		2
+#define TEX_VD_IMAGE_SEQUENCE	3
 
 #endif
 

@@ -51,6 +51,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volumetric.h"
 #include "zbuf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
