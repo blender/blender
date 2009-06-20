@@ -361,10 +361,10 @@ void NLAEDIT_OT_select_border(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
-	{NLAEDIT_LRSEL_TEST, "CHECK", "Check if Select Left or Right", ""},
-	{NLAEDIT_LRSEL_NONE, "OFF", "Don't select", ""},
-	{NLAEDIT_LRSEL_LEFT, "LEFT", "Before current frame", ""},
-	{NLAEDIT_LRSEL_RIGHT, "RIGHT", "After current frame", ""},
+	{NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+	{NLAEDIT_LRSEL_NONE, "OFF", 0, "Don't select", ""},
+	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
+	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
 	{0, NULL, NULL, NULL}
 };
 

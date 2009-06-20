@@ -206,11 +206,7 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	uiLayout *layout= pa->layout;
 	uiLayout *column, *row, *subcol;
 	uiBlock *block;
-
-	/* check context and also validity of pointer */
-	if (!nla_panel_context(C, NULL, &strip_ptr))
-		return;
-
+	
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 	
