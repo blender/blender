@@ -347,6 +347,17 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 	face_vert_index = 1
 	
 	globalNormals = {}
+
+	for ob_main in objects:
+
+		if ob_main.dupli_type != 'NONE':
+			ob_main.create_dupli_list()
+
+		if ob_main.parent:
+			pass
+
+		if ob_main.dupli_type != 'NONE':
+			ob_main.free_dupli_list()
 	
 	# Get all meshes
 	for ob_main in objects:
