@@ -49,6 +49,7 @@ SET(INC
   ../../../source/blender
   ../../../source/blender/include
   ../../../source/blender/makesdna
+  ../../../source/blender/makesrna
   ../../../source/gameengine/Rasterizer
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
   ../../../source/gameengine/GameLogic

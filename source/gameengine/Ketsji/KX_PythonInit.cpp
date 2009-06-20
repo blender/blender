@@ -42,6 +42,13 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+extern "C" {
+	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
+	#include "BGL.h"
+}
+
 #include "KX_PythonInit.h"
 //python physics binding
 #include "KX_PyConstraintBinding.h"
@@ -70,6 +77,7 @@
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
 #include "ListValue.h"
+#include "InputParser.h"
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
@@ -81,23 +89,11 @@
 
 #include "PyObjectPlus.h"
 
-//XXX
-#if 0
-
 #include "KX_PythonInitTypes.h" 
 
 /* we only need this to get a list of libraries from the main struct */
 #include "DNA_ID.h"
 
-extern "C" {
-	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
-#if PY_VERSION_HEX < 0x03000000
-	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
-	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
-	#include "BGL.h"
-#endif
-}
-#endif
 
 #include "marshal.h" /* python header for loading/saving dicts */
 
@@ -502,6 +498,32 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 }
 
 
+static PyObject *gEvalExpression(PyObject*, PyObject* value)
+{
+	char* txt= PyString_AsString(value);
+	
+	if (txt==NULL) {
+		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
+		return NULL;
+	}
+	
+	CParser parser;
+	CExpression* expr = parser.ProcessText(txt);
+	CValue* val = expr->Calculate();
+	expr->Release();
+	
+	if (val) {	
+		PyObject* pyobj = val->ConvertValueToPython();
+		if (pyobj)
+			return pyobj;
+		else
+			return val->GetProxy();
+	}
+	
+	Py_RETURN_NONE;
+}
+
+
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (PY_METHODCHAR)gPySendMessage_doc},
@@ -530,6 +552,7 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (PY_METHODCHAR)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (PY_METHODCHAR)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (PY_METHODCHAR)"Prints GL Extension Info"},
+	{"EvalExpression", (PyCFunction)gEvalExpression, METH_O, (PY_METHODCHAR)"Evaluate a string as a game logic expression"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -1036,6 +1059,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 		// Create the module and add the functions	
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&GameLogic_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), GameLogic_module_def.m_name, m);
 #else
 		m = Py_InitModule4("GameLogic", game_methods,
 						   GameLogic_module_documentation,
@@ -1352,10 +1376,9 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	}
 	
 	/* Import blender texts as python modules */
-	/* XXX 2.5
-	 * m= bpy_text_import(name, &found);
+	m= bpy_text_import(name, &found);
 	if (m)
-		return m; */
+		return m;
 	
 	if(found==0) /* if its found but could not import then it has its own error */
 		PyErr_Format(PyExc_ImportError, "Import of external Module %.20s not allowed.", name);
@@ -1379,9 +1402,9 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
 		return NULL;
 	
-	/* XXX 2.5 newmodule= bpy_text_reimport( module, &found );
+	newmodule= bpy_text_reimport( module, &found );
 	if (newmodule)
-		return newmodule; */
+		return newmodule;
 	
 	if (found==0) /* if its found but could not import then it has its own error */
 		PyErr_SetString(PyExc_ImportError, "reload(module): failed to reload from blenders internal text");
@@ -1462,8 +1485,8 @@ void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			/* XXX 2.5 PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item); */
-			/* XXX 2.5 PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item); */
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1606,9 +1629,9 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	//importBlenderModules()
 	
 	setSandbox(level);
-	/* XXX 2.5 initPyTypes(); */
+	initPyTypes();
 	
-	/* XXX 2.5 bpy_import_main_set(maggie); */
+	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
 	
@@ -1626,7 +1649,7 @@ void exitGamePlayerPythonScripting()
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
 	Py_Finalize();
-	/* XXX 2.5 bpy_import_main_set(NULL); */
+	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
 }
 
@@ -1645,9 +1668,9 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_FrozenFlag=1;
 
 	setSandbox(level);
-	/* XXX 2.5 initPyTypes(); */
+	initPyTypes();
 	
-	/* XXX 2.5 bpy_import_main_set(maggie); */
+	bpy_import_main_set(maggie);
 	
 	initPySysObjects(maggie);
 
@@ -1660,7 +1683,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 void exitGamePythonScripting()
 {
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
-	/* XXX 2.5 bpy_import_main_set(NULL); */
+	bpy_import_main_set(NULL);
 	PyObjectPlus::ClearDeprecationWarning();
 }
 
@@ -1702,6 +1725,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 		// Create the module and add the functions
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&Rasterizer_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), Rasterizer_module_def.m_name, m);
 #else
 		m = Py_InitModule4("Rasterizer", rasterizer_methods,
 		     Rasterizer_module_documentation,
@@ -1836,6 +1860,7 @@ PyObject* initGameKeys()
 		// Create the module and add the functions
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&GameKeys_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), GameKeys_module_def.m_name, m);
 #else
 		m = Py_InitModule4("GameKeys", gamekeys_methods,
 					   GameKeys_module_documentation,
@@ -1970,26 +1995,20 @@ PyObject* initGameKeys()
 	return d;
 }
 
-#if PY_VERSION_HEX < 0x03000000
 PyObject* initMathutils()
 {
-	return NULL; //XXX Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
 }
 
 PyObject* initGeometry()
 {
-	return NULL; // XXX Geometry_Init("Geometry"); // Use as a top level module in BGE
+	return Geometry_Init("Geometry"); // Use as a top level module in BGE
 }
 
 PyObject* initBGL()
 {
-	return NULL; // XXX 2.5 BGL_Init("BGL"); // Use as a top level module in BGE
+	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
-#else // TODO Py3k conversion
-PyObject* initMathutils() {Py_INCREF(Py_None);return Py_None;}
-PyObject* initGeometry() {Py_INCREF(Py_None);return Py_None;}
-PyObject* initBGL() {Py_INCREF(Py_None);return Py_None;}
-#endif
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {
@@ -2022,11 +2041,17 @@ int saveGamePythonConfig( char **marshal_buffer)
 			if (pyGlobalDictMarshal) {
 				// for testing only
 				// PyObject_Print(pyGlobalDictMarshal, stderr, 0);
-
+				char *marshal_cstring;
+				
+#if PY_VERSION_HEX < 0x03000000
+				marshal_cstring = PyString_AsString(pyGlobalDictMarshal);
 				marshal_length= PyString_Size(pyGlobalDictMarshal);
+#else			// py3 uses byte arrays
+				marshal_cstring = PyBytes_AsString(pyGlobalDictMarshal);
+				marshal_length= PyBytes_Size(pyGlobalDictMarshal);
+#endif
 				*marshal_buffer = new char[marshal_length + 1];
-				memcpy(*marshal_buffer, PyString_AsString(pyGlobalDictMarshal), marshal_length);
-
+				memcpy(*marshal_buffer, marshal_cstring, marshal_length);
 				Py_DECREF(pyGlobalDictMarshal);
 			} else {
 				printf("Error, GameLogic.globalDict could not be marshal'd\n");
@@ -2103,5 +2128,5 @@ void setGamePythonPath(char *path)
 // engine but loading blend files within the BGE wont overwrite gp_GamePythonPathOrig
 void resetGamePythonPath()
 {
-	gp_GamePythonPathOrig[0] == '\0';
+	gp_GamePythonPathOrig[0] = '\0';
 }

@@ -369,10 +369,10 @@ void ACT_OT_keyframes_paste (wmOperatorType *ot)
 
 /* defines for insert keyframes tool */
 EnumPropertyItem prop_actkeys_insertkey_types[] = {
-	{1, "ALL", "All Channels", ""},
-	{2, "SEL", "Only Selected Channels", ""},
-	{3, "GROUP", "In Active Group", ""}, // xxx not in all cases
-	{0, NULL, NULL, NULL}
+	{1, "ALL", 0, "All Channels", ""},
+	{2, "SEL", 0, "Only Selected Channels", ""},
+	{3, "GROUP", 0, "In Active Group", ""}, // xxx not in all cases
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for snapping keyframes to frame-times */
@@ -799,9 +799,9 @@ void ACT_OT_keyframes_sample (wmOperatorType *ot)
 
 /* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_actkeys_expo_types[] = {
-	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant Extrapolation", ""},
-	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", "Linear Extrapolation", ""},
-	{0, NULL, NULL, NULL}
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for setting extrapolation mode for keyframes */
@@ -1089,11 +1089,11 @@ void ACT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 EnumPropertyItem prop_actkeys_snap_types[] = {
-	{ACTKEYS_SNAP_CFRA, "CFRA", "Current frame", ""},
-	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", "Nearest Frame", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", "Nearest Second", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", "Nearest Marker", ""},
-	{0, NULL, NULL, NULL}
+	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
+	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
+	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
+	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for snapping keyframes to frame-times */
@@ -1188,11 +1188,11 @@ void ACT_OT_keyframes_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", "Current frame", ""},
-	{ACTKEYS_MIRROR_YAXIS, "YAXIS", "Vertical Axis", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", "Horizontal Axis", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", "First Selected Marker", ""},
-	{0, NULL, NULL, NULL}
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "Current frame", ""},
+	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "Vertical Axis", ""},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "Horizontal Axis", ""},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "First Selected Marker", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* this function is responsible for mirroring keyframes */

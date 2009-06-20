@@ -185,6 +185,11 @@ int ED_operator_nla_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_NLA);
 }
 
+int ED_operator_logic_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_LOGIC);
+}
+
 int ED_operator_object_active(bContext *C)
 {
 	return NULL != CTX_data_active_object(C);
@@ -1198,9 +1203,9 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 static EnumPropertyItem prop_direction_items[] = {
-	{'h', "HORIZONTAL", "Horizontal", ""},
-	{'v', "VERTICAL", "Vertical", ""},
-	{0, NULL, NULL, NULL}};
+	{'h', "HORIZONTAL", 0, "Horizontal", ""},
+	{'v', "VERTICAL", 0, "Vertical", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 void SCREEN_OT_area_split(wmOperatorType *ot)
 {

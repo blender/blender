@@ -34,7 +34,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BKE_sequence.h"
+
+#include "MEM_guardedalloc.h"
+
 #ifdef RNA_RUNTIME
+
+#include "MEM_guardedalloc.h"
 
 static int rna_SequenceEditor_name_length(PointerRNA *ptr)
 {
@@ -46,6 +52,115 @@ static void rna_SequenceEditor_name_get(PointerRNA *ptr, char *str)
 	strcpy(str, "Sequence Editor");
 }
 
+static void rna_SequenceEditor_start_frame_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq->start= value;
+	calc_sequence_disp(seq);
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
+static void rna_SequenceEditor_length_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq_tx_set_final_right(seq, seq->start+value);
+	calc_sequence_disp(seq);
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
+static int rna_SequenceEditor_length_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	return seq_tx_get_final_right(seq, 1)-seq_tx_get_final_left(seq, 1);
+}
+
+static void rna_SequenceEditor_channel_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *sce= (Scene*)ptr->id.data;
+	Editing *ed= seq_give_editing(sce, FALSE);
+	
+	seq->machine= value;
+	
+	if( seq_test_overlap(ed->seqbasep, seq) ) {
+		shuffle_seq(ed->seqbasep, seq);
+	}
+	sort_seq(sce);
+}
+
+/* properties that need to allocate structs */
+static void rna_SequenceEditor_use_color_balance_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	int c;
+	
+	if(value) {
+		seq->flag |= SEQ_USE_COLOR_BALANCE;
+		if(seq->strip->color_balance == NULL) {
+			seq->strip->color_balance = MEM_callocN(sizeof(struct StripColorBalance), "StripColorBalance");
+			for (c=0; c<3; c++) {
+				seq->strip->color_balance->lift[c] = 1.0f;
+				seq->strip->color_balance->gamma[c] = 1.0f;
+				seq->strip->color_balance->gain[c] = 1.0f;
+			}
+		}
+	} else {
+		seq->flag ^= SEQ_USE_COLOR_BALANCE;
+	}
+}
+
+static void rna_SequenceEditor_use_proxy_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_PROXY;
+		if(seq->strip->proxy == NULL) {
+			seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_PROXY;
+	}
+}
+
+static void rna_SequenceEditor_use_translation_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_TRANSFORM;
+		if(seq->strip->transform == NULL) {
+			seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_TRANSFORM;
+	}
+}
+
+static void rna_SequenceEditor_use_crop_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	if(value) {
+		seq->flag |= SEQ_USE_CROP;
+		if(seq->strip->crop == NULL) {
+			seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+		}
+	} else {
+		seq->flag ^= SEQ_USE_CROP;
+	}
+}
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -240,43 +355,44 @@ static void rna_def_sequence(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	static const EnumPropertyItem seq_type_items[]= {
-		{SEQ_IMAGE, "IMAGE", "Image", ""}, 
-		{SEQ_META, "META", "Meta", ""}, 
-		{SEQ_SCENE, "SCENE", "Scene", ""}, 
-		{SEQ_MOVIE, "MOVIE", "Movie", ""}, 
-		{SEQ_RAM_SOUND, "RAM_SOUND", "Ram Sound", ""}, 
-		{SEQ_HD_SOUND, "HD_SOUND", "HD Sound", ""}, 
-		{SEQ_MOVIE_AND_HD_SOUND, "MOVIE_AND_HD_SOUND", "Movie and HD Sound", ""}, 
-		{SEQ_EFFECT, "REPLACE", "Replace", ""}, 
-		{SEQ_CROSS, "CROSS", "Cross", ""}, 
-		{SEQ_ADD, "ADD", "Add", ""}, 
-		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-		{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
-		{SEQ_WIPE, "WIPE", "Wipe", ""}, 
-		{SEQ_GLOW, "GLOW", "Glow", ""}, 
-		{SEQ_TRANSFORM, "TRANSFORM", "Transform", ""}, 
-		{SEQ_COLOR, "COLOR", "Color", ""}, 
-		{SEQ_SPEED, "SPEED", "Speed", ""}, 
-		{0, NULL, NULL, NULL}};
+		{SEQ_IMAGE, "IMAGE", 0, "Image", ""}, 
+		{SEQ_META, "META", 0, "Meta", ""}, 
+		{SEQ_SCENE, "SCENE", 0, "Scene", ""}, 
+		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""}, 
+		{SEQ_RAM_SOUND, "RAM_SOUND", 0, "Ram Sound", ""}, 
+		{SEQ_HD_SOUND, "HD_SOUND", 0, "HD Sound", ""}, 
+		{SEQ_MOVIE_AND_HD_SOUND, "MOVIE_AND_HD_SOUND", 0, "Movie and HD Sound", ""}, 
+		{SEQ_EFFECT, "REPLACE", 0, "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
+		{SEQ_ADD, "ADD", 0, "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""}, 
+		{SEQ_PLUGIN, "PLUGIN", 0, "plugin", ""}, 
+		{SEQ_WIPE, "WIPE", 0, "Wipe", ""}, 
+		{SEQ_GLOW, "GLOW", 0, "Glow", ""}, 
+		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""}, 
+		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
+		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
+		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
-		{SEQ_BLEND_REPLACE, "REPLACE", "Replace", ""}, 
-		{SEQ_CROSS, "CROSS", "Cross", ""}, 
-		{SEQ_ADD, "ADD", "Add", ""}, 
-		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
-		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
-		{0, NULL, NULL, NULL}};
+		{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""}, 
+		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
+		{SEQ_ADD, "ADD", 0, "Add", ""}, 
+		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""}, 
+		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""}, 
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
@@ -326,13 +442,14 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "len");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // computed from other values
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
-	
+	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_length_get", "rna_SequenceEditor_length_set",NULL);
+
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "start");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Frame", "");
+	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	
 	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
@@ -358,8 +475,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
+	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_channel_set",NULL); // overlap test
 
 	/* blending */
 
@@ -370,6 +487,13 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend_opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
+	
+	/* funcsions */
+	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
+	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
+	prop= RNA_def_int(func, "frame", 0, INT_MIN, INT_MAX, "Frame", "The frame to get the strip element from", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 }
 
 void rna_def_editor(BlenderRNA *brna)
@@ -397,7 +521,7 @@ void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
@@ -443,8 +567,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_color_balance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_COLOR_BALANCE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate color balance
 	RNA_def_property_ui_text(prop, "Use Color Balance", "(3-Way color correction) on input.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_color_balance_set");
 
 	prop= RNA_def_property(srna, "color_balance", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->color_balance");
@@ -452,8 +576,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_translation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_TRANSFORM);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate transform
 	RNA_def_property_ui_text(prop, "Use Translation", "Translate image before processing.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_translation_set");
 	
 	prop= RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");
@@ -461,8 +585,8 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_crop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_CROP);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate crop
 	RNA_def_property_ui_text(prop, "Use Crop", "Crop image before processing.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_crop_set");
 
 	prop= RNA_def_property(srna, "crop", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->crop");
@@ -490,8 +614,8 @@ static void rna_def_proxy(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate proxy
 	RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this strip.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_use_proxy_set");
 
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->proxy");
@@ -663,19 +787,19 @@ static void rna_def_wipe(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem wipe_type_items[]= {
-		{0, "SINGLE", "Single", ""}, 
-		{1, "DOUBLE", "Double", ""}, 
-		/* not used yet {2, "BOX", "Box", ""}, */
-		/* not used yet {3, "CROSS", "Cross", ""}, */
-		{4, "IRIS", "Iris", ""}, 
-		{5, "CLOCK", "Clock", ""}, 	
-		{0, NULL, NULL, NULL}
+		{0, "SINGLE", 0, "Single", ""}, 
+		{1, "DOUBLE", 0, "Double", ""}, 
+		/* not used yet {2, "BOX", 0, "Box", ""}, */
+		/* not used yet {3, "CROSS", 0, "Cross", ""}, */
+		{4, "IRIS", 0, "Iris", ""}, 
+		{5, "CLOCK", 0, "Clock", ""}, 	
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem wipe_direction_items[]= {
-		{0, "OUT", "Out", ""},
-		{1, "IN", "In", ""},
-		{0, NULL, NULL, NULL}
+		{0, "OUT", 0, "Out", ""},
+		{1, "IN", 0, "In", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence");
@@ -748,16 +872,16 @@ static void rna_def_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem interpolation_items[]= {
-		{0, "NONE", "None", "No interpolation."},
-		{1, "BILINEAR", "Bilinear", "Bilinear interpolation."},
-		{2, "BICUBIC", "Bicubic", "Bicubic interpolation."},
-		{0, NULL, NULL, NULL}
+		{0, "NONE", 0, "None", "No interpolation."},
+		{1, "BILINEAR", 0, "Bilinear", "Bilinear interpolation."},
+		{2, "BICUBIC", 0, "Bicubic", "Bicubic interpolation."},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem translation_unit_items[]= {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "PERCENT", "Percent", ""},
-		{0, NULL, NULL, NULL}
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "PERCENT", 0, "Percent", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence");

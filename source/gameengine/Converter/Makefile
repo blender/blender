@@ -48,6 +48,7 @@ CPPFLAGS += -I../../blender
 CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/makesdna
+CPPFLAGS += -I../../blender/makesrna
 CPPFLAGS += -I../../blender/editors/include
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel

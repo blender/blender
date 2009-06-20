@@ -112,7 +112,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		return false;
 
 	// actual audio device playing state
-	bool isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED) ? true : false;
+	bool isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED && m_soundObject->GetPlaystate() != SND_INITIAL) ? true : false;
 
 	if (m_pino)
 	{
@@ -194,7 +194,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		}
 	}
 	// verify that the sound is still playing
-	isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED) ? true : false;
+	isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED && m_soundObject->GetPlaystate() != SND_INITIAL) ? true : false;
 
 	if (isplaying)
 	{

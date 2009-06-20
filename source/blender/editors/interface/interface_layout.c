@@ -427,19 +427,29 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 	uiBlockSetCurLayout(block, layout);
 }
 
-static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int x, int y, int w, int h)
+static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, char *uiname, int x, int y, int w, int h)
 {
 	const EnumPropertyItem *item;
-	int a, totitem, itemw;
-	const char *propname;
+	const char *identifier;
+	char *name;
+	int a, totitem, itemw, icon, value;
 
-	propname= RNA_property_identifier(prop);
+	identifier= RNA_property_identifier(prop);
 	RNA_property_enum_items(ptr, prop, &item, &totitem);
 
 	uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
 	for(a=0; a<totitem; a++) {
-		itemw= ui_text_icon_width(block->curlayout, (char*)item[a].name, 0);
-		uiDefButR(block, ROW, 0, NULL, 0, 0, itemw, h, ptr, propname, -1, 0, item[a].value, -1, -1, NULL);
+		name= (!uiname || uiname[0])? (char*)item[a].name: "";
+		icon= item[a].icon;
+		value= item[a].value;
+		itemw= ui_text_icon_width(block->curlayout, name, icon);
+
+		if(icon && strcmp(name, "") != 0)
+			uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+		else if(icon)
+			uiDefIconButR(block, ROW, 0, icon, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+		else
+			uiDefButR(block, ROW, 0, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 	}
 	uiBlockSetCurLayout(block, layout);
 }
@@ -732,6 +742,8 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	/* set name and icon */
 	if(!name)
 		name= (char*)RNA_property_ui_name(prop);
+	if(!icon)
+		icon= RNA_property_ui_icon(prop);
 
 	if(ELEM5(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_ENUM, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
@@ -764,7 +776,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	}
 	/* expanded enum */
 	else if(type == PROP_ENUM && expand)
-		ui_item_enum_row(layout, block, ptr, prop, 0, 0, w, h);
+		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER)
 		ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h);
@@ -858,7 +870,7 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 	uiBlockSetCurLayout(block, layout);
 
 	if(layout->root->type == UI_LAYOUT_HEADER)
-		uiBlockSetEmboss(block, UI_EMBOSSP);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 
 	if(!name)
 		name= "";
@@ -869,7 +881,7 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 	h= UI_UNIT_Y;
 
 	if(layout->root->type == UI_LAYOUT_HEADER) /* ugly .. */
-		w -= 3;
+		w -= 10;
 
 	if(icon)
 		but= uiDefIconTextMenuBut(block, func, arg, icon, (char*)name, 0, 0, w, h, "");
@@ -1484,6 +1496,7 @@ static void ui_litem_layout_split(uiLayout *litem)
 {
 	uiLayoutItemSplt *split= (uiLayoutItemSplt*)litem;
 	uiItem *item;
+	float percentage;
 	int itemh, x, y, w, tot=0, colw=0;
 
 	x= litem->x;
@@ -1495,8 +1508,10 @@ static void ui_litem_layout_split(uiLayout *litem)
 	if(tot == 0)
 		return;
 	
+	percentage= (split->percentage == 0.0f)? 1.0f/(float)tot: split->percentage;
+	
 	w= (litem->w - (tot-1)*litem->space);
-	colw= w*split->percentage;
+	colw= w*percentage;
 	colw= MAX2(colw, 0);
 
 	for(item=litem->items.first; item; item=item->next) {
@@ -1506,7 +1521,7 @@ static void ui_litem_layout_split(uiLayout *litem)
 		x += colw;
 
 		if(item->next) {
-			colw= (w - (w*split->percentage))/(tot-1);
+			colw= (w - (int)(w*percentage))/(tot-1);
 			colw= MAX2(colw, 0);
 
 			x += litem->space;
@@ -1637,7 +1652,7 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage)
 	split->litem.enabled= 1;
 	split->litem.context= layout->context;
 	split->litem.space= layout->root->style->columnspace;
-	split->percentage= (percentage == 0.0f)? 0.5f: percentage;
+	split->percentage= percentage;
 	BLI_addtail(&layout->items, split);
 
 	uiBlockSetCurLayout(layout->root->block, &split->litem);

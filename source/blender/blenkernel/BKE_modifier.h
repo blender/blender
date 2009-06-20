@@ -204,7 +204,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	CustomDataMask (*requiredDataMask)(struct ModifierData *md);
+	CustomDataMask (*requiredDataMask)(struct Object *ob, struct ModifierData *md);
 
 	/* Free internal modifier data variables, this function should
 	 * not free the md variable itself.
@@ -272,6 +272,7 @@ int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
 int           modifier_isDeformer(struct ModifierData *md);
+int           modifier_isEnabled(struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -302,8 +303,10 @@ int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct ModifierData *md,
-                                         CustomDataMask dataMask);
+struct LinkNode *modifiers_calcDataMasks(struct Object *ob,
+                                         struct ModifierData *md,
+                                         CustomDataMask dataMask,
+                                         int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
 
 #endif

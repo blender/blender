@@ -51,6 +51,7 @@ SET(INC
   ../../../../source/blender
   ../../../../source/blender/include
   ../../../../source/blender/makesdna
+  ../../../../source/blender/makesrna
   ../../../../source/gameengine/Rasterizer
   ../../../../source/gameengine/GameLogic
   ../../../../source/gameengine/Expressions

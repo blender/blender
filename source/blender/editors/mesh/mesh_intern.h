@@ -135,6 +135,7 @@ extern int convex(float *v1, float *v2, float *v3, float *v4);
 extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
 
+extern int EM_view3d_poll(struct bContext *C);
 
 /* ******************* editmesh_loop.c */
 

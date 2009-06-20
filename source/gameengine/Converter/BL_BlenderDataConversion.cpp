@@ -1795,7 +1795,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
-			ob // handle
+			ob,
+			blenderscene // handle
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;

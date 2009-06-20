@@ -34,6 +34,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_ghash.h"
+
 /* Struct */
 
 static void rna_Struct_identifier_get(PointerRNA *ptr, char *value)
@@ -275,6 +277,51 @@ void rna_builtin_properties_next(CollectionPropertyIterator *iter)
 PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 {
 	return rna_Struct_properties_get(iter);
+}
+
+PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	IDProperty *group, *idp;
+	PointerRNA propptr;
+
+	memset(&propptr, 0, sizeof(propptr));
+	srna= ptr->type;
+
+	do {
+		if(srna->cont.prophash) {
+			prop= BLI_ghash_lookup(srna->cont.prophash, (void*)key);
+
+			if(prop) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+
+		for(prop=srna->cont.properties.first; prop; prop=prop->next) {
+			if(!(prop->flag & PROP_BUILTIN) && strcmp(prop->identifier, key)==0) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+	} while((srna=srna->base));
+
+	group= RNA_struct_idproperties(ptr, 0);
+
+	if(group) {
+		for(idp=group->data.group.first; idp; idp=idp->next) {
+			if(strcmp(idp->name, key) == 0) {
+				propptr.type= &RNA_Property;
+				propptr.data= idp;
+				return propptr;
+			}
+		}
+	}
+
+	return propptr;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
@@ -611,13 +658,13 @@ static void rna_def_struct(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Property");
-	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
 
 	prop= RNA_def_property(srna, "functions", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Function");
-	RNA_def_property_collection_funcs(prop, "rna_Struct_functions_begin", "rna_Struct_functions_next", "rna_iterator_listbase_end", "rna_Struct_functions_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Struct_functions_begin", "rna_Struct_functions_next", "rna_iterator_listbase_end", "rna_Struct_functions_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Functions", "");
 }
 
@@ -626,26 +673,26 @@ static void rna_def_property(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem type_items[] = {
-		{PROP_BOOLEAN, "BOOLEAN", "Boolean", ""},
-		{PROP_INT, "INT", "Integer", ""},
-		{PROP_FLOAT, "FLOAT", "Float", ""},
-		{PROP_STRING, "STRING", "String", ""},
-		{PROP_ENUM, "ENUM", "Enumeration", ""},
-		{PROP_POINTER, "POINTER", "Pointer", ""},
-		{PROP_COLLECTION, "COLLECTION", "Collection", ""},
-		{0, NULL, NULL, NULL}};
+		{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
+		{PROP_INT, "INT", 0, "Integer", ""},
+		{PROP_FLOAT, "FLOAT", 0, "Float", ""},
+		{PROP_STRING, "STRING", 0, "String", ""},
+		{PROP_ENUM, "ENUM", 0, "Enumeration", ""},
+		{PROP_POINTER, "POINTER", 0, "Pointer", ""},
+		{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem subtype_items[] = {
-		{PROP_NONE, "NONE", "None", ""},
-		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number", ""},
-		{PROP_FILEPATH, "FILE_PATH", "File Path", ""},
-		{PROP_DIRPATH, "DIRECTORY_PATH", "Directory Path", ""},
-		{PROP_COLOR, "COLOR", "Color", ""},
-		{PROP_VECTOR, "VECTOR", "Vector", ""},
-		{PROP_MATRIX, "MATRIX", "Matrix", ""},
-		{PROP_ROTATION, "ROTATION", "Rotation", ""},
-		{PROP_NEVER_NULL, "NEVER_NULL", "Never Null", ""},
-		{PROP_PERCENTAGE, "PERCENTAGE", "Percentage", ""},
-		{0, NULL, NULL, NULL}};
+		{PROP_NONE, "NONE", 0, "None", ""},
+		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
+		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
+		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
+		{PROP_COLOR, "COLOR", 0, "Color", ""},
+		{PROP_VECTOR, "VECTOR", 0, "Vector", ""},
+		{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
+		{PROP_ROTATION, "ROTATION", 0, "Rotation", ""},
+		{PROP_NEVER_NULL, "NEVER_NULL", 0, "Never Null", ""},
+		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);
 	RNA_def_struct_ui_text(srna, "Property Definition", "RNA property definition.");
@@ -719,7 +766,7 @@ static void rna_def_function(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "parameters", PROP_COLLECTION, PROP_NONE);
 	/*RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
 	RNA_def_property_struct_type(prop, "Property");
-	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Parameters", "Parameters for the function.");
 
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
@@ -800,7 +847,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "EnumPropertyItem");
-	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
 
 	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL);
@@ -895,7 +942,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Structs", "");
 }
 

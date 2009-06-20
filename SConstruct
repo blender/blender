@@ -404,6 +404,9 @@ dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
+if env['WITH_BF_PLAYER']:
+	print("Warning: Game player may not build on 2.5")
+
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
 	#env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
@@ -465,27 +468,17 @@ if  env['OURPLATFORM']!='darwin':
 			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 		
 		if env['WITH_BF_PYTHON']:
-			#-- .blender/scripts	
-			scriptpath='release/scripts'
-			for dp, dn, df in os.walk(scriptpath):
-				if 'CVS' in dn:
-					dn.remove('CVS')
-				if '.svn' in dn:
-					dn.remove('.svn')
-				dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
-				source=[dp+os.sep+f for f in df]
-				scriptinstall.append(env.Install(dir=dir,source=source))
-
-			#-- .blender/ui	
-			scriptpath='release/ui'
-			for dp, dn, df in os.walk(scriptpath):
-				if 'CVS' in dn:
-					dn.remove('CVS')
-				if '.svn' in dn:
-					dn.remove('.svn')
-				dir=env['BF_INSTALLDIR']+'/.blender/ui'+dp[len(scriptpath):]
-				source=[dp+os.sep+f for f in df]
-				scriptinstall.append(env.Install(dir=dir,source=source))
+			#-- .blender/scripts, .blender/ui, .blender/io
+			scriptpaths=['release/scripts', 'release/ui', 'release/io']
+			for scriptpath in scriptpaths:
+				for dp, dn, df in os.walk(scriptpath):
+					if 'CVS' in dn:
+						dn.remove('CVS')
+					if '.svn' in dn:
+						dn.remove('.svn')
+					dir=env['BF_INSTALLDIR']+'/.blender/'+os.path.basename(scriptpath)+dp[len(scriptpath):]
+					source=[dp+os.sep+f for f in df]
+					scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
 if env['OURPLATFORM']=='linux2':

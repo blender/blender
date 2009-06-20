@@ -94,11 +94,9 @@ extern "C"
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
-							struct SpaceIpo*	sipo,
 							class KX_KetsjiEngine* engine
 							)
 							: m_maggie(maggie),
-							m_sipo(sipo),
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
 							m_usemat(false),
@@ -115,11 +113,11 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete sumoshapes
 	
 
-	int numipolists = m_map_blender_to_gameipolist.size();
-	for (i=0; i<numipolists; i++) {
-		BL_InterpolatorList *ipoList= *m_map_blender_to_gameipolist.at(i);
+	int numAdtLists = m_map_blender_to_gameAdtList.size();
+	for (i=0; i<numAdtLists; i++) {
+		BL_InterpolatorList *adtList= *m_map_blender_to_gameAdtList.at(i);
 
-		delete (ipoList);
+		delete (adtList);
 	}
 
 	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator itw = m_worldinfos.begin();
@@ -575,18 +573,18 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *ipoList,
-									struct Ipo *for_ipo)
+									BL_InterpolatorList *adtList,
+									struct AnimData *for_adt)
 {
-	m_map_blender_to_gameipolist.insert(CHashedPtr(for_ipo), ipoList);
+	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_adt), adtList);
 }
 
 
 
 BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct Ipo *for_ipo)
+									struct AnimData *for_adt)
 {
-	BL_InterpolatorList **listp = m_map_blender_to_gameipolist[CHashedPtr(for_ipo)];
+	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_adt)];
 		
 	return listp?*listp:NULL;
 }
@@ -641,14 +639,14 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
  * When deleting an IPO curve from Python, check if the IPO is being
  * edited and if so clear the pointer to the old curve.
  */
-void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo)
+void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu )
 {
-	if (!sipo)
+#if 0 //XXX
+	if (!G.sipo)
 		return;
 
 	int i;
-#if 0 //XXX
-	EditIpo *ei= (EditIpo *)sipo->editipo;
+	EditIpo *ei= (EditIpo *)G.sipo->editipo;
 	if (!ei) return;
 
 	for(i=0; i<G.sipo->totipo; i++, ei++) {
@@ -753,7 +751,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								if( tmpicu->bezt )
 									MEM_freeN( tmpicu->bezt );
 								MEM_freeN( tmpicu );
-								localDel_ipoCurve( tmpicu ,m_sipo);
+								localDel_ipoCurve( tmpicu );
 							}
 					  	}
 					} else

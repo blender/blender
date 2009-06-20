@@ -633,41 +633,41 @@ void BIF_previewrender_buts(Scene *scene, SpaceButs *sbuts)
 /* uses ROUNDBOX button in block to get the rect */
 void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceButs *sbuts= sa->spacedata.first;
-	RenderResult rres;
-	int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
-	int ok= 0;
-	char name[32];
-	
-	sprintf(name, "Preview %p", sa);
-	BLI_lock_malloc_thread();
-	RE_GetResultImage(RE_GetRender(name), &rres);
+	if(idp) {
+		ScrArea *sa= CTX_wm_area(C);
+		SpaceButs *sbuts= sa->spacedata.first;
+		RenderResult rres;
+		int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
+		int ok= 0;
+		char name[32];
+		
+		sprintf(name, "Preview %p", sa);
+		BLI_lock_malloc_thread();
+		RE_GetResultImage(RE_GetRender(name), &rres);
 
-	if(rres.rectf) {
-		
-		if( ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2 ) {
-			/* correct size, then black outline matches */
-			rect->xmax= rect->xmin + rres.rectx;
-			rect->ymax= rect->ymin + rres.recty;
-		
-			glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
-			ok= 1;
+		if(rres.rectf) {
+			
+			if( ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2 ) {
+				/* correct size, then black outline matches */
+				rect->xmax= rect->xmin + rres.rectx;
+				rect->ymax= rect->ymin + rres.recty;
+			
+				glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
+				ok= 1;
+			}
 		}
-	}
-	BLI_unlock_malloc_thread();
+		BLI_unlock_malloc_thread();
 
-	/* check for spacetype... */
-	if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
-		sbuts->preview= 0;
-		ok= 0;
-	}
-	
-	if(ok==0) {
-		printf("added shader job\n");
-		ED_preview_shader_job(C, sa, idp, newx, newy);
-	}
-	
+		/* check for spacetype... */
+		if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
+			sbuts->preview= 0;
+			ok= 0;
+		}
+		
+		if(ok==0) {
+			ED_preview_shader_job(C, sa, idp, newx, newy);
+		}
+	}	
 }
 
 /* *************************** Preview for 3d window *********************** */

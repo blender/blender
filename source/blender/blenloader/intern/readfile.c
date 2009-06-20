@@ -3881,12 +3881,19 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
+			
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 			if(sce->toolsettings->sculpt)
 				sce->toolsettings->sculpt->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
-
+			if(sce->toolsettings->vpaint)
+				sce->toolsettings->vpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
+			if(sce->toolsettings->wpaint)
+				sce->toolsettings->wpaint->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->wpaint->brush);
+			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {
@@ -4784,6 +4791,14 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, snode->gpd);
 				}
 				snode->nodetree= snode->edittree= NULL;
+			}
+			else if(sl->spacetype==SPACE_LOGIC) {
+				SpaceLogic *slogic= (SpaceLogic *)sl;
+				
+				if(slogic->gpd) {
+					slogic->gpd= newdataadr(fd, slogic->gpd);
+					direct_link_gpencil(fd, slogic->gpd);
+				}
 			}
 			else if(sl->spacetype==SPACE_SEQ) {
 				SpaceSeq *sseq= (SpaceSeq *)sl;
@@ -9181,6 +9196,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				SEQP_BEGIN(ed, seq) {
+					if (seq->strip && seq->strip->proxy){
+						if (sce->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				SEQ_END
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

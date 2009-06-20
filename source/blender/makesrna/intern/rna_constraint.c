@@ -36,28 +36,37 @@
 #include "WM_types.h"
 
 EnumPropertyItem constraint_type_items[] ={
-	{CONSTRAINT_TYPE_NULL, "NULL", "Null", ""},
-	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", "Child Of", ""},
-	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", "Track To", ""},
-	{CONSTRAINT_TYPE_KINEMATIC, "IK", "IK", ""},
-	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", "Follow Path", ""},
-	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", "Limit Rotation", ""},
-	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", "Limit Location", ""},
-	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", "Limit Scale", ""},
-	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", "Copy Rotation", ""},
-	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", "Copy Location", ""},
-	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", "Copy Scale", ""},
-	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", "Script", ""},
-	{CONSTRAINT_TYPE_ACTION, "ACTION", "Action", ""},
-	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", "Locked Track", ""},
-	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", "Limit Distance", ""},
-	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", "Stretch To", ""},
-	{CONSTRAINT_TYPE_MINMAX, "FLOOR", "Floor", ""},
-	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", "Rigid Body Joint", ""},
-	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", "Clamp To", ""},
-	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", "Transformation", ""},
-	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", "Shrinkwrap", ""},
-	{0, NULL, NULL, NULL}};
+	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", 0, "Child Of", ""},
+	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", 0, "Transformation", ""},
+	
+	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", 0, "Copy Location", ""},
+	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", 0, "Copy Rotation", ""},
+	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", 0, "Copy Scale", ""},
+	
+	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", 0, "Limit Location", ""},
+	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", 0, "Limit Rotation", ""},
+	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", 0, "Limit Scale", ""},
+	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", 0, "Limit Distance", ""},
+	
+	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", 0, "Track To", ""},
+	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", 0, "Locked Track", ""},
+	
+	{CONSTRAINT_TYPE_MINMAX, "FLOOR", 0, "Floor", ""},
+	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", 0, "Shrinkwrap", ""},
+	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", 0, "Follow Path", ""},
+	
+	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", 0, "Clamp To", ""},
+	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", 0, "Stretch To", ""},
+	
+	{CONSTRAINT_TYPE_KINEMATIC, "IK", 0, "IK", ""},
+	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", 0, "Rigid Body Joint", ""},
+	
+	{CONSTRAINT_TYPE_ACTION, "ACTION", 0, "Action", ""},
+	
+	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", 0, "Script", ""},
+	
+	{CONSTRAINT_TYPE_NULL, "NULL", 0, "Null", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 
 #ifdef RNA_RUNTIME
@@ -158,16 +167,16 @@ static void rna_Constraint_influence_update(bContext *C, PointerRNA *ptr)
 }
 
 static EnumPropertyItem space_pchan_items[] = {
-	{0, "WORLD", "World Space", ""},
-	{2, "POSE", "Pose Space", ""},
-	{3, "LOCAL_WITH_PARENT", "Local With Parent", ""},
-	{1, "LOCAL", "Local Space", ""},
-	{0, NULL, NULL, NULL}};
+	{0, "WORLD", 0, "World Space", ""},
+	{2, "POSE", 0, "Pose Space", ""},
+	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", ""},
+	{1, "LOCAL", 0, "Local Space", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem space_object_items[] = {
-	{0, "WORLD", "World Space", ""},
-	{1, "LOCAL", "Local (Without Parent) Space", ""},
-	{0, NULL, NULL, NULL}};
+	{0, "WORLD", 0, "World Space", ""},
+	{1, "LOCAL", 0, "Local (Without Parent) Space", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem *rna_Constraint_owner_space_itemf(PointerRNA *ptr)
 {
@@ -415,19 +424,19 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem track_items[] = {
-		{TRACK_X, "TRACK_X", "X", ""},
-		{TRACK_Y, "TRACK_Y", "Y", ""},
-		{TRACK_Z, "TRACK_Z", "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "TRACK_X", 0, "X", ""},
+		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
+		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem up_items[] = {
-		{TRACK_X, "UP_X", "X", ""},
-		{TRACK_Y, "UP_Y", "Y", ""},
-		{TRACK_Z, "UP_Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "UP_X", 0, "X", ""},
+		{TRACK_Y, "UP_Y", 0, "Y", ""},
+		{TRACK_Z, "UP_Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "TrackToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Track To Constraint", "Aims the constrained object toward the target.");
@@ -588,13 +597,13 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem minmax_items[] = {
-		{LOCLIKE_X, "FLOOR_X", "X", ""},
-		{LOCLIKE_Y, "FLOOR_Y", "Y", ""},
-		{LOCLIKE_Z, "FLOOR_Z", "Z", ""},
-		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", "-X", ""},
-		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", "-Y", ""},
-		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{LOCLIKE_X, "FLOOR_X", 0, "X", ""},
+		{LOCLIKE_Y, "FLOOR_Y", 0, "Y", ""},
+		{LOCLIKE_Z, "FLOOR_Z", 0, "Z", ""},
+		{LOCLIKE_X_INVERT, "FLOOR_NEGATIVE_X", 0, "-X", ""},
+		{LOCLIKE_Y_INVERT, "FLOOR_NEGATIVE_Y", 0, "-Y", ""},
+		{LOCLIKE_Z_INVERT, "FLOOR_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FloorConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Floor Constraint", "Uses the target object for location limitation.");
@@ -681,16 +690,16 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem transform_channel_items[] = {
-		{00, "ROTATION_X", "Rotation X", ""},
-		{01, "ROTATION_Y", "Rotation Y", ""},
-		{02, "ROTATION_Z", "Rotation Z", ""},
-		{10, "SIZE_X", "Scale X", ""},
-		{11, "SIZE_Y", "Scale Y", ""},
-		{12, "SIZE_Z", "Scale Z", ""},
-		{20, "LOCATION_X", "Location X", ""},
-		{21, "LOCATION_Y", "Location Y", ""},
-		{22, "LOCATION_Z", "Location Z", ""},
-		{0, NULL, NULL, NULL}};
+		{00, "ROTATION_X", 0, "Rotation X", ""},
+		{01, "ROTATION_Y", 0, "Rotation Y", ""},
+		{02, "ROTATION_Z", 0, "Rotation Z", ""},
+		{10, "SIZE_X", 0, "Scale X", ""},
+		{11, "SIZE_Y", 0, "Scale Y", ""},
+		{12, "SIZE_Z", 0, "Scale Z", ""},
+		{20, "LOCATION_X", 0, "Location X", ""},
+		{21, "LOCATION_Y", 0, "Location Y", ""},
+		{22, "LOCATION_Z", 0, "Location Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ActionConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Action Constraint", "Map an action to the transform axes of a bone.");
@@ -750,19 +759,19 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem locktrack_items[] = {
-		{TRACK_X, "TRACK_X", "X", ""},
-		{TRACK_Y, "TRACK_Y", "Y", ""},
-		{TRACK_Z, "TRACK_Z", "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "TRACK_X", 0, "X", ""},
+		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
+		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem lock_items[] = {
-		{TRACK_X, "LOCK_X", "X", ""},
-		{TRACK_Y, "LOCK_Y", "Y", ""},
-		{TRACK_Z, "LOCK_Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "LOCK_X", 0, "X", ""},
+		{TRACK_Y, "LOCK_Y", 0, "Y", ""},
+		{TRACK_Z, "LOCK_Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LockedTrackConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Locked Track Constraint", "Points toward the target along the track axis, while locking the other axis.");
@@ -798,19 +807,19 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem forwardpath_items[] = {
-		{TRACK_X, "FORWARD_X", "X", ""},
-		{TRACK_Y, "FORWARD_Y", "Y", ""},
-		{TRACK_Z, "FORWARD_Z", "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", "-Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "FORWARD_X", 0, "X", ""},
+		{TRACK_Y, "FORWARD_Y", 0, "Y", ""},
+		{TRACK_Z, "FORWARD_Z", 0, "Z", ""},
+		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem pathup_items[] = {
-		{TRACK_X, "UP_X", "X", ""},
-		{TRACK_Y, "UP_Y", "Y", ""},
-		{TRACK_Z, "UP_Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{TRACK_X, "UP_X", 0, "X", ""},
+		{TRACK_Y, "UP_Y", 0, "Y", ""},
+		{TRACK_Z, "UP_Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FollowPathConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Follow Path Constraint", "Locks motion to the target path.");
@@ -851,16 +860,16 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem volume_items[] = {
-		{VOLUME_XZ, "VOLUME_XZX", "XZ", ""},
-		{VOLUME_X, "VOLUME_X", "Y", ""},
-		{VOLUME_Z, "VOLUME_Z", "Z", ""},
-		{NO_VOLUME, "NO_VOLUME", "None", ""},
-		{0, NULL, NULL, NULL}};
+		{VOLUME_XZ, "VOLUME_XZX", 0, "XZ", ""},
+		{VOLUME_X, "VOLUME_X", 0, "Y", ""},
+		{VOLUME_Z, "VOLUME_Z", 0, "Z", ""},
+		{NO_VOLUME, "NO_VOLUME", 0, "None", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem plane_items[] = {
-		{PLANE_X, "PLANE_X", "X", "Keep X Axis"},
-		{PLANE_Z, "PLANE_Z", "Z", "Keep Z Axis"},
-		{0, NULL, NULL, NULL}};
+		{PLANE_X, "PLANE_X", 0, "X", "Keep X Axis"},
+		{PLANE_Z, "PLANE_Z", 0, "Z", "Keep Z Axis"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "StretchToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Stretch To Constraint", "Stretches to meet the target object.");
@@ -902,11 +911,11 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem pivot_items[] = {
-		{CONSTRAINT_RB_BALL, "BALL", "Ball", ""},
-		{CONSTRAINT_RB_HINGE, "HINGE", "Hinge", ""},
-		{CONSTRAINT_RB_CONETWIST, "CONE_TWIST", "Cone Twist", ""},
-		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC_6_DOF", "Generic 6 DoF", ""},
-		{0, NULL, NULL, NULL}};
+		{CONSTRAINT_RB_BALL, "BALL", 0, "Ball", ""},
+		{CONSTRAINT_RB_HINGE, "HINGE", 0, "Hinge", ""},
+		{CONSTRAINT_RB_CONETWIST, "CONE_TWIST", 0, "Cone Twist", ""},
+		{CONSTRAINT_RB_GENERIC6DOF, "GENERIC_6_DOF", 0, "Generic 6 DoF", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RigidBodyJointConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Rigid Body Joint Constraint", "For use with the Game Engine.");
@@ -986,11 +995,11 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem clamp_items[] = {
-		{CLAMPTO_AUTO, "CLAMPTO_AUTO", "Auto", ""},
-		{CLAMPTO_X, "CLAMPTO_X", "X", ""},
-		{CLAMPTO_Y, "CLAMPTO_Y", "Y", ""},
-		{CLAMPTO_Z, "CLAMPTO_Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{CLAMPTO_AUTO, "CLAMPTO_AUTO", 0, "Auto", ""},
+		{CLAMPTO_X, "CLAMPTO_X", 0, "X", ""},
+		{CLAMPTO_Y, "CLAMPTO_Y", 0, "Y", ""},
+		{CLAMPTO_Z, "CLAMPTO_Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ClampToConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Clamp To Constraint", "Constrains an object's location to the nearest point along the target path.");
@@ -1020,16 +1029,16 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem transform_items[] = {
-		{0, "LOCATION", "Loc", ""},
-		{1, "ROTATION", "Rot", ""},
-		{2, "SCALE", "Scale", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "LOCATION", 0, "Loc", ""},
+		{1, "ROTATION", 0, "Rot", ""},
+		{2, "SCALE", 0, "Scale", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem axis_map_items[] = {
-		{0, "X", "X", ""},
-		{1, "Y", "Y", ""},
-		{2, "Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "X", 0, "X", ""},
+		{1, "Y", 0, "Y", ""},
+		{2, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "TransformConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Transformation Constraint", "Maps transformations of the target to the object.");
@@ -1388,10 +1397,10 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem distance_items[] = {
-		{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", "Inside", ""},
-		{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", "Outside", ""},
-		{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", "On Surface", ""},
-		{0, NULL, NULL, NULL}};
+		{LIMITDIST_INSIDE, "LIMITDIST_INSIDE", 0, "Inside", ""},
+		{LIMITDIST_OUTSIDE, "LIMITDIST_OUTSIDE", 0, "Outside", ""},
+		{LIMITDIST_ONSURFACE, "LIMITDIST_ONSURFACE", 0, "On Surface", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LimitDistanceConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Limit Distance Constraint", "Limits the distance from target object.");
@@ -1427,10 +1436,10 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", "Nearest Surface Point", ""},
-		{MOD_SHRINKWRAP_PROJECT, "PROJECT", "Project", ""},
-		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", "Nearest Vertex", ""},
-		{0, NULL, NULL, NULL}};
+		{MOD_SHRINKWRAP_NEAREST_SURFACE, "NEAREST_SURFACE", 0, "Nearest Surface Point", ""},
+		{MOD_SHRINKWRAP_PROJECT, "PROJECT", 0, "Project", ""},
+		{MOD_SHRINKWRAP_NEAREST_VERTEX, "NEAREST_VERTEX", 0, "Nearest Vertex", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "ShrinkwrapConstraint", "Constraint"); 
 	RNA_def_struct_ui_text(srna, "Shrinkwrap Constraint", "Creates constraint-based shrinkwrap relationship."); 

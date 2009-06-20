@@ -162,6 +162,7 @@ COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
+COMLIB += $(OCGDIR)/blender/gen_python/$(DEBUG_DIR)libgen_python.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
@@ -226,6 +227,7 @@ PULIB += $(OCGDIR)/blender/ed_action/$(DEBUG_DIR)libed_action.a
 PULIB += $(OCGDIR)/blender/ed_nla/$(DEBUG_DIR)libed_nla.a
 PULIB += $(OCGDIR)/blender/ed_script/$(DEBUG_DIR)libed_script.a
 PULIB += $(OCGDIR)/blender/ed_text/$(DEBUG_DIR)libed_text.a
+PULIB += $(OCGDIR)/blender/ed_logic/$(DEBUG_DIR)libed_logic.a
 PULIB += $(OCGDIR)/blender/ed_sequencer/$(DEBUG_DIR)libed_sequencer.a
 PULIB += $(OCGDIR)/blender/ed_file/$(DEBUG_DIR)libed_file.a
 PULIB += $(OCGDIR)/blender/ed_info/$(DEBUG_DIR)libed_info.a

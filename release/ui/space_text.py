@@ -2,12 +2,8 @@
 import bpy
 
 # temporary
-ICON_LINENUMBERS_OFF = 588
-ICON_WORDWRAP_OFF = 584
-ICON_SYNTAX_OFF = 586
 ICON_TEXT = 120
 ICON_HELP = 1
-ICON_SCRIPTPLUGINS = 1
 
 class TEXT_HT_header(bpy.types.Header):
 	__space_type__ = "TEXT_EDITOR"
@@ -21,7 +17,7 @@ class TEXT_HT_header(bpy.types.Header):
 		layout.template_header(context)
 
 		if context.area.show_menus:
-			row = layout.row(align=True)
+			row = layout.row()
 			row.itemM(context, "TEXT_MT_text")
 			if text:
 				row.itemM(context, "TEXT_MT_edit")
@@ -30,13 +26,12 @@ class TEXT_HT_header(bpy.types.Header):
 		if text and text.modified:
 			row = layout.row()
 			# row.color(redalert)
-			row.itemO("TEXT_OT_resolve_conflict", text="", icon=ICON_HELP)
+			row.itemO("TEXT_OT_resolve_conflict", text="", icon='ICON_HELP')
 
 		row = layout.row(align=True)
-		row.itemR(st, "line_numbers", text="", icon=ICON_LINENUMBERS_OFF)
-		row.itemR(st, "word_wrap", text="", icon=ICON_WORDWRAP_OFF)
-		row.itemR(st, "syntax_highlight", text="", icon=ICON_SYNTAX_OFF)
-		# row.itemR(st, "do_python_plugins", text="", icon=ICON_SCRIPTPLUGINS)
+		row.itemR(st, "line_numbers", text="")
+		row.itemR(st, "word_wrap", text="")
+		row.itemR(st, "syntax_highlight", text="")
 
 		layout.template_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
 
@@ -63,9 +58,10 @@ class TEXT_PT_properties(bpy.types.Panel):
 		layout = self.layout
 
 		flow = layout.column_flow()
-		flow.itemR(st, "line_numbers", icon=ICON_LINENUMBERS_OFF)
-		flow.itemR(st, "word_wrap", icon=ICON_WORDWRAP_OFF)
-		flow.itemR(st, "syntax_highlight", icon=ICON_SYNTAX_OFF)
+		flow.itemR(st, "line_numbers")
+		flow.itemR(st, "word_wrap")
+		flow.itemR(st, "syntax_highlight")
+		flow.itemR(st, "live_edit")
 
 		flow = layout.column_flow()
 		flow.itemR(st, "font_size")
@@ -84,14 +80,14 @@ class TEXT_PT_find(bpy.types.Panel):
 		col = layout.column(align=True)
 		row = col.row()
 		row.itemR(st, "find_text", text="")
-		row.itemO("TEXT_OT_find_set_selected", text="", icon=ICON_TEXT)
+		row.itemO("TEXT_OT_find_set_selected", text="", icon='ICON_TEXT')
 		col.itemO("TEXT_OT_find")
 
 		# replace
 		col = layout.column(align=True)
 		row = col.row()
 		row.itemR(st, "replace_text", text="")
-		row.itemO("TEXT_OT_replace_set_selected", text="", icon=ICON_TEXT)
+		row.itemO("TEXT_OT_replace_set_selected", text="", icon='ICON_TEXT')
 		col.itemO("TEXT_OT_replace")
 
 		# mark
@@ -139,8 +135,109 @@ class TEXT_MT_text(bpy.types.Menu):
 		# XXX uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
 		#endif
 
+class TEXT_MT_edit_view(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "View"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.item_enumO("TEXT_OT_move", "type", "FILE_TOP", text="Top of File")
+		layout.item_enumO("TEXT_OT_move", "type", "FILE_BOTTOM", text="Bottom of File")
+
+class TEXT_MT_edit_select(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("TEXT_OT_select_all")
+		layout.itemO("TEXT_OT_select_line")
+
+class TEXT_MT_edit_markers(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "Markers"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("TEXT_OT_markers_clear")
+		layout.itemO("TEXT_OT_next_marker")
+		layout.itemO("TEXT_OT_previous_marker")
+
+class TEXT_MT_format(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "Format"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("TEXT_OT_indent")
+		layout.itemO("TEXT_OT_unindent")
+
+		layout.itemS()
+
+		layout.itemO("TEXT_OT_comment")
+		layout.itemO("TEXT_OT_uncomment")
+
+		layout.itemS()
+
+		layout.item_menu_enumO("TEXT_OT_convert_whitespace", "type")
+
+class TEXT_MT_edit_to3d(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "Text To 3D Object"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.item_booleanO("TEXT_OT_to_3d_object", "split_lines", False, text="One Object");
+		layout.item_booleanO("TEXT_OT_to_3d_object", "split_lines", True, text="One Object Per Line");
+
+class TEXT_MT_edit(bpy.types.Menu):
+	__space_type__ = "TEXT_EDITOR"
+	__label__ = "Edit"
+
+	def poll(self, context):
+		st = context.space_data
+		return st.text != None
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("ED_OT_undo")
+		layout.itemO("ED_OT_redo")
+
+		layout.itemS()
+
+		layout.itemO("TEXT_OT_cut")
+		layout.itemO("TEXT_OT_copy")
+		layout.itemO("TEXT_OT_paste")
+
+		layout.itemS()
+
+		layout.itemM(context, "TEXT_MT_edit_view")
+		layout.itemM(context, "TEXT_MT_edit_select")
+		layout.itemM(context, "TEXT_MT_edit_markers")
+
+		layout.itemS()
+
+		layout.itemO("TEXT_OT_jump")
+		layout.itemO("TEXT_OT_properties")
+
+		layout.itemS()
+
+		layout.itemM(context, "TEXT_MT_edit_to3d")
+
 bpy.types.register(TEXT_HT_header)
 bpy.types.register(TEXT_PT_properties)
 bpy.types.register(TEXT_PT_find)
 bpy.types.register(TEXT_MT_text)
+bpy.types.register(TEXT_MT_format)
+bpy.types.register(TEXT_MT_edit)
+bpy.types.register(TEXT_MT_edit_view)
+bpy.types.register(TEXT_MT_edit_select)
+bpy.types.register(TEXT_MT_edit_markers)
+bpy.types.register(TEXT_MT_edit_to3d)
 

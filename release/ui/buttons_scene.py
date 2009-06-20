@@ -10,10 +10,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 		
 		split = layout.split()
 		
@@ -34,10 +32,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 		
 		layout.itemR(rd, "output_path")
 		
@@ -65,17 +61,17 @@ class RENDER_PT_output(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		if rd.file_format in ("AVIJPEG", "JPEG"):
+		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			col.itemR(rd, "quality", slider=True)
 			
-		elif rd.file_format in ("OPENEXR"):
+		elif rd.file_format == 'OPENEXR':
 			col.itemR(rd, "exr_codec")
 			col.itemR(rd, "exr_half")
 			col = split.column()
 			col.itemR(rd, "exr_zbuf")
 			col.itemR(rd, "exr_preview")
 		
-		elif rd.file_format in ("JPEG2000"):
+		elif rd.file_format == 'JPEG2000':
 			row = layout.row()
 			row.itemR(rd, "jpeg_preset")
 			split = layout.split()
@@ -86,7 +82,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 			col.itemR(rd, "jpeg_ycc")
 			col.itemR(rd, "exr_preview")
 			
-		elif rd.file_format in ("CINEON", "DPX"):
+		elif rd.file_format in ('CINEON', 'DPX'):
 			col.itemR(rd, "cineon_log", text="Convert to Log")
 			colsub = col.column()
 			colsub.active = rd.cineon_log
@@ -94,23 +90,54 @@ class RENDER_PT_output(RenderButtonsPanel):
 			colsub.itemR(rd, "cineon_white", text="White")
 			colsub.itemR(rd, "cineon_gamma", text="Gamma")
 			
-		elif rd.file_format in ("TIFF"):
+		elif rd.file_format == 'TIFF':
 			col.itemR(rd, "tiff_bit")
+		
+		elif rd.file_format == 'FFMPEG':
+			#row = layout.row()
+			#row.itemR(rd, "ffmpeg_format")
+			#row.itemR(rd, "ffmpeg_codec")
+			split = layout.split()
+		
+			col = split.column()
+			col.itemR(rd, "ffmpeg_video_bitrate")
+			col.itemL(text="Rate:")
+			col.itemR(rd, "ffmpeg_minrate", text="Minimum")
+			col.itemR(rd, "ffmpeg_maxrate", text="Maximum")
+			col.itemR(rd, "ffmpeg_buffersize", text="Buffer")
+			
+			col = split.column()
+			col.itemR(rd, "ffmpeg_gopsize")
+			col.itemR(rd, "ffmpeg_autosplit")
+			col.itemL(text="Mux:")
+			col.itemR(rd, "ffmpeg_muxrate", text="Rate")
+			col.itemR(rd, "ffmpeg_packetsize", text="Packet Size")
+			
+			row = layout.row()
+			row.itemL(text="Audio:")
+			row = layout.row()
+			#row.itemR(rd, "ffmpeg_audio_codec")
+			
+			split = layout.split()
+	
+			col = split.column()
+			col.itemR(rd, "ffmpeg_audio_bitrate")
+			col = split.column()
+			col.itemR(rd, "ffmpeg_multiplex_audio")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
 	def draw_header(self, context):
+		layout = self.layout
 		rd = context.scene.render_data
 
-		layout = self.layout
 		layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
-		scene = context.scene
-		rd = scene.render_data
-
 		layout = self.layout
+		rd = context.scene.render_data
+
 		layout.active = rd.antialiasing
 
 		split = layout.split()
@@ -131,14 +158,12 @@ class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
-		rd = scene.render_data
+		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="Render Still", icon=109)
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon=111)
+		row.itemO("SCREEN_OT_render", text="Render Still", icon='ICON_IMAGE_COL')
+		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Render Animation", icon='ICON_SEQUENCE')
 		
 		row = layout.row()
 		row.itemR(rd, "do_composite")
@@ -172,9 +197,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 	__label__ = "Dimensions"
 
 	def draw(self, context):
-		scene = context.scene
 		layout = self.layout
-
+		
+		scene = context.scene
 		rd = scene.render_data
 		
 		split = layout.split()
@@ -216,10 +241,9 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		layout.itemR(rd, "stamp", text="")
 
 	def draw(self, context):
-		scene = context.scene
-		rd = scene.render_data
-
 		layout = self.layout
+		rd = context.scene.render_data
+
 		layout.active = rd.stamp
 
 		split = layout.split()
@@ -241,8 +265,8 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		sub.itemR(rd, "render_stamp")
 		colsub = sub.column()
 		colsub.active = rd.render_stamp
-		colsub.itemR(rd, "stamp_foreground")
-		colsub.itemR(rd, "stamp_background")
+		colsub.itemR(rd, "stamp_foreground", slider=True)
+		colsub.itemR(rd, "stamp_background", slider=True)
 		colsub.itemR(rd, "stamp_font_size", text="Font Size")
 
 bpy.types.register(RENDER_PT_render)

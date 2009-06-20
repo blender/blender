@@ -22,12 +22,16 @@ class DATA_PT_preview(DataButtonsPanel):
 class DATA_PT_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_lamp"
 	__label__ = "Lamp"
+	
+	def poll(self, context):
+		return ((context.object and context.object.type == 'LAMP') or context.lamp)
 
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		lamp = context.lamp
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
@@ -82,8 +86,8 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		return (lamp and lamp.type == 'SUN')
 
 	def draw(self, context):
-		lamp = context.lamp.sky
 		layout = self.layout
+		lamp = context.lamp.sky
 
 		row = layout.row()
 		row.itemR(lamp, "sky")
@@ -96,7 +100,6 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		split = layout.split()
 
 		col = split.column()
-		
 		sub = col.column()
 		sub.active = lamp.sky
 		sub.itemR(lamp, "sky_blend_type", text="Blend Type")
@@ -125,8 +128,8 @@ class DATA_PT_shadow(DataButtonsPanel):
 		return (lamp and lamp.type in ('POINT','SUN', 'SPOT', 'AREA'))
 
 	def draw(self, context):
-		lamp = context.lamp
 		layout = self.layout
+		lamp = context.lamp
 
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
@@ -204,8 +207,8 @@ class DATA_PT_spot(DataButtonsPanel):
 		return (lamp and lamp.type == 'SPOT')
 
 	def draw(self, context):
-		lamp = context.lamp
 		layout = self.layout
+		lamp = context.lamp
 
 		split = layout.split()
 		
@@ -236,8 +239,8 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 		return False
 
 	def draw(self, context):
-		lamp = context.lamp
 		layout = self.layout
+		lamp = context.lamp
 
 		layout.template_curve_mapping(lamp.falloff_curve)
 

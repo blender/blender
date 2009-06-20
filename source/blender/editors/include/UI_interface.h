@@ -91,11 +91,13 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
+#define UI_BLOCK_OUT_1			1024
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
 #define UI_RETURN_OK        2       /* choice made */
 #define UI_RETURN_OUT       4       /* left the menu */
+#define UI_RETURN_UPDATE    8       /* update the button that opened */
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
@@ -194,6 +196,7 @@ typedef struct uiLayout uiLayout;
 #define OPTIONN		(39<<9)
 #define SEARCH_MENU	(40<<9)
 #define BUT_EXTRA	(41<<9)
+#define HSVCIRCLE	(42<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing
@@ -399,6 +402,8 @@ uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str,
 uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefBlockButN(uiBlock *block, uiBlockCreateFunc func, void *argN, char *str, short x1, short y1, short x2, short y2, char *tip);
+
 uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
@@ -486,7 +491,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
 void uiEndPanels(const struct bContext *C, struct ARegion *ar);
 
-struct Panel *uiBeginPanel(struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
+struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);
 
 /* Handlers
@@ -534,8 +539,6 @@ void UI_exit(void);
 
 uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
 uiBut *uiDefMenuSep(uiBlock *block);
-uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name);
-uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, char *propvalue, char *name);
 
 /* Layout
  *
@@ -610,6 +613,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
+void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

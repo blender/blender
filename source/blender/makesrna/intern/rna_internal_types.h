@@ -37,6 +37,7 @@ struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
 struct IDProperty;
+struct GHash;
 
 #define RNA_MAX_ARRAY 32
 
@@ -83,6 +84,7 @@ typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, con
 typedef struct ContainerRNA {
 	void *next, *prev;
 
+	struct GHash *prophash;
 	ListBase properties;
 } ContainerRNA;
 
@@ -128,6 +130,8 @@ struct PropertyRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 
 	/* property type as it appears to the outside */
 	PropertyType type;
@@ -243,6 +247,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
+	FunctionRNA *add, *remove;
 
 	struct StructRNA *type;
 } CollectionPropertyRNA;

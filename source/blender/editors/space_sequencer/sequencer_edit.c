@@ -105,35 +105,35 @@ static int okee() {return 0;}
 /* XXX */
 /* RNA Enums, used in multiple files */
 EnumPropertyItem sequencer_prop_effect_types[] = {
-	{SEQ_CROSS, "CROSS", "Crossfade", "Crossfade effect strip type"},
-	{SEQ_ADD, "ADD", "Add", "Add effect strip type"},
-	{SEQ_SUB, "SUBTRACT", "Subtract", "Subtract effect strip type"},
-	{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", "Alpha Over effect strip type"},
-	{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", "Alpha Under effect strip type"},
-	{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", "Gamma Cross effect strip type"},
-	{SEQ_MUL, "MULTIPLY", "Multiply", "Multiply effect strip type"},
-	{SEQ_OVERDROP, "OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
-	{SEQ_PLUGIN, "PLUGIN", "Plugin", "Plugin effect strip type"},
-	{SEQ_WIPE, "WIPE", "Wipe", "Wipe effect strip type"},
-	{SEQ_GLOW, "GLOW", "Glow", "Glow effect strip type"},
-	{SEQ_TRANSFORM, "TRANSFORM", "Transform", "Transform effect strip type"},
-	{SEQ_COLOR, "COLOR", "Color", "Color effect strip type"},
-	{SEQ_SPEED, "SPEED", "Speed", "Color effect strip type"},
-	{0, NULL, NULL, NULL}
+	{SEQ_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
+	{SEQ_ADD, "ADD", 0, "Add", "Add effect strip type"},
+	{SEQ_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
+	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
+	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
+	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
+	{SEQ_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
+	{SEQ_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+	{SEQ_PLUGIN, "PLUGIN", 0, "Plugin", "Plugin effect strip type"},
+	{SEQ_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
+	{SEQ_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
+	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
+	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
+	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* mute operator */
 EnumPropertyItem sequencer_prop_operate_types[] = { /* better name? */
-	{SEQ_SELECTED, "SELECTED", "Selected", ""},
-	{SEQ_UNSELECTED, "UNSELECTED", "Unselected ", ""},
-	{0, NULL, NULL, NULL}
+	{SEQ_SELECTED, "SELECTED", 0, "Selected", ""},
+	{SEQ_UNSELECTED, "UNSELECTED", 0, "Unselected ", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
  EnumPropertyItem prop_side_types[] = {
-	{SEQ_SIDE_LEFT, "LEFT", "Left", ""},
-	{SEQ_SIDE_RIGHT, "RIGHT", "Right", ""},
-	{SEQ_SIDE_BOTH, "BOTH", "Both", ""},
-	{0, NULL, NULL, NULL}
+	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
+	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
+	{SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 typedef struct TransSeq {
@@ -1726,9 +1726,9 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 
 /* cut operator */
 static EnumPropertyItem prop_cut_types[] = {
-	{SEQ_CUT_SOFT, "SOFT", "Soft", ""},
-	{SEQ_CUT_HARD, "HARD", "Hard", ""},
-	{0, NULL, NULL, NULL}
+	{SEQ_CUT_SOFT, "SOFT", 0, "Soft", ""},
+	{SEQ_CUT_HARD, "HARD", 0, "Hard", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int sequencer_cut_exec(bContext *C, wmOperator *op)

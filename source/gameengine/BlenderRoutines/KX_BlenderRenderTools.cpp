@@ -28,8 +28,6 @@
 
 #include "GL/glew.h"
 
-#include "DNA_scene_types.h"
-
 #include "RAS_IRenderTools.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_LightObject.h"
@@ -41,6 +39,7 @@
 #include "KX_BlenderMaterial.h"
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
+#include "KX_Light.h"
 
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -330,21 +329,12 @@ int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& view
 {
 	// taken from blender source, incompatibility between Blender Object / GameObject	
 	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
-	int scenelayer = ~0;
 	float glviewmat[16];
 	unsigned int count;
-	float vec[4];
+	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
-	vec[3]= 1.0;
-
-	if(kxscene && kxscene->GetBlenderScene())
-		scenelayer = kxscene->GetBlenderScene()->lay;
-	
 	for(count=0; count<m_numgllights; count++)
 		glDisable((GLenum)(GL_LIGHT0+count));
-	
-	//std::vector<struct	RAS_LightObject*> m_lights;
-	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
 	viewmat.getValue(glviewmat);
 	
@@ -353,82 +343,14 @@ int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& view
 	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
-		KX_Scene* lightscene = (KX_Scene*)lightdata->m_scene;
+		KX_LightObject *kxlight = (KX_LightObject*)lightdata->m_light;
 
-		/* only use lights in the same layer as the object */
-		if(!(lightdata->m_layer & objectlayer))
-			continue;
-		/* only use lights in the same scene, and in a visible layer */
-		if(kxscene != lightscene || !(lightdata->m_layer & scenelayer))
-			continue;
-
-		vec[0] = (*(lightdata->m_worldmatrix))(0,3);
-		vec[1] = (*(lightdata->m_worldmatrix))(1,3);
-		vec[2] = (*(lightdata->m_worldmatrix))(2,3);
-		vec[3] = 1;
-
-		if(lightdata->m_type==RAS_LightObject::LIGHT_SUN) {
-			
-			vec[0] = (*(lightdata->m_worldmatrix))(0,2);
-			vec[1] = (*(lightdata->m_worldmatrix))(1,2);
-			vec[2] = (*(lightdata->m_worldmatrix))(2,2);
-			//vec[0]= base->object->obmat[2][0];
-			//vec[1]= base->object->obmat[2][1];
-			//vec[2]= base->object->obmat[2][2];
-			vec[3]= 0.0;
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-		}
-		else {
-			//vec[3]= 1.0;
-			glLightfv((GLenum)(GL_LIGHT0+count), GL_POSITION, vec); 
-			glLightf((GLenum)(GL_LIGHT0+count), GL_CONSTANT_ATTENUATION, 1.0);
-			glLightf((GLenum)(GL_LIGHT0+count), GL_LINEAR_ATTENUATION, lightdata->m_att1/lightdata->m_distance);
-			// without this next line it looks backward compatible.
-			//attennuation still is acceptable 
-			glLightf((GLenum)(GL_LIGHT0+count), GL_QUADRATIC_ATTENUATION, lightdata->m_att2/(lightdata->m_distance*lightdata->m_distance)); 
-			
-			if(lightdata->m_type==RAS_LightObject::LIGHT_SPOT) {
-				vec[0] = -(*(lightdata->m_worldmatrix))(0,2);
-				vec[1] = -(*(lightdata->m_worldmatrix))(1,2);
-				vec[2] = -(*(lightdata->m_worldmatrix))(2,2);
-				//vec[0]= -base->object->obmat[2][0];
-				//vec[1]= -base->object->obmat[2][1];
-				//vec[2]= -base->object->obmat[2][2];
-				glLightfv((GLenum)(GL_LIGHT0+count), GL_SPOT_DIRECTION, vec);
-				glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, lightdata->m_spotsize/2.0);
-				glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_EXPONENT, 128.0*lightdata->m_spotblend);
-			}
-			else glLightf((GLenum)(GL_LIGHT0+count), GL_SPOT_CUTOFF, 180.0);
-		}
-		
-		if (lightdata->m_nodiffuse)
-		{
-			vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-		} else {
-			vec[0]= lightdata->m_energy*lightdata->m_red;
-			vec[1]= lightdata->m_energy*lightdata->m_green;
-			vec[2]= lightdata->m_energy*lightdata->m_blue;
-			vec[3]= 1.0;
-		}
-		glLightfv((GLenum)(GL_LIGHT0+count), GL_DIFFUSE, vec);
-		if (lightdata->m_nospecular)
-		{
-			vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
-		} else if (lightdata->m_nodiffuse) {
-			vec[0]= lightdata->m_energy*lightdata->m_red;
-			vec[1]= lightdata->m_energy*lightdata->m_green;
-			vec[2]= lightdata->m_energy*lightdata->m_blue;
-			vec[3]= 1.0;
-		}
-		glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
-		glEnable((GLenum)(GL_LIGHT0+count));
-
-		count++;
+		if(kxlight->ApplyLight(kxscene, objectlayer, count))
+			count++;
 	}
 	glPopMatrix();
 
 	return count;
-
 }
 
 void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)

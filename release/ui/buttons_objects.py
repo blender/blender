@@ -6,16 +6,13 @@ class ObjectButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "object"
 
-	def poll(self, context):
-		return (context.object != None)
-
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
 	__label__ = "Transform"
 
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 
 		row = layout.row()
 		row.column().itemR(ob, "location")
@@ -27,8 +24,8 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 	__label__ = "Groups"
 
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 
 		row = layout.row()
 		row.itemR(ob, "pass_index")
@@ -38,7 +35,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 		# layout.itemO("OBJECT_OT_add_group");
 
 		for group in bpy.data.groups:
-			if ob in group.objects:
+			if ob.name in group.objects:
 				col = layout.column(align=True)
 
 				row = col.box().row()
@@ -54,8 +51,8 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 	__label__ = "Display"
 
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 			
 		row = layout.row()
 		row.itemR(ob, "max_draw_type", text="Type")
@@ -74,8 +71,8 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 	__label__ = "Duplication"
 
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 
 		layout.itemR(ob, "dupli_type", expand=True)
 
@@ -108,8 +105,8 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 	__label__ = "Animation"
 
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 		
 		split = layout.split()
 		
@@ -132,4 +129,3 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
-

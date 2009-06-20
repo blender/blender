@@ -1,0 +1,18 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+incs += ' ../../makesrna'
+
+defs = []
+
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+
+	if env['WITH_BF_SOLID']:
+		defs.append('USE_SUMO_SOLID')
+
+env.BlenderLib ( 'bf_editors_space_game', sources, Split(incs), defs, libtype=['core'], priority=[120] )

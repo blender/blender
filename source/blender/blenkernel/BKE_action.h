@@ -140,7 +140,7 @@ void framechange_poses_clear_unkeyed(void);
 void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* exported for game engine */
-void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
+void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* for proxy */

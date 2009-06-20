@@ -235,17 +235,15 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 1; return "delta_scale";
 		case OB_DSIZE_Z:
 			*array_index= 2; return "delta_scale";
-	
-#if 0	
-		case OB_COL_R:	
-			poin= &(ob->col[0]); break;
+		case OB_COL_R:
+			*array_index= 0; return "color";
 		case OB_COL_G:
-			poin= &(ob->col[1]); break;
+			*array_index= 1; return "color";
 		case OB_COL_B:
-			poin= &(ob->col[2]); break;
+			*array_index= 2; return "color";
 		case OB_COL_A:
-			poin= &(ob->col[3]); break;
-			
+			*array_index= 3; return "color";
+#if 0
 		case OB_PD_FSTR:
 			if (ob->pd) poin= &(ob->pd->f_strength);
 			break;
@@ -545,7 +543,7 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specularity";
+			return "specular_reflection";
 		
 		case MA_HARD:
 			return "specular_hardness";
@@ -1515,14 +1513,7 @@ void do_versions_ipos_to_animato(Main *main)
 			/* Add AnimData block */
 			adt= BKE_id_add_animdata(id);
 			
-			/* IPO first */
-			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL);
-				ob->ipo->id.us--;
-				ob->ipo= NULL;
-			}
-			
-			/* now Action */
+			/* Action first - so that Action name get conserved */
 			if (ob->action) {
 				action_to_animdata(id, ob->action);
 				
@@ -1531,6 +1522,13 @@ void do_versions_ipos_to_animato(Main *main)
 					ob->action->id.us--;
 					ob->action= NULL;
 				}
+			}
+			
+			/* IPO second... */
+			if (ob->ipo) {
+				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ob->ipo->id.us--;
+				ob->ipo= NULL;
 			}
 			
 			/* finally NLA */

@@ -1434,10 +1434,10 @@ void remake_editMesh(Scene *scene, Object *ob)
 /* *************** Operator: separate parts *************/
 
 static EnumPropertyItem prop_separate_types[] = {
-	{0, "SELECTED", "Selection", ""},
-	{1, "MATERIAL", "By Material", ""},
-	{2, "LOOSE", "By loose parts", ""},
-	{0, NULL, NULL, NULL}
+	{0, "SELECTED", 0, "Selection", ""},
+	{1, "MATERIAL", 0, "By Material", ""},
+	{2, "LOOSE", 0, "By loose parts", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* return 1: success */

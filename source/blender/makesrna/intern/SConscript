@@ -16,9 +16,12 @@ source_files.remove('rna_access.c')
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
 generated_files.remove('makesrna.c')
-generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
 
-source_files.extend(env.Glob('../../editors/*/*_api.c'))
+api_files = env.Glob('*_api.c')
+for api_file in api_files:
+    generated_files.remove(api_file)
+
+generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
 
 makesrna_tool = env.Clone()
 rna = env.Clone()
@@ -41,11 +44,15 @@ if env['WITH_BF_FFMPEG']:
 if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
 								 '../../blenlib',
 								 '../../blenkernel',
+								 '../../imbuf',
 								 '../../makesdna',
 								 '../../makesrna',
 								 '../../windowmanager',

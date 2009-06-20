@@ -42,6 +42,8 @@ extern "C" {
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+
+void RNA_init(void);
 void RNA_exit(void);
 
 /* Struct */
@@ -136,6 +138,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision);
+void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive);
 
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *updatefunc);
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable);
@@ -146,7 +149,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item);
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set);
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set, const char *typef);
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *add, const char *remove);
 
 /* Function */
 

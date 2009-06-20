@@ -1920,6 +1920,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_NODE){
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_LOGIC){
+					writestruct(wd, DATA, "SpaceLogic", 1, sl);
+				}
 				sl= sl->next;
 			}
 		}

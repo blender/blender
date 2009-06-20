@@ -38,6 +38,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "BLI_ghash.h"
+
 #include "rna_internal.h"
 
 /* Global used during defining */
@@ -557,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* copy from struct to derive stuff, a bit clumsy since we can't
 		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
+		srna->cont.prophash= NULL;
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
 		srna->py_type= NULL;
@@ -604,7 +607,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, 0);
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string", 0, 0);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -923,8 +926,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				break;
 		}
 	}
-	else
+	else {
 		prop->flag |= PROP_IDPROPERTY|PROP_RUNTIME;
+#ifdef RNA_RUNTIME
+		if(cont->prophash)
+			BLI_ghash_insert(cont->prophash, (void*)prop->identifier, prop);
+#endif
+	}
 
 	rna_addtail(&cont->properties, prop);
 
@@ -974,6 +982,13 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 {
 	prop->name= name;
 	prop->description= description;
+}
+
+void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
+{
+	prop->icon= icon;
+	if(consecutive)
+		prop->flag |= PROP_ICONS_CONSECUTIVE;
 }
 
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
@@ -1769,7 +1784,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring)
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *add, const char *remove)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1789,6 +1804,8 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			if(length) cprop->length= (PropCollectionLengthFunc)length;
 			if(lookupint) cprop->lookupint= (PropCollectionLookupIntFunc)lookupint;
 			if(lookupstring) cprop->lookupstring= (PropCollectionLookupStringFunc)lookupstring;
+			if(add) cprop->add= (FunctionRNA*)add;
+			if(remove) cprop->remove= (FunctionRNA*)remove;
 			break;
 		}
 		default:
@@ -2219,15 +2236,13 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_STRING:
 				return sizeof(char *);
 			case PROP_POINTER: {
-				PointerPropertyRNA *pprop= (PointerPropertyRNA*)parm;
-
 #ifdef RNA_RUNTIME
-				if(pprop->type == &RNA_AnyType)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);
 #else
-				if(strcmp((char*)pprop->type, "AnyType") == 0)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);

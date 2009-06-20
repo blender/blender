@@ -132,10 +132,10 @@ static int space_image_file_exists_poll(bContext *C)
 int space_image_main_area_poll(bContext *C)
 {
 	SpaceLink *slink= CTX_wm_space_data(C);
-	ARegion *ar= CTX_wm_region(C);
+	// XXX ARegion *ar= CTX_wm_region(C);
 
 	if(slink && (slink->spacetype == SPACE_IMAGE))
-		return (ar && ar->type->regionid == RGN_TYPE_WINDOW);
+		return 1; // XXX (ar && ar->type->regionid == RGN_TYPE_WINDOW);
 	
 	return 0;
 }
@@ -1412,9 +1412,9 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem point_items[]= {
-		{0, "BLACK_POINT", "Black Point", ""},
-		{1, "WHITE_POINT", "White Point", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "BLACK_POINT", 0, "Black Point", ""},
+		{1, "WHITE_POINT", 0, "White Point", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Set Curves Point";

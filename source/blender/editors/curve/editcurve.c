@@ -2475,12 +2475,12 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{CU_POLY, "POLY", "Poly", ""},
-		{CU_BEZIER, "BEZIER", "Bezier", ""},
-		{CU_CARDINAL, "CARDINAL", "Cardinal", ""},
-		{CU_BSPLINE, "B_SPLINE", "B-Spline", ""},
-		{CU_NURBS, "NURBS", "NURBS", ""},
-		{0, NULL, NULL, NULL}};
+		{CU_POLY, "POLY", 0, "Poly", ""},
+		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
+		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
+		{CU_BSPLINE, "B_SPLINE", 0, "B-Spline", ""},
+		{CU_NURBS, "NURBS", 0, "NURBS", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Set Spline Type";
@@ -2516,12 +2516,12 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{1, "AUTOMATIC", "Automatic", ""},
-		{2, "VECTOR", "Vector", ""},
-		{3, "TOGGLE_FREE_ALIGN", "Toggle Free/Align", ""},
-		{5, "ALIGN", "Align", ""},
-		{6, "FREE_ALIGN", "Free Align", ""},
-		{0, NULL, NULL, NULL}};
+		{1, "AUTOMATIC", 0, "Automatic", ""},
+		{2, "VECTOR", 0, "Vector", ""},
+		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
+		{5, "ALIGN", 0, "Align", ""},
+		{6, "FREE_ALIGN", 0, "Free Align", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Set Handle Type";
@@ -3582,9 +3582,9 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-		{0, "CYCLIC_U", "Cyclic U", ""},
-		{1, "CYCLIC_V", "Cyclic V", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "CYCLIC_U", 0, "Cyclic U", ""},
+		{1, "CYCLIC_V", 0, "Cyclic V", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Toggle Cyclic";
@@ -4530,10 +4530,10 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_delete(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{0, "SELECTED", "Selected", ""},
-		{1, "SEGMENT", "Segment", ""},
-		{2, "ALL", "All", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "SELECTED", 0, "Selected", ""},
+		{1, "SEGMENT", 0, "Segment", ""},
+		{2, "ALL", 0, "All", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Delete";

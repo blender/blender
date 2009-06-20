@@ -383,41 +383,6 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	}
 }
 
-static void image_panel_game_properties(const bContext *C, Panel *pa)
-{
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-
-	if (ibuf) {
-		char str[128];
-		
-		image_info(sima->image, ibuf, str);
-		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TWINANIM, B_TWINANIM, "Anim", 10,150,140,19, &sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
-		uiDefButS(block, NUM, B_TWINANIM, "Start:",		10,130,140,19, &sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture");
-		uiDefButS(block, NUM, B_TWINANIM, "End:",		10,110,140,19, &sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture");
-		uiDefButS(block, NUM, B_NOP, "Speed", 				10,90,140,19, &sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
-		uiBlockEndAlign(block);
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGETILE, "Tiles",	160,150,140,19, &sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
-		uiDefButS(block, NUM, B_REDR, "X:",		160,130,70,19, &sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
-		uiDefButS(block, NUM, B_REDR, "Y:",		230,130,70,19, &sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
-		uiBlockBeginAlign(block);
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_REDR, "ClampX",	160,100,70,19, &sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
-		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_REDR, "ClampY",	230,100,70,19, &sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
-		uiBlockEndAlign(block);
-	}
-}
-
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
@@ -1410,12 +1375,6 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_properties");
 	strcpy(pt->label, "Image Properties");
 	pt->draw= image_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel game properties");
-	strcpy(pt->idname, "IMAGE_PT_game_properties");
-	strcpy(pt->label, "Game Properties");
-	pt->draw= image_panel_game_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image view properties");

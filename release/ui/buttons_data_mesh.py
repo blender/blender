@@ -12,12 +12,16 @@ class DataButtonsPanel(bpy.types.Panel):
 class DATA_PT_mesh(DataButtonsPanel):
 	__idname__ = "DATA_PT_mesh"
 	__label__ = "Mesh"
+	
+	def poll(self, context):
+		return (context.object and context.object.type == 'MESH')
 
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		mesh = context.mesh
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 

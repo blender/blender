@@ -119,6 +119,7 @@ int		ED_operator_ipo_active(struct bContext *C);
 int		ED_operator_sequencer_active(struct bContext *C);
 int		ED_operator_image_active(struct bContext *C);
 int		ED_operator_nla_active(struct bContext *C);
+int		ED_operator_logic_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);

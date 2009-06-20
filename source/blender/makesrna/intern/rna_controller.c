@@ -66,15 +66,15 @@ void RNA_def_controller(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem controller_type_items[] ={
-		{CONT_LOGIC_AND, "LOGIC_AND", "Logic And", ""},
-		{CONT_LOGIC_OR, "LOGIC_OR", "Logic Or", ""},
-		{CONT_LOGIC_NAND, "LOGIC_NAND", "Logic Nand", ""},
-		{CONT_LOGIC_NOR, "LOGIC_NOR", "Logic Nor", ""},
-		{CONT_LOGIC_XOR, "LOGIC_XOR", "Logic Xor", ""},
-		{CONT_LOGIC_XNOR, "LOGIC_XNOR", "Logic Xnor", ""},
-		{CONT_EXPRESSION, "EXPRESSION", "Expression", ""},
-		{CONT_PYTHON, "PYTHON", "Python Script", ""},
-		{0, NULL, NULL, NULL}};
+		{CONT_LOGIC_AND, "LOGIC_AND", 0, "Logic And", ""},
+		{CONT_LOGIC_OR, "LOGIC_OR", 0, "Logic Or", ""},
+		{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Logic Nand", ""},
+		{CONT_LOGIC_NOR, "LOGIC_NOR", 0, "Logic Nor", ""},
+		{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Logic Xor", ""},
+		{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Logic Xnor", ""},
+		{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
+		{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* Controller */
 	srna= RNA_def_struct(brna, "Controller", NULL);

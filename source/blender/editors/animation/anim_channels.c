@@ -719,17 +719,17 @@ enum {
 
 /* defines for setting animation-channel flags */
 EnumPropertyItem prop_animchannel_setflag_types[] = {
-	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", "Disable", ""},
-	{ACHANNEL_SETFLAG_ADD, "ENABLE", "Enable", ""},
-	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", "Toggle", ""},
-	{0, NULL, NULL, NULL}
+	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, "Disable", ""},
+	{ACHANNEL_SETFLAG_ADD, "ENABLE", 0, "Enable", ""},
+	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", 0, "Toggle", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* defines for set animation-channel settings */
 EnumPropertyItem prop_animchannel_settings_types[] = {
-	{ACHANNEL_SETTING_PROTECT, "PROTECT", "Protect", ""},
-	{ACHANNEL_SETTING_MUTE, "MUTE", "Mute", ""},
-	{0, NULL, NULL, NULL}
+	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
+	{ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 

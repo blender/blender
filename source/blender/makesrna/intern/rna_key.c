@@ -277,10 +277,10 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
-		{0, NULL, NULL, NULL}};
+		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
@@ -335,7 +335,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "data", "totelem");
 	RNA_def_property_struct_type(prop, "UnknownType");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0, 0, 0);
 }
 
 static void rna_def_key(BlenderRNA *brna)

@@ -213,7 +213,11 @@ GlyphBLF *blf_glyph_texture_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	if (font->flags & BLF_FONT_KERNING)
+		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_BITMAP);
+	else
+		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+
 	if (err)
 		return(NULL);
 
@@ -328,7 +332,11 @@ GlyphBLF *blf_glyph_bitmap_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	if (font->flags & BLF_FONT_KERNING)
+		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_BITMAP);
+	else
+		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+
 	if (err)
 		return(NULL);
 
