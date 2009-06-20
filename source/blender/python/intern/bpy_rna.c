@@ -771,12 +771,12 @@ static int pyrna_prop_contains(BPy_PropertyRNA * self, PyObject *value)
 	char *keyname = _PyUnicode_AsString(value);
 	
 	if(keyname==NULL) {
-		PyErr_SetString(PyExc_SystemError, "PropertyRNA - key in prop, key must be a string type");
+		PyErr_SetString(PyExc_TypeError, "PropertyRNA - key in prop, key must be a string type");
 		return -1;
 	}
 	
 	if (RNA_property_type(self->prop) != PROP_COLLECTION) {
-		PyErr_SetString(PyExc_SystemError, "PropertyRNA - key in prop, is only valid for collection types");
+		PyErr_SetString(PyExc_TypeError, "PropertyRNA - key in prop, is only valid for collection types");
 		return -1;
 	}
 	

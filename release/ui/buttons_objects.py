@@ -35,7 +35,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 		# layout.itemO("OBJECT_OT_add_group");
 
 		for group in bpy.data.groups:
-			if ob in group.objects:
+			if ob.name in group.objects:
 				col = layout.column(align=True)
 
 				row = col.box().row()

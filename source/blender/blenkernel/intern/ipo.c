@@ -235,17 +235,15 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 1; return "delta_scale";
 		case OB_DSIZE_Z:
 			*array_index= 2; return "delta_scale";
-	
-#if 0	
-		case OB_COL_R:	
-			poin= &(ob->col[0]); break;
+		case OB_COL_R:
+			*array_index= 0; return "color";
 		case OB_COL_G:
-			poin= &(ob->col[1]); break;
+			*array_index= 1; return "color";
 		case OB_COL_B:
-			poin= &(ob->col[2]); break;
+			*array_index= 2; return "color";
 		case OB_COL_A:
-			poin= &(ob->col[3]); break;
-			
+			*array_index= 3; return "color";
+#if 0
 		case OB_PD_FSTR:
 			if (ob->pd) poin= &(ob->pd->f_strength);
 			break;

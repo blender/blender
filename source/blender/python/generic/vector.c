@@ -40,20 +40,32 @@
 #define SWIZZLE_AXIS       0x3
 
 /*-------------------------DOC STRINGS ---------------------------*/
-char Vector_Zero_doc[] = "() - set all values in the vector to 0";
-char Vector_Normalize_doc[] = "() - normalize the vector";
-char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
-char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
-char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
-char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
-char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
-char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
-char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
-char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
-char Vector_copy_doc[] = "() - return a copy of the vector";
-char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
+static char Vector_Zero_doc[] = "() - set all values in the vector to 0";
+static char Vector_Normalize_doc[] = "() - normalize the vector";
+static char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
+static char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
+static char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
+static char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
+static char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
+static char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
+static char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
+static char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
+static char Vector_copy_doc[] = "() - return a copy of the vector";
+static char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
-struct PyMethodDef Vector_methods[] = {
+static PyObject *Vector_Zero( VectorObject * self );
+static PyObject *Vector_Normalize( VectorObject * self );
+static PyObject *Vector_Negate( VectorObject * self );
+static PyObject *Vector_Resize2D( VectorObject * self );
+static PyObject *Vector_Resize3D( VectorObject * self );
+static PyObject *Vector_Resize4D( VectorObject * self );
+static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args );
+static PyObject *Vector_Reflect( VectorObject * self, PyObject * value );
+static PyObject *Vector_Cross( VectorObject * self, VectorObject * value );
+static PyObject *Vector_Dot( VectorObject * self, VectorObject * value );
+static PyObject *Vector_copy( VectorObject * self );
+
+static struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
 	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, Vector_Normalize_doc},
 	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, Vector_Negate_doc},
@@ -69,10 +81,61 @@ struct PyMethodDef Vector_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+//----------------------------------Mathutils.Vector() ------------------
+// Supports 2D, 3D, and 4D vector objects both int and float values
+// accepted. Mixed float and int values accepted. Ints are parsed to float 
+static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyObject *listObject = NULL;
+	int size, i;
+	float vec[4], f;
+	PyObject *v;
+
+	size = PyTuple_GET_SIZE(args); /* we know its a tuple because its an arg */
+	if (size == 1) {
+		listObject = PyTuple_GET_ITEM(args, 0);
+		if (PySequence_Check(listObject)) {
+			size = PySequence_Length(listObject);
+		} else { // Single argument was not a sequence
+			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+	} else if (size == 0) {
+		//returns a new empty 3d vector
+		return newVectorObject(NULL, 3, Py_NEW); 
+	} else {
+		listObject = args;
+	}
+
+	if (size<2 || size>4) { // Invalid vector size
+		PyErr_SetString(PyExc_AttributeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+		return NULL;
+	}
+
+	for (i=0; i<size; i++) {
+		v=PySequence_GetItem(listObject, i);
+		if (v==NULL) { // Failed to read sequence
+			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+
+		f= PyFloat_AsDouble(v);
+		if(f==-1 && PyErr_Occurred()) { // parsed item not a number
+			Py_DECREF(v);
+			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			return NULL;
+		}
+
+		vec[i]= f;
+		Py_DECREF(v);
+	}
+	return newVectorObject(vec, size, Py_NEW);
+}
+
 /*-----------------------------METHODS---------------------------- */
 /*----------------------------Vector.zero() ----------------------
   set the vector data to 0,0,0 */
-PyObject *Vector_Zero(VectorObject * self)
+static PyObject *Vector_Zero(VectorObject * self)
 {
 	int i;
 	for(i = 0; i < self->size; i++) {
@@ -83,7 +146,7 @@ PyObject *Vector_Zero(VectorObject * self)
 }
 /*----------------------------Vector.normalize() -----------------
   normalize the vector data to a unit vector */
-PyObject *Vector_Normalize(VectorObject * self)
+static PyObject *Vector_Normalize(VectorObject * self)
 {
 	int i;
 	float norm = 0.0f;
@@ -102,7 +165,7 @@ PyObject *Vector_Normalize(VectorObject * self)
 
 /*----------------------------Vector.resize2D() ------------------
   resize the vector to x,y */
-PyObject *Vector_Resize2D(VectorObject * self)
+static PyObject *Vector_Resize2D(VectorObject * self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize wrapped data - only python vectors\n");
@@ -120,7 +183,7 @@ PyObject *Vector_Resize2D(VectorObject * self)
 }
 /*----------------------------Vector.resize3D() ------------------
   resize the vector to x,y,z */
-PyObject *Vector_Resize3D(VectorObject * self)
+static PyObject *Vector_Resize3D(VectorObject * self)
 {
 	if (self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize wrapped data - only python vectors\n");
@@ -141,7 +204,7 @@ PyObject *Vector_Resize3D(VectorObject * self)
 }
 /*----------------------------Vector.resize4D() ------------------
   resize the vector to x,y,z,w */
-PyObject *Vector_Resize4D(VectorObject * self)
+static PyObject *Vector_Resize4D(VectorObject * self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize wrapped data - only python vectors");
@@ -164,7 +227,7 @@ PyObject *Vector_Resize4D(VectorObject * self)
 }
 /*----------------------------Vector.toTrackQuat(track, up) ----------------------
   extract a quaternion from the vector and the track and up axis */
-PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
+static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 {
 	float vec[3], quat[4];
 	char *strack, *sup;
@@ -279,7 +342,7 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
   return a reflected vector on the mirror normal
   ((2 * DotVecs(vec, mirror)) * mirror) - vec
   using arithb.c would be nice here */
-PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
+static PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 {
 	VectorObject *mirrvec;
 	float mirror[3];
@@ -326,7 +389,7 @@ PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 	return newVectorObject(reflect, self->size, Py_NEW);
 }
 
-PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
+static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 {
 	VectorObject *vecCross = NULL;
 
@@ -345,7 +408,7 @@ PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 	return (PyObject *)vecCross;
 }
 
-PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
+static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 {
 	double dot = 0.0;
 	int x;
@@ -368,7 +431,7 @@ PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 
 /*----------------------------Vector.copy() --------------------------------------
   return a copy of the vector */
-PyObject *Vector_copy(VectorObject * self)
+static PyObject *Vector_copy(VectorObject * self)
 {
 	return newVectorObject(self->vec, self->size, Py_NEW);
 }
@@ -839,7 +902,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 
 /*------------------------tp_richcmpr
   returns -1 execption, 0 false, 1 true */
-PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
 	int result = 0;
@@ -1727,7 +1790,7 @@ PyTypeObject vector_Type = {
 	0,                          /* long tp_dictoffset; */
 	NULL,                       /* initproc tp_init; */
 	NULL,                       /* allocfunc tp_alloc; */
-	NULL,                       /* newfunc tp_new; */
+	Vector_new,                 /* newfunc tp_new; */
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
 	/* For PyObject_IS_GC */
@@ -1785,7 +1848,7 @@ PyObject *newVectorObject(float *vec, int size, int type)
   #######################################################################
   ----------------------------Vector.negate() --------------------
   set the vector to it's negative -x, -y, -z */
-PyObject *Vector_Negate(VectorObject * self)
+static PyObject *Vector_Negate(VectorObject * self)
 {
 	int i;
 	for(i = 0; i < self->size; i++) {

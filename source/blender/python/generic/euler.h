@@ -54,13 +54,6 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *Euler_Zero( EulerObject * self );
-PyObject *Euler_Unique( EulerObject * self );
-PyObject *Euler_ToMatrix( EulerObject * self );
-PyObject *Euler_ToQuat( EulerObject * self );
-PyObject *Euler_Rotate( EulerObject * self, PyObject *args );
-PyObject *Euler_MakeCompatible( EulerObject * self, EulerObject *value );
-PyObject *Euler_copy( EulerObject * self, PyObject *args );
 PyObject *newEulerObject( float *eul, int type );
 
 #endif				/* EXPP_euler_h */

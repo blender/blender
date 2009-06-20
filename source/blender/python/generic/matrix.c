@@ -32,20 +32,34 @@
 #include "BLI_blenlib.h"
 
 /*-------------------------DOC STRINGS ---------------------------*/
-char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
-char Matrix_Identity_doc[] = "() - set the square matrix to it's identity matrix";
-char Matrix_Transpose_doc[] = "() - set the matrix to it's transpose";
-char Matrix_Determinant_doc[] = "() - return the determinant of the matrix";
-char Matrix_Invert_doc[] =  "() - set the matrix to it's inverse if an inverse is possible";
-char Matrix_TranslationPart_doc[] = "() - return a vector encompassing the translation of the matrix";
-char Matrix_RotationPart_doc[] = "() - return a vector encompassing the rotation of the matrix";
-char Matrix_scalePart_doc[] = "() - convert matrix to a 3D vector";
-char Matrix_Resize4x4_doc[] = "() - resize the matrix to a 4x4 square matrix";
-char Matrix_toEuler_doc[] = "(eul_compat) - convert matrix to a euler angle rotation, optional euler argument that the new euler will be made compatible with.";
-char Matrix_toQuat_doc[] = "() - convert matrix to a quaternion rotation";
-char Matrix_copy_doc[] = "() - return a copy of the matrix";
+static char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
+static char Matrix_Identity_doc[] = "() - set the square matrix to it's identity matrix";
+static char Matrix_Transpose_doc[] = "() - set the matrix to it's transpose";
+static char Matrix_Determinant_doc[] = "() - return the determinant of the matrix";
+static char Matrix_Invert_doc[] =  "() - set the matrix to it's inverse if an inverse is possible";
+static char Matrix_TranslationPart_doc[] = "() - return a vector encompassing the translation of the matrix";
+static char Matrix_RotationPart_doc[] = "() - return a vector encompassing the rotation of the matrix";
+static char Matrix_scalePart_doc[] = "() - convert matrix to a 3D vector";
+static char Matrix_Resize4x4_doc[] = "() - resize the matrix to a 4x4 square matrix";
+static char Matrix_toEuler_doc[] = "(eul_compat) - convert matrix to a euler angle rotation, optional euler argument that the new euler will be made compatible with.";
+static char Matrix_toQuat_doc[] = "() - convert matrix to a quaternion rotation";
+static char Matrix_copy_doc[] = "() - return a copy of the matrix";
+
+static PyObject *Matrix_Zero( MatrixObject * self );
+static PyObject *Matrix_Identity( MatrixObject * self );
+static PyObject *Matrix_Transpose( MatrixObject * self );
+static PyObject *Matrix_Determinant( MatrixObject * self );
+static PyObject *Matrix_Invert( MatrixObject * self );
+static PyObject *Matrix_TranslationPart( MatrixObject * self );
+static PyObject *Matrix_RotationPart( MatrixObject * self );
+static PyObject *Matrix_scalePart( MatrixObject * self );
+static PyObject *Matrix_Resize4x4( MatrixObject * self );
+static PyObject *Matrix_toEuler( MatrixObject * self, PyObject *args );
+static PyObject *Matrix_toQuat( MatrixObject * self );
+static PyObject *Matrix_copy( MatrixObject * self );
+
 /*-----------------------METHOD DEFINITIONS ----------------------*/
-struct PyMethodDef Matrix_methods[] = {
+static struct PyMethodDef Matrix_methods[] = {
 	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
 	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
 	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, Matrix_Transpose_doc},
@@ -61,9 +75,86 @@ struct PyMethodDef Matrix_methods[] = {
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
+
+//----------------------------------Mathutils.Matrix() -----------------
+//mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
+//create a new matrix type
+static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyObject *argObject, *m, *s;
+	MatrixObject *mat;
+	int argSize, seqSize = 0, i, j;
+	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float scalar;
+
+	argSize = PyTuple_GET_SIZE(args);
+	if(argSize > 4){	//bad arg nums
+		PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+		return NULL;
+	} else if (argSize == 0) { //return empty 4D matrix
+		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW);
+	}else if (argSize == 1){
+		//copy constructor for matrix objects
+		argObject = PyTuple_GET_ITEM(args, 0);
+		if(MatrixObject_Check(argObject)){
+			mat = (MatrixObject*)argObject;
+
+			argSize = mat->rowSize; //rows
+			seqSize = mat->colSize; //col
+			for(i = 0; i < (seqSize * argSize); i++){
+				matrix[i] = mat->contigPtr[i];
+			}
+		}
+	}else{ //2-4 arguments (all seqs? all same size?)
+		for(i =0; i < argSize; i++){
+			argObject = PyTuple_GET_ITEM(args, i);
+			if (PySequence_Check(argObject)) { //seq?
+				if(seqSize){ //0 at first
+					if(PySequence_Length(argObject) != seqSize){ //seq size not same
+						PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+						return NULL;
+					}
+				}
+				seqSize = PySequence_Length(argObject);
+			}else{ //arg not a sequence
+				PyErr_SetString(PyExc_TypeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+				return NULL;
+			}
+		}
+		//all is well... let's continue parsing
+		for (i = 0; i < argSize; i++){
+			m = PyTuple_GET_ITEM(args, i);
+			if (m == NULL) { // Failed to read sequence
+				PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
+				return NULL;
+			}
+
+			for (j = 0; j < seqSize; j++) {
+				s = PySequence_GetItem(m, j);
+				if (s == NULL) { // Failed to read sequence
+					PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
+					return NULL;
+				}
+				
+				scalar= (float)PyFloat_AsDouble(s);
+				Py_DECREF(s);
+				
+				if(scalar==-1 && PyErr_Occurred()) { // parsed item is not a number
+					PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+					return NULL;
+				}
+
+				matrix[(seqSize*i)+j]= scalar;
+			}
+		}
+	}
+	return newMatrixObject(matrix, argSize, seqSize, Py_NEW);
+}
+
 /*-----------------------------METHODS----------------------------*/
 /*---------------------------Matrix.toQuat() ---------------------*/
-PyObject *Matrix_toQuat(MatrixObject * self)
+static PyObject *Matrix_toQuat(MatrixObject * self)
 {
 	float quat[4];
 
@@ -872,7 +963,7 @@ PyTypeObject matrix_Type = {
 	0,								/*tp_dictoffset*/
 	0,								/*tp_init*/
 	0,								/*tp_alloc*/
-	0,								/*tp_new*/
+	Matrix_new,						/*tp_new*/
 	0,								/*tp_free*/
 	0,								/*tp_is_gc*/
 	0,								/*tp_bases*/

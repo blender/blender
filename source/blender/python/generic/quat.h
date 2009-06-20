@@ -54,16 +54,6 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *Quaternion_Identity( QuaternionObject * self );
-PyObject *Quaternion_Negate( QuaternionObject * self );
-PyObject *Quaternion_Conjugate( QuaternionObject * self );
-PyObject *Quaternion_Inverse( QuaternionObject * self );
-PyObject *Quaternion_Normalize( QuaternionObject * self );
-PyObject *Quaternion_ToEuler( QuaternionObject * self, PyObject *args );
-PyObject *Quaternion_ToMatrix( QuaternionObject * self );
-PyObject *Quaternion_Cross( QuaternionObject * self, QuaternionObject * value );
-PyObject *Quaternion_Dot( QuaternionObject * self, QuaternionObject * value );
-PyObject *Quaternion_copy( QuaternionObject * self );
 PyObject *newQuaternionObject( float *quat, int type );
 
 #endif				/* EXPP_quat_h */
