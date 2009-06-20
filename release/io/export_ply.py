@@ -50,7 +50,12 @@ Only one mesh can be exported at a time.
 def rvec3d(v):	return round(v[0], 6), round(v[1], 6), round(v[2], 6)
 def rvec2d(v):	return round(v[0], 6), round(v[1], 6)
 
-def write(filename, ob, EXPORT_APPLY_MODIFIERS= True, EXPORT_NORMALS= True, EXPORT_UV= True, EXPORT_COLORS= True):
+def write(filename, scene, ob, \
+		EXPORT_APPLY_MODIFIERS= True,\
+		EXPORT_NORMALS= True,\
+		EXPORT_UV= True,\
+		EXPORT_COLORS= True\
+	):
 	
 	if not filename.lower().endswith('.ply'):
 		filename += '.ply'
@@ -72,7 +77,10 @@ def write(filename, ob, EXPORT_APPLY_MODIFIERS= True, EXPORT_NORMALS= True, EXPO
 	"""
 	
 	#mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
-	mesh = ob.data
+	if EXPORT_APPLY_MODIFIERS:
+		mesh = ob.create_render_mesh(scene)
+	else:
+		mesh = ob.data
 	
 	if not mesh:
 		raise ("Error, could not get mesh data from active object")
@@ -219,19 +227,14 @@ def write(filename, ob, EXPORT_APPLY_MODIFIERS= True, EXPORT_NORMALS= True, EXPO
 	file.close()
 	print("writing", filename, "done")
 	
+	if EXPORT_APPLY_MODIFIERS:
+		bpy.data.remove_mesh(mesh)
+	
 	# XXX
 	"""
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
 	"""
-
-"""
-def main():
-	Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))
-
-if __name__=='__main__':
-	main()
-"""
 
 class EXPORT_OT_ply(bpy.types.Operator):
 	'''
@@ -243,7 +246,11 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 	
 	__props__ = [
-			bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= "")
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
+		bpy.props.BoolProperty(attr="use_modifiers", name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default= True),
+		bpy.props.BoolProperty(attr="use_normals", name="Export Normals", description="Export Normals for smooth and hard shaded faces", default= True),
+		bpy.props.BoolProperty(attr="use_uvs", name="Export UVs", description="Exort the active UV layer", default= True),
+		bpy.props.BoolProperty(attr="use_colors", name="Export Vertex Colors", description="Exort the active vertex color layer", default= True)
 	]
 	
 	def poll(self, context):
@@ -256,15 +263,19 @@ class EXPORT_OT_ply(bpy.types.Operator):
 		if not self.filename:
 			raise Exception("filename not set")
 			
-		write(self.filename, context.active_object)
+		write(self.filename, context.scene, context.active_object,\
+			EXPORT_APPLY_MODIFIERS = self.use_modifiers,
+			EXPORT_NORMALS = self.use_normals,
+			EXPORT_UV = self.use_uvs,
+			EXPORT_COLORS = self.use_colors,
+		)
 
 		return ('FINISHED',)
 	
-	def invoke(self, context, event):
-		print("Invoke", context, event)
-		# XXX file selector
-		self.execute(context)
-		return ('FINISHED',)
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
 
 
 bpy.ops.add(EXPORT_OT_ply)
