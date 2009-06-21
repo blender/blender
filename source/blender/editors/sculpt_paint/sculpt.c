@@ -1192,6 +1192,11 @@ void sculptmode_draw_mesh(int only_damaged)
 }
 #endif
 
+static int sculpt_mode_poll(bContext *C)
+{
+	return G.f & G_SCULPTMODE;
+}
+
 static int sculpt_poll(bContext *C)
 {
 	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
@@ -1269,7 +1274,7 @@ static void SCULPT_OT_brush_curve_preset(wmOperatorType *ot)
 	ot->idname= "SCULPT_OT_brush_curve_preset";
 
 	ot->exec= sculpt_brush_curve_preset_exec;
-	ot->poll= sculpt_poll;
+	ot->poll= sculpt_mode_poll;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
