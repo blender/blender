@@ -12,7 +12,4 @@ defs = []
 if env['WITH_BF_GAMEENGINE']:
 	defs.append('GAMEBLENDER=1')
 
-	if env['WITH_BF_SOLID']:
-		defs.append('USE_SUMO_SOLID')
-
 env.BlenderLib ( 'bf_editors_space_buttons', sources, Split(incs), defs, libtype=['core'], priority=[120] )

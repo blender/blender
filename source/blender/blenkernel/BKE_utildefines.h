@@ -130,7 +130,7 @@
 #define IN_RANGE(a, b, c) ((b < c)? ((b<a && a<c)? 1:0) : ((c<a && a<b)? 1:0))
 
 /* this weirdo pops up in two places ... */
-#if !defined(WIN32) && !defined(__BeOS)
+#if !defined(WIN32)
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif

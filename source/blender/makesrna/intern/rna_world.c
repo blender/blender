@@ -337,7 +337,7 @@ void RNA_def_world(BlenderRNA *brna)
 	static EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", ""},
 		//{WOPHY_ENJI, "ENJI", 0, "Enji", ""},
-		{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""},
+		//{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""},
 		//{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""},
 		//{WOPHY_ODE, "ODE", 0, "ODE", ""},
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},

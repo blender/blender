@@ -1600,7 +1600,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
 		if(sce->toolsettings->vpaint)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);

@@ -3941,8 +3941,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	direct_link_keyingsets(fd, &sce->keyingsets);
 	
 	sce->basact= newdataadr(fd, sce->basact);
-
-	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if(sce->toolsettings) {

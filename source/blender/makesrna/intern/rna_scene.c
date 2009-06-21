@@ -923,10 +923,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ed");
 	RNA_def_property_struct_type(prop, "SequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
-
-	prop= RNA_def_property(srna, "radiosity", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "radio");
-	RNA_def_property_ui_text(prop, "Radiosity", "");
 	
 	prop= RNA_def_property(srna, "keyingsets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);
