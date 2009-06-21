@@ -40,6 +40,9 @@ extern EnumPropertyItem beztriple_interpolation_mode_items[];
 
 extern EnumPropertyItem fmodifier_type_items[];
 
+extern EnumPropertyItem event_value_items[];
+extern EnumPropertyItem event_type_items[];
+
 #endif /* RNA_ENUM_TYPES */
 
 
