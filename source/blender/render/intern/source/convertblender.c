@@ -1886,6 +1886,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
 				continue;
 
+			if(psys->parent)
+				Mat4MulVecfl(psys->parent->obmat, state.co);
+
 			VECCOPY(loc,state.co);
 			if(part->ren_as!=PART_DRAW_BB)
 				MTC_Mat4MulVecfl(re->viewmat,loc);

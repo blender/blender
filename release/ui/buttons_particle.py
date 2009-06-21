@@ -288,7 +288,9 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.itemR(part, "material")
+		row = layout.row()
+		row.itemR(part, "material")
+		row.itemR(psys, "parent");
 		
 		split = layout.split()
 			

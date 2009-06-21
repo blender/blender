@@ -3239,6 +3239,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if(draw_as!=PART_DRAW_PATH){
 				state.time=cfra;
 				if(psys_get_particle_state(scene,ob,psys,a,&state,0)){
+					if(psys->parent)
+						Mat4MulVecfl(psys->parent->obmat, state.co);
+
 					/* create actiual particle data */
 					switch(draw_as){
 						case PART_DRAW_DOT:
