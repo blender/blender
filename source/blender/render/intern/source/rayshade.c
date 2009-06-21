@@ -2162,7 +2162,9 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		
 		/* set start and vec */
 		VECCOPY(isec->start, shi->co);
-		VECCOPY(isec->vec, vec);
+		isec->vec[0] = vec[0]+lampco[0]-shi->co[0];
+		isec->vec[1] = vec[1]+lampco[1]-shi->co[1];
+		isec->vec[2] = vec[2]+lampco[2]-shi->co[2];
 		isec->labda = 1.0f;
 		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 		
