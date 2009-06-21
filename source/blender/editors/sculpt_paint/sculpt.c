@@ -148,6 +148,7 @@ typedef struct StrokeCache {
 	float *layer_disps; /* Displacements for each vertex */
  	float (*mesh_store)[3]; /* Copy of the mesh vertices' locations */
 	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
+	float (*face_norms)[3]; /* Copy of the mesh faces' normals */
 	float rotation; /* Texture rotation (radians) for anchored and rake modes */
 	int pixel_radius, previous_pixel_radius;
 	ListBase grab_active_verts[8]; /* The same list of verts is used throught grab stroke */
@@ -1339,6 +1340,8 @@ static void sculpt_cache_free(StrokeCache *cache)
 		MEM_freeN(cache->mesh_store);
 	if(cache->orig_norms)
 		MEM_freeN(cache->orig_norms);
+	if(cache->face_norms)
+		MEM_freeN(cache->face_norms);
 	if(cache->mats)
 		MEM_freeN(cache->mats);
 	MEM_freeN(cache);
@@ -1380,6 +1383,13 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 				cache->orig_norms[i][0] = sd->session->mvert[i].no[0];
 				cache->orig_norms[i][1] = sd->session->mvert[i].no[1];
 				cache->orig_norms[i][2] = sd->session->mvert[i].no[2];
+			}
+
+			if(sd->session->face_normals) {
+				float *fn = sd->session->face_normals;
+				cache->face_norms= MEM_mallocN(sizeof(float) * 3 * sd->session->totface, "Sculpt face norms");
+				for(i = 0; i < sd->session->totface; ++i, fn += 3)
+					VecCopyf(cache->face_norms[i], fn);
 			}
 		}
 	}
@@ -1507,16 +1517,23 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 static void sculpt_restore_mesh(Sculpt *sd)
 {
-	StrokeCache *cache = sd->session->cache;
+	SculptSession *ss = sd->session;
+	StrokeCache *cache = ss->cache;
 	int i;
 	
 	/* Restore the mesh before continuing with anchored stroke */
 	if((sd->brush->flag & BRUSH_ANCHORED) && cache->mesh_store) {
-		for(i = 0; i < sd->session->totvert; ++i) {
-			VecCopyf(sd->session->mvert[i].co, cache->mesh_store[i]);
-			sd->session->mvert[i].no[0] = cache->orig_norms[i][0];
-			sd->session->mvert[i].no[1] = cache->orig_norms[i][1];
-			sd->session->mvert[i].no[2] = cache->orig_norms[i][2];
+		for(i = 0; i < ss->totvert; ++i) {
+			VecCopyf(ss->mvert[i].co, cache->mesh_store[i]);
+			ss->mvert[i].no[0] = cache->orig_norms[i][0];
+			ss->mvert[i].no[1] = cache->orig_norms[i][1];
+			ss->mvert[i].no[2] = cache->orig_norms[i][2];
+		}
+
+		if(ss->face_normals) {
+			float *fn = ss->face_normals;
+			for(i = 0; i < ss->totface; ++i, fn += 3)
+				VecCopyf(fn, cache->face_norms[i]);
 		}
 	}
 }
