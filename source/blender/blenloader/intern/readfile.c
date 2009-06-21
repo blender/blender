@@ -3142,10 +3142,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
 		direct_link_customdata(fd, &mesh->mr->fdata, lvl->totface);
 		
-		if(!mesh->mr->edge_flags)
-			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
-		if(!mesh->mr->edge_creases)
-			mesh->mr->edge_creases= MEM_callocN(sizeof(char)*lvl->totedge, "Multires Edge Creases");
+		mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
+		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
 			
