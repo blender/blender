@@ -67,7 +67,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				row.itemR(con, "target_space", text="")
 
 			if target and owner:
-				row.itemL(icon=8) # XXX
+				row.itemL(icon="ICON_ARROW_LEFTRIGHT")
 
 			if owner:
 				row.itemR(con, "owner_space", text="")
