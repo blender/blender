@@ -263,37 +263,20 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	}
 }
 
-/* For clipping against a mirror modifier */
-static void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
+/* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */
+static void sculpt_clip(Sculpt *sd, float *co, const float val[3])
 {
 	int i;
+
 	for(i=0; i<3; ++i) {
-		if((cache->flag & (CLIP_X << i)) && (fabs(co[i]) <= cache->clip_tolerance[i]))
+		if(sd->flags & (SCULPT_LOCK_X << i))
+			continue;
+
+		if((sd->session->cache->flag & (CLIP_X << i)) && (fabs(co[i]) <= sd->session->cache->clip_tolerance[i]))
 			co[i]= 0.0f;
 		else
 			co[i]= val[i];
 	}		
-}
-
-static void sculpt_axislock(Sculpt *sd, float *co)
-{
-	if(sd->flags == (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z))
-		return;
-
-	if(sd->session->cache->vc.v3d->twmode == V3D_MANIP_LOCAL) {
-		float mat[3][3], imat[3][3];
-		Mat3CpyMat4(mat, sd->session->cache->vc.obact->obmat);
-		Mat3Inv(imat, mat);
-		Mat3MulVecfl(mat, co);
-		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
-		if (sd->flags & SCULPT_LOCK_Y) co[1] = 0.0;
-		if (sd->flags & SCULPT_LOCK_Z) co[2] = 0.0;		
-		Mat3MulVecfl(imat, co);
-	} else {
-		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
-		if (sd->flags & SCULPT_LOCK_Y) co[1] = 0.0;
-		if (sd->flags & SCULPT_LOCK_Z) co[2] = 0.0;		
-	}
 }
 
 static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], const short no[3])
@@ -352,8 +335,6 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_
 
 	calc_area_normal(sd, area_normal, active_verts);
 	
-	sculpt_axislock(sd, area_normal);
-	
 	while(node){
 		float *co= ss->mvert[node->Index].co;
 
@@ -361,7 +342,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_
 		                     co[1]+area_normal[1]*ss->cache->radius*node->Fade*ss->cache->scale[1],
 		                     co[2]+area_normal[2]*ss->cache->radius*node->Fade*ss->cache->scale[2]};
 		                     
-		sculpt_clip(ss->cache, co, val);
+		sculpt_clip(sd, co, val);
 		
 		node= node->next;
 	}
@@ -411,37 +392,37 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		VecCopyf(avg, ss->mvert[vert].co);
 }
 
-static void do_smooth_brush(SculptSession *ss, const ListBase* active_verts)
+static void do_smooth_brush(Sculpt *s, const ListBase* active_verts)
 {
 	ActiveData *node= active_verts->first;
 	int i;
 	
 	for(i = 0; i < 2; ++i) {
 		while(node){
-			float *co= ss->mvert[node->Index].co;
+			float *co= s->session->mvert[node->Index].co;
 			float avg[3], val[3];
 			
-			neighbor_average(ss, avg, node->Index);
+			neighbor_average(s->session, avg, node->Index);
 			val[0] = co[0]+(avg[0]-co[0])*node->Fade;
 			val[1] = co[1]+(avg[1]-co[1])*node->Fade;
 			val[2] = co[2]+(avg[2]-co[2])*node->Fade;
 			
-			sculpt_clip(ss->cache, co, val);
+			sculpt_clip(s, co, val);
 			node= node->next;
 		}
 	}
 }
 
-static void do_pinch_brush(SculptSession *ss, const ListBase* active_verts)
+static void do_pinch_brush(Sculpt *s, const ListBase* active_verts)
 {
  	ActiveData *node= active_verts->first;
 
 	while(node) {
-		float *co= ss->mvert[node->Index].co;
-		const float val[3]= {co[0]+(ss->cache->location[0]-co[0])*node->Fade,
-		                     co[1]+(ss->cache->location[1]-co[1])*node->Fade,
-		                     co[2]+(ss->cache->location[2]-co[2])*node->Fade};
-		sculpt_clip(ss->cache, co, val);
+		float *co= s->session->mvert[node->Index].co;
+		const float val[3]= {co[0]+(s->session->cache->location[0]-co[0])*node->Fade,
+		                     co[1]+(s->session->cache->location[1]-co[1])*node->Fade,
+		                     co[2]+(s->session->cache->location[2]-co[2])*node->Fade};
+		sculpt_clip(s, co, val);
 		node= node->next;
 	}
 }
@@ -453,7 +434,6 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss)
 	float grab_delta[3];
 	
 	VecCopyf(grab_delta, ss->cache->grab_delta_symmetry);
-	sculpt_axislock(sd, grab_delta);
 	
 	while(node) {
 		float *co= ss->mvert[node->Index].co;
@@ -461,7 +441,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss)
 		VecCopyf(add, grab_delta);
 		VecMulf(add, node->Fade);
 		VecAddf(add, add, co);
-		sculpt_clip(ss->cache, co, add);
+		sculpt_clip(sd, co, add);
 
 		node= node->next;
 	}
@@ -494,15 +474,16 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, const ListBase *active
 		val[1] = ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1];
 		val[2] = ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2];
 
-		sculpt_clip(ss->cache, co, val);
+		sculpt_clip(sd, co, val);
 
 		node= node->next;
 	}
 }
 
-static void do_inflate_brush(SculptSession *ss, const ListBase *active_verts)
+static void do_inflate_brush(Sculpt *s, const ListBase *active_verts)
 {
 	ActiveData *node= active_verts->first;
+	SculptSession *ss = s->session;
 	float add[3];
 	
 	while(node) {
@@ -518,7 +499,7 @@ static void do_inflate_brush(SculptSession *ss, const ListBase *active_verts)
 		add[2]*= ss->cache->scale[2];
 		VecAddf(add, add, co);
 		
-		sculpt_clip(ss->cache, co, add);
+		sculpt_clip(s, co, add);
 
 		node= node->next;
 	}
@@ -581,7 +562,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 			VecAddf(val, val, tmp);
 		}
 
-		sculpt_clip(ss->cache, co, val);
+		sculpt_clip(sd, co, val);
 		
 		node= node->next;
 	}
@@ -839,13 +820,13 @@ static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 			do_draw_brush(sd, ss, &active_verts);
 			break;
 		case SCULPT_TOOL_SMOOTH:
-			do_smooth_brush(ss, &active_verts);
+			do_smooth_brush(sd, &active_verts);
 			break;
 		case SCULPT_TOOL_PINCH:
-			do_pinch_brush(ss, &active_verts);
+			do_pinch_brush(sd, &active_verts);
 			break;
 		case SCULPT_TOOL_INFLATE:
-			do_inflate_brush(ss, &active_verts);
+			do_inflate_brush(sd, &active_verts);
 			break;
 		case SCULPT_TOOL_GRAB:
 			do_grab_brush(sd, ss);
