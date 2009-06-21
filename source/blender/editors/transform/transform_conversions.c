@@ -4672,7 +4672,7 @@ void special_aftertrans_update(TransInfo *t)
 			
 			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
 				/* pointcache refresh */
-				if (BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 					ob->recalc |= OB_RECALC_DATA;
 				
 				/* Set autokey if necessary */

@@ -2878,6 +2878,16 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
+	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		PTCacheMem *pm;
+
+		link_list(fd, &cache->mem_cache);
+
+		pm = cache->mem_cache.first;
+
+		for(; pm; pm=pm->next)
+			pm->data = newdataadr(fd, pm->data);
+	}
 	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
 	cache->simframe= 0;
 }
@@ -8996,6 +9006,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Tex *tx;
 		ParticleSettings *part;
+		Object *ob;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -9038,7 +9049,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
 		}
 
-		/* particle settings conversion */
+		/* particle draw and render types */
 		for(part= main->particle.first; part; part= part->id.next) {
 			if(part->draw_as) {
 				if(part->draw_as == PART_DRAW_DOT) {
@@ -9053,6 +9064,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					part->draw_as = PART_DRAW_REND;
 				}
 			}
+		}
+		/* set old pointcaches to have disk cache flag */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ParticleSystem *psys = ob->particlesystem.first;
+
+			for(; psys; psys=psys->next) {
+				if(psys->pointcache)
+					psys->pointcache->flag |= PTCACHE_DISK_CACHE;
+			}
+
+			/* TODO: softbody & cloth caches */
 		}
 	}
 

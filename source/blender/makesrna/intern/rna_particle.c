@@ -38,6 +38,7 @@
 #include "DNA_scene_types.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #ifdef RNA_RUNTIME
 
@@ -45,48 +46,93 @@
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
+#include "BLI_arithb.h"
+
+/* property update functions */
 static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-	if(ptr->type==&RNA_ParticleSystem)
-		part = ((ParticleSystem*)ptr->data)->part;
-	else
-		part = ptr->id.data;
+	if(ptr->type==&RNA_ParticleSystem) {
+		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		Object *ob = psys_find_object(scene, psys);
+		
+		psys->recalc = PSYS_RECALC_REDO;
 
-	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_REDO);
+		if(ob)
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	}
+	else {
+		part = ptr->id.data;
+		psys_flush_particle_settings(scene, part, PSYS_RECALC_REDO);
+	}
 }
 
 static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-	if(ptr->type==&RNA_ParticleSystem)
-		part = ((ParticleSystem*)ptr->data)->part;
-	else
-		part = ptr->id.data;
 
-	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_RESET|PSYS_RECALC_REDO);
+	if(ptr->type==&RNA_ParticleSystem) {
+		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		Object *ob = psys_find_object(scene, psys);
+		
+		psys->recalc = PSYS_RECALC_RESET;
+
+		if(ob) {
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
+		}
+	}
+	else {
+		part = ptr->id.data;
+		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
+		//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
+	}
 }
 
 static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-	if(ptr->type==&RNA_ParticleSystem)
-		part = ((ParticleSystem*)ptr->data)->part;
-	else
-		part = ptr->id.data;
 
-	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE|PSYS_RECALC_REDO);
+	if(ptr->type==&RNA_ParticleSystem) {
+		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		Object *ob = psys_find_object(scene, psys);
+		
+		psys->recalc = PSYS_RECALC_RESET|PSYS_RECALC_TYPE;
+
+		if(ob) {
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
+		}
+	}
+	else {
+		part = ptr->id.data;
+		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
+		//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
+	}
 }
 
 static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-	if(ptr->type==&RNA_ParticleSystem)
-		part = ((ParticleSystem*)ptr->data)->part;
-	else
+
+	if(ptr->type==&RNA_ParticleSystem) {
+		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		Object *ob = psys_find_object(scene, psys);
+		
+		psys->recalc = PSYS_RECALC_CHILD;
+
+		if(ob)
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	}
+	else {
 		part = ptr->id.data;
 
-	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_CHILD);
+		psys_flush_particle_settings(scene, part, PSYS_RECALC_CHILD);
+	}
 }
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
@@ -887,7 +933,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3d view");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "material", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "omat");

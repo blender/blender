@@ -34,12 +34,8 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if psys:
 			split.template_ID(context, psys, "settings")
 
-			#if ob:
-			#	split.itemR(ob, "active_particle_system_index", text="Active")
-
 		if psys:
 			#row = layout.row()
-			#row.itemL(text="Particle system datablock")
 			#row.itemL(text="Viewport")
 			#row.itemL(text="Render")
 			
@@ -49,55 +45,26 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 			if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
 				layout.itemL(text="No settings for fluid particles")
 				return
+				
+			split = layout.split(percentage=0.65)
 			
-			row = layout.row()
-			row.enabled = particle_panel_enabled(psys)
-			row.itemR(part, "type")
-			row.itemR(psys, "seed")
+			split.enabled = particle_panel_enabled(psys)
+			split.itemR(part, "type")
+			split.itemR(psys, "seed")
 			
-			row = layout.row()
+			split = layout.split(percentage=0.65)
 			if part.type=='HAIR':
 				if psys.editable==True:
-					row.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+					split.itemO("PARTICLE_OT_editable_set", text="Free Edit")
 				else:
-					row.itemO("PARTICLE_OT_editable_set", text="Make Editable")
-				subrow = row.row()
-				subrow.enabled = particle_panel_enabled(psys)
-				subrow.itemR(part, "hair_step")
+					split.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+				row = split.row()
+				row.enabled = particle_panel_enabled(psys)
+				row.itemR(part, "hair_step")
 			elif part.type=='REACTOR':
-				row.itemR(psys, "reactor_target_object")
-				row.itemR(psys, "reactor_target_particle_system", text="Particle System")
-		
-		if psys:
-			#row = layout.row()
-			#row.itemL(text="Particle system datablock")
-			#row.itemL(text="Viewport")
-			#row.itemL(text="Render")
-			
-			part = psys.settings
-			ptype = psys.settings.type
-			
-			if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
-				layout.itemL(text="No settings for fluid particles")
-				return
-			
-			row = layout.row()
-			row.enabled = particle_panel_enabled(psys)
-			row.itemR(part, "type", expand=True)
-			
-			
-			row = layout.row()
-			if part.type=='HAIR':
-				if psys.editable==True:
-					row.itemO("PARTICLE_OT_editable_set", text="Free Edit")
-				else:
-					row.itemO("PARTICLE_OT_editable_set", text="Make Editable")
-				subrow = row.row()
-				subrow.enabled = particle_panel_enabled(psys)
-				subrow.itemR(part, "hair_step")
-			elif part.type=='REACTOR':
-				row.itemR(psys, "reactor_target_object")
-				row.itemR(psys, "reactor_target_particle_system", text="Particle System")
+				split.enabled = particle_panel_enabled(psys)
+				split.itemR(psys, "reactor_target_object")
+				split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_emission"
@@ -112,9 +79,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 		layout.enabled = particle_panel_enabled(psys)
 		
 		row = layout.row()
-		#col.itemL(text="TODO: Rate instead of amount")
 		row.itemR(part, "amount")
-		row.itemR(psys, "seed")
 		
 		split = layout.split()
 		
@@ -150,6 +115,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 class PARTICLE_PT_cache(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_cache"
 	__label__ = "Cache"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		psys = context.particle_system
@@ -163,15 +129,35 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		part = psys.settings
 		cache = psys.point_cache
 		
-		#if cache.baked==True:
-			#layout.itemO("PARTICLE_OT_free_bake", text="BAKE")
-		#else:
 		row = layout.row()
-			#row.itemO("PARTICLE_OT_bake", text="BAKE")
-		row.itemR(cache, "start_frame")
-		row.itemR(cache, "end_frame")
+		row.itemR(cache, "name", text="")
+		if cache.outdated:
+			row.itemL(text="Cache is outdated.")
+		else:
+			row.itemL(text="")
+		
+		row = layout.row()
+		
+		if cache.baked == True:
+			row.itemO("PTCACHE_OT_free_bake_particle_system", text="Free Bake")
+		else:
+			row.item_booleanO("PTCACHE_OT_cache_particle_system", "bake", True, text="Bake")
 			
-			#layout.row().itemL(text="No simulation frames in disk cache.")
+		row = layout.row()
+		row.enabled = particle_panel_enabled(psys)
+		row.itemO("PTCACHE_OT_bake_from_particles_cache", text="Current Cache to Bake")
+		if cache.autocache == 0:
+			row.itemO("PTCACHE_OT_cache_particle_system", text="Cache to Current Frame")
+	
+		row = layout.row()
+		row.enabled = particle_panel_enabled(psys)
+		#row.itemR(cache, "autocache")
+		row.itemR(cache, "disk_cache")
+		row.itemL(text=cache.info)
+		
+		# for particles these are figured out automatically
+		#row.itemR(cache, "start_frame")
+		#row.itemR(cache, "end_frame")
 
 class PARTICLE_PT_initial(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_initial"
@@ -184,8 +170,6 @@ class PARTICLE_PT_initial(ParticleButtonsPanel):
 		part = psys.settings
 		
 		layout.enabled = particle_panel_enabled(psys)
-		
-		#layout.row().itemL(text="")
 				
 		layout.row().itemL(text="Direction:")
 	
@@ -362,27 +346,14 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			row = layout.row()
 			col = row.column()
 			
-			
-#			subrow = col.row()
-#			subrow.active = part.render_strand == False
-#			subrow.itemR(part, "render_adaptive")
-#			col = row.column(align=True)
-#			subrow = col.row()
-#			subrow.active = part.render_adaptive or part.render_strand == True
-#			subrow.itemR(part, "adaptive_angle")
-#			subrow = col.row()
-#			subrow.active = part.render_adaptive == True and part.render_strand == False
-#			subrow.itemR(part, "adaptive_pix")
-			
 			if part.type=='HAIR' and part.render_strand==True and part.child_type=='FACES':
 				layout.itemR(part, "enable_simplify")
 				if part.enable_simplify==True:
-					box = layout.box()
-					row = box.row()
+					row = layout.row()
 					row.itemR(part, "simplify_refsize")
 					row.itemR(part, "simplify_rate")
 					row.itemR(part, "simplify_transition")
-					row = box.row()
+					row = layout.row()
 					row.itemR(part, "viewport")
 					subrow = row.row()
 					subrow.active = part.viewport==True
@@ -438,6 +409,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 class PARTICLE_PT_draw(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_draw"
 	__label__ = "Display"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		return (context.particle_system != None)
@@ -490,6 +462,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 class PARTICLE_PT_children(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_children"
 	__label__ = "Children"
+	__default_closed__ = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -557,6 +530,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_vertexgroups"
 	__label__ = "Vertexgroups"
+	__default_closed__ = True
 
 	def draw(self, context):
 		layout = self.layout

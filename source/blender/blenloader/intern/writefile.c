@@ -549,6 +549,22 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+/* TODO: replace *cache with *cachelist once it's coded */
+#define PTCACHE_WRITE_PSYS	0
+static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
+{
+	writestruct(wd, DATA, "PointCache", 1, cache);
+
+	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		PTCacheMem *pm = cache->mem_cache.first;
+
+		for(; pm; pm=pm->next) {
+			writestruct(wd, DATA, "PTCacheMem", 1, pm);
+			if(type==PTCACHE_WRITE_PSYS)
+				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
+		}
+	}
+}
 static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
@@ -585,8 +601,8 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) writestruct(wd, DATA, "PointCache", 1, psys->soft->pointcache);
-		writestruct(wd, DATA, "PointCache", 1, psys->pointcache);
+		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
+		write_pointcaches(wd, psys->pointcache, PTCACHE_WRITE_PSYS);
 	}
 }
 
