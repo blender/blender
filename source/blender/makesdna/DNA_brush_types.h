@@ -108,6 +108,7 @@ typedef struct Brush {
 #define SCULPT_TOOL_GRAB    5
 #define SCULPT_TOOL_LAYER   6
 #define SCULPT_TOOL_FLATTEN 7
+#define SCULPT_TOOL_CLAY    8
 
 #define PAINT_TOOL_DRAW		0
 #define PAINT_TOOL_SOFTEN	1

@@ -248,8 +248,9 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	switch(sd->brush->sculpt_tool){
 	case SCULPT_TOOL_DRAW:
 	case SCULPT_TOOL_INFLATE:
-		return alpha * dir * pressure * flip; /*XXX: not sure why? was multiplied by G.vd->grid */;
+	case SCULPT_TOOL_CLAY:
 	case SCULPT_TOOL_FLATTEN:
+		return alpha * dir * pressure * flip; /*XXX: not sure why? was multiplied by G.vd->grid */;
 	case SCULPT_TOOL_SMOOTH:
 		return alpha * 4 * pressure;
 	case SCULPT_TOOL_PINCH:
@@ -552,7 +553,7 @@ static void calc_flatten_center(SculptSession *ss, ActiveData *node, float co[3]
 	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
-static void do_flatten_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts)
+static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts, int clay)
 {
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
@@ -575,16 +576,23 @@ static void do_flatten_brush(Sculpt *sd, SculptSession *ss, const ListBase *acti
 		VecAddf(intr, intr, p1);
 		
 		VecSubf(val, intr, co);
-		VecMulf(val, node->Fade);
+		VecMulf(val, fabs(node->Fade));
 		VecAddf(val, val, co);
 		
+		if(clay) {
+			/* Clay brush displaces after flattening */
+			float tmp[3];
+			VecCopyf(tmp, area_normal);
+			VecMulf(tmp, ss->cache->radius * node->Fade * 0.1);
+			VecAddf(val, val, tmp);
+		}
+
 		sculpt_clip(ss->cache, co, val);
 		
 		node= node->next;
 	}
 }
-
-
+ 
 /* Uses symm to selectively flip any axis of a coordinate. */
 static void flip_coord(float out[3], float in[3], const char symm)
 {
@@ -852,8 +860,10 @@ static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 			do_layer_brush(sd, ss, &active_verts);
 			break;
 		case SCULPT_TOOL_FLATTEN:
-			do_flatten_brush(sd, ss, &active_verts);
+			do_flatten_clay_brush(sd, ss, &active_verts, 0);
 			break;
+		case SCULPT_TOOL_CLAY:
+			do_flatten_clay_brush(sd, ss, &active_verts, 1);
 		}
 	
 		/* Copy the modified vertices from mesh to the active key */

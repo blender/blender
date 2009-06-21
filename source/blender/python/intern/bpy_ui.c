@@ -373,7 +373,7 @@ static struct PyMethodDef ui_methods[] = {
 #if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
-	"bpyui",
+	"bpy.ui",
 	"",
 	-1,/* multiple "initialization" just copies the module dict. */
 	ui_methods,

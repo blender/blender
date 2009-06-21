@@ -492,8 +492,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 0;
 
 	/* here we handle context, getting data from precomputed path */
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {
+			"world", "object", "meshe", "armature", "lattice", "curve",
+			"meta_ball", "lamp", "camera", "material", "material_slot",
+			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
+			"cloth", "soft_body", "fluid", NULL};
 
-	if(CTX_data_equals(member, "world")) {
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "world")) {
 		set_pointer_type(path, result, &RNA_World);
 		return 1;
 	}
