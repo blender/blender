@@ -365,7 +365,7 @@ static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
 	{NLAEDIT_LRSEL_NONE, "OFF", 0, "Don't select", ""},
 	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
-	{0, NULL, NULL, NULL}
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* sensitivity factor for frame-selections */
@@ -375,13 +375,14 @@ static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
 /* ------------------- */
 
 /* option 1) select strip directly under mouse */
-static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
+static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale = NULL;
 	int filter;
 	
 	View2D *v2d= &ac->ar->v2d;
+	Scene *scene= ac->scene;
 	NlaStrip *strip = NULL;
 	int channel_index;
 	float xmin, xmax, dummy;
@@ -429,6 +430,12 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 		BLI_freelistN(&anim_data);
 	}
 	
+	/* if currently in tweakmode, exit tweakmode before changing selection states
+	 * now that we've found our target...
+	 */
+	if (scene->flag & SCE_NLA_EDIT_ON)
+		WM_operator_name_call(C, "NLAEDIT_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+	
 	/* for replacing selection, firstly need to clear existing selection */
 	if (select_mode == SELECT_REPLACE) {
 		/* reset selection mode for next steps */
@@ -470,7 +477,7 @@ static void mouse_nla_strips (bAnimContext *ac, int mval[2], short select_mode)
 }
 
 /* Option 2) Selects all the strips on either side of the current frame (depends on which side the mouse is on) */
-static void nlaedit_mselect_leftright (bAnimContext *ac, short leftright, short select_mode)
+static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short leftright, short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -478,6 +485,10 @@ static void nlaedit_mselect_leftright (bAnimContext *ac, short leftright, short 
 	
 	Scene *scene= ac->scene;
 	float xmin, xmax;
+	
+	/* if currently in tweakmode, exit tweakmode first */
+	if (scene->flag & SCE_NLA_EDIT_ON)
+		WM_operator_name_call(C, "NLAEDIT_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
 	if (select_mode==SELECT_REPLACE) {
@@ -564,11 +575,11 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		else 	
 			RNA_int_set(op->ptr, "left_right", NLAEDIT_LRSEL_RIGHT);
 		
-		nlaedit_mselect_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
+		nlaedit_mselect_leftright(C, &ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
 	}
 	else {
 		/* select strips based upon mouse position */
-		mouse_nla_strips(&ac, mval, selectmode);
+		mouse_nla_strips(C, &ac, mval, selectmode);
 	}
 	
 	/* set notifier that things have changed */
@@ -586,7 +597,7 @@ void NLAEDIT_OT_click_select (wmOperatorType *ot)
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= nlaedit_clickselect_invoke;
-	ot->poll= nlaop_poll_tweakmode_off;
+	ot->poll= ED_operator_nla_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
