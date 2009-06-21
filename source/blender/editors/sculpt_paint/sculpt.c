@@ -241,7 +241,6 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
 	float flip= cache->flip ? -1:1;
-	float anchored = sd->brush->flag & BRUSH_ANCHORED ? 25 : 1;
 
 	if(sd->brush->flag & BRUSH_ALPHA_PRESSURE)
 		pressure *= cache->pressure;
@@ -251,6 +250,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	case SCULPT_TOOL_INFLATE:
 	case SCULPT_TOOL_CLAY:
 	case SCULPT_TOOL_FLATTEN:
+	case SCULPT_TOOL_LAYER:
 		return alpha * dir * pressure * flip; /*XXX: not sure why? was multiplied by G.vd->grid */;
 	case SCULPT_TOOL_SMOOTH:
 		return alpha * 4 * pressure;
@@ -258,8 +258,6 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 		return alpha / 2 * dir * pressure * flip;
 	case SCULPT_TOOL_GRAB:
 		return 1;
-	case SCULPT_TOOL_LAYER:
-		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
 	default:
 		return 0;
 	}
@@ -474,34 +472,29 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, const ListBase *active
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	float lim= brush_strength(sd, ss->cache);
+	float lim= ss->cache->radius / 4;
 
-	if(sd->brush->flag & BRUSH_DIR_IN)
+	if(ss->cache->flip)
 		lim = -lim;
 
 	calc_area_normal(sd, area_normal, active_verts);
 
 	while(node){
 		float *disp= &ss->cache->layer_disps[node->Index];
+		float *co= ss->mvert[node->Index].co;
+		float val[3];
 		
-		if((lim > 0 && *disp < lim) ||
-		   (lim < 0 && *disp > lim)) {
-		  	float *co= ss->mvert[node->Index].co;
-			float val[3];
-		  	
-			*disp+= node->Fade;
+		*disp+= node->Fade;
+		
+		/* Don't let the displacement go past the limit */
+		if((lim < 0 && *disp < lim) || (lim > 0 && *disp > lim))
+			*disp = lim;
+		
+		val[0] = ss->cache->mesh_store[node->Index][0]+area_normal[0] * *disp*ss->cache->scale[0];
+		val[1] = ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1];
+		val[2] = ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2];
 
-			if(lim < 0 && *disp < lim)
-				*disp = lim;
-			else if(lim > 0 && *disp > lim)
-					*disp = lim;
-
-			val[0] = ss->cache->mesh_store[node->Index][0]+area_normal[0] * *disp*ss->cache->scale[0];
-			val[1] = ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1];
-			val[2] = ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2];
-			//VecMulf(val, ss->cache->radius);
-			sculpt_clip(ss->cache, co, val);
-		}
+		sculpt_clip(ss->cache, co, val);
 
 		node= node->next;
 	}
@@ -1370,9 +1363,11 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 
 	sculpt_update_mesh_elements(C);
 
+	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER)
+		cache->layer_disps = MEM_callocN(sizeof(float) * sd->session->totvert, "layer brush displacements");
+
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER || (sd->brush->flag & BRUSH_ANCHORED)) {
-		cache->layer_disps = MEM_callocN(sizeof(float) * sd->session->totvert, "layer brush displacements");
 		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * sd->session->totvert, "sculpt mesh vertices copy");
 		for(i = 0; i < sd->session->totvert; ++i)
 			VecCopyf(cache->mesh_store[i], sd->session->mvert[i].co);
@@ -1535,6 +1530,9 @@ static void sculpt_restore_mesh(Sculpt *sd)
 			for(i = 0; i < ss->totface; ++i, fn += 3)
 				VecCopyf(fn, cache->face_norms[i]);
 		}
+
+		if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER)
+			memset(cache->layer_disps, 0, sizeof(float) * ss->totvert);
 	}
 }
 
