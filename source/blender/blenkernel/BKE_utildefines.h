@@ -148,12 +148,6 @@
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 
 #define FORM MAKE_ID('F','O','R','M')
-#define DDG1 MAKE_ID('3','D','G','1')
-#define DDG2 MAKE_ID('3','D','G','2')
-#define DDG3 MAKE_ID('3','D','G','3')
-#define DDG4 MAKE_ID('3','D','G','4')
-
-#define GOUR MAKE_ID('G','O','U','R')
 
 #define BLEN MAKE_ID('B','L','E','N')
 #define DER_ MAKE_ID('D','E','R','_')
