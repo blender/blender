@@ -1289,7 +1289,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 			texres->tg= col[1];
 			texres->tb= col[2];
 			texres->ta= col[3];
-			retval |= 1;
+			retval |= TEX_RGB;
 		}
 	}
 	return retval;
@@ -1636,8 +1636,11 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 					tcol[0]=texres.tr;
 					tcol[1]=texres.tg;
 					tcol[2]=texres.tb;
+					if(texres.talpha)
+						texres.tin= texres.ta;
 				}
 				
+				/* used for emit */
 				if((mapto_flag & MAP_COL) && (mtex->mapto & MAP_COL)) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
 				}
