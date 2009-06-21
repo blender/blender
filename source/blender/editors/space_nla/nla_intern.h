@@ -113,6 +113,8 @@ void NLA_OT_add_tracks(wmOperatorType *ot);
 int nlaop_poll_tweakmode_off(bContext *C);
 int nlaop_poll_tweakmode_on (bContext *C);
 
+short nlaedit_is_tweakmode_on(bAnimContext *ac);
+
 /* --- */
 
 void nla_operatortypes(void);

@@ -187,7 +187,7 @@ void ACT_OT_keyframes_select_all_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -349,7 +349,7 @@ void ACT_OT_keyframes_select_border(wmOperatorType *ot)
 	ot->exec= actkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -563,7 +563,7 @@ void ACT_OT_keyframes_select_column (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -968,7 +968,7 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

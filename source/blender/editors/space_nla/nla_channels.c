@@ -143,7 +143,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				/* toggle expand */
 				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX 
 			}
-			else {
+			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection status */
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
@@ -242,7 +242,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				/* toggle 'solo' */
 				BKE_nlatrack_solo_toggle(adt, nlt);
 			}
-			else {
+			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection */
 				if (selectmode == SELECT_INVERT) {
 					/* inverse selection status of this F-Curve only */
@@ -266,10 +266,12 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			
 			/* for now, only do something if user clicks on the 'push-down' button */
 			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
-				/* activate push-down function */
-				// TODO: make this use the operator instead of calling the function directly
-				// 	however, calling the operator requires that we supply the args, and that works with proper buttons only
-				BKE_nla_action_pushdown(adt);
+				/* activate push-down function - only usable when not in TweakMode */
+				if (nlaedit_is_tweakmode_on(ac) == 0) {
+					// TODO: make this use the operator instead of calling the function directly
+					// 	however, calling the operator requires that we supply the args, and that works with proper buttons only
+					BKE_nla_action_pushdown(adt);
+				}
 			}
 		}
 			break;
@@ -339,7 +341,7 @@ void NLA_OT_channels_click (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
-	ot->poll= nlaop_poll_tweakmode_off; // xxx?
+	ot->poll= ED_operator_nla_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

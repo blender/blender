@@ -271,6 +271,47 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 /* ************************************************************************** */
 /* OPERATORS */
 
+/* ****************** Operator Utilities ********************************** */
+
+/* poll callback for being in an Animation Editor channels list region */
+int animedit_poll_channels_active (bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	
+	/* channels region test */
+	// TODO: could enhance with actually testing if channels region?
+	if (ELEM(NULL, sa, CTX_wm_region(C)))
+		return 0;
+	/* animation editor test */
+	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+		return 0;
+		
+	return 1;
+}
+
+/* poll callback for Animation Editor channels list region + not in NLA-tweakmode for NLA */
+int animedit_poll_channels_nla_tweakmode_off (bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	/* channels region test */
+	// TODO: could enhance with actually testing if channels region?
+	if (ELEM(NULL, sa, CTX_wm_region(C)))
+		return 0;
+	/* animation editor test */
+	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
+		return 0;
+	
+	/* NLA TweakMode test */	
+	if (sa->spacetype == SPACE_NLA) {
+		if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON))
+			return 0;
+	}
+		
+	return 1;
+}
+
 /* ****************** Rearrange Channels Operator ******************* */
 /* This operator only works for Action Editor mode for now, as having it elsewhere makes things difficult */
 
@@ -961,7 +1002,7 @@ void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= animchannels_setflag_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -982,7 +1023,7 @@ void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= animchannels_setflag_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1003,7 +1044,7 @@ void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= animchannels_setflag_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1024,7 +1065,7 @@ void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_setflag_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1068,7 +1109,7 @@ void ANIM_OT_channels_expand (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_expand_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1109,7 +1150,7 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_collapse_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1148,7 +1189,7 @@ void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= animchannels_deselectall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_nla_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1277,7 +1318,7 @@ void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->exec= animchannels_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_nla_tweakmode_off;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1636,7 +1677,7 @@ void ANIM_OT_channels_click (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= animchannels_mouseclick_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= animedit_poll_channels_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

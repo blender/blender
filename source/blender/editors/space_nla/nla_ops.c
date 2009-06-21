@@ -113,6 +113,14 @@ int nlaop_poll_tweakmode_on (bContext *C)
 	return 1;
 }
 
+/* is tweakmode enabled - for use in NLA operator code */
+short nlaedit_is_tweakmode_on (bAnimContext *ac)
+{
+	if (ac && ac->scene)
+		return (ac->scene->flag & SCE_NLA_EDIT_ON);
+	return 0;
+}
+
 /* ************************** registration - operator types **********************************/
 
 void nla_operatortypes(void)
@@ -160,10 +168,10 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 	/* selection */
-		/* borderselect */ 
+		/* borderselect - not in tweakmode */ 
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
 		
-		/* deselect all */
+		/* deselect all - not in tweakmode */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	

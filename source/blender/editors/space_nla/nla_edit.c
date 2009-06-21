@@ -625,7 +625,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	/* for each NLA-Track, delete all selected strips */
+	/* for each NLA-Track, split all selected strips into two strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip, *nstrip, *next;

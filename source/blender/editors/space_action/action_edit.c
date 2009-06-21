@@ -181,7 +181,7 @@ void ACT_OT_previewrange_set (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_previewrange_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -228,7 +228,7 @@ void ACT_OT_view_all (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -315,7 +315,7 @@ void ACT_OT_keyframes_copy (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_copy_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -359,7 +359,7 @@ void ACT_OT_keyframes_paste (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_paste_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -456,7 +456,7 @@ void ACT_OT_keyframes_insert (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_insertkey_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -533,7 +533,7 @@ void ACT_OT_keyframes_duplicate (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= actkeys_duplicate_invoke;
 	ot->exec= actkeys_duplicate_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -600,7 +600,7 @@ void ACT_OT_keyframes_delete (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= actkeys_delete_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -663,7 +663,7 @@ void ACT_OT_keyframes_clean (wmOperatorType *ot)
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
 	ot->exec= actkeys_clean_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -786,7 +786,7 @@ void ACT_OT_keyframes_sample (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_sample_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -862,7 +862,7 @@ void ACT_OT_keyframes_extrapolation_type_set (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_expo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -932,7 +932,7 @@ void ACT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_ipo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1020,7 +1020,7 @@ void ACT_OT_keyframes_handle_type_set (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_handletype_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1079,7 +1079,7 @@ void ACT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= actkeys_cfrasnap_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1175,7 +1175,7 @@ void ACT_OT_keyframes_snap (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_snap_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1291,7 +1291,7 @@ void ACT_OT_keyframes_mirror (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_mirror_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
