@@ -29,6 +29,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****/
 
+#include "BLI_storage.h"
 
 #include <ctype.h> /* isdigit, isspace */
 #include <math.h>

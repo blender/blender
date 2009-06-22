@@ -694,7 +694,7 @@ int RNA_enum_name(const EnumPropertyItem *item, const int value, const char **na
 int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
 {	
 	const EnumPropertyItem *item;
-	int totitem, i;
+	int totitem;
 	
 	RNA_property_enum_items(ptr, prop, &item, &totitem);
 	

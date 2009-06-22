@@ -76,10 +76,11 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "GPU_draw.h"
+
 #include "PIL_time.h" /* smoothview */
 
 #include "view3d_intern.h"	// own include
-
 
 /* use this call when executing an operator,
    event system doesn't set for each event the
