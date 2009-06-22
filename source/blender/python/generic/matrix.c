@@ -31,6 +31,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec); /* utility func */
+
 /*-------------------------DOC STRINGS ---------------------------*/
 static char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
 static char Matrix_Identity_doc[] = "() - set the square matrix to it's identity matrix";
@@ -829,7 +831,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	else /* if(mat1) { */ {
 		
 		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
-			return column_vector_multiplication(mat1, (VectorObject *)m2);
+			return column_vector_multiplication(mat1, (VectorObject *)m2); /* vector update done inside the function */
 		}
 		else {
 			scalar= PyFloat_AsDouble(m2);
@@ -1055,4 +1057,42 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 		return NULL;
 	}
 	return (PyObject *) self;
+}
+
+//----------------column_vector_multiplication (internal)---------
+//COLUMN VECTOR Multiplication (Matrix X Vector)
+// [1][2][3]   [a]
+// [4][5][6] * [b]
+// [7][8][9]   [c]
+//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
+static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
+{
+	float vecNew[4], vecCopy[4];
+	double dot = 0.0f;
+	int x, y, z = 0;
+
+	if(!Vector_ReadCallback(vec))
+		return NULL;
+	
+	if(mat->rowSize != vec->size){
+		if(mat->rowSize == 4 && vec->size != 3){
+			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
+			return NULL;
+		}else{
+			vecCopy[3] = 1.0f;
+		}
+	}
+
+	for(x = 0; x < vec->size; x++){
+		vecCopy[x] = vec->vec[x];
+		}
+
+	for(x = 0; x < mat->rowSize; x++) {
+		for(y = 0; y < mat->colSize; y++) {
+			dot += mat->matrix[x][y] * vecCopy[y];
+		}
+		vecNew[z++] = (float)dot;
+		dot = 0.0f;
+	}
+	return newVectorObject(vecNew, vec->size, Py_NEW);
 }

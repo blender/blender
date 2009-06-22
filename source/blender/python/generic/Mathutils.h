@@ -40,8 +40,6 @@
 
 PyObject *Mathutils_Init( const char * from );
 
-PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
-PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
@@ -49,8 +47,9 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 
 #define Py_PI  3.14159265358979323846
-#define Py_WRAP 1024
-#define Py_NEW  2048
+
+#define Py_NEW  1
+#define Py_WRAP 2
 
 
 /* Mathutils is used by the BGE and Blender so have to define 
@@ -64,5 +63,21 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 #ifndef Py_RETURN_TRUE
 #define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
 #endif
+
+typedef struct Mathutils_Callback Mathutils_Callback;
+struct Mathutils_Callback {
+	int		(*check)(PyObject *user);					/* checks the user is still valid */
+	int		(*get)(PyObject *user, int subtype, float *vec_from);	/* gets the vector from the user */
+	int		(*set)(PyObject *user, int subtype, float *vec_to);	/* sets the users vector values once the vector is modified */
+	int		(*get_index)(PyObject *user, int subtype, float *vec_from,	int index);	/* same as above but only for an index */
+	int		(*set_index)(PyObject *user, int subtype, float *vec_to,	int index);	/* same as above but only for an index */
+};
+
+int Mathutils_RegisterCallback(Mathutils_Callback *cb);
+
+int Vector_ReadCallback(VectorObject *self);
+int Vector_WriteCallback(VectorObject *self);
+int Vector_ReadIndexCallback(VectorObject *self, int index);
+int Vector_WriteIndexCallback(VectorObject *self, int index);
 
 #endif				/* EXPP_Mathutils_H */

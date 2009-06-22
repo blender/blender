@@ -141,77 +141,6 @@ PyObject *Mathutils_Init(const char *from)
 }
 
 //-----------------------------METHODS----------------------------
-//----------------column_vector_multiplication (internal)---------
-//COLUMN VECTOR Multiplication (Matrix X Vector)
-// [1][2][3]   [a]
-// [4][5][6] * [b]
-// [7][8][9]   [c]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0;
-
-	if(mat->rowSize != vec->size){
-		if(mat->rowSize == 4 && vec->size != 3){
-			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-
-	for(x = 0; x < vec->size; x++){
-		vecCopy[x] = vec->vec[x];
-		}
-
-	for(x = 0; x < mat->rowSize; x++) {
-		for(y = 0; y < mat->colSize; y++) {
-			dot += mat->matrix[x][y] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec->size, Py_NEW);
-}
-
-//-----------------row_vector_multiplication (internal)-----------
-//ROW VECTOR Multiplication - Vector X Matrix
-//[x][y][z] *  [1][2][3]
-//             [4][5][6]
-//             [7][8][9]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0, vec_size = vec->size;
-
-	if(mat->colSize != vec_size){
-		if(mat->rowSize == 4 && vec_size != 3){
-			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-	
-	for(x = 0; x < vec_size; x++){
-		vecCopy[x] = vec->vec[x];
-	}
-
-	//muliplication
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec_size, Py_NEW);
-}
-
 //-----------------quat_rotation (internal)-----------
 //This function multiplies a vector/point * quat or vice versa
 //to rotate the point/vector by the quaternion
@@ -226,6 +155,10 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 		quat = (QuaternionObject*)arg1;
 		if(VectorObject_Check(arg2)){
 			vec = (VectorObject*)arg2;
+			
+			if(!Vector_ReadCallback(vec))
+				return NULL;
+			
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
 				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
 				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
@@ -242,6 +175,10 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 		}
 	}else if(VectorObject_Check(arg1)){
 		vec = (VectorObject*)arg1;
+		
+		if(!Vector_ReadCallback(vec))
+			return NULL;
+		
 		if(QuaternionObject_Check(arg2)){
 			quat = (QuaternionObject*)arg2;
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
@@ -308,6 +245,9 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	if(vec1->size != vec2->size)
 		goto AttributeError1; //bad sizes
 
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+		return NULL;
+	
 	//since size is the same....
 	size = vec1->size;
 
@@ -353,6 +293,9 @@ static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.MidpointVecs(): expects (2) vector objects of the same size\n");
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+		return NULL;
 
 	for(x = 0; x < vec1->size; x++) {
 		vec[x] = 0.5f * (vec1->vec[x] + vec2->vec[x]);
@@ -377,6 +320,10 @@ static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 		return NULL;
 	}
 
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+		return NULL;
+
+	
 	//since they are the same size...
 	size = vec1->size;
 
@@ -439,6 +386,10 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): the arbitrary axis must be a 3D vector\n");
 			return NULL;
 		}
+		
+		if(!Vector_ReadCallback(vec))
+			return NULL;
+		
 	}
 	//convert to radians
 	angle = angle * (float) (Py_PI / 180);
@@ -538,6 +489,10 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 		PyErr_SetString(PyExc_TypeError, "Mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec))
+		return NULL;
+	
 	//create a identity matrix and add translation
 	Mat4One((float(*)[4]) mat);
 	mat[12] = vec->vec[0];
@@ -570,6 +525,10 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
+		
+		if(!Vector_ReadCallback(vec))
+			return NULL;
+		
 	}
 	if(vec == NULL) {	//scaling along axis
 		if(matSize == 2) {
@@ -645,6 +604,10 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
+		
+		if(!Vector_ReadCallback(vec))
+			return NULL;
+		
 	}
 	if(vec == NULL) {	//ortho projection onto cardinal plane
 		if(((strcmp(plane, "x") == 0)
@@ -891,6 +854,9 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 		return NULL;
 	}
 
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(ray) || !Vector_ReadCallback(ray_off))
+		return NULL;
+	
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
 	VECCOPY(v3, vec3->vec);
@@ -959,6 +925,10 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(vec4))
+		return NULL;
+	
 	if( vec1->size == 3 || vec1->size == 2) {
 		int result;
 		
@@ -1029,6 +999,10 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(vec4))
+		return NULL;
+	
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
 	VECCOPY(v3, vec3->vec);
@@ -1073,6 +1047,9 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3))
+		return NULL;
 
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
@@ -1105,6 +1082,9 @@ static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3))
+		return NULL;
 
 	if (vec1->size == 3) {
 		VECCOPY(v1, vec1->vec);
@@ -1154,8 +1134,8 @@ int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
 }
 /*---------------------- EXPP_VectorsAreEqual -------------------------
   Builds on EXPP_FloatsAreEqual to test vectors */
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
-
+int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
+{
 	int x;
 	for (x=0; x< size; x++){
 		if (EXPP_FloatsAreEqual(vecA[x], vecB[x], floatSteps) == 0)
@@ -1165,6 +1145,81 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
 }
 
 
+/* Mathutils Callbacks */
 
-//#######################################################################
-//#############################DEPRECATED################################
+/* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
+Mathutils_Callback *mathutils_callbacks[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+
+int Mathutils_RegisterCallback(Mathutils_Callback *cb)
+{
+	int i;
+	
+	/* find the first free slot */
+	for(i= 0; mathutils_callbacks[i]; i++) {
+		if(mathutils_callbacks[i]==cb) /* alredy registered? */
+			return i;
+	}
+	
+	mathutils_callbacks[i] = cb;
+	return i;
+}
+
+int Vector_ReadCallback(VectorObject *self) {
+	if(self->user) {
+		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
+		if(cb->get(self->user, self->subtype, self->vec)) {
+			return 1;
+		}
+		else {
+			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+			return 0;
+		}
+	}
+	
+	return 1; /* no user continue silently */
+}
+
+int Vector_WriteCallback(VectorObject *self) {
+	if(self->user) {
+		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
+		if(cb->set(self->user, self->subtype, self->vec)) {
+			return 1;
+		}
+		else {
+			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+			return 0;
+		}
+	}
+	
+	return 1; /* no user continue silently */
+}
+
+int Vector_ReadIndexCallback(VectorObject *self, int index) {
+	if(self->user) {
+		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
+		if(cb->get_index(self->user, self->subtype, self->vec, index)) {
+			return 1;
+		}
+		else {
+			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+			return 0;
+		}
+	}
+	
+	return 1; /* no user continue silently */
+}
+
+int Vector_WriteIndexCallback(VectorObject *self, int index) {
+	if(self->user) {
+		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
+		if(cb->set_index(self->user, self->subtype, self->vec, index)) {
+			return 1;
+		}
+		else {
+			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+			return 0;
+		}
+	}
+	
+	return 1; /* no user continue silently */
+}

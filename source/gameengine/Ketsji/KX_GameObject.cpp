@@ -1152,6 +1152,139 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 }
 
 
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+
+/* These require an SGNode */
+#define MATHUTILS_VEC_CB_POS_LOCAL 1
+#define MATHUTILS_VEC_CB_POS_GLOBAL 2
+#define MATHUTILS_VEC_CB_SCALE_LOCAL 3
+#define MATHUTILS_VEC_CB_SCALE_GLOBAL 4
+#define MATHUTILS_VEC_CB_INERTIA_LOCAL 5
+
+
+static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_kxgameob_vector_check(PyObject *self_v)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+	
+	return 1;
+}
+
+static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *vec_from)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+	
+	switch(subtype) {
+		case MATHUTILS_VEC_CB_POS_LOCAL:
+			if(!self->GetSGNode()) return 0;
+			self->GetSGNode()->GetLocalPosition().getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_POS_GLOBAL:
+			if(!self->GetSGNode()) return 0;
+			self->GetSGNode()->GetWorldPosition().getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_SCALE_LOCAL:
+			if(!self->GetSGNode()) return 0;
+			self->GetSGNode()->GetLocalScale().getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
+			self->NodeGetWorldScaling().getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
+			if(!self->GetSGNode()) return 0;
+			self->GetPhysicsController()->GetLocalInertia().getValue(vec_from);
+			break;
+		
+		
+	}
+	
+	return 1;
+}
+
+static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *vec_to)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+	
+	/* first */
+	SG_Node* sg = self->GetSGNode();
+	if(sg==NULL)
+		return 0;
+	
+	switch(subtype) {
+		case MATHUTILS_VEC_CB_POS_LOCAL:
+			self->NodeSetLocalPosition(MT_Point3(vec_to));
+			self->NodeUpdateGS(0.f);
+			break;
+		case MATHUTILS_VEC_CB_POS_GLOBAL:
+			self->NodeSetWorldPosition(MT_Point3(vec_to));
+			self->NodeUpdateGS(0.f);
+			break;
+		case MATHUTILS_VEC_CB_SCALE_LOCAL:
+			self->NodeSetLocalScale(MT_Point3(vec_to));
+			self->NodeUpdateGS(0.f);
+			break;
+		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
+			break;
+		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
+			/* read only */
+			break;
+	}
+	
+	return 1;
+}
+
+static int mathutils_kxgameob_vector_get_index(PyObject *self_v, int subtype, float *vec_from, int index)
+{
+	float f[4];
+	/* lazy, avoid repeteing the case statement */
+	if(!mathutils_kxgameob_vector_get(self_v, subtype, f))
+		return 0;
+	
+	vec_from[index]= f[index];
+	return 1;
+}
+
+static int mathutils_kxgameob_vector_set_index(PyObject *self_v, int subtype, float *vec_to, int index)
+{
+	float f= vec_to[index];
+	
+	/* lazy, avoid repeteing the case statement */
+	if(!mathutils_kxgameob_vector_get(self_v, subtype, vec_to))
+		return 0;
+	
+	vec_to[index]= f;
+	mathutils_kxgameob_vector_set(self_v, subtype, vec_to);
+	
+	return 1;
+}
+
+Mathutils_Callback mathutils_kxgameob_vector_cb = {
+	mathutils_kxgameob_vector_check,
+	mathutils_kxgameob_vector_get,
+	mathutils_kxgameob_vector_set,
+	mathutils_kxgameob_vector_get_index,
+	mathutils_kxgameob_vector_set_index
+};
+
+
+void KX_GameObject_Mathutils_Callback_Init(void)
+{
+	// register mathutils callbacks, ok to run more then once.
+	mathutils_kxgameob_vector_cb_index= Mathutils_RegisterCallback(&mathutils_kxgameob_vector_cb);
+}
+
+#endif // USE_MATHUTILS
+
 /* ------- python stuff ---------------------------------------------------*/
 
 PyMethodDef KX_GameObject::Methods[] = {
@@ -1596,7 +1729,11 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 PyObject* KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_GLOBAL);
+#else
 	return PyObjectFrom(self->NodeGetWorldPosition());
+#endif
 }
 
 int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -1614,10 +1751,14 @@ int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_D
 PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+#ifdef USE_MATHUTILS	
+	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_LOCAL);
+#else	
 	if (self->GetSGNode())
 		return PyObjectFrom(self->GetSGNode()->GetLocalPosition());
 	else
 		return PyObjectFrom(dummy_point);
+#endif
 }
 
 int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -1635,11 +1776,13 @@ int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_D
 PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_INERTIA_LOCAL);
+#else
 	if (self->GetPhysicsController())
-	{
 		return PyObjectFrom(self->GetPhysicsController()->GetLocalInertia());
-	}
 	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
+	#endif
 }
 
 PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1694,16 +1837,24 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_GLOBAL);
+#else
 	return PyObjectFrom(self->NodeGetWorldScaling());
+#endif
 }
 
 PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
+#else
 	if (self->GetSGNode())
 		return PyObjectFrom(self->GetSGNode()->GetLocalScale());
 	else
 		return PyObjectFrom(dummy_scaling);
+#endif
 }
 
 int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

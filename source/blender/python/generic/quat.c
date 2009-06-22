@@ -570,7 +570,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
 				return NULL;
 			}
-			return quat_rotation((PyObject*)quat1, (PyObject*)vec);
+			return quat_rotation((PyObject*)quat1, (PyObject*)vec); /* vector updating done inside the func */
 		}
 		
 		scalar= PyFloat_AsDouble(q2);

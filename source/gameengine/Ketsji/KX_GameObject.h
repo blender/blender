@@ -63,6 +63,10 @@ struct Object;
 /* utility conversion function */
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
 
+#ifdef USE_MATHUTILS
+void KX_GameObject_Mathutils_Callback_Init(void);
+#endif
+
 /**
  * KX_GameObject is the main class for dynamic objects.
  */

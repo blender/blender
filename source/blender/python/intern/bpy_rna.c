@@ -39,6 +39,64 @@
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
 
+#define USE_MATHUTILS
+
+#ifdef USE_MATHUTILS
+#include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
+
+static int mathutils_rna_vector_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_rna_vector_check(PyObject *user)
+{
+	return ((BPy_PropertyRNA *)user)->prop?1:0;
+}
+
+static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *vec_from)
+{
+	if(self->prop==NULL)
+		return 0;
+	
+	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	return 1;
+}
+
+static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *vec_to)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	return 1;
+}
+
+static int mathutils_rna_vector_get_index(BPy_PropertyRNA *self, int subtype, float *vec_from, int index)
+{
+	if(self->prop==NULL)
+		return 0;
+	
+	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	return 1;
+}
+
+static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, float *vec_to, int index)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	return 1;
+}
+
+Mathutils_Callback mathutils_rna_vector_cb = {
+	mathutils_rna_vector_check,
+	mathutils_rna_vector_get,
+	mathutils_rna_vector_set,
+	mathutils_rna_vector_get_index,
+	mathutils_rna_vector_set_index
+};
+
+#endif
+
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
 	return (a->ptr.data==b->ptr.data) ? 0 : -1;
@@ -144,7 +202,22 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
 	if (len > 0) {
 		/* resolve the array from a new pytype */
-		return pyrna_prop_CreatePyObject(ptr, prop);
+		PyObject *ret = pyrna_prop_CreatePyObject(ptr, prop);
+		
+#ifdef USE_MATHUTILS
+		/* return a mathutils vector where possible */
+		if(	RNA_property_type(prop)==PROP_FLOAT &&
+			RNA_property_subtype(prop)==PROP_VECTOR &&
+			len>=2 && len <= 4 )
+		{
+			PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_vector_cb_index, 0);
+			Py_DECREF(ret); /* the vector owns now */
+			
+			ret= vec_cb; /* return the vector instead */
+		}
+#endif
+		
+		return ret;
 	}
 	
 	/* see if we can coorce into a python type - PropertyType */
@@ -1673,6 +1746,10 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 PyObject *BPY_rna_module( void )
 {
 	PointerRNA ptr;
+	
+#ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
+	mathutils_rna_vector_cb_index= Mathutils_RegisterCallback(&mathutils_rna_vector_cb);
+#endif
 	
 	/* This can't be set in the pytype struct because some compilers complain */
 	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
