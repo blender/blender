@@ -42,164 +42,208 @@ extern "C"
 #include <COLLADASWLibraryMaterials.h>
 #include <COLLADASWBindMaterial.h>
 
+#include <vector>
+#include <algorithm> // std::find
 
-// not good idea - there are for example blender Scene and COLLADASW::Scene
-//using namespace COLLADASW;
+// utilities to avoid code duplication
+// definition of these is difficult to read, but they should be useful
 
+// f should have
+// void operator()(Object* ob)
+template<class Functor>
+void forEachMeshObjectInScene(Scene *sce, Functor &f)
+{
+	Base *base= (Base*) sce->base.first;
+	while(base) {
+		Object *ob = base->object;
+			
+		if (ob->type == OB_MESH && ob->data) {
+			f(ob);
+		}
+		base= base->next;
+	}
+}
+
+// used in forEachMaterialInScene
+template <class MaterialFunctor>
+class ForEachMaterialFunctor
+{
+	std::vector<std::string> mMat; // contains list of material names, to avoid duplicate calling of f
+	MaterialFunctor *f;
+public:
+	ForEachMaterialFunctor(MaterialFunctor *f) : f(f) { }
+	void operator ()(Object *ob)
+	{
+		int a;
+		for(a = 0; a < ob->totcol; a++) {
+
+			Material *ma = give_current_material(ob, a+1);
+
+			if (find(mMat.begin(), mMat.end(), std::string(ma->id.name)) == mMat.end()) {
+				(*this->f)(ma);
+
+				mMat.push_back(ma->id.name);
+			}
+		}
+	}
+};
+
+// calls f for each unique material linked to each object in sce
+// f should have
+// void operator()(Material* ma)
+template<class Functor>
+void forEachMaterialInScene(Scene *sce, Functor &f)
+{
+	ForEachMaterialFunctor<Functor> matfunc(&f);
+	forEachMeshObjectInScene(sce, matfunc);
+}
 
 class GeometryExporter : COLLADASW::LibraryGeometries
 {
+	Scene *mScene;
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
-	
-	
+
 	void exportGeom(Scene *sce)
 	{
-		//opens <library_geometries>
 		openLibrary();
-		
-		// iterate over objects in scene
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			
-			Object *ob = base->object;
-			
-			// only meshes
-			if (ob->type == OB_MESH && ob->data) {
-				
-				DerivedMesh *dm = mesh_get_derived_final(sce, ob, CD_MASK_BAREMESH);
-				MVert *mverts = dm->getVertArray(dm);
-				MFace *mfaces = dm->getFaceArray(dm);
-				int totfaces = dm->getNumFaces(dm);
-				int totverts = dm->getNumVerts(dm);
-				bool checkTexcoords = false;
 
-				std::string geom_name(ob->id.name);
-
-				//openMesh(geoId, geoName, meshId)
-				openMesh(geom_name, "", "");
-
-				//writes <source> for vertex coords
-				createVertsSource(sce, mSW, geom_name, dm);
-				//writes <source> for normal coords
-				createNormalsSource(sce, mSW, geom_name, dm);
-				//writes <source> for uv coords
-				//if mesh has uv coords
-				checkTexcoords = createTexcoordsSource(sce, mSW, geom_name, dm, (Mesh*)ob->data);
-
-				//<vertices>
-				COLLADASW::Vertices verts(mSW);
-				verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
-				COLLADASW::InputList &input_list = verts.getInputList();
-				COLLADASW::Input input(COLLADASW::POSITION,
-									   getUrlBySemantics(geom_name, COLLADASW::POSITION));
-				input_list.push_back(input);
-				verts.add();
-				
-				//<triangles>
-				COLLADASW::Triangles tris(mSW);
-				//sets count attribute in <triangles>
-				tris.setCount(getTriCount(mfaces, totfaces));
-				
-				COLLADASW::InputList &til = tris.getInputList();
-				/*added semantic, source, offset attributes to <input> */
-				
-			   //creates list of attributes in <triangles> <input> for vertices 
-				COLLADASW::Input input2(COLLADASW::VERTEX,
-										getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
-				//creates list of attributes in <triangles> <input> for normals
-				COLLADASW::Input input3(COLLADASW::NORMAL,
-										getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
-				
-				til.push_back(input2);
-				til.push_back(input3);
-				
-				//if mesh has uv coords writes <input> attributes for TEXCOORD
-				if (checkTexcoords == true)
-					{
-						COLLADASW::Input input4(COLLADASW::TEXCOORD,
-												getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 1);
-						til.push_back(input4);
-						//XXX
-						tris.setMaterial("material-symbol");
-					}
-				//performs the actual writing
-				tris.prepareToAppendValues();
-				
-				int i;
-				int texindex = 0;
-				//writes data to <p>
-				for (i = 0; i < totfaces; i++) {
-					MFace *f = &mfaces[i];
-					//if mesh has uv coords writes uv and
-					//vertex indexes
-					if (checkTexcoords == true)	{
-						// if triangle
-						if (f->v4 == 0) {
-							tris.appendValues(f->v1);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v2);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v3);
-							tris.appendValues(texindex++);
-						}
-						// quad
-						else {
-							tris.appendValues(f->v1);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v2);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v3);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v3);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v4);
-							tris.appendValues(texindex++);
-							tris.appendValues(f->v1);
-							tris.appendValues(texindex++);
-						}
-					}
-					//if mesh has no uv coords writes only 
-					//vertex indexes
-					else {
-						// if triangle
-						if (f->v4 == 0) {
-							tris.appendValues(f->v1, f->v2, f->v3);	
-						}
-						// quad
-						else {
-							tris.appendValues(f->v1, f->v2, f->v3);
-							tris.appendValues(f->v3, f->v4, f->v1);
-						}
-						
-					} 
-				}
-
-				tris.closeElement();
-				tris.finish();
-					
-				closeMesh();
-				closeGeometry();
-					
-				dm->release(dm);
-						
-				   
-			}
-			base= base->next;
-		}
+		mScene = sce;
+		forEachMeshObjectInScene(sce, *this);
 
 		closeLibrary();
 	}
 
+	void operator()(Object *ob)
+	{
+		// XXX don't use DerivedMesh, Mesh instead?
+
+		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
+		MVert *mverts = dm->getVertArray(dm);
+		MFace *mfaces = dm->getFaceArray(dm);
+		int totfaces = dm->getNumFaces(dm);
+		int totverts = dm->getNumVerts(dm);
+		bool checkTexcoords = false;
+
+		std::string geom_name(ob->id.name);
+
+		//openMesh(geoId, geoName, meshId)
+		openMesh(geom_name, "", "");
+
+		//writes <source> for vertex coords
+		createVertsSource(geom_name, dm);
+		//writes <source> for normal coords
+		createNormalsSource(geom_name, dm);
+		//writes <source> for uv coords
+		//if mesh has uv coords
+		checkTexcoords = createTexcoordsSource(geom_name, dm, (Mesh*)ob->data);
+
+		//<vertices>
+		COLLADASW::Vertices verts(mSW);
+		verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
+		COLLADASW::InputList &input_list = verts.getInputList();
+		COLLADASW::Input input(COLLADASW::POSITION,
+							   getUrlBySemantics(geom_name, COLLADASW::POSITION));
+		input_list.push_back(input);
+		verts.add();
+				
+		//<triangles>
+		COLLADASW::Triangles tris(mSW);
+		//sets count attribute in <triangles>
+		tris.setCount(getTriCount(mfaces, totfaces));
+				
+		COLLADASW::InputList &til = tris.getInputList();
+		/*added semantic, source, offset attributes to <input> */
+				
+		//creates list of attributes in <triangles> <input> for vertices 
+		COLLADASW::Input input2(COLLADASW::VERTEX,
+								getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
+		//creates list of attributes in <triangles> <input> for normals
+		COLLADASW::Input input3(COLLADASW::NORMAL,
+								getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
+				
+		til.push_back(input2);
+		til.push_back(input3);
+				
+		//if mesh has uv coords writes <input> attributes for TEXCOORD
+		if (checkTexcoords == true)
+			{
+				COLLADASW::Input input4(COLLADASW::TEXCOORD,
+										getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 1);
+				til.push_back(input4);
+				//XXX
+				tris.setMaterial("material-symbol");
+			}
+		//performs the actual writing
+		tris.prepareToAppendValues();
+				
+		int i;
+		int texindex = 0;
+		//writes data to <p>
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+			//if mesh has uv coords writes uv and
+			//vertex indexes
+			if (checkTexcoords == true)	{
+				// if triangle
+				if (f->v4 == 0) {
+					tris.appendValues(f->v1);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v2);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v3);
+					tris.appendValues(texindex++);
+				}
+				// quad
+				else {
+					tris.appendValues(f->v1);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v2);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v3);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v3);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v4);
+					tris.appendValues(texindex++);
+					tris.appendValues(f->v1);
+					tris.appendValues(texindex++);
+				}
+			}
+			//if mesh has no uv coords writes only 
+			//vertex indexes
+			else {
+				// if triangle
+				if (f->v4 == 0) {
+					tris.appendValues(f->v1, f->v2, f->v3);	
+				}
+				// quad
+				else {
+					tris.appendValues(f->v1, f->v2, f->v3);
+					tris.appendValues(f->v3, f->v4, f->v1);
+				}
+						
+			} 
+		}
+
+		tris.closeElement();
+		tris.finish();
+					
+		closeMesh();
+		closeGeometry();
+					
+		dm->release(dm);
+						
+	}
+	
 	//creates <source> for positions
-	void createVertsSource(Scene *sce, COLLADASW::StreamWriter *sw,
-					  std::string geom_name, DerivedMesh *dm)
+	void createVertsSource(std::string geom_name, DerivedMesh *dm)
 	{
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
 		
 		
-		COLLADASW::FloatSourceF source(sw);
+		COLLADASW::FloatSourceF source(mSW);
 		source.setId(getIdBySemantics(geom_name, COLLADASW::POSITION));
 		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::POSITION) +
 						  ARRAY_ID_SUFFIX);
@@ -228,90 +272,87 @@ public:
 
 	//creates <source> for texcoords
 	// returns true if mesh has uv data
-	bool createTexcoordsSource(Scene *sce, COLLADASW::StreamWriter *sw,
-							   std::string geom_name, DerivedMesh *dm, Mesh *me)
+	bool createTexcoordsSource(std::string geom_name, DerivedMesh *dm, Mesh *me)
 	{
 		
 		int totfaces = dm->getNumFaces(dm);
 		MTFace *tface = me->mtface;
 		MFace *mfaces = dm->getFaceArray(dm);
-		if(tface != NULL)
-			{
+		if(tface != NULL) {
 				
-				COLLADASW::FloatSourceF source(sw);
-				source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
-				source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
-								  ARRAY_ID_SUFFIX);
-				source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
-				source.setAccessorStride(2);
-				COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-				param.push_back("X");
-				param.push_back("Y");
+			COLLADASW::FloatSourceF source(mSW);
+			source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
+			source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
+							  ARRAY_ID_SUFFIX);
+			source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
+			source.setAccessorStride(2);
+			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+			param.push_back("X");
+			param.push_back("Y");
 				
-				source.prepareToAppendValues();
+			source.prepareToAppendValues();
 				
-				int i;
-				for (i = 0; i < totfaces; i++) {
-					MFace *f = &mfaces[i];
+			int i;
+			for (i = 0; i < totfaces; i++) {
+				MFace *f = &mfaces[i];
 					
-					// if triangle
-					if (f->v4 == 0) {
+				// if triangle
+				if (f->v4 == 0) {
 						
-						// get uv1's X coordinate
-						source.appendValues(tface[i].uv[0][0]);
-						// get uv1's Y coordinate
-						source.appendValues(tface[i].uv[0][1]);
-						// get uv2's X coordinate
-						source.appendValues(tface[i].uv[1][0]);
-						// etc...
-						source.appendValues(tface[i].uv[1][1]);
-						//uv3
-						source.appendValues(tface[i].uv[2][0]);
-						source.appendValues(tface[i].uv[2][1]);
+					// get uv1's X coordinate
+					source.appendValues(tface[i].uv[0][0]);
+					// get uv1's Y coordinate
+					source.appendValues(tface[i].uv[0][1]);
+					// get uv2's X coordinate
+					source.appendValues(tface[i].uv[1][0]);
+					// etc...
+					source.appendValues(tface[i].uv[1][1]);
+					//uv3
+					source.appendValues(tface[i].uv[2][0]);
+					source.appendValues(tface[i].uv[2][1]);
 						
 						
-					}
-					// quad
-					else {
-						
-						// get uv1's X coordinate
-						source.appendValues(tface[i].uv[0][0]);
-						// get uv1's Y coordinate
-						source.appendValues(tface[i].uv[0][1]);
-						//uv2
-						source.appendValues(tface[i].uv[1][0]);
-						source.appendValues(tface[i].uv[1][1]);
-						//uv3
-						source.appendValues(tface[i].uv[2][0]);
-						source.appendValues(tface[i].uv[2][1]);
-						//uv3
-						source.appendValues(tface[i].uv[2][0]);
-						source.appendValues(tface[i].uv[2][1]);
-						//uv4
-						source.appendValues(tface[i].uv[3][0]);
-						source.appendValues(tface[i].uv[3][1]);
-						//uv1
-						source.appendValues(tface[i].uv[0][0]);
-						source.appendValues(tface[i].uv[0][1]);
-						
-					}
 				}
-				
-				source.finish();
-				return true;
+				// quad
+				else {
+						
+					// get uv1's X coordinate
+					source.appendValues(tface[i].uv[0][0]);
+					// get uv1's Y coordinate
+					source.appendValues(tface[i].uv[0][1]);
+					//uv2
+					source.appendValues(tface[i].uv[1][0]);
+					source.appendValues(tface[i].uv[1][1]);
+					//uv3
+					source.appendValues(tface[i].uv[2][0]);
+					source.appendValues(tface[i].uv[2][1]);
+					//uv3
+					source.appendValues(tface[i].uv[2][0]);
+					source.appendValues(tface[i].uv[2][1]);
+					//uv4
+					source.appendValues(tface[i].uv[3][0]);
+					source.appendValues(tface[i].uv[3][1]);
+					//uv1
+					source.appendValues(tface[i].uv[0][0]);
+					source.appendValues(tface[i].uv[0][1]);
+						
+				}
 			}
+				
+			source.finish();
+			return true;
+		}
 		return false;
 	}
 
 
 	//creates <source> for normals
-	void createNormalsSource(Scene *sce, COLLADASW::StreamWriter *sw,
-							 std::string geom_name, DerivedMesh *dm)
+	void createNormalsSource(std::string geom_name, DerivedMesh *dm)
 	{
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
 		
-		COLLADASW::FloatSourceF source(sw);
+		COLLADASW::FloatSourceF source(mSW);
 		source.setId(getIdBySemantics(geom_name, COLLADASW::NORMAL));
 		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::NORMAL) +
 						  ARRAY_ID_SUFFIX);
@@ -369,56 +410,55 @@ public:
 	SceneExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryVisualScenes(sw) {}
 	
 	void exportScene(Scene *sce) {
- 		//<library_visual_scenes><visual_scene>
+ 		// <library_visual_scenes> <visual_scene>
 		openVisualScene(sce->id.name, "");
-		
-		//<node> for each mesh object
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			Object *ob = base->object;
-			
-			if (ob->type == OB_MESH && ob->data) {
-				
-				COLLADASW::Node node(mSW);
-				node.start();
 
-				node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
-				// node.addRotate(); // XXX no conversion needed?
-				node.addScale(ob->size[0], ob->size[1], ob->size[2]);
-				
-				COLLADASW::InstanceGeometry instGeom(mSW);
-				std::string ob_name(ob->id.name);
-				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
-											   ob_name));
-				
-				for(int a = 0; a < ob->totcol; a++)
-					{
-						Material *ma = give_current_material(ob, a+1);
-						
-						COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
-						COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-						std::string matid = std::string(ma->id.name);	
-						/*COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-						COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
-						im.push_back(bvi);*/
-						iml.push_back(im);
-					}
-				instGeom.add();
-				node.end();
-			}
-			base= base->next;
-		}
+		// write <node>s
+		forEachMeshObjectInScene(sce, *this);
 		
-		//</visual_scene></library_visual_scenes>
+		// </visual_scene> </library_visual_scenes>
 		closeVisualScene();
 
 		closeLibrary();
 	}
+
+	// called for each object
+	void operator()(Object *ob) {
+		COLLADASW::Node node(mSW);
+		node.start();
+
+		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
+		// XXX for rotation we need to convert ob->rot (euler, I guess) to axis/angle
+		// see http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToAngle/index.htm
+		// add it to BLI_arithb.h
+		// node.addRotate();
+		node.addScale(ob->size[0], ob->size[1], ob->size[2]);
+				
+		COLLADASW::InstanceGeometry instGeom(mSW);
+		std::string ob_name(ob->id.name);
+		instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
+				
+		for(int a = 0; a < ob->totcol; a++)	{
+			Material *ma = give_current_material(ob, a+1);
+						
+			COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
+			COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
+			std::string matid = std::string(ma->id.name);
+			// COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+			// COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
+			// im.push_back(bvi);
+			// iml.push_back(im);
+		}
+
+		instGeom.add();
+
+		node.end();
+	}
 };
 
-//class for exporting images
 class ImagesExporter: COLLADASW::LibraryImages
 {
+	std::vector<std::string> mImages; // contains list of written images, to avoid duplicates
 public:
 	ImagesExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryImages(sw)
 	{}
@@ -426,19 +466,29 @@ public:
 	void exportImages(Scene *sce)
 	{
 		openLibrary();
-		
-		Image *image = (Image*)G.main->image.first;
-		while(image) {
-			
-			//fileURI, imageId, imageName
-			COLLADASW::Image img(COLLADABU::URI(image->name), image->id.name, "");
-			img.add(mSW);
-			
-			image = (Image*)image->id.next;
-		}
+
+		forEachMaterialInScene(sce, *this);
+
 		closeLibrary();
 	}
-	
+
+	void operator()(Material *ma)
+	{
+		int a;
+		for (a = 0; a < MAX_MTEX; a++) {
+			MTex *mtex = ma->mtex[a];
+			if (mtex && mtex->tex && mtex->tex->ima) {
+
+				Image *image = mtex->tex->ima;
+				std::string name(image->id.name);
+
+				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
+					COLLADASW::Image img(COLLADABU::URI(image->name), image->id.name, "");
+					img.add(mSW);
+				}
+			}
+		}
+	}
 };
 
 class EffectsExporter: COLLADASW::LibraryEffects
@@ -447,61 +497,60 @@ public:
 	EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
 	void exportEffects(Scene *sce)
 	{
-		
 		openLibrary();
-		Material *ma = (Material*)G.main->mat.first;
-		while(ma) {
-			
-			openEffect(std::string(ma->id.name) + "-effect");
 
-			COLLADASW::EffectProfile ep(mSW);
-			
-			ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+		forEachMaterialInScene(sce, *this);
 
-			//open <profile_common>
-			ep.openProfile();
-			
-			std::vector<int> mtexindices = countmtex(ma);
-			
-			for (int a = 0; a < mtexindices.size(); a++){
-				//<newparam> <surface> <init_from>
-				Image *ima = ma->mtex[mtexindices[a]]->tex->ima;
-				COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-										   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-				sio.setImageReference(ima->id.name);
-				surface.setInitOption(sio);
-
-				//<newparam> <sampler> <source>
-				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-										   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-
-				//<lambert> <diffuse> <texture>	
-				COLLADASW::Texture texture(ima->id.name);
-				texture.setTexcoord("myUVs");
-				texture.setSurface(surface);
-				texture.setSampler(sampler);
-
-				//<texture>
-				COLLADASW::ColorOrTexture cot(texture);
-				ep.setDiffuse(cot, true, "");
-				ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-
-				//todo add or find generator of technique sids
-				//performs the actual writing
-				ep.addProfileElements();
-				ep.closeTechnique();
-				//COLLADASW::Technique technique(mSW);
-				//technique.closeTechnique();
-				
-			}
-			
-			ep.closeProfile();
-			ma = (Material*) ma->id.next;
-		}
-		
 		closeLibrary();
+	}
 
+	void operator()(Material *ma)
+	{
+		openEffect(std::string(ma->id.name) + "-effect");
+
+		COLLADASW::EffectProfile ep(mSW);
+			
+		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+
+		//open <profile_common>
+		ep.openProfile();
+			
+		std::vector<int> mtexindices = countmtex(ma);
+			
+		for (int a = 0; a < mtexindices.size(); a++){
+			//<newparam> <surface> <init_from>
+			Image *ima = ma->mtex[mtexindices[a]]->tex->ima;
+			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+									   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+			sio.setImageReference(ima->id.name);
+			surface.setInitOption(sio);
+
+			//<newparam> <sampler> <source>
+			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+									   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+
+			//<lambert> <diffuse> <texture>	
+			COLLADASW::Texture texture(ima->id.name);
+			texture.setTexcoord("myUVs");
+			texture.setSurface(surface);
+			texture.setSampler(sampler);
+
+			//<texture>
+			COLLADASW::ColorOrTexture cot(texture);
+			ep.setDiffuse(cot, true, "");
+			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+
+			//todo add or find generator of technique sids
+			//performs the actual writing
+			ep.addProfileElements();
+			ep.closeTechnique();
+			//COLLADASW::Technique technique(mSW);
+			//technique.closeTechnique();
+				
+		}
+			
+		ep.closeProfile();
 	}
 
 	//returns the array of mtex indices which have image 
@@ -533,21 +582,23 @@ public:
 	MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
 	void exportMaterials(Scene *sce)
 	{
-		
 		openLibrary();
-		
-		Material *ma = (Material*)G.main->mat.first;
-		
-		while(ma) {
-			
-			openMaterial(std::string(ma->id.name));
-			std::string efid = std::string(ma->id.name) + "-effect";
-			addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
-			closeMaterial();
-			
-			ma = (Material*) ma->id.next;
-		}
-		closeLibrary();	
+
+		forEachMaterialInScene(sce, *this);
+
+		closeLibrary();
+	}
+
+	void operator()(Material *ma)
+	{
+		std::string name(ma->id.name);
+
+		openMaterial(name);
+
+		std::string efid = name + "-effect";
+		addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
+
+		closeMaterial();
 	}
 };
 
