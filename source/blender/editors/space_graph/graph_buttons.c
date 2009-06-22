@@ -989,7 +989,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	
 	/* 'add modifier' button at top of panel */
 	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
-	uiDefButO(block, BUT, "GRAPHEDIT_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 225, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+	uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 225, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
 	
 	/* draw each modifier */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
@@ -1069,10 +1069,10 @@ static int graph_properties(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPHEDIT_OT_properties(wmOperatorType *ot)
+void GRAPH_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
-	ot->idname= "GRAPHEDIT_OT_properties";
+	ot->idname= "GRAPH_OT_properties";
 	
 	ot->exec= graph_properties;
 	ot->poll= ED_operator_ipo_active; // xxx

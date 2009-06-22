@@ -183,24 +183,24 @@ static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type_set", "type", HD_FREE);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type_set", "type", HD_AUTO);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type_set", "type", HD_VECT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type_set", "type", HD_ALIGN);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type_set", "type", HD_AUTO_ANIM); // xxx?
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_FREE);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_VECT);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_ALIGN);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO_ANIM); // xxx?
 }
 
 static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type_set", "type", BEZT_IPO_CONST);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type_set", "type", BEZT_IPO_LIN);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type_set", "type", BEZT_IPO_BEZ);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_CONST);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_LIN);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_BEZ);
 }
 
 static void act_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type_set", "type", FCURVE_EXTRAPOLATE_CONSTANT);
-	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type_set", "type", FCURVE_EXTRAPOLATE_LINEAR);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
 }
 
 static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)

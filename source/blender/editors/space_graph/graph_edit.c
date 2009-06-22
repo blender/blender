@@ -180,11 +180,11 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_previewrange_set (wmOperatorType *ot)
+void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
-	ot->idname= "GRAPHEDIT_OT_previewrange_set";
+	ot->idname= "GRAPH_OT_previewrange_set";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;
@@ -227,11 +227,11 @@ static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
+void GRAPH_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View All";
-	ot->idname= "GRAPHEDIT_OT_view_all";
+	ot->idname= "GRAPH_OT_view_all";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_viewall_exec;
@@ -334,11 +334,11 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_ghost_curves_create (wmOperatorType *ot)
+void GRAPH_OT_ghost_curves_create (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create Ghost Curves";
-	ot->idname= "GRAPHEDIT_OT_ghost_curves_create";
+	ot->idname= "GRAPH_OT_ghost_curves_create";
 	ot->description= "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor.";
 	
 	/* api callbacks */
@@ -377,11 +377,11 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_ghost_curves_clear (wmOperatorType *ot)
+void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create Ghost Curves";
-	ot->idname= "GRAPHEDIT_OT_ghost_curves_clear";
+	ot->idname= "GRAPH_OT_ghost_curves_clear";
 	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor.";
 	
 	/* api callbacks */
@@ -461,11 +461,11 @@ static int graphkeys_click_insert_invoke (bContext *C, wmOperator *op, wmEvent *
 	return graphkeys_click_insert_exec(C, op);
 }
 
-void GRAPHEDIT_OT_keyframes_click_insert (wmOperatorType *ot)
+void GRAPH_OT_click_insert (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Click-Insert Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_click_insert";
+	ot->idname= "GRAPH_OT_click_insert";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_click_insert_invoke;
@@ -544,11 +544,11 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_copy (wmOperatorType *ot)
+void GRAPH_OT_copy (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_copy";
+	ot->idname= "GRAPH_OT_copy";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_copy_exec;
@@ -583,11 +583,11 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_paste (wmOperatorType *ot)
+void GRAPH_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_paste";
+	ot->idname= "GRAPH_OT_paste";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_paste_exec;
@@ -650,11 +650,11 @@ static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_duplicate (wmOperatorType *ot)
+void GRAPH_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_duplicate";
+	ot->idname= "GRAPH_OT_duplicate";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_duplicate_invoke;
@@ -711,11 +711,11 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_delete (wmOperatorType *ot)
+void GRAPH_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_delete";
+	ot->idname= "GRAPH_OT_delete";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -772,11 +772,11 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_clean (wmOperatorType *ot)
+void GRAPH_OT_clean (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clean Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_clean";
+	ot->idname= "GRAPH_OT_clean";
 	
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
@@ -853,11 +853,11 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_bake (wmOperatorType *ot)
+void GRAPH_OT_bake (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake Curve";
-	ot->idname= "GRAPHEDIT_OT_keyframes_bake";
+	ot->idname= "GRAPH_OT_bake";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm; // FIXME...
@@ -979,11 +979,11 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_sample (wmOperatorType *ot)
+void GRAPH_OT_sample (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Sample Keyframes";
-	ot->idname= "GRAPHEDIT_OT_keyframes_sample";
+	ot->idname= "GRAPH_OT_sample";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_sample_exec;
@@ -1053,11 +1053,11 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
+void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "GRAPHEDIT_OT_keyframes_extrapolation_type";
+	ot->idname= "GRAPH_OT_extrapolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1121,11 +1121,11 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_interpolation_type (wmOperatorType *ot)
+void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "GRAPHEDIT_OT_keyframes_interpolation_type";
+	ot->idname= "GRAPH_OT_interpolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1208,11 +1208,11 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
+void GRAPH_OT_handletype (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "GRAPHEDIT_OT_keyframes_handletype";
+	ot->idname= "GRAPH_OT_handletype";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1298,11 +1298,11 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
  
-void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
+void GRAPH_OT_euler_filter (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Euler Filter";
-	ot->idname= "GRAPHEDIT_OT_keyframes_euler_filter";
+	ot->idname= "GRAPH_OT_euler_filter";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_euler_filter_exec;
@@ -1314,10 +1314,10 @@ void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
 
 #endif // XXX this is not ready for the primetime yet
 
-/* ***************** Snap Current Frame Operator *********************** */
+/* ***************** Jump to Selected Frames Operator *********************** */
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
-static int graphkeys_cfrasnap_exec(bContext *C, wmOperator *op)
+static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data= {NULL, NULL};
@@ -1353,14 +1353,14 @@ static int graphkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GRAPHEDIT_OT_keyframes_cfrasnap (wmOperatorType *ot)
+void GRAPH_OT_frame_jump (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Current Frame to Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_cfrasnap";
+	ot->name= "Jump to Frame";
+	ot->idname= "GRAPH_OT_frame_jump";
 	
 	/* api callbacks */
-	ot->exec= graphkeys_cfrasnap_exec;
+	ot->exec= graphkeys_framejump_exec;
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
@@ -1444,11 +1444,11 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_snap (wmOperatorType *ot)
+void GRAPH_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_snap";
+	ot->idname= "GRAPH_OT_snap";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1555,11 +1555,11 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_mirror (wmOperatorType *ot)
+void GRAPH_OT_mirror (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_mirror";
+	ot->idname= "GRAPH_OT_mirror";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1609,11 +1609,11 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
+void GRAPH_OT_smooth (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_smooth";
+	ot->idname= "GRAPH_OT_smooth";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_smooth_exec;
@@ -1671,11 +1671,11 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_fmodifier_add (wmOperatorType *ot)
+void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add F-Curve Modifier";
-	ot->idname= "GRAPHEDIT_OT_fmodifier_add";
+	ot->idname= "GRAPH_OT_fmodifier_add";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

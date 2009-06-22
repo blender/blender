@@ -853,11 +853,11 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_extrapolation_type_set (wmOperatorType *ot)
+void ACT_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "ACT_OT_extrapolation_type_set";
+	ot->idname= "ACT_OT_extrapolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -923,11 +923,11 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_interpolation_type_set (wmOperatorType *ot)
+void ACT_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "ACT_OT_interpolation_type_set";
+	ot->idname= "ACT_OT_interpolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1011,11 +1011,11 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_handle_type_set (wmOperatorType *ot)
+void ACT_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "ACT_OT_handle_type_set";
+	ot->idname= "ACT_OT_handle_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

@@ -173,11 +173,11 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_select_all_toggle (wmOperatorType *ot)
+void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "GRAPHEDIT_OT_keyframes_select_all_toggle";
+	ot->idname= "GRAPH_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
@@ -304,11 +304,11 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void GRAPHEDIT_OT_keyframes_select_border(wmOperatorType *ot)
+void GRAPH_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "GRAPHEDIT_OT_keyframes_select_border";
+	ot->idname= "GRAPH_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -497,11 +497,11 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_columnselect (wmOperatorType *ot)
+void GRAPH_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "GRAPHEDIT_OT_keyframes_columnselect";
+	ot->idname= "GRAPH_OT_select_column";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_columnselect_exec;
@@ -908,11 +908,11 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void GRAPHEDIT_OT_keyframes_clickselect (wmOperatorType *ot)
+void GRAPH_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_clickselect";
+	ot->idname= "GRAPH_OT_clickselect";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_clickselect_invoke;
