@@ -4,6 +4,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
+
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
@@ -22,7 +24,6 @@ extern "C"
 #include <COLLADASWSource.h>
 #include <COLLADASWInstanceGeometry.h>
 #include <COLLADASWInputList.h>
-#include <COLLADASWScene.h>
 #include <COLLADASWPrimitves.h>
 #include <COLLADASWVertices.h>
 #include <COLLADASWLibraryImages.h>
@@ -33,9 +34,11 @@ extern "C"
 #include <COLLADASWParamTemplate.h>
 #include <COLLADASWParamBase.h>
 #include <COLLADASWSurfaceInitOption.h>
-#include <COLLADASWTexture.h>
 #include <COLLADASWSampler.h>
+#include <COLLADASWScene.h>
 #include <COLLADASWSurface.h>
+#include <COLLADASWTechnique.h>
+#include <COLLADASWTexture.h>
 #include <COLLADASWLibraryMaterials.h>
 #include <COLLADASWBindMaterial.h>
 
@@ -188,8 +191,6 @@ public:
 		closeLibrary();
 	}
 
-	/*----------------------------------------------------------*/
-
 	//creates <source> for positions
 	void createVertsSource(Scene *sce, COLLADASW::StreamWriter *sw,
 					  std::string geom_name, DerivedMesh *dm)
@@ -225,8 +226,6 @@ public:
 	
 	}
 
-	/*----------------------------------------------------------*/
-	
 	//creates <source> for texcoords
 	// returns true if mesh has uv data
 	bool createTexcoordsSource(Scene *sce, COLLADASW::StreamWriter *sw,
@@ -304,7 +303,6 @@ public:
 		return false;
 	}
 
-	/*----------------------------------------------------------*/
 
 	//creates <source> for normals
 	void createNormalsSource(Scene *sce, COLLADASW::StreamWriter *sw,
@@ -338,21 +336,17 @@ public:
 		source.finish();
 	}
 	
-	/*----------------------------------------------------------*/
-	
 	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type) {
 		return geom_name +
 			getSuffixBySemantic(type);
 	}
 	
-	/*----------------------------------------------------------*/
 
 	COLLADASW::URI getUrlBySemantics(std::string geom_name, COLLADASW::Semantics type) {
 		std::string id(getIdBySemantics(geom_name, type));
 		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 	}
 	
-	/*----------------------------------------------------------*/
 
 	int getTriCount(MFace *faces, int totface) {
 		int i;
@@ -368,8 +362,6 @@ public:
 		return tris;
 	}
 };
-
-/*----------------------------------------------------------*/
 
 class SceneExporter: COLLADASW::LibraryVisualScenes
 {
@@ -406,29 +398,17 @@ public:
 						COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
 						COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
 						std::string matid = std::string(ma->id.name);	
-						COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+						/*COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+						COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
+						im.push_back(bvi);*/
 						iml.push_back(im);
 					}
-				//XXX hardcoded
-				/*Image *image = (Image*)G.main->image.first;
-				
-				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
-				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-				
-				std::string matid = std::string(image->id.name) + "-material";
-				COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-				COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
-				im.push_back(bvi);
-				iml.push_back(im);*/
-
-				//
 				instGeom.add();
-				
 				node.end();
 			}
 			base= base->next;
 		}
-
+		
 		//</visual_scene></library_visual_scenes>
 		closeVisualScene();
 
@@ -436,7 +416,6 @@ public:
 	}
 };
 
-/*----------------------------------------------------------*/
 //class for exporting images
 class ImagesExporter: COLLADASW::LibraryImages
 {
@@ -462,8 +441,6 @@ public:
 	
 };
 
-/*----------------------------------------------------------*/
-
 class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
@@ -476,55 +453,79 @@ public:
 		while(ma) {
 			
 			openEffect(std::string(ma->id.name) + "-effect");
+
 			COLLADASW::EffectProfile ep(mSW);
+			
 			ep.setProfileType(COLLADASW::EffectProfile::COMMON);
+
 			//open <profile_common>
 			ep.openProfile();
 			
+			std::vector<int> mtexindices = countmtex(ma);
+			
+			for (int a = 0; a < mtexindices.size(); a++){
+				//<newparam> <surface> <init_from>
+				Image *ima = ma->mtex[mtexindices[a]]->tex->ima;
+				COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+										   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+				sio.setImageReference(ima->id.name);
+				surface.setInitOption(sio);
 
+				//<newparam> <sampler> <source>
+				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+										   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+
+				//<lambert> <diffuse> <texture>	
+				COLLADASW::Texture texture(ima->id.name);
+				texture.setTexcoord("myUVs");
+				texture.setSurface(surface);
+				texture.setSampler(sampler);
+
+				//<texture>
+				COLLADASW::ColorOrTexture cot(texture);
+				ep.setDiffuse(cot, true, "");
+				ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+
+				//todo add or find generator of technique sids
+				//performs the actual writing
+				ep.addProfileElements();
+				ep.closeTechnique();
+				//COLLADASW::Technique technique(mSW);
+				//technique.closeTechnique();
+				
+			}
+			
 			ep.closeProfile();
 			ma = (Material*) ma->id.next;
-			/*	Image *image = (Image*)G.main->image.first;
-		while(image) {
-			
-			openEffect(std::string(image->id.name) + "-effect");
-			COLLADASW::EffectProfile ep(mSW);
-			ep.setProfileType(COLLADASW::EffectProfile::COMMON);
-			//open <profile_common>
-			ep.openProfile();
-			
-			//<newparam> <surface> <init_from>
-			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D, image->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-			sio.setImageReference(image->id.name);
-			surface.setInitOption(sio);
-			
-			//<newparam> <sampler> <source>
-			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D, image->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-			
-			//<lambert> <diffuse> <texture>	
-			COLLADASW::Texture texture(image->id.name);
-			texture.setTexcoord("myUVs");
-			texture.setSurface(surface);
-			texture.setSampler(sampler);
-			
-			COLLADASW::ColorOrTexture cot(texture);
-			ep.setDiffuse(cot, true, "");
-			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-			//performs the actual writing
-			ep.addProfileElements();
-			ep.closeProfile();
-			closeEffect();
-			image = (Image*)image->id.next;
-		}*/
 		}
 		
 		closeLibrary();
 
 	}
-	
+
+	//returns the array of mtex indices which have image 
+	//I need this for exporting textures
+	std::vector<int> countmtex(Material *ma)
+	{
+		std::vector<int> mtexindices;
+		for (int a = 0; a < 18; a++){
+			if (!ma->mtex[a]){
+				continue;
+			}
+			Tex *tex = ma->mtex[a]->tex;
+			if(!tex){
+				continue;
+			}
+			Image *ima = tex->ima;
+			if(!ima){
+				continue;
+			}
+			mtexindices.push_back(a);
+		}
+		return mtexindices;
+	}
 };
-/*----------------------------------------------------------*/
 
 class MaterialsExporter: COLLADASW::LibraryMaterials
 {
@@ -546,27 +547,10 @@ public:
 			
 			ma = (Material*) ma->id.next;
 		}
-		closeLibrary();
-		
-		/*
-		  Image *image = (Image*)G.main->image.first;
-		  while(image) {
-		  
-		  openMaterial(std::string(image->id.name) + "-material");
-		  std::string efid = std::string(image->id.name) + "-effect";
-		  addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
-		  closeMaterial();
-		  image = (Image*)image->id.next;
-		  }
-		*/
-		
+		closeLibrary();	
 	}
-	
-	
 };
 
-
-/*----------------------------------------------------------*/
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
@@ -612,8 +596,6 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	sw.endDocument();
 
 }
-
-/*----------------------------------------------------------*/
 
 void DocumentExporter::exportScenes(const char* filename)
 {

@@ -768,7 +768,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	}
 	
 	//WM_write_file(C, filename, op->reports);
-	collada_import(CTX_data_scene(C), filename);
+	collada_import(C, filename);
 	
 	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
 

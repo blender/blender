@@ -11,21 +11,26 @@
 #include "COLLADAFWMaterial.h"
 #include "COLLADAFWGeometry.h"
 #include "COLLADAFWMesh.h"
+#include "COLLADAFWFloatOrDoubleArray.h"
+#include "COLLADAFWArrayPrimitiveType.h"
 
 #include "COLLADASaxFWLLoader.h"
 
+// TODO move "extern C" into header files
 extern "C" 
 {
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_context.h"
+#include "BKE_object.h"
+#include "BKE_image.h"
+#include "BKE_material.h"
+}
 
 #include "DNA_object_types.h"
 
-#include "ED_object.h"
-
 #include "DocumentImporter.h"
-}
+
 
 
 /** Class that needs to be implemented by a writer. 
@@ -83,6 +88,12 @@ public:
 	*/
 	virtual void cancel(const COLLADAFW::String& errorMessage)
 	{
+		// TODO: if possible show error info
+		//
+		// Should we get rid of invisible Meshes that were created so far
+		// or maybe create objects at coordinate space origin?
+		//
+		// The latter sounds better.
 	}
 
 	/** This is the method called. The writer hast to prepare to receive data.*/
@@ -95,6 +106,20 @@ public:
 	{
 		// using mVisualScenes, do:
 		// - write <node> data to Objects: materials, transforms, etc.
+
+		// TODO: import materials (<instance_material> inside <instance_geometry>) and textures
+
+		std::vector<COLLADAFW::VisualScene>::iterator it = mVisualScenes.begin();
+		for (; it != mVisualScenes.end(); it++) {
+			COLLADAFW::VisualScene &visscene = *it;
+
+			// create new blender scene
+
+			// create Objects from <node>s inside this <visual_scene>
+
+			// link each Object with a Mesh
+			// for each Object's <instance_geometry> there should already exist a Mesh
+		}
 	}
 
 	/** When this method is called, the writer must write the global document asset.
@@ -120,8 +145,15 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 	{
-		// for the sake of clarity link nodes to geometries at a later stage
+		// for each <node> in <visual_scene>:
+		// create an Object
+		// if Mesh (previously created in writeGeometry) to which <node> corresponds exists, link Object with that mesh
+
+		// update: since we cannot link a Mesh with Object in
+		// writeGeometry because <geometry> does not reference <node>,
+		// we link Objects with Meshes at the end with method "finish".
 		mVisualScenes.push_back(*visualScene);
+
 		return true;
 	}
 
@@ -135,32 +167,78 @@ public:
 
 	/** When this method is called, the writer must write the geometry.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeGeometry ( const COLLADAFW::Geometry* geometry ) 
+	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeometry ) 
 	{
 		// - create a mesh object
 		// - enter editmode getting editmesh
 		// - write geometry
 		// - exit editmode
+		// 
+		// - unlink mesh from object
+		// - remove object
+
+		// TODO: import also uvs, normals
+
 
 		// check geometry->getType() first
-		COLLADAFW::Mesh *mesh = (COLLADAFW::Mesh*)geometry;
+		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeometry;
+		Scene *sce = CTX_data_scene(mContext);
+
+		// XXX: don't use editors module
+
 
 		// create a mesh object
-		Object *ob = ED_object_add_type(mContext, OB_MESH);
-		Mesh *me = (Mesh*)ob->data;
+// 		Object *ob = ED_object_add_type(mContext, OB_MESH);
 
-		// enter editmode
-		ED_object_enter_editmode(mContext, 0);
+// 		// enter editmode
+// 		ED_object_enter_editmode(mContext, 0);
+// 		Mesh *me = (Mesh*)ob->data;
+// 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
-		EditMesh *em = BKE_mesh_get_editmesh(me);
+// 		// write geometry
+// 		// currently only support <triangles>
 
-		// write geometry
-		// currently only support <triangles>
+// 		// read vertices
+// 		std::vector<EditVert*> vertptr;
+// 		COLLADAFW::MeshVertexData& vertdata = cmesh->getPositions();
+// 		float *pos = vertdata.getFloatValues()->getData();
+// 		size_t totpos = vertdata.getValuesCount() / 3;
+// 		int i;
 
-		BKE_mesh_end_editmesh(me, em);
+// 		for (i = 0; i < totpos; i++){
+// 			float v[3] = {pos[i * 3 + 0],
+// 						  pos[i * 3 + 1],
+// 						  pos[i * 3 + 2]};
+// 			EditVert *eve = addvertlist(em, v, 0);
+// 			vertptr.push_back(eve);
+// 		}
 
-		// exit editmode
-		ED_object_exit_editmode(mContext, EM_FREEDATA);
+// 		COLLADAFW::MeshPrimitiveArray& apt = cmesh->getMeshPrimitives();
+
+// 		// read primitives
+// 		// TODO: support all primitive types
+// 		for (i = 0; i < apt.getCount(); i++){
+			
+// 			COLLADAFW::MeshPrimitive *mp = apt.getData()[i];
+// 			if (mp->getPrimitiveType() != COLLADAFW::MeshPrimitive::TRIANGLES){
+// 				continue;
+// 			}
+			
+// 			const size_t tottris = mp->getFaceCount();
+// 			COLLADAFW::UIntValuesArray& indicesArray = mp->getPositionIndices();
+// 			unsigned int *indices = indicesArray.getData();
+// 			for (int j = 0; j < tottris; j++){
+// 				addfacelist(em,
+// 							vertptr[indices[j * 3 + 0]],
+// 							vertptr[indices[j * 3 + 1]],
+// 							vertptr[indices[j * 3 + 2]], 0, 0, 0);
+// 			}
+// 		}
+		
+// 		BKE_mesh_end_editmesh(me, em);
+
+// 		// exit editmode
+// 		ED_object_exit_editmode(mContext, EM_FREEDATA);
 
 		return true;
 	}
@@ -171,6 +249,8 @@ public:
 	{
 		// TODO: create and store a material.
 		// Let it have 0 users for now.
+		/*std::string name = material->getOriginalId();
+		  add_material(name);*/
 		return true;
 	}
 
@@ -192,6 +272,8 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeImage( const COLLADAFW::Image* image ) 
 	{
+		/*std::string name = image->getOriginalId();
+		  BKE_add_image_file(name);*/
 		return true;
 	}
 
