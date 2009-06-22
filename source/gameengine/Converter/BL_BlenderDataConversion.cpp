@@ -163,7 +163,6 @@ extern "C" {
 #include "SG_BBox.h"
 #include "SG_Tree.h"
 
-// defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
 #ifdef USE_BULLET
 #include "CcdPhysicsEnvironment.h"
@@ -1610,18 +1609,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			break;
 
 #endif
-#ifdef USE_SUMO_SOLID
-		case UseSumo:
-			KX_ConvertSumoObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif
-			
-#ifdef USE_ODE
-		case UseODE:
-			KX_ConvertODEEngineObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
-			break;
-#endif //USE_ODE
-
 		case UseDynamo:
 			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
 			break;

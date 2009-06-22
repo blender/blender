@@ -1854,7 +1854,6 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_particle.c", NULL, RNA_def_particle},
 	{"rna_pose.c", NULL, RNA_def_pose},
 	{"rna_property.c", NULL, RNA_def_gameproperty},
-	{"rna_radio.c", NULL, RNA_def_radio},
 	{"rna_scene.c", NULL, RNA_def_scene},
 	{"rna_screen.c", NULL, RNA_def_screen},
 	{"rna_scriptlink.c", NULL, RNA_def_scriptlink},

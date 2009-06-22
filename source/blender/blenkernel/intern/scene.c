@@ -142,8 +142,6 @@ void free_scene(Scene *sce)
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce->ed);
-	if(sce->radio) MEM_freeN(sce->radio);
-	sce->radio= 0;
 	
 #ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);

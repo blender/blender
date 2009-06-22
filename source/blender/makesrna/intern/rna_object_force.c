@@ -32,8 +32,87 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_context.h"
+#include "BKE_pointcache.h"
+
+#include "BLI_blenlib.h"
+
+static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
+{
+	Object *ob = CTX_data_active_object(C);
+	PointCache *cache = (PointCache*)ptr->data;
+	PTCacheID *pid = NULL;
+	ListBase pidlist;
+
+	if(!ob)
+		return;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache==cache)
+			break;
+	}
+
+	if(pid)
+		BKE_ptcache_toggle_disk_cache(pid);
+
+	BLI_freelistN(&pidlist);
+}
+
+static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
+{
+	Object *ob = CTX_data_active_object(C);
+	PointCache *cache = (PointCache*)ptr->data;
+	PTCacheID *pid = NULL, *pid2;
+	ListBase pidlist;
+	int new_name = 1;
+	char name[80];
+
+	if(!ob)
+		return;
+
+	/* TODO: check for proper characters */
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache==cache)
+			pid2 = pid;
+		else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
+			/*TODO: report "name exists" to user */
+			strcpy(cache->name, cache->prev_name);
+			new_name = 0;
+		}
+	}
+
+	if(new_name) {
+		if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
+			strcpy(name, cache->name);
+			strcpy(cache->name, cache->prev_name);
+
+			cache->flag &= ~PTCACHE_DISK_CACHE;
+
+			BKE_ptcache_toggle_disk_cache(pid2);
+
+			strcpy(cache->name, name);
+
+			cache->flag |= PTCACHE_DISK_CACHE;
+
+			BKE_ptcache_toggle_disk_cache(pid2);
+		}
+
+		strcpy(cache->prev_name, cache->name);
+	}
+
+	BLI_freelistN(&pidlist);
+}
 #else
 
 static void rna_def_pointcache(BlenderRNA *brna)
@@ -60,6 +139,32 @@ static void rna_def_pointcache(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "baking", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
+
+	prop= RNA_def_property(srna, "disk_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_DISK_CACHE);
+	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
+
+	prop= RNA_def_property(srna, "outdated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_OUTDATED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Cache is outdated", "");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Name", "Cache name");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	prop= RNA_def_property(srna, "autocache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_AUTOCACHE);
+	RNA_def_property_ui_text(prop, "Auto Cache", "Cache changes automatically");
+	//RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_autocache");
+
+	prop= RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "info");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status.");
+
 }
 
 static void rna_def_collision(BlenderRNA *brna)

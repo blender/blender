@@ -39,7 +39,6 @@ extern "C" {
 #include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
-struct Radio;
 struct Object;
 struct World;
 struct Scene;
@@ -158,7 +157,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_REFRACT	1024
 #define SCE_PASS_INDEXOB	2048
 #define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192
+#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
@@ -570,7 +569,6 @@ typedef struct Scene {
 	struct bNodeTree *nodetree;	
 	
 	void *ed;								/* sequence editor data is allocated here */
-	struct Radio *radio;
 	
 	struct GameFraming framing;
 

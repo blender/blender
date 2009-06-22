@@ -575,18 +575,17 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem buttons_context_items[] = {
-		{BCONTEXT_SCENE, "SCENE", 0, "Scene", ""},
-		{BCONTEXT_WORLD, "WORLD", 0, "World", ""},
-		{BCONTEXT_OBJECT, "OBJECT", 0, "Object", ""},
-		{BCONTEXT_DATA, "DATA", 0, "Data", ""},
-		{BCONTEXT_MATERIAL, "MATERIAL", 0, "Material", ""},
-		{BCONTEXT_TEXTURE, "TEXTURE", 0, "Texture", ""},
-		{BCONTEXT_PARTICLE, "PARTICLE", 0, "Particle", ""},
-		{BCONTEXT_PHYSICS, "PHYSICS", 0, "Physics", ""},
-		{BCONTEXT_GAME, "GAME", 0, "Game", ""},
-		{BCONTEXT_BONE, "BONE", 0, "Bone", ""},
-		{BCONTEXT_MODIFIER, "MODIFIER", 0, "Modifier", ""},
-		{BCONTEXT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
+		{BCONTEXT_SCENE, "SCENE", ICON_SCENE, "Scene", "Scene"},
+		{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
+		{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
+		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraint", "Constraint"},
+		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifier", "Modifier"},
+		{BCONTEXT_DATA, "DATA", 0, "Data", "Data"},
+		{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
+		{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
+		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
+		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
+		{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem panel_alignment_items[] = {
@@ -602,11 +601,13 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, buttons_context_items);
 	RNA_def_property_ui_text(prop, "Buttons Context", "The type of active data to display and edit in the buttons window");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "panel_alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
 	RNA_def_property_enum_items(prop, panel_alignment_items);
 	RNA_def_property_ui_text(prop, "Panel Alignment", "Arrangement of the panels within the buttons window");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* pinned data */
 	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);

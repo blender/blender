@@ -198,7 +198,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render blender_radiosity)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render)
 
 IF(WITH_ELBEEM)
   SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
@@ -218,7 +218,6 @@ IF(UNIX)
     bf_ghost 
     bf_string 
     blender_render 
-    blender_radiosity 
     blender_ONL 
     bf_python 
     bf_gen_python 
@@ -238,7 +237,6 @@ IF(UNIX)
     bf_kernel 
     bf_decimation 
     bf_elbeem 
-    bf_yafray 
     bf_IK 
     bf_memutil 
     bf_guardedalloc 
@@ -264,10 +262,7 @@ IF(UNIX)
     bf_ngnetwork 
     extern_bullet 
     bf_loopbacknetwork 
-    bf_sumo 
     bf_common 
-    extern_solid 
-    extern_qhull 
     bf_moto 
     bf_python
     bf_gen_python

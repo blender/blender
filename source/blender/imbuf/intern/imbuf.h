@@ -51,7 +51,7 @@
 #include <sys/mman.h>
 #endif
 
-#if !defined(WIN32) && !defined(__BeOS)
+#if !defined(WIN32)
 #define O_BINARY 0
 #endif
 

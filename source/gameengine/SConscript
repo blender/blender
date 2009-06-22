@@ -18,13 +18,5 @@ SConscript(['BlenderRoutines/SConscript',
             'VideoTexture/SConscript'
             ])
 
-if env['WITH_BF_SOLID']:
-	SConscript(['Physics/Sumo/SConscript'])
-
 if env['WITH_BF_PLAYER']:
     SConscript(['GamePlayer/SConscript'])
-
-#if user_options_dict['USE_PHYSICS'] == 'solid':
-#    SConscript(['Physics/Sumo/SConscript'])
-#elif user_options_dict['USE_PHYSICS'] == 'ode':
-#    SConscript(['Physics/BlOde/SConscript'])

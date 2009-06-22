@@ -30,7 +30,7 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid glew/src
+DIRS = glew/src
 
 ifeq ($(WITH_FFMPEG), true)
 ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)

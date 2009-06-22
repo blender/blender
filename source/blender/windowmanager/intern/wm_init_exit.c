@@ -58,8 +58,6 @@
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
-#include "radio.h"
-
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -196,9 +194,6 @@ void WM_exit(bContext *C)
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
 	BIF_freeSketch(C);
-
-	/* Context should still working here. but radio tool needs cleaning... */
-	freeAllRad(CTX_data_scene(C));
 	
 	free_ttfont(); /* bke_font.h */
 	

@@ -36,8 +36,6 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GLEW)/include
-CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
-CPPFLAGS += -I$(NAN_SOLID)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include
@@ -67,7 +65,6 @@ CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
 CPPFLAGS += -I../Physics/common
-CPPFLAGS += -I../Physics/Sumo
 CPPFLAGS += -I.
 
 ifeq ($(OS),windows)
