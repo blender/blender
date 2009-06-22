@@ -110,6 +110,11 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
+	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_set");
+	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_clear");
+	
+	uiItemS(layout);
+	
 	//uiItemO(layout, NULL, 0, "NLA_OT_view_all");
 	
 	if (sa->full) 
