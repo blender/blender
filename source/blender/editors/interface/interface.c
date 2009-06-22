@@ -2753,7 +2753,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	uiBut *but, *next;
 	float centy, miny=10000, maxy= -10000;
 
-	if(!(U.uiflag & USER_DIRECTIONALORDER))
+	if(U.uiflag & USER_MENUFIXEDORDER)
 		return;
 	
 	for(but= block->buttons.first; but; but= but->next) {

@@ -1490,3 +1490,4 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 		}
 	}
 }
+
