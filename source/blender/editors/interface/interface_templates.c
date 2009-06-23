@@ -555,7 +555,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
-
+	
+	/* modifier-type icon */
+	uiDefIconBut(block, BUT, 0, RNA_struct_ui_icon(ptr.type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Current Modifier Type");
+	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	if (isVirtual) {
@@ -566,7 +569,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 	} else {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-60, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-40, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
 		/* Softbody not allowed in this situation, enforce! */
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
