@@ -151,8 +151,34 @@ void rna_def_tool_settings(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem uv_select_mode_items[] = {
+		{UV_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
+		{UV_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
+		{UV_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
+		{UV_SELECT_ISLAND, "ISLAND", ICON_LINKEDSEL, "Island", "Island selection mode."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem mesh_select_mode_items[] = {
+		{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
+		{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
+		{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem snap_element_items[] = {
+		{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
+		{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
+		{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
+		{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem snap_mode_items[] = {
+		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
+		{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
+		{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
+		{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
-	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
 	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
@@ -162,6 +188,62 @@ void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "vpaint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "VPaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");
+
+	/* Transform */
+	prop= RNA_def_property(srna, "proportional_editing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "proportional", 0);
+	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode.");
+
+	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
+	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+
+	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
+	RNA_def_property_ui_text(prop, "Snap", "Snap while Ctrl is held during transform.");
+	RNA_def_property_ui_icon(prop, ICON_SNAP_GEAR, 1);
+
+	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_ROTATE);
+	RNA_def_property_ui_text(prop, "Snap Align Rotation", "Align rotation with the snapping target.");
+	RNA_def_property_ui_icon(prop, ICON_SNAP_NORMAL, 0);
+
+	prop= RNA_def_property(srna, "snap_element", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "snap_mode");
+	RNA_def_property_enum_items(prop, snap_element_items);
+	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to.");
+
+	prop= RNA_def_property(srna, "snap_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "snap_target");
+	RNA_def_property_enum_items(prop, snap_mode_items);
+	RNA_def_property_ui_text(prop, "Snap Mode", "Which part to snap onto the target.");
+
+	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
+	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
+	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
+
+	/* UV */
+	prop= RNA_def_property(srna, "uv_selection_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
+	RNA_def_property_enum_items(prop, uv_select_mode_items);
+	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode.");
+
+	prop= RNA_def_property(srna, "uv_sync_selection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SYNC_SELECTION);
+	RNA_def_property_ui_text(prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync.");
+	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
+
+	prop= RNA_def_property(srna, "uv_local_view", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SHOW_SAME_IMAGE);
+	RNA_def_property_ui_text(prop, "UV Local View", "Draw only faces with the currently displayed image assigned.");
+
+	/* Mesh */
+	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "selectmode");
+	RNA_def_property_enum_items(prop, mesh_select_mode_items);
+	RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Mesh selection and display mode.");
 
 	rna_def_sculpt(brna);
 }
@@ -839,10 +921,6 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem unwrapper_items[] = {
-		{0, "CONFORMAL", 0, "Conformal", ""},
-		{1, "ANGLEBASED", 0, "Angle Based", ""}, 
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
@@ -873,11 +951,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-
-	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
-	RNA_def_property_enum_items(prop, prop_mode_items);
-	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
@@ -911,11 +984,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
-	prop= RNA_def_property(srna, "unwrapper", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "toolsettings->unwrapper");
-	RNA_def_property_enum_items(prop, unwrapper_items);
-	RNA_def_property_ui_text(prop, "Unwrapper", "Unwrap algorithm used by the Unwrap tool.");
-	
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
 	

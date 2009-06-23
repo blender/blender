@@ -567,12 +567,12 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiBlockBeginAlign(block);
 		uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
-						 xco, yco, XIC, YIC, &(scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+						 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 		xco+= XIC;
 		if (IS_AUTOKEY_ON(scene)) {
 			uiDefButS(block, MENU, B_REDRAWALL, 
 					  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					  xco, yco, (int)5.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
+					  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
 					  "Mode of automatic keyframe insertion for Objects and Bones");
 			xco+= (6*XIC);
 		}

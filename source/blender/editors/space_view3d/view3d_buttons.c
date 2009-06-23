@@ -1663,7 +1663,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
+	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->toolsettings->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 }
 
 

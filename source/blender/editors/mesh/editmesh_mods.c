@@ -3531,7 +3531,7 @@ static void mesh_selection_type(Scene *scene, EditMesh *em, int val)
 		
 		/* note, em stores selectmode to be able to pass it on everywhere without scene,
 		   this is only until all select modes and toolsettings are settled more */
-		scene->selectmode= em->selectmode;
+		scene->toolsettings->selectmode= em->selectmode;
 //		if (EM_texFaceCheck())
 	}
 }

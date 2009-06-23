@@ -665,6 +665,7 @@ void resetTransRestrictions(TransInfo *t)
 int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -679,6 +680,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	t->sa = sa;
 	t->ar = ar;
 	t->obedit = obedit;
+	t->settings = ts;
 
 	t->data = NULL;
 	t->ext = NULL;
@@ -774,7 +776,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	// Need stuff to take it from edit mesh or whatnot here
 	else
 	{
-		if (t->obedit && t->obedit->type == OB_MESH && sce->toolsettings->editbutflag & B_MESH_X_MIRROR)
+		if (t->obedit && t->obedit->type == OB_MESH && ts->editbutflag & B_MESH_X_MIRROR)
 		{
 			t->flag |= T_MIRROR;
 		}
@@ -794,10 +796,10 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-		if ((t->options & CTX_NO_PET) == 0 && (sce->proportional)) {
+		if ((t->options & CTX_NO_PET) == 0 && (ts->proportional)) {
 			t->flag |= T_PROP_EDIT;
 			
-			if(sce->proportional == 2)
+			if(ts->proportional == 2)
 				t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
 		}
 	}
@@ -808,7 +810,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-		t->prop_size = sce->toolsettings->proportional_size;
+		t->prop_size = ts->proportional_size;
 	}
 	
 	if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
@@ -817,7 +819,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-		t->prop_mode = sce->prop_mode;
+		t->prop_mode = ts->prop_mode;
 	}
 
 	/* TRANSFORM_FIX_ME rna restrictions */

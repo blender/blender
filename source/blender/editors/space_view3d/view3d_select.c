@@ -438,6 +438,7 @@ static void do_lasso_select_mesh__doSelectFace(void *userData, EditFace *efa, in
 static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves, short select)
 {
 	struct { ViewContext vc; rcti *rect; short (*mcords)[2], moves, select, pass, done; } data;
+	ToolSettings *ts= vc->scene->toolsettings;
 	rcti rect;
 	int bbsel;
 	
@@ -456,14 +457,14 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
-	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, 1);
 		}
 	}
-	if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+	if(ts->selectmode & SCE_SELECT_EDGE) {
 			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
@@ -475,7 +476,7 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 		}
 	}
 	
-	if(vc->scene->selectmode & SCE_SELECT_FACE) {
+	if(ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
@@ -1277,6 +1278,7 @@ static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int 
 static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 {
 	struct { ViewContext vc; rcti *rect; short select, pass, done; } data;
+	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
 	
 	data.vc= *vc;
@@ -1287,14 +1289,14 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
-	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, 1);
 		}
 	}
-	if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+	if(ts->selectmode & SCE_SELECT_EDGE) {
 			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
@@ -1306,7 +1308,7 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 		}
 	}
 	
-	if(vc->scene->selectmode & SCE_SELECT_FACE) {
+	if(ts->selectmode & SCE_SELECT_FACE) {
 		if(bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
@@ -1639,6 +1641,7 @@ static void mesh_circle_doSelectFace(void *userData, EditFace *efa, int x, int y
 
 static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
 {
+	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
 	
 	if(vc->obedit==NULL && (FACESEL_PAINT_TEST)) {
@@ -1666,7 +1669,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		data.mval[1] = mval[1];
 		data.radius = rad;
 
-		if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+		if(ts->selectmode & SCE_SELECT_VERTEX) {
 			if(bbsel) {
 				EM_backbuf_checkAndSelectVerts(vc->em, selecting==LEFTMOUSE);
 			} else {
@@ -1674,7 +1677,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 			}
 		}
 
-		if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+		if(ts->selectmode & SCE_SELECT_EDGE) {
 			if (bbsel) {
 				EM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
 			} else {
@@ -1682,7 +1685,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 			}
 		}
 		
-		if(vc->scene->selectmode & SCE_SELECT_FACE) {
+		if(ts->selectmode & SCE_SELECT_FACE) {
 			if(bbsel) {
 				EM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
 			} else {
