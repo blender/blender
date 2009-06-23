@@ -46,9 +46,9 @@
 
 static int mathutils_rna_vector_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_vector_check(PyObject *user)
+static int mathutils_rna_vector_check(BPy_PropertyRNA *self)
 {
-	return ((BPy_PropertyRNA *)user)->prop?1:0;
+	return self->prop?1:0;
 }
 
 static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *vec_from)
@@ -190,7 +190,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	const EnumPropertyItem *item;
 	int totitem;
 	
-	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	RNA_property_enum_items(ptr, prop, &item, NULL);
 	return (char*)BPy_enum_as_string((EnumPropertyItem*)item);
 }
 
