@@ -410,14 +410,29 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 	
 	if (len > 0) {
 		PyObject *item;
+		int py_len = -1;
 		int i;
 		
-		if (!PySequence_Check(value)) {
+
+#ifdef USE_MATHUTILS
+		if(MatrixObject_Check(value)) {
+			MatrixObject *mat = (MatrixObject*)value;
+			if(!Matrix_ReadCallback(mat))
+				return -1;
+
+			py_len = mat->rowSize * mat->colSize;
+		} else // continue...
+#endif
+		if (PySequence_Check(value)) {
+			py_len= (int)PySequence_Length(value);
+		}
+		else {
 			PyErr_SetString(PyExc_TypeError, "expected a python sequence type assigned to an RNA array.");
 			return -1;
 		}
+		/* done getting the length */
 		
-		if ((int)PySequence_Length(value) != len) {
+		if (py_len != len) {
 			PyErr_SetString(PyExc_AttributeError, "python sequence length did not match the RNA array.");
 			return -1;
 		}
@@ -484,14 +499,21 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			else		param_arr = MEM_mallocN(sizeof(float) * len, "pyrna float array");
 
 
-			
-			/* collect the variables */
-			for (i=0; i<len; i++) {
-				item = PySequence_GetItem(value, i);
-				param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
-				Py_DECREF(item);
+#ifdef USE_MATHUTILS
+			if(MatrixObject_Check(value) && RNA_property_subtype(prop) == PROP_MATRIX) {
+				MatrixObject *mat = (MatrixObject*)value;
+				memcpy(param_arr, mat->contigPtr, sizeof(float) * len);
+			} else // continue...
+#endif
+			{
+				/* collect the variables */
+				for (i=0; i<len; i++) {
+					item = PySequence_GetItem(value, i);
+					param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
+					Py_DECREF(item);
+				}
 			}
-			
+
 			if (PyErr_Occurred()) {
 				if(data==NULL)
 					MEM_freeN(param_arr);
