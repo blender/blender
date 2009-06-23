@@ -500,6 +500,8 @@ int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	float color[4];
 
 	gt= g->tex_data;
+	xo= 0.0f;
+	yo= 0.0f;
 
 	if (font->flags & BLF_SHADOW) {
 		xo= x;

@@ -139,7 +139,12 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "kerning", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -5.0, 5.0);
-	RNA_def_property_ui_text(prop, "Kerning", "");
+	RNA_def_property_ui_text(prop, "Kerning", "User kerning value in pixels");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "overlap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "overlap", 1);
+	RNA_def_property_ui_text(prop, "Overlap", "Check for overlap characters");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
