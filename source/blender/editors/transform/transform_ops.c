@@ -1,5 +1,5 @@
 /**
- * $Id: transform_ops.c 17542 2008-11-23 15:27:53Z theeth $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

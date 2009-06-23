@@ -1,5 +1,5 @@
 /*
- * $Id: quat.c 20332 2009-05-22 03:22:56Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

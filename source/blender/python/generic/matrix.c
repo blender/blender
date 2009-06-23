@@ -1,5 +1,5 @@
 /*
- * $Id: matrix.c 20249 2009-05-18 04:27:48Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

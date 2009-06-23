@@ -1,5 +1,5 @@
 /* 
- * $Id: Mathutils.c 20922 2009-06-16 07:16:51Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

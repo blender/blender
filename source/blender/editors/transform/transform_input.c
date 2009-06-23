@@ -1,5 +1,5 @@
 /**
- * $Id: transform_input.c 18142 2008-12-29 07:19:16Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

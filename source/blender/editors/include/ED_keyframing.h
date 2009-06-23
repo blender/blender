@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_keyframing.h 17216 2008-10-29 11:20:02Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

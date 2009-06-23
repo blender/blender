@@ -1,5 +1,5 @@
 /**
- * $Id: image_buttons.c 20913 2009-06-16 01:22:56Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

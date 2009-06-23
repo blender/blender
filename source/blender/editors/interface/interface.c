@@ -1,5 +1,5 @@
 /**
- * $Id: interface.c 16882 2008-10-02 12:29:45Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
