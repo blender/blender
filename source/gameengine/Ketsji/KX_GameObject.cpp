@@ -983,7 +983,17 @@ void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 	GetSGNode()->SetLocalOrientation(rot);
 }
 
+void KX_GameObject::NodeSetGlobalOrientation(const MT_Matrix3x3& rot)
+{
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return;
 
+	if (GetSGNode()->GetSGParent())
+		GetSGNode()->SetLocalOrientation(GetSGNode()->GetSGParent()->GetWorldOrientation().inverse()*rot);
+	else
+		GetSGNode()->SetLocalOrientation(rot);
+}
 
 void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 {
@@ -1062,7 +1072,13 @@ const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 	return GetSGNode()->GetWorldOrientation();
 }
 
-
+const MT_Matrix3x3& KX_GameObject::NodeGetLocalOrientation() const
+{
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return dummy_orientation;
+	return GetSGNode()->GetLocalOrientation();
+}
 
 const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 {
@@ -1073,7 +1089,14 @@ const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 	return GetSGNode()->GetWorldScaling();
 }
 
+const MT_Vector3& KX_GameObject::NodeGetLocalScaling() const
+{
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return dummy_scaling;
 
+	return GetSGNode()->GetLocalScale();
+}
 
 const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 {
@@ -1083,6 +1106,16 @@ const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 	else
 		return dummy_point;
 }
+
+const MT_Point3& KX_GameObject::NodeGetLocalPosition() const
+{
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (GetSGNode())
+		return GetSGNode()->GetLocalPosition();
+	else
+		return dummy_point;
+}
+
 
 /* Suspend/ resume: for the dynamic behaviour, there is a simple
  * method. For the residual motion, there is not. I wonder what the
@@ -1164,10 +1197,9 @@ extern "C" {
 #define MATHUTILS_VEC_CB_SCALE_GLOBAL 4
 #define MATHUTILS_VEC_CB_INERTIA_LOCAL 5
 
-
 static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_kxgameob_vector_check(PyObject *self_v)
+static int mathutils_kxgameob_generic_check(PyObject *self_v)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	if(self==NULL)
@@ -1184,26 +1216,21 @@ static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *v
 	
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
-			if(!self->GetSGNode()) return 0;
-			self->GetSGNode()->GetLocalPosition().getValue(vec_from);
+			self->NodeGetLocalPosition().getValue(vec_from);
 			break;
 		case MATHUTILS_VEC_CB_POS_GLOBAL:
-			if(!self->GetSGNode()) return 0;
-			self->GetSGNode()->GetWorldPosition().getValue(vec_from);
+			self->NodeGetWorldPosition().getValue(vec_from);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_LOCAL:
-			if(!self->GetSGNode()) return 0;
-			self->GetSGNode()->GetLocalScale().getValue(vec_from);
+			self->NodeGetLocalScaling().getValue(vec_from);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
 			self->NodeGetWorldScaling().getValue(vec_from);
 			break;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
-			if(!self->GetSGNode()) return 0;
+			if(!self->GetPhysicsController()) return 0;
 			self->GetPhysicsController()->GetLocalInertia().getValue(vec_from);
 			break;
-		
-		
 	}
 	
 	return 1;
@@ -1213,11 +1240,6 @@ static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *v
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	if(self==NULL)
-		return 0;
-	
-	/* first */
-	SG_Node* sg = self->GetSGNode();
-	if(sg==NULL)
 		return 0;
 	
 	switch(subtype) {
@@ -1269,11 +1291,67 @@ static int mathutils_kxgameob_vector_set_index(PyObject *self_v, int subtype, fl
 }
 
 Mathutils_Callback mathutils_kxgameob_vector_cb = {
-	mathutils_kxgameob_vector_check,
+	mathutils_kxgameob_generic_check,
 	mathutils_kxgameob_vector_get,
 	mathutils_kxgameob_vector_set,
 	mathutils_kxgameob_vector_get_index,
 	mathutils_kxgameob_vector_set_index
+};
+
+/* Matrix */
+#define MATHUTILS_MAT_CB_ORI_LOCAL 1
+#define MATHUTILS_MAT_CB_ORI_GLOBAL 2
+
+static int mathutils_kxgameob_matrix_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_kxgameob_matrix_get(PyObject *self_v, int subtype, float *mat_from)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+	
+	switch(subtype) {
+		case MATHUTILS_MAT_CB_ORI_LOCAL:
+			self->NodeGetLocalOrientation().getValue3x3(mat_from);
+			break;
+		case MATHUTILS_MAT_CB_ORI_GLOBAL:
+			self->NodeGetWorldOrientation().getValue3x3(mat_from);
+			break;
+	}
+	
+	return 1;
+}
+
+
+static int mathutils_kxgameob_matrix_set(PyObject *self_v, int subtype, float *mat_to)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	if(self==NULL)
+		return 0;
+	
+	MT_Matrix3x3 mat3x3;
+	switch(subtype) {
+		case MATHUTILS_MAT_CB_ORI_LOCAL:
+			mat3x3.setValue3x3(mat_to);
+			self->NodeSetLocalOrientation(mat3x3);
+			self->NodeUpdateGS(0.f);
+			break;
+		case MATHUTILS_MAT_CB_ORI_GLOBAL:
+			mat3x3.setValue3x3(mat_to);
+			self->NodeSetLocalOrientation(mat3x3);
+			self->NodeUpdateGS(0.f);
+			break;
+	}
+	
+	return 1;
+}
+
+Mathutils_Callback mathutils_kxgameob_matrix_cb = {
+	mathutils_kxgameob_generic_check,
+	mathutils_kxgameob_matrix_get,
+	mathutils_kxgameob_matrix_set,
+	NULL,
+	NULL
 };
 
 
@@ -1281,6 +1359,7 @@ void KX_GameObject_Mathutils_Callback_Init(void)
 {
 	// register mathutils callbacks, ok to run more then once.
 	mathutils_kxgameob_vector_cb_index= Mathutils_RegisterCallback(&mathutils_kxgameob_vector_cb);
+	mathutils_kxgameob_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_kxgameob_matrix_cb);
 }
 
 #endif // USE_MATHUTILS
@@ -1754,10 +1833,7 @@ PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRI
 #ifdef USE_MATHUTILS	
 	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_LOCAL);
 #else	
-	if (self->GetSGNode())
-		return PyObjectFrom(self->GetSGNode()->GetLocalPosition());
-	else
-		return PyObjectFrom(dummy_point);
+	return PyObjectFrom(self->NodeGetLocalPosition());
 #endif
 }
 
@@ -1782,13 +1858,17 @@ PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIB
 	if (self->GetPhysicsController())
 		return PyObjectFrom(self->GetPhysicsController()->GetLocalInertia());
 	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
-	#endif
+#endif
 }
 
 PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
+#ifdef USE_MATHUTILS
+	return newMatrixObject_cb((PyObject *)self_v, 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_GLOBAL);
+#else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldOrientation());
+#endif
 }
 
 int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -1813,11 +1893,12 @@ int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUT
 
 PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
+#ifdef USE_MATHUTILS
+	return newMatrixObject_cb((PyObject *)self_v, 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_LOCAL);
+#else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	if (self->GetSGNode())
-		return PyObjectFrom(self->GetSGNode()->GetLocalOrientation());
-	else
-		return PyObjectFrom(dummy_orientation);
+	return PyObjectFrom(self->NodeGetLocalOrientation());
+#endif
 }
 
 int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -1850,10 +1931,7 @@ PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIB
 #ifdef USE_MATHUTILS
 	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
 #else
-	if (self->GetSGNode())
-		return PyObjectFrom(self->GetSGNode()->GetLocalScale());
-	else
-		return PyObjectFrom(dummy_scaling);
+	return PyObjectFrom(self->NodeGetLocalScale());
 #endif
 }
 

@@ -40,11 +40,11 @@ extern PyTypeObject vector_Type;
 typedef struct {
 	PyObject_VAR_HEAD 
 	float *vec;					/*1D array of data (alias), wrapped status depends on wrapped status */
-	PyObject *user;					/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
+	PyObject *cb_user;					/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
 	unsigned char size;			/* vec size 2,3 or 4 */
 	unsigned char wrapped;		/* wrapped data type? */
-	unsigned char callback_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char subtype;		/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
+	unsigned char cb_subtype;		/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
 	
 } VectorObject;
 

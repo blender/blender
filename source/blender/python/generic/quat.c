@@ -75,7 +75,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 //----------------------------------Mathutils.Quaternion() --------------
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *listObject = NULL, *n, *q, *f;
+	PyObject *listObject = NULL, *n, *q;
 	int size, i;
 	float quat[4], scalar;
 	double norm = 0.0f, angle = 0.0f;
@@ -159,7 +159,6 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 		}
 
 		quat[i] = scalar;
-		Py_DECREF(f);
 		Py_DECREF(q);
 	}
 	if(size == 3){ //calculate the quat based on axis/angle

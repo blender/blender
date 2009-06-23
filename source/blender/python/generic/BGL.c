@@ -1087,7 +1087,7 @@ static struct PyMethodDef BGL_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef BGL_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"BGL",  /* m_name */
 	0,  /* m_doc */
 	0,  /* m_size */

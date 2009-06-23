@@ -96,7 +96,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Mathutils_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"Mathutils",  /* m_name */
 	M_Mathutils_doc,  /* m_doc */
 	0,  /* m_size */
@@ -137,6 +137,8 @@ PyObject *Mathutils_Init(const char *from)
 	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
 	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
 	
+	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
+
 	return (submodule);
 }
 
@@ -1164,62 +1166,76 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 	return i;
 }
 
-int Vector_ReadCallback(VectorObject *self) {
-	if(self->user) {
-		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
-		if(cb->get(self->user, self->subtype, self->vec)) {
-			return 1;
-		}
-		else {
-			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-			return 0;
-		}
+/* use macros to check for NULL */
+int _Vector_ReadCallback(VectorObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->get(self->cb_user, self->cb_subtype, self->vec)) {
+		return 1;
 	}
-	
-	return 1; /* no user continue silently */
+	else {
+		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+		return 0;
+	}
 }
 
-int Vector_WriteCallback(VectorObject *self) {
-	if(self->user) {
-		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
-		if(cb->set(self->user, self->subtype, self->vec)) {
-			return 1;
-		}
-		else {
-			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-			return 0;
-		}
+int _Vector_WriteCallback(VectorObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->set(self->cb_user, self->cb_subtype, self->vec)) {
+		return 1;
 	}
-	
-	return 1; /* no user continue silently */
+	else {
+		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+		return 0;
+	}
 }
 
-int Vector_ReadIndexCallback(VectorObject *self, int index) {
-	if(self->user) {
-		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
-		if(cb->get_index(self->user, self->subtype, self->vec, index)) {
-			return 1;
-		}
-		else {
-			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-			return 0;
-		}
+int _Vector_ReadIndexCallback(VectorObject *self, int index)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->get_index(self->cb_user, self->cb_subtype, self->vec, index)) {
+		return 1;
 	}
-	
-	return 1; /* no user continue silently */
+	else {
+		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+		return 0;
+	}
 }
 
-int Vector_WriteIndexCallback(VectorObject *self, int index) {
-	if(self->user) {
-		Mathutils_Callback *cb= mathutils_callbacks[self->callback_type];
-		if(cb->set_index(self->user, self->subtype, self->vec, index)) {
-			return 1;
-		}
-		else {
-			PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-			return 0;
-		}
+int _Vector_WriteIndexCallback(VectorObject *self, int index)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->set_index(self->cb_user, self->cb_subtype, self->vec, index)) {
+		return 1;
 	}
-	
-	return 1; /* no user continue silently */
+	else {
+		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
+		return 0;
+	}
+}
+
+/* matrix callbacks */
+int _Matrix_ReadCallback(MatrixObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->get(self->cb_user, self->cb_subtype, self->contigPtr)) {
+		return 1;
+	}
+	else {
+		PyErr_SetString(PyExc_SystemError, "Matrix user has become invalid");
+		return 0;
+	}
+}
+
+int _Matrix_WriteCallback(MatrixObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->set(self->cb_user, self->cb_subtype, self->contigPtr)) {
+		return 1;
+	}
+	else {
+		PyErr_SetString(PyExc_SystemError, "Matrix user has become invalid");
+		return 0;
+	}
 }

@@ -80,7 +80,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Geometry_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"Geometry",  /* m_name */
 	M_Geometry_doc,  /* m_doc */
 	0,  /* m_size */

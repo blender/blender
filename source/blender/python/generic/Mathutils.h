@@ -67,17 +67,30 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 typedef struct Mathutils_Callback Mathutils_Callback;
 struct Mathutils_Callback {
 	int		(*check)(PyObject *user);					/* checks the user is still valid */
-	int		(*get)(PyObject *user, int subtype, float *vec_from);	/* gets the vector from the user */
-	int		(*set)(PyObject *user, int subtype, float *vec_to);	/* sets the users vector values once the vector is modified */
-	int		(*get_index)(PyObject *user, int subtype, float *vec_from,	int index);	/* same as above but only for an index */
-	int		(*set_index)(PyObject *user, int subtype, float *vec_to,	int index);	/* same as above but only for an index */
+	int		(*get)(PyObject *user, int subtype, float *from);	/* gets the vector from the user */
+	int		(*set)(PyObject *user, int subtype, float *to);	/* sets the users vector values once the vector is modified */
+	int		(*get_index)(PyObject *user, int subtype, float *from,int index);	/* same as above but only for an index */
+	int		(*set_index)(PyObject *user, int subtype, float *to,	int index);	/* same as above but only for an index */
 };
 
 int Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
-int Vector_ReadCallback(VectorObject *self);
-int Vector_WriteCallback(VectorObject *self);
-int Vector_ReadIndexCallback(VectorObject *self, int index);
-int Vector_WriteIndexCallback(VectorObject *self, int index);
+int _Vector_ReadCallback(VectorObject *self);
+int _Vector_WriteCallback(VectorObject *self);
+int _Vector_ReadIndexCallback(VectorObject *self, int index);
+int _Vector_WriteIndexCallback(VectorObject *self, int index);
+
+/* since this is called so often avoid where possible */
+#define Vector_ReadCallback(_self) (((_self)->cb_user ?	_Vector_ReadCallback(_self):1))
+#define Vector_WriteCallback(_self) (((_self)->cb_user ?_Vector_WriteCallback(_self):1))
+#define Vector_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_ReadIndexCallback(_self, _index):1))
+#define Vector_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_WriteIndexCallback(_self, _index):1))
+
+
+int _Matrix_ReadCallback(MatrixObject *self);
+int _Matrix_WriteCallback(MatrixObject *self);
+
+#define Matrix_ReadCallback(_self) (((_self)->cb_user  ?_Matrix_ReadCallback(_self):1))
+#define Matrix_WriteCallback(_self) (((_self)->cb_user ?_Matrix_WriteCallback(_self):1))
 
 #endif				/* EXPP_Mathutils_H */

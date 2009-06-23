@@ -72,8 +72,8 @@ static struct PyMethodDef Vector_methods[] = {
 	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, Vector_Normalize_doc},
 	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, Vector_Negate_doc},
 	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, Vector_Resize2D_doc},
-	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
-	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
+	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize3D_doc},
+	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize4D_doc},
 	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
 	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, Vector_Reflect_doc},
 	{"cross", ( PyCFunction ) Vector_Cross, METH_O, Vector_Dot_doc},
@@ -180,7 +180,7 @@ static PyObject *Vector_Resize2D(VectorObject * self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize wrapped data - only python vectors\n");
 		return NULL;
 	}
-	if(self->user) {
+	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -203,7 +203,7 @@ static PyObject *Vector_Resize3D(VectorObject * self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize wrapped data - only python vectors\n");
 		return NULL;
 	}
-	if(self->user) {
+	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -229,7 +229,7 @@ static PyObject *Vector_Resize4D(VectorObject * self)
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
-	if(self->user) {
+	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -478,10 +478,10 @@ static PyObject *Vector_copy(VectorObject * self)
 static void Vector_dealloc(VectorObject * self)
 {
 	/* only free non wrapped */
-	if(self->wrapped != Py_WRAP){
+	if(self->wrapped != Py_WRAP)
 		PyMem_Free(self->vec);
-	}
-	Py_XDECREF(self->user);
+	
+	Py_XDECREF(self->cb_user);
 	PyObject_DEL(self);
 }
 
@@ -844,6 +844,9 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		float vecCopy[4];
 		int x,y, size = vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
+		
+		if(!Vector_ReadCallback(mat))
+			return NULL;
 		
 		if(mat->colSize != size){
 			if(mat->rowSize == 4 && vec->size != 3){
@@ -1215,12 +1218,12 @@ static PyObject *Vector_getWrapped( VectorObject * self, void *type )
 
 static PyObject *Vector_getOwner( VectorObject * self, void *type )
 {
-	if(self->user==NULL) {
+	if(self->cb_user==NULL) {
 		Py_RETURN_NONE;
 	}
 	else {
-		Py_INCREF(self->user);
-		return self->user;
+		Py_INCREF(self->cb_user);
+		return self->cb_user;
 	}
 }
 
@@ -1886,6 +1889,10 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	if(size > 4 || size < 2)
 		return NULL;
 	self->size = size;
+	
+	/* init callbacks as NULL */
+	self->cb_user= NULL;
+	self->cb_type= self->cb_subtype= 0;
 
 	if(type == Py_WRAP) {
 		self->vec = vec;
@@ -1910,15 +1917,15 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	return (PyObject *) self;
 }
 
-PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype)
+PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
 {
-	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* the same vector is used because its set each time by the user callback, saves a little ram */
+	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
 	VectorObject *self= newVectorObject(dummy, size, Py_NEW);
 	if(self) {
-		Py_INCREF(user);
-		self->user= user;
-		self->callback_type =	(unsigned char)callback_type;
-		self->subtype =			(unsigned char)subtype;
+		Py_INCREF(cb_user);
+		self->cb_user=			cb_user;
+		self->cb_type=			(unsigned char)cb_type;
+		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 	
 	return self;
@@ -1945,7 +1952,7 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 		}
 	}
 	
-	if(!Vector_ReadCallback(vec))
+	if(!Vector_ReadCallback(vec) || !Matrix_ReadCallback(mat))
 		return NULL;
 	
 	for(x = 0; x < vec_size; x++){
