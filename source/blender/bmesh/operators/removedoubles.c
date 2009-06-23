@@ -157,7 +157,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 static int vergaverco(const void *e1, const void *e2)
 {
-	const BMVert *v1 = e1, *v2 = e2;
+	const BMVert *v1 = *(void**)e1, *v2 = *(void**)e2;
 	float x1 = v1->co[0] + v1->co[1] + v1->co[2];
 	float x2 = v2->co[0] + v2->co[1] + v2->co[2];
 
@@ -204,6 +204,9 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 			float vec[3];
 			
 			v2 = verts[j];
+			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
+			     > distsqr) break;
+
 			vec[0] = v->co[0] - v2->co[0];
 			vec[1] = v->co[1] - v2->co[1];
 			vec[2] = v->co[2] - v2->co[2];
