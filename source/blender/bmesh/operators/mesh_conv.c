@@ -66,9 +66,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		v->bweight = (float)mvert->bweight / 255.0f;
 
 		/*Copy Custom Data*/
-		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->data);
+		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
 
-		v->head.flag = MEFlags_To_BMFlags(mvert, BM_VERT);
+		v->head.flag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
 	}
 
 	if (!me->totedge) return;
@@ -81,12 +81,12 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		et[i] = e;
 		
 		/*Copy Custom Data*/
-		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->data);
+		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
 		
 		e->crease = (float)medge->crease / 255.0f;
 		e->bweight = (float)medge->bweight / 255.0f;
 
-		e->head.flag = MEFlags_To_BMFlags(medge, BM_EDGE);
+		e->head.flag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
 	}
 	
 	if (!me->totpoly) return;
@@ -117,11 +117,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
 		
-		f->head.flag = MEFlags_To_BMFlags(mpoly, BM_FACE);
+		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
 		if (i == me->act_face) bm->act_face = f;
 
 		/*Copy Custom Data*/
-		CustomData_to_bmesh_block(&me->fdata, &bm->pdata, i, &f->data);
+		CustomData_to_bmesh_block(&me->fdata, &bm->pdata, i, &f->head.data);
 	}
 }
 

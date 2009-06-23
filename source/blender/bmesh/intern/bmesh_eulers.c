@@ -203,7 +203,8 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 	if(len < 2) goto error;
 	
 	/*make sure that v1 and v2 are in elist[0]*/
-	if(bmesh_verts_in_edge(v1,v2,elist[0]) == 0) goto error;
+	if(bmesh_verts_in_edge(v1,v2,elist[0]) == 0) 
+		goto error;
 	
 	/*clear euler flags*/
 	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;

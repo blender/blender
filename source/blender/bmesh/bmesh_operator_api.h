@@ -55,7 +55,10 @@ struct GHashIterator;
 
   dynamically allocated arrays.  we
   leave a space in the identifiers
-  for future growth.*/
+  for future growth.
+
+  */
+//it's very important this remain a power of two
 #define BMOP_OPSLOT_ELEMENT_BUF		8
 #define BMOP_OPSLOT_MAPPING		9
 #define BMOP_OPSLOT_TYPES		10
@@ -159,7 +162,10 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 	  so e.g. %hf will do faces, %hfe will do faces and edges,
 	  %hv will do verts, etc.  must pass in at least one
 	  element type letter.
-     %f[f/e/v] - same as %h.
+     %f[f/e/v] - same as %h, except it deals with tool flags instead of
+                  header flags.
+     %a[f/e/v] - pass all elements (of types specified by f/e/v) to the
+                 slot.
      %v - pointer to a float vector of length 3.
      %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
                corrusponding argument must be a pointer to
@@ -262,9 +268,9 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
   do NOT use these for non-operator-api-allocated memory! instead
   use BMO_Get_MapData and BMO_Insert_Mapping, which copies the data.*/
 void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
-			void *element, void *val);
+			void *key, void *val);
 void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
-		       void *element);
+		       void *key);
 
 
 /*this part of the API is used to iterate over element buffer or
@@ -275,7 +281,7 @@ void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 	  BMOIter oiter;
 	  BMFace *f;
 
-	  f = BMO_IterNew(&oiter, bm, some_operator, "slotname");
+	  f = BMO_IterNew(&oiter, bm, some_operator, "slotname", BM_FACE);
 	  for (; f; f=BMO_IterStep(&oiter)) {
 		/do something with the face
 	  }
@@ -285,7 +291,7 @@ void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 	  void *key;
 	  void *val;
 
-	  key = BMO_IterNew(&oiter, bm, some_operator, "slotname");
+	  key = BMO_IterNew(&oiter, bm, some_operator, "slotname", 0);
 	  for (; key; key=BMO_IterStep(&oiter)) {
 		val = BMO_IterMapVal(&oiter);
 		//do something with the key/val pair
@@ -306,18 +312,22 @@ typedef struct BMOIter {
 	int cur; //for arrays
 	struct GHashIterator giter;
 	void *val;
+	int restrict;
 } BMOIter;
 
+/*restrictmask restricts the iteration to certain element types
+  (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
+  over an element buffer (not a mapping).*/
 void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
-		  char *slotname);
+		  char *slotname, int restrictmask);
 void *BMO_IterStep(BMOIter *iter);
 
 /*returns a pointer to the key value when iterating over mappings.
   remember for pointer maps this will be a pointer to a pointer.*/
 void *BMO_IterMapVal(BMOIter *iter);
 
-#define BMO_ITER(ele, iter, bm, op, slotname) \
-	ele = BMO_IterNew(iter, bm, op, slotname); \
+#define BMO_ITER(ele, iter, bm, op, slotname, restrict) \
+	ele = BMO_IterNew(iter, bm, op, slotname, restrict); \
 	for ( ; ele; ele=BMO_IterStep(iter))
 
 #endif /* _BMESH_OPERATOR_H */

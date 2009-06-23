@@ -93,7 +93,7 @@ struct EditMesh;
 #define BM_EDGE 	2
 #define BM_FACE 	4
 #define BM_LOOP 	8
-#define BM_ALL		BM_VERT | BM_EDGE | BM_FACE | BM_LOOP
+#define BM_ALL		(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP)
 
 /*BMHeader->flag*/
 #define BM_SELECT	(1<<0)
@@ -114,11 +114,13 @@ typedef struct BMHeader {
 	  member is what "header flag" means.*/
 	int		flag;
 	int		type;
-	int			eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
+	int		eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
 	
 	//this can only be used to store a temporary index.  don't use it for anything else.
+	//use the BMINDEX_GET and BMINDEX_SET macros!!
 	int index;
 	struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
+	void *data; /*customdata*/
 } BMHeader;
 
 typedef struct BMFlagLayer {
@@ -173,7 +175,6 @@ typedef struct BMVert {
 	float co[3];									
 	float no[3];									
 	struct BMEdge *edge;
-	void *data;
 	void *tmp;													/*what?*/
 	float bweight;												/*please, someone just get rid of me...*/
 } BMVert;
@@ -183,7 +184,6 @@ typedef struct BMEdge {
 	struct BMVert *v1, *v2;
 	struct BMNode d1, d2;
 	struct BMLoop *loop;
-	void *data;
 	float crease, bweight; /*make these custom data.... no really, please....*/
 } BMEdge;
 
@@ -193,14 +193,12 @@ typedef struct BMLoop  {
 	struct BMVert *v;
 	struct BMEdge *e;
 	struct BMFace *f;	
-	void *data;
 } BMLoop;
 
 typedef struct BMFace {
 	struct BMHeader head;
 	struct BMLoop *loopbase;
 	int len;
-	void *data;
 	float no[3];
 
 	/*custom data again*/
@@ -334,7 +332,7 @@ int BMFlags_To_MEFlags(void *element);
   and represents the type of the element
   parameter (the three defines map to
   MVert, MEdge, and MPoly, respectively).*/
-int MEFlags_To_BMFlags(void *element, int type);
+int MEFlags_To_BMFlags(int flag, int type);
 
 /*convert MLoop*** in a bmface to mtface and mcol in
   an MFace*/

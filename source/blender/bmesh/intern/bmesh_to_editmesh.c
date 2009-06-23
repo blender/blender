@@ -48,7 +48,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
 		texface->tpage = texpoly->tpage;
 		texface->flag = texpoly->flag;
@@ -60,7 +60,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 		j = 0;
 		l = f->loopbase;
 		do {
-			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
 			j++;
@@ -74,7 +74,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 		j = 0;
 		l = f->loopbase;
 		do {
-			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
 			mcol[j].b = mloopcol->b;
@@ -99,7 +99,7 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	if (v->head.flag & BM_SELECT) eve->f |= SELECT;
 
 	eve->bweight = v->bweight;
-	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->data, &eve->data);
+	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->head.data, &eve->data);
 	/*copy normal*/
 	eve->no[0] = v->no[0];
 	eve->no[1] = v->no[1];
@@ -120,7 +120,7 @@ static void bmeshedge_to_editedge_internal(BMesh *bm, EditMesh *em, BMEdge *e, E
 	if (e->head.flag & BM_HIDDEN) eed->h = 1;
 	if (e->head.flag & BM_FGON) eed->h |= EM_FGON;
 
-	CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
+	CustomData_em_copy_data(&bm->edata, &em->edata, e->head.data, &eed->data);
 }
 
 static EditEdge *bmeshedge_to_editedge(BMesh *bm, EditMesh *em, BMEdge *e, EditVert **evlist)
@@ -178,7 +178,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	if (f->head.flag & BM_SMOOTH) efa->flag |= ME_SMOOTH;
 	if (f->head.flag & BM_ACTIVE) EM_set_actFace(em, efa);
 
-	CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
+	CustomData_em_copy_data(&bm->pdata, &em->fdata, f->head.data, &efa->data);
 	loops_to_editmesh_corners(bm, &em->fdata, efa->data, f, numCol,numTex);
 	
 	return efa;

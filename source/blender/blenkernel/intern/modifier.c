@@ -24,7 +24,8 @@
 *                 Ton Roosendaal,
 *                 Ben Batt,
 *                 Brecht Van Lommel,
-*                 Campbell Barton
+*                 Campbell Barton,
+*                 Joseph Eagar
 *
 * ***** END GPL LICENSE BLOCK *****
 *
@@ -1094,6 +1095,7 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 	}
 }
 
+#if 0
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
        int initFlags)
@@ -1658,6 +1660,14 @@ static DerivedMesh *arrayModifier_applyModifierEM(
 {
 	return arrayModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
+#endif
+
+DerivedMesh *arrayModifier_applyModifier(ModifierData *md, Object *ob, 
+					 DerivedMesh *derivedData,
+                                         int useRenderParams, int isFinalCalc);
+DerivedMesh *arrayModifier_applyModifierEM(ModifierData *md, Object *ob,
+                                           BMEditMesh *editData, 
+                                           DerivedMesh *derivedData);
 
 /* Mirror */
 

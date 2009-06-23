@@ -69,7 +69,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	int totv=0, tote=0, totf=0, amount;
 
 	/*count number of each element type we were passed*/
-	BMO_ITER(h, &oiter, bm, op, "geom") {
+	BMO_ITER(h, &oiter, bm, op, "geom", BM_VERT|BM_EDGE|BM_FACE) {
 		switch (h->type) {
 			case BM_VERT: totv++; break;
 			case BM_EDGE: tote++; break;
@@ -82,7 +82,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/*first call dissolve faces*/
 	BMO_InitOpf(bm, &op2, "dissolvefaces faces=%ff", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
-	BMO_ITER(f, &oiter, bm, &op2, "regionout") {
+	BMO_ITER(f, &oiter, bm, &op2, "regionout", BM_FACE) {
 		BMO_SetFlag(bm, f, ELE_OUT);
 
 		/*unflag verts associated with dissolved faces*/
@@ -95,7 +95,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/*then call edgenet create, which may still be unimplemented, heh*/
 	BMO_InitOpf(bm, &op2, "edgenet_fill edges=%fe", ELE_NEW);
 	BMO_Exec_Op(bm, &op2);
-	BMO_ITER(f, &oiter, bm, &op2, "faceout") {
+	BMO_ITER(f, &oiter, bm, &op2, "faceout", BM_FACE) {
 		BMO_SetFlag(bm, f, ELE_OUT);
 
 		/*unflag verts associated with the output faces*/

@@ -456,14 +456,14 @@ short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float
 	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", flag);
 
 	/*deselect original verts*/
-	v = BMO_IterNew(&siter, em->bm, &bmop, "verts");
+	v = BMO_IterNew(&siter, em->bm, &bmop, "verts", BM_VERT);
 	for (; v; v=BMO_IterStep(&siter)) {
 		BM_Select(em->bm, v, 0);
 	}
 
 	BMO_Exec_Op(em->bm, &bmop);
 
-	v = BMO_IterNew(&siter, em->bm, &bmop, "vertout");
+	v = BMO_IterNew(&siter, em->bm, &bmop, "vertout", BM_VERT);
 	for (; v; v=BMO_IterStep(&siter)) {
 		BM_Select(em->bm, v, 1);
 	}
@@ -555,7 +555,7 @@ short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
 
 	nor[0] = nor[1] = nor[2] = 0.0f;
 	
-	BMO_ITER(el, &siter, bm, &extop, "geomout") {
+	BMO_ITER(el, &siter, bm, &extop, "geomout", BM_ALL) {
 		BM_Select(bm, el, 1);
 
 		if (el->type == BM_FACE) {
@@ -925,7 +925,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_InitOpf(vc.em, &bmop, op, "makevert co=%v", min);
 		BMO_Exec_Op(vc.em->bm, &bmop);
 
-		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout") {
+		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
 			BM_Select(vc.em->bm, v1, 1);
 		}
 
@@ -966,6 +966,11 @@ static int delete_mesh(Object *obedit, wmOperator *op, int event, Scene *scene)
 		if (!EDBM_CallOpf(bem, op, "del geom=%hv context=%i", BM_SELECT, DEL_VERTS))
 			return OPERATOR_CANCELLED;
 	} 
+	else if(event==11) {
+		//"Edge Loop"
+		if (!EDBM_CallOpf(bem, op, "dissolveedgeloop edges=%he", BM_SELECT))
+			return OPERATOR_CANCELLED;
+	}
 	else if(event==7) {
 		//"Dissolve"
 		if (bem->selectmode & SCE_SELECT_FACE) {
@@ -1011,6 +1016,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{10,"VERT",		"Vertices", ""},
 	{1, "EDGE",		"Edges", ""},
 	{2, "FACE",		"Faces", ""},
+	{11, "EDGE_LOOP", "Edge Loop", ""},
 	{4, "EDGE_FACE","Edges & Faces", ""},
 	{5, "ONLY_FACE","Only Faces", ""},
 	{0, NULL, NULL, NULL}
@@ -1125,7 +1131,7 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 	ot->idname= "MESH_OT_selection_type";
 	
 	/* api callbacks */
-	ot->invoke= NULL;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= mesh_selection_type_exec;
 	
 	ot->poll= ED_operator_editmesh;

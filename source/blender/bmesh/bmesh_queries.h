@@ -6,18 +6,15 @@
 /*counts number of elements of type type are in the mesh.*/
 int BM_Count_Element(struct BMesh *bm, int type);
 
-/*returns true if v is in e.*/
-int BM_Vert_In_Edge(struct BMEdge *e, struct BMVert *v);
-
 /*returns true if v is in f*/
 int BM_Vert_In_Face(struct BMFace *f, struct BMVert *v);
 
 // int BM_VERTS_OF_MESH_In_Face(struct BMFace *f, struct BMVert **varr, int len);
-int BM_VERTS_OF_MESH_In_Face(struct BMesh *bm, struct BMFace *f, struct BMVert **varr, int len);
+int BM_Verts_In_Face(struct BMesh *bm, struct BMFace *f, struct BMVert **varr, int len);
 
 int BM_Edge_In_Face(struct BMFace *f, struct BMEdge *e);
 
-int BM_VERTS_OF_MESH_In_Edge(struct BMVert *v1, struct BMVert *v2, BMEdge *e);
+int BM_Vert_In_Edge(struct BMVert *v1, struct BMVert *v2, BMEdge *e);
 
 
 /*get opposing vert from v in edge e.*/

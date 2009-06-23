@@ -316,9 +316,9 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 				tvloop = l;
 				kvloop = ((BMLoop*)(l->head.next));
 
-				src[0] = kvloop->data;
-				src[1] = tvloop->data;
-				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->data);
+				src[0] = kvloop->head.data;
+				src[1] = tvloop->head.data;
+				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->head.data);
 			}
 			l=l->radial.next->data;
 		}while(l!=ke->loop);

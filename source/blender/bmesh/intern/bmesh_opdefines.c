@@ -3,6 +3,28 @@
 
 #include <stdio.h>
 
+/*do not rename any operator or slot names! otherwise you must go 
+  through the code and find all references to them!*/
+
+BMOpDefine def_removedoubles = {
+	"removedoubles",
+	/*maps welded vertices to verts they should weld to.*/
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	 {BMOP_OPSLOT_FLT,         "dist"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_removedoubles_exec,
+	0,
+};
+
+BMOpDefine def_weldverts = {
+	"weldverts",
+	/*maps welded vertices to verts they should weld to.*/
+	{{BMOP_OPSLOT_MAPPING, "targetmap"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_weldverts_exec,
+	0,
+};
+
 BMOpDefine def_makevert = {
 	"makevert",
 	{{BMOP_OPSLOT_VEC, "co"},
@@ -157,6 +179,15 @@ BMOpDefine def_dissolveedgessop = {
 	0
 };
 
+BMOpDefine def_dissolveedgeloopsop = {
+	"dissolveedgeloop",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	{0} /*null-terminating sentinel*/},
+	dissolve_edgeloop_exec,
+	0
+};
+
 BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
@@ -256,6 +287,7 @@ BMOpDefine *opdefines[] = {
 	&def_triangop,
 	&def_dissolvefacesop,
 	&def_dissolveedgessop,
+	&def_dissolveedgeloopsop,
 	&def_dissolvevertsop,
 	&def_makefgonsop,
 	&def_extrudefaceregion,
@@ -270,6 +302,8 @@ BMOpDefine *opdefines[] = {
 	&def_edgenet_fill,
 	&def_contextual_create,
 	&def_makevert,
+	&def_weldverts,
+	&def_removedoubles,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

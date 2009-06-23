@@ -1228,7 +1228,7 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 
 	BMO_Exec_Op(bm, &extop);
 
-	el =  BMO_IterNew(&siter, bm, &extop, "geomout");
+	el =  BMO_IterNew(&siter, bm, &extop, "geomout", BM_ALL);
 	for (; el; el=BMO_IterStep(&siter)) {
 		BM_Select(bm, el, 1);
 	}

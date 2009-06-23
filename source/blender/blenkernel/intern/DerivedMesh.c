@@ -163,6 +163,31 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 	return tmp;
 }
 
+CustomData *dm_getVertCData(DerivedMesh *dm)
+{
+	return &dm->vertData;
+}
+
+CustomData *dm_getEdgeCData(DerivedMesh *dm)
+{
+	return &dm->edgeData;
+}
+
+CustomData *dm_getFaceCData(DerivedMesh *dm)
+{
+	return &dm->faceData;
+}
+
+CustomData *dm_getLoopCData(DerivedMesh *dm)
+{
+	return &dm->loopData;
+}
+
+CustomData *dm_getPolyCData(DerivedMesh *dm)
+{
+	return &dm->polyData;
+}
+
 void DM_init_funcs(DerivedMesh *dm)
 {
 	/* default function implementations */
@@ -172,6 +197,12 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->dupVertArray = dm_dupVertArray;
 	dm->dupEdgeArray = dm_dupEdgeArray;
 	dm->dupTessFaceArray = dm_dupFaceArray;
+
+	dm->getVertDataLayout = dm_getVertCData;
+	dm->getEdgeDataLayout = dm_getEdgeCData;
+	dm->getTessFaceDataLayout = dm_getFaceCData;
+	dm->getLoopDataLayout = dm_getLoopCData;
+	dm->getFaceDataLayout = dm_getPolyCData;
 
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;

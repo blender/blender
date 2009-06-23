@@ -1089,7 +1089,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
 		texface->tpage = texpoly->tpage;
 		texface->flag = texpoly->flag;
@@ -1100,7 +1100,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	
 		for (j=0; j<3; i++) {
 			l = l3[j];
-			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
 		}
@@ -1111,7 +1111,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		
 		for (j=0; j<3; j++) {
 			l = l3[j];
-			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
 			mcol[j].b = mloopcol->b;
@@ -1137,14 +1137,17 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	MPoly *mpoly = cddm->mpoly;
 	int numCol = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
-	int i, j, *index;
+	int i, j, *index, add_orig;
 
 	dm->deformedOnly = 1;
+	
+	/*don't add origindex layer if one already exists*/
+	add_orig = !CustomData_has_layer(&em->bm->pdata, CD_ORIGINDEX);
 
 	CustomData_merge(&em->bm->vdata, &dm->vertData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numVertData);
-	/* CustomData_merge(&em->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
-	                 CD_CALLOC, dm->numEdgeData); */
+	CustomData_merge(&em->bm->edata, &dm->edgeData, CD_MASK_DERIVEDMESH,
+	                 CD_CALLOC, dm->numEdgeData);
 	CustomData_merge(&em->bm->pdata, &dm->faceData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numFaceData);
 	CustomData_merge(&em->bm->ldata, &dm->loopData, CD_MASK_DERIVEDMESH,
@@ -1174,6 +1177,8 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 
 		VECCOPY(mv->co, eve->co);
 
+		BMINDEX_SET(eve, i);
+
 		mv->no[0] = eve->no[0] * 32767.0;
 		mv->no[1] = eve->no[1] * 32767.0;
 		mv->no[2] = eve->no[2] * 32767.0;
@@ -1182,15 +1187,17 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		mv->mat_nr = 0;
 		mv->flag = BMFlags_To_MEFlags(eve);
 
-		*index = i;
+		if (add_orig) *index = i;
 
-		CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->data, i);
+		CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->head.data, i);
 	}
 
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 	for (i=0; eed; eed=BMIter_Step(&iter), i++, index++) {
 		MEdge *med = &medge[i];
+
+		BMINDEX_SET(eed, i);
 
 		med->v1 = BMINDEX_GET(eed->v1);
 		med->v2 = BMINDEX_GET(eed->v2);
@@ -1200,9 +1207,8 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		
 		med->flag = BMFlags_To_MEFlags(eed);
 
-		*index = i;
-
-		/* CustomData_from_em_block(&em->edata, &dm->edgeData, eed->data, i); */
+		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
+		if (add_orig) *index = i;
 	}
 
 	efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
@@ -1222,15 +1228,14 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		mf->v4 = 0;
 		mf->mat_nr = efa->mat_nr;
 		mf->flag = BMFlags_To_MEFlags(efa);
-
-		*index = BMINDEX_GET(efa);
+		
+		*index = add_orig ? BMINDEX_GET(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
 
 		loops_to_customdata_corners(bm, &dm->faceData, i, l, numCol, numTex);
-
 		test_index_face(mf, &dm->faceData, i, 3);
 	}
 	
-	index = CustomData_get(&dm->polyData, 0, CD_ORIGINDEX);
+	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
 	j = 0;
 	efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for (i=0; efa; i++, efa=BMIter_Step(&iter), index++) {
@@ -1245,13 +1250,15 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 			mloop->v = BMINDEX_GET(l->v);
 			mloop->e = BMINDEX_GET(l->e);
-			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->data, j);
+			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);
 
 			j++;
 			mloop++;
 		}
 
-		*index = i;
+		CustomData_from_bmesh_block(&bm->pdata, &dm->polyData, efa->head.data, i);
+
+		if (add_orig) *index = i;
 	}
 
 	return dm;
@@ -1357,8 +1364,6 @@ void cddm_loopiter_step(void *self)
 	liter->head.eindex = ml->e;
 	liter->head.v = liter->cddm->mvert[ml->v];
 	liter->head.vindex = ml->v;
-
-	return;
 }
 
 DMFaceIter *cdDM_newFaceIter(DerivedMesh *source)

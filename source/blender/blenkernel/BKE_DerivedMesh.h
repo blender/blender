@@ -175,6 +175,19 @@ struct DerivedMesh {
 	void *(*getVertDataArray)(DerivedMesh *dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getTessFaceDataArray)(DerivedMesh *dm, int type);
+	
+	/*retrieves the base CustomData structures for 
+	  verts/edges/tessfaces/loops/facdes*/
+	CustomData *(*getVertDataLayout)(DerivedMesh *dm);
+	CustomData *(*getEdgeDataLayout)(DerivedMesh *dm);
+	CustomData *(*getTessFaceDataLayout)(DerivedMesh *dm);
+	CustomData *(*getLoopDataLayout)(DerivedMesh *dm);
+	CustomData *(*getFaceDataLayout)(DerivedMesh *dm);
+	
+	/*copies all customdata for an element source into dst at index dest*/
+	void (*copyFromVertCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
+	void (*copyFromEdgeCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
+	void (*copyFromFaceCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
 
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new

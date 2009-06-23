@@ -132,11 +132,11 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BMIter faces;
 	BMIter loops;
 	
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts)) CustomData_bmesh_free_block( &(bm->vdata), &(v->data) );
-	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e = BMIter_Step(&edges)) CustomData_bmesh_free_block( &(bm->edata), &(e->data) );
+	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v = BMIter_Step(&verts)) CustomData_bmesh_free_block( &(bm->vdata), &(v->head.data) );
+	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e = BMIter_Step(&edges)) CustomData_bmesh_free_block( &(bm->edata), &(e->head.data) );
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f = BMIter_Step(&faces)){
-		CustomData_bmesh_free_block( &(bm->pdata), &(f->data) );
-		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) CustomData_bmesh_free_block( &(bm->ldata), &(l->data) );
+		CustomData_bmesh_free_block( &(bm->pdata), &(f->head.data) );
+		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) CustomData_bmesh_free_block( &(bm->ldata), &(l->head.data) );
 	}
 
 	/*Free custom data pools, This should probably go in CustomData_free?*/

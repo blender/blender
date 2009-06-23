@@ -59,6 +59,7 @@
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
+#include "BLI_ghash.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -119,7 +120,7 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 	return tm2;
 }
 
-void BMEdit_RecalcTesselation(BMEditMesh *tm)
+static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 {
 	BMesh *bm = tm->bm;
 	BMLoop **looptris = NULL;
@@ -208,6 +209,21 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 	tm->looptris = looptris;
 }
 
+void BMEdit_RecalcTesselation(BMEditMesh *tm)
+{
+	BMEdit_RecalcTesselation_intern(tm);
+
+	if (tm->derivedFinal && tm->derivedFinal == tm->derivedCage) {
+		if (tm->derivedFinal->recalcTesselation) 
+			tm->derivedFinal->recalcTesselation(tm->derivedFinal);
+	} else if (tm->derivedFinal) {
+		if (tm->derivedCage->recalcTesselation) 
+			tm->derivedCage->recalcTesselation(tm->derivedCage);
+		if (tm->derivedFinal->recalcTesselation) 
+			tm->derivedFinal->recalcTesselation(tm->derivedFinal);
+	}
+}
+
 /*does not free the BMEditMesh struct itself*/
 void BMEdit_Free(BMEditMesh *em)
 {
@@ -259,8 +275,74 @@ typedef struct EditDerivedBMesh {
 	float (*vertexCos)[3];
 	float (*vertexNos)[3];
 	float (*faceNos)[3];
+
+	/*lookup caches; these are rebuilt on dm->RecalcTesselation()
+	  (or when the derivedmesh is created, of course)*/
+	GHash *vhash, *ehash, *fhash;
+	BMVert **vtable;
+	BMEdge **etable;
+	BMFace **ftable;
+
+	/*private variables, for number of verts/edges/faces
+	  within the above hash/table members*/
+	int tv, te, tf;
 } EditDerivedBMesh;
 
+static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
+{
+	BMIter iter;
+	BMHeader *h;
+	int a, i, iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	
+	bmdm->tv = bmdm->tc->bm->totvert;
+	bmdm->te = bmdm->tc->bm->totedge;
+	bmdm->tf = bmdm->tc->bm->totface;
+
+	if (bmdm->vhash) BLI_ghash_free(bmdm->vhash, NULL, NULL);
+	if (bmdm->ehash) BLI_ghash_free(bmdm->ehash, NULL, NULL);
+	if (bmdm->fhash) BLI_ghash_free(bmdm->fhash, NULL, NULL);
+
+	bmdm->vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	bmdm->ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	bmdm->fhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	if (bmdm->vtable) MEM_freeN(bmdm->vtable);
+	if (bmdm->etable) MEM_freeN(bmdm->etable);
+	if (bmdm->ftable) MEM_freeN(bmdm->ftable);
+	
+	bmdm->vtable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totvert, "bmdm->vtable");
+	bmdm->etable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totedge, "bmdm->etable");
+	bmdm->ftable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totface, "bmdm->ftable");
+	
+	for (a=0; a<3; a++) {
+		h = BMIter_New(&iter, bmdm->tc->bm, iters[a], NULL);
+		for (i=0; h; h=BMIter_Step(&iter), i++) {
+			switch (a) {
+				case 0:
+					bmdm->vtable[i] = (BMVert*) h;
+					BLI_ghash_insert(bmdm->vhash, h, SET_INT_IN_POINTER(i));
+					break;
+				case 1:
+					bmdm->etable[i] = (BMEdge*) h;
+					BLI_ghash_insert(bmdm->ehash, h, SET_INT_IN_POINTER(i));
+					break;
+				case 2:
+					bmdm->ftable[i] = (BMFace*) h;
+					BLI_ghash_insert(bmdm->fhash, h, SET_INT_IN_POINTER(i));
+					break;
+
+			}
+		}
+	}
+}
+
+static void bmDM_recalcTesselation(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+
+	BMEdit_RecalcTesselation_intern(bmdm->tc);
+	bmdm_recalc_lookups(bmdm);
+}
 
 static void bmDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
 {
@@ -946,6 +1028,13 @@ static int bmDM_getNumTessFaces(DerivedMesh *dm)
 	return bmdm->tc->tottri;
 }
 
+static int bmDM_getNumFaces(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	
+	return bmdm->tc->bm->totface;
+}
+
 static int bmvert_to_mvert(BMVert *ev, MVert *vert_r)
 {
 	VECCOPY(vert_r->co, ev->co);
@@ -966,14 +1055,12 @@ static void bmDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	BMIter iter;
 	int i;
 
-	ev = BMIter_New(&iter, ((EditDerivedBMesh *)dm)->tc->bm, BM_VERTS_OF_MESH, NULL);
-	for(i = 0; i < index; ++i) ev = BMIter_Step(&iter);
-
-	if (!ev) {
+	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tv) {
 		printf("error in bmDM_getVert.\n");
 		return;
 	}
 
+	ev = ((EditDerivedBMesh *)dm)->vtable[index];
 	bmvert_to_mvert(ev, vert_r);
 }
 
@@ -986,8 +1073,12 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	BMIter iter;
 	int i;
 
-	e = BMIter_New(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-	for(i = 0; i < index; ++i) e = BMIter_Step(&iter);
+	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->te) {
+		printf("error in bmDM_getEdge.\n");
+		return;
+	}
+
+	e = bmdm->etable[index];
 
 	edge_r->crease = (unsigned char) (e->crease*255.0f);
 	edge_r->bweight = (unsigned char) (e->bweight*255.0f);
@@ -999,64 +1090,35 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
 #endif
 	
-	/*gah, stupid O(n^2) behaviour.  should cache this or something,
-	  I probably could put it in the TessCache structure. . .*/
-	v1 = e->v1;
-	v2 = e->v2;
-	ev = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for(i = 0; v1 || v2; i++, ev = BMIter_Step(&iter)) {
-		if(ev == v1) {
-			edge_r->v1 = i;
-			v1 = NULL;
-		}
-		if(ev == v2) {
-			edge_r->v2 = i;
-			v2 = NULL;
-		}
-	}
+	edge_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v1));
+	edge_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v2));
 }
 
-static void bmDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
+static void bmDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 {
-	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMesh *bm = bmdm->tc->bm;
 	BMFace *ef;
-	BMVert *ev, *v1, *v2, *v3;
 	BMIter iter;
 	BMLoop **l;
 	int i;
 	
+	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tf) {
+		printf("error in bmDM_getTessFace.\n");
+		return;
+	}
+
 	l = ((EditDerivedBMesh *)dm)->tc->looptris[index];
 
 	ef = l[0]->f;
 
 	face_r->mat_nr = (unsigned char) ef->mat_nr;
-	//need to convert flags here!
 	face_r->flag = BMFlags_To_MEFlags(ef);
 
-	/*while it's possible to store a cache to lookup these indices faster,
-	  that would require going over the code and ensuring the cache is
-	  always up to date.*/
-	v1 = l[0]->v;
-	v2 = l[1]->v;
-	v3 = l[2]->v;
+	face_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, l[0]->v));
+	face_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, l[1]->v));
+	face_r->v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, l[2]->v));
 	face_r->v4 = 0;
-
-	ev = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for(i = 0, ev; v1 || v2 || v3;
-	    i++, ev = BMIter_Step(&iter)) {
-		if(ev == v1) {
-			face_r->v1 = i;
-			v1 = NULL;
-		}
-		if(ev == v2) {
-			face_r->v2 = i;
-			v2 = NULL;
-		}
-		if(ev == v3) {
-			face_r->v3 = i;
-			v3 = NULL;
-		}
-	}
 
 	test_index_face(face_r, NULL, 0, 3);
 }
@@ -1175,9 +1237,9 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 			data = datalayer = DM_get_face_data_layer(dm, type);
 			for (i=0; i<bmdm->tc->tottri; i++, data+=size) {
 				efa = bmdm->tc->looptris[i][0]->f;
-				/*need to still add tface data, derived from the
-				  loops.*/
-				bmdata = CustomData_bmesh_get(&bm->pdata, efa->data, type);
+				/*BMESH_TODO: need to still add tface data,
+				  derived from the loops.*/
+				bmdata = CustomData_bmesh_get(&bm->pdata, efa->head.data, type);
 				memcpy(data, bmdata, size);
 			}
 		}
@@ -1225,8 +1287,8 @@ void *bmDM_getFaceCDData(void *self, int type, int layer)
 	bmDM_faceIter *iter = self;
 
 	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->pdata, iter->f->data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->pdata, iter->f->data, type, layer);
+		return CustomData_bmesh_get(&iter->bm->pdata, iter->f->head.data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->pdata, iter->f->head.data, type, layer);
 }
 
 void bmDM_loopIterStep(void *self)
@@ -1250,8 +1312,8 @@ void *bmDM_getLoopCDData(void *self, int type, int layer)
 	bmDM_loopIter *iter = self;
 
 	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->ldata, iter->l->data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->ldata, iter->l->data, type, layer);
+		return CustomData_bmesh_get(&iter->bm->ldata, iter->l->head.data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->ldata, iter->l->head.data, type, layer);
 }
 
 void *bmDM_getVertCDData(void *self, int type, int layer)
@@ -1259,8 +1321,8 @@ void *bmDM_getVertCDData(void *self, int type, int layer)
 	bmDM_loopIter *iter = self;
 
 	if (layer == -1) 
-		return CustomData_bmesh_get(&iter->bm->vdata, iter->l->v->data, type);
-	else return CustomData_bmesh_get_n(&iter->bm->vdata, iter->l->v->data, type, layer);
+		return CustomData_bmesh_get(&iter->bm->vdata, iter->l->v->head.data, type);
+	else return CustomData_bmesh_get_n(&iter->bm->vdata, iter->l->v->head.data, type, layer);
 }
 
 void bmDM_iterFree(void *self)
@@ -1281,15 +1343,15 @@ DMLoopIter *bmDM_newLoopsIter(void *faceiter)
 
 	iter->bm = fiter->bm;
 	iter->f = fiter->f;
-	iter->l = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
+	iter->nextl = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
 
 	iter->head.step = bmDM_loopIterStep;
 	iter->head.getLoopCDData = bmDM_getLoopCDData;
 	iter->head.getVertCDData = bmDM_getVertCDData;
 
-	bmvert_to_mvert(iter->l->v, &iter->head.v);
-	iter->head.vindex = BMINDEX_GET(iter->l->v);
-	iter->head.eindex = BMINDEX_GET(iter->l->e);
+	bmvert_to_mvert(iter->nextl->v, &iter->head.v);
+	iter->head.vindex = BMINDEX_GET(iter->nextl->v);
+	iter->head.eindex = BMINDEX_GET(iter->nextl->e);
 
 	return (DMLoopIter*) iter;
 }
@@ -1304,7 +1366,7 @@ static DMFaceIter *bmDM_getFaceIter(void *dm)
 	int i;
 
 	iter->bm = bmdm->tc->bm;
-	iter->f = BMIter_New(&iter->iter, iter->bm, BM_FACES_OF_MESH, NULL);
+	iter->f = iter->nextf = BMIter_New(&iter->iter, iter->bm, BM_FACES_OF_MESH, NULL);
 	
 	iter->head.step = bmDM_faceIterStep;
 	iter->head.free = bmDM_iterFree;
@@ -1361,16 +1423,18 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 	bmdm->dm.getNumVerts = bmDM_getNumVerts;
 	bmdm->dm.getNumEdges = bmDM_getNumEdges;
 	bmdm->dm.getNumTessFaces = bmDM_getNumTessFaces;
+	bmdm->dm.getNumFaces = bmDM_getNumFaces;
 
 	bmdm->dm.getVert = bmDM_getVert;
 	bmdm->dm.getEdge = bmDM_getEdge;
-	bmdm->dm.getTessFace = bmDM_getFace;
+	bmdm->dm.getTessFace = bmDM_getTessFace;
 	bmdm->dm.copyVertArray = bmDM_copyVertArray;
 	bmdm->dm.copyEdgeArray = bmDM_copyEdgeArray;
 	bmdm->dm.copyTessFaceArray = bmDM_copyFaceArray;
 	bmdm->dm.getTessFaceDataArray = bmDM_getFaceDataArray;
 
 	bmdm->dm.newFaceIter = bmDM_getFaceIter;
+	bmdm->dm.recalcTesselation = bmDM_recalcTesselation;
 
 	bmdm->dm.foreachMappedVert = bmDM_foreachMappedVert;
 	bmdm->dm.foreachMappedEdge = bmDM_foreachMappedEdge;
@@ -1400,7 +1464,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 		eve = BMIter_New(&iter, bmdm->tc->bm, BM_VERTS_OF_MESH, NULL);
 		for (i=0; eve; eve=BMIter_Step(&iter), i++)
 			DM_set_vert_data(&bmdm->dm, i, CD_MDEFORMVERT,
-			                 CustomData_bmesh_get(&bm->vdata, eve->data, CD_MDEFORMVERT));
+			                 CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT));
 	}
 
 	if(vertexCos) {
@@ -1440,6 +1504,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 			}
 		}
 	}
+
+	bmdm_recalc_lookups(bmdm);
 
 	return (DerivedMesh*) bmdm;
 }

@@ -93,7 +93,7 @@ BMVert *bmesh_addvertlist(BMesh *bm, BMVert *example){
 	v->co[0] = v->co[1] = v->co[2] = 0.0f;
 	v->no[0] = v->no[1] = v->no[2] = 0.0f;
 	v->edge = NULL;
-	v->data = NULL;
+	v->head.data = NULL;
 	v->bweight = 0.0f;
 	BLI_addtail(&(bm->verts), &(v->head));
 	bm->nextv++;
@@ -101,10 +101,10 @@ BMVert *bmesh_addvertlist(BMesh *bm, BMVert *example){
 
 	if(example){
 		VECCOPY(v->co,example->co);
-		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->head.data, &v->head.data);
 	}
 	else
-		CustomData_bmesh_set_default(&bm->vdata, &v->data);
+		CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 
 	/*allocate flags*/
 	v->head.flags = BLI_mempool_calloc(bm->flagpool);
@@ -124,16 +124,16 @@ BMEdge *bmesh_addedgelist(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example){
 	e->d1.data = e;
 	e->d2.data = e;
 	e->loop = NULL;
-	e->data = NULL;
+	e->head.data = NULL;
 	e->crease = e->bweight = 0.0f;
 	bm->nexte++;
 	bm->totedge++;
 	BLI_addtail(&(bm->edges), &(e->head));
 	
 	if(example)
-		CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+		CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->head.data, &e->head.data);
 	else
-		CustomData_bmesh_set_default(&bm->edata, &e->data);
+		CustomData_bmesh_set_default(&bm->edata, &e->head.data);
 
 	/*allocate flags*/
 	e->head.flags = BLI_mempool_calloc(bm->flagpool);
@@ -152,14 +152,14 @@ BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BMLoop *ex
 	l->v = v;
 	l->e = e;
 	l->f = f;
-	l->data = NULL;
+	l->head.data = NULL;
 	bm->nextl++;
 	bm->totloop++;
 	
 	if(example)
-		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
+		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
 	else
-		CustomData_bmesh_set_default(&bm->ldata, &l->data);
+		CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
 
 	return l;
 }
@@ -173,16 +173,16 @@ BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example){
 	f->head.type = BM_FACE;
 	f->loopbase = NULL;
 	f->len = 0;
-	f->data = NULL;
+	f->head.data = NULL;
 	f->mat_nr = 0;
 	BLI_addtail(&(bm->polys),&(f->head));
 	bm->nextp++;
 	bm->totface++;
 
 	if(example)
-		CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+		CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->head.data, &f->head.data);
 	else
-		CustomData_bmesh_set_default(&bm->pdata, &f->data);
+		CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
 
 	/*allocate flags*/
 	f->head.flags = BLI_mempool_calloc(bm->flagpool);
@@ -195,13 +195,13 @@ BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example){
 */
 void bmesh_free_vert(BMesh *bm, BMVert *v){
 	bm->totvert--;
-	CustomData_bmesh_free_block(&bm->vdata, &v->data);
+	CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 	BLI_mempool_free(bm->flagpool, v->head.flags);
 	BLI_mempool_free(bm->vpool, v);
 }
 void bmesh_free_edge(BMesh *bm, BMEdge *e){
 	bm->totedge--;
-	CustomData_bmesh_free_block(&bm->edata, &e->data);
+	CustomData_bmesh_free_block(&bm->edata, &e->head.data);
 	BLI_mempool_free(bm->flagpool, e->head.flags);
 	BLI_mempool_free(bm->epool, e);
 }
@@ -210,13 +210,13 @@ void bmesh_free_poly(BMesh *bm, BMFace *f){
 		bm->act_face = NULL;
 
 	bm->totface--;
-	CustomData_bmesh_free_block(&bm->pdata, &f->data);
+	CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
 	BLI_mempool_free(bm->flagpool, f->head.flags);
 	BLI_mempool_free(bm->ppool, f);
 }
 void bmesh_free_loop(BMesh *bm, BMLoop *l){
 	bm->totloop--;
-	CustomData_bmesh_free_block(&bm->ldata, &l->data);
+	CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
 	BLI_mempool_free(bm->lpool, l);
 }
 /**

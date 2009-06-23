@@ -190,7 +190,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 
 		/* check for defgroups */
 		if(evedef)
-			dvert= CustomData_bmesh_get(&em->bm->vdata, evedef->data, CD_MDEFORMVERT);
+			dvert= CustomData_bmesh_get(&em->bm->vdata, evedef->head.data, CD_MDEFORMVERT);
 		if(tot==1 && dvert && dvert->totweight) {
 			bDeformGroup *dg;
 			int i, max=1, init=1;

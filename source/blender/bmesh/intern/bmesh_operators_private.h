@@ -30,5 +30,8 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op);
 void bmesh_rotate_exec(BMesh *bm, BMOperator *op);
 void bmesh_makevert_exec(BMesh *bm, BMOperator *op);
 void dissolveedges_exec(BMesh *bm, BMOperator *op);
+void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op);
+void bmesh_weldverts_exec(BMesh *bm, BMOperator *op);
+void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op);
 
 #endif

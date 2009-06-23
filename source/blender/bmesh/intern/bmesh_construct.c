@@ -73,7 +73,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], BMVert *example)
 	BMVert *v = NULL;
 	v = bmesh_mv(bm, co);
 	if(example)
-		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->head.data, &v->head.data);
 	return v;
 }
 
@@ -103,7 +103,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 		e = bmesh_me(bm, v1, v2);
 
 		if(example)
-			CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+			CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->head.data, &e->head.data);
 	}
 	
 	return e;
@@ -202,7 +202,7 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 		else f = bmesh_mf(bm, verts[0], verts[1], edar, 3);
 	
 		if(example)
-			CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+			CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->head.data, &f->head.data);
 
 	}
 
@@ -248,8 +248,18 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	BMVert **verts = vert_buf, *lastv;
 	BMFace *f = NULL;
 	int overlap = 0, i, j;
+	
+	/*note: need to make sure this is correct*/
+	if(bmesh_verts_in_edge(v1,v2,edges[0]) == 0) {
+		if (v1 == edges[0]->v1)
+			v2 = edges[0]->v2;
+		else {
+			v1 = edges[0]->v2;
+			v2 = edges[0]->v1;
+		}
+	}
 
-	if(nodouble){
+	if(nodouble) {
 		if(len > VERT_BUF_SIZE)
 			verts = MEM_callocN(sizeof(BMVert *) * len, "bmesh make ngon vertex array");
 		
@@ -350,25 +360,25 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 
 static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, BMVert *source_vertex, BMVert *target_vertex)
 {
-	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->data, &target_vertex->data);	
+	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
 	target_vertex->bweight = source_vertex->bweight;
 }
 
 static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, BMEdge *source_edge, BMEdge *target_edge)
 {
-	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->data, &target_edge->data);
+	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->head.data, &target_edge->head.data);
 	target_edge->crease = source_edge->crease;
 	target_edge->bweight = source_edge->bweight;
 }
 
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, BMLoop *source_loop, BMLoop *target_loop)
 {
-	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->data, &target_loop->data);
+	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->head.data, &target_loop->head.data);
 }
 
 static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFace *source_face, BMFace *target_face)
 {
-	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->data, &target_face->data);	
+	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->head.data, &target_face->head.data);	
 	target_face->mat_nr = source_face->mat_nr;
 }
 
@@ -535,24 +545,21 @@ int BMFlags_To_MEFlags(void *element) {
   type must be either BM_VERT, BM_EDGE,
   or BM_FACE.
 */
-int MEFlags_To_BMFlags(void *element, int type) {
+int MEFlags_To_BMFlags(int flag, int type) {
 	int f = 0;
 
 	if (type == BM_FACE) {
-		MPoly *mp = element;
-		if (mp->flag & ME_FACE_SEL) f |= BM_SELECT;
-		if (mp->flag & ME_SMOOTH) f |= BM_SMOOTH;
-		if (mp->flag & ME_HIDE) f |= BM_HIDDEN;
+		if (flag & ME_FACE_SEL) f |= BM_SELECT;
+		if (flag & ME_SMOOTH) f |= BM_SMOOTH;
+		if (flag & ME_HIDE) f |= BM_HIDDEN;
 	} else if (type == BM_EDGE) {
-		MEdge *me = element;
-		if (me->flag & SELECT) f |= BM_SELECT;
-		if (me->flag & ME_SEAM) f |= BM_SEAM;
-		if (me->flag & ME_SHARP) f |= BM_SHARP;
-		if (me->flag & ME_HIDE) f |= BM_HIDDEN;
+		if (flag & SELECT) f |= BM_SELECT;
+		if (flag & ME_SEAM) f |= BM_SEAM;
+		if (flag & ME_SHARP) f |= BM_SHARP;
+		if (flag & ME_HIDE) f |= BM_HIDDEN;
 	} else if (type == BM_VERT) {
-		MVert *mv = element;
-		if (mv->flag & SELECT) f |= BM_SELECT;
-		if (mv->flag & ME_HIDE) f |= BM_HIDDEN;
+		if (flag & SELECT) f |= BM_SELECT;
+		if (flag & ME_HIDE) f |= BM_HIDDEN;
 	}
 
 	return f;

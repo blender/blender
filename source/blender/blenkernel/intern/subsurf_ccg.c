@@ -1472,9 +1472,9 @@ void ccgDM_loopIterStep(void *self)
 	}
 
 	liter->head.vindex = in;
+
 	/*we don't set .eindex*/
-	ccgDM_getFinalVert((DerivedMesh*)liter->ccgdm, in, &liter->head.v);
-	
+	ccgDM_getFinalVert((DerivedMesh*)liter->ccgdm, in, &liter->head.v);	
 }
 
 void *ccgDM_loopIterGetVCData(void *self, int type, int layer)
@@ -1482,8 +1482,8 @@ void *ccgDM_loopIterGetVCData(void *self, int type, int layer)
 	ccgDM_loopIter *liter = self;
 
 	if (layer == -1)
-		return CustomData_get(&liter->ccgdm->dm.vertData, liter->head.index, type);
-	else return CustomData_get_n(&liter->ccgdm->dm.vertData, type, liter->head.index, layer);
+		return CustomData_get(&liter->ccgdm->dm.vertData, liter->head.vindex, type);
+	else return CustomData_get_n(&liter->ccgdm->dm.vertData, type, liter->head.vindex, layer);
 }
 
 void *ccgDM_loopIterGetCData(void *self, int type, int layer)

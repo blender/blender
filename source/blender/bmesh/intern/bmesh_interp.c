@@ -60,12 +60,12 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 {
 	void *src[2];
 	float w[2];
-	if (v1->data && v2->data) {
-		src[0]= v1->data;
-		src[1]= v2->data;
+	if (v1->head.data && v2->head.data) {
+		src[0]= v1->head.data;
+		src[1]= v2->head.data;
 		w[0] = 1.0f-fac;
 		w[1] = fac;
-		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->data);
+		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
 	}
 }
 
@@ -101,10 +101,10 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 			
 		}
 
-		src[0] = v1loop->data;
-		src[1] = v2loop->data;					
+		src[0] = v1loop->head.data;
+		src[1] = v2loop->head.data;					
 
-		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->data); 				
+		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->head.data); 				
 		l = l->radial.next->data;
 	}while(l!=e1->loop);
 }
@@ -123,7 +123,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
 		texface->tpage = texpoly->tpage;
 		texface->flag = texpoly->flag;
@@ -134,7 +134,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
 
@@ -148,7 +148,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
 			mcol[j].b = mloopcol->b;

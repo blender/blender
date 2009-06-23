@@ -20,7 +20,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *dupev;
 	BMEdge *e;
 
-	v = BMO_IterNew(&siter, bm, op, "verts");
+	v = BMO_IterNew(&siter, bm, op, "verts", BM_VERT);
 	for (; v; v=BMO_IterStep(&siter)) {
 		dupev = BM_Make_Vert(bm, v->co, NULL);
 		VECCOPY(dupev->no, v->no);
@@ -118,7 +118,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BMO_CopySlot(&dupeop, op, "newout", "geomout");
-	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap");
+	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
 	for (; e; e=BMO_IterStep(&siter)) {
 		if (BMO_InMap(bm, op, "exclude", e)) continue;
 
@@ -178,7 +178,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*link isolated verts*/
-	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap");
+	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap", 0);
 	for (; v; v=BMO_IterStep(&siter)) {
 		v2 = *((void**)BMO_IterMapVal(&siter));
 		BM_Make_Edge(bm, v, v2, v->edge, 1);

@@ -51,7 +51,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
-		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
 		texpoly->tpage = texface->tpage;
 		texpoly->flag = texface->flag;
@@ -61,7 +61,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 		texpoly->unwrap = texface->unwrap;
 		
 		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); l; j++, l=BMIter_Step(&iter)) {
-			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 			mloopuv->uv[0] = texface->uv[j][0];
 			mloopuv->uv[1] = texface->uv[j][1];
 		}
@@ -70,7 +70,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 	for(i=0; i < numCol; i++){
 		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
 		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); l; j++, l=BMIter_Step(&iter)) {
-			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
 			mloopcol->r = mcol[j].r;
 			mloopcol->g = mcol[j].g;
 			mloopcol->b = mcol[j].b;
@@ -102,7 +102,7 @@ static BMVert *editvert_to_BMVert(BMesh *bm, BMOperator *op, EditMesh *em, EditV
 		BMO_Insert_MapPointer(bm, op, "map", eve, v);
 
 		/*Copy Custom Data*/
-		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v->data);
+		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v->head.data);
 		
 		return v;
 }	
@@ -126,7 +126,7 @@ static void editedge_to_BMEdge_internal(BMesh *bm, BMOperator *op, EditMesh *em,
 	e->head.flag |= eed->h & EM_FGON ? BM_FGON : 0;
 	e->head.flag |= eed->sharp ? BM_SHARP : 0;
 
-	CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
+	CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->head.data);
 
 	BMO_Insert_MapPointer(bm, op, "map", eed, e);
 }
@@ -203,7 +203,7 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 
 		if (efa == em->act_face) f->head.flag |= BM_ACTIVE;
 		
-		CustomData_bmesh_copy_data(&em->fdata, &bm->pdata, efa->data, &f->data);
+		CustomData_bmesh_copy_data(&em->fdata, &bm->pdata, efa->data, &f->head.data);
 		editmesh_corners_to_loops(bm, &em->fdata, efa->data, f,numCol,numTex);
 
 		return f;

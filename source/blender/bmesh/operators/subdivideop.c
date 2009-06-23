@@ -795,7 +795,7 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int selflag, float rad,
 		BMHeader *ele;
 		int i;
 		
-		ele = BMO_IterNew(&iter,bm,&op, "outinner");
+		ele = BMO_IterNew(&iter,bm,&op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
 		}

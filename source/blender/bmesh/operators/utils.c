@@ -48,7 +48,7 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op) {
 
 	BMO_Get_Mat4(op, "mat", mat);
 
-	BMO_ITER(v, &iter, bm, op, "verts") {
+	BMO_ITER(v, &iter, bm, op, "verts", BM_VERT) {
 		Mat4MulVecfl(mat, v->co);
 	}
 }

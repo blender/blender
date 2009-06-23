@@ -22,7 +22,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	V_DECLARE(projectverts);
 	int i, lastlen=0, count = 0;
 	
-	face = BMO_IterNew(&siter, bm, op, "faces");
+	face = BMO_IterNew(&siter, bm, op, "faces", BM_FACE);
 	for (; face; face=BMO_IterStep(&siter)) {
 		if (lastlen < face->len) {
 			V_RESET(projectverts);

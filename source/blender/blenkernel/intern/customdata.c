@@ -45,6 +45,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "bmesh.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -753,7 +755,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL;
-const CustomDataMask CD_MASK_BMESH = 
+const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
@@ -1860,6 +1862,54 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
 	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize);
+}
+
+void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
+                            int mask, int alloctype, BMesh *bm, int type)
+{
+	BMHeader *h;
+	BMIter iter;
+	CustomData destold = *dest;
+	void *tmp;
+	int i, t;
+	
+	CustomData_merge(source, dest, mask, alloctype, 0);
+	CustomData_bmesh_init_pool(dest, 512);
+
+	switch (type) {
+		case BM_VERT:
+			t = BM_VERTS_OF_MESH; break;
+		case BM_EDGE:
+			t = BM_EDGES_OF_MESH; break;
+		case BM_LOOP:
+			t = BM_LOOPS_OF_FACE; break;
+		case BM_FACE:
+			t = BM_FACES_OF_MESH; break;
+	}
+
+	if (t != BM_LOOPS_OF_FACE) {
+		/*ensure all current elements follow new customdata layout*/
+		BM_ITER(h, &iter, bm, t, NULL) {
+			CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
+			CustomData_bmesh_free_block(&destold, &h->data);
+			h->data = tmp;
+		}
+	} else {
+		BMFace *f;
+		BMLoop *l;
+		BMIter liter;
+
+		/*ensure all current elements follow new customdata layout*/
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+				CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
+				CustomData_bmesh_free_block(&destold, &h->data);
+				h->data = tmp;
+			}
+		}
+	}
+
+	if (destold.pool) BLI_mempool_destroy(destold.pool);
 }
 
 void CustomData_bmesh_free_block(CustomData *data, void **block)
