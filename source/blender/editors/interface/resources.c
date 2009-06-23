@@ -1,5 +1,5 @@
 /**
- * $Id: resources.c 12755 2007-12-02 05:50:38Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

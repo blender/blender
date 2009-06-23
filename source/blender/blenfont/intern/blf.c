@@ -500,3 +500,28 @@ void BLF_kerning(float space)
 	if (font)
 		font->kerning= space;
 }
+
+void BLF_shadow(int level, float r, float g, float b, float a)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->shadow= level;
+		font->shadow_col[0]= r;
+		font->shadow_col[1]= g;
+		font->shadow_col[2]= b;
+		font->shadow_col[3]= a;
+	}
+}
+
+void BLF_shadow_offset(int x, int y)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->shadow_x= x;
+		font->shadow_y= y;
+	}
+}

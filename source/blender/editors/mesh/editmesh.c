@@ -841,7 +841,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	
 	em= me->edit_mesh;
 	
-	em->selectmode= scene->selectmode; // warning needs to be synced
+	em->selectmode= scene->toolsettings->selectmode; // warning needs to be synced
 	em->act_face = NULL;
 	em->totvert= tot= me->totvert;
 	em->totedge= me->totedge;

@@ -1,9 +1,5 @@
-/**
- * radio_types.h    dec 2000 Nzc
- *
- * All type defs for the Blender core.
- *
- * $Id$ 
+/* 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2007 by Janne Karhu.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -29,34 +25,14 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
  */
 
-#ifndef DNA_RADIO_TYPES_H
-#define DNA_RADIO_TYPES_H
+#ifndef ED_PHYSICS_H
+#define ED_PHYSICS_H
 
-typedef struct Radio {
-	short hemires, maxiter;
-	short drawtype, flag;			/* bit 0 and 1: show limits */
-	short subshootp, subshoote, nodelim, maxsublamp;
-	short pama, pami, elma, elmi;	/* patch and elem limits */
-	int maxnode;
-	float convergence;
-	float radfac, gamma;		/* for display */
-	
-} Radio;
+/* operators */
+void ED_operatortypes_pointcache(void);
+//void ED_keymap_pointcache(struct wmWindowManager *wm);
 
-
-/* **************** RADIOSITY ********************* */
-
-/* draw type */
-#define RAD_WIREFRAME	0
-#define RAD_SOLID		1
-#define RAD_GOURAUD		2
-
-/* flag */
-#define RAD_SHOWLIMITS	1
-#define RAD_SHOWZ		2
-
-#endif
+#endif /* ED_PHYSICS_H */
 

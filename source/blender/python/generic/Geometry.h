@@ -1,5 +1,5 @@
 /* 
- * $Id: Geometry.h 20007 2009-04-30 12:45:13Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

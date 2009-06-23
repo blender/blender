@@ -503,7 +503,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
-	int event= RNA_enum_get(op->ptr, "nr");
+	int event= RNA_int_get(op->ptr, "nr");
 
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -557,7 +557,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
+	RNA_def_property(ot->srna, "nr", PROP_INT, PROP_UNSIGNED);
 }
 
 /* ********* main file *********** */

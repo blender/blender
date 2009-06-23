@@ -20,11 +20,6 @@ incs += ' #intern/SoundSystem #source/blender/misc #source/blender/blenloader'
 incs += ' #extern/glew/include #source/blender/gpu'
 incs += ' #source/blender/windowmanager'
 
-if env['WITH_BF_SOLID']:
-	incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/Fuzzics/include'
-	incs += ' ' + env['BF_SOLID_INC']
-	defs.append('USE_SUMO_SOLID')
-
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 

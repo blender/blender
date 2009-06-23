@@ -37,10 +37,10 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if ob and slot:
-			split.template_ID(context, slot, "material", new="MATERIAL_OT_new")
+			split.template_ID(slot, "material", new="MATERIAL_OT_new")
 			split.itemR(ob, "active_material_index", text="Active")
 		elif mat:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
 
 		if mat:

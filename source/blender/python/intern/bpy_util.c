@@ -171,7 +171,7 @@ void PyObSpit(char *name, PyObject *var) {
 	else {
 		PyObject_Print(var, stderr, 0);
 		fprintf(stderr, " ref:%d ", var->ob_refcnt);
-		fprintf(stderr, " ptr:%ld", (long)var);
+		fprintf(stderr, " ptr:%p", (void *)var);
 		
 		fprintf(stderr, " type:");
 		if(Py_TYPE(var))

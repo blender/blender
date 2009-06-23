@@ -46,6 +46,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+#include "BKE_pointcache.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,7 +62,6 @@
 #include "intern/openexr/openexr_multi.h"
 
 #include "RE_pipeline.h"
-#include "radio.h"
 
 /* internal */
 #include "render_types.h"
@@ -2413,6 +2413,20 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
+static void update_physics_cache(Render *re, Scene *scene)
+{
+	PTCacheBaker baker;
+
+	baker.scene = scene;
+	baker.pid = NULL;
+	baker.bake = 0;
+	baker.render = 1;
+	baker.break_test = re->test_break;
+	baker.break_data = re->tbh;
+	baker.progressbar = NULL;
+
+	BKE_ptcache_make_cache(&baker);
+}
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 {
@@ -2450,6 +2464,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
+
+	/* make sure dynamics are up to date */
+	update_physics_cache(re, scene);
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);

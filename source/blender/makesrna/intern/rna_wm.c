@@ -30,6 +30,120 @@
 #include "rna_internal.h"
 
 #include "DNA_windowmanager_types.h"
+#include "WM_types.h" /* wmEvent */
+
+
+EnumPropertyItem event_value_items[] = {
+	{KM_ANY, "ANY", 0, "Any", ""},
+	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
+	{KM_PRESS, "PRESS", 0, "Press", ""},
+	{KM_RELEASE, "RELEASE", 0, "Release", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+/* not returned: CAPSLOCKKEY, UNKNOWNKEY, COMMANDKEY, GRLESSKEY */
+EnumPropertyItem event_type_items[] = {
+	{AKEY, "A", 0, "A", ""},
+	{BKEY, "B", 0, "B", ""},
+	{CKEY, "C", 0, "C", ""},
+	{DKEY, "D", 0, "D", ""},
+	{EKEY, "E", 0, "E", ""},
+	{FKEY, "F", 0, "F", ""},
+	{GKEY, "G", 0, "G", ""},
+	{HKEY, "H", 0, "H", ""},
+	{IKEY, "I", 0, "I", ""},
+	{JKEY, "J", 0, "J", ""},
+	{KKEY, "K", 0, "K", ""},
+	{LKEY, "L", 0, "L", ""},
+	{MKEY, "M", 0, "M", ""},
+	{NKEY, "N", 0, "N", ""},
+	{OKEY, "O", 0, "O", ""},
+	{PKEY, "P", 0, "P", ""},
+	{QKEY, "Q", 0, "Q", ""},
+	{RKEY, "R", 0, "R", ""},
+	{SKEY, "S", 0, "S", ""},
+	{TKEY, "T", 0, "T", ""},
+	{UKEY, "U", 0, "U", ""},
+	{VKEY, "V", 0, "V", ""},
+	{WKEY, "W", 0, "W", ""},
+	{XKEY, "X", 0, "X", ""},
+	{YKEY, "Y", 0, "Y", ""},
+	{ZKEY, "Z", 0, "Z", ""},
+	
+	{ZEROKEY, "ZERO",	0, "Zero Key", ""},
+	{ONEKEY, "ONE",		0, "One Key", ""},
+	{TWOKEY, "TWO",		0, "Two Key", ""},
+	{THREEKEY, "THREE",	0, "Three Key", ""},
+	{FOURKEY, "FOUR",	0, "Four Key", ""},
+	{FIVEKEY, "FIVE",	0, "Five Key", ""},
+	{SIXKEY, "SIX",		0, "Six Key", ""},
+	{SEVENKEY, "SEVEN",	0, "Seven Key", ""},
+	{EIGHTKEY, "EIGHT",	0, "Eight Key", ""},
+	{NINEKEY, "NINE",	0, "Nine Key", ""},
+	
+	{LEFTCTRLKEY,	"LEFT_CTRL",	0, "Left Ctrl", ""},
+	{LEFTALTKEY,	"LEFT_ALT",		0, "Left Alt", ""},
+	{RIGHTALTKEY,	"RIGHT_ALT",	0, "Right Alt", ""},
+	{RIGHTCTRLKEY,	"RIGHT_CTRL",	0, "Rightctrl", ""},
+	{RIGHTSHIFTKEY,	"RIGHT_SHIFT",	0, "Rightshift", ""},
+	{LEFTSHIFTKEY,	"LEFT_SHIFT",	0, "Leftshift", ""},
+	
+	{ESCKEY, "ESC", 0, "Esc", ""},
+	{TABKEY, "TAB", 0, "Tab", ""},
+	{RETKEY, "RET", 0, "Return", ""},
+	{SPACEKEY, "SPACE", 0, "Spacebar", ""},
+	{LINEFEEDKEY, "LINE_FEED", 0, "Line Feed", ""},
+	{BACKSPACEKEY, "BACK_SPACE", 0, "Back Space", ""},
+	{DELKEY, "DEL", 0, "Delete", ""},
+	{SEMICOLONKEY, "SEMI_COLON", 0, "Semicolon", ""},
+	{PERIODKEY, "PERIOD", 0, "Period", ""},
+	{COMMAKEY, "COMMA", 0, "Comma", ""},
+	{QUOTEKEY, "QUOTE", 0, "Quote", ""},
+	{ACCENTGRAVEKEY, "ACCENT_GRAVE", 0, "Accentgrave", ""},
+	{MINUSKEY, "MINUS", 0, "Minus", ""},
+	{SLASHKEY, "SLASH", 0, "Slash", ""},
+	{BACKSLASHKEY, "BACK_SLASH", 0, "Backslash", ""},
+	{EQUALKEY, "EQUAL", 0, "Equal", ""},
+	{LEFTBRACKETKEY, "LEFT_BRACKET", 0, "Leftbracket", ""},
+	{RIGHTBRACKETKEY, "RIGHT_BRACKET", 0, "Rightbracket", ""},
+	{LEFTARROWKEY, "LEFT_ARROW", 0, "Left Arrow", ""},
+	{DOWNARROWKEY, "DOWN_ARROW", 0, "Down Arrow", ""},
+	{RIGHTARROWKEY, "RIGHT_ARROW", 0, "Right Arrow", ""},
+	{UPARROWKEY, "UP_ARROW", 0, "Up Arrow", ""},
+	{PAD2, "NUMPAD_2", 0, "Numpad 2", ""},
+	{PAD4, "NUMPAD_4", 0, "Numpad 4", ""},
+	{PAD6, "NUMPAD_6", 0, "Numpad 6", ""},
+	{PAD8, "NUMPAD_8", 0, "Numpad 8", ""},
+	{PAD1, "NUMPAD_1", 0, "Numpad 1", ""},
+	{PAD3, "NUMPAD_3", 0, "Numpad 3", ""},
+	{PAD5, "NUMPAD_5", 0, "Numpad 5", ""},
+	{PAD7, "NUMPAD_7", 0, "Numpad 7", ""},
+	{PAD9, "NUMPAD_9", 0, "Numpad 9", ""},
+	{PADPERIOD, "NUMPAD_PERIOD", 0, "Numpad .", ""},
+	{PADSLASHKEY, "NUMPAD_SLASH", 0, "Numpad /", ""},
+	{PADASTERKEY, "NUMPAD_ASTERIX", 0, "Numpad *", ""},
+	{PAD0, "NUMPAD_0", 0, "Numpad 0", ""},
+	{PADMINUS, "NUMPAD_MINUS", 0, "Numpad -", ""},
+	{PADENTER, "NUMPAD_ENTER", 0, "Numpad Enter", ""},
+	{PADPLUSKEY, "NUMPAD_PLUS", 0, "Numpad +", ""},
+	{F1KEY, "F1", 0, "F1", ""},
+	{F2KEY, "F2", 0, "F2", ""},
+	{F3KEY, "F3", 0, "F3", ""},
+	{F4KEY, "F4", 0, "F4", ""},
+	{F5KEY, "F5", 0, "F5", ""},
+	{F6KEY, "F6", 0, "F6", ""},
+	{F7KEY, "F7", 0, "F7", ""},
+	{F8KEY, "F8", 0, "F8", ""},
+	{F9KEY, "F9", 0, "F9", ""},
+	{F10KEY, "F10", 0, "F10", ""},
+	{F11KEY, "F11", 0, "F11", ""},
+	{F12KEY, "F12", 0, "F12", ""},
+	{PAUSEKEY, "PAUSE", 0, "Pause", ""},
+	{INSERTKEY, "INSERT", 0, "Insert", ""},
+	{HOMEKEY, "HOME", 0, "Home", ""},
+	{PAGEUPKEY, "PAGE_UP", 0, "Page Up", ""},
+	{PAGEDOWNKEY, "PAGE_DOWN", 0, "Page Down", ""},
+	{ENDKEY, "END", 0, "End", ""},
+	{0, NULL, 0, NULL, NULL}};	
 
 #ifdef RNA_RUNTIME
 
@@ -85,6 +199,20 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties);
+}
+
+
+static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
+{
+	wmEvent *event= (wmEvent*)ptr->id.data;
+	value[0]= event->ascii;
+	value[1]= '\0';
+}
+
+static int rna_Event_ascii_length(PointerRNA *ptr)
+{
+	wmEvent *event= (wmEvent*)ptr->id.data;
+	return (event->ascii)? 1 : 0;
 }
 
 #else
@@ -146,7 +274,80 @@ static void rna_def_operator_filelist_element(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_ui_text(prop, "Name", "the name of a file or directory within a file list");
 }
+	
+static void rna_def_event(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "Event", NULL);
+	RNA_def_struct_ui_text(srna, "Event", "Window Manager Event");
+	RNA_def_struct_sdna(srna, "wmEvent");
 
+	/* strings */
+	prop= RNA_def_property(srna, "ascii", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Event_ascii_get", "rna_Event_ascii_length", NULL);
+	RNA_def_property_ui_text(prop, "ASCII", "Single ASCII character for this event.");
+
+
+	/* enums */
+	prop= RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "val");
+	RNA_def_property_enum_items(prop, event_value_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Value",  "The type of event, only applies to some.");
+	
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Type",  "");
+
+
+	/* mouse */
+	prop= RNA_def_property(srna, "mouse_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "x");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse X Position", "The window relative vertical location of the mouse.");
+	
+	prop= RNA_def_property(srna, "mouse_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "y");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse Y Position", "The window relative horizontal location of the mouse.");
+	
+	prop= RNA_def_property(srna, "mouse_prev_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "prevx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse Previous X Position", "The window relative vertical location of the mouse.");
+	
+	prop= RNA_def_property(srna, "mouse_prev_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "prevy");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse Previous Y Position", "The window relative horizontal location of the mouse.");	
+
+
+	/* modifiers */
+	prop= RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shift", 1);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Shift", "True when the shift key is held.");
+	
+	prop= RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 1);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Ctrl", "True when the shift key is held.");
+	
+	prop= RNA_def_property(srna, "alt", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "alt", 1);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Alt", "True when the shift key is held.");
+	
+	prop= RNA_def_property(srna, "oskey", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "oskey", 1);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "OS Key", "True when the shift key is held.");
+}
 
 static void rna_def_windowmanager(BlenderRNA *brna)
 {
@@ -169,6 +370,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_operator(brna);
 	rna_def_operator_utils(brna);
 	rna_def_operator_filelist_element(brna);
+	rna_def_event(brna);
 	rna_def_windowmanager(brna);
 }
 

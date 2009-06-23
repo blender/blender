@@ -257,6 +257,7 @@ typedef struct TransInfo {
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
+	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;

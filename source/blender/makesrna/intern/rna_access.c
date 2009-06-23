@@ -643,25 +643,28 @@ void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPrope
 
 	if(eprop->itemf) {
 		*item= eprop->itemf(ptr);
-		for(tot=0; (*item)[tot].identifier; tot++);
-		*totitem= tot;
+		if(totitem) {
+			for(tot=0; (*item)[tot].identifier; tot++);
+			*totitem= tot;
+		}
 	}
 	else {
 		*item= eprop->item;
-		*totitem= eprop->totitem;
+		if(totitem)
+			*totitem= eprop->totitem;
 	}
 }
 
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
 	const EnumPropertyItem *item;
-	int totitem, i;
+	int i;
 	
-	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	RNA_property_enum_items(ptr, prop, &item, NULL);
 	
-	for(i=0; i<totitem; i++) {
-		if(strcmp(item[i].identifier, identifier)==0) {
-			*value = item[i].value;
+	for(; item->identifier; item++) {
+		if(strcmp(item->identifier, identifier)==0) {
+			*value = item->value;
 			return 1;
 		}
 	}
@@ -669,21 +672,34 @@ int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *iden
 	return 0;
 }
 
-int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
-{	
-	const EnumPropertyItem *item;
-	int totitem, i;
-	
-	RNA_property_enum_items(ptr, prop, &item, &totitem);
-	
-	for(i=0; i<totitem; i++) {
-		if(item[i].value==value) {
-			*identifier = item[i].identifier;
+int RNA_enum_identifier(const EnumPropertyItem *item, const int value, const char **identifier)
+{
+	for (; item->identifier; item++) {
+		if(item->value==value) {
+			*identifier = item->identifier;
 			return 1;
 		}
 	}
-	
 	return 0;
+}
+
+int RNA_enum_name(const EnumPropertyItem *item, const int value, const char **name)
+{
+	for (; item->identifier; item++) {
+		if(item->value==value) {
+			*name = item->name;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
+{	
+	const EnumPropertyItem *item= NULL;
+	
+	RNA_property_enum_items(ptr, prop, &item, NULL);
+	return RNA_enum_identifier(item, value, identifier);
 }
 
 const char *RNA_property_ui_name(PropertyRNA *prop)
@@ -2052,14 +2068,13 @@ int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 	const EnumPropertyItem *item;
-	int a, totitem;
 
 	if(prop) {
-		RNA_property_enum_items(ptr, prop, &item, &totitem);
+		RNA_property_enum_items(ptr, prop, &item, NULL);
 
-		for(a=0; a<totitem; a++)
-			if(strcmp(item[a].identifier, enumname) == 0)
-				return (item[a].value == RNA_property_enum_get(ptr, prop));
+		for(; item->identifier; item++)
+			if(strcmp(item->identifier, enumname) == 0)
+				return (item->value == RNA_property_enum_get(ptr, prop));
 
 		printf("RNA_enum_is_equal: %s.%s item %s not found.\n", ptr->type->identifier, name, enumname);
 		return 0;

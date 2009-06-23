@@ -192,6 +192,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct Object *target_ob;
 	struct Object *keyed_ob;
 	struct Object *lattice;
+	struct Object *parent;					/* particles from global space -> parent space */
 
 	struct ListBase effectors, reactevents;	/* runtime */
 	

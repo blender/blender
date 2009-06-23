@@ -39,6 +39,94 @@
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
 
+#define USE_MATHUTILS
+
+#ifdef USE_MATHUTILS
+#include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
+
+/* bpyrna vector callbacks */
+static int mathutils_rna_vector_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
+{
+	return self->prop?1:0;
+}
+
+static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *vec_from)
+{
+	if(self->prop==NULL)
+		return 0;
+	
+	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	return 1;
+}
+
+static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *vec_to)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	return 1;
+}
+
+static int mathutils_rna_vector_get_index(BPy_PropertyRNA *self, int subtype, float *vec_from, int index)
+{
+	if(self->prop==NULL)
+		return 0;
+	
+	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	return 1;
+}
+
+static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, float *vec_to, int index)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	return 1;
+}
+
+Mathutils_Callback mathutils_rna_vector_cb = {
+	mathutils_rna_generic_check,
+	mathutils_rna_vector_get,
+	mathutils_rna_vector_set,
+	mathutils_rna_vector_get_index,
+	mathutils_rna_vector_set_index
+};
+
+/* bpyrna matrix callbacks */
+static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
+
+static int mathutils_rna_matrix_get(BPy_PropertyRNA *self, int subtype, float *mat_from)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_get_array(&self->ptr, self->prop, mat_from);
+	return 1;
+}
+
+static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *mat_to)
+{
+	if(self->prop==NULL)
+		return 0;
+
+	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	return 1;
+}
+
+Mathutils_Callback mathutils_rna_matrix_cb = {
+	mathutils_rna_generic_check,
+	mathutils_rna_matrix_get,
+	mathutils_rna_matrix_set,
+	NULL,
+	NULL
+};
+
+#endif
+
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
 	return (a->ptr.data==b->ptr.data) ? 0 : -1;
@@ -132,7 +220,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	const EnumPropertyItem *item;
 	int totitem;
 	
-	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	RNA_property_enum_items(ptr, prop, &item, NULL);
 	return (char*)BPy_enum_as_string((EnumPropertyItem*)item);
 }
 
@@ -144,7 +232,35 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
 	if (len > 0) {
 		/* resolve the array from a new pytype */
-		return pyrna_prop_CreatePyObject(ptr, prop);
+		PyObject *ret = pyrna_prop_CreatePyObject(ptr, prop);
+		
+#ifdef USE_MATHUTILS
+		/* return a mathutils vector where possible */
+		if(RNA_property_type(prop)==PROP_FLOAT) {
+			if(RNA_property_subtype(prop)==PROP_VECTOR) {
+				if(len>=2 && len <= 4) {
+					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_vector_cb_index, 0);
+					Py_DECREF(ret); /* the vector owns now */
+					ret= vec_cb; /* return the vector instead */
+				}
+			}
+			else if(RNA_property_subtype(prop)==PROP_MATRIX) {
+				if(len==16) {
+					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_vector_cb_index, 0);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= mat_cb; /* return the matrix instead */
+				}
+				else if (len==9) {
+					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_vector_cb_index, 0);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= mat_cb; /* return the matrix instead */
+				}
+			}
+		}
+
+#endif
+		
+		return ret;
 	}
 	
 	/* see if we can coorce into a python type - PropertyType */
@@ -294,14 +410,29 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 	
 	if (len > 0) {
 		PyObject *item;
+		int py_len = -1;
 		int i;
 		
-		if (!PySequence_Check(value)) {
+
+#ifdef USE_MATHUTILS
+		if(MatrixObject_Check(value)) {
+			MatrixObject *mat = (MatrixObject*)value;
+			if(!Matrix_ReadCallback(mat))
+				return -1;
+
+			py_len = mat->rowSize * mat->colSize;
+		} else // continue...
+#endif
+		if (PySequence_Check(value)) {
+			py_len= (int)PySequence_Length(value);
+		}
+		else {
 			PyErr_SetString(PyExc_TypeError, "expected a python sequence type assigned to an RNA array.");
 			return -1;
 		}
+		/* done getting the length */
 		
-		if ((int)PySequence_Length(value) != len) {
+		if (py_len != len) {
 			PyErr_SetString(PyExc_AttributeError, "python sequence length did not match the RNA array.");
 			return -1;
 		}
@@ -368,14 +499,21 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			else		param_arr = MEM_mallocN(sizeof(float) * len, "pyrna float array");
 
 
-			
-			/* collect the variables */
-			for (i=0; i<len; i++) {
-				item = PySequence_GetItem(value, i);
-				param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
-				Py_DECREF(item);
+#ifdef USE_MATHUTILS
+			if(MatrixObject_Check(value) && RNA_property_subtype(prop) == PROP_MATRIX) {
+				MatrixObject *mat = (MatrixObject*)value;
+				memcpy(param_arr, mat->contigPtr, sizeof(float) * len);
+			} else // continue...
+#endif
+			{
+				/* collect the variables */
+				for (i=0; i<len; i++) {
+					item = PySequence_GetItem(value, i);
+					param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
+					Py_DECREF(item);
+				}
 			}
-			
+
 			if (PyErr_Occurred()) {
 				if(data==NULL)
 					MEM_freeN(param_arr);
@@ -1673,6 +1811,11 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 PyObject *BPY_rna_module( void )
 {
 	PointerRNA ptr;
+	
+#ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
+	mathutils_rna_vector_cb_index= Mathutils_RegisterCallback(&mathutils_rna_vector_cb);
+	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
+#endif
 	
 	/* This can't be set in the pytype struct because some compilers complain */
 	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 

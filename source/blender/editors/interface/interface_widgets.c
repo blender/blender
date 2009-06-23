@@ -1902,6 +1902,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_TOGGLE:
+			wt.wcol_theme= &btheme->tui.wcol_radio;/*use radio theme for toggles*/
 			break;
 			
 		case UI_WTYPE_OPTION:

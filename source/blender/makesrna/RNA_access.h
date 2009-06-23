@@ -172,6 +172,7 @@ extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
+extern StructRNA RNA_Event;
 extern StructRNA RNA_FCurve;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
@@ -540,6 +541,9 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
+
+int RNA_enum_identifier(const EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_name(const EnumPropertyItem *item, const int value, const char **name);
 
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);

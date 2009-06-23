@@ -142,8 +142,6 @@ void free_scene(Scene *sce)
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce->ed);
-	if(sce->radio) MEM_freeN(sce->radio);
-	sce->radio= 0;
 	
 #ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
@@ -205,9 +203,6 @@ Scene *add_scene(char *name)
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
-	sce->selectmode= SCE_SELECT_VERTEX;
-	sce->editbutsize= 0.1;
-	sce->autokey_mode= U.autokey_mode;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
@@ -276,6 +271,10 @@ Scene *add_scene(char *name)
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
+
+	sce->toolsettings->selectmode= SCE_SELECT_VERTEX;
+	sce->toolsettings->normalsize= 0.1;
+	sce->toolsettings->autokey_mode= U.autokey_mode;
 
 	sce->toolsettings->skgen_resolution = 100;
 	sce->toolsettings->skgen_threshold_internal 	= 0.01f;

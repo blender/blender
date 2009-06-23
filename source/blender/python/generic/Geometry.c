@@ -1,5 +1,5 @@
 /* 
- * $Id: Geometry.c 20922 2009-06-16 07:16:51Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,7 +80,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Geometry_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"Geometry",  /* m_name */
 	M_Geometry_doc,  /* m_doc */
 	0,  /* m_size */
@@ -164,6 +164,10 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 			for( index = 0; index<len_polypoints; ++index, fp+=3) {
 				polyVec= PySequence_GetItem( polyLine, index );
 				if(VectorObject_Check(polyVec)) {
+					
+					if(!Vector_ReadCallback((VectorObject *)polyVec))
+						ls_error= 1;
+					
 					fp[0] = ((VectorObject *)polyVec)->vec[0];
 					fp[1] = ((VectorObject *)polyVec)->vec[1];
 					if( ((VectorObject *)polyVec)->size > 2 )
@@ -233,6 +237,9 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(line_a1) || !Vector_ReadCallback(line_a2) || !Vector_ReadCallback(line_b1) || !Vector_ReadCallback(line_b2))
+		return NULL;
 	
 	a1x= line_a1->vec[0];
 	a1y= line_a1->vec[1];
@@ -330,6 +337,10 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(pt) || !Vector_ReadCallback(line_1) || !Vector_ReadCallback(line_2))
+		return NULL;
+	
 	/* accept 2d verts */
 	if (pt->size==3) { VECCOPY(pt_in, pt->vec);}
 	else { pt_in[2]=0.0;	VECCOPY2D(pt_in, pt->vec) }
@@ -363,6 +374,9 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 		return NULL;
 	}
 	
+	if(!Vector_ReadCallback(pt_vec) || !Vector_ReadCallback(tri_p1) || !Vector_ReadCallback(tri_p2) || !Vector_ReadCallback(tri_p3))
+		return NULL;
+	
 	return PyLong_FromLong(IsectPT2Df(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
 }
 
@@ -380,6 +394,9 @@ static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "expected 5 vector types\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(pt_vec) || !Vector_ReadCallback(quad_p1) || !Vector_ReadCallback(quad_p2) || !Vector_ReadCallback(quad_p3) || !Vector_ReadCallback(quad_p4))
+		return NULL;
 	
 	return PyLong_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
@@ -499,6 +516,9 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "expected 4 vector types and an int greater then 1\n" );
 		return NULL;
 	}
+	
+	if(!Vector_ReadCallback(vec_k1) || !Vector_ReadCallback(vec_h1) || !Vector_ReadCallback(vec_k2) || !Vector_ReadCallback(vec_h2))
+		return NULL;
 	
 	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
 	

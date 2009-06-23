@@ -777,7 +777,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 /* change the chain-length of auto-ik */
 void transform_autoik_update (TransInfo *t, short mode)
 {
-	short *chainlen= &t->scene->toolsettings->autoik_chainlen;
+	short *chainlen= &t->settings->autoik_chainlen;
 	bPoseChannel *pchan;
 	
 	/* mode determines what change to apply to chainlen */
@@ -1631,7 +1631,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	int count = 0, hasselected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	if(psys==NULL || t->scene->selectmode==SCE_SELECT_PATH) return;
+	if(psys==NULL || t->settings->particle.selectmode==SCE_SELECT_PATH) return;
 
 	psmd = psys_get_modifier(ob,psys);
 
@@ -2101,7 +2101,7 @@ void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *tob = NULL;
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditVert *eve;
@@ -2119,7 +2119,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	}
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(scene->selectmode & SCE_SELECT_VERTEX) {
+	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT)) 
 				eve->f1= SELECT;
@@ -2127,7 +2127,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				eve->f1= 0;
 		}
 	}
-	else if(scene->selectmode & SCE_SELECT_EDGE) {
+	else if(ts->selectmode & SCE_SELECT_EDGE) {
 		EditEdge *eed;
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -4672,7 +4672,7 @@ void special_aftertrans_update(TransInfo *t)
 			
 			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
 				/* pointcache refresh */
-				if (BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 					ob->recalc |= OB_RECALC_DATA;
 				
 				/* Set autokey if necessary */
