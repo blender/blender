@@ -32,7 +32,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if psys:
-			split.template_ID(context, psys, "settings")
+			split.template_ID(psys, "settings")
 
 		if psys:
 			#row = layout.row()

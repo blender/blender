@@ -177,9 +177,9 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "IMAGE_MT_uvs_transform")
-		layout.itemM(context, "IMAGE_MT_uvs_mirror")
-		layout.itemM(context, "IMAGE_MT_uvs_weldalign")
+		layout.itemM("IMAGE_MT_uvs_transform")
+		layout.itemM("IMAGE_MT_uvs_mirror")
+		layout.itemM("IMAGE_MT_uvs_weldalign")
 
 		layout.itemS()
 
@@ -188,7 +188,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "IMAGE_MT_uvs_showhide")
+		layout.itemM("IMAGE_MT_uvs_showhide")
 
 class IMAGE_HT_header(bpy.types.Header):
 	__space_type__ = "IMAGE_EDITOR"
@@ -202,23 +202,23 @@ class IMAGE_HT_header(bpy.types.Header):
 		show_paint = sima.show_paint
 		show_uvedit = sima.show_uvedit
 
-		layout.template_header(context)
+		layout.template_header()
 
 		# menus
 		if context.area.show_menus:
 			row = layout.row()
-			row.itemM(context, "IMAGE_MT_view")
+			row.itemM("IMAGE_MT_view")
 
 			if show_uvedit:
-				row.itemM(context, "IMAGE_MT_select")
+				row.itemM("IMAGE_MT_select")
 
 			# XXX menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
-			row.itemM(context, "IMAGE_MT_image")
+			row.itemM("IMAGE_MT_image")
 
 			if show_uvedit:
-				row.itemM(context, "IMAGE_MT_uvs")
+				row.itemM("IMAGE_MT_uvs")
 
-		layout.template_ID(context, sima, "image", new="IMAGE_OT_new", open="IMAGE_OT_open")
+		layout.template_ID(sima, "image", new="IMAGE_OT_new", open="IMAGE_OT_open")
 
 		"""
 		/* image select */
@@ -595,9 +595,9 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "IMAGE_MT_uvs_transform")
-		layout.itemM(context, "IMAGE_MT_uvs_mirror")
-		layout.itemM(context, "IMAGE_MT_uvs_weldalign")
+		layout.itemM("IMAGE_MT_uvs_transform")
+		layout.itemM("IMAGE_MT_uvs_mirror")
+		layout.itemM("IMAGE_MT_uvs_weldalign")
 
 		layout.itemS()
 
@@ -606,7 +606,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "IMAGE_MT_uvs_showhide")
+		layout.itemM("IMAGE_MT_uvs_showhide")
 
 class IMAGE_HT_header(bpy.types.Header):
 	__space_type__ = "IMAGE_EDITOR"
@@ -620,23 +620,23 @@ class IMAGE_HT_header(bpy.types.Header):
 		show_paint = sima.show_paint
 		show_uvedit = sima.show_uvedit
 
-		layout.template_header(context)
+		layout.template_header()
 
 		# menus
 		if context.area.show_menus:
 			row = layout.row()
-			row.itemM(context, "IMAGE_MT_view")
+			row.itemM("IMAGE_MT_view")
 
 			if show_uvedit:
-				row.itemM(context, "IMAGE_MT_select")
+				row.itemM("IMAGE_MT_select")
 
 			# XXX menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
-			row.itemM(context, "IMAGE_MT_image")
+			row.itemM("IMAGE_MT_image")
 
 			if show_uvedit:
-				row.itemM(context, "IMAGE_MT_uvs")
+				row.itemM("IMAGE_MT_uvs")
 
-		layout.template_ID(context, sima, "image", new="IMAGE_OT_new", open="IMAGE_OT_open")
+		layout.template_ID(sima, "image", new="IMAGE_OT_new", open="IMAGE_OT_open")
 
 		"""
 		/* image select */

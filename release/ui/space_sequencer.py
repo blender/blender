@@ -15,21 +15,21 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		st = context.space_data
 		layout = self.layout
 
-		layout.template_header(context)
+		layout.template_header()
 		
 		if context.area.show_menus:
 			row = layout.row()
-			row.itemM(context, "SEQUENCER_MT_view")
+			row.itemM("SEQUENCER_MT_view")
 			
 			row.itemR(st, "display_mode")
 			
 			layout.itemS()
 			
 			if st.display_mode == 'SEQUENCER':
-				row.itemM(context, "SEQUENCER_MT_select")
-				row.itemM(context, "SEQUENCER_MT_marker")
-				row.itemM(context, "SEQUENCER_MT_add")
-				row.itemM(context, "SEQUENCER_MT_strip")
+				row.itemM("SEQUENCER_MT_select")
+				row.itemM("SEQUENCER_MT_marker")
+				row.itemM("SEQUENCER_MT_add")
+				row.itemM("SEQUENCER_MT_strip")
 				layout.itemS()
 				row.itemO("SEQUENCER_OT_reload")
 			else:
@@ -151,7 +151,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Sound (Ram)")
 		layout.item_booleanO("SEQUENCER_OT_sound_strip_add", "hd", True, text="Sound (Streaming)") # FFMPEG ONLY
 		
-		layout.itemM(context, "SEQUENCER_MT_add_effect")
+		layout.itemM("SEQUENCER_MT_add_effect")
 
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):

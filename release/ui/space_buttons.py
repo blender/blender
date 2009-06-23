@@ -15,7 +15,7 @@ class Buttons_HT_header(bpy.types.Header):
 
 		if context.area.show_menus:
 			row = layout.row(align=True)
-			row.itemM(context, "Buttons_MT_view", text="View")
+			row.itemM("Buttons_MT_view", text="View")
 			
 		row = layout.row()
 		row.itemR(so, "buttons_context", expand=True, text="")
