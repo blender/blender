@@ -148,12 +148,6 @@ void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
 
-/* map global time (frame nr) to strip converted time, doesn't clip */
-float get_action_frame(struct Object *ob, float cframe);
-/* map strip time to global time (frame nr)  */
-float get_action_frame_inv(struct Object *ob, float cframe);
-
-
 /* functions used by the game engine */
 void game_copy_pose(struct bPose **dst, struct bPose *src);
 void game_free_pose(struct bPose *pose);

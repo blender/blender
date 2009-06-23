@@ -769,48 +769,6 @@ void framechange_poses_clear_unkeyed(void)
 
 /* ************** time ****************** */
 
-static bActionStrip *get_active_strip(Object *ob)
-{
-#if 0	// XXX old animation system
-	bActionStrip *strip;
-	
-	if(ob->action==NULL)
-		return NULL;
-		
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
-			break;
-	
-	if(strip && strip->act==ob->action)
-		return strip;
-#endif // XXX old animation system
-		
-	return NULL;
-}
-
-/* if the conditions match, it converts current time to strip time */
-// TODO: change this adt
-float get_action_frame(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	//if(strip)
-	//	return get_actionstrip_frame(strip, cframe, 0);
-	return cframe;
-}
-
-/* inverted, strip time to current time */
-// TODO: change this to adt
-float get_action_frame_inv(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	//if(strip)
-	//	return get_actionstrip_frame(strip, cframe, 1);
-	return cframe;
-}
-
-
 /* Check if the given action has any keyframes */
 short action_has_motion(const bAction *act)
 {

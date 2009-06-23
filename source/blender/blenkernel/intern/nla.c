@@ -49,6 +49,9 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+#include "nla_private.h"
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -316,6 +319,135 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 	
 	/* returns the strip added */
 	return strip;
+}
+
+/* *************************************************** */
+/* NLA Evaluation <-> Editing Stuff */
+
+/* Strip Mapping ------------------------------------- */
+
+/* non clipped mapping for strip-time <-> global time (for Action-Clips)
+ *	invert = convert action-strip time to global time 
+ */
+static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short invert)
+{
+	float length, actlength, repeat, scale;
+	
+	/* get number of repeats */
+	if (IS_EQ(strip->repeat, 0.0f)) strip->repeat = 1.0f;
+	repeat = strip->repeat;
+	
+	/* scaling */
+	if (IS_EQ(strip->scale, 0.0f)) strip->scale= 1.0f;
+	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
+	
+	/* length of referenced action */
+	actlength = strip->actend - strip->actstart;
+	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
+	
+	/* length of strip */
+	length= actlength * scale * repeat;
+	if (IS_EQ(length, 0.0f)) length= strip->end - strip->start;
+	
+	/* reversed = play strip backwards */
+	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
+		/* invert = convert action-strip time to global time */
+		if (invert)
+			return length*(strip->actend - cframe)/(repeat*actlength) + strip->start;
+		else
+			return strip->actend - repeat*actlength*(cframe - strip->start)/length;
+	}
+	else {
+		/* invert = convert action-strip time to global time */
+		if (invert)
+			return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
+		else
+			return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
+	}
+}
+
+/* non clipped mapping for strip-time <-> global time (for Transitions)
+ *	invert = convert action-strip time to global time 
+ */
+static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short invert)
+{
+	float length;
+	
+	/* length of strip */
+	length= strip->end - strip->start;
+	
+	/* reversed = play strip backwards */
+	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
+		/* invert = convert within-strip-time to global time */
+		if (invert)
+			return strip->end - (length * cframe);
+		else
+			return (strip->end - cframe) / length;
+	}
+	else {
+		/* invert = convert within-strip-time to global time */
+		if (invert)
+			return (length * cframe) + strip->start;
+		else
+			return (cframe - strip->start) / length;
+	}
+}
+
+/* non clipped mapping for strip-time <-> global time
+ *	invert = convert action-strip time to global time 
+ *
+ * only secure for 'internal' (i.e. within AnimSys evaluation) operations,
+ * but should not be directly relied on for stuff which interacts with editors
+ */
+float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
+{
+	switch (strip->type) {
+		case NLASTRIP_TYPE_TRANSITION: /* transition */
+			return nlastrip_get_frame_transition(strip, cframe, invert);
+		
+		case NLASTRIP_TYPE_CLIP: /* action-clip (default) */
+		default:
+			return nlastrip_get_frame_actionclip(strip, cframe, invert);
+	}	
+}
+
+
+/* Non clipped mapping for strip-time <-> global time
+ *	invert = convert strip-time to global time 
+ *
+ * Public API method - perform this mapping using the given AnimData block
+ * and perform any necessary sanity checks on the value
+ */
+float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short invert)
+{
+	NlaStrip *strip;
+	
+	/* sanity checks 
+	 *	- obviously we've got to have some starting data
+	 *	- when not in tweakmode, the active Action does not have any scaling applied :)
+	 */
+	if ((adt == NULL) || (adt->flag & ADT_NLA_EDIT_ON)==0)
+		return cframe;
+		
+	/* if the active-strip info has been stored already, access this, otherwise look this up
+	 * and store for (very probable) future usage
+	 */
+	if (adt->actstrip == NULL) {
+		NlaTrack *nlt= BKE_nlatrack_find_active(adt);
+		adt->actstrip= BKE_nlastrip_find_active(nlt);
+	}
+	strip= adt->actstrip;
+	
+	/* sanity checks 
+	 *	- in rare cases, we may not be able to find this strip for some reason (internal error)
+	 *	- for now, if the user has defined a curve to control the time, this correction cannot be performed
+	 *	  reliably...
+	 */
+	if ((strip == NULL) || (strip->flag & NLASTRIP_FLAG_USR_TIME))
+		return cframe;
+		
+	/* perform the correction now... */
+	return nlastrip_get_frame(strip, cframe, invert);
 }
 
 /* *************************************************** */
@@ -693,9 +825,11 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 	 *	- 'real' active action to temp storage (no need to change user-counts)
 	 *	- action of active strip set to be the 'active action', and have its usercount incremented
 	 *	- editing-flag for this AnimData block should also get turned on (for more efficient restoring)
+	 *	- take note of the active strip for mapping-correction of keyframes in the action being edited
 	 */
 	adt->tmpact= adt->action;
 	adt->action= activeStrip->act;
+	adt->actstrip= activeStrip;
 	id_us_plus(&activeStrip->act->id);
 	adt->flag |= ADT_NLA_EDIT_ON;
 	
@@ -734,10 +868,12 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 	 *	- 'real' active action is restored from storage
 	 *	- storage pointer gets cleared (to avoid having bad notes hanging around)
 	 *	- editing-flag for this AnimData block should also get turned off
+	 *	- clear pointer to active strip
 	 */
 	if (adt->action) adt->action->id.us--;
 	adt->action= adt->tmpact;
 	adt->tmpact= NULL;
+	adt->actstrip= NULL;
 	adt->flag &= ~ADT_NLA_EDIT_ON;
 }
 

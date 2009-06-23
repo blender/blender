@@ -67,6 +67,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -114,16 +115,16 @@ static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xm
 	if (anim_data.first) {
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			Object *nob= NULL; //ANIM_nla_mapping_get(ac, ale);
+			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float txmin, txmax, tymin, tymax;
 			
 			/* get range and apply necessary scaling before */
 			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
-			if (nob) {
-				txmin= get_action_frame_inv(nob, txmin);
-				txmax= get_action_frame_inv(nob, txmax);
+			if (adt) {
+				txmin= BKE_nla_tweakedit_remap(adt, txmin, 1);
+				txmax= BKE_nla_tweakedit_remap(adt, txmax, 1);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
@@ -271,6 +272,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
 		FCurve *gcu= MEM_callocN(sizeof(FCurve), "Ghost FCurve");
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		ChannelDriver *driver= fcu->driver;
 		FPoint *fpt;
 		int cfra;		
@@ -286,8 +288,10 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 		
 		/* use the sampling callback at 1-frame intervals from start to end frames */
 		for (cfra= start; cfra <= end; cfra++, fpt++) {
-			fpt->vec[0]= (float)cfra;
-			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, (float)cfra);
+			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, 1);
+			
+			fpt->vec[0]= cfrae;
+			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, cfrae);
 		}
 		
 		/* set color of ghost curve 
@@ -403,6 +407,7 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
+	AnimData *adt;
 	float frame, val;
 	
 	/* get animation context */
@@ -419,6 +424,10 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	/* get frame and value from props */
 	frame= RNA_float_get(op->ptr, "frame");
 	val= RNA_float_get(op->ptr, "value");
+	
+	/* apply inverse NLA-mapping to frame to get correct time in un-scaled action */
+	adt= ANIM_nla_mapping_get(&ac, ale);
+	frame= BKE_nla_tweakedit_remap(adt, frame, 1);
 	
 	/* insert keyframe on the specified frame + value */
 	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);
@@ -1336,8 +1345,18 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
+		
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1); 
+		}
+		else
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+		
+	}
 	
 	BLI_freelistN(&anim_data);
 	
@@ -1405,12 +1424,12 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1516,12 +1535,12 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	
 	/* mirror keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);

@@ -45,6 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"  /* for some special action-editor settings */
 #include "DNA_constraint_types.h"
@@ -76,9 +77,9 @@
 //#include "BIF_editmesh.h"
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
-//#include "BIF_editaction.h" 
 
-#include "BKE_action.h" /* get_action_frame */
+#include "BKE_action.h"
+#include "BKE_nla.h"
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
@@ -89,7 +90,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 
-//#include "BSE_editaction_types.h"
 //#include "BSE_view.h"
 
 #include "ED_image.h"
@@ -4354,7 +4354,7 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 /* This function is used by Animation Editor specific transform functions to do 
  * the Snap Keyframe to Nearest Frame/Marker
  */
-static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short autosnap)
+static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, short autosnap)
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
@@ -4364,8 +4364,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		double val;
 		
 		/* convert frame to nla-action time (if needed) */
-		if (ob) 
-			val= get_action_frame_inv(ob, *(td->val));
+		if (adt) 
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), 1);
 		else
 			val= *(td->val);
 		
@@ -4376,8 +4376,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 			val= (float)( floor(val+0.5f) );
 			
 		/* convert frame out of nla-action time */
-		if (ob)
-			*(td->val)= get_action_frame(ob, val);
+		if (adt)
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, 0);
 		else
 			*(td->val)= val;
 	}
@@ -4386,8 +4386,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		float val;
 		
 		/* convert frame to nla-action time (if needed) */
-		if (ob) 
-			val= get_action_frame_inv(ob, *(td->val));
+		if (adt) 
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), 1);
 		else
 			val= *(td->val);
 		
@@ -4396,8 +4396,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		val= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
 		
 		/* convert frame out of nla-action time */
-		if (ob)
-			*(td->val)= get_action_frame(ob, val);
+		if (adt)
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, 0);
 		else
 			*(td->val)= val;
 	}
@@ -4473,10 +4473,10 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		/* it is assumed that td->ob is a pointer to the object,
 		 * whose active action is where this keyframe comes from 
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= td->extra;
 		
-		/* check if any need to apply nla-scaling */
-		if (ob) {
+		/* check if any need to apply nla-mapping */
+		if (adt) {
 			deltax = t->values[0];
 			
 			if (autosnap == SACTSNAP_STEP) {
@@ -4486,9 +4486,9 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 					deltax= (float)( floor(deltax + 0.5f) );
 			}
 			
-			val = get_action_frame_inv(ob, td->ival);
+			val = BKE_nla_tweakedit_remap(adt, td->ival, 1);
 			val += deltax;
-			*(td->val) = get_action_frame(ob, val);
+			*(td->val) = BKE_nla_tweakedit_remap(adt, val, 0);
 		}
 		else {
 			deltax = val = t->values[0];
@@ -4504,7 +4504,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		}
 		
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+		doAnimEdit_SnapFrame(t, td, adt, autosnap);
 	}
 }
 
@@ -4604,15 +4604,15 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= td->extra;
 		float cval = t->values[0];
 		
-		/* apply scaling to necessary values */
-		if (ob)
-			cval= get_action_frame(ob, cval);
+		/* apply NLA-mapping to necessary values */
+		if (adt)
+			cval= BKE_nla_tweakedit_remap(adt, cval, 0);
 		
 		/* only apply to data if in range */
 		if ((sval > minx) && (sval < maxx)) {
@@ -4707,10 +4707,10 @@ static void applyTimeScale(TransInfo *t) {
 	
 	
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= td->extra;
 		float startx= CFRA;
 		float fac= t->values[0];
 		
@@ -4721,9 +4721,9 @@ static void applyTimeScale(TransInfo *t) {
 				fac= (float)( floor(fac + 0.5f) );
 		}
 		
-		/* check if any need to apply nla-scaling */
-		if (ob)
-			startx= get_action_frame(ob, startx);
+		/* check if any need to apply nla-mapping */
+		if (adt)
+			startx= BKE_nla_tweakedit_remap(adt, startx, 0);
 			
 		/* now, calculate the new value */
 		*(td->val) = td->ival - startx;
@@ -4731,7 +4731,7 @@ static void applyTimeScale(TransInfo *t) {
 		*(td->val) += startx;
 		
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+		doAnimEdit_SnapFrame(t, td, adt, autosnap);
 	}
 }
 

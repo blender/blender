@@ -30,6 +30,7 @@
 #ifndef ED_KEYFRAMES_DRAW_H
 #define ED_KEYFRAMES_DRAW_H
 
+struct AnimData;
 struct BezTriple;
 struct FCurve;
 struct gla2DDrawInfo;
@@ -69,7 +70,7 @@ typedef struct ActKeyBlock {
 /* Inclusion-Range Limiting Struct (optional) */
 typedef struct ActKeysInc {
 	struct bDopeSheet *ads;			/* dopesheet data (for dopesheet mode) */
-	struct Object *ob;				/* owner object for NLA-scaling info (if Object channels, is just Object) */
+	struct AnimData *adt;			/* owner for NLA-mapping info */
 	short actmode;					/* mode of the Action Editor (-1 is for NLA) */
 	
 	float start, end;				/* frames (global-time) to only consider keys between */  // XXX not used anymore!
@@ -89,7 +90,7 @@ void draw_gpl_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bGPDlaye
 void fcurve_to_keylist(struct FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void action_nlascaled_to_keylist(struct Object *ob, struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void action_nlascaled_to_keylist(struct AnimData *adt, struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void scene_to_keylist(struct Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void gpl_to_keylist(struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki);

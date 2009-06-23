@@ -63,6 +63,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -231,14 +232,14 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set horizontal range (if applicable) */
 		if (mode != BEZT_OK_VALUERANGE) {
 			/* if channel is mapped in NLA, apply correction */
-			if (nob) {
-				bed.f1= get_action_frame(nob, rectf.xmin);
-				bed.f2= get_action_frame(nob, rectf.xmax);
+			if (adt) {
+				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, 0);
+				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, 0);
 			}
 			else {
 				bed.f1= rectf.xmin;
@@ -379,12 +380,12 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	
 	/* select keys in-between */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {	
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+		if (adt) {	
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else {
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -450,15 +451,15 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* loop over cfraelems (stored in the BeztEditData->list)
 		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
 		 */
 		for (ce= bed.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
-			if (nob)
-				bed.f1= get_action_frame(nob, ce->cfra);
+			if (ale)
+				bed.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, 0);
 			else
 				bed.f1= ce->cfra;
 			
@@ -566,10 +567,15 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* try to progressively get closer to the right point... */
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
+			
+			/* apply NLA mapping to all the keyframes */
+			if (adt)
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			
 			for (i=0; i < fcu->totvert; i++, prevbezt=bezt1, bezt1++) {
 				/* convert beztriple points to screen-space */
@@ -624,6 +630,10 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 					}
 				}
 			}
+			
+			/* un-apply NLA mapping from all the keyframes */
+			if (adt)
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 	}
 	
@@ -767,12 +777,12 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 		
 	/* select keys on the side where most data occurs */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -827,11 +837,11 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set frame for validation callback to refer to */
-		if (nob)
-			bed.f1= get_action_frame(nob, selx);
+		if (adt)
+			bed.f1= BKE_nla_tweakedit_remap(adt, selx, 0);
 		else
 			bed.f1= selx;
 		

@@ -451,7 +451,7 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		
 		/* Add action keyframes */
 		if (ob->adt && ob->adt->action)
-			action_nlascaled_to_keylist(ob, ob->adt->action, keys, blocks, aki);
+			action_nlascaled_to_keylist(ob->adt, ob->adt->action, keys, blocks, aki);
 		
 		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
 		// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
@@ -602,34 +602,34 @@ void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysIn
 	}
 }
 
-void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void action_nlascaled_to_keylist(AnimData *adt, bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	FCurve *fcu;
-	Object *oldob= NULL;
+	AnimData *oldadt= NULL;
 	
-	/* although apply and clearing NLA-scaling pre-post creating keylist does impact on performance,
+	/* although apply and clearing NLA-mapping pre-post creating keylist does impact on performance,
 	 * the effects should be fairly minimal, as we're already going through the keyframes multiple times 
 	 * already for blocks too...
 	 */
 	if (act) {	
 		/* if 'aki' is provided, store it's current ob to restore later as it might not be the same */
 		if (aki) {
-			oldob= aki->ob;
-			aki->ob= ob;
+			oldadt= aki->adt;
+			aki->adt= adt;
 		}
 		
 		/* loop through F-Curves 
 		 *	- scaling correction only does times for center-points, so should be faster
 		 */
 		for (fcu= act->curves.first; fcu; fcu= fcu->next) {	
-			ANIM_nla_mapping_apply_fcurve(ob, fcu, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 			fcurve_to_keylist(fcu, keys, blocks, aki);
-			ANIM_nla_mapping_apply_fcurve(ob, fcu, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 		}
 		
 		/* if 'aki' is provided, restore ob */
 		if (aki)
-			aki->ob= oldob;
+			aki->adt= oldadt;
 	}
 }
 

@@ -272,37 +272,6 @@ void recalcData(TransInfo *t)
 	Scene *scene = t->scene;
 	Base *base;
 	
-#if 0 // TRANSFORM_FIX_ME
-	if (t->spacetype == SPACE_ACTION) {
-		Object *ob= OBACT;
-		void *data;
-		short context;
-		
-		/* determine what type of data we are operating on */
-		data = get_action_context(&context);
-		if (data == NULL) return;
-		
-		/* always flush data if gpencil context */
-		if (context == ACTCONT_GPENCIL) {
-			flushTransGPactionData(t);
-		}
-		
-		if (G.saction->lock) {
-			if (context == ACTCONT_ACTION) {
-				if(ob) {
-					ob->ctime= -1234567.0f;
-					if(ob->pose || ob_get_key(ob))
-						DAG_object_flush_update(G.scene, ob, OB_RECALC);
-					else
-						DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-				}
-			}
-			else if (context == ACTCONT_SHAPEKEY) {
-				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
-			}
-		}
-	}
-#endif
 	if (t->obedit) {
 	}
 	else if(G.f & G_PARTICLEEDIT) {

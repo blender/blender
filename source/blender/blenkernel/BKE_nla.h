@@ -73,5 +73,7 @@ void BKE_nla_action_pushdown(struct AnimData *adt);
 short BKE_nla_tweakmode_enter(struct AnimData *adt);
 void BKE_nla_tweakmode_exit(struct AnimData *adt);
 
+float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short invert);
+
 #endif
 

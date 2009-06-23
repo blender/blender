@@ -310,16 +310,14 @@ void ipo_rainbow(int cur, int tot, float *out);
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
 
-// XXX these need attention for the new editing method...
+/* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
+struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
-/* Obtain the Object providing NLA-scaling for the given channel if applicable */
-struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
+/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-mapped' time */
+void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct AnimData *adt, short restore);
 
-/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time */
-void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
-
-/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
-void ANIM_nla_mapping_apply_fcurve(struct Object *ob, struct FCurve *fcu, short restore, short only_keys);
+/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
+void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);
 
 /* ------------- Utility macros ----------------------- */
 

@@ -67,6 +67,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -112,16 +113,16 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	if (anim_data.first) {
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			Object *nob= ANIM_nla_mapping_get(ac, ale);
+			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
 			/* get range and apply necessary scaling before */
 			calc_fcurve_range(fcu, &tmin, &tmax);
 			
-			if (nob) {
-				tmin= get_action_frame_inv(nob, tmin);
-				tmax= get_action_frame_inv(nob, tmax);
+			if (adt) {
+				tmin= BKE_nla_tweakedit_remap(adt, tmin, 1);
+				tmax= BKE_nla_tweakedit_remap(adt, tmax, 1);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
@@ -400,14 +401,14 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	
 	/* insert keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* adjust current frame for NLA-scaling */
-		//if (nob)
-		//	cfra= get_action_frame(nob, CFRA);
-		//else 
-		//	cfra= (float)CFRA;
+		if (adt)
+			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, 1);
+		else 
+			cfra= (float)CFRA;
 			
 		/* if there's an id */
 		if (ale->id)
@@ -1054,8 +1055,17 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
+		
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+		}
+		else
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	}
 	
 	BLI_freelistN(&anim_data);
 	
@@ -1125,12 +1135,12 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
@@ -1241,12 +1251,12 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	
 	/* mirror keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);

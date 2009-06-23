@@ -1,5 +1,30 @@
-/* Testing code for new animation system in 2.5 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id: anim_sys.c 21023 2009-06-20 04:02:49Z aligorith $
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -14,6 +39,8 @@
 #include "BLI_arithb.h"
 #include "BLI_dynstr.h"
 
+#include "DNA_anim_types.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -25,7 +52,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "DNA_anim_types.h"
+#include "nla_private.h"
 
 /* ***************************************** */
 /* AnimData API */
@@ -549,129 +576,6 @@ void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, 
 /* ***************************************** */
 /* NLA System - Evaluation */
 
-/* used for list of strips to accumulate at current time */
-typedef struct NlaEvalStrip {
-	struct NlaEvalStrip *next, *prev;
-	
-	NlaTrack *track;			/* track that this strip belongs to */
-	NlaStrip *strip;			/* strip that's being used */
-	
-	short track_index;			/* the index of the track within the list */
-	short strip_mode;			/* which end of the strip are we looking at */
-	
-	float strip_time;			/* time at which which strip is being evaluated */
-} NlaEvalStrip;
-
-/* NlaEvalStrip->strip_mode */
-enum {
-		/* standard evaluation */
-	NES_TIME_BEFORE = -1,
-	NES_TIME_WITHIN,
-	NES_TIME_AFTER,
-	
-		/* transition-strip evaluations */
-	NES_TIME_TRANSITION_START,
-	NES_TIME_TRANSITION_END,
-} eNlaEvalStrip_StripMode;
-
-
-/* temp channel for accumulating data from NLA (avoids needing to clear all values first) */
-// TODO: maybe this will be used as the 'cache' stuff needed for editable values too?
-typedef struct NlaEvalChannel {
-	struct NlaEvalChannel *next, *prev;
-	
-	PointerRNA ptr;			/* pointer to struct containing property to use */
-	PropertyRNA *prop;		/* RNA-property type to use (should be in the struct given) */
-	int index;				/* array index (where applicable) */
-	
-	float value;			/* value of this channel */
-} NlaEvalChannel;
-
-
-/* ---------------------- */
-
-/* non clipped mapping for strip-time <-> global time (for Action-Clips)
- *	invert = convert action-strip time to global time 
- */
-static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short invert)
-{
-	float length, actlength, repeat, scale;
-	
-	/* get number of repeats */
-	if (IS_EQ(strip->repeat, 0.0f)) strip->repeat = 1.0f;
-	repeat = strip->repeat;
-	
-	/* scaling */
-	if (IS_EQ(strip->scale, 0.0f)) strip->scale= 1.0f;
-	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
-	
-	/* length of referenced action */
-	actlength = strip->actend - strip->actstart;
-	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
-	
-	/* length of strip */
-	length= actlength * scale * repeat;
-	if (IS_EQ(length, 0.0f)) length= strip->end - strip->start;
-	
-	/* reversed = play strip backwards */
-	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		/* invert = convert action-strip time to global time */
-		if (invert)
-			return length*(strip->actend - cframe)/(repeat*actlength) + strip->start;
-		else
-			return strip->actend - repeat*actlength*(cframe - strip->start)/length;
-	}
-	else {
-		/* invert = convert action-strip time to global time */
-		if (invert)
-			return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-		else
-			return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
-	}
-}
-
-/* non clipped mapping for strip-time <-> global time (for Transitions)
- *	invert = convert action-strip time to global time 
- */
-static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short invert)
-{
-	float length;
-	
-	/* length of strip */
-	length= strip->end - strip->start;
-	
-	/* reversed = play strip backwards */
-	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		/* invert = convert within-strip-time to global time */
-		if (invert)
-			return strip->end - (length * cframe);
-		else
-			return (strip->end - cframe) / length;
-	}
-	else {
-		/* invert = convert within-strip-time to global time */
-		if (invert)
-			return (length * cframe) + strip->start;
-		else
-			return (cframe - strip->start) / length;
-	}
-}
-
-/* non clipped mapping for strip-time <-> global time
- *	invert = convert action-strip time to global time 
- */
-static float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
-{
-	switch (strip->type) {
-		case NLASTRIP_TYPE_TRANSITION: /* transition */
-			return nlastrip_get_frame_transition(strip, cframe, invert);
-		
-		case NLASTRIP_TYPE_CLIP: /* action-clip (default) */
-		default:
-			return nlastrip_get_frame_actionclip(strip, cframe, invert);
-	}	
-}
-
 /* calculate influence of strip based for given frame based on blendin/out values */
 static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 {
@@ -695,7 +599,7 @@ static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 }
 
 /* evaluate the evaluation time and influence for the strip, storing the results in the strip */
-void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
+static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 {
 	/* firstly, analytically generate values for influence and time (if applicable) */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)

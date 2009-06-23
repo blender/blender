@@ -964,7 +964,7 @@ ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
 		return NULL;
 	
 	/* if strip is mapped, store settings */
-	aki.ob= ANIM_nla_mapping_get(ac, ale);
+	aki.adt= ANIM_nla_mapping_get(ac, ale);
 	
 	if (ac->datatype == ANIMCONT_DOPESHEET)
 		aki.ads= (bDopeSheet *)ac->data;
@@ -985,7 +985,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	Object *nob= NULL;
+	AnimData *adt= NULL;
 	gla2DDrawInfo *di;
 	rcti scr_rct;
 	
@@ -1016,18 +1016,18 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	/* if in NLA there's a strip active, map the view */
 	if (ac->datatype == ANIMCONT_ACTION) {
-		nob= ANIM_nla_mapping_get(ac, NULL);
+		adt= ANIM_nla_mapping_get(ac, NULL);
 		
-		if (nob)
-			ANIM_nla_mapping_draw(di, nob, 0);
+		if (adt)
+			ANIM_nla_mapping_draw(di, adt, 0);
 		
 		/* start and end of action itself */
 		calc_action_range(ac->data, &sta, &end, 0);
 		gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
 		gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
 		
-		if (nob)
-			ANIM_nla_mapping_draw(di, nob, 1);
+		if (adt)
+			ANIM_nla_mapping_draw(di, adt, 1);
 	}
 	
 	/* build list of channels to draw */
@@ -1191,10 +1191,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			/* check if anything to show for this channel */
 			if (ale->datatype != ALE_NONE) {
 				ActKeysInc *aki= init_aki_data(ac, ale); 
-				nob= ANIM_nla_mapping_get(ac, ale);
+				adt= ANIM_nla_mapping_get(ac, ale);
 				
-				if (nob)
-					ANIM_nla_mapping_draw(di, nob, 0);
+				if (adt)
+					ANIM_nla_mapping_draw(di, adt, 0);
 				
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
@@ -1218,8 +1218,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						break;
 				}
 				
-				if (nob) 
-					ANIM_nla_mapping_draw(di, nob, 1);
+				if (adt) 
+					ANIM_nla_mapping_draw(di, adt, 1);
 			}
 		}
 		

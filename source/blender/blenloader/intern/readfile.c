@@ -1933,6 +1933,10 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	/* link NLA-data */
 	link_list(fd, &adt->nla_tracks);
 	direct_link_nladata(fd, &adt->nla_tracks);
+	
+	/* clear temp pointers that may have been set... */
+	// TODO: it's probably only a small cost to reload this anyway...
+	adt->actstrip= NULL;
 }	
 
 /* ************ READ NODE TREE *************** */
