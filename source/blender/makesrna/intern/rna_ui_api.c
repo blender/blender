@@ -242,6 +242,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
+
+	func= RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "image", "Image", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

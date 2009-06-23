@@ -35,6 +35,8 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_Image_animated_update(bContext *C, PointerRNA *ptr)
@@ -133,16 +135,19 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_source_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Source", "Where the image comes from.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Type", "How to generate the image.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
@@ -152,90 +157,105 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "odd_fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_STD_FIELD);
 	RNA_def_property_ui_text(prop, "Odd Fields", "Standard field toggle.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "antialias", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANTIALI);
 	RNA_def_property_ui_text(prop, "Anti-alias", "Toggles image anti-aliasing, only works with solid colors");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	/* generated image (image_generated_change_cb) */
 	prop= RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gen_type");
 	RNA_def_property_enum_items(prop, prop_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "generated_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_x");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Width", "Generated image width.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "generated_height", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_y");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Height", "Generated image height.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	/* realtime properties */
 	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_mapping_items);
 	RNA_def_property_ui_text(prop, "Mapping", "Mapping type to use for this image in the game engine.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "aspx");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, 0.1f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Display Aspect", "Display Aspect for this image, does not affect rendering.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "animated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TWINANIM);
 	RNA_def_property_ui_text(prop, "Animated", "Use as animated texture in the game engine.");
-	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twsta");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation Start", "Start frame of an animated texture.");
-	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twend");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation End", "End frame of an animated texture.");
-	RNA_def_property_update(prop, 0, "rna_Image_animated_update");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
 	prop= RNA_def_property(srna, "animation_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "animspeed");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces).");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "tiles_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xrep");
 	RNA_def_property_range(prop, 1, 16);
 	RNA_def_property_ui_text(prop, "Tiles X", "Degree of repetition in the X direction.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "tiles_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yrep");
 	RNA_def_property_range(prop, 1, 16);
 	RNA_def_property_ui_text(prop, "Tiles Y", "Degree of repetition in the Y direction.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "clamp_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_U);
 	RNA_def_property_ui_text(prop, "Clamp X", "Disable texture repeating horizontally.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "clamp_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_V);
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 }
 
 void RNA_def_image(BlenderRNA *brna)

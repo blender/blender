@@ -754,9 +754,10 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
+		SpaceImage *sima = sa->spacedata.first;
 		// XXX for now, get View2D  from the active region
 		t->view = &ar->v2d;
-		t->around = ar->v2d.around;
+		t->around = sima->around;
 	}
 	else
 	{
