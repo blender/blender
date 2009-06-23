@@ -146,21 +146,21 @@ public:
 							   getUrlBySemantics(geom_name, COLLADASW::POSITION));
 		input_list.push_back(input);
 		verts.add();
+
+		//polylist
+		COLLADASW::Polylist polylist(mSW);
+		
+		//sets count attribute in <polylist>
+		polylist.setCount(totfaces);
 				
-		//<triangles>
-		COLLADASW::Triangles tris(mSW);
-		//sets count attribute in <triangles>
-		tris.setCount(getTriCount(mfaces, totfaces));
+		COLLADASW::InputList &til = polylist.getInputList();
 				
-		COLLADASW::InputList &til = tris.getInputList();
-		/*added semantic, source, offset attributes to <input> */
-				
-		//creates list of attributes in <triangles> <input> for vertices 
-		COLLADASW::Input input2(COLLADASW::VERTEX,
-								getUrlBySemantics(geom_name, COLLADASW::VERTEX), 0);
-		//creates list of attributes in <triangles> <input> for normals
-		COLLADASW::Input input3(COLLADASW::NORMAL,
-								getUrlBySemantics(geom_name, COLLADASW::NORMAL), 0);
+		//creates list of attributes in <polylist> <input> for vertices 
+		COLLADASW::Input input2(COLLADASW::VERTEX, getUrlBySemantics
+								(geom_name, COLLADASW::VERTEX), 0);
+		//creates list of attributes in <polylist> <input> for normals
+		COLLADASW::Input input3(COLLADASW::NORMAL, getUrlBySemantics
+								(geom_name, COLLADASW::NORMAL), 0);
 				
 		til.push_back(input2);
 		til.push_back(input3);
@@ -169,17 +169,32 @@ public:
 		if (checkTexcoords == true)
 			{
 				COLLADASW::Input input4(COLLADASW::TEXCOORD,
-										getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 1);
+										getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 0);
 				til.push_back(input4);
-				//XXX
-				tris.setMaterial("material-symbol");
+				polylist.setMaterial("material-symbol");
 			}
-		//performs the actual writing
-		tris.prepareToAppendValues();
-				
+		
+		
+		//<vcount>
 		int i;
+		std::vector<unsigned long> VCountList;
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+			
+			if (f->v4 == 0) {
+				VCountList.push_back(3);
+			}
+			else {
+				VCountList.push_back(4);
+			}
+		}
+		polylist.setVCountList(VCountList);
+		
+		//performs the actual writing
+		polylist.prepareToAppendValues();
+		
 		int texindex = 0;
-		//writes data to <p>
+		//<p>
 		for (i = 0; i < totfaces; i++) {
 			MFace *f = &mfaces[i];
 			//if mesh has uv coords writes uv and
@@ -187,27 +202,27 @@ public:
 			if (checkTexcoords == true)	{
 				// if triangle
 				if (f->v4 == 0) {
-					tris.appendValues(f->v1);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v2);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v3);
-					tris.appendValues(texindex++);
+					polylist.appendValues(f->v1);
+					polylist.appendValues(texindex++);
+					polylist.appendValues(f->v2);
+					polylist.appendValues(texindex++);
+					polylist.appendValues(f->v3);
+					polylist.appendValues(texindex++);
 				}
 				// quad
 				else {
-					tris.appendValues(f->v1);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v2);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v3);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v3);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v4);
-					tris.appendValues(texindex++);
-					tris.appendValues(f->v1);
-					tris.appendValues(texindex++);
+					polylist.appendValues(f->v1);
+					polylist.appendValues(texindex++);
+					polylist.appendValues(f->v2);
+					polylist.appendValues(texindex++);
+					polylist.appendValues(f->v3);
+					polylist.appendValues(texindex++);
+					//tris.appendValues(f->v3);
+					//tris.appendValues(texindex++);
+					polylist.appendValues(f->v4);
+					polylist.appendValues(texindex++);
+					//tris.appendValues(f->v1);
+					//tris.appendValues(texindex++);
 				}
 			}
 			//if mesh has no uv coords writes only 
@@ -215,19 +230,19 @@ public:
 			else {
 				// if triangle
 				if (f->v4 == 0) {
-					tris.appendValues(f->v1, f->v2, f->v3);	
+					polylist.appendValues(f->v1, f->v2, f->v3);	
 				}
 				// quad
 				else {
-					tris.appendValues(f->v1, f->v2, f->v3);
-					tris.appendValues(f->v3, f->v4, f->v1);
+					polylist.appendValues(f->v1, f->v2, f->v3, f->v4);
+					//tris.appendValues(f->v3, f->v4, f->v1);
 				}
 						
 			} 
 		}
 
-		tris.closeElement();
-		tris.finish();
+		polylist.closeElement();
+		polylist.finish();
 					
 		closeMesh();
 		closeGeometry();
@@ -284,15 +299,27 @@ public:
 			source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
 			source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
 							  ARRAY_ID_SUFFIX);
-			source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
+			//source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
+			int i = 0;
+			int j = 0;
+			for (int i = 0; i < totfaces; i++) {
+				MFace *f = &mfaces[i];
+				
+				if (f->v4 == 0) {
+					j+=3;
+				}
+				else {
+					j+=4;
+				}
+			}
+			source.setAccessorCount(j);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 			param.push_back("X");
 			param.push_back("Y");
 				
 			source.prepareToAppendValues();
-				
-			int i;
+			
 			for (i = 0; i < totfaces; i++) {
 				MFace *f = &mfaces[i];
 					
@@ -327,14 +354,14 @@ public:
 					source.appendValues(tface[i].uv[2][0]);
 					source.appendValues(tface[i].uv[2][1]);
 					//uv3
-					source.appendValues(tface[i].uv[2][0]);
-					source.appendValues(tface[i].uv[2][1]);
+					//source.appendValues(tface[i].uv[2][0]);
+					//source.appendValues(tface[i].uv[2][1]);
 					//uv4
 					source.appendValues(tface[i].uv[3][0]);
 					source.appendValues(tface[i].uv[3][1]);
 					//uv1
-					source.appendValues(tface[i].uv[0][0]);
-					source.appendValues(tface[i].uv[0][1]);
+					//source.appendValues(tface[i].uv[0][0]);
+					//source.appendValues(tface[i].uv[0][1]);
 						
 				}
 			}
@@ -389,7 +416,7 @@ public:
 	}
 	
 
-	int getTriCount(MFace *faces, int totface) {
+	/*	int getTriCount(MFace *faces, int totface) {
 		int i;
 		int tris = 0;
 		for (i = 0; i < totface; i++) {
@@ -401,7 +428,7 @@ public:
 		}
 
 		return tris;
-	}
+		}*/
 };
 
 class SceneExporter: COLLADASW::LibraryVisualScenes
@@ -444,10 +471,24 @@ public:
 			COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
 			COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
 			std::string matid = std::string(ma->id.name);
-			// COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-			// COLLADASW::BindVertexInput bvi("myUVs", "TEXCOORD", 1);
-			// im.push_back(bvi);
-			// iml.push_back(im);
+			COLLADASW::InstanceMaterial im("material-symbol", COLLADASW::URI
+										   (COLLADABU::Utils::EMPTY_STRING,
+											matid));
+			//iterate over all textures
+			//if any add to list
+			int c = 0;
+			for (int b = 0; b < MAX_MTEX; b++) {
+				MTex *mtex = ma->mtex[b];
+				if (mtex && mtex->tex && mtex->tex->ima) {
+					char texcoord[30];
+					sprintf(texcoord, "%d", c);
+					COLLADASW::BindVertexInput bvi(std::string("myUVs") + texcoord, "TEXCOORD", 0);
+					c++;
+					im.push_back(bvi);
+				}
+			}
+			
+		    iml.push_back(im);
 		}
 
 		instGeom.add();
@@ -509,15 +550,20 @@ public:
 		openEffect(std::string(ma->id.name) + "-effect");
 
 		COLLADASW::EffectProfile ep(mSW);
-			
+		
 		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
-
-		//open <profile_common>
-		ep.openProfile();
 			
 		std::vector<int> mtexindices = countmtex(ma);
-			
+		
 		for (int a = 0; a < mtexindices.size(); a++){
+			
+			//open <profile_common>
+			ep.openProfile();
+			
+			//need this for making each texcoord unique
+			char texcoord[30];
+			sprintf(texcoord, "%d", a);
+			
 			//<newparam> <surface> <init_from>
 			Image *ima = ma->mtex[mtexindices[a]]->tex->ima;
 			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
@@ -532,7 +578,7 @@ public:
 
 			//<lambert> <diffuse> <texture>	
 			COLLADASW::Texture texture(ima->id.name);
-			texture.setTexcoord("myUVs");
+			texture.setTexcoord(std::string("myUVs") + texcoord);
 			texture.setSurface(surface);
 			texture.setSampler(sampler);
 
@@ -541,20 +587,17 @@ public:
 			ep.setDiffuse(cot, true, "");
 			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
 
-			//todo add or find generator of technique sids
 			//performs the actual writing
 			ep.addProfileElements();
-			ep.closeTechnique();
-			//COLLADASW::Technique technique(mSW);
-			//technique.closeTechnique();
+			ep.closeProfile();
 				
 		}
 			
-		ep.closeProfile();
+		closeEffect();
 	}
 
 	//returns the array of mtex indices which have image 
-	//I need this for exporting textures
+	//need this for exporting textures
 	std::vector<int> countmtex(Material *ma)
 	{
 		std::vector<int> mtexindices;
