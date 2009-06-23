@@ -54,8 +54,15 @@ void rna_Mesh_copy_applied(Mesh *me, Scene *sce, Object *ob)
 }
 */
 
-void rna_Mesh_transform(Mesh *me, float **mat)
+void rna_Mesh_transform(Mesh *me, float *mat)
 {
+	/* TODO: old API transform had recalc_normals option */
+	int i;
+	MVert *mvert= me->mvert;
+
+	for(i= 0; i < mesh->totvert; i++, mvert++) {
+		Mat4MulVecfl(mat, mvert->co);
+	}
 }
 
 #if 0
@@ -85,14 +92,13 @@ static void rna_Mesh_verts_add(PointerRNA *ptr, PointerRNA *ptr_item)
 
 void RNA_api_mesh(StructRNA *srna)
 {
-	/*FunctionRNA *func;
-	PropertyRNA *prop;*/
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
-	/*
-	func= RNA_def_function(srna, "copy", "rna_Mesh_copy");
-	RNA_def_function_ui_description(func, "Copy mesh data.");
-	prop= RNA_def_pointer(func, "src", "Mesh", "", "A mesh to copy data from.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);*/
+	func= RNA_def_function(srna, "transform", "rna_Mesh_transform");
+	RNA_def_function_ui_description(func, "Transform mesh vertices by a matrix.");
+	parm= RNA_def_float_matrix(func, "matrix", 16, NULL, 0.0f, 0.0f, "", "Matrix.", 0.0f, 0.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/*
 	func= RNA_def_function(srna, "add_geom", "rna_Mesh_add_geom");

@@ -186,7 +186,7 @@ def copy_images(dest_dir):
 
 
 def test_nurbs_compat(ob):
-	if ob.type != 'Curve':
+	if ob.type != 'CURVE':
 		return False
 	
 	for nu in ob.data:
@@ -353,8 +353,328 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 		if ob_main.dupli_type != 'NONE':
 			ob_main.create_dupli_list()
 
-		if ob_main.parent:
-			pass
+		# ignore dupli children
+		if ob_main.parent.dupli_type != 'NONE':
+			continue
+
+		obs = []
+		if ob_main.dupli_type != 'NONE':
+			obs = [(dob.matrix, dob.object) for dob in ob_main.dupli_list]
+		else:
+			obs = [ob.matrix, ob]
+
+		for ob, ob_mat in obs:
+			# XXX postponed
+# 			# Nurbs curve support
+# 			if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
+# 				if EXPORT_ROTX90:
+# 					ob_mat = ob_mat * mat_xrot90
+				
+# 				totverts += write_nurb(file, ob, ob_mat)
+				
+# 				continue
+# 			end nurbs
+			
+# 			# Will work for non meshes now! :)
+# 			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
+# 			if not me:
+# 				continue
+
+			if ob.type != 'MESH':
+				continue
+
+			me = ob.data
+
+			# XXX
+# 			if EXPORT_UV:
+# 				faceuv= me.faceUV
+# 			else:
+# 				faceuv = False
+
+			convert_to_tri = False
+
+			# We have a valid mesh
+			if EXPORT_TRI and me.faces:
+				# Add a dummy object to it.
+				has_quads = False
+				for f in me.faces:
+# 					if len(f) == 4:
+					if len(f.verts) == 4:
+						has_quads = True
+						break
+				
+				convert_to_tri = has_quads
+# 					oldmode = Mesh.Mode()
+# 					Mesh.Mode(Mesh.SelectModes['FACE'])
+					
+# 					me.sel = True
+# 					tempob = scn.objects.new(me)
+# 					me.quadToTriangle(0) # more=0 shortest length
+# 					oldmode = Mesh.Mode(oldmode)
+# 					scn.objects.unlink(tempob)
+					
+# 					Mesh.Mode(oldmode)
+
+			if EXPORT_ROTX90:
+				ob_mat *= mat_xrot90
+
+			me = ob.create_render_mesh(True, ob_mat, convert_to_tri)
+
+			# Make our own list so it can be sorted to reduce context switching
+			faces = [ f for f in me.faces ]
+			
+			if EXPORT_EDGES:
+				edges = me.edges
+			else:
+				edges = []
+			
+			if not (len(faces)+len(edges)+len(me.verts)): # Make sure there is somthing to write
+				continue # dont bother with this mesh.
+
+			# done above ^
+# 			if EXPORT_ROTX90:
+# 				me.transform(ob_mat*mat_xrot90)
+# 			else:
+# 				me.transform(ob_mat)
+			
+			# High Quality Normals
+			if EXPORT_NORMALS and faces:
+				if EXPORT_NORMALS_HQ:
+					BPyMesh.meshCalcNormals(me)
+				else:
+					# transforming normals is incorrect
+					# when the matrix is scaled,
+					# better to recalculate them
+					me.calcNormals()
+			
+			# # Crash Blender
+			#materials = me.getMaterials(1) # 1 == will return None in the list.
+			materials = me.materials
+			
+			materialNames = []
+			materialItems = materials[:]
+			if materials:
+				for mat in materials:
+					if mat: # !=None
+						materialNames.append(mat.name)
+					else:
+						materialNames.append(None)
+				# Cant use LC because some materials are None.
+				# materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.	
+			
+			# Possible there null materials, will mess up indicies
+			# but at least it will export, wait until Blender gets fixed.
+			materialNames.extend((16-len(materialNames)) * [None])
+			materialItems.extend((16-len(materialItems)) * [None])
+			
+			# Sort by Material, then images
+			# so we dont over context switch in the obj file.
+			if EXPORT_KEEP_VERT_ORDER:
+				pass
+			elif faceuv:
+				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
+				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+			elif len(materials) > 1:
+				try:	faces.sort(key = lambda a: (a.mat, a.smooth))
+				except:	faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
+			else:
+				# no materials
+				try:	faces.sort(key = lambda a: a.smooth)
+				except:	faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
+			
+			# Set the default mat to no material and no image.
+			contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
+			contextSmooth = None # Will either be true or false,  set bad to force initialization switch.
+			
+			if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
+				name1 = ob.name
+				name2 = ob.getData(1)
+				if name1 == name2:
+					obnamestring = fixName(name1)
+				else:
+					obnamestring = '%s_%s' % (fixName(name1), fixName(name2))
+				
+				if EXPORT_BLEN_OBS:
+					file.write('o %s\n' % obnamestring) # Write Object name
+				else: # if EXPORT_GROUP_BY_OB:
+					file.write('g %s\n' % obnamestring)
+			
+			
+			# Vert
+			for v in me.verts:
+				file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
+			
+			# UV
+			if faceuv:
+				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
+				
+				uv_dict = {} # could use a set() here
+				for f_index, f in enumerate(faces):
+					
+					for uv_index, uv in enumerate(f.uv):
+						uvkey = veckey2d(uv)
+						try:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+						except:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+							file.write('vt %.6f %.6f\n' % tuple(uv))
+				
+				uv_unique_count = len(uv_dict)
+				del uv, uvkey, uv_dict, f_index, uv_index
+				# Only need uv_unique_count and uv_face_mapping
+			
+			# NORMAL, Smooth/Non smoothed.
+			if EXPORT_NORMALS:
+				for f in faces:
+					if f.smooth:
+						for v in f:
+							noKey = veckey3d(v.no)
+							if not globalNormals.has_key( noKey ):
+								globalNormals[noKey] = totno
+								totno +=1
+								file.write('vn %.6f %.6f %.6f\n' % noKey)
+					else:
+						# Hard, 1 normal from the face.
+						noKey = veckey3d(f.no)
+						if not globalNormals.has_key( noKey ):
+							globalNormals[noKey] = totno
+							totno +=1
+							file.write('vn %.6f %.6f %.6f\n' % noKey)
+			
+			if not faceuv:
+				f_image = None
+			
+			if EXPORT_POLYGROUPS:
+				# Retrieve the list of vertex groups
+				vertGroupNames = me.getVertGroupNames()
+
+				currentVGroup = ''
+				# Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
+				vgroupsMap = [[] for _i in xrange(len(me.verts))]
+				for vertexGroupName in vertGroupNames:
+					for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
+						vgroupsMap[vIdx].append((vertexGroupName, vWeight))
+
+			for f_index, f in enumerate(faces):
+				f_v= f.v
+				f_smooth= f.smooth
+				f_mat = min(f.mat, len(materialNames)-1)
+				if faceuv:
+					f_image = f.image
+					f_uv= f.uv
+				
+				# MAKE KEY
+				if faceuv and f_image: # Object is always true.
+					key = materialNames[f_mat],	 f_image.name
+				else:
+					key = materialNames[f_mat],	 None # No image, use None instead.
+				
+				# Write the vertex group
+				if EXPORT_POLYGROUPS:
+					if vertGroupNames:
+						# find what vertext group the face belongs to
+						theVGroup = findVertexGroupName(f,vgroupsMap)
+						if	theVGroup != currentVGroup:
+							currentVGroup = theVGroup
+							file.write('g %s\n' % theVGroup)
+
+				# CHECK FOR CONTEXT SWITCH
+				if key == contextMat:
+					pass # Context alredy switched, dont do anything
+				else:
+					if key[0] == None and key[1] == None:
+						# Write a null material, since we know the context has changed.
+						if EXPORT_GROUP_BY_MAT:
+							file.write('g %s_%s\n' % (fixName(ob.name), fixName(ob.getData(1))) ) # can be mat_image or (null)
+						file.write('usemtl (null)\n') # mat, image
+						
+					else:
+						mat_data= MTL_DICT.get(key)
+						if not mat_data:
+							# First add to global dict so we can export to mtl
+							# Then write mtl
+							
+							# Make a new names from the mat and image name,
+							# converting any spaces to underscores with fixName.
+							
+							# If none image dont bother adding it to the name
+							if key[1] == None:
+								mat_data = MTL_DICT[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
+							else:
+								mat_data = MTL_DICT[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
+						
+						if EXPORT_GROUP_BY_MAT:
+							file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.getData(1)), mat_data[0]) ) # can be mat_image or (null)
+
+						file.write('usemtl %s\n' % mat_data[0]) # can be mat_image or (null)
+					
+				contextMat = key
+				if f_smooth != contextSmooth:
+					if f_smooth: # on now off
+						file.write('s 1\n')
+						contextSmooth = f_smooth
+					else: # was off now on
+						file.write('s off\n')
+						contextSmooth = f_smooth
+				
+				file.write('f')
+				if faceuv:
+					if EXPORT_NORMALS:
+						if f_smooth: # Smoothed, use vertex normals
+							for vi, v in enumerate(f_v):
+								file.write( ' %d/%d/%d' % (\
+								  v.index+totverts,\
+								  totuvco + uv_face_mapping[f_index][vi],\
+								  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
+							
+						else: # No smoothing, face normals
+							no = globalNormals[ veckey3d(f.no) ]
+							for vi, v in enumerate(f_v):
+								file.write( ' %d/%d/%d' % (\
+								  v.index+totverts,\
+								  totuvco + uv_face_mapping[f_index][vi],\
+								  no)) # vert, uv, normal
+					
+					else: # No Normals
+						for vi, v in enumerate(f_v):
+							file.write( ' %d/%d' % (\
+							  v.index+totverts,\
+							  totuvco + uv_face_mapping[f_index][vi])) # vert, uv
+					
+					face_vert_index += len(f_v)
+				
+				else: # No UV's
+					if EXPORT_NORMALS:
+						if f_smooth: # Smoothed, use vertex normals
+							for v in f_v:
+								file.write( ' %d//%d' % (\
+								  v.index+totverts,\
+								  globalNormals[ veckey3d(v.no) ]))
+						else: # No smoothing, face normals
+							no = globalNormals[ veckey3d(f.no) ]
+							for v in f_v:
+								file.write( ' %d//%d' % (\
+								  v.index+totverts,\
+								  no))
+					else: # No Normals
+						for v in f_v:
+							file.write( ' %d' % (\
+							  v.index+totverts))
+						
+				file.write('\n')
+			
+			# Write edges.
+			if EXPORT_EDGES:
+				LOOSE= Mesh.EdgeFlags.LOOSE
+				for ed in edges:
+					if ed.flag & LOOSE:
+						file.write('f %d %d\n' % (ed.v1.index+totverts, ed.v2.index+totverts))
+				
+			# Make the indicies global rather then per mesh
+			totverts += len(me.verts)
+			if faceuv:
+				totuvco += uv_unique_count
+			me.verts= None			
 
 		if ob_main.dupli_type != 'NONE':
 			ob_main.free_dupli_list()

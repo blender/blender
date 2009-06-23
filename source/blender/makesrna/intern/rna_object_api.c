@@ -45,7 +45,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 
-#define OBJECT_API_PROP_DUPLILIST "dupli_list"
+#include "BLI_arithb.h"
 
 /* copied from init_render_mesh (render code) */
 static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *reports, int apply_matrix, float *matrix)
@@ -78,7 +78,7 @@ static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *
 	dm->release(dm);
 
 	if (apply_matrix) {
-		float *mat = ob->obmat;
+		float *mat = (float*)ob->obmat;
 
 		if (matrix) {
 			/* apply custom matrix */
@@ -97,33 +97,20 @@ static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *reports)
 {
-	PointerRNA obptr;
-	PointerRNA dobptr;
-	Scene *sce;
-	DupliObject *dob;
-	PropertyRNA *prop;
-
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis.");
 		return;
 	}
 
-	RNA_id_pointer_create(&ob->id, &obptr);
+	/* free duplilist if a user forget to */
+	if (ob->duplilist) {
+		BKE_report(reports, RPT_WARNING, "%s.dupli_list has not been freed.", RNA_struct_identifier(&RNA_Object));
 
-	if (!(prop= RNA_struct_find_property(&obptr, OBJECT_API_PROP_DUPLILIST))) {
-		// hint: all Objects will now have this property defined
-		prop= RNA_def_collection_runtime(obptr.type, OBJECT_API_PROP_DUPLILIST, &RNA_DupliObject, "Dupli list", "");
+		free_object_duplilist(ob->duplilist);
+		ob->duplilist= NULL;
 	}
 
-	RNA_property_collection_clear(&obptr, prop);
-	sce= CTX_data_scene(C);
-	ob->duplilist= object_duplilist(sce, ob);
-
-	for(dob= (DupliObject*)ob->duplilist->first; dob; dob= dob->next) {
-		RNA_pointer_create(NULL, &RNA_DupliObject, dob, &dobptr);
-		RNA_property_collection_add(&obptr, prop, &dobptr);
-		dob = dob->next;
-	}
+	ob->duplilist= object_duplilist(CTX_data_scene(C), ob);
 
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
@@ -132,15 +119,6 @@ static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 {
 	PointerRNA obptr;
 	PropertyRNA *prop;
-
-	RNA_id_pointer_create(&ob->id, &obptr);
-
-	if (!(prop= RNA_struct_find_property(&obptr, OBJECT_API_PROP_DUPLILIST))) {
-		BKE_report(reports, RPT_ERROR, "Object has no duplilist property.");
-		return;
-	}
-
-	RNA_property_collection_clear(&obptr, prop);
 
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
