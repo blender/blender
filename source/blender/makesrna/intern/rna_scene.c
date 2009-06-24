@@ -1018,6 +1018,8 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	rna_def_tool_settings(brna);
 	rna_def_scene_render_data(brna);
+
+	RNA_api_scene(srna);
 }
 
 #endif

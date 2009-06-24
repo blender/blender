@@ -542,7 +542,8 @@ void set_mesh(Object *ob, Mesh *me)
 	
 	if(ob->type==OB_MESH) {
 		old= ob->data;
-		old->id.us--;
+		if (old) /* to make set_mesh work on objects created with add_only_object, i.e. having ob->data == NULL */
+			old->id.us--;
 		ob->data= me;
 		id_us_plus((ID *)me);
 	}

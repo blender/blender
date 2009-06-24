@@ -36,6 +36,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BLI_arithb.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -60,7 +61,7 @@ void rna_Mesh_transform(Mesh *me, float *mat)
 	int i;
 	MVert *mvert= me->mvert;
 
-	for(i= 0; i < mesh->totvert; i++, mvert++) {
+	for(i= 0; i < me->totvert; i++, mvert++) {
 		Mat4MulVecfl(mat, mvert->co);
 	}
 }

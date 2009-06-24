@@ -62,7 +62,29 @@ static void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
 
 static Object* rna_Main_add_object(Main *main, int type, char *name)
 {
-	return add_only_object(type, name);
+	Object *ob= add_only_object(type, name);
+	ob->id.us--;
+	return ob;
+}
+
+/*
+  WARNING: the following example shows when this function should not be called
+
+  ob = bpy.data.add_object()
+  scene.add_object(ob)
+
+  # ob is freed here
+  scene.remove_object(ob)
+
+  # don't do this since ob is already freed!
+  bpy.data.remove_object(ob)
+*/
+static void rna_Main_remove_object(Main *main, ReportList *reports, Object *ob)
+{
+	if(ob->id.us == 0)
+		free_libblock(&main->object, ob);
+	else
+		BKE_report(reports, RPT_ERROR, "Object must have zero users to be removed.");
 }
 
 #else
@@ -89,12 +111,18 @@ void RNA_api_main(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_object", "rna_Main_add_object");
 	RNA_def_function_ui_description(func, "Add a new object.");
-	parm= RNA_def_enum(func, "type", object_type_items, 0, "Type", "Type of Object.");
+	parm= RNA_def_enum(func, "type", object_type_items, 0, "", "Type of Object.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "object", "Object", "", "New object.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove_object", "rna_Main_remove_object");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an object if it has zero users.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "add_mesh", "rna_Main_add_mesh");
 	RNA_def_function_ui_description(func, "Add a new mesh.");
@@ -108,7 +136,6 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Remove a mesh if it has zero users.");
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
 }
 
 #endif

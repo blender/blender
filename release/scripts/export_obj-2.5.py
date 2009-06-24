@@ -307,7 +307,8 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 	temp_mesh_name = '~tmp-mesh'
 
 	time1 = sys.time()
-	scn = Scene.GetCurrent()
+# 	scn = Scene.GetCurrent()
+	scene = context.scene
 
 	file = open(filename, "w")
 	
@@ -383,15 +384,15 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			if ob.type != 'MESH':
 				continue
 
-			me = ob.data
-
 			# XXX
 # 			if EXPORT_UV:
 # 				faceuv= me.faceUV
 # 			else:
 # 				faceuv = False
 
-			convert_to_tri = False
+			me = ob.create_render_mesh()
+
+			newob = ob
 
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
@@ -403,7 +404,10 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 						has_quads = True
 						break
 				
-				convert_to_tri = has_quads
+				if has_quads:
+					newob = bpy.data.add_object('MESH', 'temp_object')
+					scene.add_object(newob)
+					newob.convert_to_triface(scene)
 # 					oldmode = Mesh.Mode()
 # 					Mesh.Mode(Mesh.SelectModes['FACE'])
 					
@@ -418,8 +422,6 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			if EXPORT_ROTX90:
 				ob_mat *= mat_xrot90
 
-			me = ob.create_render_mesh(True, ob_mat, convert_to_tri)
-
 			# Make our own list so it can be sorted to reduce context switching
 			faces = [ f for f in me.faces ]
 			
@@ -429,6 +431,10 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 				edges = []
 			
 			if not (len(faces)+len(edges)+len(me.verts)): # Make sure there is somthing to write
+
+				if newob != ob:
+					scene.remove_object(newob)
+
 				continue # dont bother with this mesh.
 
 			# done above ^

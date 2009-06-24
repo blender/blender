@@ -28,6 +28,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 #include "RNA_define.h"
 #include "RNA_types.h"
@@ -40,6 +42,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_anim.h"
 #include "BKE_report.h"
+#include "BKE_depsgraph.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -47,15 +50,17 @@
 
 #include "BLI_arithb.h"
 
+#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
+
+#include "ED_mesh.h"
+
 /* copied from init_render_mesh (render code) */
-static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *reports, int apply_matrix, float *matrix)
+static Mesh *create_mesh(Object *ob, bContext *C, ReportList *reports, int render_mesh)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	DerivedMesh *dm;
 	Mesh *me;
 	Scene *sce;
-	int a;
-	MVert *mvert;
 
 	sce= CTX_data_scene(C);
 	
@@ -65,7 +70,7 @@ static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *
 		return NULL;
 	}
 	
-	dm= mesh_create_derived_render(sce, ob, mask);
+	dm= render_mesh ? mesh_create_derived_render(sce, ob, mask) : mesh_create_derived_view(sce, ob, mask);
 
 	if(!dm) {
 		/* TODO: report */
@@ -77,21 +82,17 @@ static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *
 	DM_to_mesh(dm, me);
 	dm->release(dm);
 
-	if (apply_matrix) {
-		float *mat = (float*)ob->obmat;
-
-		if (matrix) {
-			/* apply custom matrix */
-			mat = matrix;
-		}
-
-		/* is this really that simple? :) */
-		for(a= 0, mvert= me->mvert; a < me->totvert; a++, mvert++) {
-			Mat4MulVecfl(ob->obmat, mvert->co);
-		}
-	}
-
 	return me;
+}
+
+static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *reports)
+{
+	return create_mesh(ob, C, reports, 1);
+}
+
+static Mesh *rna_Object_create_preview_mesh(Object *ob, bContext *C, ReportList *reports)
+{
+	return create_mesh(ob, C, reports, 0);
 }
 
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
@@ -102,9 +103,9 @@ static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *rep
 		return;
 	}
 
-	/* free duplilist if a user forget to */
+	/* free duplilist if a user forgets to */
 	if (ob->duplilist) {
-		BKE_report(reports, RPT_WARNING, "%s.dupli_list has not been freed.", RNA_struct_identifier(&RNA_Object));
+		BKE_reportf(reports, RPT_WARNING, "%s.dupli_list has not been freed.", RNA_struct_identifier(&RNA_Object));
 
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist= NULL;
@@ -117,14 +118,40 @@ static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *rep
 
 static void rna_Object_free_duplilist(Object *ob, ReportList *reports)
 {
-	PointerRNA obptr;
-	PropertyRNA *prop;
-
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist= NULL;
 	}
 }
+
+static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *reports, Scene *sce)
+{
+	Mesh *me;
+	int ob_editing = CTX_data_edit_object(C) == ob;
+
+	if (ob->type != OB_MESH) {
+		BKE_report(reports, RPT_ERROR, "Object should be of type MESH.");
+		return;
+	}
+
+	me= (Mesh*)ob->data;
+
+	if (!ob_editing)
+		make_editMesh(sce, ob);
+
+	/* select all */
+	EM_set_flag_all(me->edit_mesh, SELECT);
+
+	convert_to_triface(me->edit_mesh, 0);
+
+	load_editMesh(sce, ob);
+
+	if (!ob_editing)
+		free_editMesh(me->edit_mesh);
+
+	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
+}
+
 
 #else
 
@@ -149,22 +176,30 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}};
 
 	func= RNA_def_function(srna, "create_render_mesh", "rna_Object_create_render_mesh");
-	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
+	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied for rendering.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_boolean(func, "apply_matrix", 0, "", "True if object matrix or custom matrix should be applied to geometry.");
-	RNA_def_property_clear_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_float_matrix(func, "custom_matrix", 16, NULL, 0.0f, 0.0f, "", "Optional custom matrix to apply.", 0.0f, 0.0f);
-	RNA_def_property_clear_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "create_preview_mesh", "rna_Object_create_preview_mesh");
+	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied for preview.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
 	
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
-	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object. When no longer needed, it should be freed with free_dupli_list.");
+	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 
 	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+	func= RNA_def_function(srna, "convert_to_triface", "rna_Object_convert_to_triface");
+	RNA_def_function_ui_description(func, "Convert all mesh faces to triangles.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object is.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif
