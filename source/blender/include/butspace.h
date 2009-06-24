@@ -288,6 +288,10 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SOFTBODY_DEL_VG		1421
 #define B_SOFTBODY_BAKE			1422
 #define B_SOFTBODY_BAKE_FREE	1423
+#define B_SOFTBODY_UP_GRMASS	1424
+#define B_SOFTBODY_DEL_VGMASS	1425
+#define B_SOFTBODY_UP_GRSPRING	1426
+#define B_SOFTBODY_DEL_VGSPRING	1427
 
 /* Fluidsim button defines */
 #define B_FLUIDSIM_BAKE	        1450

@@ -43,7 +43,9 @@ typedef struct BodyPoint {
 	float choke,choke2,frozen;
 	float colball;
 	short flag;
-	char octantflag;
+	//char octantflag;
+	float mass;
+	float springweight;
 } BodyPoint;
 
 /* allocates and initializes general main data */
