@@ -423,4 +423,58 @@ void NLA_OT_add_tracks (wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "above_selected", 0, "Above Selected", "Add a new NLA Track above every existing selected one.");
 }
 
+/* ******************** Delete Tracks Operator ***************************** */
+/* Delete selected NLA Tracks */
+
+static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the AnimData blocks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* delete tracks */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
+		
+		/* call delete on this track - deletes all strips too */
+		free_nlatrack(&adt->nla_tracks, nlt);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_delete_tracks (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Tracks";
+	ot->idname= "NLA_OT_delete_tracks";
+	ot->description= "Delete selected NLA-Tracks and the strips they contain.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_delete_tracks_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* *********************************************** */

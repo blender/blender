@@ -132,6 +132,7 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_channels_click);
 	
 	WM_operatortype_append(NLA_OT_add_tracks);
+	WM_operatortype_append(NLA_OT_delete_tracks);
 	
 	/* select */
 	WM_operatortype_append(NLAEDIT_OT_click_select);
@@ -165,6 +166,10 @@ static void nla_keymap_channels (wmWindowManager *wm, ListBase *keymap)
 		/* add tracks */
 	WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_add_tracks", AKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "above_selected", 1);
+	
+		/* delete tracks */
+	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", DELKEY, KM_PRESS, 0, 0);
 	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 	/* selection */

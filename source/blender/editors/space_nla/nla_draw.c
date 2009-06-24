@@ -391,9 +391,6 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					NlaStrip *strip;
 					int index;
 					
-					/* draw backdrop? */
-					// TODO...
-					
 					/* draw each strip in the track (if visible) */
 					for (strip=nlt->strips.first, index=1; strip; strip=strip->next, index++) {
 						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
@@ -420,7 +417,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 						// greenish color (same as tweaking strip) - hardcoded for now
-						glColor4f(0.3f, 0.95f, 0.1f, 0.3f); // FIXME: only draw the actual range of the action darker?
+						glColor4f(0.3f, 0.95f, 0.1f, 0.3f);
 					}
 					else {
 						if (ale->data)
