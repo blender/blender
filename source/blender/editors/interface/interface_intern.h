@@ -50,6 +50,9 @@ struct bContextStore;
 /* visual types for drawing */
 /* for time being separated from functional types */
 typedef enum {
+	/* default */
+	UI_WTYPE_REGULAR,
+
 	/* standard set */
 	UI_WTYPE_LABEL,
 	UI_WTYPE_TOGGLE,
@@ -78,7 +81,8 @@ typedef enum {
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
 	UI_WTYPE_NORMAL,
-	UI_WTYPE_BOX
+	UI_WTYPE_BOX,
+	UI_WTYPE_SCROLL
 	
 } uiWidgetTypeEnum;
 

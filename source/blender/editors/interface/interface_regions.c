@@ -181,7 +181,7 @@ MenuData *decompose_menu_string(char *str)
 				*s= '\0';
 				s++;
 			}
-		} else if (c=='|' || c=='\0') {
+		} else if (c=='|' || c == '\n' || c=='\0') {
 			if (nitem) {
 				*s= '\0';
 
@@ -2566,7 +2566,6 @@ static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc
 	
 	return menu;
 }
-
 
 static void operator_name_cb(bContext *C, void *arg, int retval)
 {

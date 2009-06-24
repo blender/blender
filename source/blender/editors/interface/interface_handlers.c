@@ -746,11 +746,8 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_ROW(C, block, but, data);
 			break;
 		case SCROLL:
-			break;
 		case NUM:
 		case NUMABS:
-			ui_apply_but_NUM(C, but, data);
-			break;
 		case SLI:
 		case NUMSLI:
 			ui_apply_but_NUM(C, but, data);
@@ -2061,6 +2058,11 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 
 	if(but->type==NUMSLI) deler= ((but->x2-but->x1) - 5.0*but->aspect);
 	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
+	else if(but->type==SCROLL) {
+		int horizontal= (but->x2 - but->x1 > but->y2 - but->y1);
+		float size= (horizontal)? (but->x2-but->x1): -(but->y2-but->y1);
+		deler= size*(but->softmax - but->softmin)/(but->softmax - but->softmin + but->a1);
+	}
 	else deler= (but->x2-but->x1- 5.0*but->aspect);
 
 	f= (float)(mx-data->dragstartx)/deler + data->dragfstart;
@@ -2226,6 +2228,54 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			retval= WM_UI_HANDLER_BREAK;
 		}
+	}
+	
+	return retval;
+}
+
+static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my, click= 0;
+	int retval= WM_UI_HANDLER_CONTINUE;
+	int horizontal= (but->x2 - but->x1 > but->y2 - but->y1);
+	
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->val==KM_PRESS) {
+			if(event->type == LEFTMOUSE) {
+				if(horizontal) {
+					data->dragstartx= mx;
+					data->draglastx= mx;
+				}
+				else {
+					data->dragstartx= my;
+					data->draglastx= my;
+				}
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				retval= WM_UI_HANDLER_BREAK;
+			}
+			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
+				click= 1;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(ui_numedit_but_SLI(but, data, 0, 0, (horizontal)? mx: my))
+				ui_numedit_apply(C, block, but, data);
+		}
+
+		retval= WM_UI_HANDLER_BREAK;
 	}
 	
 	return retval;
@@ -3073,13 +3123,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case OPTIONN:
 		retval= ui_do_but_TOG(C, but, data, event);
 		break;
-#if 0
 	case SCROLL:
-		/* DrawBut(b, 1); */
-		/* do_scrollbut(b); */
-		/* DrawBut(b,0); */
+		retval= ui_do_but_SCROLL(C, block, but, data, event);
 		break;
-#endif
 	case NUM:
 	case NUMABS:
 		retval= ui_do_but_NUM(C, block, but, data, event);

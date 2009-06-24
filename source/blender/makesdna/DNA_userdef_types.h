@@ -124,10 +124,11 @@ typedef struct uiWidgetColors {
 typedef struct ThemeUI {
 	
 	/* Interface Elements (buttons, menus, icons) */
-	uiWidgetColors wcol_regular, wcol_tool, wcol_radio, wcol_text, wcol_option;
+	uiWidgetColors wcol_regular, wcol_tool, wcol_text;
+	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
-	uiWidgetColors wcol_box;
+	uiWidgetColors wcol_box, wcol_scroll;
 	
 	char iconfile[80];	// FILE_MAXFILE length
 	

@@ -1494,3 +1494,147 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	}
 }
 
+
+/************************* List Template **************************/
+
+typedef struct ListItem {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	PropertyRNA *activeprop;
+
+	PointerRNA activeptr;
+	int activei;
+
+	int selected;
+} ListItem;
+
+static void list_item_cb(bContext *C, void *arg_item, void *arg_unused)
+{
+	ListItem *item= (ListItem*)arg_item;
+	PropertyType activetype;
+	char *activename;
+
+	if(item->selected) {
+		activetype= RNA_property_type(item->activeprop);
+
+		if(activetype == PROP_POINTER)
+			RNA_property_pointer_set(&item->ptr, item->activeprop, item->activeptr);
+		else if(activetype == PROP_INT)
+			RNA_property_int_set(&item->ptr, item->activeprop, item->activei);
+		else if(activetype == PROP_STRING) {
+			activename= RNA_struct_name_get_alloc(&item->activeptr, NULL, 0);
+			RNA_property_string_set(&item->ptr, item->activeprop, activename);
+			MEM_freeN(activename);
+		}
+	}
+}
+
+void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *activepropname, int items)
+{
+	PropertyRNA *prop, *activeprop;
+	PropertyType type, activetype;
+	PointerRNA activeptr;
+	uiLayout *box, *row, *col;
+	uiBlock *block;
+	uiBut *but;
+	char *name, *activename= NULL;
+	int i= 1, activei= 0, len;
+	static int scroll = 1;
+	
+	/* validate arguments */
+	if(!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateList: property not found: %s\n", propname);
+		return;
+	}
+
+	activeprop= RNA_struct_find_property(ptr, activepropname);
+	if(!activeprop) {
+		printf("uiTemplateList: property not found: %s\n", activepropname);
+		return;
+	}
+
+	type= RNA_property_type(prop);
+	if(type != PROP_COLLECTION) {
+		printf("uiTemplateList: expected collection property.\n");
+		return;
+	}
+
+	activetype= RNA_property_type(activeprop);
+	if(!ELEM3(activetype, PROP_POINTER, PROP_INT, PROP_STRING)) {
+		printf("uiTemplateList: expected pointer, integer or string property.\n");
+		return;
+	}
+
+	if(items == 0)
+		items= 5;
+
+	/* get active data */
+	if(activetype == PROP_POINTER)
+		activeptr= RNA_property_pointer_get(ptr, activeprop);
+	else if(activetype == PROP_INT)
+		activei= RNA_property_int_get(ptr, activeprop);
+	else if(activetype == PROP_STRING)
+		activename= RNA_property_string_get_alloc(ptr, activeprop, NULL, 0);
+
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+	col = uiLayoutColumn(row, 1);
+
+	block= uiLayoutGetBlock(col);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+
+	len= RNA_property_collection_length(ptr, prop);
+	CLAMP(scroll, 1, len);
+
+	RNA_BEGIN(ptr, itemptr, propname) {
+		if(i >= scroll && i<scroll+items) {
+			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+
+			if(name) {
+				ListItem *item= MEM_callocN(sizeof(ListItem), "uiTemplateList ListItem");
+
+				item->ptr= *ptr;
+				item->prop= prop;
+				item->activeprop= activeprop;
+				item->activeptr= itemptr;
+				item->activei= i;
+
+				if(activetype == PROP_POINTER)
+					item->selected= (activeptr.data == itemptr.data);
+				else if(activetype == PROP_INT)
+					item->selected= (activei == i);
+				else if(activetype == PROP_STRING)
+					item->selected= (strcmp(activename, name) == 0);
+
+				but= uiDefIconTextButI(block, TOG, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, &item->selected, 0, 0, 0, 0, "");
+				uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+				uiButSetNFunc(but, list_item_cb, item, NULL);
+
+				MEM_freeN(name);
+			}
+		}
+
+		i++;
+	}
+	RNA_END;
+
+	while(i < scroll+items) {
+		if(i >= scroll)
+			uiItemL(col, "", 0);
+		i++;
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSS);
+
+	if(len > items) {
+		col= uiLayoutColumn(row, 0);
+		uiDefButI(block, SCROLL, 0, "", 0,0,UI_UNIT_X*0.75,UI_UNIT_Y*items, &scroll, 1, len-items+1, items, 0, "");
+	}
+
+	//uiDefButI(block, SCROLL, 0, "", 0,0,UI_UNIT_X*15,UI_UNIT_Y*0.75, &scroll, 1, 16-5, 5, 0, "");
+}
+

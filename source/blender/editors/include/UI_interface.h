@@ -617,6 +617,7 @@ void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
+void uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *activeprop, int items);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
