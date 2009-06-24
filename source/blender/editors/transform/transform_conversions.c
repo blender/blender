@@ -3271,7 +3271,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		 * higher scaling ratios, but is faster than converting all points) 
 		 */
 		if (adt) 
-			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 1);
+			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 		else
 			cfra = (float)CFRA;
 		
@@ -3330,7 +3330,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		 * higher scaling ratios, but is faster than converting all points) 
 		 */
 		if (adt) 
-			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 1);
+			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 		else
 			cfra = (float)CFRA;
 		

@@ -4470,10 +4470,11 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		AnimData *adt= td->extra;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		
 		/* check if any need to apply nla-mapping */
 		if (adt) {
@@ -4606,8 +4607,9 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	for (i = 0 ; i < t->total; i++, td++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		AnimData *adt= td->extra;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		float cval = t->values[0];
 		
 		/* apply NLA-mapping to necessary values */
@@ -4709,8 +4711,9 @@ static void applyTimeScale(TransInfo *t) {
 	for (i = 0 ; i < t->total; i++, td++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		AnimData *adt= td->extra;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		float startx= CFRA;
 		float fac= t->values[0];
 		
@@ -4744,18 +4747,6 @@ int TimeScale(TransInfo *t, short mval[2])
 	
 	sval= t->imval[0];
 	cval= mval[0];
-	
-	// XXX ewww... we need a better factor!
-#if 0 // TRANSFORM_FIX_ME		
-	switch (t->spacetype) {
-		case SPACE_ACTION:
-			width= ACTWIDTH;
-			break;
-		case SPACE_NLA:
-			width= NLAWIDTH;
-			break;
-	}
-#endif
 	
 	/* calculate scaling factor */
 	startx= sval-(width/2+(t->ar->winx)/2);
