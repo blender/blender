@@ -380,6 +380,15 @@ static void modifiers_del(bContext *C, void *ob_v, void *md_v)
 	BKE_reports_clear(&reports);
 }
 
+static void modifiers_activate(bContext *C, void *ob_v, void *md_v)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+}
+
 static void modifiers_moveUp(bContext *C, void *ob_v, void *md_v)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -593,8 +602,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, 0, ICON_SCENE, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, 0, ICON_VIEW3D, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			uiButSetFunc(but, modifiers_activate, ob, md);
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				but= uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiButSetFunc(but, modifiers_activate, ob, md);
 			}
 		}
 		uiBlockEndAlign(block);
