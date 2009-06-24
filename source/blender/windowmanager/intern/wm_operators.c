@@ -402,7 +402,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 						name[len]= '|';
 				}
 				
-				if(0==uiSearchItemAdd(items, name, ot))
+				if(0==uiSearchItemAdd(items, name, ot, 0))
 					break;
 			}
 		}

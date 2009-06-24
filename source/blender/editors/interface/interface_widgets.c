@@ -2356,7 +2356,7 @@ void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect= *rect;
@@ -2370,6 +2370,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	
 	/* text location offset */
 	rect->xmin+=5;
+	if(iconid) rect->xmin+= ICON_HEIGHT;
 
 	/* cut string in 2 parts? */
 	cpoin= strchr(name, '|');
@@ -2392,5 +2393,12 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	/* restore rect, was messed with */
 	*rect= _rect;
 
+	if(iconid) {
+		int xs= rect->xmin+4;
+		int ys= 1 + (rect->ymin+rect->ymax- ICON_HEIGHT)/2;
+		glEnable(GL_BLEND);
+		UI_icon_draw_aspect_blended(xs, ys, iconid, 1.2f, 0); /* XXX scale weak get from fstyle? */
+		glDisable(GL_BLEND);
+	}
 }
 

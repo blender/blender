@@ -146,9 +146,24 @@ static void id_search_cb(const struct bContext *C, void *arg_litem, char *str, u
 	ID *id;
 	
 	for(id= lb->first; id; id= id->next) {
+		int iconid= 0;
+		
+		/* icon */
+		switch(GS(id->name))
+		{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				iconid= BKE_icon_getid(id);
+				break;
+			default:
+				break;
+		}
 		
 		if(BLI_strcasestr(id->name+2, str)) {
-			if(0==uiSearchItemAdd(items, id->name+2, id))
+			if(0==uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
 		}
 	}

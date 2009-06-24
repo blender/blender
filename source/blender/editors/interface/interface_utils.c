@@ -43,6 +43,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -306,9 +307,25 @@ static void id_search_cb(const struct bContext *C, void *arg_params, char *str, 
 	ID *id;
 	
 	for(id= params->lb->first; id; id= id->next) {
+		int iconid= 0;
+		
+		
+		/* icon */
+		switch(GS(id->name))
+		{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				iconid= BKE_icon_getid(id);
+				break;
+			default:
+				break;
+		}
 		
 		if(BLI_strcasestr(id->name+2, str)) {
-			if(0==uiSearchItemAdd(items, id->name+2, id))
+			if(0==uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
 		}
 	}

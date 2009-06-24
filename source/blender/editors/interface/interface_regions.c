@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
@@ -433,7 +434,7 @@ struct uiSearchItems {
 	
 	char **names;
 	void **pointers;
-	
+	int *icons;
 };
 
 typedef struct uiSearchboxData {
@@ -448,7 +449,7 @@ typedef struct uiSearchboxData {
 
 /* exported for use by search callbacks */
 /* returns zero if nothing to add */
-int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
+int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
 	
 	if(items->totitem>=items->maxitem) {
@@ -464,6 +465,7 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
 	
 	BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
 	items->pointers[items->totitem]= poin;
+	items->icons[items->totitem]= iconid;
 	
 	items->totitem++;
 	
@@ -639,7 +641,8 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 		for(a=0; a<data->items.totitem; a++) {
 			ui_searchbox_butrect(&rect, data, a);
 			
-			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], (a+1)==data->active?UI_ACTIVE:0);
+			/* widget itself */
+			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a+1)==data->active?UI_ACTIVE:0);
 			
 		}
 		/* indicate more */
@@ -666,6 +669,7 @@ static void ui_searchbox_region_free(ARegion *ar)
 		MEM_freeN(data->items.names[a]);
 	MEM_freeN(data->items.names);
 	MEM_freeN(data->items.pointers);
+	MEM_freeN(data->items.icons);
 	
 	MEM_freeN(data);
 	ar->regiondata= NULL;
@@ -794,6 +798,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->items.totitem= 0;
 	data->items.names= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search names");
 	data->items.pointers= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search pointers");
+	data->items.icons= MEM_callocN(SEARCH_ITEMS*sizeof(int), "search icons");
 	for(x1=0; x1<SEARCH_ITEMS; x1++)
 		data->items.names[x1]= MEM_callocN(but->hardmax+1, "search pointers");
 	
