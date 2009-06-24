@@ -288,7 +288,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 		
 		/* use the sampling callback at 1-frame intervals from start to end frames */
 		for (cfra= start; cfra <= end; cfra++, fpt++) {
-			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, 1);
+			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, 0);
 			
 			fpt->vec[0]= cfrae;
 			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, cfrae);
@@ -427,7 +427,7 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	
 	/* apply inverse NLA-mapping to frame to get correct time in un-scaled action */
 	adt= ANIM_nla_mapping_get(&ac, ale);
-	frame= BKE_nla_tweakedit_remap(adt, frame, 1);
+	frame= BKE_nla_tweakedit_remap(adt, frame, 0);
 	
 	/* insert keyframe on the specified frame + value */
 	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);

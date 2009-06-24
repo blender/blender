@@ -406,7 +406,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		
 		/* adjust current frame for NLA-scaling */
 		if (adt)
-			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, 1);
+			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 		else 
 			cfra= (float)CFRA;
 			
