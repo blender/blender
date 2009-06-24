@@ -1617,7 +1617,8 @@ void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *act
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	len= RNA_property_collection_length(ptr, prop);
-	CLAMP(scroll, 1, len);
+	scroll= MIN2(scroll, len-items+1);
+	scroll= MAX2(scroll, 1);
 
 	RNA_BEGIN(ptr, itemptr, propname) {
 		if(i >= scroll && i<scroll+items) {

@@ -62,7 +62,7 @@ class DATA_PT_materials(DataButtonsPanel):
 
 		row = layout.row()
 
-		row.template_list(ob, "materials", "active_material_index", items=10)
+		row.template_list(ob, "materials", "active_material_index")
 
 		col = row.column(align=True)
 		col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
