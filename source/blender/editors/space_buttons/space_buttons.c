@@ -343,6 +343,11 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_GEOM_SELECT:
 					ED_area_tag_redraw(sa);
 					break;
+				case ND_SHADING:
+				case ND_SHADING_DRAW:
+					/* currently works by redraws... if preview is set, it (re)starts job */
+					sbuts->preview= 1;
+					break;
 			}
 			break;
 		case NC_MATERIAL:
@@ -353,7 +358,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
-					printf("shader notifier \n");
 					break;
 			}					
 			break;

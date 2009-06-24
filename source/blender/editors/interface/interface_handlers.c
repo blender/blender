@@ -1438,7 +1438,6 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 			}
 			else if(inbox) {
-				printf("release inside \n");
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval= WM_UI_HANDLER_BREAK;
 			}

@@ -27,9 +27,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
+
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_utildefines.h"
 
