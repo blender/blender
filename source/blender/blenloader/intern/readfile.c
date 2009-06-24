@@ -2899,7 +2899,9 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	part= main->particle.first;
 	while(part) {
 		if(part->id.flag & LIB_NEEDLINK) {
+			if (part->adt) lib_link_animdata(fd, &part->id, part->adt);
 			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
+			
 			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
@@ -2912,6 +2914,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
+	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
 }
@@ -9522,6 +9525,8 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 	expand_doit(fd, mainvar, part->dup_group);
 	expand_doit(fd, mainvar, part->eff_group);
 	expand_doit(fd, mainvar, part->bb_ob);
+	
+	expand_animdata(fd, mainvar, part->adt);
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
