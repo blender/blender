@@ -518,6 +518,16 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
 	srna->blender_type= blender_type;
 }
 
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen)
+{
+	PropertyRNA *nameprop;
+
+	if(ptr->data && (nameprop = RNA_struct_name_property(ptr->type)))
+		return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen);
+
+	return NULL;
+}
+
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop)
@@ -658,7 +668,6 @@ void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPrope
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
 	const EnumPropertyItem *item;
-	int i;
 	
 	RNA_property_enum_items(ptr, prop, &item, NULL);
 	

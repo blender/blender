@@ -668,7 +668,6 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA *ptr;
-	PropertyRNA *nameprop;
 	char namebuf[128], *name;
 	int a, icon;
 
@@ -688,7 +687,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 		if(ptr->data) {
 			icon= RNA_struct_ui_icon(ptr->type);
-			nameprop= RNA_struct_name_property(ptr->type);
+			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
 #if 0
 			if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene) {
@@ -696,9 +695,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			}
 			else
 #endif
-			if(nameprop) {
-				name= RNA_property_string_get_alloc(ptr, nameprop, namebuf, sizeof(namebuf));
-
+			if(name) {
 				uiItemL(row, name, icon);
 
 				if(name != namebuf)

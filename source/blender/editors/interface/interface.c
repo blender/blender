@@ -1282,17 +1282,13 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		else if(type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
-			PropertyRNA *nameprop;
-
-			if(ptr.data && (nameprop = RNA_struct_name_property(ptr.type)))
-				buf= RNA_property_string_get_alloc(&ptr, nameprop, str, maxlen);
-			else
-				BLI_strncpy(str, "", maxlen);
+			buf= RNA_struct_name_get_alloc(&ptr, str, maxlen);
 		}
-		else
-			BLI_strncpy(str, "", maxlen);
 
-		if(buf && buf != str) {
+		if(!buf) {
+			BLI_strncpy(str, "", maxlen);
+		}
+		else if(buf && buf != str) {
 			/* string was too long, we have to truncate */
 			BLI_strncpy(str, buf, maxlen);
 			MEM_freeN(buf);
@@ -1375,7 +1371,7 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 	AutoComplete *autocpl;
 	CollectionPropertyIterator iter;
 	PointerRNA ptr;
-	PropertyRNA *prop, *nameprop;
+	PropertyRNA *prop;
 	char *name;
 	
 	if(str[0]==0) return;
@@ -1389,14 +1385,12 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 
 	/* loop over items in collection */
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-			name= RNA_property_string_get_alloc(&iter.ptr, nameprop, NULL, 0);
+		name= RNA_struct_name_get_alloc(&iter.ptr, NULL, 0);
 
-			if(name) {
-				/* test item name */
-				autocomplete_do_name(autocpl, name);
-				MEM_freeN(name);
-			}
+		/* test item name */
+		if(name) {
+			autocomplete_do_name(autocpl, name);
+			MEM_freeN(name);
 		}
 	}
 

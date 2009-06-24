@@ -514,6 +514,8 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
+
 /* Properties
  *
  * Access to struct properties. All this works with RNA pointers rather than

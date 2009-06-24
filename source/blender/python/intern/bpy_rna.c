@@ -161,14 +161,15 @@ static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, in
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyrna_struct_repr( BPy_StructRNA * self )
 {
-	PropertyRNA *prop;
-	char str[512];
+	PyObject *pyob;
+	char *name;
 
 	/* print name if available */
-	prop= RNA_struct_name_property(self->ptr.type);
-	if(prop) {
-		RNA_property_string_get(&self->ptr, prop, str);
-		return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(self->ptr.type), str);
+	name= RNA_struct_name_get_alloc(&self->ptr, NULL, 0);
+	if(name) {
+		pyob= PyUnicode_FromFormat( "[BPy_StructRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(self->ptr.type), name);
+		MEM_freeN(name);
+		return pyob;
 	}
 
 	return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\"]", RNA_struct_identifier(self->ptr.type));
@@ -176,20 +177,19 @@ static PyObject *pyrna_struct_repr( BPy_StructRNA * self )
 
 static PyObject *pyrna_prop_repr( BPy_PropertyRNA * self )
 {
-	PropertyRNA *prop;
+	PyObject *pyob;
 	PointerRNA ptr;
-	char str[512];
+	char *name;
 
 	/* if a pointer, try to print name of pointer target too */
 	if(RNA_property_type(self->prop) == PROP_POINTER) {
 		ptr= RNA_property_pointer_get(&self->ptr, self->prop);
+		name= RNA_struct_name_get_alloc(&ptr, NULL, 0);
 
-		if(ptr.data) {
-			prop= RNA_struct_name_property(ptr.type);
-			if(prop) {
-				RNA_property_string_get(&ptr, prop, str);
-				return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" -> \"%s\" ]", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop), str);
-			}
+		if(name) {
+			pyob= PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" -> \"%s\" ]", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop), name);
+			MEM_freeN(name);
+			return pyob;
 		}
 	}
 
@@ -218,7 +218,6 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const EnumPropertyItem *item;
-	int totitem;
 	
 	RNA_property_enum_items(ptr, prop, &item, NULL);
 	return (char*)BPy_enum_as_string((EnumPropertyItem*)item);
@@ -971,21 +970,20 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		/*
 		 * Collect RNA attributes
 		 */
-		PropertyRNA *nameprop;
 		char name[256], *nameptr;
 
 		iterprop= RNA_struct_iterator_property(self->ptr.type);
 		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
 
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
-				
+			nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+
+			if(nameptr) {
 				pystring = PyUnicode_FromString(nameptr);
 				PyList_Append(ret, pystring);
 				Py_DECREF(pystring);
 				
-				if ((char *)&name != nameptr)
+				if(name != nameptr)
 					MEM_freeN(nameptr);
 			}
 		}
@@ -1132,7 +1130,9 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
+			nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+
+			if(nameptr) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));				
 				
 				/* add to python list */
@@ -1141,7 +1141,7 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 				Py_DECREF(item);
 				/* done */
 				
-				if ((char *)&name != nameptr)
+				if(name != nameptr)
 					MEM_freeN(nameptr);
 			}
 		}
@@ -1160,7 +1160,6 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 	} else {
 		PyObject *item;
 		CollectionPropertyIterator iter;
-		PropertyRNA *nameprop;
 		char name[256], *nameptr;
 		int i= 0;
 
@@ -1171,10 +1170,10 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 			if(iter.ptr.data) {
 				/* add to python list */
 				item= PyTuple_New(2);
-				if(nameprop = RNA_struct_name_property(iter.ptr.type)) {
-					nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+				nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+				if(nameptr) {
 					PyTuple_SET_ITEM(item, 0, PyUnicode_FromString( nameptr ));
-					if ((char *)&name != nameptr)
+					if(name != nameptr)
 						MEM_freeN(nameptr);
 				}
 				else {
@@ -1205,10 +1204,8 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 	} else {
 		PyObject *item;
 		CollectionPropertyIterator iter;
-		PropertyRNA *iterprop;
 		ret = PyList_New(0);
 		
-		//iterprop= RNA_struct_iterator_property(self->ptr.type);
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
 			item = pyrna_struct_CreatePyObject(&iter.ptr);
