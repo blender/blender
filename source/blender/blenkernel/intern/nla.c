@@ -433,7 +433,7 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short invert)
 	 * and store for (very probable) future usage
 	 */
 	if (adt->actstrip == NULL) {
-		NlaTrack *nlt= BKE_nlatrack_find_active(adt);
+		NlaTrack *nlt= BKE_nlatrack_find_active(&adt->nla_tracks);
 		adt->actstrip= BKE_nlastrip_find_active(nlt);
 	}
 	strip= adt->actstrip;

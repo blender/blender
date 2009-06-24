@@ -64,6 +64,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_draw.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
@@ -89,33 +90,120 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 /* *********************************************** */
 /* Strips */
 
+/* Keyframe Ghosts ---------------------- */
+
+/* helper func - draw keyframe as a frame only */
+static void draw_nla_keyframe_ghost (float x, float y, float xscale, float hsize)
+{
+	static GLuint displist=0;
+	
+	/* initialise empty diamond shape */
+	if (displist == 0) {
+		const float dist= 1.0f;
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE);
+		
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(0.0f,  dist);
+			glVertex2f(dist,  0.0f);
+			glVertex2f(0.0f, -dist);
+			glVertex2f(-dist, 0.0f);
+		glEnd();
+		
+		glEndList();
+	}
+	
+	/* adjust view transform before starting */
+	glTranslatef(x, y, 0.0f);
+	glScalef(1.0f/xscale*hsize, hsize, 1.0f);
+	
+	/* anti-aliased lines for more consistent appearance */
+	glEnable(GL_LINE_SMOOTH);
+	
+	/* draw! */
+	glCallList(displist);
+	
+	glDisable(GL_LINE_SMOOTH);
+	
+	/* restore view transform */
+	glScalef(xscale/hsize, 1.0f/hsize, 1.0);
+	glTranslatef(-x, -y, 0.0f);
+}
+
+/* draw the keyframes in the specified Action */
+static void nla_action_draw_keyframes (AnimData *adt, View2D *v2d, float y)
+{
+	ListBase keys = {NULL, NULL};
+	ActKeyColumn *ak;
+	float xscale;
+	
+	/* for now, color is hardcoded to be black */
+	glColor3f(0.0f, 0.0f, 0.0f);
+	
+	/* get a list of the keyframes with NLA-scaling applied */
+	action_nlascaled_to_keylist(adt, adt->action, &keys, NULL, NULL);
+	
+	/* get View2D scaling factor */
+	UI_view2d_getscale(v2d, &xscale, NULL);
+	
+	/* just draw each keyframe as a simple dot (regardless of the selection status) */
+	for (ak= keys.first; ak; ak= ak->next)
+		draw_nla_keyframe_ghost(ak->cfra, y, xscale, 3.0f);
+	
+	/* free icons */
+	BLI_freelistN(&keys);
+}
+
+/* Strips (Proper) ---------------------- */
+
 static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float color[3])
 {
-	if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
-		/* active strip should be drawn green when it is acting as the tweaking strip.
-		 * however, this case should be skipped for when not in EditMode...
-		 */
-		// FIXME: hardcoded temp-hack colors
-		color[0]= 0.3f;
-		color[1]= 0.95f;
-		color[2]= 0.1f;
-	}
-	else if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
-		/* alert user that this strip is also used by the tweaking track (this is set when going into
-		 * 'editmode' for that strip), since the edits made here may not be what the user anticipated
-		 */
-		// FIXME: hardcoded temp-hack colors
-		color[0]= 0.85f;
-		color[1]= 0.0f;
-		color[2]= 0.0f;
-	}
-	else if (strip->flag & NLASTRIP_FLAG_SELECT) {
-		/* selected strip - use theme color for selected */
-		UI_GetThemeColor3fv(TH_STRIP_SELECT, color);
-	}
+	if (strip->type == NLASTRIP_TYPE_TRANSITION) {
+		/* Transition Clip */
+		if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* selected - use a bright blue color */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.18f;
+			color[1]= 0.46f;
+			color[2]= 0.86f;
+		}
+		else {
+			/* normal, unselected strip - use (hardly noticable) blue tinge */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.11f;
+			color[1]= 0.15f;
+			color[2]= 0.19f;
+		}
+	}	
 	else {
-		/* normal, unselected strip - use standard strip theme color */
-		UI_GetThemeColor3fv(TH_STRIP, color);
+		/* Action Clip (default/normal type of strip) */
+		if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
+			/* active strip should be drawn green when it is acting as the tweaking strip.
+			 * however, this case should be skipped for when not in EditMode...
+			 */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.3f;
+			color[1]= 0.95f;
+			color[2]= 0.1f;
+		}
+		else if (strip->flag & NLASTRIP_FLAG_TWEAKUSER) {
+			/* alert user that this strip is also used by the tweaking track (this is set when going into
+			 * 'editmode' for that strip), since the edits made here may not be what the user anticipated
+			 */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.85f;
+			color[1]= 0.0f;
+			color[2]= 0.0f;
+		}
+		else if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* selected strip - use theme color for selected */
+			UI_GetThemeColor3fv(TH_STRIP_SELECT, color);
+		}
+		else {
+			/* normal, unselected strip - use standard strip theme color */
+			UI_GetThemeColor3fv(TH_STRIP, color);
+		}
 	}
 }
 
@@ -328,7 +416,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					 */
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glEnable(GL_BLEND);
-					
+						
 					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 						// greenish color (same as tweaking strip) - hardcoded for now
@@ -350,6 +438,22 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						glVertex2f(v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
 						glVertex2f(v2d->cur.xmax, yminc+NLACHANNEL_SKIP);
 					glEnd();
+					
+					/* draw keyframes in the action */
+					nla_action_draw_keyframes(adt, v2d, y);
+					
+					/* draw 'embossed' lines above and below the strip for effect */
+						/* white base-lines */
+					glLineWidth(2.0f);
+					glColor4f(1.0f, 1.0f, 1.0f, 0.3);
+					fdrawline(v2d->cur.xmin, yminc+NLACHANNEL_SKIP, v2d->cur.xmax, yminc+NLACHANNEL_SKIP);
+					fdrawline(v2d->cur.xmin, ymaxc-NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
+					
+						/* black top-lines */
+					glLineWidth(1.0f);
+					glColor3f(0.0f, 0.0f, 0.0f);
+					fdrawline(v2d->cur.xmin, yminc+NLACHANNEL_SKIP, v2d->cur.xmax, yminc+NLACHANNEL_SKIP);
+					fdrawline(v2d->cur.xmin, ymaxc-NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
 					
 					glDisable(GL_BLEND);
 				}

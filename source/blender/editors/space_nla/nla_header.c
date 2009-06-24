@@ -182,7 +182,6 @@ static void do_nla_buttons(bContext *C, void *arg, int event)
 void nla_header_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
@@ -253,14 +252,6 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 				"Auto-snapping mode for times when transforming");
 	}
 	xco += 98;
-	
-	/* Tweakmode... */
-	// XXX these icons need to be changed
-	if (scene->flag & SCE_NLA_EDIT_ON)
-		uiDefIconTextButO(block, BUT, "NLAEDIT_OT_tweakmode_exit", WM_OP_INVOKE_REGION_WIN, ICON_NLA, "Exit TweakMode", xco,yco,130,YIC, "Restore the true active action. (TAB)");
-	else 
-		uiDefIconTextButO(block, BUT, "NLAEDIT_OT_tweakmode_enter", WM_OP_INVOKE_REGION_WIN, ICON_EDIT,  "Enter TweakMode", xco,yco,130,YIC, "Temporarily set the action referenced by the active strip as the active action so that it can be tweaked. (TAB)");
-	xco+= 150;
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
