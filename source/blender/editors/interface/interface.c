@@ -671,7 +671,8 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(C, ar, &style, but, &rect);
+		if(!(but->flag & UI_HIDDEN))
+			ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */

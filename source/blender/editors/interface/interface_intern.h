@@ -98,7 +98,7 @@ typedef enum {
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
-
+#define UI_HIDDEN		32
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */

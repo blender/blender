@@ -404,7 +404,15 @@ static void ui_apply_but_TOG(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
+	uiBut *bt;
+	
 	ui_set_but_val(but, but->hardmax);
+	
+	/* states of other row buttons */
+	for(bt= block->buttons.first; bt; bt= bt->next)
+		if(bt!=but && bt->poin==but->poin && bt->type==ROW)
+			ui_check_but(bt);
+	
 	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
@@ -3232,7 +3240,8 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		for(but=block->buttons.first; but; but= but->next) {
 			if(ELEM3(but->type, LABEL, ROUNDBOX, SEPR))
 				continue;
-
+			if(but->flag & UI_HIDDEN)
+				continue;
 			if(ui_but_contains_pt(but, mx, my))
 				/* give precedence to already activated buttons */
 				if(!butover || (!butover->active && but->active))
