@@ -154,6 +154,11 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemS(layout);
 	
 	uiItemO(layout, NULL, 0, "NLAEDIT_OT_delete");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_apply_scale");
+	uiItemO(layout, NULL, 0, "NLAEDIT_OT_clear_scale");
 }
 
 static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)

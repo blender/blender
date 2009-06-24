@@ -46,6 +46,8 @@
 #include "BLI_rand.h"
 
 #include "BKE_animsys.h"
+#include "BKE_action.h"
+#include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
@@ -55,6 +57,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -72,6 +75,7 @@
 #include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
+#include "nla_private.h" // FIXME... maybe this shouldn't be included?
 
 /* *********************************************** */
 /* 'Special' Editing */
@@ -217,7 +221,7 @@ void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
 }
 
 /* *********************************************** */
-/* NLA Editing Operations */
+/* NLA Editing Operations (Constructive/Destructive) */
 
 /* ******************** Add Action-Clip Operator ***************************** */
 /* Add a new Action-Clip strip to the active track (or the active block if no space in the track) */
@@ -693,6 +697,165 @@ void NLAEDIT_OT_split (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= nlaedit_split_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* *********************************************** */
+/* NLA Editing Operations (Modifying) */
+
+/* ******************** Apply Scale Operator ***************************** */
+/* Reset the scaling of the selected strips to 1.0f */
+
+/* apply scaling to keyframe */
+static short bezt_apply_nlamapping (BeztEditData *bed, BezTriple *bezt)
+{
+	/* NLA-strip which has this scaling is stored in bed->data */
+	NlaStrip *strip= (NlaStrip *)bed->data;
+	
+	/* adjust all the times */
+	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], 1);
+	bezt->vec[1][0]= nlastrip_get_frame(strip, bezt->vec[1][0], 1);
+	bezt->vec[2][0]= nlastrip_get_frame(strip, bezt->vec[2][0], 1);
+	
+	/* nothing to return or else we exit */
+	return 0;
+}
+
+static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditData bed;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* init the editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* for each NLA-Track, apply scale of all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* strip must be selected, and must be action-clip only (transitions don't have scale) */
+			if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
+				/* if the referenced action is used by other strips, make this strip use its own copy */
+				if (strip->act == NULL) 
+					continue;
+				if (strip->act->id.us > 1) {
+					/* make a copy of the Action to work on */
+					bAction *act= copy_action(strip->act);
+					
+					/* set this as the new referenced action, decrementing the users of the old one */
+					strip->act->id.us--;
+					strip->act= act;
+				}
+				
+				/* setup iterator, and iterate over all the keyframes in the action, applying this scaling */
+				bed.data= strip;
+				ANIM_animchanneldata_keys_bezier_loop(&bed, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
+				
+				/* clear scale of strip now that it has been applied, but leave everything else alone */
+				strip->scale= 1.0f;
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_apply_scale (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Apply Scale";
+	ot->idname= "NLAEDIT_OT_apply_scale";
+	ot->description= "Apply scaling of selected strips to their referenced Actions.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_apply_scale_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Clear Scale Operator ***************************** */
+/* Reset the scaling of the selected strips to 1.0f */
+
+static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, reset scale of all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* strip must be selected, and must be action-clip only (transitions don't have scale) */
+			if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
+				PointerRNA strip_ptr;
+				
+				RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+				RNA_float_set(&strip_ptr, "scale", 1.0f);
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_clear_scale (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Scale";
+	ot->idname= "NLAEDIT_OT_clear_scale";
+	ot->description= "Reset scaling of selected strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_clear_scale_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */

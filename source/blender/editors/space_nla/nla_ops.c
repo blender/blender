@@ -149,6 +149,9 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLAEDIT_OT_duplicate);
 	WM_operatortype_append(NLAEDIT_OT_delete);
 	WM_operatortype_append(NLAEDIT_OT_split);
+	
+	WM_operatortype_append(NLAEDIT_OT_apply_scale);
+	WM_operatortype_append(NLAEDIT_OT_clear_scale);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -238,6 +241,10 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	
 		/* split */
 	WM_keymap_add_item(keymap, "NLAEDIT_OT_split", YKEY, KM_PRESS, 0, 0);
+	
+		/* apply scale */
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_apply_scale", AKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NLAEDIT_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_NLA);
