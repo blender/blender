@@ -1336,20 +1336,14 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 
 static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, PropertyRNA **prop)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *iprop;
 	StructRNA *srna;
 
 	/* look for collection property in Main */
 	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
 	*prop= NULL;
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		iprop= iter.ptr.data;
-
+	RNA_STRUCT_BEGIN(ptr, iprop) {
 		/* if it's a collection and has same pointer type, we've got it */
 		if(RNA_property_type(iprop) == PROP_COLLECTION) {
 			srna= RNA_property_pointer_type(ptr, iprop);
@@ -1360,8 +1354,7 @@ static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, Prope
 			}
 		}
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_STRUCT_END;
 }
 
 /* autocomplete callback for RNA pointers */
@@ -1369,7 +1362,6 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 {
 	uiBut *but= arg_but;
 	AutoComplete *autocpl;
-	CollectionPropertyIterator iter;
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *name;
@@ -1381,11 +1373,10 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 	if(prop==NULL) return;
 
 	autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
-	RNA_property_collection_begin(&ptr, prop, &iter);
 
 	/* loop over items in collection */
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		name= RNA_struct_name_get_alloc(&iter.ptr, NULL, 0);
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
 		/* test item name */
 		if(name) {
@@ -1393,8 +1384,8 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 			MEM_freeN(name);
 		}
 	}
+	RNA_PROP_END;
 
-	RNA_property_collection_end(&iter);
 	autocomplete_end(autocpl, str);
 }
 

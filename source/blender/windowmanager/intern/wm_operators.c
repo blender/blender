@@ -145,7 +145,6 @@ char *WM_operator_pystring(wmOperator *op)
 	const char *arg_name= NULL;
 
 	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
 
 	/* for building the string */
 	DynStr *dynstr= BLI_dynstr_new();
@@ -155,10 +154,9 @@ char *WM_operator_pystring(wmOperator *op)
 	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
 
 	iterprop= RNA_struct_iterator_property(op->ptr->type);
-	RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
+	RNA_PROP_BEGIN(op->ptr, propptr, iterprop) {
+		prop= propptr.data;
 		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
@@ -170,8 +168,7 @@ char *WM_operator_pystring(wmOperator *op)
 		MEM_freeN(buf);
 		first_iter = 0;
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_PROP_END;
 
 	BLI_dynstr_append(dynstr, ")");
 
@@ -291,7 +288,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr);
+	uiDefAutoButsRNA(C, layout, &ptr, 2);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -333,7 +330,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr);
+	uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);

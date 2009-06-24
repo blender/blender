@@ -417,7 +417,7 @@ void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr);
+void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr, int columns);
 
 /* Links
  *

@@ -142,68 +142,38 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int columns)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	uiLayout *split;
+	uiLayout *split, *col;
 	char *name;
 
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
+	RNA_STRUCT_BEGIN(ptr, prop) {
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		split = uiLayoutSplit(layout, 0.5f);
-
 		name= (char*)RNA_property_ui_name(prop);
 
-		uiItemL(uiLayoutColumn(split, 0), name, 0);
-		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0, 0);
-	}
+		if(columns == 1) {
+			col= uiLayoutColumn(layout, 1);
+			uiItemL(col, name, 0);
+		}
+		else if(columns == 2) {
+			split = uiLayoutSplit(layout, 0.5f);
 
-	RNA_property_collection_end(&iter);
-}
+			uiItemL(uiLayoutColumn(split, 0), name, 0);
+			col= uiLayoutColumn(split, 0);
+		}
 
-/* temp call, single collumn, test for toolbar only */
-void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr)
-{
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	uiLayout *col;
-	char *name;
-	
-	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
-	
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-	
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-		
-		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
-			continue;
-		
-		name= (char*)RNA_property_ui_name(prop);
-		col= uiLayoutColumn(layout, 1);
-		uiItemL(col, name, 0);
-		
 		/* temp hack to show normal button for spin/screw */
 		if(strcmp(name, "Axis")==0) {
-			uiDefButR(uiLayoutGetBlock(layout), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
+			uiDefButR(uiLayoutGetBlock(col), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
 		}
 		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
 	}
-	
-	RNA_property_collection_end(&iter);
+	RNA_STRUCT_END;
 }
-
 
 /***************************** ID Utilities *******************************/
 /* note, C code version, will be replaced with version in interface_templates.c */

@@ -1946,7 +1946,7 @@ PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont_, const char *ide
 	return prop;
 }
 
-PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, EnumPropertyItem *items, int default_value, 
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, const EnumPropertyItem *items, int default_value, 
 	const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont= cont_;

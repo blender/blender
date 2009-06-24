@@ -1620,7 +1620,7 @@ void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *act
 	scroll= MIN2(scroll, len-items+1);
 	scroll= MAX2(scroll, 1);
 
-	RNA_BEGIN(ptr, itemptr, propname) {
+	RNA_PROP_BEGIN(ptr, itemptr, prop) {
 		if(i >= scroll && i<scroll+items) {
 			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
@@ -1634,13 +1634,13 @@ void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *act
 				item->activei= i;
 
 				if(activetype == PROP_POINTER)
-					item->selected= (activeptr.data == itemptr.data);
+					item->selected= (activeptr.data == itemptr.data)? i: -1;
 				else if(activetype == PROP_INT)
-					item->selected= (activei == i);
+					item->selected= (activei == i)? i: -1;
 				else if(activetype == PROP_STRING)
-					item->selected= (strcmp(activename, name) == 0);
+					item->selected= (strcmp(activename, name) == 0)? i: -1;
 
-				but= uiDefIconTextButI(block, TOG, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, &item->selected, 0, 0, 0, 0, "");
+				but= uiDefIconTextButI(block, ROW, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, &item->selected, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 				uiButSetNFunc(but, list_item_cb, item, NULL);
 
@@ -1650,7 +1650,7 @@ void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *act
 
 		i++;
 	}
-	RNA_END;
+	RNA_PROP_END;
 
 	while(i < scroll+items) {
 		if(i >= scroll)

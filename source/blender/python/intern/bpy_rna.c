@@ -328,17 +328,9 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefi
 	const char *arg_name= NULL;
 	PyObject *item;
 
-	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
-
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-
 	totkw = kw ? PyDict_Size(kw):0;
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
+	RNA_STRUCT_BEGIN(ptr, prop) {
 		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
@@ -364,8 +356,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefi
 
 		totkw--;
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_STRUCT_END;
 
 	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
 		PyObject *key, *value;
@@ -941,7 +932,6 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 	PyObject *pystring;
 	
 	/* for looping over attrs and funcs */
-	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop;
 	
 	/* Include this incase this instance is a subtype of a python class
@@ -973,10 +963,9 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		char name[256], *nameptr;
 
 		iterprop= RNA_struct_iterator_property(self->ptr.type);
-		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
 
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+		RNA_PROP_BEGIN(&self->ptr, itemptr, iterprop) {
+			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
 
 			if(nameptr) {
 				pystring = PyUnicode_FromString(nameptr);
@@ -987,8 +976,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 					MEM_freeN(nameptr);
 			}
 		}
-		RNA_property_collection_end(&iter);
-	
+		RNA_PROP_END;
 	}
 	
 	
@@ -1001,15 +989,12 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 		RNA_pointer_create(NULL, &RNA_Struct, self->ptr.type, &tptr);
 		iterprop= RNA_struct_find_property(&tptr, "functions");
 
-		RNA_property_collection_begin(&tptr, iterprop, &iter);
-
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			pystring = PyUnicode_FromString(RNA_function_identifier(iter.ptr.data));
+		RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
+			pystring = PyUnicode_FromString(RNA_function_identifier(itemptr.data));
 			PyList_Append(ret, pystring);
 			Py_DECREF(pystring);
 		}
-
-		RNA_property_collection_end(&iter);
+		RNA_PROP_END;
 	}
 
 	if(self->ptr.type == &RNA_Context) {
@@ -1122,19 +1107,14 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 		ret = NULL;
 	} else {
 		PyObject *item;
-		CollectionPropertyIterator iter;
-		PropertyRNA *nameprop;
 		char name[256], *nameptr;
 
 		ret = PyList_New(0);
 		
-		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+		RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
 
 			if(nameptr) {
-				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));				
-				
 				/* add to python list */
 				item = PyUnicode_FromString( nameptr );
 				PyList_Append(ret, item);
@@ -1145,7 +1125,7 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 					MEM_freeN(nameptr);
 			}
 		}
-		RNA_property_collection_end(&iter);
+		RNA_PROP_END;
 	}
 	
 	return ret;
@@ -1159,18 +1139,16 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 		ret = NULL;
 	} else {
 		PyObject *item;
-		CollectionPropertyIterator iter;
 		char name[256], *nameptr;
 		int i= 0;
 
 		ret = PyList_New(0);
 		
-		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data) {
+		RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+			if(itemptr.data) {
 				/* add to python list */
 				item= PyTuple_New(2);
-				nameptr= RNA_struct_name_get_alloc(&iter.ptr, name, sizeof(name));
+				nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
 				if(nameptr) {
 					PyTuple_SET_ITEM(item, 0, PyUnicode_FromString( nameptr ));
 					if(name != nameptr)
@@ -1179,7 +1157,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 				else {
 					PyTuple_SET_ITEM(item, 0, PyLong_FromSsize_t(i)); /* a bit strange but better then returning an empty list */
 				}
-				PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&iter.ptr));
+				PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&itemptr));
 				
 				PyList_Append(ret, item);
 				Py_DECREF(item);
@@ -1187,7 +1165,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 				i++;
 			}
 		}
-		RNA_property_collection_end(&iter);
+		RNA_PROP_END;
 	}
 	
 	return ret;
@@ -1203,16 +1181,14 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 		ret = NULL;
 	} else {
 		PyObject *item;
-		CollectionPropertyIterator iter;
 		ret = PyList_New(0);
 		
-		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			item = pyrna_struct_CreatePyObject(&iter.ptr);
+		RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+			item = pyrna_struct_CreatePyObject(&itemptr);
 			PyList_Append(ret, item);
 			Py_DECREF(item);
 		}
-		RNA_property_collection_end(&iter);
+		RNA_PROP_END;
 	}
 	
 	return ret;
@@ -2023,7 +1999,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	char *id, *name="", *description="";
 	int def=0;
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:IntProperty", kwlist, &id, &name, &description, &def))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:BoolProperty", kwlist, &id, &name, &description, &def))
 		return NULL;
 	
 	if (PyTuple_Size(args) > 0) {
@@ -2037,7 +2013,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		Py_RETURN_NONE;
 	} else {
 		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_BoolProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
 		Py_INCREF(kw);
 		return ret;

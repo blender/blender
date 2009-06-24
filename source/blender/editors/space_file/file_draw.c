@@ -550,7 +550,24 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	}
 }
 
-static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, const char* category_name, short *starty)
+static void file_draw_fsmenu_category_name(ARegion *ar, const char *category_name, short *starty)
+{
+	short sx, sy;
+	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X - ICON_DEFAULT_WIDTH - 4;
+	int fontsize = file_font_pointsize();
+
+	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
+	sy = *starty;
+
+	UI_ThemeColor(TH_TEXT_HI);
+	file_draw_string(sx, sy, category_name, bmwidth, fontsize, FILE_SHORTEN_END);
+	
+	sy -= fontsize*2.0f;
+
+	*starty= sy;
+}
+
+static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, short *starty)
 {
 	struct FSMenu* fsmenu = fsmenu_get();
 	char bookmark[FILE_MAX];
@@ -564,11 +581,6 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 
 	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
 	sy = *starty;
-
-	UI_ThemeColor(TH_TEXT_HI);
-	file_draw_string(sx, sy, category_name, bmwidth, fontsize, FILE_SHORTEN_END);
-	
-	sy -= fontsize*2.0f;
 
 	switch(category) {
 		case FS_CATEGORY_SYSTEM:
@@ -616,15 +628,54 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	*starty = sy;
 }
 
+void file_draw_fsmenu_operator(const bContext *C, ARegion *ar, wmOperator *op, short *starty)
+{
+	uiStyle *style= U.uistyles.first;
+	uiBlock *block;
+	uiLayout *layout;
+	int sy;
+
+	sy= *starty;
+	
+	block= uiBeginBlock(C, ar, "file_options", UI_EMBOSS);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, TILE_BORDER_X, sy, ar->winx-2*TILE_BORDER_X, 20, style);
+
+    RNA_STRUCT_BEGIN(op->ptr, prop) {
+        if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+            continue;
+        if(strcmp(RNA_property_identifier(prop), "filename") == 0)
+            continue;
+
+        uiItemFullR(layout, NULL, 0, op->ptr, prop, -1, 0, 0, 0, 0);
+    }
+    RNA_STRUCT_END;
+
+	uiBlockLayoutResolve(C, block, NULL, &sy);
+	uiEndBlock(C, block);
+	uiDrawBlock(C, block);
+
+	*starty= sy;
+}
+
 void file_draw_fsmenu(const bContext *C, ARegion *ar)
 {
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	int linestep = file_font_pointsize()*2.0f;
 	short sy= ar->v2d.cur.ymax-2*TILE_BORDER_Y;
 
-	file_draw_fsmenu_category(C, ar, FS_CATEGORY_SYSTEM, "SYSTEM", &sy);
+	file_draw_fsmenu_category_name(ar, "SYSTEM", &sy);
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_SYSTEM, &sy);
 	sy -= linestep;
-	file_draw_fsmenu_category(C, ar, FS_CATEGORY_BOOKMARKS, "BOOKMARKS", &sy);
+	file_draw_fsmenu_category_name(ar, "BOOKMARKS", &sy);
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_BOOKMARKS, &sy);
 	sy -= linestep;
-	file_draw_fsmenu_category(C, ar, FS_CATEGORY_RECENT, "RECENT", &sy);
-	
+	file_draw_fsmenu_category_name(ar, "RECENT", &sy);
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_RECENT, &sy);
+
+	if(sfile->op) {
+		sy -= linestep;
+		file_draw_fsmenu_category_name(ar, "OPTIONS", &sy);
+		file_draw_fsmenu_operator(C, ar, sfile->op, &sy);
+	}
 }
+
