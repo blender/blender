@@ -3484,7 +3484,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
-void editmesh_select_by_material(EditMesh *em, int index) 
+void EM_select_by_material(EditMesh *em, int index) 
 {
 	EditFace *efa;
 	
@@ -3497,7 +3497,7 @@ void editmesh_select_by_material(EditMesh *em, int index)
 	EM_selectmode_flush(em);
 }
 
-void editmesh_deselect_by_material(EditMesh *em, int index) 
+void EM_deselect_by_material(EditMesh *em, int index) 
 {
 	EditFace *efa;
 	

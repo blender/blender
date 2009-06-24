@@ -210,6 +210,12 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
+	WM_operatortype_append(OBJECT_OT_material_slot_add);
+	WM_operatortype_append(OBJECT_OT_material_slot_remove);
+	WM_operatortype_append(OBJECT_OT_material_slot_assign);
+	WM_operatortype_append(OBJECT_OT_material_slot_select);
+	WM_operatortype_append(OBJECT_OT_material_slot_deselect);
+
 	WM_operatortype_append(MATERIAL_OT_new);
 	WM_operatortype_append(TEXTURE_OT_new);
 	WM_operatortype_append(WORLD_OT_new);
