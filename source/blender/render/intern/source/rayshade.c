@@ -1957,7 +1957,7 @@ static void ray_shadow_jittered_coords(ShadeInput *shi, int max, float jitco[RE_
 	}
 }
 
-static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)
+static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, int lampvec, float *shadfac, Isect *isec)
 {
 	QMCSampler *qsa=NULL;
 	int samples=0;
@@ -2018,6 +2018,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			if (lar->type == LA_LOCAL) {
 				float ru[3], rv[3], v[3], s[3];
 				
+				assert(lampvec == 0);
+				
 				/* calc tangent plane vectors */
 				v[0] = co[0] - lampco[0];
 				v[1] = co[1] - lampco[1];
@@ -2036,6 +2038,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				VECCOPY(samp3d, s);
 			}
 			else {
+				assert(lampvec);
 				/* sampling, returns quasi-random vector in [sizex,sizey]^2 plane */
 				QMC_sampleRect(samp3d, qsa, shi->thread, samples, lar->area_size, lar->area_sizey);
 								
@@ -2063,10 +2066,20 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		}
 
 		VECCOPY(isec->start, co);
-		isec->vec[0] = end[0]-isec->start[0];
-		isec->vec[1] = end[1]-isec->start[1];
-		isec->vec[2] = end[2]-isec->start[2];
-		isec->labda = 1.0f; // * Normalize(isec->vec);
+		if(lampvec)
+		{
+			isec->vec[0] = end[0];
+			isec->vec[1] = end[1];
+			isec->vec[2] = end[2];
+			isec->labda = RE_RAYTRACE_MAXDIST;
+		}
+		else
+		{
+			isec->vec[0] = end[0]-isec->start[0];
+			isec->vec[1] = end[1]-isec->start[1];
+			isec->vec[2] = end[2]-isec->start[2];
+			isec->labda = 1.0f; // * Normalize(isec->vec);
+		}
 		
 		/* trace the ray */
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -2119,7 +2132,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
-static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)
+static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, int lampvec, float *shadfac, Isect *isec)
 {
 	/* area soft shadow */
 	float *jitlamp;
@@ -2162,10 +2175,20 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		
 		/* set start and vec */
 		VECCOPY(isec->start, shi->co);
-		isec->vec[0] = vec[0]+lampco[0]-shi->co[0];
-		isec->vec[1] = vec[1]+lampco[1]-shi->co[1];
-		isec->vec[2] = vec[2]+lampco[2]-shi->co[2];
-		isec->labda = 1.0f;
+		if(lampvec)
+		{
+			isec->vec[0] = vec[0]+lampco[0];
+			isec->vec[1] = vec[1]+lampco[1];
+			isec->vec[2] = vec[2]+lampco[2];
+			isec->labda = RE_RAYTRACE_MAXDIST;
+		}
+		else
+		{
+			isec->vec[0] = vec[0]+lampco[0]-shi->co[0];
+			isec->vec[1] = vec[1]+lampco[1]-shi->co[1];
+			isec->vec[2] = vec[2]+lampco[2]-shi->co[2];
+			isec->labda = 1.0f;
+		}
 		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 		
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -2204,6 +2227,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 {
 	Isect isec;
 	float lampco[3];
+	int lampvec; /* indicates if lampco is a vector lamp */
 
 	/* setup isec */
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
@@ -2223,17 +2247,19 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	}
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-		lampco[0]= shi->co[0] - RE_RAYTRACE_MAXDIST*lar->vec[0];
-		lampco[1]= shi->co[1] - RE_RAYTRACE_MAXDIST*lar->vec[1];
-		lampco[2]= shi->co[2] - RE_RAYTRACE_MAXDIST*lar->vec[2];
+		lampco[0]= -lar->vec[0];
+		lampco[1]= -lar->vec[1];
+		lampco[2]= -lar->vec[2];
+		lampvec = 1;
 	}
 	else {
 		VECCOPY(lampco, lar->co);
+		lampvec = 0;
 	}
 	
 	if (ELEM(lar->ray_samp_method, LA_SAMP_HALTON, LA_SAMP_HAMMERSLEY)) {
 		
-		ray_shadow_qmc(shi, lar, lampco, shadfac, &isec);
+		ray_shadow_qmc(shi, lar, lampco, lampvec, shadfac, &isec);
 		
 	} else {
 		if(lar->ray_totsamp<2) {
@@ -2245,8 +2271,16 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			
 			/* set up isec vec */
 			VECCOPY(isec.start, shi->co);
-			VECSUB(isec.vec, lampco, isec.start);
-			isec.labda = 1.0f;
+			if(lampvec)
+			{
+				VECCOPY(isec.vec, lampco);
+				isec.labda = RE_RAYTRACE_MAXDIST;
+			}
+			else
+			{
+				VECSUB(isec.vec, lampco, isec.start);
+				isec.labda = 1.0f;
+			}
 
 			if(isec.mode==RE_RAY_SHADOW_TRA) {
 				/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
@@ -2260,7 +2294,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				shadfac[3]= 0.0f;
 		}
 		else {
-			ray_shadow_jitter(shi, lar, lampco, shadfac, &isec);
+			ray_shadow_jitter(shi, lar, lampco, lampvec, shadfac, &isec);
 		}
 	}
 		
