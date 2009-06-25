@@ -38,6 +38,9 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_arithb.h" /* CalcNormFloat */
+
+
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
@@ -181,6 +184,26 @@ static void rna_MeshFace_material_index_range(PointerRNA *ptr, int *min, int *ma
 	Mesh *me= (Mesh*)ptr->id.data;
 	*min= 0;
 	*max= me->totcol-1;
+}
+
+static void rna_MeshFace_normal_get(PointerRNA *ptr, float *value)
+{
+	float *vert[4];
+	MFace *face = (MFace*)ptr->data;
+	Mesh *me= (Mesh*)ptr->id.data;
+
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
+
+	/* copied from MFace_getNormal (old python API) */
+	if (face->v4) {
+		vert[3] = me->mvert[face->v4].co;
+		CalcNormFloat4(vert[0], vert[1], vert[2], vert[3], value);
+	}
+	else {
+		CalcNormFloat(vert[0], vert[1], vert[2], value);
+	}
 }
 
 static int rna_CustomDataLayer_length(PointerRNA *ptr, int type)
@@ -749,6 +772,12 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "");
+
+	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshFace_normal_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Normal", "Face normal");
 }
 
 static void rna_def_mtface(BlenderRNA *brna)

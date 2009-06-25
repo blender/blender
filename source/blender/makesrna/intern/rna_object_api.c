@@ -198,7 +198,7 @@ void RNA_api_object(StructRNA *srna)
 	func= RNA_def_function(srna, "convert_to_triface", "rna_Object_convert_to_triface");
 	RNA_def_function_ui_description(func, "Convert all mesh faces to triangles.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object is.");
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object belongs.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 

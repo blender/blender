@@ -384,15 +384,12 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			if ob.type != 'MESH':
 				continue
 
-			# XXX
-# 			if EXPORT_UV:
-# 				faceuv= me.faceUV
-# 			else:
-# 				faceuv = False
+			if EXPORT_UV:
+				faceuv = len(me.uv_layers) > 0
+			else:
+				faceuv = False
 
 			me = ob.create_render_mesh()
-
-			newob = ob
 
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
@@ -408,6 +405,8 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 					newob = bpy.data.add_object('MESH', 'temp_object')
 					scene.add_object(newob)
 					newob.convert_to_triface(scene)
+					# me will still be there
+					scene.remove_object(newob)
 # 					oldmode = Mesh.Mode()
 # 					Mesh.Mode(Mesh.SelectModes['FACE'])
 					
@@ -423,35 +422,38 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 				ob_mat *= mat_xrot90
 
 			# Make our own list so it can be sorted to reduce context switching
-			faces = [ f for f in me.faces ]
+			face_index_pairs = [ (face, index) for index, face in enumerate(me.faces)]
+			# faces = [ f for f in me.faces ]
 			
 			if EXPORT_EDGES:
 				edges = me.edges
 			else:
 				edges = []
-			
-			if not (len(faces)+len(edges)+len(me.verts)): # Make sure there is somthing to write
 
-				if newob != ob:
-					scene.remove_object(newob)
+			if not (len(face_index_pairs)+len(edges)+len(me.verts)): # Make sure there is somthing to write				
+# 			if not (len(faces)+len(edges)+len(me.verts)): # Make sure there is somthing to write
+
+				bpy.data.remove_mesh(me)
 
 				continue # dont bother with this mesh.
 
-			# done above ^
-# 			if EXPORT_ROTX90:
-# 				me.transform(ob_mat*mat_xrot90)
-# 			else:
-# 				me.transform(ob_mat)
+			if EXPORT_ROTX90:
+				me.transform(ob_mat*mat_xrot90)
+			else:
+				me.transform(ob_mat)
 			
 			# High Quality Normals
-			if EXPORT_NORMALS and faces:
-				if EXPORT_NORMALS_HQ:
-					BPyMesh.meshCalcNormals(me)
-				else:
-					# transforming normals is incorrect
-					# when the matrix is scaled,
-					# better to recalculate them
-					me.calcNormals()
+			if EXPORT_NORMALS and face_index_pairs:
+# 			if EXPORT_NORMALS and faces:
+				# XXX
+				pass
+# 				if EXPORT_NORMALS_HQ:
+# 					BPyMesh.meshCalcNormals(me)
+# 				else:
+# 					# transforming normals is incorrect
+# 					# when the matrix is scaled,
+# 					# better to recalculate them
+# 					me.calcNormals()
 			
 			# # Crash Blender
 			#materials = me.getMaterials(1) # 1 == will return None in the list.
@@ -478,15 +480,35 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			if EXPORT_KEEP_VERT_ORDER:
 				pass
 			elif faceuv:
-				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
-				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+				# XXX update
+ 				tface = me.active_uv_layer.data
+
+				# exception only raised if Python 2.3 or lower...
+				try:	face_index_pairs.sort(key = lambda a: (a[0].material_index, tface[a[1]].image, a[0].smooth))
+				except:	face_index_pairs.sort(lambda a,b: cmp((a[0].material_index, tface[a[1]].image, a[0].smooth),
+															  (b[0].material_index, tface[b[1]].image, b[0].smooth)))
 			elif len(materials) > 1:
-				try:	faces.sort(key = lambda a: (a.mat, a.smooth))
-				except:	faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
+				try:	face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
+				except:	face_index_pairs.sort(lambda a,b: cmp((a[0].material_index, a[0].smooth),
+															  (b[0].material_index, b[0].smooth)))
 			else:
 				# no materials
-				try:	faces.sort(key = lambda a: a.smooth)
-				except:	faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
+				try:	face_index_pairs.sort(key = lambda a: a[0].smooth)
+				except:	face_index_pairs.sort(lambda a,b: cmp(a[0].smooth, b[0].smooth))
+# 			if EXPORT_KEEP_VERT_ORDER:
+# 				pass
+# 			elif faceuv:
+# 				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
+# 				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+# 			elif len(materials) > 1:
+# 				try:	faces.sort(key = lambda a: (a.mat, a.smooth))
+# 				except:	faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
+# 			else:
+# 				# no materials
+# 				try:	faces.sort(key = lambda a: a.smooth)
+# 				except:	faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
+
+			faces = [pair[0] for pair in face_index_pairs]
 			
 			# Set the default mat to no material and no image.
 			contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
@@ -494,7 +516,8 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			
 			if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
 				name1 = ob.name
-				name2 = ob.getData(1)
+				name2 = ob.data.name
+				# name2 = ob.getData(1)
 				if name1 == name2:
 					obnamestring = fixName(name1)
 				else:
@@ -513,17 +536,37 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			# UV
 			if faceuv:
 				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
-				
+
 				uv_dict = {} # could use a set() here
-				for f_index, f in enumerate(faces):
-					
-					for uv_index, uv in enumerate(f.uv):
+ 				uv_layer = me.active_uv_layer
+				for f, f_index in face_index_pairs:
+
+					tface = uv_layer.data[f_index]
+
+					uvs = [tface.uv1, tface.uv2, tface.uv3]
+
+					# add another UV if it's a quad
+					if tface.verts[3] != 0:
+						uvs.append(tface.uv4)
+
+					for uv_index, uv in enumerate(uvs):
 						uvkey = veckey2d(uv)
 						try:
 							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
 						except:
 							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
 							file.write('vt %.6f %.6f\n' % tuple(uv))
+
+# 				uv_dict = {} # could use a set() here
+# 				for f_index, f in enumerate(faces):
+					
+# 					for uv_index, uv in enumerate(f.uv):
+# 						uvkey = veckey2d(uv)
+# 						try:
+# 							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+# 						except:
+# 							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+# 							file.write('vt %.6f %.6f\n' % tuple(uv))
 				
 				uv_unique_count = len(uv_dict)
 				del uv, uvkey, uv_dict, f_index, uv_index
@@ -534,14 +577,16 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 				for f in faces:
 					if f.smooth:
 						for v in f:
-							noKey = veckey3d(v.no)
+							noKey = veckey3d(v.normal)
+# 							noKey = veckey3d(v.no)
 							if not globalNormals.has_key( noKey ):
 								globalNormals[noKey] = totno
 								totno +=1
 								file.write('vn %.6f %.6f %.6f\n' % noKey)
 					else:
 						# Hard, 1 normal from the face.
-						noKey = veckey3d(f.no)
+						noKey = veckey3d(f.normal)
+# 						noKey = veckey3d(f.no)
 						if not globalNormals.has_key( noKey ):
 							globalNormals[noKey] = totno
 							totno +=1
@@ -549,14 +594,17 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			
 			if not faceuv:
 				f_image = None
-			
+
+			# XXX
 			if EXPORT_POLYGROUPS:
 				# Retrieve the list of vertex groups
-				vertGroupNames = me.getVertGroupNames()
+				vertGroupNames = [g.name for g in ob.vertex_groups]
+# 				vertGroupNames = me.getVertGroupNames()
 
 				currentVGroup = ''
 				# Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
-				vgroupsMap = [[] for _i in xrange(len(me.verts))]
+				vgroupsMap = [[] for _i in range(len(me.verts))]
+# 				vgroupsMap = [[] for _i in xrange(len(me.verts))]
 				for vertexGroupName in vertGroupNames:
 					for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
 						vgroupsMap[vIdx].append((vertexGroupName, vWeight))
@@ -564,25 +612,34 @@ EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 			for f_index, f in enumerate(faces):
 				f_v= f.v
 				f_smooth= f.smooth
-				f_mat = min(f.mat, len(materialNames)-1)
+				f_mat = min(f.material_index, len(materialNames)-1)
+# 				f_mat = min(f.mat, len(materialNames)-1)
 				if faceuv:
-					f_image = f.image
-					f_uv= f.uv
+
+					tface = me.active_uv_layer.data[face_index_pairs[f_index][1]]
+
+					f_image = tface.image
+					f_uv= [tface.uv1, tface.uv2, tface.uv3]
+					if f.verts[4] != 0:
+						f_uv.append(tface.uv4)
+# 					f_image = f.image
+# 					f_uv= f.uv
 				
 				# MAKE KEY
 				if faceuv and f_image: # Object is always true.
 					key = materialNames[f_mat],	 f_image.name
 				else:
 					key = materialNames[f_mat],	 None # No image, use None instead.
-				
-				# Write the vertex group
-				if EXPORT_POLYGROUPS:
-					if vertGroupNames:
-						# find what vertext group the face belongs to
-						theVGroup = findVertexGroupName(f,vgroupsMap)
-						if	theVGroup != currentVGroup:
-							currentVGroup = theVGroup
-							file.write('g %s\n' % theVGroup)
+
+				# XXX
+# 				# Write the vertex group
+# 				if EXPORT_POLYGROUPS:
+# 					if vertGroupNames:
+# 						# find what vertext group the face belongs to
+# 						theVGroup = findVertexGroupName(f,vgroupsMap)
+# 						if	theVGroup != currentVGroup:
+# 							currentVGroup = theVGroup
+# 							file.write('g %s\n' % theVGroup)
 
 				# CHECK FOR CONTEXT SWITCH
 				if key == contextMat:
