@@ -417,7 +417,6 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 {
 	int x;
 	float quat[4], scalar;
-	double dot = 0.0f;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 	PyObject *f = NULL;
 	VectorObject *vec = NULL;
@@ -466,10 +465,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				return quat_rotation((PyObject*)quat1, (PyObject*)vec);
 			}
 		}else{  //QUAT * QUAT (dot product)
-			for(x = 0; x < 4; x++) {
-				dot += quat1->quat[x] * quat1->quat[x];
-			}
-			return PyFloat_FromDouble(dot);
+			return PyFloat_FromDouble(QuatDot(quat1->quat, quat2->quat));
 		}
 	}
 
