@@ -46,6 +46,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "interface_intern.h"
 
 void ui_template_fix_linking()
 {
@@ -160,6 +161,8 @@ static void id_search_cb(const struct bContext *C, void *arg_litem, char *str, u
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
 				iconid= BKE_icon_getid(id);
+				/* checks if not exists, or changed */
+				ui_id_icon_render(CTX_data_scene(C), id);
 				break;
 			default:
 				break;

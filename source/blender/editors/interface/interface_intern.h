@@ -44,6 +44,8 @@ struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
 struct bContextStore;
+struct Scene;
+struct ID;
 
 /* ****************** general defines ************** */
 
@@ -424,6 +426,9 @@ void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int i
 
 /* interface_style.c */
 void uiStyleInit(void);
+
+/* interface_icons.c */
+void ui_id_icon_render(struct Scene *scene, struct ID *id);
 
 /* resources.c */
 void init_userdef_do_versions(void);
