@@ -61,12 +61,14 @@ extern struct Render R;
 static ListBase *get_lights(ShadeInput *shi)
 {
 	
+	if(R.r.scemode & R_PREVIEWBUTS)
+		return &R.lights;
 	if(shi->light_override)
 		return &shi->light_override->gobject;
-	else if(shi->mat && shi->mat->group)
+	if(shi->mat && shi->mat->group)
 		return &shi->mat->group->gobject;
-	else
-		return &R.lights;
+	
+	return &R.lights;
 }
 
 #if 0
