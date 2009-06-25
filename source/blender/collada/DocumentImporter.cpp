@@ -216,12 +216,7 @@ public:
 	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeom ) 
 	{
 		// - create a mesh object
-		// - enter editmode getting editmesh
 		// - write geometry
-		// - exit editmode
-		// 
-		// - unlink mesh from object
-		// - remove object
 
 		// - ignore usupported primitive types
 
@@ -245,19 +240,20 @@ public:
 		
 		for (i = 0; i < prim_arr.getCount(); i++) {
 			
-			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
+			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
 
 			const char *type_str = primTypeToStr(type);
 
-			if (type == COLLADAFW::MeshPrimitive::POLYLIST) {
+			// OpenCollada passes POLYGONS type for <polylist>
+			if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 
 				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
 				
 				bool ok = true;
 				for(int j = 0; j < vca.getCount(); j++){
-					int count = vca.getData()[j];
+					int count = vca[j];
 					if (count != 3 && count != 4) {
 						fprintf(stderr, "%s has at least one face with vertex count > 4 or < 3\n",
 								type_str);
@@ -313,12 +309,7 @@ public:
 		}
 
 		// count totface
-		int totface = 0;
-
-		for (i = 0; i < prim_arr.getCount(); i++) {
-			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
-			totface += mp->getFaceCount();
-		}
+		int totface = cmesh->getFacesCount();
 
 		// allocate faces
 		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
@@ -328,7 +319,7 @@ public:
 		MFace *mface = me->mface;
 		for (i = 0; i < prim_arr.getCount(); i++){
 			
- 			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
+ 			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 			
 			// faces
 			size_t prim_totface = mp->getFaceCount();
@@ -345,13 +336,13 @@ public:
 					mface++;
 				}
 			}
-			else if (type == COLLADAFW::MeshPrimitive::POLYLIST) {
+			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vca =
 					mpvc->getGroupedVerticesVertexCountArray();
 				for (k = 0; k < prim_totface; k++) {
 					
-					if (vca.getData()[k] == 3){
+					if (vca[k] == 3){
 						mface->v1 = indices[0];
 						mface->v2 = indices[1];
 						mface->v3 = indices[2];
