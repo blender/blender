@@ -257,10 +257,14 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	if(eul_compat) {
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
-		
+
+#ifdef USE_MATHUTILS_DEG
 		for(x = 0; x < 3; x++) {
 			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
 		}
+#else
+		VECCOPY(eul_compatf, eul_compat->eul);
+#endif
 	}
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
@@ -278,10 +282,12 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 		PyErr_SetString(PyExc_AttributeError, "Matrix.toEuler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
+#ifdef USE_MATHUTILS_DEG
 	/*have to convert to degrees*/
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (float) (180 / Py_PI);
 	}
+#endif
 	return newEulerObject(eul, Py_NEW);
 }
 /*---------------------------Matrix.resize4x4() ------------------*/

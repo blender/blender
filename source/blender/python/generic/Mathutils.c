@@ -275,8 +275,11 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 
 	angleRads = (double)saacos(dot);
 
+#ifdef USE_MATHUTILS_DEG
 	return PyFloat_FromDouble(angleRads * (180/ Py_PI));
-
+#else
+	return PyFloat_FromDouble(angleRads);
+#endif
 AttributeError1:
 	PyErr_SetString(PyExc_AttributeError, "Mathutils.AngleBetweenVecs(): expects (2) VECTOR objects of the same size\n");
 	return NULL;
@@ -364,12 +367,19 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.RotationMatrix(): expected float int and optional string and vector\n");
 		return NULL;
 	}
-	
+
+#ifdef USE_MATHUTILS_DEG
 	/* Clamp to -360:360 */
 	while (angle<-360.0f)
 		angle+=360.0;
 	while (angle>360.0f)
 		angle-=360.0;
+#else
+	while (angle<-(Py_PI*2))
+		angle+=(Py_PI*2);
+	while (angle>(Py_PI*2))
+		angle-=(Py_PI*2);
+#endif
 	
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
@@ -399,8 +409,11 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 			return NULL;
 		
 	}
+#ifdef USE_MATHUTILS_DEG
 	//convert to radians
 	angle = angle * (float) (Py_PI / 180);
+#endif
+
 	if(axis == NULL && matSize == 2) {
 		//2D rotation matrix
 		mat[0] = (float) cos (angle);

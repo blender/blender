@@ -116,6 +116,16 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		vec.getValue((float *) pyvec->vec);
 		return true;
 	}
+	else if(QuaternionObject_Check(pyval)) {
+		QuaternionObject *pyquat= (QuaternionObject *)pyval;
+		if (4 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 4, Size(vec));
+			return false;
+		}
+		/* xyzw -> wxyz reordering is done by PyQuatTo */
+		vec.getValue((float *) pyquat->quat);
+		return true;
+	}
 	else if(EulerObject_Check(pyval)) {
 		EulerObject *pyeul= (EulerObject *)pyval;
 		if (3 != Size(vec)) {
@@ -186,6 +196,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	return false;
 }
 
+
+bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot);
+
 bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix);
 
 /**
@@ -207,6 +220,13 @@ PyObject* PyObjectFrom(const MT_Tuple2 &vec);
  * Converts an MT_Tuple3 to a python object
  */
 PyObject* PyObjectFrom(const MT_Tuple3 &vec);
+
+#ifdef USE_MATHUTILS
+/**
+ * Converts an MT_Quaternion to a python object.
+ */
+PyObject* PyObjectFrom(const MT_Quaternion &qrot);
+#endif
 
 /**
  * Converts an MT_Tuple4 to a python object.

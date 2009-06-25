@@ -77,7 +77,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 {
 	PyObject *listObject = NULL, *n, *q;
 	int size, i;
-	float quat[4], scalar;
+	float quat[4];
 	double angle = 0.0f;
 
 	size = PyTuple_GET_SIZE(args);
@@ -151,19 +151,21 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 			return NULL;
 		}
 
-		scalar = PyFloat_AsDouble(q);
+		quat[i] = PyFloat_AsDouble(q);
 		Py_DECREF(q);
 
-		if (scalar==-1 && PyErr_Occurred()) {
+		if (quat[i]==-1 && PyErr_Occurred()) {
 			PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 			return NULL;
 		}
-		quat[i] = scalar;
 	}
 
 	if(size == 3) //calculate the quat based on axis/angle
-		AxisAngleToQuat(quat, quat, angle * (Py_PI / 180)); // TODO - 2.5 use radians, note using quat for src and target is ok here
-
+#ifdef USE_MATHUTILS_DEG
+		AxisAngleToQuat(quat, quat, angle * (Py_PI / 180));
+#else
+		AxisAngleToQuat(quat, quat, angle);
+#endif
 
 	return newQuaternionObject(quat, Py_NEW);
 }
@@ -189,28 +191,33 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 		
+		QuatToMat3(self->quat, mat);
+
+#ifdef USE_MATHUTILS_DEG
 		for(x = 0; x < 3; x++) {
 			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
 		}
-		
-		QuatToMat3(self->quat, mat);
 		Mat3ToCompatibleEul(mat, eul, eul_compatf);
+#else
+		Mat3ToCompatibleEul(mat, eul, eul_compat->eul);
+#endif
 	}
 	else {
 		QuatToEul(self->quat, eul);
 	}
 	
-	
+#ifdef USE_MATHUTILS_DEG
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (180 / (float)Py_PI);
 	}
+#endif
 	return newEulerObject(eul, Py_NEW);
 }
 //----------------------------Quaternion.toMatrix()------------------
 //return the quat as a matrix
 static PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 {
-	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+	float mat[9]; /* all values are set */
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -662,7 +669,9 @@ static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
 {
 	double ang = self->quat[0];
 	ang = 2 * (saacos(ang));
+#ifdef USE_MATHUTILS_DEG
 	ang *= (180 / Py_PI);
+#endif
 	return PyFloat_FromDouble(ang);
 }
 

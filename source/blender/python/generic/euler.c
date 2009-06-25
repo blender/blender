@@ -70,7 +70,7 @@ static PyObject *Euler_new(PyObject * self, PyObject * args)
 
 	PyObject *listObject = NULL;
 	int size, i;
-	float eul[3], scalar;
+	float eul[3];
 	PyObject *e;
 
 	size = PyTuple_GET_SIZE(args);
@@ -102,15 +102,13 @@ static PyObject *Euler_new(PyObject * self, PyObject * args)
 			return NULL;
 		}
 
-		scalar= (float)PyFloat_AsDouble(e);
+		eul[i]= (float)PyFloat_AsDouble(e);
 		Py_DECREF(e);
 		
-		if(scalar==-1 && PyErr_Occurred()) { // parsed item is not a number
+		if(eul[i]==-1 && PyErr_Occurred()) { // parsed item is not a number
 			PyErr_SetString(PyExc_TypeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
 			return NULL;
 		}
-
-		eul[i]= scalar;
 	}
 	return newEulerObject(eul, Py_NEW);
 }
@@ -126,10 +124,15 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
+#ifdef USE_MATHUTILS_DEG
 	for(x = 0; x < 3; x++) {
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToQuat(eul, quat);
+#else
+	EulToQuat(self->eul, quat);
+#endif
+
 	return newQuaternionObject(quat, Py_NEW);
 }
 //----------------------------Euler.toMatrix()---------------------
@@ -143,10 +146,14 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
+#ifdef USE_MATHUTILS_DEG
 	for(x = 0; x < 3; x++) {
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToMat3(eul, (float (*)[3]) mat);
+#else
+	EulToMat3(self->eul, (float (*)[3]) mat);
+#endif
 	return newMatrixObject(mat, 3, 3 , Py_NEW);
 }
 //----------------------------Euler.unique()-----------------------
@@ -161,10 +168,12 @@ static PyObject *Euler_Unique(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
+#ifdef USE_MATHUTILS_DEG
 	//radians
 	heading = self->eul[0] * (float)Py_PI / 180;
 	pitch = self->eul[1] * (float)Py_PI / 180;
 	bank = self->eul[2] * (float)Py_PI / 180;
+#endif
 
 	//wrap heading in +180 / -180
 	pitch += Py_PI;
@@ -195,10 +204,12 @@ static PyObject *Euler_Unique(EulerObject * self)
 	heading -= (floor(heading * Opi2)) * pi2;
 	heading -= Py_PI;
 
+#ifdef USE_MATHUTILS_DEG
 	//back to degrees
 	self->eul[0] = (float)(heading * 180 / (float)Py_PI);
 	self->eul[1] = (float)(pitch * 180 / (float)Py_PI);
 	self->eul[2] = (float)(bank * 180 / (float)Py_PI);
+#endif
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -237,16 +248,21 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
+#ifdef USE_MATHUTILS_DEG
 	//covert to radians
 	angle *= ((float)Py_PI / 180);
 	for(x = 0; x < 3; x++) {
 		self->eul[x] *= ((float)Py_PI / 180);
 	}
+#endif
 	euler_rot(self->eul, angle, *axis);
+
+#ifdef USE_MATHUTILS_DEG
 	//convert back from radians
 	for(x = 0; x < 3; x++) {
 		self->eul[x] *= (180 / (float)Py_PI);
 	}
+#endif
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -266,17 +282,23 @@ static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
+#ifdef USE_MATHUTILS_DEG
 	//covert to radians
 	for(x = 0; x < 3; x++) {
 		self->eul[x] = self->eul[x] * ((float)Py_PI / 180);
 		eul_from_rad[x] = value->eul[x] * ((float)Py_PI / 180);
 	}
 	compatible_eul(self->eul, eul_from_rad);
+#else
+	compatible_eul(self->eul, value->eul);
+#endif
+
+#ifdef USE_MATHUTILS_DEG
 	//convert back from radians
 	for(x = 0; x < 3; x++) {
 		self->eul[x] *= (180 / (float)Py_PI);
 	}
-	
+#endif
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;

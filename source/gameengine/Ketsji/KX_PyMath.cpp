@@ -53,7 +53,7 @@ bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefi
 	if (size == 4)
 	{
 		MT_Quaternion qrot;
-		if (PyVecTo(pyval, qrot))
+		if (PyQuatTo(pyval, qrot))
 		{
 			rot.setRotation(qrot);
 			return true;
@@ -77,6 +77,21 @@ bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefi
 	
 	PyErr_Format(PyExc_TypeError, "%s, could not set the orientation from a 3x3 matrix, quaternion or euler sequence", error_prefix);
 	return false;
+}
+
+bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot)
+{
+	if(!PyVecTo(pyval, qrot))
+		return false;
+
+	/* annoying!, Blender/Mathutils have the W axis first! */
+	MT_Scalar w= qrot[0]; /* from python, this is actually the W */
+	qrot[0]= qrot[1];
+	qrot[1]= qrot[2];
+	qrot[2]= qrot[3];
+	qrot[3]= w;
+
+	return true;
 }
 
 PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
@@ -125,6 +140,15 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 	return list;
 #endif
 }
+
+#ifdef USE_MATHUTILS
+PyObject* PyObjectFrom(const MT_Quaternion &qrot)
+{
+	/* NOTE, were re-ordering here for Mathutils compat */
+	float fvec[4]= {qrot[3], qrot[0], qrot[1], qrot[2]};
+	return newQuaternionObject(fvec, Py_WRAP);
+}
+#endif
 
 PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 {

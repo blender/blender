@@ -1771,7 +1771,7 @@ PyTypeObject vector_Type = {
 	0,                          /* ob_size */
 #endif
 	/*  For printing, in format "<module>.<name>" */
-	"Blender Vector",             /* char *tp_name; */
+	"vector",             /* char *tp_name; */
 	sizeof( VectorObject ),         /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
