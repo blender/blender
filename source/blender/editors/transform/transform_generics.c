@@ -358,11 +358,21 @@ void recalcData(TransInfo *t)
 				 * ones (i.e. don't go through RNA), as we get some artifacts...
 				 */
 				if (t->state == TRANS_CANCEL) {
-					/* write the value set by the transform tools to the appropriate property using RNA */
-					if (tdn->handle)
+					/* clear the values by directly overwriting the originals, but also need to restore 
+					 * endpoints of neighboring transition-strips
+					 */
+					if (tdn->handle) {
 						strip->end= tdn->val;
-					else
+						
+						if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION))
+							strip->next->start= tdn->val;
+					}
+					else {
 						strip->start= tdn->val;
+						
+						if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION))
+							strip->prev->end= tdn->val;
+					}
 				}
 				else {
 					PointerRNA strip_ptr;

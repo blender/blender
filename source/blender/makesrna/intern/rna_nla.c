@@ -40,17 +40,30 @@
 #include <stdio.h>
 #include <math.h>
 
+/* temp constant defined for these funcs only... */
+#define NLASTRIP_MIN_LEN_THRESH 	0.1f
+
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
 	
 	/* clamp value to lie within valid limits 
 	 *	- cannot start past the end of the strip + some flexibility threshold
-	 *	- cannot start before the previous strip (if present) ends 
+	 *	- cannot start before the previous strip (if present) ends
+	 *		-> but if it was a transition, we could go up to the start of the strip + some flexibility threshold
+	 *		as long as we re-adjust the transition afterwards
 	 *	- minimum frame is -MAXFRAME so that we don't get clipping on frame 0
 	 */
 	if (data->prev) {
-		CLAMP(value, data->prev->end, data->end-0.1f);
+		if (data->prev->type == NLASTRIP_TYPE_TRANSITION) {
+			CLAMP(value, data->prev->start+NLASTRIP_MIN_LEN_THRESH, data->end-NLASTRIP_MIN_LEN_THRESH);
+			
+			/* readjust the transition to stick to the endpoints of the action-clips */
+			data->prev->end= value;
+		}
+		else {
+			CLAMP(value, data->prev->end, data->end-NLASTRIP_MIN_LEN_THRESH);
+		}
 	}
 	else {
 		CLAMP(value, -MAXFRAME, data->end);
@@ -61,28 +74,42 @@ static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	float len, actlen;
 	
 	/* clamp value to lie within valid limits
 	 *	- must not have zero or negative length strip, so cannot start before the first frame 
 	 *	  + some minimum-strip-length threshold
 	 *	- cannot end later than the start of the next strip (if present)
+	 *		-> but if it was a transition, we could go up to the start of the end - some flexibility threshold
+	 *		as long as we re-adjust the transition afterwards
 	 */
 	if (data->next) {
-		CLAMP(value, data->start+0.1f, data->next->start);
+		if (data->next->type == NLASTRIP_TYPE_TRANSITION) {
+			CLAMP(value, data->start+NLASTRIP_MIN_LEN_THRESH, data->next->end-NLASTRIP_MIN_LEN_THRESH);
+			
+			/* readjust the transition to stick to the endpoints of the action-clips */
+			data->next->start= value;
+		}
+		else {
+			CLAMP(value, data->start+NLASTRIP_MIN_LEN_THRESH, data->next->start);
+		}
 	}
 	else {
-		CLAMP(value, data->start+0.1f, MAXFRAME);
+		CLAMP(value, data->start+NLASTRIP_MIN_LEN_THRESH, MAXFRAME);
 	}
 	data->end= value;
 	
-	/* calculate the lengths the strip and its action (if applicable) */
-	len= data->end - data->start;
-	actlen= data->actend - data->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
 	
-	/* now, adjust the 'scale' setting to reflect this (so that this change can be valid) */
-	data->scale= len / ((actlen) * data->repeat);
+	/* calculate the lengths the strip and its action (if applicable) */
+	if (data->type == NLASTRIP_TYPE_CLIP) {
+		float len, actlen;
+		
+		len= data->end - data->start;
+		actlen= data->actend - data->actstart;
+		if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+		
+		/* now, adjust the 'scale' setting to reflect this (so that this change can be valid) */
+		data->scale= len / ((actlen) * data->repeat);
+	}
 }
 
 static void rna_NlaStrip_scale_set(PointerRNA *ptr, float value)

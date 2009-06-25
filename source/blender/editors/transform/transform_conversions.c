@@ -2620,9 +2620,12 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		/* only consider selected strips */
 		for (strip= nlt->strips.first; strip; strip= strip->next) {
 			// TODO: we can make strips have handles later on...
-			if (strip->flag & NLASTRIP_FLAG_SELECT) {
-				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
-				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
+			/* transition strips can't get directly transformed */
+			if (strip->type != NLASTRIP_TYPE_TRANSITION) {
+				if (strip->flag & NLASTRIP_FLAG_SELECT) {
+					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
+					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
+				}
 			}
 		}
 	}
@@ -2652,34 +2655,37 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 			/* only consider selected strips */
 			for (strip= nlt->strips.first; strip; strip= strip->next) {
 				// TODO: we can make strips have handles later on...
-				if (strip->flag & NLASTRIP_FLAG_SELECT) {
-					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) 
-					{
-						/* init the 'extra' data for NLA strip handles first */
-						tdn->strip= strip;
-						tdn->val= strip->start;
-						tdn->handle= 0;
-						
-						/* now, link the transform data up to this data */
-						td->val= &tdn->val;
-						td->ival= tdn->val;
-						td->extra= tdn;
-						td++;
-						tdn++;
-					}
-					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) 
-					{	
-						/* init the 'extra' data for NLA strip handles first */
-						tdn->strip= strip;
-						tdn->val= strip->end;
-						tdn->handle= 1;
-						
-						/* now, link the transform data up to this data */
-						td->val= &tdn->val;
-						td->ival= tdn->val;
-						td->extra= tdn;
-						td++;
-						tdn++;
+				/* transition strips can't get directly transformed */
+				if (strip->type != NLASTRIP_TYPE_TRANSITION) {
+					if (strip->flag & NLASTRIP_FLAG_SELECT) {
+						if (FrameOnMouseSide(side, strip->start, (float)CFRA)) 
+						{
+							/* init the 'extra' data for NLA strip handles first */
+							tdn->strip= strip;
+							tdn->val= strip->start;
+							tdn->handle= 0;
+							
+							/* now, link the transform data up to this data */
+							td->val= &tdn->val;
+							td->ival= tdn->val;
+							td->extra= tdn;
+							td++;
+							tdn++;
+						}
+						if (FrameOnMouseSide(side, strip->end, (float)CFRA)) 
+						{	
+							/* init the 'extra' data for NLA strip handles first */
+							tdn->strip= strip;
+							tdn->val= strip->end;
+							tdn->handle= 1;
+							
+							/* now, link the transform data up to this data */
+							td->val= &tdn->val;
+							td->ival= tdn->val;
+							td->extra= tdn;
+							td++;
+							tdn++;
+						}
 					}
 				}
 			}
