@@ -1184,11 +1184,7 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 	return list;
 }
 
-
 #ifdef USE_MATHUTILS
-extern "C" {
-#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
-}
 
 /* These require an SGNode */
 #define MATHUTILS_VEC_CB_POS_LOCAL 1
@@ -1880,12 +1876,7 @@ int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUT
 	if (!PyOrientationTo(value, rot, "gameOb.worldOrientation = sequence: KX_GameObject, "))
 		return PY_SET_ATTR_FAIL;
 
-	if (self->GetSGNode() && self->GetSGNode()->GetSGParent()) {
-		self->NodeSetLocalOrientation(self->GetSGNode()->GetSGParent()->GetWorldOrientation().inverse()*rot);
-	}
-	else {
-		self->NodeSetLocalOrientation(rot);
-	}
+	self->NodeSetGlobalOrientation(rot);
 	
 	self->NodeUpdateGS(0.f);
 	return PY_SET_ATTR_SUCCESS;

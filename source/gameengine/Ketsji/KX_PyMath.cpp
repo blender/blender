@@ -46,35 +46,6 @@
 #include "KX_Python.h"
 #include "KX_PyMath.h"
 
-bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
-{
-	if (!pymat)
-		return false;
-		
-	unsigned int y;
-	if (PySequence_Check(pymat))
-	{
-		unsigned int rows = PySequence_Size(pymat);
-		if (rows != rank)
-			return false;
-		
-		bool ismatrix = true;
-		for (y = 0; y < rank && ismatrix; y++)
-		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (PySequence_Check(pyrow))
-			{
-				if (((unsigned int)PySequence_Size(pyrow)) != rank)
-					ismatrix = false;
-			} else 
-				ismatrix = false;
-			Py_DECREF(pyrow);
-		}
-		return ismatrix;
-	}
-	return false;
-}
-
 bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefix)
 {
 	int size= PySequence_Size(pyval);
@@ -110,12 +81,10 @@ bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &rot, const char *error_prefi
 
 PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 {
-#if 0
-	return Py_BuildValue("[[ffff][ffff][ffff][ffff]]",
-		mat[0][0], mat[0][1], mat[0][2], mat[0][3], 
-		mat[1][0], mat[1][1], mat[1][2], mat[1][3], 
-		mat[2][0], mat[2][1], mat[2][2], mat[2][3], 
-		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+#ifdef USE_MATHUTILS
+	float fmat[16];
+	mat.getValue(fmat);
+	return newMatrixObject(fmat, 4, 4, Py_NEW);
 #else
 	PyObject *list = PyList_New(4);
 	PyObject *sublist;
@@ -136,11 +105,10 @@ PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 
 PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 {
-#if 0
-	return Py_BuildValue("[[fff][fff][fff]]",
-		mat[0][0], mat[0][1], mat[0][2], 
-		mat[1][0], mat[1][1], mat[1][2], 
-		mat[2][0], mat[2][1], mat[2][2]);
+#ifdef USE_MATHUTILS
+	float fmat[9];
+	mat.getValue3x3(fmat);
+	return newMatrixObject(fmat, 3, 3, Py_NEW);
 #else
 	PyObject *list = PyList_New(3);
 	PyObject *sublist;
@@ -160,9 +128,9 @@ PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 
 PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 {
-#if 0
-	return Py_BuildValue("[ffff]", 
-		vec[0], vec[1], vec[2], vec[3]);
+#ifdef USE_MATHUTILS
+	float fvec[4]= {vec[0], vec[1], vec[2], vec[3]};
+	return newVectorObject(fvec, 4, Py_WRAP);
 #else
 	PyObject *list = PyList_New(4);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
@@ -175,9 +143,9 @@ PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 
 PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 {
-#if 0
-	return Py_BuildValue("[fff]", 
-		vec[0], vec[1], vec[2]);
+#ifdef USE_MATHUTILS
+	float fvec[3]= {vec[0], vec[1], vec[2]};
+	return newVectorObject(fvec, 3, Py_WRAP);
 #else
 	PyObject *list = PyList_New(3);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
@@ -189,9 +157,9 @@ PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 
 PyObject* PyObjectFrom(const MT_Tuple2 &vec)
 {
-#if 0
-	return Py_BuildValue("[ff]",
-		vec[0], vec[1]);
+#ifdef USE_MATHUTILS
+	float fvec[2]= {vec[0], vec[1]};
+	return newVectorObject(fvec, 2, Py_WRAP);
 #else
 	PyObject *list = PyList_New(2);
 	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));

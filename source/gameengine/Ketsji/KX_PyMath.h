@@ -31,6 +31,12 @@
 #ifndef __KX_PYMATH_H__
 #define __KX_PYMATH_H__
 
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
+
 #include "MT_Point2.h"
 #include "MT_Point3.h"
 #include "MT_Vector2.h"
@@ -98,7 +104,28 @@ bool PyMatTo(PyObject* pymat, T& mat)
 template<class T>
 bool PyVecTo(PyObject* pyval, T& vec)
 {
-
+#ifdef USE_MATHUTILS
+	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
+	
+	if(VectorObject_Check(pyval)) {
+		VectorObject *pyvec= (VectorObject *)pyval;
+		if (pyvec->size != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", pyvec->size, Size(vec));
+			return false;
+		}
+		vec.getValue((float *) pyvec->vec);
+		return true;
+	}
+	else if(EulerObject_Check(pyval)) {
+		EulerObject *pyeul= (EulerObject *)pyval;
+		if (3 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 3, Size(vec));
+			return false;
+		}
+		vec.getValue((float *) pyeul->eul);
+		return true;
+	} else
+#endif
 	if(PyTuple_Check(pyval))
 	{
 		unsigned int numitems = PyTuple_GET_SIZE(pyval);
@@ -185,11 +212,5 @@ PyObject* PyObjectFrom(const MT_Tuple3 &vec);
  * Converts an MT_Tuple4 to a python object.
  */
 PyObject* PyObjectFrom(const MT_Tuple4 &pos);
-
-/**
- * True if the given PyObject can be converted to an MT_Matrix
- * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)
- */
-bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank);
 
 #endif

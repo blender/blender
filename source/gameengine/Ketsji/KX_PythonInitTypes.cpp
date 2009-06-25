@@ -235,6 +235,7 @@ void initPyTypes(void)
 #ifdef USE_MATHUTILS
 	/* Init mathutils callbacks */
 	KX_GameObject_Mathutils_Callback_Init();
+	KX_ObjectActuator_Mathutils_Callback_Init();
 #endif
 }
 

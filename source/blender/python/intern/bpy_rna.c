@@ -44,8 +44,8 @@
 #ifdef USE_MATHUTILS
 #include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
 
-/* bpyrna vector callbacks */
-static int mathutils_rna_vector_cb_index= -1; /* index for our callbacks */
+/* bpyrna vector/euler/quat callbacks */
+static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
 static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
 {
@@ -88,7 +88,7 @@ static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, fl
 	return 1;
 }
 
-Mathutils_Callback mathutils_rna_vector_cb = {
+Mathutils_Callback mathutils_rna_array_cb = {
 	mathutils_rna_generic_check,
 	mathutils_rna_vector_get,
 	mathutils_rna_vector_set,
@@ -234,26 +234,41 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		PyObject *ret = pyrna_prop_CreatePyObject(ptr, prop);
 		
 #ifdef USE_MATHUTILS
+
 		/* return a mathutils vector where possible */
 		if(RNA_property_type(prop)==PROP_FLOAT) {
-			if(RNA_property_subtype(prop)==PROP_VECTOR) {
+			switch(RNA_property_subtype(prop)) {
+			case PROP_VECTOR:
 				if(len>=2 && len <= 4) {
-					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_vector_cb_index, 0);
+					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, 0);
 					Py_DECREF(ret); /* the vector owns now */
 					ret= vec_cb; /* return the vector instead */
 				}
-			}
-			else if(RNA_property_subtype(prop)==PROP_MATRIX) {
+				break;
+			case PROP_MATRIX:
 				if(len==16) {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_vector_cb_index, 0);
+					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, 0);
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= mat_cb; /* return the matrix instead */
 				}
 				else if (len==9) {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_vector_cb_index, 0);
+					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, 0);
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= mat_cb; /* return the matrix instead */
 				}
+				break;
+			case PROP_ROTATION:
+				if(len==3) { /* euler */
+					PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, 0);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= eul_cb; /* return the matrix instead */
+				}
+				else if (len==4) {
+					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, 0);
+					Py_DECREF(ret); /* the matrix owns now */
+					ret= quat_cb; /* return the matrix instead */
+				}
+				break;
 			}
 		}
 
@@ -377,12 +392,15 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefi
 
 static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw);
 
-PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
+PyObject *pyrna_func_to_py(BPy_StructRNA *pyrna, FunctionRNA *func)
 {
 	static PyMethodDef func_meth = {"<generic rna function>", (PyCFunction)pyrna_func_call, METH_VARARGS|METH_KEYWORDS, "python rna function"};
 	PyObject *self= PyTuple_New(2);
 	PyObject *ret;
-	PyTuple_SET_ITEM(self, 0, pyrna_struct_CreatePyObject(ptr));
+
+	PyTuple_SET_ITEM(self, 0, (PyObject *)pyrna);
+	Py_INCREF(pyrna);
+
 	PyTuple_SET_ITEM(self, 1, PyCObject_FromVoidPtr((void *)func, NULL));
 	
 	ret= PyCFunction_New(&func_meth, self);
@@ -407,23 +425,23 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 #ifdef USE_MATHUTILS
 		if(MatrixObject_Check(value)) {
 			MatrixObject *mat = (MatrixObject*)value;
-			if(!Matrix_ReadCallback(mat))
+			if(!BaseMath_ReadCallback(mat))
 				return -1;
 
 			py_len = mat->rowSize * mat->colSize;
-		} else // continue...
+		} else /* continue... */
 #endif
 		if (PySequence_Check(value)) {
 			py_len= (int)PySequence_Length(value);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError, "expected a python sequence type assigned to an RNA array.");
+			PyErr_Format(PyExc_TypeError, "RNA array assignment expected a sequence instead of %s instance.", Py_TYPE(value)->tp_name);
 			return -1;
 		}
 		/* done getting the length */
 		
 		if (py_len != len) {
-			PyErr_SetString(PyExc_AttributeError, "python sequence length did not match the RNA array.");
+			PyErr_Format(PyExc_AttributeError, "python sequence length %d did not match the RNA array length %d.", py_len, len);
 			return -1;
 		}
 		
@@ -493,7 +511,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			if(MatrixObject_Check(value) && RNA_property_subtype(prop) == PROP_MATRIX) {
 				MatrixObject *mat = (MatrixObject*)value;
 				memcpy(param_arr, mat->contigPtr, sizeof(float) * len);
-			} else // continue...
+			} else /* continue... */
 #endif
 			{
 				/* collect the variables */
@@ -1036,7 +1054,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
   		ret = pyrna_prop_to_py(&self->ptr, prop);
   	}
 	else if ((func = RNA_struct_find_function(&self->ptr, name))) {
-		ret = pyrna_func_to_py(&self->ptr, func);
+		ret = pyrna_func_to_py(self, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
 		PointerRNA newptr;
@@ -1786,7 +1804,7 @@ PyObject *BPY_rna_module( void )
 	PointerRNA ptr;
 	
 #ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
-	mathutils_rna_vector_cb_index= Mathutils_RegisterCallback(&mathutils_rna_vector_cb);
+	mathutils_rna_array_cb_index= Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
 	

@@ -37,16 +37,19 @@ extern PyTypeObject matrix_Type;
 #define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
 
 typedef float **ptRow;
-typedef struct _Matrix {
-	PyObject_VAR_HEAD 
-	ptRow			matrix;		/*ptr to the contigPtr (accessor)*/
-	float*			contigPtr;	/*1D array of data (alias)*/
-	PyObject*		cb_user;	/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char rowSize;
-	unsigned char colSize;
-	unsigned char wrapped;	/*is wrapped data?*/
+typedef struct _Matrix { /* keep aligned with BaseMathObject in Mathutils.h */
+	PyObject_VAR_HEAD
+	float *contigPtr;	/*1D array of data (alias)*/
+	PyObject *cb_user;	/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
 	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned int cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char wrapped;	/*is wrapped data?*/
+	/* end BaseMathObject */
+
+	unsigned char rowSize;
+	unsigned int colSize;
+	ptRow			matrix;		/*ptr to the contigPtr (accessor)*/
+
 } MatrixObject;
 
 /*struct data contains a pointer to the actual data that the
