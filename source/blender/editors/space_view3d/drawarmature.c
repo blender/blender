@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -52,6 +53,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -61,6 +63,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -2019,10 +2022,9 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
  */
 static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
+	AnimData *adt= BKE_animdata_from_id(&ob->id);
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	// bAction *act; // XXX old animsys - watch it!
-	// bActionChannel *achan;
 	ActKeyColumn *ak;
 	ListBase keys;
 	float *fp, *fp_start;
@@ -2168,14 +2170,11 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					/* build list of all keyframes in active action for pchan */
 					keys.first = keys.last = NULL;	
 					
-					#if 0 // XXX old animation system
-					act= ob->action;
-					if (act) {
-						achan= get_action_channel(act, pchan->name);
-						if (achan) 
-							ipo_to_keylist(achan->ipo, &keys, NULL, NULL);
+					if (adt) {
+						bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
+						if (agrp)
+							agroup_to_keylist(agrp, &keys, NULL, NULL);
 					}
-					#endif // XXX old animation system
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
 					UI_ThemeColor(TH_VERTEX_SELECT);
@@ -2254,6 +2253,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
 static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
+	AnimData *adt= BKE_animdata_from_id(&ob->id);
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	float start, end, stepsize, range, colfac;
@@ -2290,7 +2290,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		colfac = (end - (float)CFRA) / range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
-		//do_all_pose_actions(scene, ob);  // XXX old animation system
+		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 	}
@@ -2315,7 +2315,8 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
-	bAction *act= ob->action; // XXX old animsys stuff... watch it!
+	AnimData *adt= BKE_animdata_from_id(&ob->id);
+	bAction *act= (adt) ? adt->action : NULL;
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	ListBase keys= {NULL, NULL};
@@ -2366,7 +2367,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		
 		CFRA= (int)ak->cfra;
 		
-		//do_all_pose_actions(scene, ob);	// XXX old animation system
+		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 	}
@@ -2391,38 +2392,27 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
+	AnimData *adt= BKE_animdata_from_id(&ob->id);
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
-	//bActionStrip *strip;
 	float cur, start, end, stepsize, range, colfac, actframe, ctime;
-	int cfrao, maptime, flago;
+	int cfrao, flago;
 	
 	/* pre conditions, get an action with sufficient frames */
-	//if (ob->action==NULL)
-	//	return;
+	if ELEM(NULL, adt, adt->action)
+		return;
 
-	calc_action_range(ob->action, &start, &end, 0);
+	calc_action_range(adt->action, &start, &end, 0);
 	if (start == end)
 		return;
 
 	stepsize= (float)(arm->ghostsize);
 	range= (float)(arm->ghostep)*stepsize + 0.5f;	/* plus half to make the for loop end correct */
 	
-#if 0 // XXX old animation system
-	/* we only map time for armature when an active strip exists */
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if (strip->flag & ACTSTRIP_ACTIVE)
-			break;
-#endif // XXX old animsys
-	
-	//maptime= (strip!=NULL);
-	maptime= 0;
-	
 	/* store values */
 	ob->flag &= ~OB_POSEMODE;
 	cfrao= CFRA;
-	if (maptime) actframe= get_action_frame(ob, (float)CFRA);
-	else actframe= (float)CFRA;
+	actframe= BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
 	
@@ -2444,11 +2434,10 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 		
 		/* only within action range */
 		if (actframe+ctime >= start && actframe+ctime <= end) {
-			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
-			else CFRA= (int)floor(actframe+ctime);
+			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe+ctime, 1);
 			
 			if (CFRA != cfrao) {
-				//do_all_pose_actions(scene, ob); // xxx old animation system crap
+				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 			}
@@ -2460,11 +2449,10 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 		
 		/* only within action range */
 		if ((actframe-ctime >= start) && (actframe-ctime <= end)) {
-			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
-			else CFRA= (int)floor(actframe-ctime);
+			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe-ctime, 1);
 			
 			if (CFRA != cfrao) {
-				//do_all_pose_actions(scene, ob); // XXX old animation system crap...
+				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 			}
