@@ -1,10 +1,6 @@
 
 import bpy
 
-# temporary
-ICON_TEXT = 120
-ICON_HELP = 1
-
 class TEXT_HT_header(bpy.types.Header):
 	__space_type__ = "TEXT_EDITOR"
 	__idname__ = "TEXT_HT_header"
@@ -14,14 +10,14 @@ class TEXT_HT_header(bpy.types.Header):
 		text = st.text
 		layout = self.layout
 
-		layout.template_header(context)
+		layout.template_header()
 
 		if context.area.show_menus:
 			row = layout.row()
-			row.itemM(context, "TEXT_MT_text")
+			row.itemM("TEXT_MT_text")
 			if text:
-				row.itemM(context, "TEXT_MT_edit")
-				row.itemM(context, "TEXT_MT_format")
+				row.itemM("TEXT_MT_edit")
+				row.itemM("TEXT_MT_format")
 
 		if text and text.modified:
 			row = layout.row()
@@ -33,7 +29,7 @@ class TEXT_HT_header(bpy.types.Header):
 		row.itemR(st, "word_wrap", text="")
 		row.itemR(st, "syntax_highlight", text="")
 
-		layout.template_ID(context, st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
+		layout.template_ID(st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
 
 		if text:
 			row = layout.row()
@@ -217,9 +213,9 @@ class TEXT_MT_edit(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "TEXT_MT_edit_view")
-		layout.itemM(context, "TEXT_MT_edit_select")
-		layout.itemM(context, "TEXT_MT_edit_markers")
+		layout.itemM("TEXT_MT_edit_view")
+		layout.itemM("TEXT_MT_edit_select")
+		layout.itemM("TEXT_MT_edit_markers")
 
 		layout.itemS()
 
@@ -228,7 +224,7 @@ class TEXT_MT_edit(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemM(context, "TEXT_MT_edit_to3d")
+		layout.itemM("TEXT_MT_edit_to3d")
 
 bpy.types.register(TEXT_HT_header)
 bpy.types.register(TEXT_PT_properties)

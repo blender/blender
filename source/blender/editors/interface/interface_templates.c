@@ -27,9 +27,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
+
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_utildefines.h"
 
@@ -146,9 +149,24 @@ static void id_search_cb(const struct bContext *C, void *arg_litem, char *str, u
 	ID *id;
 	
 	for(id= lb->first; id; id= id->next) {
+		int iconid= 0;
+		
+		/* icon */
+		switch(GS(id->name))
+		{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				iconid= BKE_icon_getid(id);
+				break;
+			default:
+				break;
+		}
 		
 		if(BLI_strcasestr(id->name+2, str)) {
-			if(0==uiSearchItemAdd(items, id->name+2, id))
+			if(0==uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
 		}
 	}
@@ -362,6 +380,15 @@ static void modifiers_del(bContext *C, void *ob_v, void *md_v)
 	BKE_reports_clear(&reports);
 }
 
+static void modifiers_activate(bContext *C, void *ob_v, void *md_v)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ob_v;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+}
+
 static void modifiers_moveUp(bContext *C, void *ob_v, void *md_v)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -555,7 +582,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
-
+	
+	/* modifier-type icon */
+	uiDefIconBut(block, BUT, 0, RNA_struct_ui_icon(ptr.type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Current Modifier Type");
+	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	if (isVirtual) {
@@ -566,14 +596,16 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 	} else {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-60, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-40, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
 		/* Softbody not allowed in this situation, enforce! */
 		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, 0, ICON_SCENE, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, 0, ICON_VIEW3D, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			uiButSetFunc(but, modifiers_activate, ob, md);
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				but= uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiButSetFunc(but, modifiers_activate, ob, md);
 			}
 		}
 		uiBlockEndAlign(block);
@@ -1490,3 +1522,149 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 		}
 	}
 }
+
+
+/************************* List Template **************************/
+
+typedef struct ListItem {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	PropertyRNA *activeprop;
+
+	PointerRNA activeptr;
+	int activei;
+
+	int selected;
+} ListItem;
+
+static void list_item_cb(bContext *C, void *arg_item, void *arg_unused)
+{
+	ListItem *item= (ListItem*)arg_item;
+	PropertyType activetype;
+	char *activename;
+
+	if(item->selected) {
+		activetype= RNA_property_type(item->activeprop);
+
+		if(activetype == PROP_POINTER)
+			RNA_property_pointer_set(&item->ptr, item->activeprop, item->activeptr);
+		else if(activetype == PROP_INT)
+			RNA_property_int_set(&item->ptr, item->activeprop, item->activei);
+		else if(activetype == PROP_STRING) {
+			activename= RNA_struct_name_get_alloc(&item->activeptr, NULL, 0);
+			RNA_property_string_set(&item->ptr, item->activeprop, activename);
+			MEM_freeN(activename);
+		}
+	}
+}
+
+void uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char *activepropname, int items)
+{
+	PropertyRNA *prop, *activeprop;
+	PropertyType type, activetype;
+	PointerRNA activeptr;
+	uiLayout *box, *row, *col;
+	uiBlock *block;
+	uiBut *but;
+	char *name, *activename= NULL;
+	int i= 1, activei= 0, len;
+	static int scroll = 1;
+	
+	/* validate arguments */
+	if(!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateList: property not found: %s\n", propname);
+		return;
+	}
+
+	activeprop= RNA_struct_find_property(ptr, activepropname);
+	if(!activeprop) {
+		printf("uiTemplateList: property not found: %s\n", activepropname);
+		return;
+	}
+
+	type= RNA_property_type(prop);
+	if(type != PROP_COLLECTION) {
+		printf("uiTemplateList: expected collection property.\n");
+		return;
+	}
+
+	activetype= RNA_property_type(activeprop);
+	if(!ELEM3(activetype, PROP_POINTER, PROP_INT, PROP_STRING)) {
+		printf("uiTemplateList: expected pointer, integer or string property.\n");
+		return;
+	}
+
+	if(items == 0)
+		items= 5;
+
+	/* get active data */
+	if(activetype == PROP_POINTER)
+		activeptr= RNA_property_pointer_get(ptr, activeprop);
+	else if(activetype == PROP_INT)
+		activei= RNA_property_int_get(ptr, activeprop);
+	else if(activetype == PROP_STRING)
+		activename= RNA_property_string_get_alloc(ptr, activeprop, NULL, 0);
+
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+	col = uiLayoutColumn(row, 1);
+
+	block= uiLayoutGetBlock(col);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+
+	len= RNA_property_collection_length(ptr, prop);
+	scroll= MIN2(scroll, len-items+1);
+	scroll= MAX2(scroll, 1);
+
+	RNA_PROP_BEGIN(ptr, itemptr, prop) {
+		if(i >= scroll && i<scroll+items) {
+			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+
+			if(name) {
+				ListItem *item= MEM_callocN(sizeof(ListItem), "uiTemplateList ListItem");
+
+				item->ptr= *ptr;
+				item->prop= prop;
+				item->activeprop= activeprop;
+				item->activeptr= itemptr;
+				item->activei= i;
+
+				if(activetype == PROP_POINTER)
+					item->selected= (activeptr.data == itemptr.data)? i: -1;
+				else if(activetype == PROP_INT)
+					item->selected= (activei == i)? i: -1;
+				else if(activetype == PROP_STRING)
+					item->selected= (strcmp(activename, name) == 0)? i: -1;
+
+				but= uiDefIconTextButI(block, ROW, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, &item->selected, 0, i, 0, 0, "");
+				uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+				uiButSetNFunc(but, list_item_cb, item, NULL);
+
+				MEM_freeN(name);
+			}
+		}
+
+		i++;
+	}
+	RNA_PROP_END;
+
+	while(i < scroll+items) {
+		if(i >= scroll)
+			uiItemL(col, "", 0);
+		i++;
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSS);
+
+	if(len > items) {
+		col= uiLayoutColumn(row, 0);
+		uiDefButI(block, SCROLL, 0, "", 0,0,UI_UNIT_X*0.75,UI_UNIT_Y*items, &scroll, 1, len-items+1, items, 0, "");
+	}
+
+	//uiDefButI(block, SCROLL, 0, "", 0,0,UI_UNIT_X*15,UI_UNIT_Y*0.75, &scroll, 1, 16-5, 5, 0, "");
+}
+

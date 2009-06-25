@@ -1,5 +1,5 @@
 /* 
- * $Id: BGL.h 19717 2009-04-14 17:19:09Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

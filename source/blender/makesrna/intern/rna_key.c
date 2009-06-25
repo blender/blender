@@ -1,5 +1,5 @@
 /**
- * $Id: rna_key.c 19382 2009-03-23 13:24:48Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -117,7 +117,7 @@
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
 #define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
-(	(sce->selectmode & SCE_SELECT_FACE) && \
+(	(sce->toolsettings->selectmode & SCE_SELECT_FACE) && \
 	(vd->drawtype<=OB_SOLID) && \
 	(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
 	)
@@ -1493,14 +1493,14 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 
 static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
 {
-	Scene *scene= (Scene *)userData;
+	ToolSettings *ts= ((Scene *)userData)->toolsettings;
 	EditFace *efa = EM_get_face_for_index(index);
 
 	if (efa->h==0 && efa->fgonf!=EM_FGON) {
 		glVertex3fv(cent);
-		glVertex3f(	cent[0] + no[0]*scene->editbutsize,
-					cent[1] + no[1]*scene->editbutsize,
-					cent[2] + no[2]*scene->editbutsize);
+		glVertex3f(	cent[0] + no[0]*ts->normalsize,
+					cent[1] + no[1]*ts->normalsize,
+					cent[2] + no[2]*ts->normalsize);
 	}
 }
 static void draw_dm_face_normals(Scene *scene, DerivedMesh *dm) 
@@ -1529,19 +1529,20 @@ static void draw_dm_face_centers(DerivedMesh *dm, int sel)
 static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	Scene *scene= (Scene *)userData;
+	ToolSettings *ts= scene->toolsettings;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
 		glVertex3fv(co);
 
 		if (no_f) {
-			glVertex3f(	co[0] + no_f[0]*scene->editbutsize,
-						co[1] + no_f[1]*scene->editbutsize,
-						co[2] + no_f[2]*scene->editbutsize);
+			glVertex3f(	co[0] + no_f[0]*ts->normalsize,
+						co[1] + no_f[1]*ts->normalsize,
+						co[2] + no_f[2]*ts->normalsize);
 		} else {
-			glVertex3f(	co[0] + no_s[0]*scene->editbutsize/32767.0f,
-						co[1] + no_s[1]*scene->editbutsize/32767.0f,
-						co[2] + no_s[2]*scene->editbutsize/32767.0f);
+			glVertex3f(	co[0] + no_s[0]*ts->normalsize/32767.0f,
+						co[1] + no_s[1]*ts->normalsize/32767.0f,
+						co[2] + no_s[2]*ts->normalsize/32767.0f);
 		}
 	}
 }
@@ -1762,7 +1763,9 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, floa
 }
 static void draw_dm_bweights(Scene *scene, DerivedMesh *dm)
 {
-	if (scene->selectmode & SCE_SELECT_VERTEX) {
+	ToolSettings *ts= scene->toolsettings;
+
+	if (ts->selectmode & SCE_SELECT_VERTEX) {
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
 		bglBegin(GL_POINTS);
 		dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, NULL);
@@ -1786,6 +1789,7 @@ static void draw_dm_bweights(Scene *scene, DerivedMesh *dm)
 
 static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, DerivedMesh *cageDM, EditVert *eve_act)
 {
+	ToolSettings *ts= scene->toolsettings;
 	int sel;
 
 	if(v3d->zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
@@ -1817,7 +1821,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, EditM
 				col[3] = fcol[3] = 255;
 			}
 				
-			if(scene->selectmode & SCE_SELECT_VERTEX) {
+			if(ts->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
 				glColor4ubv((GLubyte *)col);
 				draw_dm_verts(cageDM, sel, eve_act);
@@ -1842,6 +1846,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, EditM
 
 static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
 {
+	ToolSettings *ts= scene->toolsettings;
 	int pass;
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
@@ -1871,11 +1876,11 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh
 			if (!sel_only) wireCol[3] = 255;
 		}
 
-		if(scene->selectmode == SCE_SELECT_FACE) {
+		if(ts->selectmode == SCE_SELECT_FACE) {
 			draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 		}	
-		else if( (me->drawflag & ME_DRAWEDGES) || (scene->selectmode & SCE_SELECT_EDGE) ) {	
-			if(cageDM->drawMappedEdgesInterp && (scene->selectmode & SCE_SELECT_VERTEX)) {
+		else if( (me->drawflag & ME_DRAWEDGES) || (ts->selectmode & SCE_SELECT_EDGE) ) {	
+			if(cageDM->drawMappedEdgesInterp && (ts->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
 				draw_dm_edges_sel_interp(cageDM, wireCol, selCol);
 				glShadeModel(GL_FLAT);
@@ -3664,13 +3669,13 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 	}
 
 	/* draw edit vertices */
-	if(scene->selectmode!=SCE_SELECT_PATH){
+	if(pset->selectmode!=SCE_SELECT_PATH){
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_LIGHTING);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-		if(scene->selectmode==SCE_SELECT_POINT){
+		if(pset->selectmode==SCE_SELECT_POINT){
 			float *cd=0,*cdata=0;
 			cd=cdata=MEM_callocN(edit->totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
 
@@ -3709,7 +3714,7 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 				MEM_freeN(cdata);
 			cd=cdata=0;
 		}
-		else if(scene->selectmode == SCE_SELECT_END){
+		else if(pset->selectmode == SCE_SELECT_END){
 			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
 				if((pa->flag & PARS_HIDE)==0){
 					key = edit->keys[i] + pa->totkey - 1;
@@ -3947,6 +3952,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 
 static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb, int dt)
 {
+	ToolSettings *ts= scene->toolsettings;
 	Object *ob= base->object;
 	Curve *cu = ob->data;
 	Nurb *nu;
@@ -3978,7 +3984,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	/*	direction vectors for 3d curve paths
 		when at its lowest, dont render normals */
-	if(cu->flag & CU_3D && scene->editbutsize > 0.0015) {
+	if(cu->flag & CU_3D && ts->normalsize > 0.0015) {
 		UI_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
@@ -3986,7 +3992,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			int skip= nu->resolu/16;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
-				float fac= bevp->radius * scene->editbutsize;
+				float fac= bevp->radius * ts->normalsize;
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 				
@@ -5408,6 +5414,7 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
+	ToolSettings *ts= scene->toolsettings;
 
 	wmMultMatrix(ob->obmat);
 
@@ -5425,8 +5432,8 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			EM_init_index_arrays(em, 1, 1, 1);
 
-			bbs_mesh_solid_EM(scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
-			if(scene->selectmode & SCE_SELECT_FACE)
+			bbs_mesh_solid_EM(scene, v3d, ob, dm, ts->selectmode & SCE_SELECT_FACE);
+			if(ts->selectmode & SCE_SELECT_FACE)
 				em_solidoffs = 1+em->totface;
 			else
 				em_solidoffs= 1;
@@ -5438,7 +5445,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			em_wireoffs= em_solidoffs + em->totedge;
 			
 			// we draw verts if vert select mode or if in transform (for snap).
-			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
+			if(ts->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
 				bbs_mesh_verts(dm, em_wireoffs);
 				em_vertoffs= em_wireoffs + em->totvert;
 			}

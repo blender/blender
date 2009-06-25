@@ -202,7 +202,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 }
 
 
-static int rna_Event_ascii_get(PointerRNA *ptr, char *value)
+static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
 	wmEvent *event= (wmEvent*)ptr->id.data;
 	value[0]= event->ascii;

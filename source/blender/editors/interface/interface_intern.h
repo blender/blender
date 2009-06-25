@@ -1,5 +1,5 @@
 /**
- * $Id: interface.h 14444 2008-04-16 22:40:48Z hos $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,6 +50,9 @@ struct bContextStore;
 /* visual types for drawing */
 /* for time being separated from functional types */
 typedef enum {
+	/* default */
+	UI_WTYPE_REGULAR,
+
 	/* standard set */
 	UI_WTYPE_LABEL,
 	UI_WTYPE_TOGGLE,
@@ -78,7 +81,8 @@ typedef enum {
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
 	UI_WTYPE_NORMAL,
-	UI_WTYPE_BOX
+	UI_WTYPE_BOX,
+	UI_WTYPE_SCROLL
 	
 } uiWidgetTypeEnum;
 
@@ -98,7 +102,7 @@ typedef enum {
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
-
+#define UI_HIDDEN		32
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
@@ -416,7 +420,7 @@ extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *s
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
 
-void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int state);
+void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
 
 /* interface_style.c */
 void uiStyleInit(void);

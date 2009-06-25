@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_gl.h 10455 2007-04-04 13:18:41Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

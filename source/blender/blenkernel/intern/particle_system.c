@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -2203,12 +2205,15 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
 	*sfra = MAX2(1, (int)part->sta);
 	*efra = MIN2((int)(part->end + part->lifetime + 1.0), scene->r.efra);
 }
-static float *particle_state_ptr(int index, ParticleSystem *psys)
+static float *particle_state_ptr(int index, void *psys_ptr)
 {
+	ParticleSystem *psys= psys_ptr;
+
 	return (float *)(&(psys->particles+index)->state);
 }
-static void particle_read_state(int index, ParticleSystem *psys, float *data)
+static void particle_read_state(int index, void *psys_ptr, float *data)
 {
+	ParticleSystem *psys= psys_ptr;
 	ParticleData *pa = psys->particles + index;
 	ParticleKey *key = (ParticleKey *)data;
 
@@ -2217,8 +2222,9 @@ static void particle_read_state(int index, ParticleSystem *psys, float *data)
 
 	copy_particle_key(&pa->state, key, 1);
 }
-static void particle_cache_interpolate(int index, ParticleSystem *psys, float frs_sec, float cfra, int cfra1, int cfra2, float *data1, float *data2)
+static void particle_cache_interpolate(int index, void *psys_ptr, float frs_sec, float cfra, int cfra1, int cfra2, float *data1, float *data2)
 {
+	ParticleSystem *psys= psys_ptr;
 	ParticleData *pa = psys->particles + index;
 	ParticleKey keys[4];
 	float dfra;

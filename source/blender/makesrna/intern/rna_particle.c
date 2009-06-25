@@ -1470,14 +1470,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-
-#if 0
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_sdna(prop, NULL, "ipo");
-	RNA_def_property_struct_type(prop, "Ipo");
-	RNA_def_property_ui_text(prop, "Ipo", "");
-#endif
+	
+	/* animation here? */
+	rna_def_animdata_common(srna);
 
 //	struct PartDeflect *pd;
 //	struct PartDeflect *pd2;

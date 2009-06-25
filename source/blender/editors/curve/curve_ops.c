@@ -106,7 +106,6 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_case_set);
 	WM_operatortype_append(FONT_OT_style_toggle);
 	WM_operatortype_append(FONT_OT_style_set);
-	WM_operatortype_append(FONT_OT_material_set);
 
 	WM_operatortype_append(FONT_OT_text_copy);
 	WM_operatortype_append(FONT_OT_text_cut);

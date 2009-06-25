@@ -1137,7 +1137,7 @@ void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
-	Scene *sce = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
 
@@ -1198,8 +1198,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	// XXX If modal, save settings back in scene
 	if (t->flag & T_MODAL)
 	{
-		sce->prop_mode = t->prop_mode;
-		sce->proportional = proportional;
+		ts->prop_mode = t->prop_mode;
+		ts->proportional = proportional;
 
 		if(t->spacetype == SPACE_VIEW3D)
 		{
@@ -2362,7 +2362,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		}
 		else if (t->flag & T_EDIT) {
 			
-			if(t->around==V3D_LOCAL && (t->scene->selectmode & SCE_SELECT_FACE)) {
+			if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
 				VECCOPY(center, td->center);
 			}
 			else {
@@ -2663,7 +2663,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 		else {
 			/* !TODO! Make this if not rely on G */
-			if(around==V3D_LOCAL && (t->scene->selectmode & SCE_SELECT_FACE)) {
+			if(around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
 				center = td->center;
 			}
 		}
@@ -3129,7 +3129,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(distvec, "%.4f", dist);
 		
 	if(t->flag & T_AUTOIK) {
-		short chainlen= t->scene->toolsettings->autoik_chainlen;
+		short chainlen= t->settings->autoik_chainlen;
 		
 		if(chainlen)
 			sprintf(autoik, "AutoIK-Len: %d", chainlen);
@@ -4254,7 +4254,7 @@ int Align(TransInfo *t, short mval[2])
 			VECCOPY(t->center, td->center);
 		}
 		else {
-			if(t->scene->selectmode & SCE_SELECT_FACE) {
+			if(t->settings->selectmode & SCE_SELECT_FACE) {
 				VECCOPY(t->center, td->center);
 			}
 		}

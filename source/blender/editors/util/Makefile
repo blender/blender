@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 14 2002-10-13 15:57:19Z hans $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

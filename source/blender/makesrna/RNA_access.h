@@ -519,6 +519,8 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
+
 /* Properties
  *
  * Access to struct properties. All this works with RNA pointers rather than
@@ -694,6 +696,28 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 			PointerRNA itemptr= rna_macro_iter.ptr;
 
 #define RNA_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
+#define RNA_PROP_BEGIN(sptr, itemptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PointerRNA itemptr= rna_macro_iter.ptr;
+
+#define RNA_PROP_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
+#define RNA_STRUCT_BEGIN(sptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, RNA_struct_iterator_property(sptr->type), &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PropertyRNA *prop= rna_macro_iter.ptr.data;
+
+#define RNA_STRUCT_END \
 		} \
 		RNA_property_collection_end(&rna_macro_iter); \
 	}

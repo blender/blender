@@ -102,6 +102,7 @@ typedef struct uiWidgetBase {
 	float inner_uv[64][2];
 	
 	short inner, outline, emboss; /* set on/off */
+	short shadedir;
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -199,6 +200,7 @@ static void widget_init(uiWidgetBase *wtb)
 	wtb->inner= 1;
 	wtb->outline= 1;
 	wtb->emboss= 1;
+	wtb->shadedir= 1;
 }
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
@@ -583,7 +585,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++) {
-				round_box_shade_col4(col1, col2, wtb->inner_uv[a][1]);
+				round_box_shade_col4(col1, col2, wtb->inner_uv[a][wtb->shadedir]);
 				glVertex2fv(wtb->inner_v[a]);
 			}
 			glEnd();
@@ -1088,6 +1090,32 @@ static struct uiWidgetColors wcol_box= {
 	0, 0
 };
 
+static struct uiWidgetColors wcol_toggle= {
+	{25, 25, 25, 255},
+	{153, 153, 153, 255},
+	{100, 100, 100, 255},
+	{25, 25, 25, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
+static struct uiWidgetColors wcol_scroll= {
+	{25, 25, 25, 255},
+	{180, 180, 180, 255},
+	{153, 153, 153, 255},
+	{90, 90, 90, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	1,
+	0, -20
+};
+
 /* free wcol struct to play with */
 static struct uiWidgetColors wcol_tmp= {
 	{0, 0, 0, 255},
@@ -1109,9 +1137,10 @@ void ui_widget_color_init(ThemeUI *tui)
 
 	tui->wcol_regular= wcol_regular;
 	tui->wcol_tool= wcol_tool;
-	tui->wcol_radio= wcol_radio;
 	tui->wcol_text= wcol_text;
+	tui->wcol_radio= wcol_radio;
 	tui->wcol_option= wcol_option;
+	tui->wcol_toggle= wcol_toggle;
 	tui->wcol_num= wcol_num;
 	tui->wcol_numslider= wcol_numslider;
 	tui->wcol_menu= wcol_menu;
@@ -1119,6 +1148,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu_back= wcol_menu_back;
 	tui->wcol_menu_item= wcol_menu_item;
 	tui->wcol_box= wcol_box;
+	tui->wcol_scroll= wcol_scroll;
 }
 
 /* ************ button callbacks, state ***************** */
@@ -1602,6 +1632,75 @@ void ui_draw_link_bezier(rcti *rect)
 	}
 }
 
+static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	rcti rect1;
+	double value;
+	char inner[3];
+	float fac, size, rad;
+	int horizontal;
+
+	/* determine horizontal/vertical */
+	horizontal= (rect->xmax - rect->xmin > rect->ymax - rect->ymin);
+
+	if(horizontal)
+		rad= 0.5f*(rect->ymax - rect->ymin);
+	else
+		rad= 0.5f*(rect->xmax - rect->xmin);
+
+	widget_init(&wtb);
+	wtb.shadedir= (horizontal)? 1: 0;
+
+	/* draw back part, colors swapped and shading inverted */
+	VECCOPY(inner, wcol->inner);
+	VECCOPY(wcol->inner, wcol->item);
+	if(horizontal)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	if(state & UI_SELECT)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	
+	round_box_edges(&wtb, roundboxalign, rect, rad); /* XXX vertical gradient is wrong */
+	widgetbase_draw(&wtb, wcol);
+
+	VECCOPY(wcol->inner, inner);
+	if(horizontal)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	if(state & UI_SELECT)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	
+	/* front part */
+	value= ui_get_but_val(but);
+
+	size= (but->softmax + but->a1 - but->softmin);
+	size= MAX2(size, 2);
+	
+	/* position */
+	rect1= *rect;
+
+	if(horizontal) {
+		fac= (rect->xmax - rect->xmin)/(size-1);
+		rect1.xmin= rect1.xmin + ceil(fac*(value - but->softmin));
+		rect1.xmax= rect1.xmin + ceil(fac*(but->a1 - but->softmin));
+	}
+	else {
+		fac= (rect->ymax - rect->ymin)/(size-1);
+		rect1.ymax= rect1.ymax - ceil(fac*(value - but->softmin));
+		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
+	}
+
+	/* draw */
+	wtb.emboss= 0; /* only emboss once */
+
+	if(!horizontal)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+
+	round_box_edges(&wtb, roundboxalign, &rect1, rad); /* XXX vertical gradient is wrong */
+	widgetbase_draw(&wtb, wcol);
+
+	if(!horizontal)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+}
 
 static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -1896,12 +1995,16 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 	wt.text= widget_draw_text_icon;
 	
 	switch(type) {
+		case UI_WTYPE_REGULAR:
+			break;
+
 		case UI_WTYPE_LABEL:
 			wt.draw= NULL;
 			wt.state= widget_state_label;
 			break;
 			
 		case UI_WTYPE_TOGGLE:
+			wt.wcol_theme= &btheme->tui.wcol_toggle;
 			break;
 			
 		case UI_WTYPE_OPTION:
@@ -1914,7 +2017,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_radio;
 			wt.draw= widget_radiobut;
 			break;
-			
+
 		case UI_WTYPE_NUMBER:
 			wt.wcol_theme= &btheme->tui.wcol_num;
 			wt.draw= widget_numbut;
@@ -1994,6 +2097,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_NORMAL:
+			break;
+
+		case UI_WTYPE_SCROLL:
+			wt.wcol_theme= &btheme->tui.wcol_scroll;
+			wt.custom= widget_scroll;
 			break;
 	}
 	
@@ -2089,6 +2197,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case BUT:
 				wt= widget_type(UI_WTYPE_EXEC);
 				break;
+
 			case NUM:
 				wt= widget_type(UI_WTYPE_NUMBER);
 				break;
@@ -2184,9 +2293,13 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;
-				
+
+			case SCROLL:
+				wt= widget_type(UI_WTYPE_SCROLL);
+				break;
+
 			default:
-				wt= widget_type(UI_WTYPE_TOGGLE);
+				wt= widget_type(UI_WTYPE_REGULAR);
 		}
 	}
 	
@@ -2195,6 +2308,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		int roundboxalign, state;
 		
 		roundboxalign= widget_roundbox_set(but, rect);
+
 		state= but->flag;
 		if(but->editstr) state |= UI_TEXTINPUT;
 		
@@ -2242,7 +2356,7 @@ void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect= *rect;
@@ -2256,6 +2370,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	
 	/* text location offset */
 	rect->xmin+=5;
+	if(iconid) rect->xmin+= ICON_HEIGHT;
 
 	/* cut string in 2 parts? */
 	cpoin= strchr(name, '|');
@@ -2278,5 +2393,12 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	/* restore rect, was messed with */
 	*rect= _rect;
 
+	if(iconid) {
+		int xs= rect->xmin+4;
+		int ys= 1 + (rect->ymin+rect->ymax- ICON_HEIGHT)/2;
+		glEnable(GL_BLEND);
+		UI_icon_draw_aspect_blended(xs, ys, iconid, 1.2f, 0); /* XXX scale weak get from fstyle? */
+		glDisable(GL_BLEND);
+	}
 }
 

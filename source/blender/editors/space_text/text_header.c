@@ -88,6 +88,7 @@
 /* ************************ header area region *********************** */
 
 #ifndef DISABLE_PYTHON
+#if 0
 static void do_text_template_scriptsmenu(bContext *C, void *arg, int event)
 {
 	// XXX BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
@@ -153,6 +154,7 @@ static uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
 
 	return block;
 }
+#endif
 #endif
 
 /************************** properties ******************************/

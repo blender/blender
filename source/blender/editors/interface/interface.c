@@ -1,5 +1,5 @@
 /**
- * $Id: interface.c 16882 2008-10-02 12:29:45Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -671,7 +671,8 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(C, ar, &style, but, &rect);
+		if(!(but->flag & UI_HIDDEN))
+			ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */
@@ -1281,17 +1282,13 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		else if(type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
-			PropertyRNA *nameprop;
-
-			if(ptr.data && (nameprop = RNA_struct_name_property(ptr.type)))
-				buf= RNA_property_string_get_alloc(&ptr, nameprop, str, maxlen);
-			else
-				BLI_strncpy(str, "", maxlen);
+			buf= RNA_struct_name_get_alloc(&ptr, str, maxlen);
 		}
-		else
-			BLI_strncpy(str, "", maxlen);
 
-		if(buf && buf != str) {
+		if(!buf) {
+			BLI_strncpy(str, "", maxlen);
+		}
+		else if(buf && buf != str) {
 			/* string was too long, we have to truncate */
 			BLI_strncpy(str, buf, maxlen);
 			MEM_freeN(buf);
@@ -1339,20 +1336,14 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 
 static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, PropertyRNA **prop)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *iprop;
 	StructRNA *srna;
 
 	/* look for collection property in Main */
 	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
 	*prop= NULL;
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		iprop= iter.ptr.data;
-
+	RNA_STRUCT_BEGIN(ptr, iprop) {
 		/* if it's a collection and has same pointer type, we've got it */
 		if(RNA_property_type(iprop) == PROP_COLLECTION) {
 			srna= RNA_property_pointer_type(ptr, iprop);
@@ -1363,8 +1354,7 @@ static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, Prope
 			}
 		}
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_STRUCT_END;
 }
 
 /* autocomplete callback for RNA pointers */
@@ -1372,9 +1362,8 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 {
 	uiBut *but= arg_but;
 	AutoComplete *autocpl;
-	CollectionPropertyIterator iter;
 	PointerRNA ptr;
-	PropertyRNA *prop, *nameprop;
+	PropertyRNA *prop;
 	char *name;
 	
 	if(str[0]==0) return;
@@ -1384,22 +1373,19 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 	if(prop==NULL) return;
 
 	autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
-	RNA_property_collection_begin(&ptr, prop, &iter);
 
 	/* loop over items in collection */
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-			name= RNA_property_string_get_alloc(&iter.ptr, nameprop, NULL, 0);
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
-			if(name) {
-				/* test item name */
-				autocomplete_do_name(autocpl, name);
-				MEM_freeN(name);
-			}
+		/* test item name */
+		if(name) {
+			autocomplete_do_name(autocpl, name);
+			MEM_freeN(name);
 		}
 	}
+	RNA_PROP_END;
 
-	RNA_property_collection_end(&iter);
 	autocomplete_end(autocpl, str);
 }
 
@@ -2753,7 +2739,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	uiBut *but, *next;
 	float centy, miny=10000, maxy= -10000;
 
-	if(!(U.uiflag & USER_DIRECTIONALORDER))
+	if(U.uiflag & USER_MENUFIXEDORDER)
 		return;
 	
 	for(but= block->buttons.first; but; but= but->next) {

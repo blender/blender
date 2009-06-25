@@ -1,5 +1,5 @@
 /* 
- * $Id: Mathutils.h 20332 2009-05-22 03:22:56Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -40,8 +40,6 @@
 
 PyObject *Mathutils_Init( const char * from );
 
-PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
-PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
@@ -49,8 +47,9 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 
 #define Py_PI  3.14159265358979323846
-#define Py_WRAP 1024
-#define Py_NEW  2048
+
+#define Py_NEW  1
+#define Py_WRAP 2
 
 
 /* Mathutils is used by the BGE and Blender so have to define 
@@ -64,5 +63,34 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 #ifndef Py_RETURN_TRUE
 #define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
 #endif
+
+typedef struct Mathutils_Callback Mathutils_Callback;
+struct Mathutils_Callback {
+	int		(*check)(PyObject *user);					/* checks the user is still valid */
+	int		(*get)(PyObject *user, int subtype, float *from);	/* gets the vector from the user */
+	int		(*set)(PyObject *user, int subtype, float *to);	/* sets the users vector values once the vector is modified */
+	int		(*get_index)(PyObject *user, int subtype, float *from,int index);	/* same as above but only for an index */
+	int		(*set_index)(PyObject *user, int subtype, float *to,	int index);	/* same as above but only for an index */
+};
+
+int Mathutils_RegisterCallback(Mathutils_Callback *cb);
+
+int _Vector_ReadCallback(VectorObject *self);
+int _Vector_WriteCallback(VectorObject *self);
+int _Vector_ReadIndexCallback(VectorObject *self, int index);
+int _Vector_WriteIndexCallback(VectorObject *self, int index);
+
+/* since this is called so often avoid where possible */
+#define Vector_ReadCallback(_self) (((_self)->cb_user ?	_Vector_ReadCallback(_self):1))
+#define Vector_WriteCallback(_self) (((_self)->cb_user ?_Vector_WriteCallback(_self):1))
+#define Vector_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_ReadIndexCallback(_self, _index):1))
+#define Vector_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_WriteIndexCallback(_self, _index):1))
+
+
+int _Matrix_ReadCallback(MatrixObject *self);
+int _Matrix_WriteCallback(MatrixObject *self);
+
+#define Matrix_ReadCallback(_self) (((_self)->cb_user  ?_Matrix_ReadCallback(_self):1))
+#define Matrix_WriteCallback(_self) (((_self)->cb_user ?_Matrix_WriteCallback(_self):1))
 
 #endif				/* EXPP_Mathutils_H */

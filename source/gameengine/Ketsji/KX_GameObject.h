@@ -393,6 +393,7 @@ public:
 	void	NodeSetLocalPosition(const MT_Point3& trans	);
 
 	void	NodeSetLocalOrientation(const MT_Matrix3x3& rot	);
+	void	NodeSetGlobalOrientation(const MT_Matrix3x3& rot	);
 
 	void	NodeSetLocalScale(	const MT_Vector3& scale	);
 
@@ -406,21 +407,13 @@ public:
 		double time
 	);
 
-	const 
-		MT_Matrix3x3&			
-	NodeGetWorldOrientation(
-	) const;
+	const MT_Matrix3x3& NodeGetWorldOrientation(  ) const;
+	const MT_Vector3& NodeGetWorldScaling(  ) const;
+	const MT_Point3& NodeGetWorldPosition(  ) const;
 
-	const 
-		MT_Vector3&			
-	NodeGetWorldScaling(
-	) const;
-
-	const 
-		MT_Point3&			
-	NodeGetWorldPosition(
-	) const;
-
+	const MT_Matrix3x3& NodeGetLocalOrientation(  ) const;
+	const MT_Vector3& NodeGetLocalScaling(  ) const;
+	const MT_Point3& NodeGetLocalPosition(  ) const;
 
 	/**
 	 * @section scene graph node accessor functions.

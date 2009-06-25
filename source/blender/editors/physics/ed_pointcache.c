@@ -83,7 +83,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.render = 0;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = WM_timecursor;
+	baker.progressbar = (void (*)(void *, int))WM_timecursor;
 	baker.progresscontext = CTX_wm_window(C);
 
 	BKE_ptcache_make_cache(&baker);
@@ -170,7 +170,7 @@ static int ptcache_bake_particle_system_exec(bContext *C, wmOperator *op)
 	baker.render = 0;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = WM_timecursor;
+	baker.progressbar = (void (*)(void *, int))WM_timecursor;
 	baker.progresscontext = CTX_wm_window(C);
 
 	BKE_ptcache_make_cache(&baker);

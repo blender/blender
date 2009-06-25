@@ -1,5 +1,5 @@
 /* 
- * $Id: bpy_internal_import.c 20434 2009-05-26 18:06:09Z campbellbarton $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

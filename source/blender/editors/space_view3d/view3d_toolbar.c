@@ -120,8 +120,6 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	/* XXX temp */
-	extern void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr);
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op;
 	PointerRNA ptr;
@@ -147,7 +145,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA_single(C, pa->layout, &ptr);
+	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }
 
 void view3d_toolbar_register(ARegionType *art)

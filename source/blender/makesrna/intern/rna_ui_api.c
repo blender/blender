@@ -189,8 +189,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "itemM", "uiItemM");
-	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_common(func);
 	parm= RNA_def_string(func, "menu", "", 0, "", "Identifier of the menu.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -206,12 +205,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
-	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
-	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
 	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a new ID block.");
@@ -245,6 +242,19 @@ void RNA_api_ui_layout(StructRNA *srna)
 	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
+
+	func= RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "image", "Image", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "template_list", "uiTemplateList");
+	api_ui_item_rna_common(func);
+	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, indicating the active element.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_int(func, "items", 5, 0, INT_MAX, "", "Number of items to display.", 0, INT_MAX);
 }
 
 #endif

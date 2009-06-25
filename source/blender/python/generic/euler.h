@@ -1,5 +1,5 @@
 /* 
- * $Id: euler.h 20248 2009-05-18 04:11:54Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

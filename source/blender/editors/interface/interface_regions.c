@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
@@ -181,7 +182,7 @@ MenuData *decompose_menu_string(char *str)
 				*s= '\0';
 				s++;
 			}
-		} else if (c=='|' || c=='\0') {
+		} else if (c=='|' || c == '\n' || c=='\0') {
 			if (nitem) {
 				*s= '\0';
 
@@ -433,7 +434,7 @@ struct uiSearchItems {
 	
 	char **names;
 	void **pointers;
-	
+	int *icons;
 };
 
 typedef struct uiSearchboxData {
@@ -448,7 +449,7 @@ typedef struct uiSearchboxData {
 
 /* exported for use by search callbacks */
 /* returns zero if nothing to add */
-int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
+int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
 	
 	if(items->totitem>=items->maxitem) {
@@ -464,6 +465,7 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin)
 	
 	BLI_strncpy(items->names[items->totitem], name, items->maxstrlen);
 	items->pointers[items->totitem]= poin;
+	items->icons[items->totitem]= iconid;
 	
 	items->totitem++;
 	
@@ -639,7 +641,8 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 		for(a=0; a<data->items.totitem; a++) {
 			ui_searchbox_butrect(&rect, data, a);
 			
-			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], (a+1)==data->active?UI_ACTIVE:0);
+			/* widget itself */
+			ui_draw_menu_item(&data->fstyle, &rect, data->items.names[a], data->items.icons[a], (a+1)==data->active?UI_ACTIVE:0);
 			
 		}
 		/* indicate more */
@@ -666,6 +669,7 @@ static void ui_searchbox_region_free(ARegion *ar)
 		MEM_freeN(data->items.names[a]);
 	MEM_freeN(data->items.names);
 	MEM_freeN(data->items.pointers);
+	MEM_freeN(data->items.icons);
 	
 	MEM_freeN(data);
 	ar->regiondata= NULL;
@@ -794,6 +798,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->items.totitem= 0;
 	data->items.names= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search names");
 	data->items.pointers= MEM_callocN(SEARCH_ITEMS*sizeof(void *), "search pointers");
+	data->items.icons= MEM_callocN(SEARCH_ITEMS*sizeof(int), "search icons");
 	for(x1=0; x1<SEARCH_ITEMS; x1++)
 		data->items.names[x1]= MEM_callocN(but->hardmax+1, "search pointers");
 	
@@ -1720,23 +1725,117 @@ static void do_picker_small_cb(bContext *C, void *bt1, void *hsv1)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
+/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
+#define SPICK1	150.0
+#define DPICK1	6.0
 
-/* only the color, a circle, slider */
-void uiBlockPickerSmall(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
+/* only the color, a HS circle and V slider */
+static void uiBlockPickerSmall(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
 {
 	uiBut *bt;
 	
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
 	/* HS circle */
-	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK,SPICK, col, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK1,SPICK1, col, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
 
 	/* value */
-	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK+DPICK,0,14,SPICK, col, 0.0, 0.0, 4, 0, "");
+	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK1+DPICK1,0,14,SPICK1, col, 0.0, 0.0, 4, 0, "");
 	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
-
 }
+
+
+static void picker_new_hide_reveal(uiBlock *block, short colormode)
+{
+	uiBut *bt;
+	
+	/* tag buttons */
+	for(bt= block->buttons.first; bt; bt= bt->next) {
+		
+		if(bt->type==NUMSLI || bt->type==TEX) {
+			if( bt->str[1]=='e') {
+				if(colormode==2) bt->flag &= ~UI_HIDDEN;
+				else bt->flag |= UI_HIDDEN;
+			}
+			else if( ELEM3(bt->str[0], 'R', 'G', 'B')) {
+				if(colormode==0) bt->flag &= ~UI_HIDDEN;
+				else bt->flag |= UI_HIDDEN;
+			}
+			else if( ELEM3(bt->str[0], 'H', 'S', 'V')) {
+				if(colormode==1) bt->flag &= ~UI_HIDDEN;
+				else bt->flag |= UI_HIDDEN;
+			}
+		}
+	}
+}
+
+static void do_picker_new_mode_cb(bContext *C, void *bt1, void *colv)
+{
+	uiBut *bt= bt1;
+	short colormode= ui_get_but_val(bt);
+
+	picker_new_hide_reveal(bt->block, colormode);
+}
+
+
+/* a HS circle, V slider, rgb/hsv/hex sliders */
+static void uiBlockPickerNew(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
+{
+	static short colormode= 0;	/* temp? 0=rgb, 1=hsv, 2=hex */
+	uiBut *bt;
+	int width;
+	
+	VECCOPY(old, col);	// old color stored there, for palette_cb to work
+	
+	/* HS circle */
+	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK1,SPICK1, col, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+	
+	/* value */
+	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK1+DPICK1,0,14,SPICK1, col, 0.0, 0.0, 4, 0, "");
+	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+	
+	/* mode */
+	width= (SPICK1+DPICK1+14)/3;
+	uiBlockBeginAlign(block);
+	bt= uiDefButS(block, ROW, retval, "RGB",	0, -30, width, 19, &colormode, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, col);
+	bt= uiDefButS(block, ROW, retval, "HSV",	width, -30, width, 19, &colormode, 0.0, 1.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hsv);
+	bt= uiDefButS(block, ROW, retval, "Hex",	2*width, -30, width, 19, &colormode, 0.0, 2.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hexcol);
+	uiBlockEndAlign(block);
+	
+	/* sliders or hex */
+	width= (SPICK1+DPICK1+14);
+	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
+
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUMSLI, 0, "R ",	0, -60, width, 19, col, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
+	bt= uiDefButF(block, NUMSLI, 0, "G ",	0, -80, width, 19, col+1, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
+	bt= uiDefButF(block, NUMSLI, 0, "B ",	0, -100, width, 19, col+2, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUMSLI, 0, "H ",	0, -60, width, 19, hsv, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, width, 19, hsv+1, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, width, 19, hsv+2, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	uiBlockEndAlign(block);
+
+	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -80, width, 19, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
+	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
+
+	picker_new_hide_reveal(block, colormode);
+}
+
 
 static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *event)
 {
@@ -1790,13 +1889,22 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 		uiBoundsBlock(block, 3);
 	}
-	else {
+	else if(win->eventstate->alt) {
 		uiBlockPickerSmall(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
 		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_OUT_1;
 		uiBoundsBlock(block, 10);
 		
 		block->block_event_func= ui_picker_small_wheel;
-	}		
+	}
+	else {
+		uiBlockPickerNew(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
+		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
+		uiBoundsBlock(block, 10);
+		
+		block->block_event_func= ui_picker_small_wheel;
+	}
+	
+	
 	/* and lets go */
 	block->direction= UI_TOP;
 	
@@ -2463,7 +2571,6 @@ static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc
 	
 	return menu;
 }
-
 
 static void operator_name_cb(bContext *C, void *arg, int retval)
 {

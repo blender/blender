@@ -1,5 +1,5 @@
 /* 
- * $Id: BGL.c 20922 2009-06-16 07:16:51Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1087,7 +1087,7 @@ static struct PyMethodDef BGL_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef BGL_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"BGL",  /* m_name */
 	0,  /* m_doc */
 	0,  /* m_size */

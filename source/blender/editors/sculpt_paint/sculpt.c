@@ -1,5 +1,5 @@
 /*
- * $Id: sculptmode.c 18309 2009-01-04 07:47:11Z nicholasbishop $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

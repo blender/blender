@@ -3661,7 +3661,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			if(!psys)
 				return;
 
-			if(scene->selectmode & SCE_SELECT_POINT)
+			if(pset->selectmode & SCE_SELECT_POINT)
 				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
 			else
 				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");

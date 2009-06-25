@@ -1,5 +1,5 @@
 /**
- * $Id: gpencil.c 19758 2009-04-16 13:10:08Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

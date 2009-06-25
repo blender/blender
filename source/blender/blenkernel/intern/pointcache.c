@@ -1050,7 +1050,6 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	int endframe = CFRA;
 	int bake = baker->bake;
 	int render = baker->render;
-	int end = 0;
 
 	G.afbreek = 0;
 
@@ -1162,7 +1161,6 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid) {
 	int totelem=0;
 	int float_count=0;
 	int tot;
-	int write_error=0;
 
 	if (!G.relbase_valid){
 		cache->flag &= ~PTCACHE_DISK_CACHE;

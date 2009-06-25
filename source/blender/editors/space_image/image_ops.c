@@ -577,34 +577,30 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 
 /**************** load/replace/save callbacks ******************/
 
-static char *filesel_imagetype_string(Image *ima)
-{
-	char *strp, *str= MEM_callocN(15*32, "menu for filesel");
-	
-	strp= str;
-	str += sprintf(str, "Save Image as: %%t|");
-	str += sprintf(str, "Targa %%x%d|", R_TARGA);
-	str += sprintf(str, "Targa Raw %%x%d|", R_RAWTGA);
-	str += sprintf(str, "PNG %%x%d|", R_PNG);
-	str += sprintf(str, "BMP %%x%d|", R_BMP);
-	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+/* XXX make dynamic */
+static const EnumPropertyItem image_file_type_items[] = {
+		{R_TARGA, "TARGA", 0, "Targa", ""},
+		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
+		{R_PNG, "PNG", 0, "PNG", ""},
+		{R_BMP, "BMP", 0, "BMP", ""},
+		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
 #ifdef WITH_OPENJPEG
-	str += sprintf(str, "Jpeg 2000 %%x%d|", R_JP2);
+		{R_JP2, "JPEG_2000", 0, "Jpeg 2000", ""},
 #endif
-	str += sprintf(str, "Iris %%x%d|", R_IRIS);
-	if(G.have_libtiff)
-		str += sprintf(str, "Tiff %%x%d|", R_TIFF);
-	str += sprintf(str, "Radiance HDR %%x%d|", R_RADHDR);
-	str += sprintf(str, "Cineon %%x%d|", R_CINEON);
-	str += sprintf(str, "DPX %%x%d|", R_DPX);
+		{R_IRIS, "IRIS", 0, "Iris", ""},
+	//if(G.have_libtiff)
+		{R_TIFF, "TIFF", 0, "Tiff", ""},
+		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
+		{R_CINEON, "CINEON", 0, "Cineon", ""},
+		{R_DPX, "DPX", 0, "DPX", ""},
 #ifdef WITH_OPENEXR
-	str += sprintf(str, "OpenEXR %%x%d|", R_OPENEXR);
+		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
 	/* saving sequences of multilayer won't work, they copy buffers  */
-	if(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER);
-	else str += sprintf(str, "MultiLayer %%x%d|", R_MULTILAYER);
+	/*if(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER);
+	else*/
+		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
 #endif	
-	return strp;
-}
+		{0, NULL, 0, NULL, NULL}};
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
@@ -799,7 +795,9 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
+	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
 	RNA_string_get(op->ptr, "filename", str);
+
 	save_image_doit(C, sima, scene, op, str);
 
 	return OPERATOR_FINISHED;
@@ -820,10 +818,6 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* always opens fileselect */
 	if(ibuf) {
-		char *strp;
-		
-		strp= filesel_imagetype_string(ima); // XXX unused still
-		
 		/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
 		if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
 			sima->imtypenr= R_MULTILAYER;
@@ -831,14 +825,14 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			sima->imtypenr= scene->r.imtype;
 		else
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+
+		RNA_enum_set(op->ptr, "file_type", sima->imtypenr);
 		
 		if(ibuf->name[0]==0)
 			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
 		
 		// XXX note: we can give default menu enums to operator for this 
 		image_filesel(C, op, ibuf->name);
-
-		MEM_freeN(strp);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -862,6 +856,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
+	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
 }
 
 /******************** save image operator ********************/

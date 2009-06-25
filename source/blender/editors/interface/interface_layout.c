@@ -601,7 +601,7 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 
 		for(i=0; i<totitem; i++)
-			uiItemEnumO(layout, NULL, 0, opname, propname, item[i].value);
+			uiItemEnumO(layout, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
 	}
 }
 
@@ -716,6 +716,8 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	else if(ui_layout_vary_direction(layout) == UI_ITEM_VARY_X) {
 		if(type == PROP_BOOLEAN && strcmp(name, "") != 0)
 			w += UI_UNIT_X;
+		else if(type == PROP_ENUM)
+			w += UI_UNIT_X/2;
 	}
 
 	*r_w= w;
@@ -745,9 +747,11 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	if(!icon)
 		icon= RNA_property_ui_icon(prop);
 
-	if(ELEM5(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_ENUM, PROP_POINTER))
+	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
-	if(type == PROP_BOOLEAN && len)
+	else if(type == PROP_BOOLEAN && len)
+		name= ui_item_name_add_colon(name, namestr);
+	else if(type == PROP_ENUM && index != RNA_ENUM_VALUE)
 		name= ui_item_name_add_colon(name, namestr);
 
 	if(layout->root->type == UI_LAYOUT_MENU) {
@@ -1267,7 +1271,6 @@ static void ui_litem_layout_box(uiLayout *litem)
 	h= litem->h;
 
 	litem->x += style->boxspace;
-	litem->y -= style->boxspace;
 
 	if(w != 0) litem->w -= 2*style->boxspace;
 	if(h != 0) litem->h -= 2*style->boxspace;
@@ -1348,6 +1351,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 		}
 	}
 
+	litem->w= x;
 	litem->h= litem->y - miny;
 }
 
@@ -1453,9 +1457,9 @@ static void ui_litem_layout_free(uiLayout *litem)
 	totw -= minx;
 	toth -= miny;
 
-	if(litem->w && totw > litem->w)
+	if(litem->w && totw > 0)
 		scalex= (float)litem->w/(float)totw;
-	if(litem->h && toth > litem->h)
+	if(litem->h && toth > 0)
 		scaley= (float)litem->h/(float)toth;
 	
 	x= litem->x;
@@ -1466,15 +1470,15 @@ static void ui_litem_layout_free(uiLayout *litem)
 		ui_item_size(item, &itemw, &itemh);
 
 		if(scalex != 1.0f) {
-			newx= itemx*scalex;
-			itemw= (itemx + itemw)*scalex - newx;
-			itemx= newx;
+			newx= (itemx - minx)*scalex;
+			itemw= (itemx - minx + itemw)*scalex - newx;
+			itemx= minx + newx;
 		}
 
 		if(scaley != 1.0f) {
-			newy= itemy*scaley;
-			itemh= (itemy + itemh)*scaley - newy;
-			itemy= newy;
+			newy= (itemy - miny)*scaley;
+			itemh= (itemy - miny + itemh)*scaley - newy;
+			itemy= miny + newy;
 		}
 
 		ui_item_position(item, x+itemx-minx, y+itemy-miny, itemw, itemh);

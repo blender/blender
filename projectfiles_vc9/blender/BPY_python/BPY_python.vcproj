@@ -367,6 +367,42 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="generic"
+				>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\BGL.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\bpy_internal_import.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\euler.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\Geometry.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\Mathutils.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\matrix.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\quat.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\vector.c"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
