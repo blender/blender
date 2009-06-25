@@ -207,6 +207,9 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	uiLayout *column, *row, *subcol;
 	uiBlock *block;
 	
+	if (!nla_panel_context(C, NULL, &strip_ptr))
+		return;
+	
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 	
@@ -259,10 +262,6 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	if (!nla_panel_context(C, NULL, &strip_ptr))
 		return;
 	
-	// XXX FIXME: move this check into a poll callback
-	if (RNA_enum_get(&strip_ptr, "type") != NLASTRIP_TYPE_CLIP)
-		return;
-		
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
