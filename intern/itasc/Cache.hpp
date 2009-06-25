@@ -101,6 +101,9 @@ public:
 	int deleteChannel(const void *device, int channel);
 	/* delete all channels of a device and remove the device from the map */
 	int deleteDevice(const void *device);
+	/* removes all cache items, leaving the special item at timestamp=0. 
+	   if device=NULL, apply to all devices. */
+	void clearCacheFrom(const void *device, CacheTS timestamp);
 
 	/* add a new cache item
 	   channel: the cache channel (as returned by AddChannel

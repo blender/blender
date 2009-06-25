@@ -100,6 +100,18 @@ namespace KDL {
 	    Twist Segment::twist(const Vector& p, const double& qdot, int dof=0)const;
 
         /**
+         * Request the 6D-velocity at a given frame origin, relative to base frame of the segment
+         * assuming the frame rotation is the rotation of the joint.
+         *
+         * @param f joint pose frame + reference point
+         * @param qdot ND velocity of the joint
+         *
+         * @return 6D-velocity at frame reference point, expressed
+         * in the base-frame of the segment(root) 
+         */
+		Twist Segment::twist(const Frame& f, const double& qdot, int dof)const;
+
+        /**
          * Request the joint of the segment
          *
          *

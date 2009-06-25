@@ -370,6 +370,10 @@ public:
     //! and its norm is angle
     Vector GetRot() const;
 
+    //! Returns a 2D vector representing the equivalent rotation in the XZ plane that brings the
+    //! Y axis onto the Matrix Y axis and its norm is angle
+    Vector2 GetXZRot() const;
+
 	/** Returns the rotation angle around the equiv. axis
 	 * @param axis the rotation axis is returned in this variable
 	 * @param eps :  in the case of angle == 0 : rot axis is undefined and choosen
@@ -916,6 +920,9 @@ public:
 
      //! Access to elements, range checked when NDEBUG is not set, from 0..1
      inline double& operator() (int index);
+
+	 //! store vector components in array
+	 inline void GetValue(double* xy);
 
      inline void ReverseSign();
      inline Vector2& operator-=(const Vector2& arg);

@@ -364,11 +364,18 @@ void Armature::updateKinematics(const Timestamp& timestamp){
 	for (unsigned int q_nr=0; q_nr<m_nq; ) {
 		Joint_struct& joint = m_joints[q_nr];
 		switch (joint.type) {
+		case KDL::Joint::Swing:
+			{
+				double* qdot=&m_qdotKdl(q_nr);
+				double* q=&m_qKdl(q_nr);
+				(KDL::Rot(KDL::Vector(q[0],0.0,q[1]))*KDL::Rot(KDL::Vector(qdot[0],0.0,qdot[1])*timestamp.realTimestep)).GetXZRot().GetValue(q);
+				break;
+			}
 		case KDL::Joint::Sphere:
 			{
 				double* qdot=&m_qdotKdl(q_nr);
 				double* q=&m_qKdl(q_nr);
-				(KDL::Rot(KDL::Vector(qdot)*timestamp.realTimestep)*KDL::Rot(KDL::Vector(q))).GetRot().GetValue(q);
+				(KDL::Rot(KDL::Vector(q))*KDL::Rot(KDL::Vector(qdot)*timestamp.realTimestep)).GetRot().GetValue(q);
 				break;
 			}
 		default:

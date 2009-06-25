@@ -42,6 +42,7 @@ void BIK_initialize_tree(struct Object *ob, float ctime);
 void BIK_execute_tree(struct Object *ob, struct bPoseChannel *pchan, float ctime);
 void BIK_release_tree(struct Object *ob, float ctime);
 void BIK_remove_armature(struct bArmature *arm);
+void BIK_clear_cache(struct bArmature *arm);
 
 // number of solver available
 // 0 = iksolver

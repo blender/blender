@@ -305,6 +305,83 @@ int Cache::deleteDevice(const void *device)
 	return 0;
 }
 
+void Cache::clearCacheFrom(const void *device, CacheTS timestamp)
+{
+	CacheMap::iterator it = (device) ? m_cache.find(device) : m_cache.begin();
+	CacheEntry *entry;
+	CacheChannel *channel;
+	CacheBuffer *buffer, *nextBuffer, *prevBuffer;
+	CacheItem *item, *prevItem, *nextItem;
+	unsigned int positionW, block;
+
+	while (it != m_cache.end()) {
+		entry = it->second;
+		for (unsigned int ch=0; ch<entry->m_count; ch++) {
+			channel = &entry->m_channelArray[ch];
+			if (channel->m_busy) {
+				item = channel->findItemOrLater(timestamp, &buffer);
+				if (item ) {
+					// this item and all later items will be removed, clear any later buffer
+					while ((nextBuffer = buffer->m_next) != NULL) {
+						buffer->m_next = nextBuffer->m_next;
+						free(nextBuffer);
+					}
+					positionW = CACHE_ITEM_POSITIONW(buffer,item);
+					if (positionW == 0) {
+						// this item is the first one of the buffer, remove the buffer completely
+						// first find the buffer just before it
+						nextBuffer = channel->m_firstBuffer;
+						prevBuffer = NULL;
+						while (nextBuffer != buffer) {
+							prevBuffer = nextBuffer;
+							nextBuffer = nextBuffer->m_next;
+							// we must quit this loop before reaching the end of the list
+							assert(nextBuffer);
+						}
+						free(buffer);
+						buffer = prevBuffer;
+						if (buffer == NULL)
+							// this was also the first buffer
+							channel->m_firstBuffer = NULL;
+					} else {
+						// removing this item means finding the previous item to make it the last one
+						block = positionW>>channel->m_positionToBlockShiftW;
+						if (block == 0) {
+							// start from first item, we know it is not our item because positionW > 0
+							prevItem = &buffer->m_firstItem;
+						} else {
+							// no need to check the current block, it will point to our item or a later one
+							// but the previous block will be a good start for sure.
+							block--;
+							prevItem = CACHE_BLOCK_ITEM_ADDR(channel,buffer,block);
+						}
+						while ((nextItem = CACHE_NEXT_ITEM(prevItem)) < item)
+							prevItem = nextItem;
+						// we must have found our item
+						assert(nextItem==item);
+						// now set the buffer
+						buffer->m_lastItemPositionW = CACHE_ITEM_POSITIONW(buffer,prevItem);
+						buffer->m_firstFreePositionW = positionW;
+						buffer->m_lastTimestamp = buffer->m_firstTimestamp + prevItem->m_timeOffset;
+						block = buffer->m_lastItemPositionW>>channel->m_positionToBlockShiftW;
+						buffer->lookup[block].m_offsetW = buffer->m_lastItemPositionW&channel->m_positionToOffsetMaskW;
+						buffer->lookup[block].m_timeOffset = prevItem->m_timeOffset;
+					}
+					// set the channel
+					channel->m_lastBuffer = buffer;
+					if (buffer) {
+						channel->m_lastTimestamp = buffer->m_lastTimestamp;
+						channel->m_lastItemPositionW = buffer->m_lastItemPositionW;
+					}
+				}
+			}
+		}
+		if (device)
+			break;
+		++it;
+	}
+}
+
 void *Cache::addCacheItem(const void *device, int id, unsigned int timestamp, void *data, unsigned int length)
 {
 	CacheMap::iterator it = m_cache.find(device);

@@ -501,11 +501,14 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 		
 		/* set DoF flag */
 		flag= 0;
-		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
+		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) && 
+			(!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0]<0.f || pchan->limitmax[0]>0.f))
 			flag |= IK_XDOF;
-		if(!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP))
+		if(!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP) &&
+			(!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1]<0.f || pchan->limitmax[1]>0.f))
 			flag |= IK_YDOF;
-		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
+		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP) &&
+			(!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2]<0.f || pchan->limitmax[2]>0.f))
 			flag |= IK_ZDOF;
 		
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
@@ -610,17 +613,22 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 			break;
 		case IK_XDOF|IK_ZDOF:
 			// RX+RZ
-			//Z = EulerAngleFromMatrix(bonerot, 2);
-			//RemoveEulerAngleFromMatrix(bonerot, Z, 2);
-			//X = EulerAngleFromMatrix(bonerot, 0);
-			joint += ":RX";
-			ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0);
-			weights.push_back(weight[0]);
-			if (ret) {
-				parent = joint;
-				joint = bone->name;
-				joint += ":RZ";
-				ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0, tip);
+			if (pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_ZLIMIT)) {
+				joint += ":RX";
+				ret = arm->addSegment(joint, parent, KDL::Joint::RotX, 0.0);
+				weights.push_back(weight[0]);
+				if (ret) {
+					parent = joint;
+					joint = bone->name;
+					joint += ":RZ";
+					ret = arm->addSegment(joint, parent, KDL::Joint::RotZ, 0.0, tip);
+					weights.push_back(weight[2]);
+				}
+			} else {
+				double rot[2] = {0.0,0.0};
+				joint += ":SW";
+				ret = arm->addSegment(joint, parent, KDL::Joint::Swing, rot[0], tip);
+				weights.push_back(weight[0]);
 				weights.push_back(weight[2]);
 			}
 			break;
@@ -664,9 +672,9 @@ static IK_Scene* convert_tree(Object *ob, bPoseChannel *pchan)
 				}
 			} 
 			else {
-				KDL::Vector rot(0.0,0.0,0.0);
+				double rot[3] = {0.0,0.0,0.0};
 				joint += ":SJ";
-				ret = arm->addSegment(joint, parent, KDL::Joint::Sphere, rot(0), tip);
+				ret = arm->addSegment(joint, parent, KDL::Joint::Sphere, rot[0], tip);
 				weights.push_back(weight[0]);
 				weights.push_back(weight[1]);
 				weights.push_back(weight[2]);
@@ -1028,6 +1036,18 @@ void itasc_remove_armature(struct bArmature *arm)
 		}
 		MEM_freeN(ikdata);
 		arm->ikdata = NULL;
+	}
+}
+
+void itasc_clear_cache(struct bArmature *arm)
+{
+	if (arm->ikdata) {
+		IK_Data* ikdata = (IK_Data*)arm->ikdata;
+		for (IK_Scene* scene = ikdata->first; scene; scene = scene->next) {
+			if (scene->cache)
+				// clear all cache but leaving the timestamp 0 (=rest pose)
+				scene->cache->clearCacheFrom(NULL, 1);
+		}
 	}
 }
 

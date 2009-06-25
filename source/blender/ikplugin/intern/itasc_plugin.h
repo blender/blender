@@ -40,6 +40,7 @@ void itasc_initialize_tree(struct Object *ob, float ctime);
 void itasc_execute_tree(struct Object *ob,  struct bPoseChannel *pchan, float ctime);
 void itasc_release_tree(struct Object *ob,  float ctime);
 void itasc_remove_armature(struct bArmature *arm);
+void itasc_clear_cache(struct bArmature *arm);
 
 #ifdef __cplusplus
 }

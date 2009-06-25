@@ -37,20 +37,27 @@ int TreeJntToJacSolver::JntToJac(const JntArray& q_in, Jacobian& jac,
     SegmentMap::const_iterator root = tree.getSegments().find("root");
 
     Frame T_total = Frame::Identity();
+	Frame T_local, T_joint;
+	Twist t_local;
     //Lets recursively iterate until we are in the root segment
     while (it != root) {
         //get the corresponding q_nr for this TreeElement:
         unsigned int q_nr = it->second.q_nr;
 
-        //get the pose of the segment:
-        Frame T_local = it->second.segment.pose(((JntArray&)q_in)(q_nr));
+        //get the pose of the joint.
+		T_joint = it->second.segment.getJoint().pose(((JntArray&)q_in)(q_nr));
+		// combine with the tip to have the tip pose
+		T_local = T_joint*it->second.segment.getFrameToTip();
         //calculate new T_end:
         T_total = T_local * T_total;
 
         //get the twist of the segment:
 		int ndof = it->second.segment.getJoint().getNDof();
 		for (int dof=0; dof<ndof; dof++) {
-            Twist t_local = it->second.segment.twist(T_local.p, 1.0, dof);
+			// combine joint rotation with tip position to get a reference frame for the joint
+			T_joint.p = T_local.p;
+			// in which the twist can be computed (needed for NDof joint)
+            t_local = it->second.segment.twist(T_joint, 1.0, dof);
             //transform the endpoint of the local twist to the global endpoint:
             t_local = t_local.RefPoint(T_total.p - T_local.p);
             //transform the base of the twist to the endpoint

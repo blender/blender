@@ -42,7 +42,7 @@ namespace KDL {
      */
     class Joint {
     public:
-        typedef enum { RotX,RotY,RotZ,TransX,TransY,TransZ,Sphere,None} JointType;
+        typedef enum { RotX,RotY,RotZ,TransX,TransY,TransZ,Sphere,Swing,None} JointType;
         /**
          * Constructor of a joint.
          *
@@ -57,8 +57,6 @@ namespace KDL {
          * default: 0
          */
         Joint(const JointType& type=None,const double& scale=1,const double& offset=0,
-              const double& inertia=0,const double& damping=0,const double& stiffness=0);
-        Joint(const JointType& type,const double& scale,const Rotation& basis,
               const double& inertia=0,const double& damping=0,const double& stiffness=0);
         Joint(const Joint& in);
 
@@ -114,6 +112,8 @@ namespace KDL {
                 return "TransZ";
 			case Sphere:
 				return "Sphere";
+			case Swing:
+				return "Swing";
             case None:
                 return "None";
             default:
@@ -128,7 +128,6 @@ namespace KDL {
         Joint::JointType type;
         double scale;
         double offset;
-		Rotation basis;		// for Sphere joint
         double inertia;
         double damping;
         double stiffness;

@@ -83,10 +83,14 @@ Frame Frame::DH(double a,double alpha,double d,double theta)
 
 double Vector2::Norm() const
 {
-    if (fabs(data[0]) > fabs(data[1]) ) {
-        return data[0]*sqrt(1+sqr(data[1]/data[0]));
+    double tmp0 = fabs(data[0]);
+    double tmp1 = fabs(data[1]);
+    if (tmp0 >= tmp1) {
+		if (tmp1 == 0)
+			return 0;
+        return tmp0*sqrt(1+sqr(tmp1/tmp0));
     } else {
-        return data[1]*sqrt(1+sqr(data[0]/data[1]));
+        return tmp1*sqrt(1+sqr(tmp0/tmp1));
     }
 }
 // makes v a unitvector and returns the norm of v.
@@ -320,6 +324,18 @@ Vector Rotation::GetRot() const
        return axis * alfa;
      }
 
+Vector2 Rotation::GetXZRot() const
+{
+	// [0,1,0] x Y
+	Vector2 axis(data[7], -data[1]);
+	double norm = axis.Normalize();
+	if (norm < epsilon) {
+		norm = (data[4] < 0.0) ? PI : 0.0;
+	} else {
+		norm = acos(data[4]);
+	}
+	return axis*norm;
+}
 
 
 /** Returns the rotation angle around the equiv. axis

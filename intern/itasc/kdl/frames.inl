@@ -757,6 +757,10 @@ IMETHOD Vector2& Vector2::operator =(const Vector2 & arg)
     return *this;
 }
 
+IMETHOD void Vector2::GetValue(double* xy)
+{
+        xy[0]=data[0];xy[1]=data[1];
+}
 
 IMETHOD Vector2 operator +(const Vector2 & lhs,const Vector2& rhs)
 {

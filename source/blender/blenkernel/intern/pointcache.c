@@ -53,6 +53,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BIK_api.h"
 
 #include "blendef.h"
 
@@ -506,6 +507,10 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 		}
 	}
 
+	if (ob->type == OB_ARMATURE) {
+		if (ob->data)
+			BIK_clear_cache(ob->data);
+	}
 	return reset;
 }
 

@@ -27,21 +27,11 @@ namespace KDL {
                  const double& _inertia, const double& _damping, const double& _stiffness):
         type(_type),scale(_scale),offset(_offset),inertia(_inertia),damping(_damping),stiffness(_stiffness)
     {
-		// this constructor should not be used for sphere joint, assume no offset in basis
-    }
-
-    Joint::Joint(const JointType& _type, const double& _scale, const Rotation& _basis,
-                 const double& _inertia, const double& _damping, const double& _stiffness):
-        type(_type),scale(_scale),offset(0.0),inertia(_inertia),damping(_damping),stiffness(_stiffness)
-    {
-		// this constructor should not be used for 1DOF joint
-		if (_type == Sphere) {
-			basis = _basis;
-		}
+		// for sphere and swing, offset is not used, assume no offset
     }
 
     Joint::Joint(const Joint& in):
-	type(in.type),scale(in.scale),offset(in.offset),basis(in.basis),
+	type(in.type),scale(in.scale),offset(in.offset),
         inertia(in.inertia),damping(in.damping),stiffness(in.stiffness)
     {
     }
@@ -51,7 +41,6 @@ namespace KDL {
         type=in.type;
         scale=in.scale;
         offset=in.offset;
-		basis=in.basis;
         inertia=in.inertia;
         damping=in.damping;
         stiffness=in.stiffness;
@@ -88,7 +77,12 @@ namespace KDL {
 		case Sphere:
 			// the joint angles represent a rotation vector expressed in the base frame of the joint
 			// (= the frame you get when there is no offset nor rotation)
-			return Frame(Rot(Vector((&q)[0], (&q)[1], (&q)[2]))*basis);
+			return Frame(Rot(Vector((&q)[0], (&q)[1], (&q)[2])));
+			break;
+		case Swing:
+			// the joint angles represent a 2D rotation vector in the XZ planee of the base frame of the joint
+			// (= the frame you get when there is no offset nor rotation)
+			return Frame(Rot(Vector((&q)[0], 0.0, (&q)[1])));
 			break;
         default:
             return Frame::Identity();
@@ -117,6 +111,14 @@ namespace KDL {
         case TransZ:
             return Twist(Vector(0.0,0.0,scale*qdot),Vector(0.0,0.0,0.0));
             break;
+		case Swing:
+			switch (dof) {
+			case 0:
+				return Twist(Vector(0.0,0.0,0.0),Vector(scale*qdot,0.0,0.0));
+			case 1:
+				return Twist(Vector(0.0,0.0,0.0),Vector(0.0,0.0,scale*qdot));
+			}
+            return Twist::Zero();
 		case Sphere:
 			switch (dof) {
 			case 0:
@@ -126,7 +128,7 @@ namespace KDL {
 			case 2:
 				return Twist(Vector(0.0,0.0,0.0),Vector(0.0,0.0,scale*qdot));
 			}
-			// walthrough
+            return Twist::Zero();
         default:
             return Twist::Zero();
             break;
@@ -138,6 +140,8 @@ namespace KDL {
 		switch (type) {
 		case Sphere:
 			return 3;
+		case Swing:
+			return 2;
 		case None:
 			return 0;
 		default:

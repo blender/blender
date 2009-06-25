@@ -59,5 +59,10 @@ namespace KDL {
     {
         return joint.twist(qdot, dof).RefPoint(p);
     }
+
+	Twist Segment::twist(const Frame& f, const double& qdot, int dof)const
+    {
+        return (f.M*joint.twist(qdot, dof)).RefPoint(f.p);
+    }
 }//end of namespace KDL
 
