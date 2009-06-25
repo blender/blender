@@ -13,6 +13,8 @@
 #include "COLLADAFWMesh.h"
 #include "COLLADAFWFloatOrDoubleArray.h"
 #include "COLLADAFWArrayPrimitiveType.h"
+#include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
+#include "COLLADAFWPolygons.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -21,6 +23,7 @@ extern "C"
 {
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_customdata.h"
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_image.h"
@@ -28,10 +31,51 @@ extern "C"
 }
 
 #include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 
 #include "DocumentImporter.h"
 
 
+const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
+{
+	using namespace COLLADAFW;
+	
+	switch (type) {
+	case MeshPrimitive::LINES:
+		return "LINES";
+	case MeshPrimitive::LINE_STRIPS:
+		return "LINESTRIPS";
+	case MeshPrimitive::POLYGONS:
+		return "POLYGONS";
+	case MeshPrimitive::POLYLIST:
+		return "POLYLIST";
+	case MeshPrimitive::TRIANGLES:
+		return "TRIANGLES";
+	case MeshPrimitive::TRIANGLE_FANS:
+		return "TRIANGLE_FANS";
+	case MeshPrimitive::TRIANGLE_STRIPS:
+		return "TRIANGLE_FANS";
+	case MeshPrimitive::POINTS:
+		return "POINTS";
+	case MeshPrimitive::UNDEFINED_PRIMITIVE_TYPE:
+		return "UNDEFINED_PRIMITIVE_TYPE";
+	}
+	return "UNKNOWN";
+}
+
+const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
+{
+	switch (type) {
+	case COLLADAFW::Geometry::GEO_TYPE_MESH:
+		return "MESH";
+	case COLLADAFW::Geometry::GEO_TYPE_SPLINE:
+		return "SPLINE";
+	case COLLADAFW::Geometry::GEO_TYPE_CONVEX_MESH:
+		return "CONVEX_MESH";
+	}
+	return "UNKNOWN";
+}
 
 /** Class that needs to be implemented by a writer. 
 	IMPORTANT: The write functions are called in arbitrary order.*/
@@ -80,6 +124,8 @@ public:
 		// XXX report error
 		if (!root.loadDocument(mFilename))
 			return false;
+
+		return true;
 	}
 
 	/** This method will be called if an error in the loading process occurred and the loader cannot
@@ -167,7 +213,7 @@ public:
 
 	/** When this method is called, the writer must write the geometry.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeometry ) 
+	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeom ) 
 	{
 		// - create a mesh object
 		// - enter editmode getting editmesh
@@ -177,12 +223,156 @@ public:
 		// - unlink mesh from object
 		// - remove object
 
-		// TODO: import also uvs, normals
+		// - ignore usupported primitive types
 
+		// TODO: import also uvs, normals
+		// XXX what to do with normal indices?
+		// XXX num_normals may be != num verts, then what to do?
 
 		// check geometry->getType() first
-		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeometry;
-		Scene *sce = CTX_data_scene(mContext);
+		if (cgeom->getType() != COLLADAFW::Geometry::GEO_TYPE_MESH) {
+			// TODO: report warning
+			fprintf(stderr, "Mesh type %s is not supported\n", geomTypeToStr(cgeom->getType()));
+			return true;
+		}
+
+		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeom;
+
+		// first check if we can import this mesh
+		COLLADAFW::MeshPrimitiveArray& prim_arr = cmesh->getMeshPrimitives();
+
+		int i;
+		
+		for (i = 0; i < prim_arr.getCount(); i++) {
+			
+			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
+			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
+
+			const char *type_str = primTypeToStr(type);
+
+			if (type == COLLADAFW::MeshPrimitive::POLYLIST) {
+
+				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
+				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
+				
+				bool ok = true;
+				for(int j = 0; j < vca.getCount(); j++){
+					int count = vca.getData()[j];
+					if (count != 3 && count != 4) {
+						fprintf(stderr, "%s has at least one face with vertex count > 4 or < 3\n",
+								type_str);
+						return true;
+					}
+				}
+					
+			}
+			else if(type != COLLADAFW::MeshPrimitive::TRIANGLES) {
+				fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
+				return true;
+			}
+		}
+		
+		size_t totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
+		size_t totnorm = cmesh->getNormals().getFloatValues()->getCount() / 3;
+		
+		if (cmesh->hasNormals() && totnorm != totvert) {
+			fprintf(stderr, "Per-face normals are not supported.\n");
+			return true;
+		}
+		
+		Mesh *me = add_mesh((char*)cgeom->getOriginalId().c_str());
+		
+		// vertices	
+		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+		me->totvert = totvert;
+		
+		float *pos_float_array = cmesh->getPositions().getFloatValues()->getData();
+		float *normals_float_array = NULL;
+
+		if (cmesh->hasNormals())
+			normals_float_array = cmesh->getNormals().getFloatValues()->getData();
+		
+		MVert *mvert = me->mvert;
+		i = 0;
+		while (i < totvert) {
+			// fill mvert
+			mvert->co[0] = pos_float_array[0];
+			mvert->co[1] = pos_float_array[1];
+			mvert->co[2] = pos_float_array[2];
+
+			if (normals_float_array) {
+				mvert->no[0] = (short)(32767.0 * normals_float_array[0]);
+				mvert->no[1] = (short)(32767.0 * normals_float_array[1]);
+				mvert->no[2] = (short)(32767.0 * normals_float_array[2]);
+				normals_float_array += 3;
+			}
+			
+			pos_float_array += 3;
+			mvert++;
+			i++;
+		}
+
+		// count totface
+		int totface = 0;
+
+		for (i = 0; i < prim_arr.getCount(); i++) {
+			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
+			totface += mp->getFaceCount();
+		}
+
+		// allocate faces
+		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+		me->totface = totface;
+
+		// read faces
+		MFace *mface = me->mface;
+		for (i = 0; i < prim_arr.getCount(); i++){
+			
+ 			COLLADAFW::MeshPrimitive *mp = prim_arr.getData()[i];
+			
+			// faces
+			size_t prim_totface = mp->getFaceCount();
+			unsigned int *indices = mp->getPositionIndices().getData();
+			int k;
+			int type = mp->getPrimitiveType();
+			
+			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
+				for (k = 0; k < prim_totface; k++){
+					mface->v1 = indices[0];
+					mface->v2 = indices[1];
+					mface->v3 = indices[2];
+					indices += 3;
+					mface++;
+				}
+			}
+			else if (type == COLLADAFW::MeshPrimitive::POLYLIST) {
+				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
+				COLLADAFW::Polygons::VertexCountArray& vca =
+					mpvc->getGroupedVerticesVertexCountArray();
+				for (k = 0; k < prim_totface; k++) {
+					
+					if (vca.getData()[k] == 3){
+						mface->v1 = indices[0];
+						mface->v2 = indices[1];
+						mface->v3 = indices[2];
+						indices += 3;
+						
+					}
+					else {
+						mface->v1 = indices[0];
+						mface->v2 = indices[1];
+						mface->v3 = indices[2];
+						mface->v4 = indices[3];
+						indices +=4;
+						
+					}
+					mface++;
+				}
+			}
+		}
+		
+		Object *ob = add_object(CTX_data_scene(mContext), OB_MESH);
+		set_mesh(ob, me);
 
 		// XXX: don't use editors module
 
