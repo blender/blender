@@ -234,6 +234,23 @@ static int rna_Mesh_uv_layers_length(PointerRNA *ptr)
 	return rna_CustomDataLayer_length(ptr, CD_MTFACE);
 }
 
+static PointerRNA rna_Mesh_active_uv_layer_get(PointerRNA *ptr)
+{
+	CustomDataLayer *active_layer;
+	Mesh *me;
+	int layer_index;
+
+	active_layer= NULL;
+	me= (Mesh*)ptr->data;
+
+	if (CustomData_has_layer(&me->fdata, CD_MTFACE)) {
+		layer_index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+		active_layer= &me->fdata.layers[layer_index];
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFaceLayer, active_layer);
+}
+
 static void rna_MeshTextureFace_uv1_get(PointerRNA *ptr, float *values)
 {
 	MTFace *mtface= (MTFace*)ptr->data;
@@ -1080,6 +1097,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_layers_begin", 0, 0, 0, "rna_Mesh_uv_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_ui_text(prop, "UV Layers", "");
+
+	prop= RNA_def_property(srna, "active_uv_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_uv_layer_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active UV layer", "Active UV layer.");
 
 	prop= RNA_def_property(srna, "vcol_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
