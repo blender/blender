@@ -1319,12 +1319,12 @@ static void seq_panel_effect()
 		SpeedControlVars *sp = 
 			(SpeedControlVars *)last_seq->effectdata;
 		
-		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Global Speed:", 	10,70,240,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
 		
 		uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
 			     B_SEQ_BUT_RELOAD, 
 			     "IPO is velocity",
-			     10,50,150,19, &sp->flags, 
+			     10,50,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Interpret the IPO value as a "
 			     "velocity instead of a frame number");
@@ -1332,15 +1332,24 @@ static void seq_panel_effect()
 		uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
 			     B_SEQ_BUT_RELOAD, 
 			     "Enable frame blending",
-			     10,30,150,19, &sp->flags, 
+			     10,30,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Blend two frames into the "
 			     "target for a smoother result");
+
+		if (sp->blendFrames == 0) {
+			sp->blendFrames = 2;
+		}
+
+		uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "Blend Frames:",
+			  10,10,240,19, &sp->blendFrames, 
+			  2.0, 100.0, 0, 0, 
+			  "Maximum number of frames to blend");
 		
 		uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
 			     B_SEQ_BUT_RELOAD, 
 			     "IPO value runs from [0..1]",
-			     10,10,150,19, &sp->flags, 
+			     10,-10,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Scale IPO value to get the "
 			     "target frame number.");

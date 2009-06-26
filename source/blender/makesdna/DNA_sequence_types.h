@@ -234,6 +234,8 @@ typedef struct SpeedControlVars {
 	int flags;
 	int length;
 	int lastValidFrame;
+	int blendFrames;
+	int pad;
 } SpeedControlVars;
 
 /* SpeedControlVars->flags */

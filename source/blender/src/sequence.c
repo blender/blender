@@ -20,7 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * Contributor(s): Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
+ * Contributor(s): Peter Schlaile <peter [at] schlaile [dot] de> 2005-2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -2159,7 +2159,8 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 {
 	SpeedControlVars * s = (SpeedControlVars *)seq->effectdata;
 	int nr = cfra - seq->start;
-	float f_cfra;
+	float f_cfra_left;
+	float f_cfra_right;
 	int cfra_left;
 	int cfra_right;
 	TStripElem * se = 0;
@@ -2168,20 +2169,23 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 	
 	sequence_effect_speed_rebuild_map(seq, 0);
 	
-	f_cfra = seq->start + s->frameMap[nr];
+	f_cfra_left = seq->start + s->frameMap[nr];
+	if (nr != s->length - 1) {
+		f_cfra_right = seq->start + s->frameMap[nr+1];
+	} else {
+		f_cfra_right = f_cfra_left;
+	}
 	
-	cfra_left = (int) floor(f_cfra);
-	cfra_right = (int) ceil(f_cfra);
-
 	se = give_tstripelem(seq, cfra, in_display_range);
 
 	if (!se) {
 		return se;
 	}
 
-	if (cfra_left == cfra_right || 
-	    (s->flags & SEQ_SPEED_BLEND) == 0) {
+	if ((s->flags & SEQ_SPEED_BLEND) == 0) {
 		test_and_auto_discard_ibuf(se);
+
+		cfra_left = rint(f_cfra_left);
 
 		if (se->ibuf == NULL) {
 			se1 = do_build_seq_recursively_impl(
@@ -2217,27 +2221,86 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 		}
 
 		if (se->ibuf == NULL) {
+			int bl_frames = s->blendFrames;
+			int diff = rint(fabs(f_cfra_right - f_cfra_left)) + 1;
+			int i;
+			float fac; 
+
+			if (bl_frames > diff) {
+				bl_frames = diff;
+			}
+			if (bl_frames < 2) {
+				bl_frames = 0;
+			} else {
+				bl_frames -= 2;
+			}
+
+			if (bl_frames == 0) {
+				cfra_left = (int) floor(f_cfra_left);
+				cfra_right = (int) ceil(f_cfra_left);
+				fac = f_cfra_left - (float) cfra_left;
+			} else {
+				cfra_left = (int) rint(f_cfra_left);
+				cfra_right = (int) rint(f_cfra_right);
+			}
+
 			se1 = do_build_seq_recursively_impl(
 				seq->seq1, cfra_left, render_size, FALSE);
-			se2 = do_build_seq_recursively_impl(
-				seq->seq1, cfra_right, render_size, FALSE);
 
 			if((se1 && se1->ibuf && se1->ibuf->rect_float))
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
 			else
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
-			
-			if (!se1 || !se2) {
-				make_black_ibuf(se->ibuf);
-			} else {
+
+			if (se->ibuf) {
 				sh = get_sequence_effect(seq);
 
+				for (i = 0; i < bl_frames; i++) {
+					int bl_cfra = rint(
+						cfra_left 
+						+ ((float) i + 1.0) / 
+						((float) bl_frames + 1.0) * 
+						(cfra_right - cfra_left));
+					se2 = do_build_seq_recursively_impl(
+						seq->seq1, bl_cfra, 
+						render_size, FALSE);
+
+					fac = 1.0 / ((float) i + 2.0);
+
+					sh.execute(seq, cfra, 
+						   fac, 
+						   fac, 
+						   se->ibuf->x, se->ibuf->y, 
+						   se1 ? se1->ibuf : se->ibuf, 
+						   se2->ibuf, 0, 
+						   se->ibuf);
+					if (se1 && se1->ibuf) {
+						IMB_cache_limiter_unref(
+							se1->ibuf);
+						se1 = 0;
+					}
+					if (se2 && se2->ibuf)
+						IMB_cache_limiter_unref(
+							se2->ibuf);
+				}
+
+				if (bl_frames != 0) {
+					fac = 1.0 / ((float) bl_frames + 2.0);
+				}
+			
+				se2 = do_build_seq_recursively_impl(
+					seq->seq1, cfra_right, 
+					render_size, FALSE);
+
 				sh.execute(seq, cfra, 
-					   f_cfra - (float) cfra_left, 
-					   f_cfra - (float) cfra_left, 
+					   fac, 
+					   fac, 
 					   se->ibuf->x, se->ibuf->y, 
-					   se1->ibuf, se2->ibuf, 0, se->ibuf);
-			}
+					   se1 ? se1->ibuf : se->ibuf, 
+					   se2->ibuf, 0, 
+					   se->ibuf);
+
+			} 
 		}
 
 	}
