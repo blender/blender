@@ -3720,7 +3720,7 @@ void seq_separate_images(void)
 			
 			while (cfra < frame_end) {
 				/* new seq */
-				se = give_stripelem(seq, cfra);
+				se = give_stripelem(seq, cfra, TRUE);
 				
 				seq_new= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, start_ofs, seq->machine);
 				seq_new->type= SEQ_IMAGE;

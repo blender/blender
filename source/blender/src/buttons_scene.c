@@ -767,7 +767,7 @@ static void seq_panel_editing()
 	if(last_seq->type==SEQ_IMAGE) {
 		if (last_seq->len > 1) {
 			/* CURRENT */
-			StripElem * se= give_stripelem(last_seq, CFRA);
+			StripElem * se= give_stripelem(last_seq, CFRA, TRUE);
 			StripElem * last;
 
 			/* FIRST AND LAST */
@@ -809,7 +809,8 @@ static void seq_panel_editing()
 		}
 	}
 	else if(last_seq->type==SEQ_SCENE) {
-		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
+		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra),
+						 TRUE);
 		if(se && last_seq->scene) {
 			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
 		}
@@ -882,7 +883,7 @@ static void seq_panel_input()
 			cfra = last_seq->enddisp - 1;
 		}
 
-		se = give_stripelem(last_seq, cfra);
+		se = give_stripelem(last_seq, cfra, TRUE);
 
 		if (se) {
 			uiDefBut(block, TEX, 

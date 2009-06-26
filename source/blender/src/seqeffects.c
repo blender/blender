@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 #include "PIL_dynlib.h"
 
+#include "DNA_ipo_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -2805,20 +2806,11 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	/* if there is no IPO, try to make retiming easy by stretching the
 	   strip */
 
-	if (!seq->ipo && seq->seq1 && seq->seq1->enddisp != seq->seq1->start
+	if ((!seq->ipo || !seq->ipo->curve.first) && 
+	    seq->seq1 && seq->seq1->enddisp != seq->seq1->start
 	    && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
-		/* FIXME: this strip stretching gets screwed by stripdata
-		   handling one layer up.
-		   
-		   So it currently works by enlarging, never by shrinking!
-
-		   (IPOs still work, if used correctly)
-		*/
-		if (fallback_fac > 1.0) {
-			fallback_fac = 1.0;
-		}
 	}
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
@@ -2828,7 +2820,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
-			if(seq->ipo) {
+			if(seq->ipo && seq->ipo->curve.first) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
 					ctime = frame_to_float(seq->startdisp
 							       + cfra);
@@ -2848,7 +2840,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 
 			cursor += seq->facf0;
 
-			if (cursor >= v->length) {
+			if (cursor >= seq->seq1->len) {
 				v->frameMap[cfra] = v->length - 1;
 			} else {
 				v->frameMap[cfra] = cursor;
@@ -2858,7 +2850,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	} else {
 		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
-			if(seq->ipo) {
+			if(seq->ipo && seq->ipo->curve.first) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
 					ctime = frame_to_float(seq->startdisp
 							       + cfra);
@@ -2876,11 +2868,11 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
 				seq->facf0 *= v->length;
 			}
-			if (!seq->ipo) {
+			if ((!seq->ipo || !seq->ipo->curve.first)) {
 				seq->facf0 = (float) cfra * fallback_fac;
 			}
 			seq->facf0 *= v->globalSpeed;
-			if (seq->facf0 >= v->length) {
+			if (seq->facf0 >= seq->seq1->len) {
 				seq->facf0 = v->length - 1;
 			} else {
 				v->lastValidFrame = cfra;

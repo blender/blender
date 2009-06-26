@@ -838,11 +838,13 @@ static void do_effect(int cfra, Sequence *seq, TStripElem * se)
 		   se->ibuf);
 }
 
-static int give_stripelem_index(Sequence *seq, int cfra)
+static int give_stripelem_index(Sequence *seq, int cfra, int in_display_range)
 {
 	int nr;
 
-	if(seq->startdisp >cfra || seq->enddisp <= cfra) return -1;
+	if (in_display_range) {
+		if(seq->startdisp >cfra || seq->enddisp <= cfra) return -1;
+	}
 	if(seq->len == 0) return -1;
 	if(seq->flag&SEQ_REVERSE_FRAMES) {	
 		/*reverse frame in this sequence */
@@ -872,7 +874,7 @@ static TStripElem* alloc_tstripdata(int len, const char * name)
 	return se;
 }
 
-TStripElem *give_tstripelem(Sequence *seq, int cfra)
+TStripElem *give_tstripelem(Sequence *seq, int cfra, int in_display_range)
 {
 	TStripElem *se;
 	int nr;
@@ -882,7 +884,7 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 		se = seq->strip->tstripdata = alloc_tstripdata(seq->len,
 							       "tstripelems");
 	}
-	nr = give_stripelem_index(seq, cfra);
+	nr = give_stripelem_index(seq, cfra, in_display_range);
 
 	if (nr == -1) return 0;
 	if (se == 0) return 0;
@@ -943,13 +945,13 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 	return se;
 }
 
-StripElem *give_stripelem(Sequence *seq, int cfra)
+StripElem *give_stripelem(Sequence *seq, int cfra, int in_display_range)
 {
 	StripElem *se;
 	int nr;
 
 	se = seq->strip->stripdata;
-	nr = give_stripelem_index(seq, cfra);
+	nr = give_stripelem_index(seq, cfra, in_display_range);
 
 	if (nr == -1) return 0;
 	if (se == 0) return 0;
@@ -1051,7 +1053,7 @@ static int get_shown_sequences(
 #define PROXY_MAXFILE (2*FILE_MAXDIR+FILE_MAXFILE)
 
 static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name,
-			       int render_size)
+			       int render_size, int in_display_range)
 {
 	int frameno;
 	char dir[FILE_MAXDIR];
@@ -1060,7 +1062,8 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name,
 		return FALSE;
 	}
 
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+	if ((seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) ||
+	    (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
 		strcpy(dir, seq->strip->proxy->dir);
 	} else {
 		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
@@ -1082,12 +1085,12 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name,
 	/* generate a seperate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
-		StripElem * se = give_stripelem(seq, cfra);
+		StripElem * se = give_stripelem(seq, cfra, in_display_range);
 		snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy",
 			 dir, render_size, se->name);
 		frameno = 1;
 	} else if (seq->type == SEQ_MOVIE) {
-		TStripElem * tse = give_tstripelem(seq, cfra);
+		TStripElem * tse = give_tstripelem(seq, cfra,in_display_range);
 
 		frameno = tse->nr + seq->anim_startofs;
 
@@ -1095,7 +1098,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name,
 			 seq->strip->stripdata->name,
 			 render_size);
 	} else {
-		TStripElem * tse = give_tstripelem(seq, cfra);
+		TStripElem * tse = give_tstripelem(seq, cfra,in_display_range);
 
 		frameno = tse->nr + seq->anim_startofs;
 
@@ -1113,7 +1116,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name,
 }
 
 static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra,
-				      int render_size)
+				      int render_size, int in_display_range)
 {
 	char name[PROXY_MAXFILE];
 
@@ -1127,10 +1130,11 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra,
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		TStripElem * tse = give_tstripelem(seq, cfra);
+		TStripElem * tse = give_tstripelem(seq, cfra,in_display_range);
 		int frameno = tse->nr + seq->anim_startofs;
 		if (!seq->strip->proxy->anim) {
-			if (!seq_proxy_get_fname(seq, cfra,name,render_size)) {
+			if (!seq_proxy_get_fname(seq, cfra,name,render_size,
+						 in_display_range)) {
 				return 0;
 			}
 
@@ -1143,7 +1147,8 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra,
 		return IMB_anim_absolute(seq->strip->proxy->anim, frameno);
 	}
 
-	if (!seq_proxy_get_fname(seq, cfra, name, render_size)) {
+	if (!seq_proxy_get_fname(seq, cfra, name, render_size,
+				 in_display_range)) {
 		return 0;
 	}
 
@@ -1155,7 +1160,8 @@ static struct ImBuf * seq_proxy_fetch(Sequence * seq, int cfra,
 }
 
 static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
-			      int build_proxy_run, int render_size);
+			      int build_proxy_run, int render_size,
+			      int in_display_range);
 
 static void seq_proxy_build_frame(Sequence * seq, int cfra, int render_size)
 {
@@ -1180,11 +1186,11 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra, int render_size)
 		return;
 	}
 
-	if (!seq_proxy_get_fname(seq, cfra, name, render_size)) {
+	if (!seq_proxy_get_fname(seq, cfra, name, render_size, TRUE)) {
 		return;
 	}
 
-	se = give_tstripelem(seq, cfra);
+	se = give_tstripelem(seq, cfra, TRUE);
 	if (!se) {
 		return;
 	}
@@ -1194,7 +1200,7 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra, int render_size)
 		se->ibuf = 0;
 	}
 	
-	do_build_seq_ibuf(seq, se, cfra, TRUE, render_size);
+	do_build_seq_ibuf(seq, se, cfra, TRUE, render_size, TRUE);
 
 	if (!se->ibuf) {
 		return;
@@ -1244,7 +1250,7 @@ void seq_proxy_rebuild(Sequence * seq)
 	 */
 
 	for (cfra = seq->startdisp; cfra < seq->enddisp; cfra++) {
-		TStripElem * tse = give_tstripelem(seq, cfra);
+		TStripElem * tse = give_tstripelem(seq, cfra, TRUE);
 
 		tse->flag &= ~STRIPELEM_PREVIEW_DONE;
 	}
@@ -1256,7 +1262,7 @@ void seq_proxy_rebuild(Sequence * seq)
 	if (seq->flag & SEQ_REVERSE_FRAMES) {
 		for (cfra = seq->enddisp-seq->endstill-1; 
 		     cfra >= seq->startdisp + seq->startstill; cfra--) {
-			TStripElem * tse = give_tstripelem(seq, cfra);
+			TStripElem * tse = give_tstripelem(seq, cfra, TRUE);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
 				set_timecursor(cfra);
@@ -1270,7 +1276,7 @@ void seq_proxy_rebuild(Sequence * seq)
 	} else {
 		for (cfra = seq->startdisp + seq->startstill; 
 		     cfra < seq->enddisp - seq->endstill; cfra++) {
-			TStripElem * tse = give_tstripelem(seq, cfra);
+			TStripElem * tse = give_tstripelem(seq, cfra, TRUE);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
 				set_timecursor(cfra);
@@ -1707,7 +1713,7 @@ static void free_metastrip_imbufs(ListBase *seqbasep, int cfra, int chanshown)
 		if (!video_seq_is_rendered(seq_arr[i])) {
 			continue;
 		}
-		se = give_tstripelem(seq_arr[i], cfra);
+		se = give_tstripelem(seq_arr[i], cfra, FALSE);
 		if (se) {
 			if (se->ibuf) {
 				IMB_freeImBuf(se->ibuf);
@@ -1765,7 +1771,8 @@ static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown, int render_size);
 
 static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
-			      int build_proxy_run, int render_size)
+			      int build_proxy_run, int render_size,
+			      int in_display_range)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int use_limiter = TRUE;
@@ -1779,7 +1786,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		use_limiter = FALSE;
 
 		if (!build_proxy_run && se->ibuf == 0) {
-			se->ibuf = seq_proxy_fetch(seq, cfra, render_size);
+			se->ibuf = seq_proxy_fetch(seq, cfra, render_size,
+						   in_display_range);
 			if (se->ibuf) {
 				use_limiter = TRUE;
 				use_preprocess = TRUE;
@@ -1832,7 +1840,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		/* should the effect be recalculated? */
 		
 		if (!build_proxy_run && se->ibuf == 0) {
-			se->ibuf = seq_proxy_fetch(seq, cfra, render_size);
+			se->ibuf = seq_proxy_fetch(seq, cfra, render_size,
+						   in_display_range);
 			if (se->ibuf) {
 				use_preprocess = TRUE;
 			}
@@ -1867,13 +1876,15 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		}
 	} else if(seq->type == SEQ_IMAGE) {
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
-			StripElem * s_elem = give_stripelem(seq, cfra);
+			StripElem * s_elem = give_stripelem(
+				seq, cfra, in_display_range);
 			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
 			BLI_convertstringcode(name, G.sce);
 			BLI_convertstringframe(name, G.scene->r.cfra);
 			if (!build_proxy_run) {
-				se->ibuf = seq_proxy_fetch(seq, cfra,
-							   render_size);
+				se->ibuf = seq_proxy_fetch(
+					seq, cfra, render_size, 
+					in_display_range);
 			}
 			copy_from_ibuf_still(seq, se);
 
@@ -1898,8 +1909,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 	} else if(seq->type == SEQ_MOVIE) {
 		if(se->ok == STRIPELEM_OK && se->ibuf==0) {
 			if(!build_proxy_run) {
-				se->ibuf = seq_proxy_fetch(seq, cfra,
-							   render_size);
+				se->ibuf = seq_proxy_fetch(
+					seq, cfra, render_size,
+					in_display_range);
 			}
 			copy_from_ibuf_still(seq, se);
 
@@ -1945,7 +1957,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		int sce_valid =sce&& (sce->camera || sce->r.scemode & R_DOSEQ);
 			
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
-			se->ibuf = seq_proxy_fetch(seq, cfra, render_size);
+			se->ibuf = seq_proxy_fetch(seq, cfra, render_size,
+						   in_display_range);
 			if (se->ibuf) {
 				input_preprocess(seq, se, cfra);
 			}
@@ -2045,10 +2058,11 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 }
 
 static TStripElem* do_build_seq_recursively(Sequence * seq, int cfra,
-					    int render_size);
+					    int render_size,
+					    int in_display_range);
 
 static void do_effect_seq_recursively(Sequence * seq, TStripElem *se, int cfra,
-				      int render_size)
+				      int render_size, int in_display_range)
 {
 	float fac, facf;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
@@ -2074,27 +2088,27 @@ static void do_effect_seq_recursively(Sequence * seq, TStripElem *se, int cfra,
 		/* no input needed */
 		break;
 	case 0:
-		se->se1 = do_build_seq_recursively(seq->seq1, cfra,
-						   render_size);
-		se->se2 = do_build_seq_recursively(seq->seq2, cfra,
-						   render_size);
+		se->se1 = do_build_seq_recursively(
+			seq->seq1, cfra, render_size, in_display_range);
+		se->se2 = do_build_seq_recursively(
+			seq->seq2, cfra, render_size, in_display_range);
 		if (seq->seq3) {
-			se->se3 = do_build_seq_recursively(seq->seq3, cfra,
-							   render_size);
+			se->se3 = do_build_seq_recursively(
+				seq->seq3, cfra, render_size,in_display_range);
 		}
 		break;
 	case 1:
-		se->se1 = do_build_seq_recursively(seq->seq1, cfra,
-						   render_size);
+		se->se1 = do_build_seq_recursively(
+			seq->seq1, cfra, render_size, in_display_range);
 		break;
 	case 2:
-		se->se2 = do_build_seq_recursively(seq->seq2, cfra,
-						   render_size);
+		se->se2 = do_build_seq_recursively(
+			seq->seq2, cfra, render_size, in_display_range);
 		break;
 	}
 
 
-	do_build_seq_ibuf(seq, se, cfra, FALSE, render_size);
+	do_build_seq_ibuf(seq, se, cfra, FALSE, render_size, in_display_range);
 
 	/* children are not needed anymore ... */
 
@@ -2111,17 +2125,20 @@ static void do_effect_seq_recursively(Sequence * seq, TStripElem *se, int cfra,
 }
 
 static TStripElem* do_build_seq_recursively_impl(Sequence * seq, int cfra,
-						 int render_size)
+						 int render_size,
+						 int in_display_range)
 {
 	TStripElem *se;
 
-	se = give_tstripelem(seq, cfra);
+	se = give_tstripelem(seq, cfra, in_display_range);
 
 	if(se) {
 		if (seq->type & SEQ_EFFECT) {
-			do_effect_seq_recursively(seq, se, cfra, render_size);
+			do_effect_seq_recursively(seq, se, cfra, render_size,
+						  in_display_range);
 		} else {
-			do_build_seq_ibuf(seq, se, cfra, FALSE, render_size);
+			do_build_seq_ibuf(seq, se, cfra, FALSE, render_size,
+					  in_display_range);
 		}
 	}
 	check_limiter_refcount("do_build_seq_recursively_impl", se);
@@ -2137,7 +2154,8 @@ instead of faking using the blend code below...
 */
 
 static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
-					  int render_size)
+					  int render_size, 
+					  int in_display_range)
 {
 	SpeedControlVars * s = (SpeedControlVars *)seq->effectdata;
 	int nr = cfra - seq->start;
@@ -2155,7 +2173,7 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 	cfra_left = (int) floor(f_cfra);
 	cfra_right = (int) ceil(f_cfra);
 
-	se = give_tstripelem(seq, cfra);
+	se = give_tstripelem(seq, cfra, in_display_range);
 
 	if (!se) {
 		return se;
@@ -2167,7 +2185,7 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 
 		if (se->ibuf == NULL) {
 			se1 = do_build_seq_recursively_impl(
-				seq->seq1, cfra_left, render_size);
+				seq->seq1, cfra_left, render_size, FALSE);
 
 			if((se1 && se1->ibuf && se1->ibuf->rect_float))
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
@@ -2200,9 +2218,9 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
 
 		if (se->ibuf == NULL) {
 			se1 = do_build_seq_recursively_impl(
-				seq->seq1, cfra_left, render_size);
+				seq->seq1, cfra_left, render_size, FALSE);
 			se2 = do_build_seq_recursively_impl(
-				seq->seq1, cfra_right, render_size);
+				seq->seq1, cfra_right, render_size, FALSE);
 
 			if((se1 && se1->ibuf && se1->ibuf->rect_float))
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
@@ -2255,13 +2273,16 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra,
  */
 
 static TStripElem* do_build_seq_recursively(Sequence * seq, int cfra,
-					    int render_size)
+					    int render_size,
+					    int in_display_range)
 {
 	TStripElem* se;
 	if (seq->type == SEQ_SPEED) {
-		se = do_handle_speed_effect(seq, cfra, render_size);
+		se = do_handle_speed_effect(seq, cfra, render_size,
+					    in_display_range);
 	} else {
-		se = do_build_seq_recursively_impl(seq, cfra, render_size);
+		se = do_build_seq_recursively_impl(seq, cfra, render_size,
+						   in_display_range);
 	}
 
 	check_limiter_refcount("do_build_seq_recursively", se);
@@ -2283,7 +2304,7 @@ static TStripElem* do_build_seq_array_recursively(
 		return 0;
 	}
 
-	se = give_tstripelem(seq_arr[count - 1], cfra);
+	se = give_tstripelem(seq_arr[count - 1], cfra, TRUE);
 
 	if (!se) {
 		return 0;
@@ -2300,7 +2321,8 @@ static TStripElem* do_build_seq_array_recursively(
 
 	
 	if(count == 1) {
-		se = do_build_seq_recursively(seq_arr[0], cfra, render_size);
+		se = do_build_seq_recursively(seq_arr[0], cfra, render_size,
+					      TRUE);
 		if (se->ibuf) {
 			se->ibuf_comp = se->ibuf;
 			IMB_refImBuf(se->ibuf_comp);
@@ -2314,7 +2336,7 @@ static TStripElem* do_build_seq_array_recursively(
 		Sequence * seq = seq_arr[i];
 		struct SeqEffectHandle sh;
 
-		se = give_tstripelem(seq, cfra);
+		se = give_tstripelem(seq, cfra, TRUE);
 
 		test_and_auto_discard_ibuf(se);
 
@@ -2322,7 +2344,7 @@ static TStripElem* do_build_seq_array_recursively(
 			break;
 		}
 		if (seq->blend_mode == SEQ_BLEND_REPLACE) {
-			do_build_seq_recursively(seq, cfra, render_size);
+			do_build_seq_recursively(seq, cfra, render_size, TRUE);
 			if (se->ibuf) {
 				se->ibuf_comp = se->ibuf;
 				IMB_refImBuf(se->ibuf);
@@ -2355,7 +2377,7 @@ static TStripElem* do_build_seq_array_recursively(
 		switch (early_out) {
 		case -1:
 		case 2:
-			do_build_seq_recursively(seq, cfra, render_size);
+			do_build_seq_recursively(seq, cfra, render_size, TRUE);
 			if (se->ibuf) {
 				se->ibuf_comp = se->ibuf;
 				IMB_refImBuf(se->ibuf_comp);
@@ -2379,7 +2401,7 @@ static TStripElem* do_build_seq_array_recursively(
 			}
 			break;
 		case 0:
-			do_build_seq_recursively(seq, cfra, render_size);
+			do_build_seq_recursively(seq, cfra, render_size, TRUE);
 			if (!se->ibuf) {
 				se->ibuf = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
@@ -2405,8 +2427,8 @@ static TStripElem* do_build_seq_array_recursively(
 	for (; i < count; i++) {
 		Sequence * seq = seq_arr[i];
 		struct SeqEffectHandle sh = get_sequence_blend(seq);
-		TStripElem* se1 = give_tstripelem(seq_arr[i-1], cfra);
-		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
+		TStripElem* se1 = give_tstripelem(seq_arr[i-1], cfra, TRUE);
+		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra, TRUE);
 	
 		int early_out = sh.early_out(seq, seq->facf0, seq->facf1);
 		switch (early_out) {
@@ -2535,7 +2557,7 @@ ImBuf *give_ibuf_seq_direct(int rectx, int recty, int cfra, int render_size,
 	seqrectx= rectx;	/* bad bad global! */
 	seqrecty= recty;
 
-	se = do_build_seq_recursively(seq, cfra, render_size);
+	se = do_build_seq_recursively(seq, cfra, render_size, TRUE);
 
 	if(!se) { 
 		return 0;
@@ -2934,7 +2956,7 @@ void free_imbuf_seq_except(int cfra)
 
 	WHILE_SEQ(&ed->seqbase) {
 		if(seq->strip) {
-			TStripElem * curelem = give_tstripelem(seq, cfra);
+			TStripElem * curelem = give_tstripelem(seq, cfra,TRUE);
 
 			for(a = 0, se = seq->strip->tstripdata; 
 			    a < seq->strip->len && se; a++, se++) {
@@ -2967,6 +2989,9 @@ void free_imbuf_seq_except(int cfra)
 			if(seq->type==SEQ_MOVIE)
 				if(seq->startdisp > cfra || seq->enddisp < cfra)
 					free_anim_seq(seq);
+			if(seq->type==SEQ_SPEED) {
+				sequence_effect_speed_rebuild_map(seq, TRUE);
+			}
 			free_proxy_seq(seq);
 		}
 	}
@@ -3008,7 +3033,7 @@ static void free_imbuf_seq_editing(Editing * ed)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(seq, TRUE);
 			}
 			free_proxy_seq(seq);
 		}
@@ -3083,7 +3108,7 @@ static int update_changed_seq_recurs(Sequence *seq, Sequence *changed_seq, int l
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(seq, 1);
+				sequence_effect_speed_rebuild_map(seq, TRUE);
 			}
 			free_proxy_seq(seq);
 		}
