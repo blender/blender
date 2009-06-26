@@ -57,7 +57,9 @@
 /* copied from init_render_mesh (render code) */
 static Mesh *create_mesh(Object *ob, bContext *C, ReportList *reports, int render_mesh)
 {
-	CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
+	/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
+	CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
+										   for example, needs CD_MASK_MDEFORMVERT */
 	DerivedMesh *dm;
 	Mesh *me;
 	Scene *sce;

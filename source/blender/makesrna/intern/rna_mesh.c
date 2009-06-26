@@ -736,6 +736,11 @@ static void rna_def_medge(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SHARP);
 	RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the EdgeSplit modifier");
+
+	prop= RNA_def_property(srna, "loose", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
 }
 
 static void rna_def_mface(BlenderRNA *brna)
