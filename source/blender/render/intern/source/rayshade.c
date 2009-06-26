@@ -1662,6 +1662,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -1794,6 +1795,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -2018,8 +2020,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, int lam
 			if (lar->type == LA_LOCAL) {
 				float ru[3], rv[3], v[3], s[3];
 				
-				assert(lampvec == 0);
-				
 				/* calc tangent plane vectors */
 				v[0] = co[0] - lampco[0];
 				v[1] = co[1] - lampco[1];
@@ -2038,7 +2038,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, int lam
 				VECCOPY(samp3d, s);
 			}
 			else {
-				assert(lampvec);
 				/* sampling, returns quasi-random vector in [sizex,sizey]^2 plane */
 				QMC_sampleRect(samp3d, qsa, shi->thread, samples, lar->area_size, lar->area_sizey);
 								
