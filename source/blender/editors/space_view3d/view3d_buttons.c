@@ -1710,7 +1710,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr);
+	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
 }
 
 void view3d_buttons_register(ARegionType *art)

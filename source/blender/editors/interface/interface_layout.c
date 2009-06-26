@@ -1271,7 +1271,6 @@ static void ui_litem_layout_box(uiLayout *litem)
 	h= litem->h;
 
 	litem->x += style->boxspace;
-	litem->y -= style->boxspace;
 
 	if(w != 0) litem->w -= 2*style->boxspace;
 	if(h != 0) litem->h -= 2*style->boxspace;
@@ -1352,6 +1351,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 		}
 	}
 
+	litem->w= x;
 	litem->h= litem->y - miny;
 }
 

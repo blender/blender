@@ -135,6 +135,7 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_FONT_KERNING (1<<2)
 #define BLF_USER_KERNING (1<<3)
 #define BLF_SHADOW (1<<4)
+#define BLF_OVERLAP_CHAR (1<<5)
 
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0

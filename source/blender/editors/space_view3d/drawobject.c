@@ -3566,7 +3566,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, ParticleSystem *psys, int dt)
 {
-	ToolSettings *ts= scene->toolsettings;
 	ParticleEdit *edit = psys->edit;
 	ParticleData *pa;
 	ParticleCacheKey **path;

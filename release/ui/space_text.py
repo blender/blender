@@ -1,10 +1,6 @@
 
 import bpy
 
-# temporary
-ICON_TEXT = 120
-ICON_HELP = 1
-
 class TEXT_HT_header(bpy.types.Header):
 	__space_type__ = "TEXT_EDITOR"
 	__idname__ = "TEXT_HT_header"

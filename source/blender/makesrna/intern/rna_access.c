@@ -426,23 +426,16 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 /* Find the property which uses the given nested struct */
 PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	int i = 0;
+	PropertyRNA *prop= NULL;
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-	prop= NULL;
-
-	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
+	RNA_STRUCT_BEGIN(ptr, iprop) {
 		/* This assumes that there can only be one user of this nested struct */
-		if (RNA_property_pointer_type(ptr, iter.ptr.data) == srna) {
-			prop= iter.ptr.data;
+		if (RNA_property_pointer_type(ptr, iprop) == srna) {
+			prop= iprop;
 			break;
 		}
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_PROP_END;
 
 	return prop;
 }
@@ -455,25 +448,21 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 {
 	PointerRNA tptr;
-	CollectionPropertyIterator iter;
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
-	int i = 0;
 
 	RNA_pointer_create(NULL, &RNA_Struct, ptr->type, &tptr);
 	iterprop= RNA_struct_find_property(&tptr, "functions");
 
-	RNA_property_collection_begin(&tptr, iterprop, &iter);
 	func= NULL;
 
-	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
-		if(strcmp(identifier, RNA_function_identifier(iter.ptr.data)) == 0) {
-			func= iter.ptr.data;
+	RNA_PROP_BEGIN(&tptr, funcptr, iterprop) {
+		if(strcmp(identifier, RNA_function_identifier(funcptr.data)) == 0) {
+			func= funcptr.data;
 			break;
 		}
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_PROP_END;
 
 	return func;
 }
@@ -516,6 +505,16 @@ void *RNA_struct_blender_type_get(StructRNA *srna)
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
 {
 	srna->blender_type= blender_type;
+}
+
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen)
+{
+	PropertyRNA *nameprop;
+
+	if(ptr->data && (nameprop = RNA_struct_name_property(ptr->type)))
+		return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen);
+
+	return NULL;
 }
 
 /* Property Information */
@@ -658,7 +657,6 @@ void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPrope
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
 	const EnumPropertyItem *item;
-	int i;
 	
 	RNA_property_enum_items(ptr, prop, &item, NULL);
 	
@@ -2247,17 +2245,12 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 	DynStr *dynstr= BLI_dynstr_new();
 	char *cstring;
 	
-	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
 	const char *propname;
 	int first_time = 1;
 	
 	BLI_dynstr_append(dynstr, "{");
 	
-	iterprop= RNA_struct_iterator_property(ptr->type);
-
-	for(RNA_property_collection_begin(ptr, iterprop, &iter); iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
+	RNA_STRUCT_BEGIN(ptr, prop) {
 		propname = RNA_property_identifier(prop);
 		
 		if(strcmp(propname, "rna_type")==0)
@@ -2271,8 +2264,8 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
+	RNA_STRUCT_END;
 
-	RNA_property_collection_end(&iter);
 	BLI_dynstr_append(dynstr, "}");	
 	
 	

@@ -365,15 +365,20 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result))
 		return result.ptr;
-	}
-	else {
-		PointerRNA ptr;
-		memset(&ptr, 0, sizeof(ptr));
-		return ptr;
-	}
+	else
+		return PointerRNA_NULL;
+}
 
+PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type)
+{
+	PointerRNA ptr = CTX_data_pointer_get(C, member);
+
+	if(ptr.data && ptr.type == type)
+		return ptr;
+	
+	return PointerRNA_NULL;
 }
 
 ListBase CTX_data_collection_get(const bContext *C, const char *member)

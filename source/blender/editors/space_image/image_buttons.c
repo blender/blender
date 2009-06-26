@@ -383,6 +383,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	}
 }
 
+#if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
@@ -439,6 +440,7 @@ static void image_panel_view_properties(const bContext *C, Panel *pa)
 	}
 	image_editcursor_buts(C, &ar->v2d, block);
 }
+#endif
 
 void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 				   int evt_nop, int evt_change,

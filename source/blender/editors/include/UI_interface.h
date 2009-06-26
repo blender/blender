@@ -417,7 +417,7 @@ void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr);
+void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr, int columns);
 
 /* Links
  *
@@ -454,7 +454,7 @@ typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, char *str, 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 		
 		/* use inside searchfunc to add items */
-int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin);
+int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */
 void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
 		/* height in pixels, it's using hardcoded values still */
@@ -617,6 +617,7 @@ void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
+void uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *activeprop, int items);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

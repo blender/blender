@@ -38,14 +38,15 @@ extern PyTypeObject quaternion_Type;
 
 #define QuaternionObject_Check(v) (Py_TYPE(v) == &quaternion_Type)
 
-typedef struct {
+typedef struct { /* keep aligned with BaseMathObject in Mathutils.h */
 	PyObject_VAR_HEAD 
-	struct{
-		float *py_data;		//python managed
-		float *blend_data;	//blender managed
-	}data;
-	float *quat;				//1D array of data (alias)
-	int wrapped;			//is wrapped data?
+	float *quat;				/* 1D array of data (alias) */
+	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
+	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
+	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char wrapped;		/* wrapped data type? */
+	/* end BaseMathObject */
+
 } QuaternionObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -55,5 +56,6 @@ blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
 PyObject *newQuaternionObject( float *quat, int type );
+PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif				/* EXPP_quat_h */

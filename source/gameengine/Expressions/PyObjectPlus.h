@@ -41,13 +41,15 @@
 #include "MT_Vector3.h"
 #include "SG_QList.h"
 
-#define USE_MATHUTILS // Blender 2.5x api will use mathutils, for a while we might want to test without it
-
 /*------------------------------
  * Python defines
 ------------------------------*/
 
-
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
 
 #if PY_VERSION_HEX > 0x03000000
 #define PyString_FromString PyUnicode_FromString
