@@ -15,6 +15,10 @@
 #include "COLLADAFWArrayPrimitiveType.h"
 #include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
 #include "COLLADAFWPolygons.h"
+#include "COLLADAFWTransformation.h"
+#include "COLLADAFWTranslate.h"
+#include "COLLADAFWScale.h"
+#include "COLLADAFWRotate.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -28,6 +32,7 @@ extern "C"
 #include "BKE_object.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_library.h"
 }
 
 #include "DNA_object_types.h"
@@ -36,6 +41,8 @@ extern "C"
 
 #include "DocumentImporter.h"
 
+#include <string>
+#include <map>
 
 const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 {
@@ -63,7 +70,6 @@ const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 	}
 	return "UNKNOWN";
 }
-
 const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 {
 	switch (type) {
@@ -87,6 +93,8 @@ private:
 	std::vector<COLLADAFW::VisualScene> mVisualScenes;
 
 	bContext *mContext;
+
+	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 
 	class UnitConverter
 	{
@@ -191,13 +199,102 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
 	{
+		// This method is guaranteed to be called _after_ writeGeometry, writeMaterial, etc.
+
 		// for each <node> in <visual_scene>:
 		// create an Object
 		// if Mesh (previously created in writeGeometry) to which <node> corresponds exists, link Object with that mesh
 
 		// update: since we cannot link a Mesh with Object in
 		// writeGeometry because <geometry> does not reference <node>,
-		// we link Objects with Meshes at the end with method "finish".
+		// we link Objects with Meshes here
+		
+		// XXX it's better to take Id than name
+
+		// TODO: create a new scene except the selected <visual_scene> - use current blender
+		// scene for it
+		Scene *sce = CTX_data_scene(mContext);
+// 		Scene *sce = add_scene(visualScene->getName());
+		int i = 0;
+		
+		for (i = 0; i < visualScene->getRootNodes().getCount(); i++) {
+			COLLADAFW::Node *node = visualScene->getRootNodes()[i];
+
+			// TODO: check node type
+			if (node->getType() != COLLADAFW::Node::NODE) {
+				continue;
+			}
+
+			Object *ob = add_object(sce, OB_MESH);
+
+			const std::string& id = node->getOriginalId();
+			if (id.length())
+				rename_id(&ob->id, (char*)id.c_str());
+
+
+			// XXX
+			// linking object with the first <instance_geometry>
+			// though a node may have more of them...
+
+			// TODO: join multiple <instance_geometry> meshes into 1, and link object with it
+
+			COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
+			if (geom.getCount() < 1) {
+				fprintf(stderr, "Node hasn't got any geometry.\n");
+				continue;
+			}
+
+			const COLLADAFW::UniqueId& uid = geom[0]->getInstanciatedObjectId();
+			if (uid_mesh_map.find(uid) == uid_mesh_map.end()) {
+				// XXX report to user
+				// this could happen if a mesh was not created
+				// (e.g. if it contains unsupported geometry)
+				fprintf(stderr, "Couldn't find a mesh by UID.\n");
+				continue;
+			}
+
+			set_mesh(ob, uid_mesh_map[uid]);
+
+			for (int k = 0; k < node->getTransformations().getCount(); k ++) {
+				COLLADAFW::Transformation *transform = node->getTransformations()[k];
+				COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
+				switch(type) {
+				case COLLADAFW::Transformation::TRANSLATE:
+					{
+						COLLADAFW::Translate *tra = (COLLADAFW::Translate*)transform;
+						COLLADABU::Math::Vector3& t = tra->getTranslation();
+						// X
+						ob->loc[0] = (float)t[0];
+						// Y
+						ob->loc[1] = (float)t[1];
+						// Z
+						ob->loc[2] = (float)t[2];
+					}
+					break;
+				case COLLADAFW::Transformation::ROTATE:
+					break;
+				case COLLADAFW::Transformation::SCALE:
+					{
+						COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)transform)->getScale();
+						// X
+						ob->size[0] = (float)s[0];
+						// Y
+						ob->size[1] = (float)s[1];
+						// Z
+						ob->size[2] = (float)s[2];
+					}
+					break;
+				case COLLADAFW::Transformation::MATRIX:
+					break;
+				case COLLADAFW::Transformation::LOOKAT:
+					break;
+				case COLLADAFW::Transformation::SKEW:
+					break;
+				}
+			}
+
+		}
+
 		mVisualScenes.push_back(*visualScene);
 
 		return true;
@@ -269,25 +366,30 @@ public:
 		}
 		
 		size_t totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
-		size_t totnorm = cmesh->getNormals().getFloatValues()->getCount() / 3;
+		//size_t totnorm = cmesh->getNormals().getFloatValues()->getCount() / 3;
 		
-		if (cmesh->hasNormals() && totnorm != totvert) {
+		/*if (cmesh->hasNormals() && totnorm != totvert) {
 			fprintf(stderr, "Per-face normals are not supported.\n");
 			return true;
-		}
+			}*/
 		
-		Mesh *me = add_mesh((char*)cgeom->getOriginalId().c_str());
+		const std::string& str_geom_id = cgeom->getOriginalId();
+		Mesh *me = add_mesh((char*)str_geom_id.c_str());
+
+		// store mesh ptr
+		// to link it later with Object
+		this->uid_mesh_map[cgeom->getUniqueId()] = me;
 		
 		// vertices	
 		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 		me->totvert = totvert;
 		
 		float *pos_float_array = cmesh->getPositions().getFloatValues()->getData();
-		float *normals_float_array = NULL;
+		//float *normals_float_array = NULL;
 
-		if (cmesh->hasNormals())
+		/*if (cmesh->hasNormals())
 			normals_float_array = cmesh->getNormals().getFloatValues()->getData();
-		
+		*/
 		MVert *mvert = me->mvert;
 		i = 0;
 		while (i < totvert) {
@@ -296,12 +398,12 @@ public:
 			mvert->co[1] = pos_float_array[1];
 			mvert->co[2] = pos_float_array[2];
 
-			if (normals_float_array) {
+			/*if (normals_float_array) {
 				mvert->no[0] = (short)(32767.0 * normals_float_array[0]);
 				mvert->no[1] = (short)(32767.0 * normals_float_array[1]);
 				mvert->no[2] = (short)(32767.0 * normals_float_array[2]);
 				normals_float_array += 3;
-			}
+				}*/
 			
 			pos_float_array += 3;
 			mvert++;
@@ -362,65 +464,7 @@ public:
 			}
 		}
 		
-		Object *ob = add_object(CTX_data_scene(mContext), OB_MESH);
-		set_mesh(ob, me);
-
-		// XXX: don't use editors module
-
-
-		// create a mesh object
-// 		Object *ob = ED_object_add_type(mContext, OB_MESH);
-
-// 		// enter editmode
-// 		ED_object_enter_editmode(mContext, 0);
-// 		Mesh *me = (Mesh*)ob->data;
-// 		EditMesh *em = BKE_mesh_get_editmesh(me);
-
-// 		// write geometry
-// 		// currently only support <triangles>
-
-// 		// read vertices
-// 		std::vector<EditVert*> vertptr;
-// 		COLLADAFW::MeshVertexData& vertdata = cmesh->getPositions();
-// 		float *pos = vertdata.getFloatValues()->getData();
-// 		size_t totpos = vertdata.getValuesCount() / 3;
-// 		int i;
-
-// 		for (i = 0; i < totpos; i++){
-// 			float v[3] = {pos[i * 3 + 0],
-// 						  pos[i * 3 + 1],
-// 						  pos[i * 3 + 2]};
-// 			EditVert *eve = addvertlist(em, v, 0);
-// 			vertptr.push_back(eve);
-// 		}
-
-// 		COLLADAFW::MeshPrimitiveArray& apt = cmesh->getMeshPrimitives();
-
-// 		// read primitives
-// 		// TODO: support all primitive types
-// 		for (i = 0; i < apt.getCount(); i++){
-			
-// 			COLLADAFW::MeshPrimitive *mp = apt.getData()[i];
-// 			if (mp->getPrimitiveType() != COLLADAFW::MeshPrimitive::TRIANGLES){
-// 				continue;
-// 			}
-			
-// 			const size_t tottris = mp->getFaceCount();
-// 			COLLADAFW::UIntValuesArray& indicesArray = mp->getPositionIndices();
-// 			unsigned int *indices = indicesArray.getData();
-// 			for (int j = 0; j < tottris; j++){
-// 				addfacelist(em,
-// 							vertptr[indices[j * 3 + 0]],
-// 							vertptr[indices[j * 3 + 1]],
-// 							vertptr[indices[j * 3 + 2]], 0, 0, 0);
-// 			}
-// 		}
-		
-// 		BKE_mesh_end_editmesh(me, em);
-
-// 		// exit editmode
-// 		ED_object_exit_editmode(mContext, EM_FREEDATA);
-
+		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 		return true;
 	}
 
