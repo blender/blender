@@ -73,6 +73,12 @@
 
 #ifdef WIN32
 #define snprintf _snprintf
+
+static double rint(double x)
+{
+     return floor(x < 0.0 ? x - 0.5 : x + 0.5);
+}
+
 #endif
 
 int seqrectx, seqrecty;
