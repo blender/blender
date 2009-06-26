@@ -134,7 +134,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	
 	if(op==NULL)
 		return;
-	if(op->type->poll && op->type->poll(C)==0)
+	if(op->type->poll && op->type->poll((bContext *)C)==0)
 		return;
 	
 	uiBlockSetFunc(block, redo_cb, op, NULL);
@@ -148,10 +148,59 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }
 
+static void view3d_panel_tools(const bContext *C, Panel *pa)
+{
+	Object *obedit= CTX_data_edit_object(C);
+//	Object *obact = CTX_data_active_object(C);
+	uiLayout *col;
+	
+	if(obedit) {
+		if(obedit->type==OB_MESH) {
+			
+			// void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDProperty *properties, int context)
+			col= uiLayoutColumn(pa->layout, 1);
+			uiItemFullO(col, NULL, 0, "MESH_OT_delete", NULL, WM_OP_INVOKE_REGION_WIN);
+			
+			col= uiLayoutColumn(pa->layout, 1);
+			uiItemFullO(col, NULL, 0, "MESH_OT_subdivide", NULL, WM_OP_INVOKE_REGION_WIN);
+			
+			col= uiLayoutColumn(pa->layout, 1);
+			uiItemFullO(col, NULL, 0, "MESH_OT_primitive_monkey_add", NULL, WM_OP_INVOKE_REGION_WIN);
+			uiItemFullO(col, NULL, 0, "MESH_OT_primitive_uv_sphere_add", NULL, WM_OP_INVOKE_REGION_WIN);
+			
+			col= uiLayoutColumn(pa->layout, 1);
+			uiItemFullO(col, NULL, 0, "MESH_OT_select_all_toggle", NULL, WM_OP_INVOKE_REGION_WIN);
+			
+			col= uiLayoutColumn(pa->layout, 1);
+			uiItemFullO(col, NULL, 0, "MESH_OT_spin", NULL, WM_OP_INVOKE_REGION_WIN);
+			uiItemFullO(col, NULL, 0, "MESH_OT_screw", NULL, WM_OP_INVOKE_REGION_WIN);
+			
+		}
+	}
+	else {
+		
+		col= uiLayoutColumn(pa->layout, 1);
+		uiItemFullO(col, NULL, 0, "OBJECT_OT_delete", NULL, WM_OP_INVOKE_REGION_WIN);
+		uiItemFullO(col, NULL, 0, "OBJECT_OT_primitive_add", NULL, WM_OP_INVOKE_REGION_WIN);
+		
+		col= uiLayoutColumn(pa->layout, 1);
+		uiItemFullO(col, NULL, 0, "OBJECT_OT_parent_set", NULL, WM_OP_INVOKE_REGION_WIN);
+		uiItemFullO(col, NULL, 0, "OBJECT_OT_parent_clear", NULL, WM_OP_INVOKE_REGION_WIN);
+		
+	}
+}
+
+
 void view3d_toolbar_register(ARegionType *art)
 {
 	PanelType *pt;
 
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel tools");
+	strcpy(pt->idname, "VIEW3D_PT_tools");
+	strcpy(pt->label, "Tools");
+	pt->draw= view3d_panel_tools;
+	BLI_addtail(&art->paneltypes, pt);
+	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
 	strcpy(pt->label, "Last Operator");

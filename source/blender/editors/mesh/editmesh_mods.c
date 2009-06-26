@@ -3242,7 +3242,7 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
+	ot->name= "Select/Deselect All";
 	ot->idname= "MESH_OT_select_all_toggle";
 	
 	/* api callbacks */
