@@ -9,7 +9,7 @@ Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 
 __author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
-__version__= "2.12"
+__version__= "2.13"
 
 __bpydoc__= """\
 This script imports a Wavefront OBJ files to Blender.
@@ -208,6 +208,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
 					elif line_lower.startswith('d') or line_lower.startswith('tr'):
 						context_material.setAlpha(float(line_split[1]))
+						context_material.mode |= Material.Modes.ZTRANSP
 					elif line_lower.startswith('map_ka'):
 						img_filepath= line_value(line.split())
 						if img_filepath:
