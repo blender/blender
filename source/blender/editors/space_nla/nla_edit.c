@@ -769,8 +769,12 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 				bed.data= strip;
 				ANIM_animchanneldata_keys_bezier_loop(&bed, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
 				
-				/* clear scale of strip now that it has been applied, but leave everything else alone */
+				/* clear scale of strip now that it has been applied,
+				 * and recalculate the extents of the action now that it has been scaled
+				 * but leave everything else alone 
+				 */
 				strip->scale= 1.0f;
+				calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 			}
 		}
 	}
