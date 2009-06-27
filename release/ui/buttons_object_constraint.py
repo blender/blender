@@ -529,20 +529,20 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
 	__label__ = "Bone Constraints"
-	__context__ = "constraint"
+	__context__ = "bone"
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == "ARMATURE")
+		return (ob and ob.type == "ARMATURE" and context.bone)
 		
 	def draw(self, context):
 		ob = context.object
-		pchan = ob.pose.pose_channels[0] # XXX
+		pchan = ob.pose.pose_channels[context.bone.name]
 		layout = self.layout
 
-		#row = layout.row()
-		#row.item_menu_enumO("BONE_OT_constraint_add", "type")
-		#row.itemL();
+		row = layout.row()
+		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.itemL();
 
 		for con in pchan.constraints:
 			self.draw_constraint(con)
