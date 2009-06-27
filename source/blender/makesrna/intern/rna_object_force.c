@@ -113,6 +113,113 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 	BLI_freelistN(&pidlist);
 }
+
+static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_EDGES) != 0);
+}
+
+static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_EDGES;
+	else data->softflag &= ~OB_SB_EDGES;
+}
+
+static int rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_GOAL) != 0);
+}
+
+static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_GOAL;
+	else data->softflag &= ~OB_SB_GOAL;
+}
+
+static int rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_QUADS) != 0);
+}
+
+static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_QUADS;
+	else data->softflag &= ~OB_SB_QUADS;
+}
+
+static int rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_SELF) != 0);
+}
+
+static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_SELF;
+	else data->softflag &= ~OB_SB_SELF;
+}
+
+static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_AERO_ANGLE) != 0);
+}
+
+static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_AERO_ANGLE;
+	else data->softflag &= ~OB_SB_AERO_ANGLE;
+}
+
+static int rna_SoftBodySettings_enabled_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_ENABLE) != 0);
+}
+
+#if 0
+static void rna_SoftBodySettings_enabled_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_ENABLE;
+	else data->softflag &= ~OB_SB_ENABLE;
+}
+#endif
+
+static int rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_FACECOLL) != 0);
+}
+
+static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_FACECOLL;
+	else data->softflag &= ~OB_SB_FACECOLL;
+}
+
+static int rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
+{
+	Object *data= (Object*)(ptr->data);
+	return (((data->softflag) & OB_SB_EDGECOLL) != 0);
+}
+
+static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, int value)
+{
+	Object *data= (Object*)(ptr->data);
+	if(value) data->softflag |= OB_SB_EDGECOLL;
+	else data->softflag &= ~OB_SB_EDGECOLL;
+}
+
 #else
 
 static void rna_def_pointcache(BlenderRNA *brna)
@@ -576,6 +683,41 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "diagnose", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_MONITOR);
 	RNA_def_property_ui_text(prop, "Print Performance to Console", "Turn on SB diagnose console prints");
+	
+	/* Flags */
+	
+	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_enabled_get", "rna_SoftBodySettings_enabled_set");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Enable", "Sets object to become soft body.");
+	
+	prop= RNA_def_property(srna, "use_goal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_use_goal_get", "rna_SoftBodySettings_use_goal_set");
+	RNA_def_property_ui_text(prop, "Use Goal", "Define forces for vertices to stick to animated position.");
+	
+	prop= RNA_def_property(srna, "use_edges", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_use_edges_get", "rna_SoftBodySettings_use_edges_set");
+	RNA_def_property_ui_text(prop, "Use Edges", "Use Edges as springs");
+	
+	prop= RNA_def_property(srna, "stiff_quads", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_stiff_quads_get", "rna_SoftBodySettings_stiff_quads_set");
+	RNA_def_property_ui_text(prop, "Stiff Quads", "Adds diagonal springs on 4-gons.");
+	
+	prop= RNA_def_property(srna, "edge_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_edge_collision_get", "rna_SoftBodySettings_edge_collision_set");
+	RNA_def_property_ui_text(prop, "Edge Collision", "Edges collide too.");
+	
+	prop= RNA_def_property(srna, "face_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_face_collision_get", "rna_SoftBodySettings_face_collision_set");
+	RNA_def_property_ui_text(prop, "Face Collision", "Faces collide too, SLOOOOOW warning.");
+	
+	prop= RNA_def_property(srna, "new_aero", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_new_aero_get", "rna_SoftBodySettings_new_aero_set");
+	RNA_def_property_ui_text(prop, "N", "New aero(uses angle and length).");
+	
+	prop= RNA_def_property(srna, "self_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_self_collision_get", "rna_SoftBodySettings_self_collision_set");
+	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision.");
 }
 
 void RNA_def_object_force(BlenderRNA *brna)

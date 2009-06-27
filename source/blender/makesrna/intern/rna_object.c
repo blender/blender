@@ -1120,40 +1120,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_POSEMODE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
-	
-	/* Softbody Flags */
-	
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_ENABLE);
-	RNA_def_property_ui_text(prop, "Enable Softbody", "Sets object to become soft body");
-	
-	prop= RNA_def_property(srna, "use_goal", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_GOAL);
-	RNA_def_property_ui_text(prop, "Use Goal", "Define forces for vertices to stick to animated position");
-	
-	prop= RNA_def_property(srna, "use_edges", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_EDGES);
-	RNA_def_property_ui_text(prop, "Use Edges", "Use Edges as springs");
-	
-	prop= RNA_def_property(srna, "stiff_quads", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_QUADS);
-	RNA_def_property_ui_text(prop, "Stiff Quads", "Adds diagonal springs on 4-gons");
-	
-	prop= RNA_def_property(srna, "edge_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_EDGECOLL);
-	RNA_def_property_ui_text(prop, "Edge Collision", "Edge collide too");
-	
-	prop= RNA_def_property(srna, "face_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_FACECOLL);
-	RNA_def_property_ui_text(prop, "Face Collision", "Faces collide too SLOOOOOW warning");
-	
-	prop= RNA_def_property(srna, "new_aero", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_AERO_ANGLE);
-	RNA_def_property_ui_text(prop, "N", "New aero(uses angle and length)");
-	
-	prop= RNA_def_property(srna, "selfcollision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_SELF);
-	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision");
 
 	// XXX this stuff should be moved to AnimData...
 /*
