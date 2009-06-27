@@ -45,7 +45,11 @@
  * Python defines
 ------------------------------*/
 
-
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
 
 #if PY_VERSION_HEX > 0x03000000
 #define PyString_FromString PyUnicode_FromString

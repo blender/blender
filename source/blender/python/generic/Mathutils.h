@@ -38,6 +38,26 @@
 #include "quat.h"
 #include "euler.h"
 
+/* #define USE_MATHUTILS_DEG - for backwards compat */
+
+/* Can cast different mathutils types to this, use for generic funcs */
+
+typedef struct {
+	PyObject_VAR_HEAD
+	float *data;					/*array of data (alias), wrapped status depends on wrapped status */
+	PyObject *cb_user;					/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
+	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
+	unsigned char cb_subtype;		/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char wrapped;		/* wrapped data type? */
+} BaseMathObject;
+
+PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
+PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
+void BaseMathObject_dealloc(BaseMathObject * self);
+
+
+
+
 PyObject *Mathutils_Init( const char * from );
 
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
@@ -75,22 +95,15 @@ struct Mathutils_Callback {
 
 int Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
-int _Vector_ReadCallback(VectorObject *self);
-int _Vector_WriteCallback(VectorObject *self);
-int _Vector_ReadIndexCallback(VectorObject *self, int index);
-int _Vector_WriteIndexCallback(VectorObject *self, int index);
+int _BaseMathObject_ReadCallback(BaseMathObject *self);
+int _BaseMathObject_WriteCallback(BaseMathObject *self);
+int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
+int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 /* since this is called so often avoid where possible */
-#define Vector_ReadCallback(_self) (((_self)->cb_user ?	_Vector_ReadCallback(_self):1))
-#define Vector_WriteCallback(_self) (((_self)->cb_user ?_Vector_WriteCallback(_self):1))
-#define Vector_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_ReadIndexCallback(_self, _index):1))
-#define Vector_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_Vector_WriteIndexCallback(_self, _index):1))
-
-
-int _Matrix_ReadCallback(MatrixObject *self);
-int _Matrix_WriteCallback(MatrixObject *self);
-
-#define Matrix_ReadCallback(_self) (((_self)->cb_user  ?_Matrix_ReadCallback(_self):1))
-#define Matrix_WriteCallback(_self) (((_self)->cb_user ?_Matrix_WriteCallback(_self):1))
+#define BaseMath_ReadCallback(_self) (((_self)->cb_user ?	_BaseMathObject_ReadCallback((BaseMathObject *)_self):1))
+#define BaseMath_WriteCallback(_self) (((_self)->cb_user ?_BaseMathObject_WriteCallback((BaseMathObject *)_self):1))
+#define BaseMath_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index):1))
+#define BaseMath_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index):1))
 
 #endif				/* EXPP_Mathutils_H */

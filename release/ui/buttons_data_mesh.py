@@ -74,6 +74,18 @@ class DATA_PT_materials(DataButtonsPanel):
 		row.itemO("OBJECT_OT_material_slot_select", text="Select");
 		row.itemO("OBJECT_OT_material_slot_deselect", text="Deselect");
 
+		layout.itemS()
+
+		box= layout.box()
+
+		row = box.row()
+		row.template_list(ob, "materials", "active_material_index", compact=True)
+
+		subrow = row.row(align=True)
+		subrow.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
+		subrow.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+
+
 bpy.types.register(DATA_PT_mesh)
 bpy.types.register(DATA_PT_materials)
 

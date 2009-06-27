@@ -29,7 +29,7 @@ class TEXT_HT_header(bpy.types.Header):
 		row.itemR(st, "word_wrap", text="")
 		row.itemR(st, "syntax_highlight", text="")
 
-		layout.template_ID(st, "text", new="TEXT_OT_new", open="TEXT_OT_open", unlink="TEXT_OT_unlink")
+		layout.template_ID(st, "text", new="TEXT_OT_new", unlink="TEXT_OT_unlink")
 
 		if text:
 			row = layout.row()

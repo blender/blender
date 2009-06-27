@@ -80,7 +80,6 @@
  */
 
 static void ui_free_but(const bContext *C, uiBut *but);
-static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but);
 
 /* ************* translation ************** */
 
@@ -1334,61 +1333,6 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 	}
 }
 
-static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, PropertyRNA **prop)
-{
-	StructRNA *srna;
-
-	/* look for collection property in Main */
-	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
-
-	*prop= NULL;
-
-	RNA_STRUCT_BEGIN(ptr, iprop) {
-		/* if it's a collection and has same pointer type, we've got it */
-		if(RNA_property_type(iprop) == PROP_COLLECTION) {
-			srna= RNA_property_pointer_type(ptr, iprop);
-
-			if(RNA_property_pointer_type(ptr, but->rnaprop) == srna) {
-				*prop= iprop;
-				break;
-			}
-		}
-	}
-	RNA_STRUCT_END;
-}
-
-/* autocomplete callback for RNA pointers */
-static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
-{
-	uiBut *but= arg_but;
-	AutoComplete *autocpl;
-	PointerRNA ptr;
-	PropertyRNA *prop;
-	char *name;
-	
-	if(str[0]==0) return;
-
-	/* get the collection */
-	ui_rna_ID_collection(C, but, &ptr, &prop);
-	if(prop==NULL) return;
-
-	autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
-
-	/* loop over items in collection */
-	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
-		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-
-		/* test item name */
-		if(name) {
-			autocomplete_do_name(autocpl, name);
-			MEM_freeN(name);
-		}
-	}
-	RNA_PROP_END;
-
-	autocomplete_end(autocpl, str);
-}
-
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
 	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
@@ -1407,21 +1351,21 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				PointerRNA ptr, rptr;
 				PropertyRNA *prop;
 
-				/* XXX only ID pointers at the moment, needs to support
-				 * custom collection too for bones, vertex groups, .. */
-				ui_rna_ID_collection(C, but, &ptr, &prop);
-
 				if(str == NULL || str[0] == '\0') {
-					memset(&rptr, 0, sizeof(rptr));
-					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL);
 					return 1;
 				}
-				else if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
-					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+				else {
+					ptr= but->rnasearchpoin;
+					prop= but->rnasearchprop;
+					
+					if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr))
+						RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+
 					return 1;
 				}
-				else
-					return 0;
+
+				return 0;
 			}
 		}
 	}
@@ -2133,7 +2077,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM6(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM)) {
+	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU)) {
 		but->flag |= UI_TEXT_LEFT;
 	}
 	
@@ -2289,10 +2233,6 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 			but->rnaindex= index;
 		else
 			but->rnaindex= 0;
-
-		if(type == IDPOIN)
-			uiButSetCompleteFunc(but, ui_rna_ID_autocomplete, but);
-
 	}
 
 	if(icon) {
@@ -2408,7 +2348,11 @@ void autocomplete_do_name(AutoComplete *autocpl, const char *name)
 		else {
 			/* remove from truncate what is not in bone->name */
 			for(a=0; a<autocpl->maxlen-1; a++) {
-				if(truncate[a]!=name[a])
+				if(name[a] == 0) {
+					truncate[a]= 0;
+					break;
+				}
+				else if(truncate[a]!=name[a])
 					truncate[a]= 0;
 			}
 		}

@@ -259,14 +259,16 @@ static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 	while(ar->prev) {
 		ar= ar->prev;
 		
-		if(ar->flag & RGN_FLAG_HIDDEN);
-		else if(ar->alignment==RGN_OVERLAP_LEFT) {
-			winrct->xmin= ar->winrct.xmax + 1;
+		if(BLI_isect_rcti(winrct, &ar->winrct, NULL)) {
+			if(ar->flag & RGN_FLAG_HIDDEN);
+			else if(ar->alignment==RGN_OVERLAP_LEFT) {
+				winrct->xmin= ar->winrct.xmax + 1;
+			}
+			else if(ar->alignment==RGN_OVERLAP_RIGHT) {
+				winrct->xmax= ar->winrct.xmin - 1;
+			}
+			else break;
 		}
-		else if(ar->alignment==RGN_OVERLAP_RIGHT) {
-			winrct->xmax= ar->winrct.xmin - 1;
-		}
-		else break;
 	}
 }
 

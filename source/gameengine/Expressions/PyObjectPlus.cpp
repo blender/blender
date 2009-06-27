@@ -331,13 +331,18 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 			}
 		case KX_PYATTRIBUTE_TYPE_VECTOR:
 			{
-				PyObject* resultlist = PyList_New(3);
 				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
+#ifdef USE_MATHUTILS
+				float fval[3]= {(*val)[0], (*val)[1], (*val)[2]};
+				return newVectorObject(fval, 3, Py_NEW);
+#else
+				PyObject* resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)
 				{
 					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
 				}
 				return resultlist;
+#endif
 			}
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{

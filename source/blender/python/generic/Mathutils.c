@@ -155,10 +155,13 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 
 	if(QuaternionObject_Check(arg1)){
 		quat = (QuaternionObject*)arg1;
+		if(!BaseMath_ReadCallback(quat))
+			return NULL;
+
 		if(VectorObject_Check(arg2)){
 			vec = (VectorObject*)arg2;
 			
-			if(!Vector_ReadCallback(vec))
+			if(!BaseMath_ReadCallback(vec))
 				return NULL;
 			
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
@@ -178,11 +181,14 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 	}else if(VectorObject_Check(arg1)){
 		vec = (VectorObject*)arg1;
 		
-		if(!Vector_ReadCallback(vec))
+		if(!BaseMath_ReadCallback(vec))
 			return NULL;
 		
 		if(QuaternionObject_Check(arg2)){
 			quat = (QuaternionObject*)arg2;
+			if(!BaseMath_ReadCallback(quat))
+				return NULL;
+
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
 				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
 				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
@@ -247,7 +253,7 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	if(vec1->size != vec2->size)
 		goto AttributeError1; //bad sizes
 
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 	
 	//since size is the same....
@@ -269,8 +275,11 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 
 	angleRads = (double)saacos(dot);
 
+#ifdef USE_MATHUTILS_DEG
 	return PyFloat_FromDouble(angleRads * (180/ Py_PI));
-
+#else
+	return PyFloat_FromDouble(angleRads);
+#endif
 AttributeError1:
 	PyErr_SetString(PyExc_AttributeError, "Mathutils.AngleBetweenVecs(): expects (2) VECTOR objects of the same size\n");
 	return NULL;
@@ -296,7 +305,7 @@ static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 
 	for(x = 0; x < vec1->size; x++) {
@@ -322,7 +331,7 @@ static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 		return NULL;
 	}
 
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 
 	
@@ -358,12 +367,19 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.RotationMatrix(): expected float int and optional string and vector\n");
 		return NULL;
 	}
-	
+
+#ifdef USE_MATHUTILS_DEG
 	/* Clamp to -360:360 */
 	while (angle<-360.0f)
 		angle+=360.0;
 	while (angle>360.0f)
 		angle-=360.0;
+#else
+	while (angle<-(Py_PI*2))
+		angle+=(Py_PI*2);
+	while (angle>(Py_PI*2))
+		angle-=(Py_PI*2);
+#endif
 	
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
@@ -389,12 +405,15 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 			return NULL;
 		}
 		
-		if(!Vector_ReadCallback(vec))
+		if(!BaseMath_ReadCallback(vec))
 			return NULL;
 		
 	}
+#ifdef USE_MATHUTILS_DEG
 	//convert to radians
 	angle = angle * (float) (Py_PI / 180);
+#endif
+
 	if(axis == NULL && matSize == 2) {
 		//2D rotation matrix
 		mat[0] = (float) cos (angle);
@@ -492,7 +511,7 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec))
+	if(!BaseMath_ReadCallback(vec))
 		return NULL;
 	
 	//create a identity matrix and add translation
@@ -528,7 +547,7 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 			return NULL;
 		}
 		
-		if(!Vector_ReadCallback(vec))
+		if(!BaseMath_ReadCallback(vec))
 			return NULL;
 		
 	}
@@ -607,7 +626,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 			return NULL;
 		}
 		
-		if(!Vector_ReadCallback(vec))
+		if(!BaseMath_ReadCallback(vec))
 			return NULL;
 		
 	}
@@ -766,6 +785,10 @@ static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.DifferenceQuats(): expected Quaternion types");
 		return NULL;
 	}
+
+	if(!BaseMath_ReadCallback(quatU) || !BaseMath_ReadCallback(quatV))
+		return NULL;
+
 	tempQuat[0] = quatU->quat[0];
 	tempQuat[1] = -quatU->quat[1];
 	tempQuat[2] = -quatU->quat[2];
@@ -793,6 +816,10 @@ static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.Slerp(): expected Quaternion types and float");
 		return NULL;
 	}
+
+	if(!BaseMath_ReadCallback(quatU) || !BaseMath_ReadCallback(quatV))
+		return NULL;
+
 	if(param > 1.0f || param < 0.0f) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.Slerp(): interpolation factor must be between 0.0 and 1.0");
 		return NULL;
@@ -856,7 +883,7 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 		return NULL;
 	}
 
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(ray) || !Vector_ReadCallback(ray_off))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(ray) || !BaseMath_ReadCallback(ray_off))
 		return NULL;
 	
 	VECCOPY(v1, vec1->vec);
@@ -928,7 +955,7 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(vec4))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
 		return NULL;
 	
 	if( vec1->size == 3 || vec1->size == 2) {
@@ -1002,7 +1029,7 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3) || !Vector_ReadCallback(vec4))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
 		return NULL;
 	
 	VECCOPY(v1, vec1->vec);
@@ -1050,7 +1077,7 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
 		return NULL;
 
 	VECCOPY(v1, vec1->vec);
@@ -1085,7 +1112,7 @@ static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2) || !Vector_ReadCallback(vec3))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
 		return NULL;
 
 	if (vec1->size == 3) {
@@ -1167,75 +1194,66 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 }
 
 /* use macros to check for NULL */
-int _Vector_ReadCallback(VectorObject *self)
+int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self->cb_user, self->cb_subtype, self->vec)) {
+	if(cb->get(self->cb_user, self->cb_subtype, self->data))
 		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-		return 0;
-	}
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
 }
 
-int _Vector_WriteCallback(VectorObject *self)
+int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self->cb_user, self->cb_subtype, self->vec)) {
+	if(cb->set(self->cb_user, self->cb_subtype, self->data))
 		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-		return 0;
-	}
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
 }
 
-int _Vector_ReadIndexCallback(VectorObject *self, int index)
+int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get_index(self->cb_user, self->cb_subtype, self->vec, index)) {
+	if(cb->get_index(self->cb_user, self->cb_subtype, self->data, index))
 		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-		return 0;
-	}
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
 }
 
-int _Vector_WriteIndexCallback(VectorObject *self, int index)
+int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set_index(self->cb_user, self->cb_subtype, self->vec, index)) {
+	if(cb->set_index(self->cb_user, self->cb_subtype, self->data, index))
 		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Vector user has become invalid");
-		return 0;
-	}
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
 }
 
-/* matrix callbacks */
-int _Matrix_ReadCallback(MatrixObject *self)
+/* BaseMathObject generic functions for all mathutils types */
+PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 {
-	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self->cb_user, self->cb_subtype, self->contigPtr)) {
-		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Matrix user has become invalid");
-		return 0;
-	}
+	PyObject *ret= self->cb_user ? self->cb_user : Py_None;
+	Py_INCREF(ret);
+	return ret;
 }
 
-int _Matrix_WriteCallback(MatrixObject *self)
+PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
 {
-	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self->cb_user, self->cb_subtype, self->contigPtr)) {
-		return 1;
-	}
-	else {
-		PyErr_SetString(PyExc_SystemError, "Matrix user has become invalid");
-		return 0;
-	}
+	PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
 }
+
+void BaseMathObject_dealloc(BaseMathObject * self)
+{
+	/* only free non wrapped */
+	if(self->wrapped != Py_WRAP)
+		PyMem_Free(self->data);
+
+	Py_XDECREF(self->cb_user);
+	PyObject_DEL(self);
+}
+

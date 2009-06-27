@@ -144,7 +144,7 @@ static PyObject *Vector_Zero(VectorObject * self)
 		self->vec[i] = 0.0f;
 	}
 	
-	Vector_WriteCallback(self);
+	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -155,7 +155,7 @@ static PyObject *Vector_Normalize(VectorObject * self)
 	int i;
 	float norm = 0.0f;
 
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	for(i = 0; i < self->size; i++) {
@@ -166,7 +166,7 @@ static PyObject *Vector_Normalize(VectorObject * self)
 		self->vec[i] /= norm;
 	}
 	
-	Vector_WriteCallback(self);
+	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -266,7 +266,7 @@ static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
 	if (strack) {
@@ -385,7 +385,7 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(self) || !Vector_ReadCallback(value))
+	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 	
 	mirror[0] = value->vec[0];
@@ -431,7 +431,7 @@ static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(self) || !Vector_ReadCallback(value))
+	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 	
 	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW);
@@ -454,7 +454,7 @@ static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(self) || !Vector_ReadCallback(value))
+	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 	
 	for(x = 0; x < self->size; x++) {
@@ -467,22 +467,10 @@ static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
   return a copy of the vector */
 static PyObject *Vector_copy(VectorObject * self)
 {
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	return newVectorObject(self->vec, self->size, Py_NEW);
-}
-
-/*----------------------------dealloc()(internal) ----------------
-  free the py_object */
-static void Vector_dealloc(VectorObject * self)
-{
-	/* only free non wrapped */
-	if(self->wrapped != Py_WRAP)
-		PyMem_Free(self->vec);
-	
-	Py_XDECREF(self->cb_user);
-	PyObject_DEL(self);
 }
 
 /*----------------------------print object (internal)-------------
@@ -492,7 +480,7 @@ static PyObject *Vector_repr(VectorObject * self)
 	int i;
 	char buffer[48], str[1024];
 
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	BLI_strncpy(str,"[",1024);
@@ -520,12 +508,14 @@ static int Vector_len(VectorObject * self)
   sequence accessor (get)*/
 static PyObject *Vector_item(VectorObject * self, int i)
 {
+	if(i<0)	i= self->size-i;
+
 	if(i < 0 || i >= self->size) {
 		PyErr_SetString(PyExc_IndexError,"vector[index]: out of range\n");
 		return NULL;
 	}
 
-	if(!Vector_ReadIndexCallback(self, i))
+	if(!BaseMath_ReadIndexCallback(self, i))
 		return NULL;
 	
 	return PyFloat_FromDouble(self->vec[i]);
@@ -541,13 +531,15 @@ static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 		return -1;
 	}
 
+	if(i<0)	i= self->size-i;
+
 	if(i < 0 || i >= self->size){
 		PyErr_SetString(PyExc_IndexError, "vector[index] = x: assignment index out of range\n");
 		return -1;
 	}
 	self->vec[i] = scalar;
 	
-	if(!Vector_WriteIndexCallback(self, i))
+	if(!BaseMath_WriteIndexCallback(self, i))
 		return -1;
 	return 0;
 }
@@ -559,7 +551,7 @@ static PyObject *Vector_slice(VectorObject * self, int begin, int end)
 	PyObject *list = NULL;
 	int count;
 
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	CLAMP(begin, 0, self->size);
@@ -584,7 +576,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 	float vec[4], scalar;
 	PyObject *v;
 
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return -1;
 	
 	CLAMP(begin, 0, self->size);
@@ -620,7 +612,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 		self->vec[begin + y] = vec[y];
 	}
 	
-	if(!Vector_WriteCallback(self))
+	if(!BaseMath_WriteCallback(self))
 		return -1;
 	
 	return 0;
@@ -644,7 +636,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2 ) {
 		
-		if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+		if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 			return NULL;
 		
 		/*VECTOR + VECTOR*/
@@ -679,7 +671,7 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2 ) {
 		
-		if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+		if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 			return NULL;
 		
 		/*VECTOR + VECTOR*/
@@ -694,7 +686,7 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 		return v1;
 	}
 	
-	Vector_WriteCallback(vec1);
+	BaseMath_WriteCallback(vec1);
 	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
 	return NULL;
 }
@@ -714,7 +706,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 	
 	if(vec1->size != vec2->size) {
@@ -747,14 +739,14 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 		return NULL;
 	}
 	
-	if(!Vector_ReadCallback(vec1) || !Vector_ReadCallback(vec2))
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
 		return NULL;
 
 	for(i = 0; i < vec1->size; i++) {
 		vec1->vec[i] = vec1->vec[i] -	vec2->vec[i];
 	}
 
-	Vector_WriteCallback(vec1);
+	BaseMath_WriteCallback(vec1);
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -768,12 +760,12 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	
 	if VectorObject_Check(v1) {
 		vec1= (VectorObject *)v1;
-		if(!Vector_ReadCallback(vec1))
+		if(!BaseMath_ReadCallback(vec1))
 			return NULL;
 	}
 	if VectorObject_Check(v2) {
 		vec2= (VectorObject *)v2;
-		if(!Vector_ReadCallback(vec2))
+		if(!BaseMath_ReadCallback(vec2))
 			return NULL;
 	}
 	
@@ -805,7 +797,8 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		/* VEC * MATRIX */
 		return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
-		QuaternionObject *quat = (QuaternionObject*)v2;
+		QuaternionObject *quat = (QuaternionObject*)v2; /* quat_rotation validates */
+
 		if(vec1->size != 3) {
 			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
 			return NULL;
@@ -835,7 +828,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	int i;
 	float scalar;
 	
-	if(!Vector_ReadCallback(vec))
+	if(!BaseMath_ReadCallback(vec))
 		return NULL;
 	
 	/* only support vec*=float and vec*=mat
@@ -845,7 +838,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		int x,y, size = vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
 		
-		if(!Vector_ReadCallback(mat))
+		if(!BaseMath_ReadCallback(mat))
 			return NULL;
 		
 		if(mat->colSize != size){
@@ -883,7 +876,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		return NULL;
 	}
 	
-	Vector_WriteCallback(vec);
+	BaseMath_WriteCallback(vec);
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -902,7 +895,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	}
 	vec1 = (VectorObject*)v1; /* vector */
 	
-	if(!Vector_ReadCallback(vec1))
+	if(!BaseMath_ReadCallback(vec1))
 		return NULL;
 	
 	scalar = (float)PyFloat_AsDouble(v2);
@@ -930,7 +923,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 	float scalar;
 	VectorObject *vec1 = (VectorObject*)v1;
 	
-	if(!Vector_ReadCallback(vec1))
+	if(!BaseMath_ReadCallback(vec1))
 		return NULL;
 
 	scalar = (float)PyFloat_AsDouble(v2);
@@ -947,7 +940,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 		vec1->vec[i] /=	scalar;
 	}
 	
-	Vector_WriteCallback(vec1);
+	BaseMath_WriteCallback(vec1);
 	
 	Py_INCREF( v1 );
 	return v1;
@@ -960,7 +953,7 @@ static PyObject *Vector_neg(VectorObject *self)
 	int i;
 	float vec[4];
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	for(i = 0; i < self->size; i++){
@@ -1008,7 +1001,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	vecA = (VectorObject*)objectA;
 	vecB = (VectorObject*)objectB;
 
-	if(!Vector_ReadCallback(vecA) || !Vector_ReadCallback(vecB))
+	if(!BaseMath_ReadCallback(vecA) || !BaseMath_ReadCallback(vecB))
 		return NULL;
 	
 	if (vecA->size != vecB->size){
@@ -1137,12 +1130,12 @@ static PyNumberMethods Vector_NumMethods = {
 	
 static PyObject *Vector_getAxis( VectorObject * self, void *type )
 {
-	return Vector_item(self, (int)type);
+	return Vector_item(self, GET_INT_FROM_POINTER(type));
 }
 
 static int Vector_setAxis( VectorObject * self, PyObject * value, void * type )
 {
-	return Vector_ass_item(self, (int)type, value);
+	return Vector_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
 
 /* vector.length */
@@ -1151,7 +1144,7 @@ static PyObject *Vector_getLength( VectorObject * self, void *type )
 	double dot = 0.0f;
 	int i;
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	for(i = 0; i < self->size; i++){
@@ -1165,7 +1158,7 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 	double dot = 0.0f, param;
 	int i;
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return -1;
 	
 	param= PyFloat_AsDouble( value );
@@ -1203,28 +1196,9 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 		self->vec[i]= self->vec[i] / (float)dot;
 	}
 	
-	Vector_WriteCallback(self); /* checked alredy */
+	BaseMath_WriteCallback(self); /* checked alredy */
 	
 	return 0;
-}
-
-static PyObject *Vector_getWrapped( VectorObject * self, void *type )
-{
-	if (self->wrapped == Py_WRAP)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static PyObject *Vector_getOwner( VectorObject * self, void *type )
-{
-	if(self->cb_user==NULL) {
-		Py_RETURN_NONE;
-	}
-	else {
-		Py_INCREF(self->cb_user);
-		return self->cb_user;
-	}
 }
 
 /* Get a new Vector according to the provided swizzle. This function has little
@@ -1237,7 +1211,7 @@ static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
 	float vec[MAX_DIMENSIONS];
 	unsigned int swizzleClosure;
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	/* Unpack the axes from the closure into an array. */
@@ -1277,7 +1251,7 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 	
 	float vecTemp[MAX_DIMENSIONS];
 	
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return -1;
 	
 	/* Check that the closure can be used with this vector: even 2D vectors have
@@ -1309,7 +1283,7 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 			axisB++;
 		}
 		memcpy(self->vec, vecTemp, axisB * sizeof(float));
-		/* continue with Vector_WriteCallback at the end */
+		/* continue with BaseMathObject_WriteCallback at the end */
 	}
 	else if (PyList_Check(value))
 	{
@@ -1335,7 +1309,7 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 			axisB++;
 		}
 		memcpy(self->vec, vecTemp, axisB * sizeof(float));
-		/* continue with Vector_WriteCallback at the end */
+		/* continue with BaseMathObject_WriteCallback at the end */
 	}
 	else if (((scalarVal = (float)PyFloat_AsDouble(value)) == -1.0 && PyErr_Occurred())==0)
 	{
@@ -1348,14 +1322,14 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 			
 			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
 		}
-		/* continue with Vector_WriteCallback at the end */
+		/* continue with BaseMathObject_WriteCallback at the end */
 	}
 	else {
 		PyErr_SetString( PyExc_TypeError, "Expected a Vector, list or scalar value." );
 		return -1;
 	}
 	
-	if(!Vector_WriteCallback(vecVal))
+	if(!BaseMath_WriteCallback(vecVal))
 		return -1;
 	else
 		return 0;
@@ -1390,11 +1364,11 @@ static PyGetSetDef Vector_getseters[] = {
 	 "Vector Length",
 	 NULL},
 	{"wrapped",
-	 (getter)Vector_getWrapped, (setter)NULL,
+	 (getter)BaseMathObject_getWrapped, (setter)NULL,
 	 "True when this wraps blenders internal data",
 	 NULL},
 	{"__owner__",
-	 (getter)Vector_getOwner, (setter)NULL,
+	 (getter)BaseMathObject_getOwner, (setter)NULL,
 	 "Read only owner for vectors that depend on another object",
 	 NULL},
 	
@@ -1797,13 +1771,13 @@ PyTypeObject vector_Type = {
 	0,                          /* ob_size */
 #endif
 	/*  For printing, in format "<module>.<name>" */
-	"Blender Vector",             /* char *tp_name; */
+	"vector",             /* char *tp_name; */
 	sizeof( VectorObject ),         /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Vector_dealloc,/* destructor tp_dealloc; */
+	( destructor ) BaseMathObject_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1920,7 +1894,7 @@ PyObject *newVectorObject(float *vec, int size, int type)
 PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
 {
 	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
-	VectorObject *self= newVectorObject(dummy, size, Py_NEW);
+	VectorObject *self= (VectorObject *)newVectorObject(dummy, size, Py_NEW);
 	if(self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;
@@ -1928,7 +1902,7 @@ PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_su
 		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 	
-	return self;
+	return (PyObject *)self;
 }
 
 //-----------------row_vector_multiplication (internal)-----------
@@ -1952,7 +1926,7 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 		}
 	}
 	
-	if(!Vector_ReadCallback(vec) || !Matrix_ReadCallback(mat))
+	if(!BaseMath_ReadCallback(vec) || !BaseMath_ReadCallback(mat))
 		return NULL;
 	
 	for(x = 0; x < vec_size; x++){
@@ -1975,13 +1949,13 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 static PyObject *Vector_Negate(VectorObject * self)
 {
 	int i;
-	if(!Vector_ReadCallback(self))
+	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	for(i = 0; i < self->size; i++)
 		self->vec[i] = -(self->vec[i]);
 	
-	Vector_WriteCallback(self); // alredy checked for error
+	BaseMath_WriteCallback(self); // alredy checked for error
 	
 	Py_INCREF(self);
 	return (PyObject*)self;

@@ -129,6 +129,8 @@ int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
+void		WM_operator_stack_clear(struct bContext *C);
+
 wmOperatorType *WM_operatortype_find(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
@@ -212,8 +214,8 @@ void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */
-char *WM_clipboard_text_get(int selection);
-void WM_clipboard_text_set(char *buf, int selection);
+char		*WM_clipboard_text_get(int selection);
+void		WM_clipboard_text_set(char *buf, int selection);
 
 
 #endif /* WM_API_H */

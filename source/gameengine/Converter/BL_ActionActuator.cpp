@@ -962,9 +962,9 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 	else {
 		MT_Vector3 loc;
 		MT_Vector3 size;
-		MT_Vector4 quat;
+		MT_Quaternion quat;
 		
-		if (!PyVecTo(pyloc, loc) || !PyVecTo(pysize, size) || !PyVecTo(pyquat, quat))
+		if (!PyVecTo(pyloc, loc) || !PyVecTo(pysize, size) || !PyQuatTo(pyquat, quat))
 			return NULL;
 		
 		// same as above
@@ -977,7 +977,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		// for some reason loc.setValue(pchan->loc) fails
 		pchan->loc[0]= loc[0]; pchan->loc[1]= loc[1]; pchan->loc[2]= loc[2];
 		pchan->size[0]= size[0]; pchan->size[1]= size[1]; pchan->size[2]= size[2];
-		pchan->quat[0]= quat[0]; pchan->quat[1]= quat[1]; pchan->quat[2]= quat[2]; pchan->quat[3]= quat[3];
+		pchan->quat[0]= quat[3]; pchan->quat[1]= quat[0]; pchan->quat[2]= quat[1]; pchan->quat[3]= quat[2]; /* notice xyzw -> wxyz is intentional */
 	}
 	
 	pchan->flag |= POSE_ROT|POSE_LOC|POSE_SIZE;

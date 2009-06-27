@@ -104,7 +104,7 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
-	else if(ar->regiontype==RGN_TYPE_UI)
+	else if(ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS))
 		return BUT_VERTICAL;
 	
 	return 0;

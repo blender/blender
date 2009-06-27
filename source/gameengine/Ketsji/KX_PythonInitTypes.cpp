@@ -231,6 +231,12 @@ void initPyTypes(void)
 	
 	/* Normal python type */
 	PyType_Ready(&KX_PythonSeq_Type);
+
+#ifdef USE_MATHUTILS
+	/* Init mathutils callbacks */
+	KX_GameObject_Mathutils_Callback_Init();
+	KX_ObjectActuator_Mathutils_Callback_Init();
+#endif
 }
 
 #endif
