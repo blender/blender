@@ -547,12 +547,15 @@ PyTypeObject KX_Camera::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,
+		0,
+		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
 		py_base_getattro,
 		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
+		0,
+		Py_TPFLAGS_DEFAULT,
+		0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -1047,8 +1050,10 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 
 	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
 
-	vect[0] =  win[0] / (viewport[0] + viewport[2]);
-	vect[1] =  win[1] / (viewport[1] + viewport[3]);
+	vect[0] =  (win[0] - viewport[0]) / viewport[2];
+	vect[1] =  (win[1] - viewport[1]) / viewport[3];
+
+	vect[1] = 1.0 - vect[1]; //to follow Blender window coordinate system (Top-Down)
 
 	PyObject* ret = PyTuple_New(2);
 	if(ret){
@@ -1067,6 +1072,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 	double x,y;
 	if (!PyArg_ParseTuple(args,"dd:getScreenVect",&x,&y))
 		return NULL;
+
+	y = 1.0 - y; //to follow Blender window coordinate system (Top-Down)
 
 	MT_Vector3 vect;
 	MT_Point3 campos, screenpos;
@@ -1127,7 +1134,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 	}
 	Py_DECREF(argValue);
 
-	dist *= -1.0;
+	dist = -dist;
+	vect += this->GetCameraLocation();
 
 	argValue = (propName?PyTuple_New(3):PyTuple_New(2));
 	if (argValue) {

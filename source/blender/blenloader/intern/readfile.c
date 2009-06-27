@@ -162,6 +162,8 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "PIL_time.h"
+
 #include <errno.h>
 
 /*
@@ -3701,6 +3703,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 						fd, seq->strip->color_balance);
 				} else {
 					seq->strip->color_balance = 0;
+				}
+				if (seq->strip->color_balance) {
+					seq->strip->color_balance->gui = 0;
 				}
 			}
 		}
@@ -8145,6 +8150,44 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	}
 	
+	// correct introduce of seed for wind force
+	if (main->versionfile < 249 && main->subversionfile < 1) {
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd)
+				ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+		}
+	
+	}
+	
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				WHILE_SEQ(&ed->seqbase) {
+					if (seq->strip && seq->strip->proxy){
+						if (sce->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				END_SEQ
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

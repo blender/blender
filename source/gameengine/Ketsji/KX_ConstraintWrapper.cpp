@@ -54,6 +54,20 @@ PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 	return PyInt_FromLong(m_constraintId);
 }
 
+
+PyObject* KX_ConstraintWrapper::PyGetParam(PyObject* args, PyObject* kwds)
+{
+	int dof;
+	float value;
+	
+	if (!PyArg_ParseTuple(args,"i:getParam",&dof))
+		return NULL;
+	
+	value = m_physenv->getConstraintParam(m_constraintId,dof);
+	return PyFloat_FromDouble(value);
+	
+}
+
 PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
 {
 	int dof;
@@ -119,6 +133,7 @@ int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* value)
 PyMethodDef KX_ConstraintWrapper::Methods[] = {
 	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_NOARGS},
 	{"setParam",(PyCFunction) KX_ConstraintWrapper::sPySetParam, METH_VARARGS},
+	{"getParam",(PyCFunction) KX_ConstraintWrapper::sPyGetParam, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 

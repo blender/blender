@@ -86,7 +86,7 @@ extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
 extern void makeDerivedMesh(struct Object *ob, CustomDataMask dataMask);
-extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
+extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender, int forOrco);
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
 extern void shadeDispList(struct Base *base);

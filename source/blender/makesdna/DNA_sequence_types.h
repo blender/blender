@@ -38,6 +38,7 @@
 
 struct Ipo;
 struct Scene;
+struct StripColorBalanceGUIHelper;
 
 /* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
 
@@ -71,15 +72,20 @@ typedef struct StripColorBalance {
 	float gamma[3];
 	float gain[3];
 	int flag;
-	int pad;
+	int mode;
 	float exposure;
 	float saturation;
+	int pad;
+	struct StripColorBalanceGUIHelper * gui;
 } StripColorBalance;
 
 typedef struct StripProxy {
 	char dir[160];
 	char file[80];
 	struct anim *anim;
+	short size;
+	short quality;
+	int pad;
 } StripProxy;
 
 typedef struct Strip {
@@ -159,7 +165,7 @@ typedef struct Sequence {
 	struct bSound *sound;	/* the linked "bSound" object */
         struct hdaudio *hdaudio; /* external hdaudio object */
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
-	int curpos;		/* last sample position in audio_fill() */
+	int scenenr;          /* for scene selection */
 	float strobe;
 
 	void *effectdata;	/* Struct pointer for effect settings */
@@ -170,8 +176,6 @@ typedef struct Sequence {
 	int blend_mode;
 	float blend_opacity;
 
-	int scenenr;          /* for scene selection */
-	int pad;
 } Sequence;
 
 typedef struct MetaStack {
@@ -230,6 +234,8 @@ typedef struct SpeedControlVars {
 	int flags;
 	int length;
 	int lastValidFrame;
+	int blendFrames;
+	int pad;
 } SpeedControlVars;
 
 /* SpeedControlVars->flags */
@@ -262,9 +268,16 @@ typedef struct SpeedControlVars {
 #define SEQ_ACTIVE                            1048576
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
 
-#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
-#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
-#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN      1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA     2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT      4
+
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN      8
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA    16
+#define SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT     32
+
+#define SEQ_COLOR_BALANCE_GUI_MODE_LGG         0
+#define SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL     1
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

@@ -139,6 +139,7 @@ PyObject *Mathutils_Init(const char *from)
 	
 #if (PY_VERSION_HEX >= 0x03000000)
 	submodule = PyModule_Create(&M_Mathutils_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), M_Mathutils_module_def.m_name, submodule);
 #else
 	submodule = Py_InitModule3(from, M_Mathutils_methods, M_Mathutils_doc);
 #endif

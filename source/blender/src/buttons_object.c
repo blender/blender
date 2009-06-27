@@ -160,6 +160,8 @@
 #include "butspace.h" // own module
 #include "interface.h"
 
+#include "PIL_time.h"
+
 static float prspeed=0.0;
 float prlen=0.0;
 
@@ -2423,7 +2425,56 @@ void do_object_panels(unsigned short event)
 	case B_SOFTBODY_DEL_VG:
 		if(ob->soft) {
 			ob->soft->vertgroup= 0;
+			ob->soft->namedVG_Softgoal[0] = 0;
 			//ob->softflag |= OB_SB_REDO;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+
+	case B_SOFTBODY_UP_GRMASS:
+		if(ob->soft) {
+			ob->soft->msg_lock = 1;
+			if(ob->soft->msg_value) {
+				bDeformGroup *defGroup = BLI_findlink(&ob->defbase, ob->soft->msg_value-1);
+				if(defGroup){
+					strncpy((char*)&ob->soft->namedVG_Mass,defGroup->name,32); // ugly type casting and size assumtion
+				}
+			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			ob->soft->msg_lock = 0;
+		}
+		break;
+	case B_SOFTBODY_UP_GRSPRING:
+		if(ob->soft) {
+			ob->soft->msg_lock = 1;
+			if(ob->soft->msg_value) {
+				bDeformGroup *defGroup = BLI_findlink(&ob->defbase, ob->soft->msg_value-1);
+				if(defGroup){
+					strncpy((char*)&ob->soft->namedVG_Spring_K,defGroup->name,32); // ugly type casting and size assumtion
+				}
+			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			ob->soft->msg_lock = 0;
+		}
+		break;
+
+	case B_SOFTBODY_DEL_VGMASS:
+		if(ob->soft) {
+			ob->soft->namedVG_Mass[0] = 0;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_SOFTBODY_DEL_VGSPRING:
+		if(ob->soft) {
+			ob->soft->namedVG_Spring_K[0] = 0;
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3370,6 +3421,7 @@ static void object_panel_collision(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	
 	/* only meshes collide now */
@@ -3425,12 +3477,14 @@ static void object_surface__enabletoggle ( void *ob_v, void *arg2 )
 		if(pd && (pd->flag & PFIELD_SURFACE)
 			&& ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
 		{
-			md = modifier_new ( eModifierType_Surface );
-			BLI_addtail ( &ob->modifiers, md );
-			DAG_scene_sort(G.scene);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
+			if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+				md = modifier_new ( eModifierType_Surface );
+				BLI_addtail ( &ob->modifiers, md );
+				DAG_scene_sort(G.scene);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}
 		}
 	}
 	else if(!pd || !(pd->flag & PFIELD_SURFACE)
@@ -3464,6 +3518,7 @@ static void object_panel_fields(Object *ob)
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
 		ob->pd->tex_nabla = 0.025f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	
 	if(ob->pd) {
@@ -3563,7 +3618,10 @@ static void object_panel_fields(Object *ob)
 				else if(pd->forcefield == PFIELD_HARMONIC) 
 					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
 				else if(pd->forcefield == PFIELD_WIND) 
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "Noise: ",10,120,140,20, &pd->f_noise, 0, 10, 100, 0, "Noise of the wind force");	
+				{
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Noise: ",10,120,140,20, &pd->f_noise, 0, 10, 100, 0, "Noise of the wind force");
+					uiDefButI(block, NUM, B_FIELD_CHANGE, "Seed: ",10,100,140,20, &pd->seed, 1, 128, 1, 0, "Seed of the wind noise");
+				}
 			}
 			uiBlockEndAlign(block);
 			
@@ -3582,8 +3640,10 @@ static void object_panel_fields(Object *ob)
 			}
 			
 			if(particles==0 && ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ)) {
-				but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
-				uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
+				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+					but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
+					uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
+				}
 			}
 			uiBlockEndAlign(block);
 			
@@ -3872,6 +3932,7 @@ static void object_softbodies_collision(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_collision", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics"); 
@@ -4055,7 +4116,7 @@ static void object_softbodies(Object *ob)
 	int ob_has_hair = psys_ob_has_hair(ob);
 	static short actsoft= -1;
 
-    if(!_can_softbodies_at_all(ob)) return;
+	if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
@@ -4101,6 +4162,8 @@ static void object_softbodies(Object *ob)
 			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_BAKE_CACHE_CHANGE, VICON_VIEW3D, 165, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable soft body during interactive display");
 			uiBlockEndAlign(block);
 		}
+
+		uiDefButBitS(block, TOG, OB_SB_BIG_UI, REDRAWBUTSOBJECT , "Big UI",190,200,25,20, softflag, 0, 0, 0, 0, "Big UI"); 
 	}
 
 	if(ob_has_hair) {
@@ -4108,12 +4171,12 @@ static void object_softbodies(Object *ob)
 
 		but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr, 210,200,100,20, &actsoft, 14.0, 0.0, 0, 0, "Browse systems");
 		uiButSetFunc(but, PE_change_act, ob, &actsoft);
-		
+
 		MEM_freeN(menustr);
 	}
 
 
-	
+
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 
 	if(val) {
@@ -4123,7 +4186,7 @@ static void object_softbodies(Object *ob)
 
 		if(sb->pointcache->flag & PTCACHE_BAKED)
 			uiSetButLock(1, "Simulation frames are baked");
-
+		// this is old baking not sure if i want to throw it away now .. leave it for inspiration
 		//if(ob->softflag & OB_SB_BAKESET) {
 		//	uiBlockBeginAlign(block);
 		//	uiDefButI(block, NUM, B_DIFF, "Start:",			10, 170,100,20, &sb->sfra, 1.0, 10000.0, 10, 0, "Start frame for baking");
@@ -4147,58 +4210,60 @@ static void object_softbodies(Object *ob)
 		//		uiDefBut(block, BUT, B_SOFTBODY_BAKE, "BAKE",	10, 120,300,20, NULL, 0.0, 0.0, 10, 0, "Start baking. Press ESC to exit without baking");
 		//}
 		//else {
-			/* GENERAL STUFF */
-			if (sb->totpoint){
+//		if(G.rt == 0){
+		if(! (*softflag & OB_SB_BIG_UI)){
+		/* GENERAL STUFF */
+		if (sb->totpoint){
 			sprintf(str, "Vertex Mass; Object mass %f [k]",sb->nodemass*sb->totpoint/1000.0f);
-			}
-			else{
+		}
+		else{
 			sprintf(str, "Vertex Mass");
-			}
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
-			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
-			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-			uiBlockEndAlign(block);
+		}
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+		uiBlockEndAlign(block);
 
-			/* GOAL STUFF */
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SB_GOAL, B_BAKE_CACHE_CHANGE, "Use Goal",	10,120,130,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-			if (*softflag & OB_SB_GOAL){
-				if(ob->type==OB_MESH) {
-					menustr= get_vertexgroup_menustr(ob);
-					defCount=BLI_countlist(&ob->defbase);
-					if(defCount==0) sb->vertgroup= 0;
-					uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, menustr,	140,120,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
-					MEM_freeN (menustr);
+		/* GOAL STUFF */
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, OB_SB_GOAL, B_BAKE_CACHE_CHANGE, "Use Goal",	10,120,130,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		if (*softflag & OB_SB_GOAL){
+			if(ob->type==OB_MESH) {
+				menustr= get_vertexgroup_menustr(ob);
+				defCount=BLI_countlist(&ob->defbase);
+				if(defCount==0) sb->vertgroup= 0;
+				uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, menustr,	140,120,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+				MEM_freeN (menustr);
 
-					if(sb->vertgroup) {
-						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
-						if(defGroup)
-							uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, defGroup->name,	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
-						else
-							uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, "(no group)",	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
-						uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,120,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
-					}
+				if(sb->vertgroup) {
+					bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+					if(defGroup)
+						uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, defGroup->name,	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
 					else
-						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+						uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, "(no group)",	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+					uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,120,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
 				}
-				else {
-					uiDefButS(block, TOG, B_BAKE_CACHE_CHANGE, "W",			140,120,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
+				else
 					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				}
-
-				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Stiff:",	10,100,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
-				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Damp:",	160,100,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
-				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Min:",		10,80,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Max:",		160,80,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			}
-			uiBlockEndAlign(block);
+			else {
+				uiDefButS(block, TOG, B_BAKE_CACHE_CHANGE, "W",			140,120,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+			}
 
-			/* EDGE SPRING STUFF */
-			if(ob->type!=OB_SURF) {
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_EDGES, B_BAKE_CACHE_CHANGE, "Use Edges",		10,50,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Stiff:",	10,100,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Damp:",	160,100,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Min:",		10,80,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Max:",		160,80,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+		}
+		uiBlockEndAlign(block);
+
+		/* EDGE SPRING STUFF */
+		if(ob->type!=OB_SURF) {
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, OB_SB_EDGES, B_BAKE_CACHE_CHANGE, "Use Edges",		10,50,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
 			if (*softflag & OB_SB_EDGES){
 				uiDefButBitS(block, TOG, OB_SB_QUADS, B_BAKE_CACHE_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_BAKE_CACHE_CHANGE, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
@@ -4206,23 +4271,180 @@ static void object_softbodies(Object *ob)
 				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Pull:",	10,30,75,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
 				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Push:",	85,30,75,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
 				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Damp:",	160,30,70,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
-			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "SL:",250 ,30,60,20, &sb->springpreload, 0.0,  200.0, 10, 0, "Alter spring lenght to shrink/blow up (unit %) 0 to disable ");
-				
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "SL:",250 ,30,60,20, &sb->springpreload, 0.0,  200.0, 10, 0, "Alter spring lenght to shrink/blow up (unit %) 0 to disable ");
+
 				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_BAKE_CACHE_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
 				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
-			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
 				if(ob->type==OB_MESH) {
 					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bending Stiffness");
 					if (*softflag & OB_SB_QUADS){ 
-					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
 					}
 				}
 				else sb->secondspring = 0;
 				uiDefBut(block, LABEL, 0, "",10,10,1,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 			}
-				uiBlockEndAlign(block);
+			uiBlockEndAlign(block);
+		}
+		} // fi (true)(G.rt != 0)
+		else{
+			static char section = 0;
+			int l_top = 170, l_dy =21;
+			uiBlockBeginAlign(block);
+			uiDefButC(block, ROW, B_BAKE_CACHE_CHANGE, "Object", 10,l_top,100,20, &section, 3.0, 0.0, 0, 0, "Object");
+			uiDefButC(block, ROW, B_BAKE_CACHE_CHANGE, "Goal",	111,l_top,100,20, &section, 3.0, 1.0, 0, 0, "Goals");
+			uiDefButC(block, ROW, B_BAKE_CACHE_CHANGE, "Edges",	212,l_top,100,20, &section, 3.0, 2.0, 0, 0, "Edges");
+			uiBlockEndAlign(block);
+			switch (section){
+				case 0:
+					{
+						int _loc_group;
+						uiBlockBeginAlign(block);
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Friction:", 10, l_top - l_dy,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Mass:",	   160, l_top -  l_dy,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Grav:",	   10,l_top - 2*l_dy,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Speed:",	   160,l_top - 2*l_dy,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+						uiBlockEndAlign(block);
+
+						uiDefBut(block, LABEL, 0, "Mass Vertex Group", 10, l_top - 4*l_dy , 150,20, NULL, 0.0, 0, 0, 0, "");
+						uiBlockBeginAlign(block);
+						/* but i like doing the spinner */
+						menustr= get_vertexgroup_menustr(ob);
+						defCount=BLI_countlist(&ob->defbase);
+						if(defCount==0) _loc_group= 0;
+						if(!sb->msg_lock){
+							uiDefButS(block, MENU, B_SOFTBODY_UP_GRMASS, menustr,10,l_top - 5*l_dy,20,20, &sb->msg_value, 0, defCount, 0, 0, "Browses available vertex groups");
+						}
+						/* but defined  by some magic */
+						but= uiDefBut(block, TEX, B_BAKE_CACHE_CHANGE, "VG:", 30, l_top - 5*l_dy,260,20, &sb->namedVG_Mass, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+						uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VGMASS, ICON_X, 290,l_top - 5*l_dy,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+						MEM_freeN (menustr);
+						uiBlockEndAlign(block);
+
+						if(_loc_group) {
+							bDeformGroup *defGroup = BLI_findlink(&ob->defbase, _loc_group-1);
+							if(defGroup){
+								strncpy((char*)&sb->namedVG_Mass,defGroup->name,32); // ugly type casting and size assumtion
+							}
+						}
+
+
+						// ll++;
+						break;
+					}
+				case 1:
+					{
+						uiBlockBeginAlign(block);
+						uiDefButBitS(block, TOG, OB_SB_GOAL, B_BAKE_CACHE_CHANGE, "Use Goal",	10,l_top - l_dy,150,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+						if (*softflag & OB_SB_GOAL){
+							if(ob->type==OB_MESH) {
+								uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,l_top - l_dy,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+							}
+							else {
+								uiDefButS(block, TOG, B_BAKE_CACHE_CHANGE, "W",		140,l_top - l_dy,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
+								uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,l_top - l_dy,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+							}
+
+							uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Stiff:",	10,l_top - 2*l_dy,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
+							uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Damp:",	160,l_top - 2*l_dy,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+							uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Min:",		10,l_top - 3*l_dy,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+							uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Max:",		160,l_top - 3*l_dy,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+
+							if(ob->type==OB_MESH) {
+								int ll = 4;
+								/* rather do this loading old files */
+								if(sb->vertgroup) {
+									bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+									if(defGroup){
+										strncpy((char*)&sb->namedVG_Softgoal,defGroup->name,32); // ugly type casting and size assumtion
+									}
+								}
+
+								/*this would be the 'offical' way to do */
+
+								/* but i like doing the spinner */
+								menustr= get_vertexgroup_menustr(ob);
+								defCount=BLI_countlist(&ob->defbase);
+								if(defCount==0) sb->vertgroup= 0;
+								uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, menustr,10,l_top - ll*l_dy,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+								MEM_freeN (menustr);
+
+								/* but defined  by some magic */
+								but= uiDefBut(block, TEX, B_BAKE_CACHE_CHANGE, "VG:", 30, l_top - ll*l_dy,260,20, &sb->namedVG_Softgoal, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+								uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+								//if(sb->vertgroup) {
+								uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,l_top - ll*l_dy,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+								//}
+
+
+							}
+						}
+						uiBlockEndAlign(block);
+						break;
+					}
+				case 2:
+					{
+						int _loc_group;
+						if(ob->type!=OB_SURF) {
+							uiDefButBitS(block, TOG, OB_SB_EDGES, B_BAKE_CACHE_CHANGE, "Use Edges",		10,l_top - l_dy,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
+							if (*softflag & OB_SB_EDGES){
+								uiBlockBeginAlign(block);
+
+								uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Pull:",	10,l_top - 2*l_dy,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
+								uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Push:",	111,l_top - 2*l_dy,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
+								uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Damp:",	212,l_top - 2*l_dy,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+
+								uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 10,l_top - 3*l_dy,100,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
+								uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "SL:",  111,l_top - 3*l_dy,100,20, &sb->springpreload, 0.0,  200.0, 10, 0, "Alter spring lenght to shrink/blow up (unit %) 0 to disable ");
+								if(ob->type==OB_MESH) {
+									uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 212,l_top - 3*l_dy,100,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bending Stiffness");
+								}
+//								uiBlockEndAlign(block);
+//						uiBlockBeginAlign(block);
+						/* but i like doing the spinner */
+						menustr= get_vertexgroup_menustr(ob);
+						defCount=BLI_countlist(&ob->defbase);
+						if(defCount==0) _loc_group= 0;
+						if(!sb->msg_lock){
+							uiDefButS(block, MENU, B_SOFTBODY_UP_GRSPRING, menustr,10,l_top - 4*l_dy,20,20, &sb->msg_value, 0, defCount, 0, 0, "Browses available vertex groups");
+						}
+						/* but defined  by some magic */
+						but= uiDefBut(block, TEX, B_BAKE_CACHE_CHANGE, "VG:", 30, l_top - 4*l_dy,260,20, &sb->namedVG_Spring_K, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+						uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VGSPRING, ICON_X, 290,l_top - 4*l_dy,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+						MEM_freeN (menustr);
+						uiBlockEndAlign(block);
+
+
+
+
+								uiBlockBeginAlign(block);
+								uiDefButBitS(block, TOG, OB_SB_QUADS, B_BAKE_CACHE_CHANGE, "Stiff Quads",	10,l_top - 5*l_dy,100,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+								if(ob->type==OB_MESH) {
+									if (*softflag & OB_SB_QUADS){ 
+										uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 111,l_top - 5*l_dy,100,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
+									}
+								}
+								else sb->secondspring = 0;
+								uiBlockEndAlign(block);
+
+								uiBlockBeginAlign(block);
+								uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_BAKE_CACHE_CHANGE, "N",10,l_top - 6*l_dy,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
+								uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Aero:",     30,l_top - 6*l_dy,80,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+								uiBlockEndAlign(block);
+
+								uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_BAKE_CACHE_CHANGE, "Collide Edges",		111,l_top - 6*l_dy,100,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
+								uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_BAKE_CACHE_CHANGE, "Collide Faces",		212,l_top - 6*l_dy,100,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
+
+							}
+						}
+						break;
+					}
 			}
-		//}
+		}
 	}
 	uiBlockEndAlign(block);
 }

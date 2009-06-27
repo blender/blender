@@ -212,7 +212,7 @@ Function DownloadDLL
 FunctionEnd
 
 Function PythonInstall
-    MessageBox MB_OK "You will need to install python 2.5.2 in order to run blender. Pressing OK will take you to the python.org website."
+    MessageBox MB_OK "You will need to install python [PYTHON_VERSION] in order to run blender. Pressing OK will take you to the python.org website."
     StrCpy $0 "http://www.python.org"
     Call openLinkNewWindow
 FunctionEnd
@@ -346,7 +346,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   ${Locate} "$1" "/L=F /M=MSVCR90.DLL /S=0B" "LocateCallback_90"
   StrCmp $DLL_found "false" 0 +2
     Call DownloadDLL
-  ReadRegStr $0 HKLM SOFTWARE\Python\PythonCore\2.5\InstallPath ""
+  ReadRegStr $0 HKLM SOFTWARE\Python\PythonCore\[PYTHON_VERSION]\InstallPath ""
   StrCmp $0 "" 0 +2
     Call PythonInstall
 silentdone:

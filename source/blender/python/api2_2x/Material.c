@@ -139,6 +139,12 @@
 #define EXPP_MAT_RAYTRANSPGLOSS_MAX			 1.0
 #define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MIN	 0
 #define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX	 1024
+#define EXPP_MAT_ANISO_GLOSS_MIR_MIN			0.0
+#define EXPP_MAT_ANISO_GLOSS_MIR_MAX			1.0
+#define EXPP_MAT_ADAPT_THRESH_MIR_MIN			0.0
+#define EXPP_MAT_ADAPT_THRESH_MIR_MAX			1.0
+#define EXPP_MAT_ADAPT_THRESH_TRA_MIN			0.0
+#define EXPP_MAT_ADAPT_THRESH_TRA_MAX			1.0
 #define EXPP_MAT_FILTER_MIN			0.0
 #define EXPP_MAT_FILTER_MAX			1.0
 #define EXPP_MAT_TRANSLUCENCY_MIN			0.0
@@ -598,6 +604,9 @@ static int Material_setGlossMirr( BPy_Material * self, PyObject * value );
 static int Material_setGlossMirrSamples( BPy_Material * self, PyObject * value );
 static int Material_setGlossTrans( BPy_Material * self, PyObject * value );
 static int Material_setGlossTransSamples( BPy_Material * self, PyObject * value );
+static int Material_setAniso( BPy_Material * self, PyObject * value );
+static int Material_setThreshMirr( BPy_Material * self, PyObject * value );
+static int Material_setThreshTrans( BPy_Material * self, PyObject * value );
 static int Material_setRigidBodyFriction( BPy_Material * self, PyObject * value );
 static int Material_setRigidBodyRestitution( BPy_Material * self, PyObject * value );
 
@@ -689,6 +698,9 @@ static PyObject *Material_getGlossMirr( BPy_Material * self );
 static PyObject *Material_getGlossMirrSamples( BPy_Material * self );
 static PyObject *Material_getGlossTrans( BPy_Material * self );
 static PyObject *Material_getGlossTransSamples( BPy_Material * self );
+static PyObject *Material_getAniso( BPy_Material * self );
+static PyObject *Material_getThreshMirr( BPy_Material * self );
+static PyObject *Material_getThreshTrans( BPy_Material * self );
 static PyObject *Material_getRigidBodyFriction( BPy_Material * self );
 static PyObject *Material_getRigidBodyRestitution( BPy_Material * self );
 
@@ -1168,6 +1180,18 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"sampGlossTra",
 	 (getter)Material_getGlossMirrSamples, (setter)Material_setGlossMirrSamples,
 	 "Refraction glossiness",
+	 NULL},
+	{"anisotropy",
+	 (getter)Material_getAniso, (setter)Material_setAniso,
+	 "Anisotropy",
+	 NULL},
+	{"threshMir",
+	 (getter)Material_getThreshMirr, (setter)Material_setThreshMirr,
+	 "Reflections threshold",
+	 NULL},
+	{"threshTra",
+	 (getter)Material_getThreshTrans, (setter)Material_setThreshTrans,
+	 "Refractions threshold",
 	 NULL},
 	{"rgbCol",
 	 (getter)Material_getRGBCol, (setter)Material_setRGBCol,
@@ -1804,6 +1828,21 @@ static PyObject *Material_getGlossTransSamples( BPy_Material * self )
 	return PyInt_FromLong( ( long ) self->material->samp_gloss_tra );
 }
 
+static PyObject *Material_getAniso( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->aniso_gloss_mir );
+}
+
+static PyObject *Material_getThreshMirr( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->adapt_thresh_mir );
+}
+
+static PyObject *Material_getThreshTrans( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->adapt_thresh_tra );
+}
+
 static PyObject* Material_getRigidBodyFriction( BPy_Material * self )
 {
 	return PyFloat_FromDouble( ( double ) self->material->friction );
@@ -2377,6 +2416,27 @@ static int Material_setGlossTransSamples( BPy_Material * self, PyObject * value 
 	return EXPP_setIValueClamped ( value, &self->material->samp_gloss_tra,
 								EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MIN,
 								EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX, 'h' );
+}
+
+static int Material_setAniso( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->aniso_gloss_mir,
+								EXPP_MAT_ANISO_GLOSS_MIR_MIN,
+								EXPP_MAT_ANISO_GLOSS_MIR_MAX );
+}
+
+static int Material_setThreshMirr( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->adapt_thresh_mir,
+								EXPP_MAT_ADAPT_THRESH_MIR_MIN,
+								EXPP_MAT_ADAPT_THRESH_MIR_MAX );
+}
+
+static int Material_setThreshTrans( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->adapt_thresh_tra,
+								EXPP_MAT_ADAPT_THRESH_TRA_MIN,
+								EXPP_MAT_ADAPT_THRESH_TRA_MAX );
 }
 
 static int Material_setRigidBodyFriction( BPy_Material * self, PyObject * value )

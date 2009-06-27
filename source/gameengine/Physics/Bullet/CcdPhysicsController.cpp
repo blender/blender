@@ -979,6 +979,7 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 
 		if (m_object && m_object->getCollisionShape())
 		{
+			m_object->activate(true); // without this, sleeping objects scale wont be applied in bullet if python changes the scale - Campbell.
 			m_object->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
 			
 			//printf("no inertia recalc for fixed objects with mass=0\n");
@@ -1016,13 +1017,21 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 		}
 		if (body)
 		{
-			//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
-			//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
-			const btVector3& angFac = body->getAngularFactor();
-			body->setAngularFactor(1.f);
-			body->applyTorque(torque);
-			body->setAngularFactor(angFac);
-		}
+			if 	(m_cci.m_bRigid)
+			{
+				body->applyTorque(torque);
+			}
+			else
+			{
+				//workaround for incompatibility between 'DYNAMIC' game object, and angular factor
+				//a DYNAMIC object has some inconsistency: it has no angular effect due to collisions, but still has torque
+				const btVector3& angFac = body->getAngularFactor();
+				btVector3 tmpFac(0,0,1);
+				body->setAngularFactor(tmpFac);
+				body->applyTorque(torque);
+				body->setAngularFactor(angFac);
+			} 
+		} 
 	}
 }
 

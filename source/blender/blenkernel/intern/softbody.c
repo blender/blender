@@ -82,7 +82,7 @@ variables on the UI for now
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_modifier.h"
-
+#include "BKE_deform.h"
 #include  "BIF_editdeform.h"
 #include  "BIF_graphics.h"
 #include  "PIL_time.h"
@@ -2052,7 +2052,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 	BodyPoint  *bp1,*bp2;
 
 	float dir[3],dvel[3];
-	float distance,forcefactor,kd,absvel,projvel;
+	float distance,forcefactor,kd,absvel,projvel,kw;
 	int ia,ic;
 	/* prepare depending on which side of the spring we are on */
 	if (bpi == bs->v1){
@@ -2086,7 +2086,10 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 		forcefactor = iks/bs->len;
 	else
 		forcefactor = iks;
-	forcefactor *= bs->strength; 
+	    kw = (bp1->springweight+bp2->springweight)/2.0f;
+		kw = kw * kw;
+		kw = kw * kw;
+	forcefactor *= bs->strength * kw; 
 	Vec3PlusStVec(bp1->force,(bs->len - distance)*forcefactor,dir);
 
 	/* do bp1 <--> bp2 viscous */
@@ -2185,14 +2188,14 @@ static int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, 
 
 							VecMidf(velcenter, bp->vec, obp->vec);
 							VecSubf(dvel,velcenter,bp->vec);
-							VecMulf(dvel,sb->nodemass);
+							VecMulf(dvel,bp->mass);
 
 							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 
 							/* exploit force(a,b) == -force(b,a) part2/2 */
 							VecSubf(dvel,velcenter,obp->vec);
-							VecMulf(dvel,sb->nodemass);
+							VecMulf(dvel,bp->mass);
 
 							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
@@ -2237,7 +2240,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, 
 			/* gravitation */
 			if (sb){ 
 			float gravity = sb->grav * sb_grav_force_scale(ob);	
-			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
+			bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
 			}
 			
 			/* particle field & vortex */
@@ -2549,7 +2552,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 
 							VecMidf(velcenter, bp->vec, obp->vec);
 							VecSubf(dvel,velcenter,bp->vec);
-							VecMulf(dvel,sb->nodemass);
+							VecMulf(dvel,bp->mass);
 
 							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
@@ -2580,7 +2583,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 
 							/* exploit force(a,b) == -force(b,a) part2/2 */
 							VecSubf(dvel,velcenter,obp->vec);
-							VecMulf(dvel,sb->nodemass);
+							VecMulf(dvel,(bp->mass+obp->mass)/2.0f);
 
 							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
@@ -2640,8 +2643,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 
 
 				/* gravitation */
-				bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
-				//bp->force[1]-= gravity*sb->nodemass; /* individual mass of node here */
+				bp->force[2]-= gravity*bp->mass; /* individual mass of node here */
 
 
 				/* particle field & vortex */
@@ -2850,11 +2852,20 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
     aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
     aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
 
+    /* old one with homogenous masses  */
 	/* claim a minimum mass for vertex */
+	/*
 	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;
 	else timeovermass = forcetime/0.009999f;
+	*/
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+/* now we have individual masses   */
+/* claim a minimum mass for vertex */
+		if (bp->mass > 0.009999f) timeovermass = forcetime/bp->mass;
+  	    else timeovermass = forcetime/0.009999f;
+
+
 		if(bp->goal < SOFTGOALSNAP){
             /* this makes t~ = t */
 			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
@@ -3075,8 +3086,8 @@ static void apply_spring_memory(Object *ob)
 	int a;
 	float b,l,r;
 
-    b = sb->plastic;
 	if (sb && sb->totspring){
+		b = sb->plastic;
 		for(a=0; a<sb->totspring; a++) {
 			bs  = &sb->bspring[a];
 			bp1 =&sb->bpoint[bs->v1];
@@ -3228,10 +3239,36 @@ static void mesh_to_softbody(Object *ob)
 			
 		/* to proove the concept
 		this would enable per vertex *mass painting*
-		strcpy(name,"SOFTMASS");
-		error = get_scalar_from_named_vertexgroup(ob,name, a,&temp);
-		if (!error) bp->mass = temp * ob->rangeofmass;
 		*/
+		/* first set the default */
+		bp->mass = sb->nodemass;
+
+		if (sb->namedVG_Mass[0])
+		{
+			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Mass);
+			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
+			if(grp > -1){
+				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
+				bp->mass = bp->mass * sb->nodemass;
+				/* printf("bp->mass  %f \n",bp->mass); */
+
+			}
+		}
+		/* first set the default */
+		bp->springweight = 1.0f;
+
+		if (sb->namedVG_Spring_K[0])
+		{
+			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Spring_K);
+			//printf("VGN  %s %d \n",sb->namedVG_Spring_K,grp); 
+			if(grp > -1){
+				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->springweight);
+				//printf("bp->springweight  %f \n",bp->springweight);
+
+			}
+		}
+
+		
 	}
 
 	/* but we only optionally add body edge springs */
@@ -3546,9 +3583,9 @@ static void springs_from_particles(Object *ob)
 	int a,k;
 	float hairmat[4][4];
 
-	psys= ob->soft->particles;
-	sb= ob->soft;	
-	if(ob && sb && psys) { 	
+	if(ob && ob->soft && ob->soft->particles) { 	
+		psys= ob->soft->particles;
+		sb= ob->soft;	
 		psmd = psys_get_modifier(ob, psys);
 
 		bp= sb->bpoint;

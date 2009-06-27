@@ -94,11 +94,9 @@ extern "C"
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
-							struct SpaceIpo*	sipo,
 							class KX_KetsjiEngine* engine
 							)
 							: m_maggie(maggie),
-							m_sipo(sipo),
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
 							m_usemat(false),
@@ -641,13 +639,13 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
  * When deleting an IPO curve from Python, check if the IPO is being
  * edited and if so clear the pointer to the old curve.
  */
-void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo)
+void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu)
 {
-	if (!sipo)
+	if (!G.sipo)
 		return;
 
 	int i;
-	EditIpo *ei= (EditIpo *)sipo->editipo;
+	EditIpo *ei= (EditIpo *)G.sipo->editipo;
 	if (!ei) return;
 
 	for(i=0; i<G.sipo->totipo; i++, ei++) {
@@ -751,7 +749,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								if( tmpicu->bezt )
 									MEM_freeN( tmpicu->bezt );
 								MEM_freeN( tmpicu );
-								localDel_ipoCurve( tmpicu ,m_sipo);
+								localDel_ipoCurve( tmpicu );
 							}
 					  	}
 					} else

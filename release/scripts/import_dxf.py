@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.05.27 by migius'
+__version__ = '1.12 - 2009.06.16 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -44,8 +44,8 @@ Supported DXF>r12 objects:
 ELLIPSE,
 LWPOLYLINE (LightWeight Polyline),
 SPLINE,
-(wip v1.13) MLINE,
-(wip v1.13) MTEXT
+(todo v1.13) MLINE,
+(todo v1.13) MTEXT
 
 Unsupported objects:
 DXF r12: DIMENSION.
@@ -74,7 +74,7 @@ thickness,
 width,
 color,
 layer,
-(wip v1.13: XDATA, grouped status)
+(todo v1.13: XDATA, grouped status)
 It is recommended to use DXF-object properties for assign Blender materials.
 
 Notes:
@@ -100,7 +100,7 @@ History:
  -- better support for long dxf-layer-names 
  -- add configuration file.ini handles multiple material setups
  -- added f_layerFilter
- -- to-check: obj/mat/group/_mapping-idea from ideasman42:
+ -- to-check: obj/mat/group/_mapping-idea from ideasman42
  -- curves: added "fill/non-fill" option for closed curves: CIRCLEs,ELLIPSEs,POLYLINEs
  -- "normalize Z" option to correct non-planar figures
  -- LINEs need "width" in 3d-space incl vGroups
@@ -108,12 +108,13 @@ History:
  -- add better support for color_index BYLAYER=256, BYBLOCK=0 
  -- bug: "oneMesh" produces irregularly errors
  -- bug: Registry recall from hd_cache ?? only win32 bug??
- -- support DXF-definitions of scene, lights and cameras
+ -- support DXF-definitions of autoshade: scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
+ v1.12 - 2009.06.16 by migius
+ d7 fix for ignored BLOCKs (e.g. *X) which are members of other BLOCKs
  v1.12 - 2009.05.27 by migius
- d6 todo: bugfix negative scaled INSERTs - isLeftHand(Matrix) check
-
+ d6 bugfix negative scaled INSERTs - isLeftHand(Matrix) check
  v1.12 - 2009.05.26 by migius
  d5 changed to the new 2.49 method Vector.cross()
  d5 bugfix WORLDY(1,1,0) to (0,1,0)
@@ -162,7 +163,7 @@ History:
  a4 added to analyzeTool: report about VIEWs, VPORTs, unused/xref BLOCKs
  a4 bugfix: individual support for 2D/3DPOLYLINE/POLYMESH
  a4 added to UI: (*wip)BLOCK-(F): name filtering for BLOCKs
- a4 added to UI: BLOCK-(n): filter anoname/hatch BLOCKs *X...
+ a4 added to UI: BLOCK-(n): filter noname/hatch BLOCKs *X...
  a2 g_scale_as is no more GUI_A-variable
  a2 bugfix "material": negative sign color_index
  a2 added support for BLOCKs defined with origin !=(0,0,0)
@@ -378,7 +379,7 @@ GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-
 LAYER_DEF_NAME = 'AAAA' #default layer name
 LAYER_DEF_COLOR = 4 #default layer color
 E_M = 0
-LAB = "*) parts under construction"
+LAB = ". wip   .. todo" #"*) parts under construction"
 M_OBJ = 0
 
 FILENAME_MAX = 180	#max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
@@ -395,14 +396,19 @@ ALIGN = BezTriple.HandleTypes.ALIGN
 
 UI_MODE = True #activates UI-popup-print, if not multiple files imported
 
-#TODO:---patch for pre2.49-------------
-if 0:
-	print Blender.Get('version')
-	#def Mathutil_CrossVecs(v1,v2):
-	az = Mathutils.Vector((0,0.5,0.4))
-	print dir(az)
-	ax = WORLDZ.cross(az)
-	print ax
+#---- migration to 2.49-------------------------------------------------
+if 'cross' in dir(Mathutils.Vector()):
+	#Draw.PupMenu('DXF exporter: Abort%t|This script version works for Blender up 2.49 only!')
+	def	M_CrossVecs(v1,v2):
+		return v1.cross(v2) #for up2.49
+	def M_DotVecs(v1,v2):
+		return v1.dot(v2) #for up2.49
+else:
+	def	M_CrossVecs(v1,v2):
+		return Mathutils.CrossVecs(v1,v2) #for pre2.49
+	def M_DotVecs(v1,v2):
+		return Mathutils.DotVecs(v1,v2) #for pre2.49
+	
 	
 #-------- DWG support ------------------------------------------
 extCONV_OK = True
@@ -2247,7 +2253,6 @@ class LWpolyline(Polyline):  #--------------------------------------------------
 		self.pltype = 'poly2d'   # LW-polyline is a 2D-polyline
 		self.spline = False
 		self.curved = False
-
 
 		#print 'deb:LWpolyline.obj.data:\n', obj.data #------------------------
 		#print 'deb:LWpolyline.ENDinit:----------------' #------------------------
@@ -4430,14 +4435,11 @@ def getOCS(az):  #--------------------------------------------------------------
 
 	cap = 0.015625 # square polar cap value (1/64.0)
 	if abs(az.x) < cap and abs(az.y) < cap:
-		#ax = Mathutils.CrossVecs(WORLDY, az) #for<2.49
-		ax = WORLDY.cross(az)
+		ax = M_CrossVecs(WORLDY,az)
 	else:
-		#ax = Mathutils.CrossVecs(WORLDZ, az) #for<2.49
-		ax = WORLDZ.cross(az)
+		ax = M_CrossVecs(WORLDZ,az)
 	ax = ax.normalize()
-	#ay = Mathutils.CrossVecs(az, ax) #for<2.49
-	ay = az.cross(ax)
+	ay = M_CrossVecs(az, ax)
 	ay = ay.normalize()
 	return ax, ay, az
 
@@ -4520,7 +4522,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 					item2str = [item2.name, item2.layer]
 					childList.append(item2str)
 			try: usedblocks[item.name] = [used, childList]
-			except KeyError: print 'Cannot map "%s" - "%s" as Block!' %(item.name, item)
+			except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
 	#print 'deb:getBlocksmap:  layersmap=' , layersmap #-------------
 
@@ -4528,7 +4530,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if type(item) != list and item.type == 'insert':
 			if not layersmap or (not layersmap[item.layer].frozen or layFrozen_on): #if insert_layer is not frozen
 				try: usedblocks[item.name][0] = True 
-				except: pass
+				except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 				
 	key_list = usedblocks.keys()
 	key_list.reverse()
@@ -4536,7 +4538,8 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if usedblocks[key][0]: #if parent used, then set used also all child blocks
 			for child in usedblocks[key][1]:
 				if not layersmap or (layersmap and not layersmap[child[1]].frozen): #if insert_layer is not frozen
-					usedblocks[child[0]][0] = True # marked as used BLOCK
+					try: usedblocks[child[0]][0] = True # marked as used BLOCK
+					except KeyError: print 'Cannot find "%s" Block!' %(child[0])
 
 	usedblocks = [i for i in usedblocks.keys() if usedblocks[i][0]]
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
@@ -5180,17 +5183,17 @@ GUI_B = {}  # GUI-buttons dictionary for drawingTypes
 
 # settings default, initialize ------------------------
 
-points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|*curve.vertex %x5"
-lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|Bezier-curve %x5|*NURBS-curve %x6"
-mlines_as_menu  = "convert to: %t|*edge %x1|*mesh %x2|*thin cylinder %x3|*thin box %x|*curve %x5"
-plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-splines_as_menu = "convert to: %t|mesh %x2|*thin cylinder %x3|*thin box %x4|*Bezier-curve %x5|NURBS-curve %x6"
-plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*NURBS-surface %x6"
-solids_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
-blocks_as_menu  = "convert to: %t|dupliGroup %x1|*real.Group %x2|*exploded %x3"
-texts_as_menu   = "convert to: %t|text %x1|*mesh %x2|*curve %x5"
-material_from_menu= "material from: %t|*LINESTYLE %x7|COLOR %x1|LAYER %x2|*LAYER+COLOR %x3|*BLOCK %x4|*XDATA %x5|*INI-File %x6"
+points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|..curve.vertex %x5"
+lines_as_menu   = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|thin box %x4|Bezier-curve %x5|..NURBS-curve %x6"
+mlines_as_menu  = "convert to: %t|..edge %x1|..mesh %x2|..thin cylinder %x3|..thin box %x|..curve %x5"
+plines_as_menu  = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+splines_as_menu = "convert to: %t|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plines3_as_menu = "convert to: %t|..edge %x1|mesh %x2|..thin cylinder %x3|..thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plmesh_as_menu  = "convert to: %t|..edge %x1|mesh %x2|..NURBS-surface %x6"
+solids_as_menu  = "convert to: %t|..edge %x1|mesh %x2"
+blocks_as_menu  = "convert to: %t|dupliGroup %x1|..real.Group %x2|..exploded %x3"
+texts_as_menu   = "convert to: %t|text %x1|..mesh %x2|..curve %x5"
+material_from_menu= "material from: %t|..LINESTYLE %x7|COLOR %x1|LAYER %x2|..LAYER+COLOR %x3|..BLOCK %x4|..XDATA %x5|..INI-File %x6"
 g_scale_list	= ''.join((
 	'scale factor: %t',
 	'|user def. %x12',
@@ -5676,7 +5679,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['mline'] = Draw.Toggle('*MLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['mline'].val, "(*wip)support dxf-MLINE on/off")
+		GUI_B['mline'] = Draw.Toggle('..MLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['mline'].val, "(*todo)support dxf-MLINE on/off")
 		if GUI_B['mline'].val:
 			GUI_A['mlines_as'] = Draw.Menu(mlines_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['mlines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
@@ -5727,7 +5730,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, b0, y, b0_, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
-		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
+		GUI_B['mtext'] = Draw.Toggle('..MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*todo)support dxf-MTEXT on/off")
 #		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
 
 		y -= 20
@@ -5746,8 +5749,8 @@ def draw_UI():  #---------------------------------------------------------------
 		
 		Draw.BeginAlign()
 		GUI_A['views_on'] = Draw.Toggle('views', EVENT_NONE, b0, y, b0_-25, 20, GUI_A['views_on'].val, "imports VIEWs and VIEWPORTs as cameras on/off")
-		GUI_A['cams_on'] = Draw.Toggle('*cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*wip) support ASHADE cameras on/off")
-		GUI_A['lights_on'] = Draw.Toggle('*lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*wip) support AVE_RENDER lights on/off")
+		GUI_A['cams_on'] = Draw.Toggle('..cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*todo) support ASHADE cameras on/off")
+		GUI_A['lights_on'] = Draw.Toggle('..lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*todo) support AVE_RENDER lights on/off")
 		Draw.EndAlign()
 
 
@@ -5763,10 +5766,10 @@ def draw_UI():  #---------------------------------------------------------------
 		Draw.BeginAlign()
 		GUI_A['paper_space_on'] = Draw.Toggle('paper', EVENT_NONE, b0+but_*0, y, but_, 20, GUI_A['paper_space_on'].val, "import only from Paper-Space on/off")
 		GUI_A['layFrozen_on'] = Draw.Toggle ('frozen', EVENT_NONE, b0+but_*1, y, but_, 20, GUI_A['layFrozen_on'].val, "import also from frozen LAYERs on/off")
-		GUI_A['layerFilter_on'] = Draw.Toggle('layer', EVENT_NONE, b0+but_*2, y, but_, 20, GUI_A['layerFilter_on'].val, "(*wip) LAYER filtering on/off")
-		GUI_A['colorFilter_on'] = Draw.Toggle('color', EVENT_NONE, b0+but_*3, y, but_, 20, GUI_A['colorFilter_on'].val, "(*wip) COLOR filtering on/off")
-		GUI_A['groupFilter_on'] = Draw.Toggle('group', EVENT_NONE, b0+but_*4, y, but_, 20, GUI_A['groupFilter_on'].val, "(*wip) GROUP filtering on/off")
-		GUI_A['blockFilter_on'] = Draw.Toggle('block', EVENT_NONE, b0+but_*5, y, but_, 20, GUI_A['blockFilter_on'].val, "(*wip) BLOCK filtering on/off")
+		GUI_A['layerFilter_on'] = Draw.Toggle('..layer', EVENT_NONE, b0+but_*2, y, but_, 20, GUI_A['layerFilter_on'].val, "(*todo) LAYER filtering on/off")
+		GUI_A['colorFilter_on'] = Draw.Toggle('..color', EVENT_NONE, b0+but_*3, y, but_, 20, GUI_A['colorFilter_on'].val, "(*todo) COLOR filtering on/off")
+		GUI_A['groupFilter_on'] = Draw.Toggle('..group', EVENT_NONE, b0+but_*4, y, but_, 20, GUI_A['groupFilter_on'].val, "(*todo) GROUP filtering on/off")
+		GUI_A['blockFilter_on'] = Draw.Toggle('..block', EVENT_NONE, b0+but_*5, y, but_, 20, GUI_A['blockFilter_on'].val, "(*todo) BLOCK filtering on/off")
 		#GUI_A['dummy_on'] = Draw.Toggle('-', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['dummy_on'].val, "dummy on/off")
 		Draw.EndAlign()
 
@@ -5867,7 +5870,7 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['Z_force_on'] = Draw.Toggle('*elevation', EVENT_REDRAW, b0, y, b0_, 20, GUI_A['Z_force_on'].val, "*set objects Z-coordinates to elevation on/off")
+		GUI_A['Z_force_on'] = Draw.Toggle('.elevation', EVENT_REDRAW, b0, y, b0_, 20, GUI_A['Z_force_on'].val, ".set objects Z-coordinates to elevation on/off")
 		if GUI_A['Z_force_on'].val:
 			GUI_A['Z_elev'] = Draw.Number('', EVENT_NONE, b1, y, b1_, 20, GUI_A['Z_elev'].val, -1000, 1000, "set default elevation(Z-coordinate)")
 		Draw.EndAlign()
@@ -6169,22 +6172,20 @@ def multi_import(DIR):
 
 
 if __name__ == "__main__":
-	if 'cross' not in dir(Mathutils.Vector()):
-		Draw.PupMenu('DXF importer: Abort%t|This script version works for Blender up 2.49 only!')
+	#Draw.PupMenu('DXF importer: Abort%t|This script version works for Blender up 2.49 only!')
+	UI_MODE = True
+	# recall last used DXF-file and INI-file names
+	dxffilename = check_RegistryKey('dxfFileName')
+	#print 'deb:start dxffilename:', dxffilename #----------------
+	if dxffilename: dxfFileName.val = dxffilename
 	else:
-		UI_MODE = True
-		# recall last used DXF-file and INI-file names
-		dxffilename = check_RegistryKey('dxfFileName')
-		#print 'deb:start dxffilename:', dxffilename #----------------
-		if dxffilename: dxfFileName.val = dxffilename
-		else:
-			dirname = sys.dirname(Blender.Get('filename'))
-			#print 'deb:start dirname:', dirname #----------------
-			dxfFileName.val = sys.join(dirname, '')
-		inifilename = check_RegistryKey('iniFileName')
-		if inifilename: iniFileName.val = inifilename
+		dirname = sys.dirname(Blender.Get('filename'))
+		#print 'deb:start dirname:', dirname #----------------
+		dxfFileName.val = sys.join(dirname, '')
+	inifilename = check_RegistryKey('iniFileName')
+	if inifilename: iniFileName.val = inifilename
 
-		Draw.Register(draw_UI, event, bevent)
+	Draw.Register(draw_UI, event, bevent)
 
 
 """

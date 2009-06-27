@@ -432,7 +432,7 @@ static int Euler_setAxis( EulerObject * self, PyObject * value, void * type )
 	return 0;
 }
 
-static PyObject *Euler_getWrapped( VectorObject * self, void *type )
+static PyObject *Euler_getWrapped( EulerObject * self, void *type )
 {
 	if (self->wrapped == Py_WRAP)
 		Py_RETURN_TRUE;

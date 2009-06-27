@@ -149,7 +149,10 @@ protected:
 			const btVector3& angularMaxLimits,int flags
 			);
 
+		
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1);
+		
+		virtual float	getConstraintParam(int constraintId,int param);
 
 	    virtual void		removeConstraint(int	constraintid);
 

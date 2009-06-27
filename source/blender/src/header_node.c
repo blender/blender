@@ -804,8 +804,12 @@ void node_buttons(ScrArea *sa)
 		if(snode->from) {
 			
 			/* can't use unlink etc here, code requires buttons context */
-			xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
-					   0, 0, 0, B_AUTOTEXNAME, B_KEEPDATA);
+			if(snode->texfrom == SNODE_TEX_WORLD)
+				xco= std_libbuttons(block, xco, 0, 0, NULL, B_WTEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
+						   0, 0, 0, B_AUTOTEXNAME, B_KEEPDATA);
+			else
+				xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
+						   0, 0, 0, B_AUTOTEXNAME, B_KEEPDATA);
 			
 			if(snode->id) {
 				Tex *tx= (Tex *)snode->id;

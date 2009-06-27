@@ -718,7 +718,7 @@ def convert248to249(lines, log = True, logErrors = True, fileName = None):
 				try:
 					# Convert!
 					func(lines, row, match.start(1), match.end(1), closure)
-				except ConversionError as e:
+				except ConversionError, e:
 					# Insert a comment saying the conversion failed.
 					print "ERROR: %sline %d, %s: %s\n" % (
 						fileIdStr, row + 1, attrName, e)

@@ -480,6 +480,13 @@ static void sound_panel_sound(bSound *sound)
 
 /* ************************* Sequencer *********************** */
 
+typedef struct StripColorBalanceGUIHelper {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+} StripColorBalanceGUIHelper;
+
 #define SEQ_PANEL_EDITING 1
 #define SEQ_PANEL_INPUT   2
 #define SEQ_PANEL_FILTER  4
@@ -518,6 +525,108 @@ static char* seq_panel_blend_modes()
 		}
 	}
 	return string;
+}
+
+static char* seq_panel_color_balance_modes()
+{
+	static char string[2048];
+
+	sprintf(string, "Color balance mode: %%t|%s %%x%d|%s %%x%d",
+		"LiftGamGain", SEQ_COLOR_BALANCE_GUI_MODE_LGG,
+		"ASC CDL", SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL);
+
+	return string;
+}
+
+static void copy_to_color_balance_gui(StripColorBalance * cb)
+{
+	int c;
+	StripColorBalanceGUIHelper * cg = cb->gui;
+
+	for (c = 0; c < 3; c++) {
+		/* well in ACL terms,
+
+		   cb->lift  is actually 1 - offset
+		   cb->gamma is actually power
+		   cb->gain  is actually slope
+
+		   sorry for the confusion, that is for
+		   DNA backward compatibility...
+
+		   might better be renamed to low, mid, high (neutral terms)
+
+		   our lift / gamma / gain balancer sticks to neutral white
+		   (by default, can be switched with BW_FLIP)
+		   and therefore has:
+
+		   lift      is actually 1 - lift
+		   gain      is gain :)
+		   gamma     is actually power
+		*/
+
+		cg->lift[c] = cb->lift[c];
+		cg->gamma[c] = cb->gamma[c];
+		cg->gain[c] = cb->gain[c];
+
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_LGG) {
+			float offset = cg->lift[c];
+			float slope = cg->gain[c];
+
+			offset = 1 - offset;
+
+			cg->gain[c] = offset + slope;
+			cg->lift[c] = offset/(offset + slope);
+
+			cg->lift[c] = 1 - cg->lift[c];
+		
+		}
+
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT) {
+			cg->lift[c] = 1 - cg->lift[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA) {
+			cg->gamma[c] = 1 - cg->gamma[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN) {
+			cg->gain[c] = 1 - cg->gain[c];
+		}
+	}
+}
+
+static void copy_from_color_balance_gui(StripColorBalance * cb)
+{
+	int c;
+	StripColorBalanceGUIHelper * cg = cb->gui;
+
+	for (c = 0; c < 3; c++) {
+		/* see note above regarding confusing variable names */
+
+		cb->lift[c] = cg->lift[c];
+		cb->gamma[c] = cg->gamma[c];
+		cb->gain[c] = cg->gain[c];
+
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT) {
+			cb->lift[c] = 1 - cb->lift[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA) {
+			cb->gamma[c] = 1 - cb->gamma[c];
+		}
+		if (cb->flag & SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN) {
+			cb->gain[c] = 1 - cb->gain[c];
+		}
+
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_LGG) {
+			float lift = cb->lift[c];
+			float gain = cb->gain[c];
+
+			lift = 1 - lift;
+
+			cb->gain[c] = ( 1 - lift ) * gain;
+			cb->lift[c] = lift * gain;
+
+			cb->lift[c] = 1 - cb->lift[c];
+		}
+	}
 }
 
 static char* seq_panel_scenes()
@@ -570,7 +679,7 @@ static void seq_panel_editing()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Edit", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      0, 0, 318, 204) == 0) return;
 
 	uiDefBut(block, LABEL, 
 		 0, give_seqname(last_seq), 
@@ -658,7 +767,7 @@ static void seq_panel_editing()
 	if(last_seq->type==SEQ_IMAGE) {
 		if (last_seq->len > 1) {
 			/* CURRENT */
-			StripElem * se= give_stripelem(last_seq, CFRA);
+			StripElem * se= give_stripelem(last_seq, CFRA, TRUE);
 			StripElem * last;
 
 			/* FIRST AND LAST */
@@ -700,7 +809,8 @@ static void seq_panel_editing()
 		}
 	}
 	else if(last_seq->type==SEQ_SCENE) {
-		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
+		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra),
+						 TRUE);
 		if(se && last_seq->scene) {
 			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
 		}
@@ -754,7 +864,7 @@ static void seq_panel_input()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      320, 0, 318, 204) == 0) return;
 
 	if (SEQ_HAS_PATH(last_seq)) {
 		uiDefBut(block, TEX, 
@@ -773,7 +883,7 @@ static void seq_panel_input()
 			cfra = last_seq->enddisp - 1;
 		}
 
-		se = give_stripelem(last_seq, cfra);
+		se = give_stripelem(last_seq, cfra, TRUE);
 
 		if (se) {
 			uiDefBut(block, TEX, 
@@ -897,7 +1007,7 @@ static void seq_panel_filter_video()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      640, 0, 318, 204) == 0) return;
 
 
 	uiBlockBeginAlign(block);
@@ -948,19 +1058,30 @@ static void seq_panel_filter_video()
 		  1.0, 30.0, 100, 0, 
 		  "Only display every nth frame");
 
-	uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
-		     B_SEQ_BUT_RELOAD, "Use Color Balance", 
-		     10,50,240,19, &last_seq->flag, 
-		     0.0, 21.0, 100, 0, 
-		     "Activate Color Balance "
-		     "(3-Way color correction) on input");
-
+	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
+		uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+			     B_SEQ_BUT_RELOAD, "Use CB", 
+			     10,50,120,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Activate Color Balance "
+			     "(3-Way color correction) on input");
+	} else {
+		uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+			     B_SEQ_BUT_RELOAD, "Use Color Balance", 
+			     10,50,240,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Activate Color Balance "
+			     "(3-Way color correction) on input");
+	}
 
 	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
-		if (!last_seq->strip->color_balance) {
+		StripColorBalance * cb = last_seq->strip->color_balance;
+		StripColorBalanceGUIHelper * cg;
+		int xofs;
+
+		if (!cb) {
 			int c;
-			StripColorBalance * cb 
-				= last_seq->strip->color_balance 
+			cb = last_seq->strip->color_balance 
 				= MEM_callocN(
 					sizeof(struct StripColorBalance), 
 					"StripColorBalance");
@@ -971,43 +1092,111 @@ static void seq_panel_filter_video()
 			}
 		}
 
-		uiDefBut(block, LABEL, 0, "Lift",
-			 10,30,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, "Gamma",
-			 90,30,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, "Gain",
-			 170,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefButI(block, MENU, B_SEQ_BUT_COLOR_BALANCE, 
+			  seq_panel_color_balance_modes(), 
+			  130, 50, 120, 19, &cb->mode, 
+			  0,0,0,0, "Color balance mode");
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Lift",
-			  10,10,80,19, last_seq->strip->color_balance->lift, 
-			  0, 0, 0, 0, "Lift (shadows)");
+		if (!cb->gui) {
+			cb->gui	= MEM_callocN(
+				sizeof(struct StripColorBalanceGUIHelper), 
+				"StripColorBalanceGUIHelper");
+			copy_to_color_balance_gui(cb);
+			cb->gui->flag = cb->flag;
+		} 
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gamma",
-			  90,10,80,19, last_seq->strip->color_balance->gamma, 
-			  0, 0, 0, 0, "Gamma (midtones)");
+		cg = cb->gui;
 
-		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gain",
-			  170,10,80,19, last_seq->strip->color_balance->gain, 
-			  0, 0, 0, 0, "Gain (highlights)");
+		if (cb->mode == SEQ_COLOR_BALANCE_GUI_MODE_ASC_CDL) {
+			uiDefBut(block, LABEL, 0, "Ofs (shad)",
+				 10,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Pow (midt)",
+				 90,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Slp (high)",
+				 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1-Offset",
+				  10,10,80,19, cg->lift, 
+				  0, 0, 0, 0, "1 - Offset (shadows)");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Gamma",
+				  90,10,80,19, cg->gamma, 
+				  0, 0, 0, 0, "Power (midtones)");
+			
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Slope",
+				  170,10,80,19, cg->gain, 
+				  0, 0, 0, 0, "Slope (highlights)");
+		} else {
+			uiDefBut(block, LABEL, 0, "Lift (shad)",
+				 10,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Gamma (mi)",
+				 90,30,80,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Gain (high)",
+				 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1-Lift",
+				  10,10,80,19, cg->lift, 
+				  0, 0, 0, 0, "1 - Lift (shadows)");
+
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "1/Gamma",
+				  90,10,80,19, cg->gamma, 
+				  0, 0, 0, 0, "1 / Gamma (midtones)");
+			
+			uiDefButF(block, COL, B_SEQ_BUT_COLOR_BALANCE, 
+				  "Gain",
+				  170,10,80,19, cg->gain, 
+				  0, 0, 0, 0, "Gain (highlights)");
+		}
+
+		xofs = 10;
 
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_LIFT,
-			     B_SEQ_BUT_RELOAD, "Inv Lift", 
-			     10,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Lift");
+			     "Inverse");
+		xofs += 55;
+
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_LIFT,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
+		xofs += 25;
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAMMA,
-			     B_SEQ_BUT_RELOAD, "Inv Gamma", 
-			     90,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Gamma");
+			     "Inverse");
+		xofs += 55;
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAMMA,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
+		xofs += 25;
 		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAIN,
-			     B_SEQ_BUT_RELOAD, "Inv Gain", 
-			     170,-10,80,19, 
-			     &last_seq->strip->color_balance->flag, 
+			     B_SEQ_BUT_COLOR_BALANCE, "Inverse", 
+			     xofs,-10,55,19, 
+			     &cb->flag, 
 			     0.0, 21.0, 100, 0, 
-			     "Inverse Gain");
+			     "Inverse");
+		xofs += 55;
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_GUI_BW_FLIP_GAIN,
+			     B_SEQ_BUT_COLOR_BALANCE, "NB", 
+			     xofs,-10,25,19, 
+			     &cb->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Neutral Black");
 	}
 
 
@@ -1024,7 +1213,7 @@ static void seq_panel_filter_audio()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      640, 0, 318, 204) == 0) return;
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
@@ -1040,7 +1229,7 @@ static void seq_panel_effect()
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Effect", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      320, 0, 318, 204) == 0) return;
 
 	if(last_seq->type == SEQ_PLUGIN) {
 		PluginSeq *pis;
@@ -1130,12 +1319,12 @@ static void seq_panel_effect()
 		SpeedControlVars *sp = 
 			(SpeedControlVars *)last_seq->effectdata;
 		
-		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Global Speed:", 	10,70,240,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
 		
 		uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
 			     B_SEQ_BUT_RELOAD, 
 			     "IPO is velocity",
-			     10,50,150,19, &sp->flags, 
+			     10,50,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Interpret the IPO value as a "
 			     "velocity instead of a frame number");
@@ -1143,15 +1332,24 @@ static void seq_panel_effect()
 		uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
 			     B_SEQ_BUT_RELOAD, 
 			     "Enable frame blending",
-			     10,30,150,19, &sp->flags, 
+			     10,30,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Blend two frames into the "
 			     "target for a smoother result");
+
+		if (sp->blendFrames == 0) {
+			sp->blendFrames = 2;
+		}
+
+		uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "Blend Frames:",
+			  10,10,240,19, &sp->blendFrames, 
+			  2.0, 100.0, 0, 0, 
+			  "Maximum number of frames to blend");
 		
 		uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
 			     B_SEQ_BUT_RELOAD, 
 			     "IPO value runs from [0..1]",
-			     10,10,150,19, &sp->flags, 
+			     10,-10,240,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
 			     "Scale IPO value to get the "
 			     "target frame number.");
@@ -1164,91 +1362,129 @@ static void seq_panel_proxy()
 {
 	Sequence *last_seq = get_last_seq();
 	uiBlock *block;
+	int yofs;
+
 	block = uiNewBlock(&curarea->uiblocks, "seq_panel_proxy", 
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Proxy", "Sequencer", 
-		      10, 230, 318, 204) == 0) return;
+		      960, 0, 318, 204) == 0) return;
 
 	uiBlockBeginAlign(block);
 
+	yofs = 140;
+
 	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
 		     B_SEQ_BUT_RELOAD, "Use Proxy", 
-		     10,140,80,19, &last_seq->flag, 
+		     10,yofs,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Use a preview proxy for this strip");
 
-	if (last_seq->flag & SEQ_USE_PROXY) {
-		if (!last_seq->strip->proxy) {
-			last_seq->strip->proxy = 
-				MEM_callocN(sizeof(struct StripProxy),
-					    "StripProxy");
-		}
-
-		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
-			     B_SEQ_BUT_RELOAD, "Custom Dir", 
-			     90,140,80,19, &last_seq->flag, 
-			     0.0, 21.0, 100, 0, 
-			     "Use a custom directory to store data");
-
-		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_FILE, 
-			     B_SEQ_BUT_RELOAD, "Custom File", 
-			     170,140,80,19, &last_seq->flag, 
-			     0.0, 21.0, 100, 0, 
-			     "Use a custom file to load data from");
-
-		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
-				     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
-				     "Select the directory/name for "
-				     "the proxy storage");
-
-			uiDefBut(block, TEX, 
-				 B_SEQ_BUT_RELOAD, "Dir: ", 
-				 30,120,220,20, last_seq->strip->proxy->dir, 
-				 0.0, 160.0, 100, 0, "");
-		}
-		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
-				     ICON_FILESEL, 10, 100, 20, 20, 0, 0, 0, 
-				     0, 0, 
-				     "Select the custom proxy file "
-				     "(used for all preview resolutions!)");
-
-			uiDefBut(block, TEX, 
-				 B_SEQ_BUT_RELOAD, "File: ", 
-				 30,100,220,20, last_seq->strip->proxy->file, 
-				 0.0, 160.0, 100, 0, "");
-		}
+	if (!(last_seq->flag & SEQ_USE_PROXY)) {
+		uiBlockEndAlign(block);
+		return;
 	}
 
-	if (last_seq->flag & SEQ_USE_PROXY) {
-		if (G.scene->r.size == 100) {
-			uiDefBut(block, LABEL, 0, 
-				 "Full render size selected, ",
-				 10,60,240,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, 
-				 "so no proxy enabled!",
-				 10,40,240,19, 0, 0, 0, 0, 0, "");
-		} else if (last_seq->type != SEQ_MOVIE 
-			   && last_seq->type != SEQ_IMAGE
-			   && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-			uiDefBut(block, LABEL, 0, 
-				 "Cannot proxy this strip without ",
-				 10,60,240,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, 
-				 "custom directory selection!",
-				 10,40,240,19, 0, 0, 0, 0, 0, "");
-		} else if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
-			uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
-				 "Rebuild proxy",
-				 10,60,240,19, 0, 0, 0, 0, 0, 
-				 "Rebuild proxy for the "
-				 "currently selected strip.");
+	if (!last_seq->strip->proxy) {
+		last_seq->strip->proxy = 
+			MEM_callocN(sizeof(struct StripProxy),
+				    "StripProxy");
+	}
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
+		     B_SEQ_BUT_RELOAD, "Custom Dir", 
+		     90,yofs,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a custom directory to store data");
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_FILE, 
+		     B_SEQ_BUT_RELOAD, "Custom File", 
+		     170,yofs,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a custom file to load data from");
+	
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR ||
+	    last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		yofs -= 20;
+
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
+			     ICON_FILESEL, 10, yofs, 20, 20, 0, 0, 0, 0, 0, 
+			     "Select the directory/name for "
+			     "the proxy storage");
+		
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "Dir: ", 
+			 30,yofs,220,20, last_seq->strip->proxy->dir, 
+			 0.0, (float)sizeof(last_seq->strip->proxy->dir)-1, 
+			 100, 0, "");
+	}
+
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		yofs -= 20;
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_FILE, 
+			     ICON_FILESEL, 10, yofs, 20, 20, 0, 0, 0, 
+			     0, 0, 
+			     "Select the custom proxy file "
+			     "(used for all preview resolutions!)");
+		
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "File: ", 
+			 30, yofs,220,20, last_seq->strip->proxy->file, 
+			 0.0, (float)sizeof(last_seq->strip->proxy->file)-1, 
+			 100, 0, "");
+	}
+
+	if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
+		if (last_seq->strip->proxy->size == 0) {
+			if (G.scene->r.size != 100) {
+				last_seq->strip->proxy->size = G.scene->r.size;
+			} else {
+				last_seq->strip->proxy->size = 25;
+			}
 		}
+		if (last_seq->strip->proxy->quality == 0) {
+			last_seq->strip->proxy->quality = 90;
+		}
+		yofs -= 25;
+
+		uiDefButS(block, NUM,B_DIFF, "Q:",  10,yofs,74,20, 
+			  &last_seq->strip->proxy->quality, 
+			  10.0, 100.0, 0, 0, 
+			  "Quality setting for JPEG images");
+		uiDefButS(block, ROW,B_DIFF,"75%",  90,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,75.0, 0, 0, 
+			  "Set proxy size to 3/4 of defined size");
+		uiDefButS(block, ROW,B_DIFF,"50%",  143,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,50.0, 0, 0, 
+			  "Set proxy size to 1/2 of defined size");
+		uiDefButS(block, ROW,B_DIFF,"25%",  196,yofs,53,20,
+			  &last_seq->strip->proxy->size,1.0,25.0, 0, 0, 
+			  "Set proxy size to 1/4 of defined size");
+	}
+
+	if (last_seq->type != SEQ_MOVIE 
+	    && last_seq->type != SEQ_IMAGE
+	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
+	    && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
+		yofs -= 20;
+		uiDefBut(block, LABEL, 0, 
+			 "Cannot proxy this strip without ",
+			 30,yofs,240,19, 0, 0, 0, 0, 0, "");
+		yofs -= 20;
+		uiDefBut(block, LABEL, 0, 
+			 "custom directory selection!",
+			 30,yofs,240,19, 0, 0, 0, 0, 0, "");
+	} else if (!(last_seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
+		yofs -= 45;
+		uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
+			 "Rebuild proxy",
+			 10,yofs,240,40, 0, 0, 0, 0, 0, 
+			 "Rebuild proxy for the "
+			 "currently selected strip.");
 	}
 
 	uiBlockEndAlign(block);
+
 }
 
 
@@ -1276,7 +1512,7 @@ void sequencer_panels()
 	}
 
 	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {
-		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_PROXY;
+		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_FILTER| SEQ_PANEL_PROXY;
 	}
 
 	if (panels & SEQ_PANEL_EDITING) {
@@ -1307,7 +1543,7 @@ void sequencer_panels()
 static void sel_proxy_dir(char *name)
 {
 	Sequence *last_seq = get_last_seq();
-	strcpy(last_seq->strip->proxy->dir, name);
+	BLI_strncpy(last_seq->strip->proxy->dir, name, sizeof(last_seq->strip->proxy->dir));
 
 	allqueue(REDRAWBUTSSCENE, 0);
 
@@ -1360,6 +1596,19 @@ void do_sequencer_panels(unsigned short event)
 				    last_seq->strip->proxy->dir, 
 				    sel_proxy_file);
 		break;
+	case B_SEQ_BUT_COLOR_BALANCE: {
+		if (last_seq->strip && last_seq->strip->color_balance &&
+		    last_seq->strip->color_balance->gui) {
+			StripColorBalance * cb=last_seq->strip->color_balance;
+			if (cb->gui->flag != cb->flag) {
+				copy_to_color_balance_gui(cb);
+				cb->gui->flag = cb->flag;
+			} else {
+				copy_from_color_balance_gui(cb);
+			}
+		}
+		/* fall through */
+	}
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
 		update_seq_ipo_rect(last_seq);
@@ -1976,7 +2225,7 @@ static char* ffmpeg_audio_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
        strcpy(formatstring, 
-	      "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d"
+	      "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d"
 #ifdef WITH_OGG
 	      "|%s %%x%d"
 #endif

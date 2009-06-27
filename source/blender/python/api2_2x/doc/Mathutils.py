@@ -5,6 +5,7 @@ The Blender.Mathutils submodule.
 
 Mathutils
 =========
+(when accessing it from the Game Engine use Mathutils instead of Blender.Mathutils)
 
 This module provides access to matrices, eulers, quaternions and vectors.
 

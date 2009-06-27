@@ -104,7 +104,6 @@ static BlendFileData *load_game_data(char *filename) {
 extern "C" void StartKetsjiShell(struct ScrArea *area,
 								 char* scenename,
 								 struct Main* maggie1,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -142,7 +141,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
-
+		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
@@ -150,12 +149,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRasterizer* rasterizer = NULL;
 		
 		if(displaylists) {
-			if (GLEW_VERSION_1_1)
+			if (GLEW_VERSION_1_1 && !novertexarrays)
 				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (GLEW_VERSION_1_1)
+		else if (GLEW_VERSION_1_1 && !novertexarrays)
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
@@ -326,10 +325,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
+				ketsjiengine->SetCameraOverrideLens(v3d->lens);
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
@@ -548,7 +548,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 								 char* scenename,
 								 struct Main* maggie,
-								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
     int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
@@ -647,7 +646,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			sceneconverter->addInitFromFrame=true;
 			

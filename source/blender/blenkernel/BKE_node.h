@@ -407,8 +407,9 @@ struct TexResult;
 #define TEX_NODE_DECOMPOSE  420
 #define TEX_NODE_VALTONOR   421
 #define TEX_NODE_SCALE      422
+#define TEX_NODE_AT         423
 
-/* 201-299 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
+/* 501-599 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
 #define TEX_NODE_PROC      500
 #define TEX_NODE_PROC_MAX  600
 

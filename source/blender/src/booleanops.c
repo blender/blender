@@ -164,6 +164,7 @@ typedef struct {
 	DerivedMesh *dm;
 	int pos;
 	int offset;
+	int flip;
 } FaceIt;
 
 static void FaceIt_Destruct(CSG_FaceIteratorDescriptor * iterator)
@@ -190,9 +191,15 @@ static void FaceIt_Fill(CSG_IteratorPtr it, CSG_IFace *face)
 	MFace *mfaces = face_it->dm->getFaceArray(face_it->dm);
 	MFace *mface = &mfaces[face_it->pos];
 
-	face->vertex_index[0] = mface->v1;
+	/* reverse face vertices if necessary */
 	face->vertex_index[1] = mface->v2;
-	face->vertex_index[2] = mface->v3;
+	if( face_it->flip == 0 ) {
+		face->vertex_index[0] = mface->v1;
+		face->vertex_index[2] = mface->v3;
+	} else {
+		face->vertex_index[2] = mface->v1;
+		face->vertex_index[0] = mface->v3;
+	}
 	if (mface->v4) {
 		face->vertex_index[3] = mface->v4;
 		face->vertex_number = 4;
@@ -216,7 +223,7 @@ static void FaceIt_Reset(CSG_IteratorPtr it)
 }	
 
 static void FaceIt_Construct(
-	CSG_FaceIteratorDescriptor *output, DerivedMesh *dm, int offset)
+	CSG_FaceIteratorDescriptor *output, DerivedMesh *dm, int offset, Object *ob)
 {
 	FaceIt *it;
 	if (output == 0) return;
@@ -230,6 +237,25 @@ static void FaceIt_Construct(
 	it->dm = dm;
 	it->offset = offset;
 	it->pos = 0;
+
+	/* determine if we will need to reverse order of face vertices */
+	if (ob->size[0] < 0.0f) {
+		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
+			it->flip = 1;
+		} else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
+			it->flip = 1;
+		} else {
+			it->flip = 0;
+		}
+	} else {
+		if (ob->size[1] < 0.0f && ob->size[2] < 0.0f) {
+			it->flip = 0;
+		} else if (ob->size[1] >= 0.0f && ob->size[2] >= 0.0f) {
+			it->flip = 0;
+		} else {
+			it->flip = 1;
+		}
+	}
 
 	// assign iterator function pointers.
 	output->Step = FaceIt_Step;
@@ -429,7 +455,7 @@ static void BuildMeshDescriptors(
 	struct CSG_VertexIteratorDescriptor * vertex_it)
 {
 	VertexIt_Construct(vertex_it,dm, ob);
-	FaceIt_Construct(face_it,dm,face_offset);
+	FaceIt_Construct(face_it,dm,face_offset,ob);
 }
 	
 static void FreeMeshDescriptors(

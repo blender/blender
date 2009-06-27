@@ -88,6 +88,10 @@ public:
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 
+	virtual float	getConstraintParam(int constraintId,int param)
+	{
+		return 0.f;
+	}
 	virtual void	setConstraintParam(int constraintId,int param,float value,float value1)
 	{
 	}

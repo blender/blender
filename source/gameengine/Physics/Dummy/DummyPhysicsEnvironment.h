@@ -88,6 +88,11 @@ public:
 		{
 		}
 
+		virtual float	getConstraintParam(int constraintId,int param)
+		{
+			return 0.f;
+		}
+
 };
 
 #endif //_DUMMYPHYSICSENVIRONMENT

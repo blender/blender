@@ -445,7 +445,7 @@ void pose_select_constraint_target(void)
 	bConstraint *con;
 	
 	/* paranoia checks */
-	if (!ob && !ob->pose) return;
+	if (!ob || !ob->pose) return;
 	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -491,7 +491,7 @@ void pose_select_hierarchy(short direction, short add_to_sel)
 	Bone *curbone, *pabone, *chbone;
 	
 	/* paranoia checks */
-	if (!ob && !ob->pose) return;
+	if (!ob || !ob->pose) return;
 	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -551,7 +551,7 @@ void pose_special_editmenu(void)
 	short nr;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
+	if(!ob || !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
@@ -583,7 +583,7 @@ void pose_add_IK(void)
 	Object *ob= OBACT;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
+	if(!ob || !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	add_constraint(1);	/* 1 means only IK */
@@ -599,7 +599,7 @@ void pose_clear_IK(void)
 	bConstraint *next;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
+	if(!ob || !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	if(pose_has_protected_selected(ob, 0, 1))
@@ -640,7 +640,7 @@ void pose_clear_constraints(void)
 	bPoseChannel *pchan;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
+	if(!ob || !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	if(pose_has_protected_selected(ob, 0, 1))
@@ -1352,7 +1352,7 @@ void pose_flip_names(void)
 	char newname[32];
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
+	if(!ob || !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	if(pose_has_protected_selected(ob, 0, 1))

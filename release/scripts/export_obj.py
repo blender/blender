@@ -2,14 +2,14 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 248
+Blender: 249
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
 __author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
 __url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
-__version__ = "1.21"
+__version__ = "1.22"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -23,10 +23,10 @@ will be exported as mesh data.
 """
 
 
-# --------------------------------------------------------------------------
-# OBJ Export v1.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Campbell J Barton 2007-2009
+# - V1.22- bspline import/export added (funded by PolyDimensions GmbH)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -181,12 +181,89 @@ def copy_images(dest_dir):
 				copyCount+=1
 	print '\tCopied %d images' % copyCount
 
+
+def test_nurbs_compat(ob):
+	if ob.type != 'Curve':
+		return False
+	
+	for nu in ob.data:
+		if (not nu.knotsV) and nu.type != 1: # not a surface and not bezier
+			return True
+	
+	return False
+
+def write_nurb(file, ob, ob_mat):
+	tot_verts = 0
+	cu = ob.data
+	
+	# use negative indices
+	Vector = Blender.Mathutils.Vector
+	for nu in cu:
+		
+		if nu.type==0:		DEG_ORDER_U = 1
+		else:				DEG_ORDER_U = nu.orderU-1  # Tested to be correct
+		
+		if nu.type==1:
+			print "\tWarning, bezier curve:", ob.name, "only poly and nurbs curves supported"
+			continue
+		
+		if nu.knotsV:
+			print "\tWarning, surface:", ob.name, "only poly and nurbs curves supported"
+			continue
+		
+		if len(nu) <= DEG_ORDER_U:
+			print "\tWarning, orderU is lower then vert count, skipping:", ob.name
+			continue
+		
+		pt_num = 0
+		do_closed = (nu.flagU & 1)
+		do_endpoints = (do_closed==0) and (nu.flagU & 2)
+		
+		for pt in nu:
+			pt = Vector(pt[0], pt[1], pt[2]) * ob_mat
+			file.write('v %.6f %.6f %.6f\n' % (pt[0], pt[1], pt[2]))
+			pt_num += 1
+		tot_verts += pt_num
+		
+		file.write('g %s\n' % (fixName(ob.name))) # fixName(ob.getData(1)) could use the data name too
+		file.write('cstype bspline\n') # not ideal, hard coded
+		file.write('deg %d\n' % DEG_ORDER_U) # not used for curves but most files have it still
+		
+		curve_ls = [-(i+1) for i in xrange(pt_num)]
+		
+		# 'curv' keyword
+		if do_closed:
+			if DEG_ORDER_U == 1:
+				pt_num += 1
+				curve_ls.append(-1)
+			else:
+				pt_num += DEG_ORDER_U
+				curve_ls = curve_ls + curve_ls[0:DEG_ORDER_U]
+		
+		file.write('curv 0.0 1.0 %s\n' % (' '.join( [str(i) for i in curve_ls] ))) # Blender has no U and V values for the curve
+		
+		# 'parm' keyword
+		tot_parm = (DEG_ORDER_U + 1) + pt_num
+		tot_parm_div = float(tot_parm-1)
+		parm_ls = [(i/tot_parm_div) for i in xrange(tot_parm)]
+		
+		if do_endpoints: # end points, force param
+			for i in xrange(DEG_ORDER_U+1):
+				parm_ls[i] = 0.0
+				parm_ls[-(1+i)] = 1.0
+		
+		file.write('parm u %s\n' % ' '.join( [str(i) for i in parm_ls] ))
+
+		file.write('end\n')
+	
+	return tot_verts
+
 def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
 EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
 EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False,\
-EXPORT_POLYGROUPS=False):
+EXPORT_POLYGROUPS=False, EXPORT_CURVE_AS_NURBS=True):
 	'''
 	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
@@ -266,6 +343,17 @@ EXPORT_POLYGROUPS=False):
 	# Get all meshes
 	for ob_main in objects:
 		for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
+			
+			# Nurbs curve support
+			if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
+				if EXPORT_ROTX90:
+					ob_mat = ob_mat * mat_xrot90
+				
+				totverts += write_nurb(file, ob, ob_mat)
+				
+				continue
+			# end nurbs
+			
 			# Will work for non meshes now! :)
 			# getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None)
 			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
@@ -585,7 +673,7 @@ def write_ui(filename):
 		EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
 		EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
 		EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
-		EXPORT_POLYGROUPS
+		EXPORT_POLYGROUPS, EXPORT_CURVE_AS_NURBS
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(0)
 	EXPORT_ROTX90 = Draw.Create(1)
@@ -604,6 +692,7 @@ def write_ui(filename):
 	EXPORT_GROUP_BY_MAT = Draw.Create(0)
 	EXPORT_KEEP_VERT_ORDER = Draw.Create(1)
 	EXPORT_POLYGROUPS = Draw.Create(0)
+	EXPORT_CURVE_AS_NURBS = Draw.Create(1)
 	
 	
 	# Old UI
@@ -693,7 +782,7 @@ def write_ui(filename):
 				EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
 				EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
 				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
-				EXPORT_POLYGROUPS
+				EXPORT_POLYGROUPS, EXPORT_CURVE_AS_NURBS
 
 			Draw.Label('Context...', ui_x+9, ui_y+239, 220, 20)
 			Draw.BeginAlign()
@@ -725,6 +814,8 @@ def write_ui(filename):
 			EXPORT_NORMALS_HQ = Draw.Toggle('HQ', EVENT_NONE, ui_x+309, ui_y+120, 31, 20, EXPORT_NORMALS_HQ.val, 'Calculate high quality normals for rendering.')
 			Draw.EndAlign()
 			EXPORT_POLYGROUPS = Draw.Toggle('Polygroups', EVENT_REDRAW, ui_x+9, ui_y+95, 120, 20, EXPORT_POLYGROUPS.val, 'Export vertex groups as OBJ groups (one group per face approximation).')
+			
+			EXPORT_CURVE_AS_NURBS = Draw.Toggle('Nurbs', EVENT_NONE, ui_x+139, ui_y+95, 100, 20, EXPORT_CURVE_AS_NURBS.val, 'Export 3D nurbs curves and polylines as OBJ curves, (bezier not supported).')
 			
 			
 			Draw.Label('Blender Objects as OBJ:', ui_x+9, ui_y+59, 220, 20)
@@ -779,6 +870,7 @@ def write_ui(filename):
 	EXPORT_GROUP_BY_MAT = EXPORT_GROUP_BY_MAT.val
 	EXPORT_KEEP_VERT_ORDER = EXPORT_KEEP_VERT_ORDER.val
 	EXPORT_POLYGROUPS = EXPORT_POLYGROUPS.val
+	EXPORT_CURVE_AS_NURBS = EXPORT_CURVE_AS_NURBS.val
 	
 	
 	base_name, ext = splitExt(filename)
@@ -828,7 +920,7 @@ def write_ui(filename):
 			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
 			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
 			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER,\
-			EXPORT_POLYGROUPS)
+			EXPORT_POLYGROUPS, EXPORT_CURVE_AS_NURBS)
 		
 		Blender.Set('curframe', orig_frame)
 	

@@ -1226,8 +1226,20 @@ void do_global_buttons(unsigned short event)
 		
 		break;
 	case B_WTEXBROWSE:
+	{
+		short *menunr = 0;
+		
+		/* this is called now from Node editor too, buttons might not exist */
+		if(curarea->spacetype==SPACE_NODE) {
+			SpaceNode *snode = curarea->spacedata.first;
+			menunr = &snode->menunr;
+		}
+		else if(G.buts) {
+			menunr = &G.buts->texnr;
+		}
+		else return;
 
-		if(G.buts->texnr== -2) {
+		if(*menunr== -2) {
 			id= NULL;
 			wrld= G.scene->world;
 			if(wrld) {
@@ -1235,12 +1247,12 @@ void do_global_buttons(unsigned short event)
 				if(mtex) id= (ID *)mtex->tex;
 			}
 
-			activate_databrowse((ID *)id, ID_TE, 0, B_WTEXBROWSE, &G.buts->texnr, do_global_buttons);
+			activate_databrowse((ID *)id, ID_TE, 0, B_WTEXBROWSE, menunr, do_global_buttons);
 			return;
 		}
-		if(G.buts->texnr < 0) break;
+		if(*menunr < 0) break;
 
-		if(G.buts->pin) {
+		if(G.buts && G.buts->pin) {
 			
 		}
 		else {
@@ -1279,10 +1291,12 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWNODE, 0);
 				BIF_preview_changed(ID_WO);
 			}
 		}
 		break;
+	}
 	case B_LAMPBROWSE:
 		/* no lock */
 		if(ob==0) return;

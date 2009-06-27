@@ -189,11 +189,6 @@ protected:
 	 */
 	KX_Camera* m_active_camera;
 
-	/** Desired canvas width set at design time. */
-	unsigned int m_canvasDesignWidth;
-	/** Desired canvas height set at design time. */
-	unsigned int m_canvasDesignHeight;
-
 	/**
 	 * Another temporary variable outstaying its welcome
 	 * used in AddReplicaObject to map game objects to their

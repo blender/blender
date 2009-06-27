@@ -45,6 +45,7 @@ public:
 	
 	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);
 	KX_PYMETHOD(KX_ConstraintWrapper,SetParam);
+	KX_PYMETHOD(KX_ConstraintWrapper,GetParam);
 
 private:
 	int					m_constraintId;

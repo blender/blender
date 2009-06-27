@@ -44,7 +44,6 @@ class BL_InterpolatorList;
 class BL_Material;
 struct IpoCurve;
 struct Main;
-struct SpaceIpo;
 struct Scene;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
@@ -69,7 +68,6 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameipolist;
 	
 	Main*					m_maggie;
-	SpaceIpo*				m_sipo;
 
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
@@ -78,13 +76,12 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_usemat;
 	bool					m_useglslmat;
 
-	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
+	void localDel_ipoCurve ( IpoCurve * icu );
 //	struct Ipo* findIpoForName(char* objName);
 
 public:
 	KX_BlenderSceneConverter(
 		Main* maggie,
-		SpaceIpo *sipo,
 		class KX_KetsjiEngine* engine
 	);
 

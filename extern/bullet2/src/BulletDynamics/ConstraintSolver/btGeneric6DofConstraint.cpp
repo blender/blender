@@ -663,10 +663,15 @@ btVector3 btGeneric6DofConstraint::getAxis(int axis_index) const
 }
 
 
-
-btScalar btGeneric6DofConstraint::getAngle(int axis_index) const
+btScalar	btGeneric6DofConstraint::getRelativePivotPosition(int axisIndex) const
 {
-	return m_calculatedAxisAngleDiff[axis_index];
+	return m_calculatedLinearDiff[axisIndex];
+}
+
+
+btScalar btGeneric6DofConstraint::getAngle(int axisIndex) const
+{
+	return m_calculatedAxisAngleDiff[axisIndex];
 }
 
 
@@ -726,7 +731,7 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
             J2[srow+1] = -ax1[1];
             J2[srow+2] = -ax1[2];
         }
-        if((!rotational) && limit)
+        if((!rotational))
         {
 			btVector3 ltd;	// Linear Torque Decoupling vector
 			btVector3 c = m_calculatedTransformB.getOrigin() - body0->getCenterOfMassPosition();
@@ -839,7 +844,6 @@ int btGeneric6DofConstraint::get_limit_motor_info2(
 
 
 
-
 btGeneric6DofSpringConstraint::btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA)
 	: btGeneric6DofConstraint(rbA, rbB, frameInA, frameInB, useLinearReferenceFrameA)
 {
@@ -848,6 +852,7 @@ btGeneric6DofSpringConstraint::btGeneric6DofSpringConstraint(btRigidBody& rbA, b
 		m_springEnabled[i] = false;
 		m_equilibriumPoint[i] = btScalar(0.f);
 		m_springStiffness[i] = btScalar(0.f);
+		m_springDamping[i] = btScalar(1.f);
 	}
 }
 
@@ -872,6 +877,13 @@ void btGeneric6DofSpringConstraint::setStiffness(int index, btScalar stiffness)
 {
 	btAssert((index >= 0) && (index < 6));
 	m_springStiffness[index] = stiffness;
+}
+
+
+void btGeneric6DofSpringConstraint::setDamping(int index, btScalar damping)
+{
+	btAssert((index >= 0) && (index < 6));
+	m_springDamping[index] = damping;
 }
 
 
@@ -908,6 +920,7 @@ void btGeneric6DofSpringConstraint::setEquilibriumPoint(int index)
 
 void btGeneric6DofSpringConstraint::internalUpdateSprings(btConstraintInfo2* info)
 {
+	calculateTransforms();
 	// it is assumed that calculateTransforms() have been called before this call
 	int i;
 	btVector3 relVel = m_rbB.getLinearVelocity() - m_rbA.getLinearVelocity();
@@ -921,8 +934,9 @@ void btGeneric6DofSpringConstraint::internalUpdateSprings(btConstraintInfo2* inf
 			btScalar delta = currPos - m_equilibriumPoint[i];
 			// spring force is (delta * m_stiffness) according to Hooke's Law
 			btScalar force = delta * m_springStiffness[i];
-			m_linearLimits.m_targetVelocity[i] = force  * info->fps;
-			m_linearLimits.m_maxMotorForce[i] = btFabs(force) / info->fps;
+			btScalar velFactor = info->fps * m_springDamping[i];
+			m_linearLimits.m_targetVelocity[i] =  velFactor * force;
+			m_linearLimits.m_maxMotorForce[i] =  btFabs(force) / info->fps;
 		}
 	}
 	for(i = 0; i < 3; i++)
@@ -935,7 +949,8 @@ void btGeneric6DofSpringConstraint::internalUpdateSprings(btConstraintInfo2* inf
 			btScalar delta = currPos - m_equilibriumPoint[i+3];
 			// spring force is (-delta * m_stiffness) according to Hooke's Law
 			btScalar force = -delta * m_springStiffness[i+3];
-			m_angularLimits[i].m_targetVelocity = force  * info->fps;
+			btScalar velFactor = info->fps * m_springDamping[i+3];
+			m_angularLimits[i].m_targetVelocity = velFactor * force;
 			m_angularLimits[i].m_maxMotorForce = btFabs(force) / info->fps;
 		}
 	}

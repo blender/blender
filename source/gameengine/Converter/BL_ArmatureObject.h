@@ -59,6 +59,7 @@ public:
 	void GetMRDPose(struct bPose **pose);
 	void GetPose(struct bPose **pose);
 	void SetPose (struct bPose *pose);
+	struct bPose *GetOrigPose() {return m_pose;} // never edit this, only for accessing names
 
 	void ApplyPose();
 	void RestorePose();

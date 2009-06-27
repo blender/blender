@@ -32,6 +32,7 @@
 #include "../api2_2x/gen_utils.h"
 #include "bpy_config.h"
 #include "BKE_utildefines.h"
+#include "../../../../intern/memutil/MEM_CacheLimiterC-Api.h"
 
 enum conf_consts {
 	/*string*/
@@ -219,7 +220,7 @@ static PyObject *getIntAttr( BPy_Config *self, void *type )
 static int setIntAttrClamp( BPy_Config *self, PyObject *value, void *type )
 {
 	void *param;
-	int min, max, size;
+	int min, max, size, ret;
 
 	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_UNDOSTEPS:
@@ -257,7 +258,13 @@ static int setIntAttrClamp( BPy_Config *self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setIntAttrClamp");
 	}
-	return EXPP_setIValueClamped( value, param, min, max, size );
+	
+	ret = EXPP_setIValueClamped( value, param, min, max, size );
+	
+	if(GET_INT_FROM_POINTER(type) == EXPP_CONF_ATTR_MEM_CACHE_LIMIT)
+		MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
+	
+	return ret;
 }
 
 static PyGetSetDef Config_getseters[] = {

@@ -5,6 +5,7 @@ The Blender.Geometry submodule.
 
 Geometry
 ========
+(when accessing it from the Game Engine use Geometry instead of Blender.Geometry)
 
 This new module provides access to a geometry function.
 """

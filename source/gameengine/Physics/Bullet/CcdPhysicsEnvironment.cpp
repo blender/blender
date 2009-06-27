@@ -1786,6 +1786,45 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 }
 
 
+float	CcdPhysicsEnvironment::getConstraintParam(int constraintId,int param)
+{
+	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
+	switch (typedConstraint->getUserConstraintType())
+	{
+	case PHY_GENERIC_6DOF_CONSTRAINT:
+		{
+			
+			switch (param)
+			{
+			case 0:	case 1: case 2: 
+				{
+					//param = 0..2 are linear constraint values
+					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+					genCons->calculateTransforms();
+					return genCons->getRelativePivotPosition(param);
+					break;
+				}
+				case 3: case 4: case 5:
+				{
+					//param = 3..5 are relative constraint (Euler) angles
+					btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+					genCons->calculateTransforms();
+					return genCons->getAngle(param-3);
+					break;
+				}
+			default:
+				{
+				}
+			}
+			break;
+		};
+	default:
+		{
+		};
+	};
+	return 0.f;
+}
+
 void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float value0,float value1)
 {
 	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
@@ -1835,11 +1874,9 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 					{
 						bool springEnabled = true;
 						genCons->setStiffness(springIndex,value0);
+						genCons->setDamping(springIndex,value1);
 						genCons->enableSpring(springIndex,springEnabled);
-						if (value1>0.5f)
-						{
-							genCons->setEquilibriumPoint(springIndex);
-						}
+						genCons->setEquilibriumPoint(springIndex);
 					} else
 					{
 						bool springEnabled = false;

@@ -3213,7 +3213,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
 					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of linear motion along the X axis");
-				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rot Xxis", 
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rotation Axis", 
 					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of angular motion along the X axis");
 				yco -= 20;
@@ -3221,7 +3221,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_AXIS, 0, "Lock Y Axis", 
 					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of linear motion along the Y axis");
-				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rot Axis", 
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rotation Axis", 
 					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of angular motion along the Y axis");
 
@@ -3230,7 +3230,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_AXIS, 0, "Lock Z Axis", 
 					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of linear motion along the Z axis");
-				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rotation Axis", 
 					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of angular motion along the Z axis");
 			}

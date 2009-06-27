@@ -7,6 +7,7 @@ B{New}: some GLU functions: L{gluLookAt}, etc.
 
 The Blender.BGL submodule
 =========================
+(when accessing it from the Game Engine use BGL instead of Blender.BGL)
 
 This module wraps OpenGL constants and functions, making them available from
 within Blender Python.

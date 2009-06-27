@@ -316,19 +316,21 @@ static void sound_hdaudio_extract_small_block(
 	int nb_samples /* in target */)
 {
 	AVPacket packet;
-	int frame_position;
-	int frame_size = (long long) target_rate 
-		* hdaudio->frame_duration / AV_TIME_BASE;
-	int in_frame_size = (long long) hdaudio->sample_rate
-		* hdaudio->frame_duration / AV_TIME_BASE;
-	int rate_conversion = 
-		(target_rate != hdaudio->sample_rate) 
-		|| (target_channels != hdaudio->channels);
-	int sample_ofs = target_channels * (sample_position % frame_size);
-
-	frame_position = sample_position / frame_size; 
+	int frame_position, frame_size, in_frame_size, rate_conversion; 
+	int sample_ofs;
 
 	if (hdaudio == 0) return;
+
+	frame_size = (long long) target_rate 
+		* hdaudio->frame_duration / AV_TIME_BASE;
+	in_frame_size = (long long) hdaudio->sample_rate
+		* hdaudio->frame_duration / AV_TIME_BASE;
+	rate_conversion = 
+		(target_rate != hdaudio->sample_rate) 
+		|| (target_channels != hdaudio->channels);
+	sample_ofs = target_channels * (sample_position % frame_size);
+
+	frame_position = sample_position / frame_size; 
 
 	if (rate_conversion) {
 		sound_hdaudio_init_resampler(

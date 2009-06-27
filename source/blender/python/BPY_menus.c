@@ -49,7 +49,7 @@
 #include "api2_2x/EXPP_interface.h" /* for bpy_gethome() */
 
 #define BPYMENU_DATAFILE "Bpymenus"
-#define MAX_DIR_DEPTH 4 /* max depth for traversing scripts dirs */
+#define MAX_DIR_DEPTH 6 /* max depth for traversing scripts dirs */
 #define MAX_DIR_NUMBER 30 /* max number of dirs in scripts dirs trees */
 
 static int DEBUG;
@@ -929,17 +929,20 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 			else if (S_ISDIR(status.st_mode)) { /* is subdir */
 				Dirs_Number++;
 				Dir_Depth++;
+#if 0	// Limiting the total number of directories is too restrictive, only limit recursion should be enough
 				if (Dirs_Number > MAX_DIR_NUMBER) {
 					if (DEBUG) {
-						fprintf(stderr, "BPyMenus error: too many subdirs.\n");
+						fprintf(stderr, "BPyMenus error: too many subdirs %s/%s.\n", dirname, de->d_name);
 					}
 					closedir(dir);
 					return -1;
 				}
-				else if (Dir_Depth > MAX_DIR_DEPTH) {
+				else
+#endif
+				if (Dir_Depth > MAX_DIR_DEPTH) {
 					if (DEBUG)
 						fprintf(stderr,
-							"BPyMenus error: max depth reached traversing dir tree.\n");
+							"BPyMenus error: max depth reached traversing dir tree %s/%s.\n", dirname, de->d_name);
 					closedir(dir);
 					return -1;
 				}
@@ -949,10 +952,14 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 					BLI_join_dirfile(subdir, parentdir, de->d_name);					
 					s = subdir;
 				}
+#if 0	// to stop searching for scripts once the maxdir is hit is bad, just dont look further but keep going with other dirs.
 				if (bpymenu_ParseDir(path, s, is_userdir) == -1) {
 					closedir(dir);
 					return -1;
 				}
+#else
+				bpymenu_ParseDir(path, s, is_userdir);
+#endif
 				Dir_Depth--;
 			}
 

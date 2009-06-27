@@ -310,6 +310,8 @@ class BL_ActionActuator(SCA_IActuator):
 	
 	@ivar action: The name of the action to set as the current action.
 	@type action: string
+	@ivar channelNames: A list of channel names that may be used with L{setChannel} and L{getChannel}
+	@type channelNames: list of strings
 	@ivar frameStart: Specifies the starting frame of the animation.
 	@type frameStart: float
 	@ivar frameEnd: Specifies the ending frame of the animation.
@@ -336,15 +338,24 @@ class BL_ActionActuator(SCA_IActuator):
 	@ivar framePropName: The name of the property that is set to the current frame number.
 	@type framePropName: string
 	"""
-	def setChannel(channel, matrix, mode = False):
+	def setChannel(channel, matrix):
 		"""
-		@param channel: A string specifying the name of the bone channel.
+		Alternative to the 2 arguments, 4 arguments (channel, matrix, loc, size, quat) are also supported.
+		
+		@note: These values are relative to the bones rest position, currently the api has no way to get this info (which is annoying), but can be worked around by using bones with a rest pose that has no translation.
+		@param channel: A string specifying the name of the bone channel, error raised if not in L{channelNames}.
 		@type channel: string
 		@param matrix: A 4x4 matrix specifying the overriding transformation
 		               as an offset from the bone's rest position.
 		@type matrix: list [[float]]
-		@param mode: True for armature/world space, False for bone space
-		@type mode: boolean
+		"""
+
+	def getChannel(channel):
+		"""
+		@param channel: A string specifying the name of the bone channel. error raised if not in L{channelNames}.
+		@type channel: string
+		@rtype: tuple
+		@return: (loc, size, quat)
 		"""
 
 #{ Deprecated

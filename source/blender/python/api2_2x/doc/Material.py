@@ -285,6 +285,15 @@ class Material:
 	@ivar sampGlossTra: Refraction glossy samples.
 	Value is clamped to the range [1,1024].
 	@type sampGlossTra: int
+	@ivar anisotropy: The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent).
+	Value is clamped to the range [0.0,1.0].
+	@type anisotropy: float
+	@ivar threshMir: Threshold below which reflections will not be computed.
+	Value is clamped to the range [0.0,1.0].
+	@type threshMir: float
+	@ivar threshTra: threshold below which refractions will not be computed.
+	Value is clamped to the range [0.0,1.0].
+	@type threshTra: float
 	@ivar rayMirrDepth:  Amount of raytrace inter-reflections.
 	Value is clamped to the range [0,10].
 	@type rayMirrDepth:  int

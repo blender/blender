@@ -192,7 +192,7 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 	nf = BME_SFME(bm,f,v1,v2,nl);
 	nf->flag = f->flag;
 	/* if the edge was selected, select this face, too */
-	if (example->flag & SELECT) f->flag |= ME_FACE_SEL;
+	if (example && (example->flag & SELECT)) f->flag |= ME_FACE_SEL;
 	nf->h = f->h;
 	nf->mat_nr = f->mat_nr;
 	if (nl && example) {

@@ -104,7 +104,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
-//	KX_PYMETHOD(BL_ActionActuator,GetChannel);
+	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
@@ -119,7 +119,7 @@ public:
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-
+	static PyObject*	pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	/* attribute check */
 	static int CheckFrame(void *self, const PyAttributeDef*)
 	{

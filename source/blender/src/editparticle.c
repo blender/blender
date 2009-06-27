@@ -2844,13 +2844,16 @@ void PE_mirror_x(int tagged)
 		new_pars= MEM_callocN(newtotpart*sizeof(ParticleData), "ParticleData new");
 		new_keys= MEM_callocN(newtotpart*sizeof(ParticleEditKey*), "ParticleEditKey new");
 
-		memcpy(new_pars, psys->particles, totpart*sizeof(ParticleData));
-		memcpy(new_keys, edit->keys, totpart*sizeof(ParticleEditKey*));
-
-		if(psys->particles) MEM_freeN(psys->particles);
+		if(psys->particles) {
+			memcpy(new_pars, psys->particles, totpart*sizeof(ParticleData));
+			MEM_freeN(psys->particles);
+		}
 		psys->particles= new_pars;
 
-		if(edit->keys) MEM_freeN(edit->keys);
+		if(edit->keys) {
+			memcpy(new_keys, edit->keys, totpart*sizeof(ParticleEditKey*));
+			MEM_freeN(edit->keys);
+		}
 		edit->keys= new_keys;
 
 		if(edit->mirror_cache) {

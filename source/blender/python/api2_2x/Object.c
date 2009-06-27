@@ -3757,7 +3757,8 @@ static int setupPI( Object* ob )
 	ob->pd->pdef_perm    =0;	
 	ob->pd->f_strength   =0;	
 	ob->pd->f_power      =0;	
-	ob->pd->maxdist      =0;	       
+	ob->pd->maxdist      =0;
+	ob->pd->seed		 =0;
 	return 1;
 }
 

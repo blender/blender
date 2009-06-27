@@ -31,6 +31,7 @@
 
 #include "Particle.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "BKE_object.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
@@ -57,7 +58,7 @@
 
 
 /* Type Methods */
-static PyObject *M_ParticleSys_New( PyObject * self, PyObject * args );
+static PyObject *M_ParticleSys_New( PyObject * self, PyObject * value );
 static PyObject *M_ParticleSys_Get( PyObject * self, PyObject * args );
 
 /* Particle Methods */
@@ -646,7 +647,7 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
 /* Python method structure definition for Blender.Particle module:           */
 /*****************************************************************************/
 static struct PyMethodDef M_ParticleSys_methods[] = {
-	{"New", ( PyCFunction ) M_ParticleSys_New, METH_VARARGS, M_ParticleSys_New_doc},
+	{"New", ( PyCFunction ) M_ParticleSys_New, METH_O, M_ParticleSys_New_doc},
 	{"Get", M_ParticleSys_Get, METH_VARARGS, M_ParticleSys_Get_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -779,27 +780,27 @@ PyObject *ParticleSys_CreatePyObject( ParticleSystem * psystem, Object *ob )
 }
 
 
-PyObject *M_ParticleSys_New( PyObject * self, PyObject * args ){
+PyObject *M_ParticleSys_New( PyObject * self, PyObject * value)
+{
 	ParticleSystem *psys = 0;
 	ParticleSystem *rpsys = 0;
 	ModifierData *md;
 	ParticleSystemModifierData *psmd;
 	Object *ob = NULL;
-	char *name = NULL;
 	ID *id;
 	int nr;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected string argument" );
-
-	for( ob = G.main->object.first; ob; ob = ob->id.next )
-		if( !strcmp( name, ob->id.name + 2 ) )
-			break;
-
-	if( !ob )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-			"object does not exist" );
+	
+	if ( PyString_Check( value ) ) {
+		char *name;
+		name = PyString_AsString ( value );
+		ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
+		if( !ob )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
+	} else if ( BPy_Object_Check(value) ) {
+		ob = (( BPy_Object * ) value)->object;
+	} else {
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected object or string" );
+	}
 
 	id = (ID *)psys_new_settings("PSys", G.main);
 

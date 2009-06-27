@@ -2004,7 +2004,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Y, B_MODIFIER_RECALC, "Y",	lx+20,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Y axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Z, B_MODIFIER_RECALC, "Z",	lx+40,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Z axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
-			uiDefButBitS(block, TOG, MOD_MIR_VGROUP, B_MODIFIER_RECALC, "Mirror Vgroups",	lx, (cy-=19), buttonWidth,19, &mmd->flag, 1, 2, 0, 0, "Mirror vertex groups (e.g. .R->.L)");
+			uiDefButBitS(block, TOG, MOD_MIR_VGROUP, B_MODIFIER_RECALC, "Mirror Vgroups",	lx, (cy-=19), buttonWidth,19, &mmd->flag, 1, 2, 0, 0, "Mirror vertex groups (e.g. .R to .L), empty mirror vertex groups must already exist.");
 			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_U, B_MODIFIER_RECALC,
 			             "Mirror U",
 			             lx, (cy-=19), buttonWidth/2, 19,
@@ -2919,7 +2919,7 @@ void do_fontbuts(unsigned short event)
 	VFont *vf;
 	Object *ob;
 	ScrArea *sa;
-	char str[80];
+	char str[FILE_MAX];
 	int ctevt;
 	char *ctmenu;
 	DynStr *ds;
@@ -2988,8 +2988,8 @@ void do_fontbuts(unsigned short event)
 		break;
 	case B_LOADFONT:
 		vf= give_vfontpointer(G.buts->texnr);
-		if(vf && vf->id.prev!=vf->id.next) strcpy(str, vf->name);
-		else strcpy(str, U.fontdir);
+		if(vf && vf->id.prev!=vf->id.next) BLI_strncpy(str, vf->name, FILE_MAX);
+		else BLI_strncpy(str, U.fontdir, FILE_MAX);
 
 		sa= closest_bigger_area();
 		areawinset(sa->win);

@@ -288,6 +288,10 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SOFTBODY_DEL_VG		1421
 #define B_SOFTBODY_BAKE			1422
 #define B_SOFTBODY_BAKE_FREE	1423
+#define B_SOFTBODY_UP_GRMASS	1424
+#define B_SOFTBODY_DEL_VGMASS	1425
+#define B_SOFTBODY_UP_GRSPRING	1426
+#define B_SOFTBODY_DEL_VGSPRING	1427
 
 /* Fluidsim button defines */
 #define B_FLUIDSIM_BAKE	        1450
@@ -378,6 +382,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SEQ_BUT_REBUILD_PROXY 1697
 #define B_SEQ_SEL_PROXY_DIR     1698
 #define B_SEQ_SEL_PROXY_FILE    1699
+#define B_SEQ_BUT_COLOR_BALANCE 1700
+
 /* *********************** */
 #define B_ARMATUREBUTS		1800
 #define	B_POSE			1701
