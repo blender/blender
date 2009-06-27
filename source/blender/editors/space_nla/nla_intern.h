@@ -99,6 +99,9 @@ void NLAEDIT_OT_duplicate(wmOperatorType *ot);
 void NLAEDIT_OT_delete(wmOperatorType *ot);
 void NLAEDIT_OT_split(wmOperatorType *ot);
 
+void NLAEDIT_OT_move_up(wmOperatorType *ot);
+void NLAEDIT_OT_move_down(wmOperatorType *ot);
+
 void NLAEDIT_OT_apply_scale(wmOperatorType *ot);
 void NLAEDIT_OT_clear_scale(wmOperatorType *ot);
 

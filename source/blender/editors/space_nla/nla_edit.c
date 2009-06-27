@@ -706,6 +706,160 @@ void NLAEDIT_OT_split (wmOperatorType *ot)
 /* *********************************************** */
 /* NLA Editing Operations (Modifying) */
 
+/* ******************** Move Strips Up Operator ************************** */
+/* Tries to move the selected strips into the track above if possible. */
+
+static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditData bed;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* init the editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* since we're potentially moving strips from lower tracks to higher tracks, we should
+	 * loop over the tracks in reverse order to avoid moving earlier strips up multiple tracks
+	 */
+	for (ale= anim_data.last; ale; ale= ale->prev) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaTrack *nltn= nlt->next;
+		NlaStrip *strip, *stripn;
+		
+		/* if this track has no tracks after it, skip for now... */
+		if (nltn == NULL)
+			continue;
+		
+		/* for every selected strip, try to move */
+		for (strip= nlt->strips.first; strip; strip= stripn) {
+			stripn= strip->next;
+			
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* check if the track above has room for this strip */
+				if (BKE_nlatrack_has_space(nltn, strip->start, strip->end)) {
+					/* remove from its current track, and add to the one above (it 'should' work, so no need to worry) */
+					BLI_remlink(&nlt->strips, strip);
+					BKE_nlatrack_add_strip(nltn, strip);
+				}
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_move_up (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Strips Up";
+	ot->idname= "NLAEDIT_OT_move_up";
+	ot->description= "Move selected strips up a track if there's room.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_move_up_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Move Strips Down Operator ************************** */
+/* Tries to move the selected strips into the track above if possible. */
+
+static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditData bed;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* init the editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* loop through the tracks in normal order, since we're pushing strips down,
+	 * strips won't get operated on twice
+	 */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaTrack *nltp= nlt->prev;
+		NlaStrip *strip, *stripn;
+		
+		/* if this track has no tracks before it, skip for now... */
+		if (nltp == NULL)
+			continue;
+		
+		/* for every selected strip, try to move */
+		for (strip= nlt->strips.first; strip; strip= stripn) {
+			stripn= strip->next;
+			
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* check if the track below has room for this strip */
+				if (BKE_nlatrack_has_space(nltp, strip->start, strip->end)) {
+					/* remove from its current track, and add to the one above (it 'should' work, so no need to worry) */
+					BLI_remlink(&nlt->strips, strip);
+					BKE_nlatrack_add_strip(nltp, strip);
+				}
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLAEDIT_OT_move_down (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Strips Down";
+	ot->idname= "NLAEDIT_OT_move_down";
+	ot->description= "Move selected strips down a track if there's room.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_move_down_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************** Apply Scale Operator ***************************** */
 /* Reset the scaling of the selected strips to 1.0f */
 

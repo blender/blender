@@ -398,7 +398,8 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		/* COPY PASTE */
 		uiBlockBeginAlign(block);
 			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
-			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
+			xco += XIC;
+			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
 		uiBlockEndAlign(block);
 		xco += (XIC + 8);
 		
