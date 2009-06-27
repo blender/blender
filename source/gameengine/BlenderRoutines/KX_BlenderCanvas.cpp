@@ -28,15 +28,23 @@
 
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
+#include "stdio.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+// temp hack, prevents pointers being offset somehow, will need to look into this later - Campbell
+ARegion *m_ar;
+wmWindow *m_win;
+
+
 KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, ARegion *ar) :
-m_win(win),
-m_ar(ar)
+__m_win(win),
+__m_ar(ar)
 {
+	m_ar= ar;
+	m_win= win;
 }
 
 KX_BlenderCanvas::~KX_BlenderCanvas()
