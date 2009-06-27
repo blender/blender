@@ -268,6 +268,7 @@ static void rna_def_field(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
 	RNA_def_struct_ui_text(srna, "Field Settings", "Field settings for an object in physics simulation.");
+	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 	
 	/* Enums */
 	
@@ -410,10 +411,106 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 static void rna_def_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "SoftBody");
 	RNA_def_struct_ui_text(srna, "Soft Body Settings", "Soft body simulation settings for an object.");
+	
+	/* General Settings */
+	
+	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "mediafrict");
+	RNA_def_property_range(prop, 0.0f, 50.0f);
+	RNA_def_property_ui_text(prop, "Friction", "General media friction for point movements");
+	
+	prop= RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "nodemass");
+	RNA_def_property_range(prop, 0.0f, 50000.0f);
+	RNA_def_property_ui_text(prop, "Mass", "");
+	
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "grav");
+	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Gravitation", "Apply gravitation to point movement");
+	
+	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "physics_speed");
+	RNA_def_property_range(prop, 0.01f, 100.0f);
+	RNA_def_property_ui_text(prop, "Speed", "Tweak timing for physics to control frequency and speed");
+	
+	/* Goal */
+	
+	/*prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "vertgroup");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Use control point weight values");*/
+	
+	prop= RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "mingoal");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Goal Minimum", "Goal minimum, vertex group weights are scaled to match this range.");
+
+	prop= RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxgoal");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Goal Maximum", "Goal maximum, vertex group weights are scaled to match this range.");
+
+	prop= RNA_def_property(srna, "goal_default", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "defgoal");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Goal Default", "Default Goal (vertex target position) value, when no Vertex Group used.");
+	
+	prop= RNA_def_property(srna, "goal_spring", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "goalspring");
+	RNA_def_property_range(prop, 0.0f, 0.999f);
+	RNA_def_property_ui_text(prop, "Goal Stiffness", "Goal (vertex target position) spring stiffness.");
+	
+	prop= RNA_def_property(srna, "goal_friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "goalfrict");
+	RNA_def_property_range(prop, 0.0f, 50.0f);
+	RNA_def_property_ui_text(prop, "Goal Damping", "Goal (vertex target position) friction.");
+	
+	/* Edge Spring Settings */
+	
+	prop= RNA_def_property(srna, "pull", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "inspring");
+	RNA_def_property_range(prop, 0.0f,  0.999f);
+	RNA_def_property_ui_text(prop, "Pull", "Edge spring stiffness when longer than rest length");
+	
+	prop= RNA_def_property(srna, "push", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "inpush");
+	RNA_def_property_range(prop, 0.0f,  0.999f);
+	RNA_def_property_ui_text(prop, "Push", "Edge spring stiffness when shorter than rest length");
+	
+	prop= RNA_def_property(srna, "damp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "infrict");
+	RNA_def_property_range(prop, 0.0f,  50.0f);
+	RNA_def_property_ui_text(prop, "Damp", "Edge spring friction");
+	
+	prop= RNA_def_property(srna, "spring_lenght", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "springpreload");
+	RNA_def_property_range(prop, 0.0f,  200.0f);
+	RNA_def_property_ui_text(prop, "SL", "Alter spring lenght to shrink/blow up (unit %) 0 to disable");
+	
+	prop= RNA_def_property(srna, "aero", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "aeroedge");
+	RNA_def_property_range(prop, 0.0f,  30000.0f);
+	RNA_def_property_ui_text(prop, "Aero", "Make edges 'sail'");
+	
+	prop= RNA_def_property(srna, "plastic", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "plastic");
+	RNA_def_property_range(prop, 0.0f,  100.0f);
+	RNA_def_property_ui_text(prop, "Plastic", "Permanent deform");
+	
+	prop= RNA_def_property(srna, "bending", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "secondspring");
+	RNA_def_property_range(prop, 0.0f,  10.0f);
+	RNA_def_property_ui_text(prop, "Bending", "Bending Stiffness");
+	
+	prop= RNA_def_property(srna, "shear", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "shearstiff");
+	RNA_def_property_range(prop, 0.0f,  1.0f);
+	RNA_def_property_ui_text(prop, "Shear", "Shear Stiffness");
 }
 
 void RNA_def_object_force(BlenderRNA *brna)
