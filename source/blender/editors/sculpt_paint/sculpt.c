@@ -1343,9 +1343,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	view3d_operator_needs_opengl(C);
-	sculpt_brush_stroke_init_properties(C, op, event, sd->session);
-
-	sculptmode_update_all_projverts(sd->session);
 
 	/* TODO: Shouldn't really have to do this at the start of every
 	   stroke, but sculpt would need some sort of notification when
@@ -1414,34 +1411,53 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 {
 	PointerRNA itemptr;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	ARegion *ar = CTX_wm_region(C);
 	float center[3];
 	int mouse[2] = {event->x, event->y};
+	float cur_depth;
 
 	sculpt_update_mesh_elements(C);
 
-	unproject(sd->session->cache->mats, center, event->x, event->y,
-		  read_cached_depth(&sd->session->cache->vc, event->x, event->y));
+	if(!sd->session->cache) {
+		ViewContext vc;
+		view3d_set_viewcontext(C, &vc);
+		cur_depth = read_cached_depth(&vc, event->x, event->y);
 
-	/* Add to stroke */
-	RNA_collection_add(op->ptr, "stroke", &itemptr);
-	RNA_float_set_array(&itemptr, "location", center);
-	RNA_int_set_array(&itemptr, "mouse", mouse);
-	RNA_boolean_set(&itemptr, "flip", event->shift);
-	sculpt_update_cache_variants(sd, &itemptr);
+		/* Don't start the stroke until a valid depth is found */
+		if(cur_depth < 1.0 - FLT_EPSILON) {
+			sculpt_brush_stroke_init_properties(C, op, event, sd->session);
+			sculptmode_update_all_projverts(sd->session);
+		}
 
-	sculpt_restore_mesh(sd);
-	do_symmetrical_brush_actions(CTX_data_tool_settings(C)->sculpt, sd->session->cache);
+		ED_region_tag_redraw(ar);
+	}
 
-	sculpt_flush_update(C);
-	sculpt_post_stroke_free(sd->session);
+	if(sd->session->cache) {
+		cur_depth = read_cached_depth(&sd->session->cache->vc, event->x, event->y);
+		unproject(sd->session->cache->mats, center, event->x, event->y, cur_depth);
+
+		/* Add to stroke */
+		RNA_collection_add(op->ptr, "stroke", &itemptr);
+		RNA_float_set_array(&itemptr, "location", center);
+		RNA_int_set_array(&itemptr, "mouse", mouse);
+		RNA_boolean_set(&itemptr, "flip", event->shift);
+		sculpt_update_cache_variants(sd, &itemptr);
+
+		sculpt_restore_mesh(sd);
+		do_symmetrical_brush_actions(CTX_data_tool_settings(C)->sculpt, sd->session->cache);
+
+		sculpt_flush_update(C);
+		sculpt_post_stroke_free(sd->session);
+	}
 
 	/* Finished */
 	if(event->type == LEFTMOUSE && event->val == 0) {
-		request_depth_update(sd->session->cache->vc.rv3d);
-
-		sculpt_cache_free(sd->session->cache);
-
-		sculpt_undo_push(C, sd);
+		if(sd->session->cache) {
+			request_depth_update(sd->session->cache->vc.rv3d);
+			sculpt_cache_free(sd->session->cache);
+			sd->session->cache = NULL;
+			sculpt_undo_push(C, sd);
+		}
 
 		return OPERATOR_FINISHED;
 	}
