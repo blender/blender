@@ -130,11 +130,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		cache = psys.point_cache
 		
 		row = layout.row()
-		row.itemR(cache, "name", text="")
-		if cache.outdated:
-			row.itemL(text="Cache is outdated.")
-		else:
-			row.itemL(text="")
+		row.itemR(cache, "name")
 		
 		row = layout.row()
 		
@@ -142,18 +138,29 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 			row.itemO("PTCACHE_OT_free_bake_particle_system", text="Free Bake")
 		else:
 			row.item_booleanO("PTCACHE_OT_cache_particle_system", "bake", True, text="Bake")
-			
+		
+		subrow = row.row()
+		subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
+		subrow.itemO("PTCACHE_OT_cache_particle_system", text="Calculate to Current Frame")
+		
 		row = layout.row()
 		row.enabled = particle_panel_enabled(psys)
 		row.itemO("PTCACHE_OT_bake_from_particles_cache", text="Current Cache to Bake")
-		if cache.autocache == 0:
-			row.itemO("PTCACHE_OT_cache_particle_system", text="Cache to Current Frame")
+		row.itemR(cache, "step");
 	
 		row = layout.row()
 		row.enabled = particle_panel_enabled(psys)
-		#row.itemR(cache, "autocache")
+		row.itemR(cache, "quick_cache")
 		row.itemR(cache, "disk_cache")
-		row.itemL(text=cache.info)
+		
+		layout.itemL(text=cache.info)
+		
+		layout.itemS()
+		
+		row = layout.row()
+		row.item_booleanO("PTCACHE_OT_bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
+		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")

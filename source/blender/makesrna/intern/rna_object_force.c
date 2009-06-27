@@ -31,6 +31,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_scene_types.h"
 
 #include "WM_types.h"
 
@@ -40,8 +41,37 @@
 
 #include "BKE_context.h"
 #include "BKE_pointcache.h"
+#include "BKE_depsgraph.h"
 
 #include "BLI_blenlib.h"
+
+static void rna_Cache_change(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	PointCache *cache = (PointCache*)ptr->data;
+	PTCacheID *pid = NULL;
+	ListBase pidlist;
+
+	if(!ob)
+		return;
+
+	cache->flag |= PTCACHE_OUTDATED;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache==cache)
+			break;
+	}
+
+	if(pid)
+		BKE_ptcache_update_info(pid);
+
+	BLI_freelistN(&pidlist);
+}
 
 static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
 {
@@ -240,6 +270,12 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
 
+	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "step");
+	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames.");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+
 	/* flags */
 	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKED);
@@ -257,21 +293,24 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache is outdated", "");
 
+	prop= RNA_def_property(srna, "frames_skipped", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_FRAMES_SKIPPED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "Cache name");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
-	prop= RNA_def_property(srna, "autocache", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_AUTOCACHE);
-	RNA_def_property_ui_text(prop, "Auto Cache", "Cache changes automatically");
-	//RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_autocache");
+	prop= RNA_def_property(srna, "quick_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
+	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
 
 	prop= RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "info");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status.");
-
 }
 
 static void rna_def_collision(BlenderRNA *brna)

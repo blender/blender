@@ -236,31 +236,6 @@ Object *psys_find_object(Scene *scene, ParticleSystem *psys)
 
 	return NULL;
 }
-int psys_count_autocache(Scene *scene, ParticleSettings *part)
-{
-	Base *base = scene->base.first;
-	ParticleSystem *psys;
-	PTCacheID pid;
-	int autocache_count= 0;
-
-	for(base = scene->base.first; base; base = base->next) {
-		for(psys = base->object->particlesystem.first; psys; psys=psys->next) {
-			if(part && psys->part != part)
-				continue;
-
-			BKE_ptcache_id_from_particles(&pid, base->object, psys);
-
-			if((psys->pointcache->flag & PTCACHE_BAKED)
-				|| (psys->pointcache->flag & PTCACHE_AUTOCACHE)==0)
-				continue;
-
-			if((psys->pointcache->flag & PTCACHE_OUTDATED)
-				|| BKE_ptcache_id_exist(&pid, CFRA)==0)
-				autocache_count++;
-		}
-	}
-	return autocache_count;
-}
 /* change object's active particle system */
 void psys_change_act(void *ob_v, void *act_v)
 {
@@ -3740,6 +3715,8 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 			if((pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN)==0)
 				|| (pa->alive==PARS_DEAD && (part->flag & PART_DIED)==0))
 				return 0;
+
+		state->time = MIN2(state->time, pa->dietime);
 	}
 
 	if(psys->flag & PSYS_KEYED){

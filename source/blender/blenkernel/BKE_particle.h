@@ -252,7 +252,6 @@ struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct P
 
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
-int psys_count_autocache(struct Scene *scene, struct ParticleSettings *part);
 void psys_flush_particle_settings(struct Scene *scene, struct ParticleSettings *part, int recalc);
 void make_local_particlesettings(struct ParticleSettings *part);
 

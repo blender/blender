@@ -93,7 +93,7 @@ typedef struct PTCacheWriter {
 	int cfra;
 	int totelem;
 
-	float *(*elem_ptr)(int index, void *calldata);
+	void (*set_elem)(int index, void *calldata, float *data);
 	void *calldata;
 } PTCacheWriter;
 
@@ -103,12 +103,10 @@ typedef struct PTCacheReader {
 	float cfra;
 	int totelem;
 
-	void (*set_elem)(int index, void *calldata, float *data);
-	void (*interpolate_elem)(int index, void *calldata, float frs_sec, float cfra, int cfra1, int cfra2, float *data1, float *data2);
+	void (*set_elem)(int elem_index, void *calldata, float *data);
+	void (*interpolate_elem)(int index, void *calldata, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2);
 	void *calldata;
 
-	int allow_interpolate;
-	int allow_old;
 	int *old_frame;
 } PTCacheReader;
 
@@ -116,6 +114,7 @@ typedef struct PTCacheBaker {
 	struct Scene *scene;
 	int bake;
 	int render;
+	int quick_step;
 	struct PTCacheID *pid;
 	int (*break_test)(void *data);
 	void *break_data;
@@ -146,6 +145,8 @@ void         BKE_ptcache_file_close(PTCacheFile *pf);
 int          BKE_ptcache_file_read_floats(PTCacheFile *pf, float *f, int tot);
 int          BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot);
 
+void BKE_ptcache_update_info(PTCacheID *pid);
+
 /* General cache reading/writing */
 int			 BKE_ptcache_read_cache(PTCacheReader *reader);
 int			 BKE_ptcache_write_cache(PTCacheWriter *writer);
@@ -160,7 +161,7 @@ void BKE_ptcache_free(struct PointCache *cache);
 struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
 
 /* Baking */
-void BKE_ptcache_autocache_all(struct Scene *scene);
+void BKE_ptcache_quick_cache_all(struct Scene *scene);
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 

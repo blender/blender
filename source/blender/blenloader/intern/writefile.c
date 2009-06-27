@@ -552,6 +552,7 @@ static void write_userdef(WriteData *wd)
 
 /* TODO: replace *cache with *cachelist once it's coded */
 #define PTCACHE_WRITE_PSYS	0
+#define PTCACHE_WRITE_CLOTH	1
 static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
 {
 	writestruct(wd, DATA, "PointCache", 1, cache);
@@ -563,6 +564,8 @@ static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
 			writestruct(wd, DATA, "PTCacheMem", 1, pm);
 			if(type==PTCACHE_WRITE_PSYS)
 				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
+			else if(type==PTCACHE_WRITE_CLOTH)
+				writedata(wd, DATA, 9 * sizeof(float) * pm->totpoint, pm->data);
 		}
 	}
 }
@@ -1025,7 +1028,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
+			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
