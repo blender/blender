@@ -248,8 +248,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 				return rna_find_dna_type((const char *)pparm->type);
 		}
 		case PROP_COLLECTION: {
-			CollectionPropertyRNA *cparm= (CollectionPropertyRNA*)parm;
-			return rna_find_dna_type((const char *)cparm->type);
+			return "ListBase";
 		}
 		default:
 			return "<error, no type specified>";
@@ -1116,9 +1115,11 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	funcname= rna_alloc_function_name(srna->identifier, func->identifier, "call");
 
+	/* function definition */
 	fprintf(f, "void %s(bContext *C, ReportList *reports, PointerRNA *_ptr, ParameterList *_parms)", funcname);
 	fprintf(f, "\n{\n");
 
+	/* variable definitions */
 	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
@@ -1135,6 +1136,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, ";\n");
 	fprintf(f, "\t\n");
 
+	/* assign self */
 	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
@@ -1405,6 +1407,7 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	dsrna= rna_find_struct_def(srna);
 	func= dfunc->func;
 
+	/* return type */
 	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
 		if(dparm->prop==func->ret) {
 			if(dparm->prop->arraylength)
@@ -1418,13 +1421,16 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		}
 	}
 
+	/* void if nothing to return */
 	if(!dparm)
 		fprintf(f, "void ");
 
+	/* function name */
 	fprintf(f, "%s(", dfunc->call);
 
 	first= 1;
 
+	/* self, context and reports parameters */
 	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
@@ -1443,6 +1449,7 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		fprintf(f, "ReportList *reports");
 	}
 
+	/* defined parameters */
 	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
 		if(dparm->prop==func->ret)
 			continue;

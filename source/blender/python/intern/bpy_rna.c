@@ -269,6 +269,8 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 					ret= quat_cb; /* return the matrix instead */
 				}
 				break;
+			default:
+				break;
 			}
 		}
 
@@ -677,6 +679,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			int seq_len, i;
 			PyObject *item;
 			PointerRNA itemptr;
+			ListBase *lb;
+			CollectionPointerLink *link;
+
+			lb= (data)? (ListBase*)data: NULL;
 			
 			/* convert a sequence of dict's into a collection */
 			if(!PySequence_Check(value)) {
@@ -692,8 +698,15 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 					Py_XDECREF(item);
 					return -1;
 				}
-				
-				RNA_property_collection_add(ptr, prop, &itemptr);
+
+				if(lb) {
+					link= MEM_callocN(sizeof(CollectionPointerLink), "PyCollectionPointerLink");
+					link->ptr= itemptr;
+					BLI_addtail(lb, link);
+				}
+				else
+					RNA_property_collection_add(ptr, prop, &itemptr);
+
 				if(pyrna_pydict_to_props(&itemptr, item, "Converting a python list to an RNA collection")==-1) {
 					Py_DECREF(item);
 					return -1;
@@ -1380,10 +1393,21 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			break;
 		}
 		case PROP_COLLECTION:
-			/* XXX not supported yet
-			 * ret = pyrna_prop_CreatePyObject(ptr, prop); */
-			ret = NULL;
+		{
+			ListBase *lb= (ListBase*)data;
+			CollectionPointerLink *link;
+			PyObject *linkptr;
+
+			ret = PyList_New(0);
+
+			for(link=lb->first; link; link=link->next) {
+				linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+				PyList_Append(ret, linkptr);
+				Py_DECREF(linkptr);
+			}
+
 			break;
+		}
 		default:
 			PyErr_Format(PyExc_AttributeError, "RNA Error: unknown type \"%d\" (pyrna_param_to_py)", type);
 			ret = NULL;

@@ -534,6 +534,14 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CopyLocationConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Copy Location Constraint", "Copies the location of the target.");
+
+	RNA_def_struct_sdna(srna, "bConstraint");
+
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_sdna(prop, NULL, "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
 	RNA_def_struct_sdna_from(srna, "bLocateLikeConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -581,13 +589,6 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LOCLIKE_OFFSET);
 	RNA_def_property_ui_text(prop, "Offset", "Add original location into copied location.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	RNA_def_struct_sdna(srna, "bConstraint");
-
-	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_PERCENTAGE);
-	RNA_def_property_float_sdna(prop, NULL, "headtail");
-	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 

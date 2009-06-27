@@ -2457,6 +2457,17 @@ ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func)
 
 void RNA_parameter_list_free(ParameterList *parms)
 {
+	PropertyRNA *parm;
+	int tot;
+
+	parm= parms->func->cont.properties.first;
+	for(tot= 0; parm; parm= parm->next) {
+		if(parm->type == PROP_COLLECTION)
+			BLI_freelistN((ListBase*)((char*)parms->data+tot));
+
+		tot+= rna_parameter_size(parm);
+	}
+
 	MEM_freeN(parms->data);
 	parms->data= NULL;
 
