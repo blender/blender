@@ -455,9 +455,10 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 }
 
 /* create label + button for RNA property */
-static void ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h)
+static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int x, int y, int w, int h)
 {
 	uiLayout *sub;
+	uiBut *but;
 	PropertySubType subtype;
 
 	sub= uiLayoutRow(layout, 0);
@@ -473,12 +474,13 @@ static void ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, int
 	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
 		uiBlockSetCurLayout(block, uiLayoutRow(sub, 1));
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
-		uiDefIconBut(block, BUT, 0, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "DUMMY file select button"); /* XXX */
+		but= uiDefIconBut(block, BUT, 0, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "DUMMY file select button"); /* XXX */
 	}
 	else
-		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w, h);
+		but= uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
+	return but;
 }
 
 /********************* Button Items *************************/
@@ -782,8 +784,10 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	else if(type == PROP_ENUM && expand)
 		ui_item_enum_row(layout, block, ptr, prop, name, 0, 0, w, h);
 	/* property with separate label */
-	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER)
-		ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h);
+	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
+		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h);
+		ui_but_add_search(but, ptr, prop, NULL, NULL);
+	}
 	/* single button */
 	else {
 		but= uiDefAutoButR(block, ptr, prop, index, (char*)name, icon, 0, 0, w, h);
@@ -852,6 +856,142 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 		for(i=0; i<totitem; i++)
 			uiItemEnumR(layout, (char*)item[i].name, 0, ptr, propname, item[i].value);
 	}
+}
+
+/* Pointer RNA button with search */
+
+static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, uiSearchItems *items)
+{
+	Scene *scene= CTX_data_scene(C);
+	uiBut *but= arg_but;
+	char *name;
+	int i, iconid;
+
+	i = 0;
+	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
+		iconid= 0;
+		if(RNA_struct_is_ID(itemptr.type))
+			iconid= ui_id_icon_get(scene, itemptr.data);
+
+		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+
+		if(name) {
+			if(BLI_strcasestr(name, str)) {
+				if(!uiSearchItemAdd(items, name, SET_INT_IN_POINTER(i), iconid)) {
+					MEM_freeN(name);
+					break;
+				}
+			}
+
+			MEM_freeN(name);
+		}
+
+		i++;
+	}
+	RNA_PROP_END;
+}
+
+static void search_id_collection(StructRNA *ptype, PointerRNA *ptr, PropertyRNA **prop)
+{
+	StructRNA *srna;
+
+	/* look for collection property in Main */
+	RNA_main_pointer_create(G.main, ptr);
+
+	*prop= NULL;
+
+	RNA_STRUCT_BEGIN(ptr, iprop) {
+		/* if it's a collection and has same pointer type, we've got it */
+		if(RNA_property_type(iprop) == PROP_COLLECTION) {
+			srna= RNA_property_pointer_type(ptr, iprop);
+
+			if(ptype == srna) {
+				*prop= iprop;
+				break;
+			}
+		}
+	}
+	RNA_STRUCT_END;
+}
+
+void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop)
+{
+	StructRNA *ptype;
+	PointerRNA sptr;
+
+	/* for ID's we do automatic lookup */
+	if(!searchprop) {
+		if(RNA_property_type(prop) == PROP_POINTER) {
+			ptype= RNA_property_pointer_type(ptr, prop);
+			search_id_collection(ptype, &sptr, &searchprop);
+			searchptr= &sptr;
+		}
+	}
+
+	/* turn button into search button */
+	if(searchprop) {
+		but->type= SEARCH_MENU;
+		but->hardmax= MAX2(but->hardmax, 256);
+		but->rnasearchpoin= *searchptr;
+		but->rnasearchprop= searchprop;
+		but->flag |= UI_ICON_LEFT|UI_TEXT_LEFT;
+
+		uiButSetSearchFunc(but, rna_search_cb, but, NULL);
+	}
+}
+
+void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname)
+{
+	PropertyRNA *prop, *searchprop;
+	PropertyType type;
+	uiBut *but;
+	uiBlock *block;
+	StructRNA *icontype;
+	int w, h;
+	
+	/* validate arguments */
+	if(!ptr->data || !searchptr->data)
+		return;
+
+	prop= RNA_struct_find_property(ptr, propname);
+
+	if(!prop) {
+		printf("uiItemPointerR: property not found: %s\n", propname);
+		return;
+	}
+	
+	type= RNA_property_type(prop);
+	if(!ELEM(type, PROP_POINTER, PROP_STRING)) {
+		printf("uiItemPointerR: property %s must be a pointer or string.\n", propname);
+		return;
+	}
+
+	searchprop= RNA_struct_find_property(searchptr, searchpropname);
+
+	if(!searchprop || RNA_property_type(searchprop) != PROP_COLLECTION) {
+		printf("uiItemPointerR: search collection property not found: %s\n", searchpropname);
+		return;
+	}
+
+	/* get icon & name */
+	if(!icon) {
+		if(type == PROP_POINTER)
+			icontype= RNA_property_pointer_type(ptr, prop);
+		else
+			icontype= RNA_property_pointer_type(searchptr, searchprop);
+
+		icon= RNA_struct_ui_icon(icontype);
+	}
+	if(!name)
+		name= (char*)RNA_property_ui_name(prop);
+
+	/* create button */
+	block= uiLayoutGetBlock(layout);
+
+	ui_item_rna_size(layout, name, icon, prop, 0, &w, &h);
+	but= ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h);
+
+	ui_but_add_search(but, ptr, prop, searchptr, searchprop);
 }
 
 /* menu item */

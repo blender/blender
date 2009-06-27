@@ -1223,8 +1223,14 @@ static int ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData 
 	int changed= 1;
 
 	str= data->str;
-	but->autocomplete_func(C, str, but->autofunc_arg);
+
+	if(data->searchbox)
+		ui_searchbox_autocomplete(C, data->searchbox, but, data->str);
+	else
+		but->autocomplete_func(C, str, but->autofunc_arg);
+
 	but->pos= strlen(str);
+	but->selsta= but->selend= but->pos;
 
 	return changed;
 }
@@ -1351,14 +1357,14 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		return;
 
 	for(but= actbut->next; but; but= but->next) {
-		if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
+		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
 			data->postbut= but;
 			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
 			return;
 		}
 	}
 	for(but= block->buttons.first; but!=actbut; but= but->next) {
-		if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
+		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
 			data->postbut= but;
 			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
 			return;
@@ -1375,14 +1381,14 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		return;
 
 	for(but= actbut->prev; but; but= but->prev) {
-		if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
+		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
 			data->postbut= but;
 			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
 			return;
 		}
 	}
 	for(but= block->buttons.last; but!=actbut; but= but->prev) {
-		if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
+		if(ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
 			data->postbut= but;
 			data->posttype= BUTTON_ACTIVATE_TEXT_EDITING;
 			return;
@@ -1506,7 +1512,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				
 			case TABKEY:
 				/* there is a key conflict here, we can't tab with autocomplete */
-				if(but->autocomplete_func) {
+				if(but->autocomplete_func || data->searchbox) {
 					changed= ui_textedit_autocomplete(C, but, data);
 					retval= WM_UI_HANDLER_BREAK;
 				}
@@ -4103,7 +4109,7 @@ static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlo
 	uiBlock *block;
 	uiHandleButtonData *data;
 	uiPopupBlockHandle *submenu;
-	int mx, my;
+	int mx, my, update;
 
 	ar= menu->region;
 	block= ar->uiblocks.first;
@@ -4121,14 +4127,16 @@ static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlo
 				menu->butretval= data->retval;
 			}
 		}
-		else if(submenu->menuretval == UI_RETURN_UPDATE)
+
+		update= (submenu->menuretval == UI_RETURN_UPDATE);
+		if(update)
 			menu->menuretval = UI_RETURN_UPDATE;
 
 		/* now let activated button in this menu exit, which
 		 * will actually close the submenu too */
 		ui_handle_button_return_submenu(C, event, but);
 
-		if(submenu->menuretval == UI_RETURN_UPDATE)
+		if(update)
 			submenu->menuretval = 0;
 	}
 

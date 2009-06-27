@@ -77,13 +77,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		if con.target and subtargets:
 			if con.target.type == "ARMATURE":
-				layout.itemR(con, "subtarget", text="Bone") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target.data, "bones", text="Bone")
 				
-				row = layout.row()
-				row.itemL(text="Head/Tail:")
-				row.itemR(con, "head_tail", text="")
+				if con.type == 'COPY_LOCATION':
+					row = layout.row()
+					row.itemL(text="Head/Tail:")
+					row.itemR(con, "head_tail", text="")
 			elif con.target.type in ("MESH", "LATTICE"):
-				layout.itemR(con, "subtarget", text="Vertex Group") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 	
 	def child_of(self, layout, con):
 		self.target_template(layout, con)

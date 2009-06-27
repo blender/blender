@@ -273,16 +273,8 @@ class IMAGE_HT_header(bpy.types.Header):
 				row.itemR(settings, "snap_mode", text="")
 
 			"""
-			/* uv layers */
-			{
-				Object *obedit= CTX_data_edit_object(C);
-				char menustr[34*MAX_MTFACE];
-				static int act;
-				
-				image_menu_uvlayers(obedit, menustr, &act);
-
-				but = uiDefButI(block, MENU, B_NOP, menustr ,xco,yco,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing.");
-				// uiButSetFunc(but, do_image_buttons_set_uvlayer_callback, &act, NULL);
+			mesh = context.edit_object.data
+			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_layers")
 			"""
 
 		if ima:

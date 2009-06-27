@@ -435,6 +435,8 @@ struct uiSearchItems {
 	char **names;
 	void **pointers;
 	int *icons;
+
+	AutoComplete *autocpl;
 };
 
 typedef struct uiSearchboxData {
@@ -451,6 +453,11 @@ typedef struct uiSearchboxData {
 /* returns zero if nothing to add */
 int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
+	/* hijack for autocomplete */
+	if(items->autocpl) {
+		autocomplete_do_name(items->autocpl, name);
+		return 1;
+	}
 	
 	if(items->totitem>=items->maxitem) {
 		items->more= 1;
@@ -622,6 +629,18 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 	ED_region_tag_redraw(ar);
 }
 
+void ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
+{
+	uiSearchboxData *data= ar->regiondata;
+
+	data->items.autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
+
+	but->search_func(C, but->search_arg, but->editstr, &data->items);
+
+	autocomplete_end(data->items.autocpl, str);
+	data->items.autocpl= NULL;
+}
+
 static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 {
 	uiSearchboxData *data= ar->regiondata;
@@ -683,7 +702,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiSearchboxData *data;
 	float aspect= but->block->aspect;
 	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy;
+	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
 	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
@@ -736,6 +755,14 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		x2f= but->x2 + 5;	/* symmetrical */
 		y2f= but->y1;
 		y1f= y2f - uiSearchBoxhHeight();
+
+		ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
+		ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
+
+		x1f += ofsx;
+		x2f += ofsx;
+		y1f += ofsy;
+		y2f += ofsy;
 	
 		/* minimal width */
 		if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary

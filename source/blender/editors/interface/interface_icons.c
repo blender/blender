@@ -927,7 +927,28 @@ void ui_id_icon_render(Scene *scene, ID *id)
 	}
 }
 
+int ui_id_icon_get(Scene *scene, ID *id)
+{
+	int iconid= 0;
+	
+	/* icon */
+	switch(GS(id->name))
+	{
+		case ID_MA: /* fall through */
+		case ID_TE: /* fall through */
+		case ID_IM: /* fall through */
+		case ID_WO: /* fall through */
+		case ID_LA: /* fall through */
+			iconid= BKE_icon_getid(id);
+			/* checks if not exists, or changed */
+			ui_id_icon_render(scene, id);
+			break;
+		default:
+			break;
+	}
 
+	return iconid;
+}
 
 static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
 {
