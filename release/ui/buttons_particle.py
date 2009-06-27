@@ -7,6 +7,7 @@ def particle_panel_enabled(psys):
 def particle_panel_poll(context):
 	psys = context.particle_system
 	if psys==None:	return False
+	if psys.settings==None:  return False
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
 class ParticleButtonsPanel(bpy.types.Panel):
@@ -29,42 +30,51 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		ob = context.object
 		psys = context.particle_system
 
-		split = layout.split(percentage=0.65)
+		if ob:
+			row = layout.row()
+
+			row.template_list(ob, "particle_systems", "active_particle_system_index")
+
+			col = row.column(align=True)
+			col.itemO("OBJECT_OT_particle_system_slot_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("OBJECT_OT_particle_system_slot_remove", icon="ICON_ZOOMOUT", text="")
 
 		if psys:
-			split.template_ID(psys, "settings")
-
-		if psys:
+			split = layout.split(percentage=0.65)
+			
+			split.template_ID(psys, "settings", new="PARTICLE_OT_new")
+			
 			#row = layout.row()
 			#row.itemL(text="Viewport")
 			#row.itemL(text="Render")
 			
 			part = psys.settings
-			ptype = psys.settings.type
 			
-			if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
-				layout.itemL(text="No settings for fluid particles")
-				return
+			if part:
+				ptype = psys.settings.type
+				if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
+					layout.itemL(text="No settings for fluid particles")
+					return
+					
+				split = layout.split(percentage=0.65)
 				
-			split = layout.split(percentage=0.65)
-			
-			split.enabled = particle_panel_enabled(psys)
-			split.itemR(part, "type")
-			split.itemR(psys, "seed")
-			
-			split = layout.split(percentage=0.65)
-			if part.type=='HAIR':
-				if psys.editable==True:
-					split.itemO("PARTICLE_OT_editable_set", text="Free Edit")
-				else:
-					split.itemO("PARTICLE_OT_editable_set", text="Make Editable")
-				row = split.row()
-				row.enabled = particle_panel_enabled(psys)
-				row.itemR(part, "hair_step")
-			elif part.type=='REACTOR':
 				split.enabled = particle_panel_enabled(psys)
-				split.itemR(psys, "reactor_target_object")
-				split.itemR(psys, "reactor_target_particle_system", text="Particle System")
+				split.itemR(part, "type")
+				split.itemR(psys, "seed")
+				
+				split = layout.split(percentage=0.65)
+				if part.type=='HAIR':
+					if psys.editable==True:
+						split.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+					else:
+						split.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+					row = split.row()
+					row.enabled = particle_panel_enabled(psys)
+					row.itemR(part, "hair_step")
+				elif part.type=='REACTOR':
+					split.enabled = particle_panel_enabled(psys)
+					split.itemR(psys, "reactor_target_object")
+					split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_emission"
@@ -120,6 +130,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 	def poll(self, context):
 		psys = context.particle_system
 		if psys==None:	return False
+		if psys.settings==None:  return False
 		return psys.settings.type in ('EMITTER', 'REACTOR')
 
 	def draw(self, context):
@@ -287,7 +298,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 	__label__ = "Render"
 	
 	def poll(self, context):
-		return (context.particle_system != None)
+		psys = context.particle_system
+		if psys==None: return False
+		if psys.settings==None: return False
+		return True;
 		
 	def draw(self, context):
 		layout = self.layout
@@ -421,7 +435,10 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 	__default_closed__ = True
 	
 	def poll(self, context):
-		return (context.particle_system != None)
+		psys = context.particle_system
+		if psys==None: return False
+		if psys.settings==None: return False
+		return True;
 	
 	def draw(self, context):
 		layout = self.layout

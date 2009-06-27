@@ -81,13 +81,11 @@ static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 
 		if(ob) {
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
 		}
 	}
 	else {
 		part = ptr->id.data;
 		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
-		//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
 	}
 }
 
@@ -104,13 +102,11 @@ static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
 
 		if(ob) {
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
 		}
 	}
 	else {
 		part = ptr->id.data;
 		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
-		//WM_event_add_notifier(C, NC_SCENE|ND_CACHE_PHYSICS, scene);
 	}
 }
 
@@ -133,6 +129,27 @@ static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 
 		psys_flush_particle_settings(scene, part, PSYS_RECALC_CHILD);
 	}
+}
+static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ParticleSettings *part = psys_get_current(ob)->part;
+
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
+}
+
+static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ParticleSystem *psys = psys_get_current(ob);
+
+	if(psys->part)
+		psys->part->id.us--;
+
+	psys->part = (ParticleSettings *)value.data;
+
+	if(psys->part)
+		psys->part->id.us++;
 }
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
@@ -1493,9 +1510,15 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
 
+	/* access to particle settings is redirected through functions */
+	/* to allow proper id-buttons functionality */
 	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "part");
+	//RNA_def_property_pointer_sdna(prop, NULL, "part");
+	RNA_def_property_struct_type(prop, "ParticleSettings");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL);
 	RNA_def_property_ui_text(prop, "Settings", "Particle system settings.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "particles", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "particles", "totpart");

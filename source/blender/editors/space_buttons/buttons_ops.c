@@ -42,6 +42,7 @@
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
@@ -407,3 +408,109 @@ void WORLD_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+
+/********************** particle system slot operators *********************/
+
+static int particle_system_slot_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene = CTX_data_scene(C);
+
+	if(!scene || !ob)
+		return OPERATOR_CANCELLED;
+
+	object_add_particle_system_slot(scene, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_particle_system_slot_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Particle System Slot";
+	ot->idname= "OBJECT_OT_particle_system_slot_add";
+	
+	/* api callbacks */
+	ot->exec= particle_system_slot_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int particle_system_slot_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene = CTX_data_scene(C);
+
+	if(!scene || !ob)
+		return OPERATOR_CANCELLED;
+
+	object_remove_particle_system_slot(scene, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_particle_system_slot_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Particle System Slot";
+	ot->idname= "OBJECT_OT_particle_system_slot_remove";
+	
+	/* api callbacks */
+	ot->exec= particle_system_slot_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** new particle settings operator *********************/
+
+static int new_particle_settings_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ParticleSettings *part= CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings).data;
+	Object *ob;
+	PointerRNA ptr;
+
+	/* add or copy particle setting */
+	if(part)
+		part= psys_copy_settings(part);
+	else
+		part= psys_new_settings("PSys", NULL);
+
+	/* attempt to assign to material slot */
+	ptr= CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+
+	if(ptr.data) {
+		ParticleSystem *psys = (ParticleSystem*)ptr.data;
+		ob= ptr.id.data;
+
+		if(psys->part)
+			psys->part->id.us--;
+
+		psys->part = part;
+
+		DAG_scene_sort(scene);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Particle Settings";
+	ot->idname= "PARTICLE_OT_new";
+	
+	/* api callbacks */
+	ot->exec= new_particle_settings_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

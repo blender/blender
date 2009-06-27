@@ -6295,6 +6295,9 @@ CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData 
 	MTex *mtex;
 	int i;
 
+	if(!psmd->psys->part)
+		return 0;
+
 	ma= give_current_material(ob, psmd->psys->part->omat);
 	if(ma) {
 		for(i=0; i<MAX_MTEX; i++) {
