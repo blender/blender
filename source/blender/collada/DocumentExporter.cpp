@@ -584,18 +584,18 @@ public:
 	void operator()(Material *ma)
 	{
 		openEffect(std::string(ma->id.name) + "-effect");
-
+		
 		COLLADASW::EffectProfile ep(mSW);
 		
 		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
-			
+		
 		std::vector<int> mtexindices = countmtex(ma);
 		
-		for (int a = 0; a < mtexindices.size(); a++){
+		//for (int a = 0; a < mtexindices.size(); a++) {
 			
 			//open <profile_common>
-			ep.openProfile();
-			
+		ep.openProfile();
+			/*
 			//need this for making each texcoord unique
 			char texcoord[30];
 			sprintf(texcoord, "%d", a);
@@ -607,31 +607,94 @@ public:
 			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
 			sio.setImageReference(ima->id.name);
 			surface.setInitOption(sio);
-
+			
 			//<newparam> <sampler> <source>
 			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
 									   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-
+			
 			//<lambert> <diffuse> <texture>	
 			COLLADASW::Texture texture(ima->id.name);
 			texture.setTexcoord(std::string("myUVs") + texcoord);
 			texture.setSurface(surface);
 			texture.setSampler(sampler);
-
+			
 			//<texture>
 			COLLADASW::ColorOrTexture cot(texture);
-			ep.setDiffuse(cot, true, "");
+			ep.setDiffuse(cot);
+			*/
+		if (ma->spec_shader == MA_SPEC_BLINN) {
+			ep.setShaderType(COLLADASW::EffectProfile::BLINN);
+		}
+		else if (ma->spec_shader == MA_SPEC_PHONG) {
+			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
+		}
+		else {
+			// XXX write error 
 			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
-
-			//performs the actual writing
-			ep.addProfileElements();
-			ep.closeProfile();
-				
 		}
 			
+		// emission 
+		COLLADASW::ColorOrTexture cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+		ep.setEmission(cot_col);
+		
+		// diffuse
+		cot_col = getcol(ma->r, ma->g, ma->b, 1.0f);
+		ep.setDiffuse(cot_col);
+		
+		// ambient
+		cot_col = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
+		ep.setAmbient(cot_col);
+			
+		// reflective, reflectivity
+		if (ma->mode & MA_RAYMIRROR) {
+			cot_col = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
+			ep.setReflective(cot_col);
+			ep.setReflectivity(ma->ray_mirror);
+		}
+		else {
+			cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			ep.setReflective(cot_col);
+			ep.setReflectivity(0.0f);
+		}
+		
+		// transparent, transparency
+		if (ep.getShaderType() != COLLADASW::EffectProfile::BLINN) {
+			cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			ep.setTransparent(cot_col);
+		}
+		ep.setTransparency(ma->alpha);
+		
+		// index of refraction
+		if (ma->mode & MA_RAYTRANSP) {
+			ep.setIndexOfRefraction(ma->ang);
+		}
+		else {
+			ep.setIndexOfRefraction(1.0f);
+		}
+		
+		// specular, shininess, diffuse
+		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
+			ep.setShininess(ma->spec);
+			cot_col = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+			ep.setSpecular(cot_col);
+		}
+		
+		//performs the actual writing
+		ep.addProfileElements();
+		ep.closeProfile();
+		
+		//}
+		
 		closeEffect();
 	}
-
+	
+	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a)
+	{
+		COLLADASW::Color color(r,g,b,a);
+		COLLADASW::ColorOrTexture cot_col(color);
+		return cot_col;
+	}
+	
 	//returns the array of mtex indices which have image 
 	//need this for exporting textures
 	std::vector<int> countmtex(Material *ma)
