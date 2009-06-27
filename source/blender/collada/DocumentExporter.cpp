@@ -15,6 +15,8 @@ extern "C"
 #include "BKE_main.h"
 #include "BKE_material.h"
 
+#include "BLI_arithb.h"
+
 #include "DocumentExporter.h"
 
 #include <COLLADASWAsset.h>
@@ -44,9 +46,35 @@ extern "C"
 
 #include <vector>
 #include <algorithm> // std::find
+#include <math.h>
 
-// utilities to avoid code duplication
-// definition of these is difficult to read, but they should be useful
+// TODO: this can handy in BLI_arith.b
+// This function assumes that quat is normalized.
+// The following document was used as reference:
+// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+void QuatToAxisAngle(float *q, float *axis, float *angle)
+{
+	// quat to axis angle
+	*angle = 2 * acos(q[0]);
+	float divisor = sqrt(1 - q[0] * q[0]);
+
+	// test to avoid divide by zero, divisor is always positive
+	if (divisor < 0.001f ) {
+		axis[0] = 1.0f;
+		axis[1] = 0.0f;
+		axis[2] = 0.0f;
+	}
+	else {
+		axis[0] = q[1] / divisor;
+		axis[1] = q[2] / divisor;
+		axis[2] = q[3] / divisor;
+	}
+}
+
+/*
+  Utilities to avoid code duplication.
+  Definition can take some time to understand, but they should be useful.
+*/
 
 // f should have
 // void operator()(Object* ob)
@@ -455,12 +483,20 @@ public:
 		node.start();
 
 		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
-		// XXX for rotation we need to convert ob->rot (euler, I guess) to axis/angle
-		// see http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToAngle/index.htm
-		// add it to BLI_arithb.h
-		// node.addRotate();
+
+		// when animation time comes, replace a single <rotate> with 3, one for each axis
+		float quat[4];
+		float axis[3];
+		float angle;
+		double angle_deg;
+		EulToQuat(ob->rot, quat);
+		NormalQuat(quat);
+		QuatToAxisAngle(quat, axis, &angle);
+		angle_deg = angle * 180.0f / M_PI;
+		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
+
 		node.addScale(ob->size[0], ob->size[1], ob->size[2]);
-				
+
 		COLLADASW::InstanceGeometry instGeom(mSW);
 		std::string ob_name(ob->id.name);
 		instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));

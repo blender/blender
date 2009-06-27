@@ -35,6 +35,8 @@ extern "C"
 #include "BKE_library.h"
 }
 
+#include "BLI_arithb.h"
+
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -216,7 +218,7 @@ public:
 		Scene *sce = CTX_data_scene(mContext);
 // 		Scene *sce = add_scene(visualScene->getName());
 		int i = 0;
-		
+
 		for (i = 0; i < visualScene->getRootNodes().getCount(); i++) {
 			COLLADAFW::Node *node = visualScene->getRootNodes()[i];
 
@@ -255,6 +257,10 @@ public:
 
 			set_mesh(ob, uid_mesh_map[uid]);
 
+			float rot[3][3];
+			Mat3One(rot);
+			
+			// transform Object
 			for (int k = 0; k < node->getTransformations().getCount(); k ++) {
 				COLLADAFW::Transformation *transform = node->getTransformations()[k];
 				COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
@@ -272,6 +278,20 @@ public:
 					}
 					break;
 				case COLLADAFW::Transformation::ROTATE:
+					{
+						COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)transform;
+						COLLADABU::Math::Vector3& raxis = ro->getRotationAxis();
+						float angle = (float)(ro->getRotationAngle() * M_PI / 180.0f);
+						float axis[] = {raxis[0], raxis[1], raxis[2]};
+						float quat[4];
+						float rot_copy[3][3];
+						float mat[3][3];
+						AxisAngleToQuat(quat, axis, angle);
+
+						QuatToMat3(quat, mat);
+						Mat3CpyMat3(rot_copy, rot);
+						Mat3MulMat3(rot, rot_copy, mat);
+					}
 					break;
 				case COLLADAFW::Transformation::SCALE:
 					{
@@ -292,6 +312,8 @@ public:
 					break;
 				}
 			}
+
+			Mat3ToEul(rot, ob->rot);
 
 		}
 
