@@ -133,6 +133,27 @@ static void rna_NlaStrip_scale_set(PointerRNA *ptr, float value)
 		printf("NlaStrip Set Scale Error (in RNA): Scale = %0.4f, Repeat = %0.4f \n", data->scale, data->repeat);
 }
 
+static void rna_NlaStrip_repeat_set(PointerRNA *ptr, float value)
+{
+	NlaStrip *data= (NlaStrip*)ptr->data;
+	float actlen, mapping;
+	
+	/* set scale value */
+	CLAMP(value, 0.01f, 1000.0f); /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
+	data->repeat= value;
+	
+	/* calculate existing factors */
+	actlen= data->actend - data->actstart;
+	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	mapping= data->scale * data->repeat;
+	
+	/* adjust endpoint of strip in response to this */
+	if (IS_EQ(mapping, 0.0f) == 0)
+		data->end = (actlen * mapping) + data->start; 
+	else
+		printf("NlaStrip Set Repeat Error (in RNA): Scale = %0.4f, Repeat = %0.4f \n", data->scale, data->repeat);
+}
+
 static void rna_NlaStrip_blend_in_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
@@ -265,7 +286,8 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* Action Reuse */
 	prop= RNA_def_property(srna, "repeat", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "repeat"); 
-	RNA_def_property_range(prop, 1.0f, 1000.0f); /* these limits have currently be chosen arbitarily, but could be extended (minimum should still be > 0 though) if needed... */
+	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_repeat_set", NULL);
+	RNA_def_property_range(prop, 0.1f, 1000.0f); /* these limits have currently be chosen arbitarily, but could be extended (minimum should still be > 0 though) if needed... */
 	RNA_def_property_ui_text(prop, "Repeat", "Number of times to repeat the ");
 	
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);

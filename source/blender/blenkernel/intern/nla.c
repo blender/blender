@@ -331,7 +331,7 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
  */
 static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short invert)
 {
-	float length, actlength, repeat, scale;
+	float actlength, repeat, scale;
 	
 	/* get number of repeats */
 	if (IS_EQ(strip->repeat, 0.0f)) strip->repeat = 1.0f;
@@ -345,24 +345,46 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 	actlength = strip->actend - strip->actstart;
 	if (IS_EQ(actlength, 0.0f)) actlength = 1.0f;
 	
-	/* length of strip */
-	length= actlength * scale * repeat;
-	if (IS_EQ(length, 0.0f)) length= strip->end - strip->start;
-	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
 		/* invert = convert action-strip time to global time */
 		if (invert)
-			return length*(strip->actend - cframe)/(repeat*actlength) + strip->start;
-		else
-			return strip->actend - repeat*actlength*(cframe - strip->start)/length;
+			return scale*(strip->actend - cframe) + strip->start; // FIXME: this doesn't work for multiple repeats yet
+		else {
+			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
+				/* this case prevents the motion snapping back to the first frame at the end of the strip 
+				 * by catching the case where repeats is a whole number, which means that the end of the strip
+				 * could also be interpreted as the end of the start of a repeat
+				 */
+				return strip->actstart;
+			}
+			else {
+				/* - the 'fmod(..., actlength*scale)' is needed to get the repeats working
+				 * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+				 */
+				return strip->actend - fmod(cframe - strip->start, actlength*scale) / scale; 
+			}
+		}
 	}
 	else {
 		/* invert = convert action-strip time to global time */
 		if (invert)
-			return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-		else
-			return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
+			return scale*(cframe - strip->actstart) + strip->start; // FIXME: this doesn't work for mutiple repeats yet
+		else {
+			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
+				/* this case prevents the motion snapping back to the first frame at the end of the strip 
+				 * by catching the case where repeats is a whole number, which means that the end of the strip
+				 * could also be interpreted as the end of the start of a repeat
+				 */
+				return strip->actend;
+			}
+			else {
+				/* - the 'fmod(..., actlength*scale)' is needed to get the repeats working
+				 * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+				 */
+				return strip->actstart + fmod(cframe - strip->start, actlength*scale) / scale; 
+			}
+		}
 	}
 }
 
