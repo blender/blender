@@ -1075,19 +1075,6 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same color */
-			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1210,6 +1197,13 @@ void init_userdef_do_versions(void)
 			/* Graph Editor - Group Channel color */
 			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
 			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
+			
+			/* Nla Editor - (Object) Channel color */
+			SETCOL(btheme->tnla.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tnla.ds_subchannel,	124, 137, 150, 255);
+			/* NLA Editor - New Strip colors */
+			SETCOL(btheme->tnla.strip, 			12, 10, 10, 128); 
+			SETCOL(btheme->tnla.strip_select, 	255, 140, 0, 255);
 		}
 		
 		/* adjust grease-pencil distances */
