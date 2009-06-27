@@ -148,8 +148,82 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }
 
+/* ******************* */
+
+typedef struct CustomTool {
+	struct CustomTool *next, *prev;
+	char opname[OP_MAX_TYPENAME];
+} CustomTool;
+
+static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	
+	if(ot) {
+		CustomTool *ct= MEM_callocN(sizeof(CustomTool), "CustomTool");
+		
+		BLI_addtail(arg_listbase, ct);
+		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
+	}
+		
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				
+				if(0==uiSearchItemAdd(items, ot->name, ot, 0))
+					break;
+			}
+		}
+	}
+}
+
+
+/* ID Search browse menu, open */
+static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
+{
+	static char search[OP_MAX_TYPENAME];
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, OP_MAX_TYPENAME, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, operator_search_cb, arg_listbase, operator_call_cb);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+
 static void view3d_panel_tools(const bContext *C, Panel *pa)
 {
+	static ListBase tools= {NULL, NULL};
 	Object *obedit= CTX_data_edit_object(C);
 //	Object *obact = CTX_data_active_object(C);
 	uiLayout *col;
@@ -157,24 +231,20 @@ static void view3d_panel_tools(const bContext *C, Panel *pa)
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
 			
-			// void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDProperty *properties, int context)
-			col= uiLayoutColumn(pa->layout, 1);
-			uiItemFullO(col, NULL, 0, "MESH_OT_delete", NULL, WM_OP_INVOKE_REGION_WIN);
-			
-			col= uiLayoutColumn(pa->layout, 1);
-			uiItemFullO(col, NULL, 0, "MESH_OT_subdivide", NULL, WM_OP_INVOKE_REGION_WIN);
-			
-			col= uiLayoutColumn(pa->layout, 1);
-			uiItemFullO(col, NULL, 0, "MESH_OT_primitive_monkey_add", NULL, WM_OP_INVOKE_REGION_WIN);
-			uiItemFullO(col, NULL, 0, "MESH_OT_primitive_uv_sphere_add", NULL, WM_OP_INVOKE_REGION_WIN);
-			
-			col= uiLayoutColumn(pa->layout, 1);
-			uiItemFullO(col, NULL, 0, "MESH_OT_select_all_toggle", NULL, WM_OP_INVOKE_REGION_WIN);
-			
 			col= uiLayoutColumn(pa->layout, 1);
 			uiItemFullO(col, NULL, 0, "MESH_OT_spin", NULL, WM_OP_INVOKE_REGION_WIN);
 			uiItemFullO(col, NULL, 0, "MESH_OT_screw", NULL, WM_OP_INVOKE_REGION_WIN);
 			
+			if(tools.first) {
+				CustomTool *ct;
+				
+				for(ct= tools.first; ct; ct= ct->next) {
+					col= uiLayoutColumn(pa->layout, 1);
+					uiItemFullO(col, NULL, 0, ct->opname, NULL, WM_OP_INVOKE_REGION_WIN);
+				}
+			}
+			col= uiLayoutColumn(pa->layout, 1);
+			uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &tools, "Add Operator", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add tool");
 		}
 	}
 	else {

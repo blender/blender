@@ -388,7 +388,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mesh";
+	ot->name= "Add Mesh";
 	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
@@ -462,7 +462,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Curve";
+	ot->name= "Add Curve";
 	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
@@ -520,7 +520,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Surface";
+	ot->name= "Add Surface";
 	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
@@ -557,7 +557,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Text";
+	ot->name= "Add Text";
 	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
@@ -602,7 +602,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Armature";
+	ot->name= "Add Armature";
 	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
