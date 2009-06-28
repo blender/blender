@@ -728,21 +728,28 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 }
 
 /* create single icon from jpg, png etc. */
-static void icon_from_image(Image *img, int miplevel)
+static void icon_from_image(Scene *scene, Image *img, int miplevel)
 {
+	ImBuf *ibuf= NULL;
+	ImageUser iuser;
+	PreviewImage *pi;
 	unsigned int pr_size;
 	short image_loaded = 0;
-	struct ImBuf* ibuf=NULL;
-	PreviewImage* pi;
 
 	/* img->ok is zero when Image cannot load */
 	if (img==NULL || img->ok==0)
 		return;
 
+	/* setup dummy image user */
+	memset(&iuser, 0, sizeof(ImageUser));
+	iuser.ok= iuser.framenr= 1;
+	iuser.scene= scene;
+	
 	/* elubie: this needs to be changed: here image is always loaded if not
 	   already there. Very expensive for large images. Need to find a way to 
 	   only get existing ibuf */
-	ibuf = BKE_image_get_ibuf(img, NULL);
+	
+	ibuf = BKE_image_get_ibuf(img, &iuser);
 	if(ibuf==NULL || ibuf->rect==NULL) {
 		return;
 	}
@@ -788,7 +795,7 @@ static void icon_set_image(Scene *scene, ID *id, PreviewImage* prv_img, int mipl
 	/* no drawing (see last parameter doDraw, just calculate preview image 
 		- hopefully small enough to be fast */
 	if (GS(id->name) == ID_IM)
-		icon_from_image((struct Image*)id, miplevel);
+		icon_from_image(scene, (struct Image*)id, miplevel);
 	else {	
 		/* create the preview rect */
 		icon_create_mipmap(prv_img, miplevel);
