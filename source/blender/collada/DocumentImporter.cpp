@@ -351,7 +351,7 @@ public:
 		}
 
 		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeom;
-
+		
 		// first check if we can import this mesh
 		COLLADAFW::MeshPrimitiveArray& prim_arr = cmesh->getMeshPrimitives();
 
@@ -363,7 +363,7 @@ public:
 			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
 
 			const char *type_str = primTypeToStr(type);
-
+			
 			// OpenCollada passes POLYGONS type for <polylist>
 			if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 
