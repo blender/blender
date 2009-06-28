@@ -49,8 +49,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
-			PyTypeObject* T)
+			class KX_Scene* kxscene)
 
 			: KX_NearSensor(
 				eventmgr,
@@ -61,8 +60,8 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				bFindMaterial,
 				touchedpropname,
 				kxscene,
-				physCtrl,
-				T),
+				physCtrl),
+
 				m_coneradius(coneradius),
 				m_coneheight(coneheight),
 				m_axis(axis)
@@ -246,20 +245,15 @@ PyTypeObject KX_RadarSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_RadarSensor::Parents[] = {
-	&KX_RadarSensor::Type,
-	&KX_NearSensor::Type,
-	&KX_TouchSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&KX_NearSensor::Type
 };
 
 PyMethodDef KX_RadarSensor::Methods[] = {
@@ -283,16 +277,3 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-PyObject* KX_RadarSensor::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_NearSensor);
-}
-
-PyObject* KX_RadarSensor::py_getattro_dict() {
-	py_getattro_dict_up(KX_NearSensor);
-}
-
-int KX_RadarSensor::py_setattro(PyObject *attr, PyObject* value)
-{
-	py_setattro_up(KX_NearSensor);
-}

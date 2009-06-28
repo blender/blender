@@ -86,10 +86,8 @@ static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
 
 KX_GameObject::KX_GameObject(
 	void* sgReplicationInfo,
-	SG_Callbacks callbacks,
-	PyTypeObject* T
-) : 
-	SCA_IObject(T),
+	SG_Callbacks callbacks)
+	: SCA_IObject(),
 	m_bDyna(false),
 	m_layer(0),
 	m_pBlenderObject(NULL),
@@ -1674,24 +1672,15 @@ PyTypeObject KX_GameObject::Type = {
 		&Sequence,
 		&Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
 		0,
-		Py_TPFLAGS_DEFAULT,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
-		Methods
-};
-
-
-
-
-
-
-PyParentObject KX_GameObject::Parents[] = {
-	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
+		Methods,
+		0,
+		0,
+		&SCA_IObject::Type
 };
 
 PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1922,7 +1911,7 @@ PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIB
 #ifdef USE_MATHUTILS
 	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
 #else
-	return PyObjectFrom(self->NodeGetLocalScale());
+	return PyObjectFrom(self->NodeGetLocalScaling());
 #endif
 }
 
@@ -2046,128 +2035,6 @@ PyObject* KX_GameObject::pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_
 	Py_INCREF(self->m_attr_dict);
 	return self->m_attr_dict;
 }
-
-/* We need these because the macros have a return in them */
-PyObject* KX_GameObject::py_getattro__internal(PyObject *attr)
-{
-	py_getattro_up(SCA_IObject);
-}
-
-int KX_GameObject::py_setattro__internal(PyObject *attr, PyObject *value)	// py_setattro method
-{
-	py_setattro_up(SCA_IObject);
-}
-
-
-PyObject* KX_GameObject::py_getattro(PyObject *attr)
-{
-	PyObject *object= py_getattro__internal(attr);
-	
-	if (object==NULL && m_attr_dict)
-	{
-		/* backup the exception incase the attr doesnt exist in the dict either */
-		PyObject *err_type, *err_value, *err_tb;
-		PyErr_Fetch(&err_type, &err_value, &err_tb);
-		
-		object= PyDict_GetItem(m_attr_dict, attr);
-		if (object) {
-			Py_INCREF(object);
-			
-			PyErr_Clear();
-			Py_XDECREF( err_type );
-			Py_XDECREF( err_value );
-			Py_XDECREF( err_tb );
-		}
-		else {
-			PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
-		}
-	}
-	return object;
-}
-
-PyObject* KX_GameObject::py_getattro_dict() {
-	//py_getattro_dict_up(SCA_IObject);
-	PyObject *dict= py_getattr_dict(SCA_IObject::py_getattro_dict(), Type.tp_dict);
-	if(dict==NULL)
-		return NULL;
-	
-	/* normally just return this but KX_GameObject has some more items */
-
-	
-	/* Not super fast getting as a list then making into dict keys but its only for dir() */
-	PyObject *list= ConvertKeysToPython();
-	if(list)
-	{
-		int i;
-		for(i=0; i<PyList_Size(list); i++)
-			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
-	}
-	else
-		PyErr_Clear();
-	
-	Py_DECREF(list);
-	
-	/* Add m_attr_dict if we have it */
-	if(m_attr_dict)
-		PyDict_Update(dict, m_attr_dict);
-	
-	return dict;
-}
-
-int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
-{
-	int ret= py_setattro__internal(attr, value);
-	
-	if (ret==PY_SET_ATTR_SUCCESS) {
-		/* remove attribute in our own dict to avoid double ups */
-		/* NOTE: Annoying that we also do this for setting builtin attributes like mass and visibility :/ */
-		if (m_attr_dict) {
-			if (PyDict_DelItem(m_attr_dict, attr) != 0)
-				PyErr_Clear();
-		}
-	}
-	
-	if (ret==PY_SET_ATTR_COERCE_FAIL) {
-		/* CValue attribute exists, remove CValue and add PyDict value */
-		RemoveProperty(PyString_AsString(attr));
-		ret= PY_SET_ATTR_MISSING;
-	}
-	
-	if (ret==PY_SET_ATTR_MISSING) {
-		/* Lazy initialization */
-		if (m_attr_dict==NULL)
-			m_attr_dict = PyDict_New();
-		
-		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
-			PyErr_Clear();
-			ret= PY_SET_ATTR_SUCCESS;
-		}
-		else {
-			PyErr_Format(PyExc_AttributeError, "gameOb.myAttr = value: KX_GameObject, failed assigning value to internal dictionary");
-			ret= PY_SET_ATTR_FAIL;
-		}
-	}
-	
-	return ret;	
-}
-
-
-int	KX_GameObject::py_delattro(PyObject *attr)
-{
-	ShowDeprecationWarning("del ob.attr", "del ob['attr'] for user defined properties");
-	
-	char *attr_str= PyString_AsString(attr); 
-	
-	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
-		return PY_SET_ATTR_SUCCESS;
-	
-	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
-		return PY_SET_ATTR_SUCCESS;
-	
-	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
-	return PY_SET_ATTR_MISSING;
-}
-
 
 PyObject* KX_GameObject::PyApplyForce(PyObject* args)
 {

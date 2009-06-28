@@ -48,9 +48,8 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 									 const STR_String& propname,
 									 const STR_String& propval,
 									 const STR_String& propmaxval,
-									 KX_PROPSENSOR_TYPE checktype,
-									 PyTypeObject* T )
-	: SCA_ISensor(gameobj,eventmgr,T),
+									 KX_PROPSENSOR_TYPE checktype)
+	: SCA_ISensor(gameobj,eventmgr),
 	  m_checktype(checktype),
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
@@ -320,18 +319,15 @@ PyTypeObject SCA_PropertySensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_PropertySensor::Parents[] = {
-	&SCA_PropertySensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
@@ -352,19 +348,6 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
 	{ NULL }	//Sentinel
 };
-
-
-PyObject* SCA_PropertySensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_PropertySensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_PropertySensor::py_setattro(PyObject *attr, PyObject *value) {
-	py_setattro_up(SCA_ISensor);
-}
 
 /* 1. getType */
 const char SCA_PropertySensor::GetType_doc[] = 

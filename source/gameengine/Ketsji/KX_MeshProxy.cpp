@@ -63,17 +63,15 @@ PyTypeObject KX_MeshProxy::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_MeshProxy::Parents[] = {
-	&KX_MeshProxy::Type,
-	&CValue::Type,
-	&PyObjectPlus::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type
 };
 
 PyMethodDef KX_MeshProxy::Methods[] = {
@@ -106,24 +104,8 @@ void KX_MeshProxy::SetMeshModified(bool v)
 	m_meshobj->SetMeshModified(v);
 }
 
-
-PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
-{
- 	py_getattro_up(CValue);
-}
-
-PyObject* KX_MeshProxy::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
-{
-	py_setattro_up(CValue);
-}
-
-
 KX_MeshProxy::KX_MeshProxy(RAS_MeshObject* mesh)
-	: CValue(&Type), m_meshobj(mesh)
+	: CValue(), m_meshobj(mesh)
 {
 }
 

@@ -63,9 +63,8 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int focusmode,
 										 KX_Scene* kxscene,
 										 KX_KetsjiEngine *kxengine,
-										 SCA_IObject* gameobj, 
-										 PyTypeObject* T)
-    : SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj, T),
+										 SCA_IObject* gameobj)
+	: SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj),
 	  m_focusmode(focusmode),
 	  m_kxscene(kxscene),
 	  m_kxengine(kxengine)
@@ -357,19 +356,15 @@ PyTypeObject KX_MouseFocusSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_MouseFocusSensor::Parents[] = {
-	&KX_MouseFocusSensor::Type,
-	&SCA_MouseSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_MouseSensor::Type
 };
 
 PyMethodDef KX_MouseFocusSensor::Methods[] = {
@@ -392,15 +387,6 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("hitNormal",		KX_MouseFocusSensor, pyattr_get_hit_normal),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_MouseFocusSensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_MouseSensor);
-}
-
-PyObject* KX_MouseFocusSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_MouseSensor);
-}
-
 
 const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"

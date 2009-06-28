@@ -49,9 +49,8 @@
 SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr, 
 								 int startx,int starty,
 								 short int mousemode,
-								 SCA_IObject* gameobj, 
-								 PyTypeObject* T)
-    : SCA_ISensor(gameobj,eventmgr, T),
+								 SCA_IObject* gameobj)
+    : SCA_ISensor(gameobj,eventmgr),
 	m_pMouseMgr(eventmgr),
 	m_x(startx),
 	m_y(starty)
@@ -313,18 +312,15 @@ PyTypeObject SCA_MouseSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_MouseSensor::Parents[] = {
-	&SCA_MouseSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
@@ -341,19 +337,5 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	KX_PYATTRIBUTE_SHORT_LIST_RO("position",SCA_MouseSensor,m_x,2),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_MouseSensor::py_getattro(PyObject *attr) 
-{
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_MouseSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_MouseSensor::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ISensor);
-}
 
 /* eof */

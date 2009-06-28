@@ -51,12 +51,9 @@
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 							   class RAS_IRenderTools* rendertools,
 							   const RAS_LightObject&	lightobj,
-							   bool glsl,
-							   PyTypeObject* T
-							   )
- :
-	KX_GameObject(sgReplicationInfo,callbacks,T),
-		m_rendertools(rendertools)
+							   bool glsl)
+	: KX_GameObject(sgReplicationInfo,callbacks),
+	  m_rendertools(rendertools)
 {
 	m_lightobj = lightobj;
 	m_lightobj.m_scene = sgReplicationInfo;
@@ -271,11 +268,6 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 /* Python Integration Hooks					                                 */
 /* ------------------------------------------------------------------------- */
 
-PyObject* KX_LightObject::py_getattro_dict() {
-	py_getattro_dict_up(KX_GameObject);
-}
-
-
 PyTypeObject KX_LightObject::Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -297,20 +289,15 @@ PyTypeObject KX_LightObject::Type = {
 		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
 		0,
-		Py_TPFLAGS_DEFAULT,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject KX_LightObject::Parents[] = {
-	&KX_LightObject::Type,
-	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
+		Methods,
+		0,
+		0,
+		&KX_GameObject::Type
 };
 
 PyMethodDef KX_LightObject::Methods[] = {
@@ -400,15 +387,4 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 	}
 
 	return PY_SET_ATTR_SUCCESS;
-}
-
-
-PyObject* KX_LightObject::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_GameObject);
-}
-
-int KX_LightObject::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(KX_GameObject);
 }

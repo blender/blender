@@ -42,10 +42,9 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
 					 bool frustum_culling,
-					 bool delete_node,
-					 PyTypeObject *T)
+					 bool delete_node)
 					:
-					KX_GameObject(sgReplicationInfo,callbacks,T),
+					KX_GameObject(sgReplicationInfo,callbacks),
 					m_camdata(camdata),
 					m_dirty(true),
 					m_normalized(false),
@@ -551,40 +550,16 @@ PyTypeObject KX_Camera::Type = {
 		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
 		0,
-		Py_TPFLAGS_DEFAULT,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
-		Methods
+		Methods,
+		0,
+		0,
+		&KX_GameObject::Type
 };
-
-
-
-
-
-
-PyParentObject KX_Camera::Parents[] = {
-	&KX_Camera::Type,
-	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
-};
-
-PyObject* KX_Camera::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_GameObject);
-}
-
-PyObject* KX_Camera::py_getattro_dict() {
-	py_getattro_dict_up(KX_GameObject);
-}
-
-int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
-{	
-	py_setattro_up(KX_GameObject);
-}
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 "sphereInsideFrustum(center, radius) -> Integer\n"

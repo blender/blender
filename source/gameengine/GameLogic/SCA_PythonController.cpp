@@ -47,10 +47,8 @@
 SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 
 
-SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
-										   int mode,
-										   PyTypeObject* T)
-	: SCA_IController(gameobj, T),
+SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj, int mode)
+	: SCA_IController(gameobj),
 	m_bytecode(NULL),
 	m_function(NULL),
 	m_function_argc(0),
@@ -246,18 +244,17 @@ PyTypeObject SCA_PythonController::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_IController::Type
 };
 
-PyParentObject SCA_PythonController::Parents[] = {
-	&SCA_PythonController::Type,
-	&SCA_IController::Type,
-	&CValue::Type,
-	NULL
-};
 PyMethodDef SCA_PythonController::Methods[] = {
 	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
 	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
@@ -490,22 +487,6 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentController = NULL;
 }
 
-
-
-PyObject* SCA_PythonController::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IController);
-}
-
-PyObject* SCA_PythonController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IController);
-}
-
-int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IController);
-}
-
 PyObject* SCA_PythonController::PyActivate(PyObject *value)
 {
 	if(m_sCurrentController != this) {
@@ -565,9 +546,14 @@ PyObject* SCA_PythonController::PySetScript(PyObject* value)
 
 PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
+	//SCA_PythonController* self= static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
+	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)
+
 	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
 	return PyString_FromString(self->m_scriptText);
 }
+
+
 
 int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {

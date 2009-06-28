@@ -189,8 +189,7 @@ public:
 
 	KX_GameObject(
 		void* sgReplicationInfo,
-		SG_Callbacks callbacks,
-		PyTypeObject* T=&Type
+		SG_Callbacks callbacks
 	);
 
 	virtual 
@@ -808,22 +807,10 @@ public:
 	/**
 	 * @section Python interface functions.
 	 */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
-	virtual int				py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void)
 	{
 		return PyString_FromString(GetName().ReadPtr());
 	}
-	
-	
-	/* quite annoying that we need these but the bloody 
-	 * py_getattro_up and py_setattro_up macro's have a returns in them! */
-	PyObject* py_getattro__internal(PyObject *attr);
-	int py_setattro__internal(PyObject *attr, PyObject *value);		// py_setattro method
-	
 		
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);

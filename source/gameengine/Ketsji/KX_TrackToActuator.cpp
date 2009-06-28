@@ -59,10 +59,8 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 									   int time,
 									   bool allow3D,
 									   int trackflag,
-									   int upflag,
-									   PyTypeObject* T)
-									   :
-										SCA_IActuator(gameobj, T)
+									   int upflag)
+									   : SCA_IActuator(gameobj)
 {
     m_time = time;
     m_allow3D = allow3D;
@@ -74,7 +72,6 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	if (m_object)
 		m_object->RegisterActuator(this);
 
-	if (gameobj->isA(&KX_GameObject::Type))
 	{
 		// if the object is vertex parented, don't check parent orientation as the link is broken
 		if (!((KX_GameObject*)gameobj)->IsVertexParent()){
@@ -451,23 +448,16 @@ PyTypeObject KX_TrackToActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
-
-
-
-PyParentObject KX_TrackToActuator::Parents[] = {
-	&KX_TrackToActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
-
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
 	// ---> deprecated
@@ -517,20 +507,6 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 	return PY_SET_ATTR_SUCCESS;
 }
 
-
-PyObject* KX_TrackToActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_TrackToActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_TrackToActuator::py_setattro(PyObject *attr, PyObject* value)
-{
-	py_setattro_up(SCA_IActuator);
-}
 
 /* 1. setObject */
 const char KX_TrackToActuator::SetObject_doc[] = 

@@ -57,7 +57,7 @@ private:
 
 	mutable int		m_pass;
 public:
-	KX_PolygonMaterial(PyTypeObject *T = &Type);
+	KX_PolygonMaterial();
 	void Initialize(const STR_String &texname,
 		Material* ma,
 		int materialindex,
@@ -116,9 +116,6 @@ public:
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setCustomMaterial);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
 
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	virtual PyObject* py_repr(void) { return PyString_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
 	
 	static PyObject*	pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

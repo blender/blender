@@ -35,10 +35,9 @@
 
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 
-SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj)
 	:
-	CValue(T),
+	CValue(),
 	m_gameobj(gameobj),
 	m_Execute_Priority(0),
 	m_Execute_Ueber_Priority(0),
@@ -195,21 +194,16 @@ PyTypeObject SCA_ILogicBrick::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type
 };
-
-
-
-PyParentObject SCA_ILogicBrick::Parents[] = {
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
-};
-
-
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
 	// --> Deprecated
@@ -244,21 +238,6 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 	}
 	return 0;
 }
-
-PyObject* SCA_ILogicBrick::py_getattro(PyObject *attr)
-{
-  py_getattro_up(CValue);
-}
-
-PyObject* SCA_ILogicBrick::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(CValue);
-}
-
 
 PyObject* SCA_ILogicBrick::PyGetOwner()
 {

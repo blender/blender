@@ -50,10 +50,9 @@ KX_NetworkMessageSensor::KX_NetworkMessageSensor(
 	class KX_NetworkEventManager* eventmgr,	// our eventmanager
 	class NG_NetworkScene *NetworkScene,	// our scene
 	SCA_IObject* gameobj,					// the sensor controlling object
-	const STR_String &subject,
-	PyTypeObject* T
+	const STR_String &subject
 ) :
-    SCA_ISensor(gameobj,eventmgr,T),
+    SCA_ISensor(gameobj,eventmgr),
     m_Networkeventmgr(eventmgr),
     m_NetworkScene(NetworkScene),
     m_subject(subject),
@@ -183,18 +182,15 @@ PyTypeObject KX_NetworkMessageSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_NetworkMessageSensor::Parents[] = {
-	&KX_NetworkMessageSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef KX_NetworkMessageSensor::Methods[] = {
@@ -225,18 +221,6 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("subjects", KX_NetworkMessageSensor, pyattr_get_subjects),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* KX_NetworkMessageSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {
-	return SCA_ISensor::py_setattro(attr, value);
-}
 
 PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

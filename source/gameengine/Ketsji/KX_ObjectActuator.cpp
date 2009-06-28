@@ -53,10 +53,9 @@ KX_ObjectActuator(
 	const MT_Vector3& linV,
 	const MT_Vector3& angV,
 	const short damping,
-	const KX_LocalFlags& flag,
-	PyTypeObject* T
+	const KX_LocalFlags& flag
 ) : 
-	SCA_IActuator(gameobj,T),
+	SCA_IActuator(gameobj),
 	m_force(force),
 	m_torque(torque),
 	m_dloc(dloc),
@@ -343,18 +342,15 @@ PyTypeObject KX_ObjectActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_ObjectActuator::Parents[] = {
-	&KX_ObjectActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
 PyMethodDef KX_ObjectActuator::Methods[] = {
@@ -413,20 +409,6 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("reference", KX_ObjectActuator,pyattr_get_reference,pyattr_set_reference),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-
-PyObject* KX_ObjectActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_ObjectActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
-}
 
 /* Attribute get/set functions */
 

@@ -113,8 +113,8 @@ bool BL_Shader::Ok()const
 	return (mShader !=0 && mOk && mUse);
 }
 
-BL_Shader::BL_Shader(PyTypeObject *T)
-:	PyObjectPlus(T),
+BL_Shader::BL_Shader()
+:	PyObjectPlus(),
 	mShader(0),
 	mPass(1),
 	mOk(0),
@@ -728,17 +728,6 @@ void BL_Shader::SetUniform(int uniform, const int* val, int len)
 	}
 }
 
-
-PyObject* BL_Shader::py_getattro(PyObject *attr)
-{
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* BL_Shader::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-
 PyMethodDef BL_Shader::Methods[] = 
 {
 	// creation
@@ -793,19 +782,16 @@ PyTypeObject BL_Shader::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&PyObjectPlus::Type
 };
-
-
-PyParentObject BL_Shader::Parents[] = {
-	&BL_Shader::Type,
-	&PyObjectPlus::Type,
-	NULL
-};
-
 
 KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProgram)" )
 {

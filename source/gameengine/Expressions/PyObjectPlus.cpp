@@ -75,10 +75,15 @@ PyTypeObject PyObjectPlus::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	NULL // no subtype
 };
 
 
@@ -105,9 +110,8 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 	PyObject_DEL( self );
 };
 
-PyObjectPlus::PyObjectPlus(PyTypeObject *T) : SG_QList()				// constructor
+PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
 {
-	MT_assert(T != NULL);
 	m_proxy= NULL;
 };
   
@@ -115,77 +119,20 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) : SG_QList()				// constructor
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPyisA,			METH_O},
   {NULL, NULL}		/* Sentinel */
 };
 
+#define attr_invalid (&(PyObjectPlus::Attributes[0]))
 PyAttributeDef PyObjectPlus::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("invalid",		PyObjectPlus, pyattr_get_invalid),
 	{NULL} //Sentinel
 };
 
+
+
 PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {	
-	Py_RETURN_FALSE;
-}
-
-/*------------------------------
- * PyObjectPlus Parents		-- Every class, even the abstract one should have parents
-------------------------------*/
-PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
-
-/*------------------------------
- * PyObjectPlus attributes	-- attributes
-------------------------------*/
-
-
-/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
-PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
-{
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
-		if(!strcmp("invalid", PyString_AsString(attr))) {
-			Py_RETURN_TRUE;
-		}
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		return NULL;
-	}
-	
-	PyObject *ret= self_plus->py_getattro(attr);
-	
-	/* Attribute not found, was this a __dict__ lookup?, otherwise set an error if none is set */
-	if(ret==NULL) {
-		char *attr_str= PyString_AsString(attr);
-		
-		if (strcmp(attr_str, "__dict__")==0)
-		{
-			/* the error string will probably not
-			 * be set but just incase clear it */
-			PyErr_Clear(); 
-			ret= self_plus->py_getattro_dict();
-		}
-		else if (!PyErr_Occurred()) {
-			/* We looked for an attribute but it wasnt found
-			 * since py_getattro didnt set the error, set it here */
-			PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", self->ob_type->tp_name, attr_str);
-		}
-	}
-	return ret;
-}
-
-/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
-int PyObjectPlus::py_base_setattro(PyObject *self, PyObject *attr, PyObject *value)
-{
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		return -1;
-	}
-	
-	if (value==NULL)
-		return self_plus->py_delattro(attr);
-	
-	return self_plus->py_setattro(attr, value); 
+	return PyBool_FromLong(self_v ? 1:0);
 }
 
 PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
@@ -200,42 +147,19 @@ PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the ent
 	return self_plus->py_repr();  
 }
 
-PyObject *PyObjectPlus::py_getattro(PyObject* attr)
+/* note, this is called as a python 'getset, where the PyAttributeDef is the closure */
+PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef)
 {
-	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
-	if (descr == NULL) {
-		return NULL; /* py_base_getattro sets the error, this way we can avoid setting the error at many levels */
-	} else {
-		/* Copied from py_getattro_up */
-		if (PyCObject_Check(descr)) {
-			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr));
-		} else if (descr->ob_type->tp_descr_get) {
-			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy);
-		} else {
-			return NULL;
-		}
-		/* end py_getattro_up copy */
+	void *self= (void *)(BGE_PROXY_REF(self_py));
+	if(self==NULL) {
+		if(attrdef == attr_invalid)
+			Py_RETURN_TRUE; // dont bother running the function
+
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		return NULL;
 	}
-}
 
-PyObject* PyObjectPlus::py_getattro_dict() {
-	return py_getattr_dict(NULL, Type.tp_dict);
-}
 
-int PyObjectPlus::py_delattro(PyObject* attr)
-{
-	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
-	return 1;
-}
-
-int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
-{
-	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
-	return PY_SET_ATTR_MISSING;
-}
-
-PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef)
-{
 	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 	{
 		// fake attribute, ignore
@@ -355,8 +279,15 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 	}
 }
 
-int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value)
+/* note, this is called as a python getset */
+int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef)
 {
+	void *self= (void *)(BGE_PROXY_REF(self_py));
+	if(self==NULL) {
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		return PY_SET_ATTR_FAIL;
+	}
+
 	void *undoBuffer = NULL;
 	void *sourceBuffer = NULL;
 	size_t bufferSize = 0;
@@ -834,48 +765,6 @@ PyObject *PyObjectPlus::py_repr(void)
 	return NULL;
 }
 
-/*------------------------------
- * PyObjectPlus isA		-- the isA functions
-------------------------------*/
-bool PyObjectPlus::isA(PyTypeObject *T)		// if called with a Type, use "typename"
-{
-	int i;
-	PyParentObject  P;
-	PyParentObject *Ps = GetParents();
-
-	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
-		if (P==T)
-			return true;
-
-	return false;
-}
-
-
-bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
-{
-	int i;
-	PyParentObject  P;
-	PyParentObject *Ps = GetParents();
-  
-	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
-		if (strcmp(P->tp_name, mytypename)==0)
-			return true;
-
-	return false;
-}
-
-PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
-{
-	if (PyType_Check(value)) {
-		return PyBool_FromLong(isA((PyTypeObject *)value));
-	} else if (PyString_Check(value)) {
-		return PyBool_FromLong(isA(PyString_AsString(value)));
-	}
-    PyErr_SetString(PyExc_TypeError, "object.isA(value): expected a type or a string");
-    return NULL;	
-}
-
-
 void PyObjectPlus::ProcessReplica()
 {
 	/* Clear the proxy, will be created again if needed with GetProxy()
@@ -899,27 +788,6 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 		m_proxy= NULL;
 	}
 }
-
-/* Utility function called by the macro py_getattro_up()
- * for getting ob.__dict__() values from our PyObject
- * this is used by python for doing dir() on an object, so its good
- * if we return a list of attributes and methods.
- * 
- * Other then making dir() useful the value returned from __dict__() is not useful
- * since every value is a Py_None
- * */
-PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict)
-{
-    if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
-    	PyErr_Clear();
-    	pydict = PyDict_New();
-    }
-	
-	PyDict_Update(pydict, tp_dict);
-	return pydict;
-}
-
-
 
 PyObject *PyObjectPlus::GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp)
 {

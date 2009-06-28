@@ -46,9 +46,8 @@
 
 SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr, 
 				 SCA_IObject* gameobj, 
-				 int startseed,
-  				 PyTypeObject* T)
-    : SCA_ISensor(gameobj,eventmgr, T)
+				 int startseed)
+    : SCA_ISensor(gameobj,eventmgr)
 {
 	m_basegenerator = new SCA_RandomNumberGenerator(startseed);
 	Init();
@@ -148,18 +147,15 @@ PyTypeObject SCA_RandomSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_RandomSensor::Parents[] = {
-	&SCA_RandomSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
@@ -176,19 +172,6 @@ PyAttributeDef SCA_RandomSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("seed", SCA_RandomSensor, pyattr_get_seed, pyattr_set_seed),
 	{NULL} //Sentinel
 };
-
-PyObject* SCA_RandomSensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_RandomSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_RandomSensor::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ISensor);
-}
 
 /* 1. setSeed                                                            */
 const char SCA_RandomSensor::SetSeed_doc[] = 

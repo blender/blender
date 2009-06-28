@@ -50,9 +50,8 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   SND_Scene*	sndscene,
 								   KX_SOUNDACT_TYPE type,
 								   short start,
-								   short end,
-								   PyTypeObject* T)
-								   : SCA_IActuator(gameobj,T)
+								   short end)
+								   : SCA_IActuator(gameobj)
 {
 	m_soundObject = sndobj;
 	m_soundScene = sndscene;
@@ -251,23 +250,16 @@ PyTypeObject KX_SoundActuator::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_IActuator::Type
 };
-
-
-
-PyParentObject KX_SoundActuator::Parents[] = {
-	&KX_SoundActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
-
 
 PyMethodDef KX_SoundActuator::Methods[] = {
 	// Deprecated ----->
@@ -340,18 +332,6 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, stopSound,
 }
 
 /* Atribute setting and getting -------------------------------------------- */
-PyObject* KX_SoundActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_SoundActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_SoundActuator::py_setattro(PyObject *attr, PyObject* value) {
-	py_setattro_up(SCA_IActuator);
-}
 
 PyObject* KX_SoundActuator::pyattr_get_filename(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {

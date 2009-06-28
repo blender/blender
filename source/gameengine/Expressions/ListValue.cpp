@@ -289,24 +289,16 @@ PyTypeObject CListValue::Type = {
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
 	0,
-	py_base_getattro,
-	py_base_setattro,
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
 	0,
-	Py_TPFLAGS_DEFAULT,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
-	Methods
+	Methods,
+	0,
+	0,
+	&CValue::Type
 };
-
-
-
-PyParentObject CListValue::Parents[] = {
-	&CListValue::Type,
-	&CValue::Type,
-		NULL
-};
-
-
-
 
 PyMethodDef CListValue::Methods[] = {
 	/* List style access */
@@ -329,21 +321,12 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::py_getattro(PyObject* attr) {
-	py_getattro_up(CValue);
-}
-
-PyObject* CListValue::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CListValue::CListValue(PyTypeObject *T ) 
-: CPropValue(T)
+CListValue::CListValue()
+: CPropValue()
 {
 	m_bReleaseContents=true;	
 }

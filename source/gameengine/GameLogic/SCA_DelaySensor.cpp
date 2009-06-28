@@ -51,9 +51,8 @@ SCA_DelaySensor::SCA_DelaySensor(class SCA_EventManager* eventmgr,
 								 SCA_IObject* gameobj,
 								 int delay,
 								 int duration,
-								 bool repeat,
-								 PyTypeObject* T)
-	: SCA_ISensor(gameobj,eventmgr, T),
+								 bool repeat)
+	: SCA_ISensor(gameobj,eventmgr),
 	m_repeat(repeat),
 	m_delay(delay),
 	m_duration(duration)
@@ -148,18 +147,15 @@ PyTypeObject SCA_DelaySensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_DelaySensor::Parents[] = {
-	&SCA_DelaySensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef SCA_DelaySensor::Methods[] = {
@@ -182,19 +178,6 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("repeat",SCA_DelaySensor,m_repeat),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_DelaySensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_DelaySensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_DelaySensor::py_setattro(PyObject *attr, PyObject *value) {
-	py_setattro_up(SCA_ISensor);
-}
-
 
 const char SCA_DelaySensor::SetDelay_doc[] = 
 "setDelay(delay)\n"

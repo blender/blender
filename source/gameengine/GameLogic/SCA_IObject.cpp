@@ -41,8 +41,11 @@
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 SG_QList SCA_IObject::m_activeBookmarkedControllers;
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0), m_firstState(NULL)
-
+SCA_IObject::SCA_IObject():
+	CValue(),
+	m_initState(0),
+	m_state(0),
+	m_firstState(NULL)
 {
 	m_suspended = false;
 }
@@ -347,21 +350,16 @@ PyTypeObject SCA_IObject::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type
 };
-
-
-
-PyParentObject SCA_IObject::Parents[] = {
-	&SCA_IObject::Type,
-	&CValue::Type,
-	NULL
-};
-
-
 
 PyMethodDef SCA_IObject::Methods[] = {
 	//{"setOrientation", (PyCFunction) SCA_IObject::sPySetOrientation, METH_VARARGS},
@@ -372,12 +370,3 @@ PyMethodDef SCA_IObject::Methods[] = {
 PyAttributeDef SCA_IObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
-
-PyObject* SCA_IObject::py_getattro(PyObject *attr) {
-	py_getattro_up(CValue);
-}
-
-PyObject* SCA_IObject::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}

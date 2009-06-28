@@ -92,8 +92,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,
 				   short int mousemode,
-				   SCA_IObject* gameobj,
-				   PyTypeObject* T=&Type );
+				   SCA_IObject* gameobj);
 
 	virtual ~SCA_MouseSensor();
 	virtual CValue* GetReplica();
@@ -108,10 +107,6 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	/* read x-coordinate */

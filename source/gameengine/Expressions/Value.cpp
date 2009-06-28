@@ -54,15 +54,15 @@ PyTypeObject CValue::Type = {
 	py_base_repr,
 	0,
 	0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject CValue::Parents[] = {
-	&CValue::Type,
-		NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type
 };
 
 PyMethodDef CValue::Methods[] = {
@@ -100,8 +100,8 @@ std::vector<SmartCValueRef> gRefList;
 //int gRefCountValue;
 #endif
 
-CValue::CValue(PyTypeObject *T)
-		: PyObjectPlus(T),
+CValue::CValue()
+		: PyObjectPlus(),
 #else
 CValue::CValue()
 : 
@@ -553,30 +553,6 @@ PyAttributeDef CValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-
-PyObject*	CValue::py_getattro(PyObject *attr)
-{	
-	char *attr_str= PyString_AsString(attr);
-	CValue* resultattr = GetProperty(attr_str);
-	if (resultattr)
-	{
-		/* only show the wanting here because python inspects for __class__ and KX_MeshProxy uses CValues name attr */
-		ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
-		
-		PyObject* pyconvert = resultattr->ConvertValueToPython();
-		
-		if (pyconvert)
-			return pyconvert;
-		else
-			return resultattr->GetProxy();
-	}
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* CValue::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
 PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
 	CValue * self = static_cast<CValue *> (self_v);
 	return PyString_FromString(self->GetName());
@@ -637,7 +613,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	} else
 	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		if (BGE_PROXY_REF(pyobj) && (BGE_PROXY_REF(pyobj))->isA(&CValue::Type))
+		if (BGE_PROXY_REF(pyobj) && PyObject_TypeCheck(BGE_PROXY_REF(pyobj), &CValue::Type))
 		{
 			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 		} else {
@@ -655,57 +631,6 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	return vallie;
 
 }
-
-int	CValue::py_delattro(PyObject *attr)
-{
-	ShowDeprecationWarning("del ob.attr", "del ob['attr']");
-	
-	char *attr_str= PyString_AsString(attr);
-	if (RemoveProperty(attr_str))
-		return 0;
-	
-	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
-	return PY_SET_ATTR_MISSING;
-}
-
-int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
-{
-	ShowDeprecationWarning("ob.attr = val", "ob['attr'] = val");
-	
-	char *attr_str= PyString_AsString(attr);
-	CValue* oldprop = GetProperty(attr_str);	
-	CValue* vallie;
-
-	/* Dissallow python to assign GameObjects, Scenes etc as values */
-	if ((BGE_PROXY_CHECK_TYPE(pyobj)==0) && (vallie = ConvertPythonToValue(pyobj, "cvalue.attr = value: ")))
-	{
-		if (oldprop)
-			oldprop->SetValue(vallie);
-		else
-			SetProperty(attr_str, vallie);
-		
-		vallie->Release();
-	}
-	else {
-		// ConvertPythonToValue sets the error message
-		// must return missing so KX_GameObect knows this
-		// attribute was not a function or bult in attribute,
-		//
-		// CValue attributes override internal attributes
-		// so if it exists as a CValue attribute already,
-		// assume your trying to set it to a differnt CValue attribute
-		// otherwise return PY_SET_ATTR_MISSING so children
-		// classes know they can set it without conflict 
-		
-		if (GetProperty(attr_str))
-			return PY_SET_ATTR_COERCE_FAIL; /* failed to set an existing attribute */
-		else
-			return PY_SET_ATTR_MISSING; /* allow the KX_GameObject dict to set */
-	}
-	
-	//PyObjectPlus::py_setattro(attr,value);
-	return PY_SET_ATTR_SUCCESS;
-};
 
 PyObject*	CValue::ConvertKeysToPython( void )
 {

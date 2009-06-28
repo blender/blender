@@ -37,10 +37,9 @@
 #include <config.h>
 #endif
 
-SCA_IController::SCA_IController(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_IController::SCA_IController(SCA_IObject* gameobj)
 	:
-	SCA_ILogicBrick(gameobj,T),
+	SCA_ILogicBrick(gameobj),
 	m_statemask(0),
 	m_justActivated(false)
 {
@@ -217,16 +216,15 @@ PyTypeObject SCA_IController::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject SCA_IController::Parents[] = {
-	&SCA_IController::Type,
-	&CValue::Type,
-	NULL
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_ILogicBrick::Type
 };
 
 PyMethodDef SCA_IController::Methods[] = {
@@ -247,22 +245,6 @@ PyAttributeDef SCA_IController::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useHighPriority",SCA_IController,m_bookmark),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_IController::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_ILogicBrick);
-}
-
-PyObject* SCA_IController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ILogicBrick);
-}
-
-int SCA_IController::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ILogicBrick);
-}
-
-
 
 PyObject* SCA_IController::PyGetActuators()
 {

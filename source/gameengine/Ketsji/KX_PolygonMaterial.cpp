@@ -51,8 +51,8 @@
 
 #include "KX_PyMath.h"
 
-KX_PolygonMaterial::KX_PolygonMaterial(PyTypeObject *T) 
-		: PyObjectPlus(T),
+KX_PolygonMaterial::KX_PolygonMaterial()
+		: PyObjectPlus(),
 		  RAS_IPolyMaterial(),
 
 	m_tface(NULL),
@@ -256,31 +256,16 @@ PyTypeObject KX_PolygonMaterial::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&PyObjectPlus::Type
 };
-
-PyParentObject KX_PolygonMaterial::Parents[] = {
-	&KX_PolygonMaterial::Type,
-	&PyObjectPlus::Type,
-	NULL
-};
-
-PyObject* KX_PolygonMaterial::py_getattro(PyObject *attr)
-{	
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_PolygonMaterial::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(PyObjectPlus);
-}
 
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(material)")
 {

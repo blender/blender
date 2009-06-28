@@ -48,9 +48,8 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 									   bool bAllKeys,
 									   const STR_String& targetProp,
 									   const STR_String& toggleProp,
-									   SCA_IObject* gameobj,
-									   PyTypeObject* T )
-	:SCA_ISensor(gameobj,keybdmgr,T),
+									   SCA_IObject* gameobj)
+	:SCA_ISensor(gameobj,keybdmgr),
 	 m_pKeyboardMgr(keybdmgr),
 	 m_hotkey(hotkey),
 	 m_qual(qual),
@@ -632,18 +631,15 @@ PyTypeObject SCA_KeyboardSensor::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_KeyboardSensor::Parents[] = {
-	&SCA_KeyboardSensor::Type,
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type
 };
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
@@ -671,20 +667,6 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("targetProperty",0,100,false,SCA_KeyboardSensor,m_targetprop),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_KeyboardSensor::py_getattro(PyObject *attr)
-{
-  py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_KeyboardSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_KeyboardSensor::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ISensor);
-}
 
 
 PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

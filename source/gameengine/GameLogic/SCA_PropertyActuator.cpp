@@ -42,8 +42,8 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
-   :	SCA_IActuator(gameobj,T),
+SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype)
+   :	SCA_IActuator(gameobj),
 	m_type(acttype),
 	m_propname(propname),
 	m_exprtxt(expr),
@@ -245,18 +245,15 @@ PyTypeObject SCA_PropertyActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_PropertyActuator::Parents[] = {
-	&SCA_PropertyActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
@@ -275,18 +272,6 @@ PyAttributeDef SCA_PropertyActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_ACT_PROP_NODEF+1, KX_ACT_PROP_MAX-1, false, SCA_PropertyActuator, m_type), /* ATTR_TODO add constents to game logic dict */
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_PropertyActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* SCA_PropertyActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int SCA_PropertyActuator::py_setattro(PyObject *attr, PyObject *value) {
-	py_setattro_up(SCA_IActuator);
-}
 
 /* 1. setProperty                                                        */
 const char SCA_PropertyActuator::SetProperty_doc[] = 

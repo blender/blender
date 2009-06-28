@@ -16,8 +16,8 @@
 
 KX_VehicleWrapper::KX_VehicleWrapper(
 						PHY_IVehicle* vehicle,
-						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
-		PyObjectPlus(T),
+						PHY_IPhysicsEnvironment* physenv) :
+		PyObjectPlus(),
 		m_vehicle(vehicle),
 		m_physenv(physenv)
 {
@@ -290,33 +290,16 @@ PyTypeObject KX_VehicleWrapper::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&PyObjectPlus::Type
 };
-
-PyParentObject KX_VehicleWrapper::Parents[] = {
-	&KX_VehicleWrapper::Type,
-	&PyObjectPlus::Type,
-	NULL
-};
-
-PyObject*	KX_VehicleWrapper::py_getattro(PyObject *attr)
-{
-	//here you can search for existing data members (like mass,friction etc.)
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_VehicleWrapper::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* value)
-{
-	py_setattro_up(PyObjectPlus);
-};
-
 
 PyMethodDef KX_VehicleWrapper::Methods[] = {
 	{"addWheel",(PyCFunction) KX_VehicleWrapper::sPyAddWheel, METH_VARARGS},

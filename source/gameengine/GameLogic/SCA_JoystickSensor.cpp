@@ -46,9 +46,8 @@ SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   short int joymode,
 									   int axis, int axisf,int prec,
 									   int button,
-									   int hat, int hatf, bool allevents,
-									   PyTypeObject* T )
-									   :SCA_ISensor(gameobj,eventmgr,T),
+									   int hat, int hatf, bool allevents)
+									   :SCA_ISensor(gameobj,eventmgr),
 									   m_pJoystickMgr(eventmgr),
 									   m_axis(axis),
 									   m_axisf(axisf),
@@ -270,21 +269,16 @@ PyTypeObject SCA_JoystickSensor::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_ISensor::Type
 };
-
-
-PyParentObject SCA_JoystickSensor::Parents[] = {
-		&SCA_JoystickSensor::Type,
-		&SCA_ISensor::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
 
 PyMethodDef SCA_JoystickSensor::Methods[] = {
 	//Deprecated functions ------>
@@ -327,20 +321,6 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	//KX_PYATTRIBUTE_TODO("events"),
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_JoystickSensor::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_JoystickSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_JoystickSensor::py_setattro(PyObject *attr, PyObject *value) 
-{
-	py_setattro_up(SCA_ISensor);
-}
 
 
 /* get index ---------------------------------------------------------- */

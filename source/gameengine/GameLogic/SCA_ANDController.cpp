@@ -42,10 +42,9 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_ANDController::SCA_ANDController(SCA_IObject* gameobj,
-									 PyTypeObject* T)
+SCA_ANDController::SCA_ANDController(SCA_IObject* gameobj)
 	:
-	SCA_IController(gameobj,T)
+	SCA_IController(gameobj)
 {
 }
 
@@ -117,18 +116,15 @@ PyTypeObject SCA_ANDController::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_ANDController::Parents[] = {
-	&SCA_ANDController::Type,
-	&SCA_IController::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IController::Type
 };
 
 PyMethodDef SCA_ANDController::Methods[] = {
@@ -138,13 +134,5 @@ PyMethodDef SCA_ANDController::Methods[] = {
 PyAttributeDef SCA_ANDController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_ANDController::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IController);
-}
-
-PyObject* SCA_ANDController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IController);
-}
 
 /* eof */

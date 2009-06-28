@@ -55,10 +55,9 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 												   const float *linvel,
 												   bool linv_local,
 												   const float *angvel,
-												   bool angv_local,
-												   PyTypeObject* T)
+												   bool angv_local)
 	: 
-	SCA_IActuator(gameobj, T),
+	SCA_IActuator(gameobj),
 	m_OriginalObject(original),
 	m_scene(scene),
 	
@@ -188,19 +187,17 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
-PyParentObject KX_SCA_AddObjectActuator::Parents[] = {
-	&KX_SCA_AddObjectActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
-};
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   // ---> deprecated
   {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_O, (PY_METHODCHAR)SetTime_doc},
@@ -261,21 +258,6 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 		Py_RETURN_NONE;
 	else
 		return actuator->m_lastCreatedObject->GetProxy();
-}
-
-
-PyObject* KX_SCA_AddObjectActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_SCA_AddObjectActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_SCA_AddObjectActuator::py_setattro(PyObject *attr, PyObject* value) 
-{
-	py_setattro_up(SCA_IActuator);
 }
 
 /* 1. setObject */

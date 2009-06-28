@@ -50,9 +50,8 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 									 SCA_RandomActuator::KX_RANDOMACT_MODE mode,
 									 float para1,
 									 float para2,
-									 const STR_String &propName,
-									 PyTypeObject* T)
-	: SCA_IActuator(gameobj, T),
+									 const STR_String &propName)
+	: SCA_IActuator(gameobj),
 	  m_propname(propName),
 	  m_parameter1(para1),
 	  m_parameter2(para2),
@@ -333,18 +332,15 @@ PyTypeObject SCA_RandomActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_RandomActuator::Parents[] = {
-	&SCA_RandomActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
 PyMethodDef SCA_RandomActuator::Methods[] = {
@@ -398,19 +394,6 @@ int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_
 		PyErr_SetString(PyExc_TypeError, "actuator.seed = int: Random Actuator, expected an integer");
 		return PY_SET_ATTR_FAIL;
 	}
-}
-
-PyObject* SCA_RandomActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* SCA_RandomActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int SCA_RandomActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
 }
 
 /* 1. setSeed                                                            */

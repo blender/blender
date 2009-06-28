@@ -50,9 +50,8 @@ KX_ParentActuator::KX_ParentActuator(SCA_IObject *gameobj,
 									 int mode,
 									 bool addToCompound,
 									 bool ghost,
-									 SCA_IObject *ob,
-									 PyTypeObject* T)
-	: SCA_IActuator(gameobj, T),
+									 SCA_IObject *ob)
+	: SCA_IActuator(gameobj),
 	  m_mode(mode),
 	  m_addToCompound(addToCompound),
 	  m_ghost(ghost),
@@ -158,18 +157,15 @@ PyTypeObject KX_ParentActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_ParentActuator::Parents[] = {
-	&KX_ParentActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
@@ -216,18 +212,6 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 	return PY_SET_ATTR_SUCCESS;
 }
 
-
-PyObject* KX_ParentActuator::py_getattro(PyObject *attr) {	
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_ParentActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_ParentActuator::py_setattro(PyObject *attr, PyObject* value) {
-	py_setattro_up(SCA_IActuator);
-}
 
 /* Deprecated -----> */
 /* 1. setObject                                                            */

@@ -56,17 +56,15 @@ PyTypeObject KX_PolyProxy::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_PolyProxy::Parents[] = {
-	&KX_PolyProxy::Type,
-	&CValue::Type,
-	&PyObjectPlus::Type,
-	NULL
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type
 };
 
 PyMethodDef KX_PolyProxy::Methods[] = {
@@ -98,6 +96,7 @@ PyAttributeDef KX_PolyProxy::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+#if 0
 PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr);
@@ -162,12 +161,9 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	py_getattro_up(CValue);
+	// py_getattro_up(CValue); // XXX -- todo, make all these attributes
 }
-
-PyObject* KX_PolyProxy::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
+#endif
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
 :	m_polygon(polygon),

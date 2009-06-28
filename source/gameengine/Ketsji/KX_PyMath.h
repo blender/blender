@@ -31,12 +31,6 @@
 #ifndef __KX_PYMATH_H__
 #define __KX_PYMATH_H__
 
-#ifdef USE_MATHUTILS
-extern "C" {
-#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
-}
-#endif
-
 #include "MT_Point2.h"
 #include "MT_Point3.h"
 #include "MT_Vector2.h"
@@ -47,6 +41,12 @@ extern "C" {
 
 #include "KX_Python.h"
 #include "PyObjectPlus.h"
+
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
 
 inline unsigned int Size(const MT_Matrix4x4&)          { return 4; }
 inline unsigned int Size(const MT_Matrix3x3&)          { return 3; }

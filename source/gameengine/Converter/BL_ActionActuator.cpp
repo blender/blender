@@ -1006,19 +1006,17 @@ PyTypeObject BL_ActionActuator::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_IActuator::Type
 };
 
-PyParentObject BL_ActionActuator::Parents[] = {
-	&BL_ActionActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
 
 PyMethodDef BL_ActionActuator::Methods[] = {
 	//Deprecated ----->
@@ -1064,19 +1062,6 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",0,100,false,BL_ActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel
 };
-
-PyObject* BL_ActionActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* BL_ActionActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int BL_ActionActuator::py_setattro(PyObject *attr, PyObject* value) {
-	py_setattro_up(SCA_IActuator);
-}
-
 
 PyObject* BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

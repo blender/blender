@@ -48,9 +48,8 @@ KX_CDActuator::KX_CDActuator(SCA_IObject* gameobject,
 							 KX_CDACT_TYPE type,
 							 int track,
 							 short start,
-							 short end,
-							 PyTypeObject* T)
-							 : SCA_IActuator(gameobject,T)
+							 short end)
+							 : SCA_IActuator(gameobject)
 {
 	m_soundscene = soundscene;
 	m_type = type;
@@ -172,23 +171,16 @@ PyTypeObject KX_CDActuator::Type = {
 		0,
 		py_base_repr,
 		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL, //py_base_getattro,
+		NULL, //py_base_setattro,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_IActuator::Type
 };
-
-
-
-PyParentObject KX_CDActuator::Parents[] = {
-	&KX_CDActuator::Type,
-		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
-};
-
-
 
 PyMethodDef KX_CDActuator::Methods[] = {
 	// Deprecated ----->
@@ -216,22 +208,6 @@ int KX_CDActuator::pyattr_setGain(void *self, const struct KX_PYATTRIBUTE_DEF *a
 	SND_CDObject::Instance()->SetGain(act->m_gain);
 	return PY_SET_ATTR_SUCCESS;
 }
-
-PyObject* KX_CDActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_CDActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_CDActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
-}
-
-
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_CDActuator, startCD,
 "startCD()\n"

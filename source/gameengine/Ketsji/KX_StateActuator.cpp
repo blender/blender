@@ -38,10 +38,9 @@
 KX_StateActuator::KX_StateActuator(
 	SCA_IObject* gameobj,
 	int operation,
-	unsigned int mask,
-	PyTypeObject* T
+	unsigned int mask
 	) 
-	: SCA_IActuator(gameobj,T),
+	: SCA_IActuator(gameobj),
 	  m_operation(operation),
 	  m_mask(mask)
 {
@@ -155,23 +154,18 @@ PyTypeObject KX_StateActuator::Type = {
 	0,
 	py_base_repr,
 	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
+	NULL, //py_base_getattro,
+	NULL, //py_base_setattro,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type
 };
 
-PyParentObject 
-KX_StateActuator::Parents[] = {
-	&KX_StateActuator::Type,
-	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
-};
-
-PyMethodDef 
-KX_StateActuator::Methods[] = {
+PyMethodDef KX_StateActuator::Methods[] = {
 	// deprecated -->
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
 	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
@@ -186,20 +180,6 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_StateActuator::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* KX_StateActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_StateActuator::py_setattro(PyObject *attr, PyObject* value)
-{
-	py_setattro_up(SCA_IActuator);
-}
 
 
 /* set operation ---------------------------------------------------------- */
