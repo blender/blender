@@ -2249,7 +2249,6 @@ int rna_parameter_size(PropertyRNA *parm)
 #endif
 			}
 			case PROP_COLLECTION:
-				/* XXX does not work yet */
 				return sizeof(ListBase);
 		}
 	}
