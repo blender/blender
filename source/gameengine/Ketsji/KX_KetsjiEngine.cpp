@@ -396,9 +396,9 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	World* world = m_scenes[0]->GetBlenderScene()->world;
 	if (world)
 	{
-		m_ticrate = world->ticrate;
-		m_maxLogicFrame = world->maxlogicstep;
-		m_maxPhysicsFrame = world->maxphystep;
+		m_ticrate = world->ticrate ? world->ticrate : DEFAULT_LOGIC_TIC_RATE;
+		m_maxLogicFrame = world->maxlogicstep ? world->maxlogicstep : 5;
+		m_maxPhysicsFrame = world->maxphystep ? world->maxlogicstep : 5;
 	}
 	else
 	{
