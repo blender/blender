@@ -2077,13 +2077,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU)) {
-		but->flag |= UI_TEXT_LEFT;
-	}
-	
-	if(but->type==BUT_TOGDUAL) {
+	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU))
+		but->flag |= (UI_TEXT_LEFT|UI_ICON_LEFT);
+	else if(but->type==BUT_TOGDUAL)
 		but->flag |= UI_ICON_LEFT;
-	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 

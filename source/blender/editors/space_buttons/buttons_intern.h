@@ -71,5 +71,10 @@ void MATERIAL_OT_new(struct wmOperatorType *ot);
 void TEXTURE_OT_new(struct wmOperatorType *ot);
 void WORLD_OT_new(struct wmOperatorType *ot);
 
+void OBJECT_OT_particle_system_slot_add(struct wmOperatorType *ot);
+void OBJECT_OT_particle_system_slot_remove(struct wmOperatorType *ot);
+
+void PARTICLE_OT_new(struct wmOperatorType *ot);
+
 #endif /* ED_BUTTONS_INTERN_H */
 

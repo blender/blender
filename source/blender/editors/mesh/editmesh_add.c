@@ -1295,9 +1295,9 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 	/* center */
 	curs= give_cursor(scene, v3d);
 	VECCOPY(primmat[3], curs);
+	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
 	Mat3Inv(imat, mat);
 	Mat3MulVecfl(imat, primmat[3]);
-	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
 	
 	if(v3d) return v3d->grid;
 	return 1.0f;

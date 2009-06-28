@@ -4828,6 +4828,12 @@ void special_aftertrans_update(TransInfo *t)
 				/* pointcache refresh */
 				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 					ob->recalc |= OB_RECALC_DATA;
+
+				/* Needed for proper updating of "quick cached" dynamics. */
+				/* Creates troubles for moving animated objects without */
+				/* autokey though, probably needed is an anim sys override? */
+				/* Please remove if some other solution is found. -jahka */
+				DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 				
 				/* Set autokey if necessary */
 				if (!cancelled)

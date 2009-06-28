@@ -9076,6 +9076,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tx;
 		ParticleSettings *part;
 		Object *ob;
+		PTCacheID *pid;
+		ListBase pidlist;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -9136,14 +9138,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
-			ParticleSystem *psys = ob->particlesystem.first;
 
-			for(; psys; psys=psys->next) {
-				if(psys->pointcache)
-					psys->pointcache->flag |= PTCACHE_DISK_CACHE;
-			}
+			BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			/* TODO: softbody & cloth caches */
+			for(pid=pidlist.first; pid; pid=pid->next)
+				pid->cache->flag |= PTCACHE_DISK_CACHE;
+
+			BLI_freelistN(&pidlist);
 		}
 	}
 

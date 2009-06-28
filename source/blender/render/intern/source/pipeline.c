@@ -2421,6 +2421,7 @@ static void update_physics_cache(Render *re, Scene *scene)
 	baker.pid = NULL;
 	baker.bake = 0;
 	baker.render = 1;
+	baker.quick_step = 1;
 	baker.break_test = re->test_break;
 	baker.break_data = re->tbh;
 	baker.progressbar = NULL;
