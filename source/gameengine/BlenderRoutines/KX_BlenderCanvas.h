@@ -163,8 +163,8 @@ public:
 
 private:
 	/** Blender area the game engine is running within */
-	struct ARegion* __m_ar;
-	struct wmWindow* __m_win;
+	struct ARegion* m_ar;
+	struct wmWindow* m_win;
 	RAS_Rect 	m_area_rect;
 };
 
