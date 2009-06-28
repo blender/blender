@@ -50,10 +50,16 @@ class IpoCurve:
   the IPO Curve Editor window.  Positive rotations are in a counter-clockwise
   direction, following the standard convention.
   
-  @ivar driver:  Status of the driver.  1= on, 0= object, 2= python expression.
+  @ivar driver:  Status of the driver.  1= object or armature/bone driver, 2= python expression, 0= no driver
   @type driver:  int
   @ivar driverObject:  Object used to drive the Ipo curve.
   @type driverObject:  Blender Object or None
+  @ivar driverBone:  Name of the armature bone used to drive the Ipo curve.
+  If empty or None, sets driver type to object, otherwise sets driver type to pose. [0 - 31 chars]
+  @type driverBone:  string or None
+  @ivar driverBone2:  Name of the second bone used to drive the Ipo curve. 
+  Only to be used with ROT_DIFF channel. [0 - 31 chars]
+  @type driverBone2:  string or None
   @ivar driverExpression:  Python expression used to drive the Ipo curve. [0 - 127 chars]
   @type driverExpression:  string
   @ivar sel:  The selection state of this curve.
@@ -61,7 +67,7 @@ class IpoCurve:
   @ivar driverChannel:  Object channel used to drive the Ipo curve.
   Use module constants: IpoCurve.LOC_X, IpoCurve.LOC_Y, IpoCurve.LOC_Z,
   IpoCurve.ROT_X, IpoCurve.ROT_Y, IpoCurve.ROT_Z, IpoCurve.SIZE_X,
-  IpoCurve.SIZE_Y, IpoCurve.SIZE_Z
+  IpoCurve.SIZE_Y, IpoCurve.SIZE_Z, IpoCurve.ROT_DIFF (this last one is only for pose type drivers)
   @type driverChannel:  int 
   @ivar name: The IpoCurve data name.
   @type name: string

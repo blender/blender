@@ -89,10 +89,14 @@ static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self);
 static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self);
 static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args );
+static PyObject *IpoCurve_getDriverBone( C_IpoCurve * self);
+static PyObject *IpoCurve_getDriverBone2( C_IpoCurve * self);
 static PyObject *IpoCurve_getDriverExpression( C_IpoCurve * self);
 static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type);
 static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type);
 
+static int IpoCurve_setDriverBone( C_IpoCurve * self, PyObject * args );
+static int IpoCurve_setDriverBone2( C_IpoCurve * self, PyObject * args );
 static int IpoCurve_setDriverExpression( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getCurval( C_IpoCurve * self, PyObject * args );
 static int IpoCurve_setCurval( C_IpoCurve * self, PyObject * key, 
@@ -158,6 +162,14 @@ static PyGetSetDef C_IpoCurve_getseters[] = {
 	{"driverChannel",
 	 (getter)IpoCurve_getDriverChannel, (setter)IpoCurve_setDriverChannel,
 	 "The channel on the driver object used to drive the IpoCurve",
+	 NULL},
+	{"driverBone",
+	 (getter)IpoCurve_getDriverBone, (setter)IpoCurve_setDriverBone,
+	 "The armature bone used to drive the IpoCurve",
+	 NULL},
+	{"driverBone2",
+	 (getter)IpoCurve_getDriverBone2, (setter)IpoCurve_setDriverBone2,
+	 "The second armature bone used to drive the IpoCurve (only with ROT_DIFF channel)",
 	 NULL},
 	{"driverExpression",
 	 (getter)IpoCurve_getDriverExpression, (setter)IpoCurve_setDriverExpression,
@@ -912,13 +924,110 @@ static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args )
 	param  = (short)PyInt_AS_LONG ( args );
 	if( ( param >= OB_LOC_X && param <= OB_LOC_Z )
 			|| ( param >= OB_ROT_X && param <= OB_ROT_Z )
-			|| ( param >= OB_SIZE_X && param <= OB_SIZE_Z ) ) {
+			|| ( param >= OB_SIZE_X && param <= OB_SIZE_Z )
+			|| ( param == OB_ROT_DIFF && ipo->driver->blocktype==ID_AR ) ) {
 		ipo->driver->adrcode = (short)PyInt_AS_LONG ( args );
 		return 0;
 	}
 
 	return EXPP_ReturnIntError( PyExc_ValueError, "invalid int argument" );
 }
+
+static PyObject *IpoCurve_getDriverBone( C_IpoCurve * self )
+{
+	IpoCurve *ipo = self->ipocurve;
+	
+	if( ipo->driver && ipo->driver->type == IPO_DRIVER_TYPE_NORMAL && 
+			ipo->driver->ob->type==OB_ARMATURE && 
+			ipo->driver->blocktype==ID_AR )
+		return PyString_FromString( ipo->driver->name );
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *IpoCurve_getDriverBone2( C_IpoCurve * self )
+{
+	IpoCurve *ipo = self->ipocurve;
+	
+	if( ipo->driver && ipo->driver->type == IPO_DRIVER_TYPE_NORMAL && 
+			ipo->driver->ob->type==OB_ARMATURE && 
+			ipo->driver->blocktype==ID_AR )
+		return PyString_FromString( ipo->driver->name+DRIVER_NAME_OFFS );
+
+	Py_RETURN_NONE;
+}
+
+static int IpoCurve_setDriverBone( C_IpoCurve * self, PyObject * arg )
+{
+	IpoCurve *ipo = self->ipocurve;
+	char *bone; /* bone name */
+	
+	if( !ipo->driver )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This IpoCurve does not have an active driver" );
+
+	if (ipo->driver->type != IPO_DRIVER_TYPE_NORMAL || 
+		  ipo->driver->ob->type!=OB_ARMATURE)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This driver is not of object type or object is not an armature" );
+	
+	if(!PyString_Check(arg) && arg!=Py_None)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "expected a string argument or None" );
+	
+	if( arg!=Py_None ){
+		bone = PyString_AsString(arg);
+		if (strlen(bone)>31)
+			return EXPP_ReturnIntError( PyExc_ValueError,
+						      "string is too long, use 31 characters or less" );
+
+		strcpy(ipo->driver->name, bone);
+		
+		if (strlen(bone)>0)
+		  ipo->driver->blocktype=ID_AR;
+		else
+		  ipo->driver->blocktype=ID_OB;
+	} else {
+		ipo->driver->name[0]=0;
+		ipo->driver->blocktype=ID_OB;
+	}
+	
+	return 0;
+}
+
+static int IpoCurve_setDriverBone2( C_IpoCurve * self, PyObject * arg )
+{
+	IpoCurve *ipo = self->ipocurve;
+	char *bone; /* bone name */
+	
+	if( !ipo->driver )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This IpoCurve does not have an active driver" );
+
+	if (ipo->driver->type != IPO_DRIVER_TYPE_NORMAL || 
+		  ipo->driver->ob->type!=OB_ARMATURE)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This driver is not of object type or object is not an armature" );
+	
+	if(!PyString_Check(arg) && arg!=Py_None)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "expected a string argument or None" );
+	
+	if( arg!=Py_None ){
+		bone = PyString_AsString(arg);
+		if (strlen(bone)>31)
+			return EXPP_ReturnIntError( PyExc_ValueError,
+						      "string is too long, use 31 characters or less" );
+
+		strcpy(ipo->driver->name+DRIVER_NAME_OFFS, bone);
+		
+	} else {
+		ipo->driver->name[DRIVER_NAME_OFFS]=0;
+	}
+	
+	return 0;
+}
+
 
 static PyObject *IpoCurve_getDriverExpression( C_IpoCurve * self )
 {
@@ -1010,6 +1119,7 @@ PyObject *IpoCurve_Init( void )
 	PyModule_AddIntConstant( submodule, "SIZE_X", OB_SIZE_X );
 	PyModule_AddIntConstant( submodule, "SIZE_Y", OB_SIZE_Y );
 	PyModule_AddIntConstant( submodule, "SIZE_Z", OB_SIZE_Z );	
+	PyModule_AddIntConstant( submodule, "ROT_DIFF", OB_ROT_DIFF );	
 
 	if( ExtendTypes )
 		PyModule_AddObject( submodule, "ExtendTypes", ExtendTypes );
