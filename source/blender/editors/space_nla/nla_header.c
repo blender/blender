@@ -90,7 +90,7 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	RNA_pointer_create(&sc->id, &RNA_SpaceNLA, snla, &spaceptr);
 	
 	/* create menu */
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "NLAEDIT_OT_properties");
+	uiItemO(layout, NULL, ICON_MENU_PANEL, "NLA_OT_properties");
 	
 	uiItemS(layout);
 	
@@ -104,9 +104,9 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemS(layout);
 	
 	if (scene->flag & SCE_NLA_EDIT_ON) 
-		uiItemO(layout, NULL, 0, "NLAEDIT_OT_tweakmode_exit");
+		uiItemO(layout, NULL, 0, "NLA_OT_tweakmode_exit");
 	else
-		uiItemO(layout, NULL, 0, "NLAEDIT_OT_tweakmode_enter");
+		uiItemO(layout, NULL, 0, "NLA_OT_tweakmode_enter");
 	
 	uiItemS(layout);
 	
@@ -125,13 +125,13 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void nla_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_select_all_toggle");
-	uiItemBooleanO(layout, "Invert All", 0, "NLAEDIT_OT_select_all_toggle", "invert", 1);
+	uiItemO(layout, NULL, 0, "NLA_OT_select_all_toggle");
+	uiItemBooleanO(layout, "Invert All", 0, "NLA_OT_select_all_toggle", "invert", 1);
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_select_border");
-	uiItemBooleanO(layout, "Border Axis Range", 0, "NLAEDIT_OT_select_border", "axis_range", 1);
+	uiItemO(layout, NULL, 0, "NLA_OT_select_border");
+	uiItemBooleanO(layout, "Border Axis Range", 0, "NLA_OT_select_border", "axis_range", 1);
 }
 
 static void nla_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -148,28 +148,28 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_duplicate");
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_split");
+	uiItemO(layout, NULL, 0, "NLA_OT_duplicate");
+	uiItemO(layout, NULL, 0, "NLA_OT_split");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_delete");
+	uiItemO(layout, NULL, 0, "NLA_OT_delete");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_apply_scale");
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_clear_scale");
+	uiItemO(layout, NULL, 0, "NLA_OT_apply_scale");
+	uiItemO(layout, NULL, 0, "NLA_OT_clear_scale");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_move_up");
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_move_down");
+	uiItemO(layout, NULL, 0, "NLA_OT_move_up");
+	uiItemO(layout, NULL, 0, "NLA_OT_move_down");
 }
 
 static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_actionclip");
-	uiItemO(layout, NULL, 0, "NLAEDIT_OT_add_transition");
+	uiItemO(layout, NULL, 0, "NLA_OT_add_actionclip");
+	uiItemO(layout, NULL, 0, "NLA_OT_add_transition");
 	
 	uiItemS(layout);
 	

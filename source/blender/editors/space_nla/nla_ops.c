@@ -126,7 +126,7 @@ short nlaedit_is_tweakmode_on (bAnimContext *ac)
 void nla_operatortypes(void)
 {
 	/* view */
-	WM_operatortype_append(NLAEDIT_OT_properties);
+	WM_operatortype_append(NLA_OT_properties);
 	
 	/* channels */
 	WM_operatortype_append(NLA_OT_channels_click);
@@ -135,26 +135,26 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_delete_tracks);
 	
 	/* select */
-	WM_operatortype_append(NLAEDIT_OT_click_select);
-	WM_operatortype_append(NLAEDIT_OT_select_border);
-	WM_operatortype_append(NLAEDIT_OT_select_all_toggle);
+	WM_operatortype_append(NLA_OT_click_select);
+	WM_operatortype_append(NLA_OT_select_border);
+	WM_operatortype_append(NLA_OT_select_all_toggle);
 	
 	/* edit */
-	WM_operatortype_append(NLAEDIT_OT_tweakmode_enter);
-	WM_operatortype_append(NLAEDIT_OT_tweakmode_exit);
+	WM_operatortype_append(NLA_OT_tweakmode_enter);
+	WM_operatortype_append(NLA_OT_tweakmode_exit);
 	
-	WM_operatortype_append(NLAEDIT_OT_add_actionclip);
-	WM_operatortype_append(NLAEDIT_OT_add_transition);
+	WM_operatortype_append(NLA_OT_add_actionclip);
+	WM_operatortype_append(NLA_OT_add_transition);
 	
-	WM_operatortype_append(NLAEDIT_OT_duplicate);
-	WM_operatortype_append(NLAEDIT_OT_delete);
-	WM_operatortype_append(NLAEDIT_OT_split);
+	WM_operatortype_append(NLA_OT_duplicate);
+	WM_operatortype_append(NLA_OT_delete);
+	WM_operatortype_append(NLA_OT_split);
 	
-	WM_operatortype_append(NLAEDIT_OT_move_up);
-	WM_operatortype_append(NLAEDIT_OT_move_down);
+	WM_operatortype_append(NLA_OT_move_up);
+	WM_operatortype_append(NLA_OT_move_down);
 	
-	WM_operatortype_append(NLAEDIT_OT_apply_scale);
-	WM_operatortype_append(NLAEDIT_OT_clear_scale);
+	WM_operatortype_append(NLA_OT_apply_scale);
+	WM_operatortype_append(NLA_OT_clear_scale);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -208,19 +208,19 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	
 	/* selection */
 		/* click select */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	kmi= WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
-	kmi= WM_keymap_add_item(keymap, "NLAEDIT_OT_click_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "left_right", NLAEDIT_LRSEL_TEST);	
 	
 		/* deselect all */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 		/* borderselect */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NLAEDIT_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
+	WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 	
 	/* editing */
@@ -228,32 +228,32 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 		 *	- enter and exit are separate operators with the same hotkey... 
 		 *	  This works as they use different poll()'s
 		 */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_enter", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_tweakmode_exit", TABKEY, KM_PRESS, 0, 0);
 		
 		/* add strips */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_add_actionclip", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_add_transition", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_add_actionclip", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_add_transition", TKEY, KM_PRESS, KM_SHIFT, 0);
 		
 		/* duplicate */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);	
+	WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);	
 		
 		/* delete */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
 		/* split */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_split", YKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_split", YKEY, KM_PRESS, 0, 0);
 	
 		/* move up */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_move_up", PAGEUPKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_move_up", PAGEUPKEY, KM_PRESS, 0, 0);
 		/* move down */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_move_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_move_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
 	
 		/* apply scale */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_apply_scale", AKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_apply_scale", AKEY, KM_PRESS, KM_CTRL, 0);
 		/* clear scale */
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_NLA);
@@ -267,7 +267,7 @@ void nla_keymap(wmWindowManager *wm)
 	
 	/* keymap for all regions */
 	keymap= WM_keymap_listbase(wm, "NLA Generic", SPACE_NLA, 0);
-	WM_keymap_add_item(keymap, "NLAEDIT_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	/* channels */
 	/* Channels are not directly handled by the NLA Editor module, but are inherited from the Animation module. 

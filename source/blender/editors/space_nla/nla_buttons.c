@@ -381,10 +381,10 @@ static int nla_properties(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_properties(wmOperatorType *ot)
+void NLA_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
-	ot->idname= "NLAEDIT_OT_properties";
+	ot->idname= "NLA_OT_properties";
 	
 	ot->exec= nla_properties;
 	ot->poll= ED_operator_nla_active;

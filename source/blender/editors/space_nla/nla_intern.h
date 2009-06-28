@@ -54,7 +54,7 @@
 ARegion *nla_has_buttons_region(ScrArea *sa);
 
 void nla_buttons_register(ARegionType *art);
-void NLAEDIT_OT_properties(wmOperatorType *ot);
+void NLA_OT_properties(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_draw.c */
@@ -80,30 +80,30 @@ enum {
 
 /* --- */
 
-void NLAEDIT_OT_select_all_toggle(wmOperatorType *ot);
-void NLAEDIT_OT_select_border(wmOperatorType *ot);
-void NLAEDIT_OT_click_select(wmOperatorType *ot);
+void NLA_OT_select_all_toggle(wmOperatorType *ot);
+void NLA_OT_select_border(wmOperatorType *ot);
+void NLA_OT_click_select(wmOperatorType *ot);
 
 /* **************************************** */
 /* nla_edit.c */
 
-void NLAEDIT_OT_tweakmode_enter(wmOperatorType *ot);
-void NLAEDIT_OT_tweakmode_exit(wmOperatorType *ot);
+void NLA_OT_tweakmode_enter(wmOperatorType *ot);
+void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 
 /* --- */
 
-void NLAEDIT_OT_add_actionclip(wmOperatorType *ot);
-void NLAEDIT_OT_add_transition(wmOperatorType *ot);
+void NLA_OT_add_actionclip(wmOperatorType *ot);
+void NLA_OT_add_transition(wmOperatorType *ot);
 
-void NLAEDIT_OT_duplicate(wmOperatorType *ot);
-void NLAEDIT_OT_delete(wmOperatorType *ot);
-void NLAEDIT_OT_split(wmOperatorType *ot);
+void NLA_OT_duplicate(wmOperatorType *ot);
+void NLA_OT_delete(wmOperatorType *ot);
+void NLA_OT_split(wmOperatorType *ot);
 
-void NLAEDIT_OT_move_up(wmOperatorType *ot);
-void NLAEDIT_OT_move_down(wmOperatorType *ot);
+void NLA_OT_move_up(wmOperatorType *ot);
+void NLA_OT_move_down(wmOperatorType *ot);
 
-void NLAEDIT_OT_apply_scale(wmOperatorType *ot);
-void NLAEDIT_OT_clear_scale(wmOperatorType *ot);
+void NLA_OT_apply_scale(wmOperatorType *ot);
+void NLA_OT_clear_scale(wmOperatorType *ot);
 
 
 /* **************************************** */

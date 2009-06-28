@@ -191,11 +191,11 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLAEDIT_OT_select_all_toggle (wmOperatorType *ot)
+void NLA_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "NLAEDIT_OT_select_all_toggle";
+	ot->idname= "NLA_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_deselectall_exec;
@@ -327,11 +327,11 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void NLAEDIT_OT_select_border(wmOperatorType *ot)
+void NLA_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "NLAEDIT_OT_select_border";
+	ot->idname= "NLA_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -434,7 +434,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short 
 	 * now that we've found our target...
 	 */
 	if (scene->flag & SCE_NLA_EDIT_ON)
-		WM_operator_name_call(C, "NLAEDIT_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+		WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
 	
 	/* for replacing selection, firstly need to clear existing selection */
 	if (select_mode == SELECT_REPLACE) {
@@ -488,7 +488,7 @@ static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short left
 	
 	/* if currently in tweakmode, exit tweakmode first */
 	if (scene->flag & SCE_NLA_EDIT_ON)
-		WM_operator_name_call(C, "NLAEDIT_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+		WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
 	if (select_mode==SELECT_REPLACE) {
@@ -589,11 +589,11 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void NLAEDIT_OT_click_select (wmOperatorType *ot)
+void NLA_OT_click_select (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Select";
-	ot->idname= "NLAEDIT_OT_click_select";
+	ot->idname= "NLA_OT_click_select";
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= nlaedit_clickselect_invoke;

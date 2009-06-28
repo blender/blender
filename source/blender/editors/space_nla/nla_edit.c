@@ -139,11 +139,11 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLAEDIT_OT_tweakmode_enter (wmOperatorType *ot)
+void NLA_OT_tweakmode_enter (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Enter Tweak Mode";
-	ot->idname= "NLAEDIT_OT_tweakmode_enter";
+	ot->idname= "NLA_OT_tweakmode_enter";
 	ot->description= "Enter tweaking mode for the action referenced by the active strip.";
 	
 	/* api callbacks */
@@ -205,11 +205,11 @@ static int nlaedit_disable_tweakmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLAEDIT_OT_tweakmode_exit (wmOperatorType *ot)
+void NLA_OT_tweakmode_exit (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Exit Tweak Mode";
-	ot->idname= "NLAEDIT_OT_tweakmode_exit";
+	ot->idname= "NLA_OT_tweakmode_exit";
 	ot->description= "Exit tweaking mode for the action referenced by the active strip.";
 	
 	/* api callbacks */
@@ -239,7 +239,7 @@ static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *
 	
 	/* loop through Actions in Main database, adding as items in the menu */
 	for (act= m->action.first; act; act= act->id.next)
-		uiItemStringO(layout, act->id.name+2, 0, "NLAEDIT_OT_add_actionclip", "action", act->id.name);
+		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_add_actionclip", "action", act->id.name);
 	uiItemS(layout);
 	
 	uiPupMenuEnd(C, pup);
@@ -322,11 +322,11 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_add_actionclip (wmOperatorType *ot)
+void NLA_OT_add_actionclip (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Action Strip";
-	ot->idname= "NLAEDIT_OT_add_actionclip";
+	ot->idname= "NLA_OT_add_actionclip";
 	ot->description= "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track.";
 	
 	/* api callbacks */
@@ -431,11 +431,11 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	}
 }
 
-void NLAEDIT_OT_add_transition (wmOperatorType *ot)
+void NLA_OT_add_transition (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Transition";
-	ot->idname= "NLAEDIT_OT_add_transition";
+	ot->idname= "NLA_OT_add_transition";
 	ot->description= "Add a transition strip between two adjacent selected strips.";
 	
 	/* api callbacks */
@@ -529,11 +529,11 @@ static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_duplicate (wmOperatorType *ot)
+void NLA_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Strips";
-	ot->idname= "NLAEDIT_OT_duplicate";
+	ot->idname= "NLA_OT_duplicate";
 	ot->description= "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals.";
 	
 	/* api callbacks */
@@ -592,11 +592,11 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_delete (wmOperatorType *ot)
+void NLA_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Strips";
-	ot->idname= "NLAEDIT_OT_delete";
+	ot->idname= "NLA_OT_delete";
 	ot->description= "Delete selected strips.";
 	
 	/* api callbacks */
@@ -688,11 +688,11 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_split (wmOperatorType *ot)
+void NLA_OT_split (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Strips";
-	ot->idname= "NLAEDIT_OT_split";
+	ot->idname= "NLA_OT_split";
 	ot->description= "Split selected strips at their midpoints.";
 	
 	/* api callbacks */
@@ -768,11 +768,11 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_move_up (wmOperatorType *ot)
+void NLA_OT_move_up (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Strips Up";
-	ot->idname= "NLAEDIT_OT_move_up";
+	ot->idname= "NLA_OT_move_up";
 	ot->description= "Move selected strips up a track if there's room.";
 	
 	/* api callbacks */
@@ -845,11 +845,11 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_move_down (wmOperatorType *ot)
+void NLA_OT_move_down (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Strips Down";
-	ot->idname= "NLAEDIT_OT_move_down";
+	ot->idname= "NLA_OT_move_down";
 	ot->description= "Move selected strips down a track if there's room.";
 	
 	/* api callbacks */
@@ -944,11 +944,11 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_apply_scale (wmOperatorType *ot)
+void NLA_OT_apply_scale (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Scale";
-	ot->idname= "NLAEDIT_OT_apply_scale";
+	ot->idname= "NLA_OT_apply_scale";
 	ot->description= "Apply scaling of selected strips to their referenced Actions.";
 	
 	/* api callbacks */
@@ -1005,11 +1005,11 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLAEDIT_OT_clear_scale (wmOperatorType *ot)
+void NLA_OT_clear_scale (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Scale";
-	ot->idname= "NLAEDIT_OT_clear_scale";
+	ot->idname= "NLA_OT_clear_scale";
 	ot->description= "Reset scaling of selected strips.";
 	
 	/* api callbacks */
