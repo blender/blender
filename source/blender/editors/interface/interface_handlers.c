@@ -112,6 +112,9 @@ typedef struct uiHandleButtonData {
 	/* tooltip */
 	ARegion *tooltip;
 	wmTimer *tooltiptimer;
+	
+	/* auto open */
+	int used_mouse;
 	wmTimer *autoopentimer;
 
 	/* text selection/editing */
@@ -3344,7 +3347,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 		/* automatic open pulldown block timer */
 		if(ELEM3(but->type, BLOCK, PULLDOWN, ICONTEXTROW)) {
-			if(!data->autoopentimer) {
+			if(data->used_mouse && !data->autoopentimer) {
 				int time;
 
 				if(but->block->auto_open==2) time= 1;    // test for toolbox
@@ -3447,6 +3450,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
 			but->block->auto_open= 0;
 
+	if(type == BUTTON_ACTIVATE_OVER) {
+		data->used_mouse= 1;
+	}
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 	
 	if(type == BUTTON_ACTIVATE_OPEN) {
@@ -3765,12 +3771,19 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 		button_activate_exit(C, data, but, 1);
 	}
 	else if(menu->menuretval == UI_RETURN_OUT) {
-		if(ui_mouse_inside_button(data->region, but, event->x, event->y)) {
+		if(event->type==MOUSEMOVE && ui_mouse_inside_button(data->region, but, event->x, event->y)) {
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
 		else {
-			data->cancel= 1;
-			button_activate_exit(C, data, but, 1);
+			but= ui_but_find_activated(data->region);
+			if(but) {
+				but->active->used_mouse= 0;
+				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
+			}
+			else {
+				data->cancel= 1;
+				button_activate_exit(C, data, but, 1);
+			}
 		}
 	}
 }
