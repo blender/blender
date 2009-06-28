@@ -65,7 +65,7 @@ static struct PyMethodDef Euler_methods[] = {
 
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with
-static PyObject *Euler_new(PyObject * self, PyObject * args)
+static PyObject *Euler_new(PyObject * self, PyObject * args, PyObject * kwargs)
 {
 
 	PyObject *listObject = NULL;
@@ -173,7 +173,12 @@ static PyObject *Euler_Unique(EulerObject * self)
 	heading = self->eul[0] * (float)Py_PI / 180;
 	pitch = self->eul[1] * (float)Py_PI / 180;
 	bank = self->eul[2] * (float)Py_PI / 180;
+#else
+	heading = self->eul[0];
+	pitch = self->eul[1];
+	bank = self->eul[2];
 #endif
+
 
 	//wrap heading in +180 / -180
 	pitch += Py_PI;
@@ -271,8 +276,10 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 
 static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 {
+#ifdef USE_MATHUTILS_DEG
 	float eul_from_rad[3];
 	int x;
+#endif
 	
 	if(!EulerObject_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "euler.makeCompatible(euler):expected a single euler argument.");
@@ -460,7 +467,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 	PyObject *e;
 
 	if(!BaseMath_ReadCallback(self))
-		return NULL;
+		return -1;
 
 	CLAMP(begin, 0, 3);
 	if (end<0) end= 4+end;
@@ -636,5 +643,5 @@ PyObject *newEulerObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 
-	return self;
+	return (PyObject *)self;
 }

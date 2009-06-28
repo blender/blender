@@ -1077,6 +1077,44 @@ static PySequenceMethods Vector_SeqMethods = {
 	(ssizessizeobjargproc) Vector_ass_slice,		/* sq_ass_slice */
 };
  
+#if (PY_VERSION_HEX >= 0x03000000)
+static PyNumberMethods Vector_NumMethods = {
+		(binaryfunc)	Vector_add,	/*nb_add*/
+		(binaryfunc)	Vector_sub,	/*nb_subtract*/
+		(binaryfunc)	Vector_mul,	/*nb_multiply*/
+		0,							/*nb_remainder*/
+		0,							/*nb_divmod*/
+		0,							/*nb_power*/
+		(unaryfunc) 	Vector_neg,	/*nb_negative*/
+		(unaryfunc) 	0,	/*tp_positive*/
+		(unaryfunc) 	0,	/*tp_absolute*/
+		(inquiry)	0,	/*tp_bool*/
+		(unaryfunc)	0,	/*nb_invert*/
+		0,				/*nb_lshift*/
+		(binaryfunc)0,	/*nb_rshift*/
+		0,				/*nb_and*/
+		0,				/*nb_xor*/
+		0,				/*nb_or*/
+		0,				/*nb_int*/
+		0,				/*nb_reserved*/
+		0,				/*nb_float*/
+		Vector_iadd,	/* nb_inplace_add */
+		Vector_isub,	/* nb_inplace_subtract */
+		Vector_imul,	/* nb_inplace_multiply */
+		0,				/* nb_inplace_remainder */
+		0,				/* nb_inplace_power */
+		0,				/* nb_inplace_lshift */
+		0,				/* nb_inplace_rshift */
+		0,				/* nb_inplace_and */
+		0,				/* nb_inplace_xor */
+		0,				/* nb_inplace_or */
+		0,				/* nb_floor_divide */
+		Vector_div,		/* nb_true_divide */
+		0,				/* nb_inplace_floor_divide */
+		Vector_idiv,	/* nb_inplace_true_divide */
+		0,			/* nb_index */
+};
+#else
 static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
 	(binaryfunc) Vector_sub,					/* __sub__ */
@@ -1122,6 +1160,8 @@ static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) NULL,							/*__ifloordiv__*/
 	(binaryfunc) NULL,							/*__itruediv__*/
 };
+#endif
+
 /*------------------PY_OBECT DEFINITION--------------------------*/
 
 /*

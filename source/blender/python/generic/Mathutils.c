@@ -1244,7 +1244,7 @@ PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
 {
-	PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
+	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
 }
 
 void BaseMathObject_dealloc(BaseMathObject * self)
