@@ -863,19 +863,24 @@ def make_kf_obj_node(obj, name_to_id):
 """
 
 import BPyMessages
-def save_3ds(filename):
+def save_3ds(filename, context):
 	'''Save the Blender scene to a 3ds file.'''
 	# Time the export
 	
 	if not filename.lower().endswith('.3ds'):
 		filename += '.3ds'
-	
-	if not BPyMessages.Warning_SaveOver(filename):
-		return
-	
-	time1= Blender.sys.time()
-	Blender.Window.WaitCursor(1)
-	sce= bpy.data.scenes.active
+
+	# XXX
+# 	if not BPyMessages.Warning_SaveOver(filename):
+# 		return
+
+	# XXX
+    time1 = bpy.sys.time()
+# 	time1= Blender.sys.time()
+# 	Blender.Window.WaitCursor(1)
+
+	sce = context.scene
+# 	sce= bpy.data.scenes.active
 	
 	# Initialize the main chunk (primary):
 	primary = _3ds_chunk(PRIMARY)
@@ -901,7 +906,8 @@ def save_3ds(filename):
 	# each material is added once):
 	materialDict = {}
 	mesh_objects = []
-	for ob in sce.objects.context:
+	for ob in context.selected_objects:
+# 	for ob in sce.objects.context:
 		for ob_derived, mat in getDerivedObjects(ob, False):
 			data = getMeshFromObject(ob_derived, None, True, False, sce)
 			if data:

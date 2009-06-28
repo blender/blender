@@ -19,6 +19,7 @@
 #include "bpy_rna.h"
 #include "bpy_operator.h"
 #include "bpy_ui.h"
+#include "bpy_sys.h"
 #include "bpy_util.h"
 
 #include "DNA_anim_types.h"
@@ -91,6 +92,7 @@ void BPY_update_modules( void )
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "sys", BPY_sys_module() );
 }
 
 /*****************************************************************************

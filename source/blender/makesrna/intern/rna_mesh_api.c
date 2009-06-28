@@ -36,6 +36,8 @@
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_mesh.h"
+
 #include "BLI_arithb.h"
 
 #include "DNA_mesh_types.h"
@@ -64,6 +66,14 @@ void rna_Mesh_transform(Mesh *me, float *mat)
 	for(i= 0; i < me->totvert; i++, mvert++) {
 		Mat4MulVecfl(mat, mvert->co);
 	}
+}
+
+Mesh *rna_Mesh_create_copy(Mesh *me)
+{
+	Mesh *ret= copy_mesh(me);
+	ret->id.us--;
+	
+	return ret;
 }
 
 #if 0
@@ -100,6 +110,11 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Transform mesh vertices by a matrix.");
 	parm= RNA_def_float_matrix(func, "matrix", 16, NULL, 0.0f, 0.0f, "", "Matrix.", 0.0f, 0.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "create_copy", "rna_Mesh_create_copy");
+	RNA_def_function_ui_description(func, "Create a copy of this Mesh datablock.");
+	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh, remove it if it is only used for export.");
+	RNA_def_function_return(func, parm);
 
 	/*
 	func= RNA_def_function(srna, "add_geom", "rna_Mesh_add_geom");

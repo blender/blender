@@ -32,7 +32,7 @@ class SCRIPT_HT_header(bpy.types.Header):
 
 		if context.area.show_menus:
 			row = layout.row(align=True)
-			row.itemM(context, "SCRIPT_MT_scripts")
+			row.itemM("SCRIPT_MT_scripts")
 
 class SCRIPT_MT_scripts(bpy.types.Menu):
     __space_type__ = "SCRIPTS_WINDOW"
@@ -41,7 +41,7 @@ class SCRIPT_MT_scripts(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.column()
-        layout.itemM(context, "SCRIPT_MT_export")
+        layout.itemM("SCRIPT_MT_export")
         layout.itemO("SCRIPT_OT_reload_scripts")
 
 class SCRIPT_MT_export(bpy.types.Menu):

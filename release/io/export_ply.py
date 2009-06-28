@@ -64,7 +64,7 @@ def write(filename, scene, ob, \
 		raise Exception("Error, Select 1 active object")
 		return
 	
-	file = open(filename, 'wb')
+	file = open(filename, 'w')
 	
 	
 	#EXPORT_EDGES = Draw.Create(0)
@@ -123,8 +123,8 @@ def write(filename, scene, ob, \
 	mesh_verts = mesh.verts # save a lookup
 	ply_verts = [] # list of dictionaries
 	# vdict = {} # (index, normal, uv) -> new index
-	vdict = [{} for i in xrange(len(mesh_verts))]
-	ply_faces = [[] for f in xrange(len(mesh.faces))]
+	vdict = [{} for i in range(len(mesh_verts))]
+	ply_faces = [[] for f in range(len(mesh.faces))]
 	vert_count = 0
 	for i, f in enumerate(mesh.faces):
 		

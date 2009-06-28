@@ -331,7 +331,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
 		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"execute",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"execute",	'f', 2,	0},
 		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
 		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}

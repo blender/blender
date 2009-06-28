@@ -36,6 +36,12 @@
 
 #include "DNA_object_types.h"
 
+/* parameter to rna_Object_create_mesh */
+typedef enum CreateMeshType {
+	CREATE_MESH_PREVIEW = 0,
+	CREATE_MESH_RENDER = 1
+} CreateMeshType;
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_customdata.h"
@@ -55,7 +61,7 @@
 #include "ED_mesh.h"
 
 /* copied from init_render_mesh (render code) */
-static Mesh *create_mesh(Object *ob, bContext *C, ReportList *reports, int render_mesh)
+static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports, int type)
 {
 	/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
 	CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
@@ -71,8 +77,13 @@ static Mesh *create_mesh(Object *ob, bContext *C, ReportList *reports, int rende
 		BKE_report(reports, RPT_ERROR, "Object should be of type MESH.");
 		return NULL;
 	}
-	
-	dm= render_mesh ? mesh_create_derived_render(sce, ob, mask) : mesh_create_derived_view(sce, ob, mask);
+
+	if (type == CREATE_MESH_PREVIEW) {
+		dm= mesh_create_derived_view(sce, ob, mask);
+	}
+	else {
+		dm= mesh_create_derived_render(sce, ob, mask);
+	}
 
 	if(!dm) {
 		/* TODO: report */
@@ -85,16 +96,6 @@ static Mesh *create_mesh(Object *ob, bContext *C, ReportList *reports, int rende
 	dm->release(dm);
 
 	return me;
-}
-
-static Mesh *rna_Object_create_render_mesh(Object *ob, bContext *C, ReportList *reports)
-{
-	return create_mesh(ob, C, reports, 1);
-}
-
-static Mesh *rna_Object_create_preview_mesh(Object *ob, bContext *C, ReportList *reports)
-{
-	return create_mesh(ob, C, reports, 0);
 }
 
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
@@ -162,33 +163,20 @@ void RNA_api_object(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	/* copied from rna_def_object */
-	static EnumPropertyItem object_type_items[] = {
-		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
-		{OB_MESH, "MESH", 0, "Mesh", ""},
-		{OB_CURVE, "CURVE", 0, "Curve", ""},
-		{OB_SURF, "SURFACE", 0, "Surface", ""},
-		{OB_FONT, "TEXT", 0, "Text", ""},
-		{OB_MBALL, "META", 0, "Meta", ""},
-		{OB_LAMP, "LAMP", 0, "Lamp", ""},
-		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-		{OB_WAVE, "WAVE", 0, "Wave", ""},
-		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem mesh_type_items[] = {
+		{CREATE_MESH_PREVIEW, "PREVIEW", 0, "Preview", "Apply preview settings."},
+		{CREATE_MESH_RENDER, "RENDER", 0, "Render", "Apply render settings."},
+		{0, NULL, 0, NULL, NULL}
+	};
 
-	func= RNA_def_function(srna, "create_render_mesh", "rna_Object_create_render_mesh");
-	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied for rendering.");
+	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
+	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_enum(func, "type", mesh_type_items, 0, "", "Type of mesh settings to apply.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "create_preview_mesh", "rna_Object_create_preview_mesh");
-	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied for preview.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
-	RNA_def_function_return(func, parm);
-	
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
