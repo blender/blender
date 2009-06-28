@@ -270,8 +270,8 @@ void ANIM_nla_mapping_draw(gla2DDrawInfo *di, AnimData *adt, short restore)
 		gla2DGetMap(di, &stored);
 		map= stored;
 		
-		map.xmin= BKE_nla_tweakedit_remap(adt, map.xmin, 0);
-		map.xmax= BKE_nla_tweakedit_remap(adt, map.xmax, 0);
+		map.xmin= BKE_nla_tweakedit_remap(adt, map.xmin, NLATIME_CONVERT_MAP);
+		map.xmax= BKE_nla_tweakedit_remap(adt, map.xmax, NLATIME_CONVERT_MAP);
 		
 		if (map.xmin == map.xmax) map.xmax += 1.0f;
 		gla2DSetMap(di, &map);
@@ -289,11 +289,11 @@ static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
-		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], 0);
-		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], 0);
+		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_UNMAP);
+		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_UNMAP);
 	}
 	
-	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], 0);
+	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_UNMAP);
 	
 	return 0;
 }
@@ -307,11 +307,11 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
-		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], 1);
-		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], 1);
+		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_MAP);
+		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_MAP);
 	}
 	
-	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], 1);
+	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_MAP);
 	
 	return 0;
 }

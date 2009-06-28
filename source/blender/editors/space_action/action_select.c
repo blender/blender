@@ -255,8 +255,8 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 		if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
 			/* if channel is mapped in NLA, apply correction */
 			if (adt) {
-				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, 0);
-				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, 0);
+				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
 			}
 			else {
 				bed.f1= rectf.xmin;
@@ -504,7 +504,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 		for (ce= bed.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
 			if (adt)
-				bed.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, 0);
+				bed.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
 			else
 				bed.f1= ce->cfra;
 			
@@ -707,7 +707,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 		
 		/* set frame for validation callback to refer to */
 		if (adt)
-			bed.f1= BKE_nla_tweakedit_remap(adt, selx, 0);
+			bed.f1= BKE_nla_tweakedit_remap(adt, selx, NLATIME_CONVERT_UNMAP);
 		else
 			bed.f1= selx;
 		
@@ -779,8 +779,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		
 		/* apply NLA-scaling correction? */
 		if (adt) {
-			xmin= BKE_nla_tweakedit_remap(adt, rectf.xmin, 0);
-			xmax= BKE_nla_tweakedit_remap(adt, rectf.xmax, 0);
+			xmin= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+			xmax= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
 		}
 		else {
 			xmin= rectf.xmin;

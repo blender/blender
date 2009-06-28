@@ -73,6 +73,7 @@ typedef struct NlaEvalChannel {
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */
 
 /* convert from strip time <-> global time */
-float nlastrip_get_frame(NlaStrip *strip, float cframe, short invert);
+float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
+
 
 #endif // NLA_PRIVATE

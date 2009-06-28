@@ -2434,7 +2434,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 		
 		/* only within action range */
 		if (actframe+ctime >= start && actframe+ctime <= end) {
-			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe+ctime, 1);
+			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe+ctime, NLATIME_CONVERT_MAP);
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
@@ -2449,7 +2449,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 		
 		/* only within action range */
 		if ((actframe-ctime >= start) && (actframe-ctime <= end)) {
-			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe-ctime, 1);
+			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe-ctime, NLATIME_CONVERT_MAP);
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);

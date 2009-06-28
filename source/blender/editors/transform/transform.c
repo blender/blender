@@ -4365,7 +4365,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 		
 		/* convert frame to nla-action time (if needed) */
 		if (adt) 
-			val= BKE_nla_tweakedit_remap(adt, *(td->val), 1);
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
 		
@@ -4377,7 +4377,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 			
 		/* convert frame out of nla-action time */
 		if (adt)
-			*(td->val)= BKE_nla_tweakedit_remap(adt, val, 0);
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
 	}
@@ -4387,7 +4387,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 		
 		/* convert frame to nla-action time (if needed) */
 		if (adt) 
-			val= BKE_nla_tweakedit_remap(adt, *(td->val), 1);
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
 		
@@ -4397,7 +4397,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 		
 		/* convert frame out of nla-action time */
 		if (adt)
-			*(td->val)= BKE_nla_tweakedit_remap(adt, val, 0);
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
 	}
@@ -4487,9 +4487,9 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 					deltax= (float)( floor(deltax + 0.5f) );
 			}
 			
-			val = BKE_nla_tweakedit_remap(adt, td->ival, 1);
+			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
 			val += deltax;
-			*(td->val) = BKE_nla_tweakedit_remap(adt, val, 0);
+			*(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		}
 		else {
 			deltax = val = t->values[0];
@@ -4614,7 +4614,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 		
 		/* apply NLA-mapping to necessary values */
 		if (adt)
-			cval= BKE_nla_tweakedit_remap(adt, cval, 0);
+			cval= BKE_nla_tweakedit_remap(adt, cval, NLATIME_CONVERT_UNMAP);
 		
 		/* only apply to data if in range */
 		if ((sval > minx) && (sval < maxx)) {
@@ -4726,7 +4726,7 @@ static void applyTimeScale(TransInfo *t) {
 		
 		/* check if any need to apply nla-mapping */
 		if (adt)
-			startx= BKE_nla_tweakedit_remap(adt, startx, 0);
+			startx= BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
 			
 		/* now, calculate the new value */
 		*(td->val) = td->ival - startx;

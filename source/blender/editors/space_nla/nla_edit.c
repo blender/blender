@@ -870,9 +870,9 @@ static short bezt_apply_nlamapping (BeztEditData *bed, BezTriple *bezt)
 	NlaStrip *strip= (NlaStrip *)bed->data;
 	
 	/* adjust all the times */
-	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], 1);
-	bezt->vec[1][0]= nlastrip_get_frame(strip, bezt->vec[1][0], 1);
-	bezt->vec[2][0]= nlastrip_get_frame(strip, bezt->vec[2][0], 1);
+	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], NLATIME_CONVERT_MAP);
+	bezt->vec[1][0]= nlastrip_get_frame(strip, bezt->vec[1][0], NLATIME_CONVERT_MAP);
+	bezt->vec[2][0]= nlastrip_get_frame(strip, bezt->vec[2][0], NLATIME_CONVERT_MAP);
 	
 	/* nothing to return or else we exit */
 	return 0;

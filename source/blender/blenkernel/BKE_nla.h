@@ -73,7 +73,22 @@ void BKE_nla_action_pushdown(struct AnimData *adt);
 short BKE_nla_tweakmode_enter(struct AnimData *adt);
 void BKE_nla_tweakmode_exit(struct AnimData *adt);
 
-float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short invert);
+/* ----------------------------- */
+/* Time Mapping */
+
+/* time mapping conversion modes */
+enum {
+		/* convert from global time to strip time - for evaluation */
+	NLATIME_CONVERT_EVAL = 0,
+		/* convert from global time to strip time - for editing corrections */
+		// XXX old 0 invert
+	NLATIME_CONVERT_UNMAP,
+		/* convert from strip time to global time */
+		// xxx old 1 invert
+	NLATIME_CONVERT_MAP,
+} eNlaTime_ConvertModes;
+
+float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 
 #endif
 

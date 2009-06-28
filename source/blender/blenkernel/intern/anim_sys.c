@@ -604,7 +604,7 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 {
 	/* firstly, analytically generate values for influence and time (if applicable) */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
-		strip->strip_time= nlastrip_get_frame(strip, ctime, 0);
+		strip->strip_time= nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
 	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
 		strip->influence= nlastrip_get_influence(strip, ctime);
 	

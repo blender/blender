@@ -3080,7 +3080,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		 * higher scaling ratios, but is faster than converting all points) 
 		 */
 		if (adt) 
-			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
+			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
 		
@@ -3134,7 +3134,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			 * higher scaling ratios, but is faster than converting all points) 
 			 */
 			if (adt) 
-				cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
+				cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 			else
 				cfra = (float)CFRA;
 			
@@ -3180,13 +3180,13 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	 */
 	
 	if (adt) {
-		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], 0);
+		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_UNMAP);
 		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
-		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], 0);
+		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_UNMAP);
 		td->center[1] = cent[1];
 		td->center[2] = 0.0f;
 		
@@ -3277,7 +3277,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		 * higher scaling ratios, but is faster than converting all points) 
 		 */
 		if (adt) 
-			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
+			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
 		
@@ -3336,7 +3336,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		 * higher scaling ratios, but is faster than converting all points) 
 		 */
 		if (adt) 
-			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
+			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
 		
@@ -3622,7 +3622,7 @@ void flushTransGraphData(TransInfo *t)
 		
 		/* we need to unapply the nla-scaling from the time in some situations */
 		if (adt)
-			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], 0);
+			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);
 		else
 			td2d->loc2d[0]= td2d->loc[0];
 		

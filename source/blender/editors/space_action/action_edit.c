@@ -121,8 +121,8 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 			calc_fcurve_range(fcu, &tmin, &tmax);
 			
 			if (adt) {
-				tmin= BKE_nla_tweakedit_remap(adt, tmin, 1);
-				tmax= BKE_nla_tweakedit_remap(adt, tmax, 1);
+				tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
+				tmax= BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
@@ -406,7 +406,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		
 		/* adjust current frame for NLA-scaling */
 		if (adt)
-			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
+			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else 
 			cfra= (float)CFRA;
 			

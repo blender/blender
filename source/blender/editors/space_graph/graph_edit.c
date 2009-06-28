@@ -123,8 +123,8 @@ static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xm
 			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
 			if (adt) {
-				txmin= BKE_nla_tweakedit_remap(adt, txmin, 1);
-				txmax= BKE_nla_tweakedit_remap(adt, txmax, 1);
+				txmin= BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
+				txmax= BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
@@ -288,7 +288,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 		
 		/* use the sampling callback at 1-frame intervals from start to end frames */
 		for (cfra= start; cfra <= end; cfra++, fpt++) {
-			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, 0);
+			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 			
 			fpt->vec[0]= cfrae;
 			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, cfrae);
@@ -427,7 +427,7 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	
 	/* apply inverse NLA-mapping to frame to get correct time in un-scaled action */
 	adt= ANIM_nla_mapping_get(&ac, ale);
-	frame= BKE_nla_tweakedit_remap(adt, frame, 0);
+	frame= BKE_nla_tweakedit_remap(adt, frame, NLATIME_CONVERT_UNMAP);
 	
 	/* insert keyframe on the specified frame + value */
 	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);

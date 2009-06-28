@@ -329,7 +329,7 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 /* non clipped mapping for strip-time <-> global time (for Action-Clips)
  *	invert = convert action-strip time to global time 
  */
-static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short invert)
+static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short mode)
 {
 	float actlength, repeat, scale;
 	
@@ -347,9 +347,20 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		/* invert = convert action-strip time to global time */
-		if (invert)
-			return scale*(strip->actend - cframe) + strip->start; // FIXME: this doesn't work for multiple repeats yet
+		// FIXME: this won't work right with Graph Editor?
+		if (mode == NLATIME_CONVERT_MAP) {
+			return strip->end - scale*(cframe - strip->actstart);
+		}
+		else if (mode == NLATIME_CONVERT_UNMAP) {
+			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
+			
+			/* this method doesn't clip the values to lie within the action range only 
+			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
+			 *	- the fmod(...) works in the same way as for eval 
+			 */
+			return strip->actend - (repeatsNum * actlength * scale) 
+					- (fmod(cframe - strip->start, actlength*scale) / scale);
+		}
 		else {
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
@@ -367,10 +378,20 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 		}
 	}
 	else {
-		/* invert = convert action-strip time to global time */
-		if (invert)
-			return scale*(cframe - strip->actstart) + strip->start; // FIXME: this doesn't work for mutiple repeats yet
-		else {
+		if (mode == NLATIME_CONVERT_MAP) {
+			return strip->start + scale*(cframe - strip->actstart);
+		}
+		else if (mode == NLATIME_CONVERT_UNMAP) {
+			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
+			
+			/* this method doesn't clip the values to lie within the action range only 
+			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
+			 *	- the fmod(...) works in the same way as for eval 
+			 */
+			return strip->actstart + (repeatsNum * actlength * scale) 
+					+ (fmod(cframe - strip->start, actlength*scale) / scale);
+		}
+		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
@@ -391,7 +412,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 /* non clipped mapping for strip-time <-> global time (for Transitions)
  *	invert = convert action-strip time to global time 
  */
-static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short invert)
+static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short mode)
 {
 	float length;
 	
@@ -400,15 +421,13 @@ static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short
 	
 	/* reversed = play strip backwards */
 	if (strip->flag & NLASTRIP_FLAG_REVERSE) {
-		/* invert = convert within-strip-time to global time */
-		if (invert)
+		if (mode == NLATIME_CONVERT_MAP)
 			return strip->end - (length * cframe);
 		else
 			return (strip->end - cframe) / length;
 	}
 	else {
-		/* invert = convert within-strip-time to global time */
-		if (invert)
+		if (mode == NLATIME_CONVERT_MAP)
 			return (length * cframe) + strip->start;
 		else
 			return (cframe - strip->start) / length;
@@ -416,31 +435,31 @@ static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short
 }
 
 /* non clipped mapping for strip-time <-> global time
- *	invert = convert action-strip time to global time 
+ * 	mode = eNlaTime_ConvertModes[] -> NLATIME_CONVERT_*
  *
  * only secure for 'internal' (i.e. within AnimSys evaluation) operations,
  * but should not be directly relied on for stuff which interacts with editors
  */
-float nlastrip_get_frame (NlaStrip *strip, float cframe, short invert)
+float nlastrip_get_frame (NlaStrip *strip, float cframe, short mode)
 {
 	switch (strip->type) {
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
-			return nlastrip_get_frame_transition(strip, cframe, invert);
+			return nlastrip_get_frame_transition(strip, cframe, mode);
 		
 		case NLASTRIP_TYPE_CLIP: /* action-clip (default) */
 		default:
-			return nlastrip_get_frame_actionclip(strip, cframe, invert);
+			return nlastrip_get_frame_actionclip(strip, cframe, mode);
 	}	
 }
 
 
 /* Non clipped mapping for strip-time <-> global time
- *	invert = convert strip-time to global time 
+ *	mode = eNlaTime_ConvertModesp[] -> NLATIME_CONVERT_*
  *
  * Public API method - perform this mapping using the given AnimData block
  * and perform any necessary sanity checks on the value
  */
-float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short invert)
+float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
 {
 	NlaStrip *strip;
 	
@@ -469,7 +488,7 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short invert)
 		return cframe;
 		
 	/* perform the correction now... */
-	return nlastrip_get_frame(strip, cframe, invert);
+	return nlastrip_get_frame(strip, cframe, mode);
 }
 
 /* *************************************************** */
