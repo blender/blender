@@ -145,7 +145,7 @@ public:
 	void operator()(Object *ob)
 	{
 		// XXX don't use DerivedMesh, Mesh instead?
-
+		
 		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 		MVert *mverts = dm->getVertArray(dm);
 		MFace *mfaces = dm->getFaceArray(dm);
@@ -155,18 +155,19 @@ public:
 
 		std::string geom_name(ob->id.name);
 
-		//openMesh(geoId, geoName, meshId)
+		// openMesh(geoId, geoName, meshId)
 		openMesh(geom_name, "", "");
 
-		//writes <source> for vertex coords
+		// writes <source> for vertex coords
 		createVertsSource(geom_name, dm);
-		//writes <source> for normal coords
+		
+		// writes <source> for normal coords
 		createNormalsSource(geom_name, dm);
-		//writes <source> for uv coords
-		//if mesh has uv coords
+		
+		// writes <source> for uv coords if mesh has uv coords
 		checkTexcoords = createTexcoordsSource(geom_name, dm, (Mesh*)ob->data);
 		
-		//<vertices>
+		// <vertices>
 		COLLADASW::Vertices verts(mSW);
 		verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
 		COLLADASW::InputList &input_list = verts.getInputList();
@@ -175,11 +176,13 @@ public:
 		input_list.push_back(input);
 		verts.add();
 		
+		// if mesh has per-face materials
 		for(int a = 0; a < ob->totcol; a++)	{
-			//<vcount>
+			// <vcount>
 			int i;
 			int faces_in_polylist = 0;
 			std::vector<unsigned long> VCountList;
+			
 			for (i = 0; i < totfaces; i++) {
 				MFace *f = &mfaces[i];
 				if (f->mat_nr == a) {
@@ -192,6 +195,7 @@ public:
 					}
 				}
 			}
+			
 			if (faces_in_polylist == 0) {
 				continue;
 			}
@@ -207,36 +211,37 @@ public:
 				
 			COLLADASW::InputList &til = polylist.getInputList();
 			
-			//creates list of attributes in <polylist> <input> for vertices 
+			// creates <input> in <polylist> for vertices 
 			COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
 									(geom_name, COLLADASW::VERTEX), 0);
-			//creates list of attributes in <polylist> <input> for normals
+			
+			// creates <input> in <polylist> for normals
 			COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
 									(geom_name, COLLADASW::NORMAL), 0);
 			
 			til.push_back(input1);
 			til.push_back(input2);
 			
-			// if mesh has uv coords writes <input> attributes for TEXCOORD
-			// XXX doesn't work when mesh has no uv channel
+			// if mesh has uv coords writes <input> for TEXCOORD
 			if (checkTexcoords == true)
 				{
 					COLLADASW::Input input3(COLLADASW::TEXCOORD,
 											getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 0);
 					til.push_back(input3);
 				}
-			// <vcount>
+			
+			// sets <vcount>
 			polylist.setVCountList(VCountList);
 			
-			//performs the actual writing
+			// performs the actual writing
 			polylist.prepareToAppendValues();
 			
+			// <p>
 			int texindex = 0;
-			//<p>
 			for (i = 0; i < totfaces; i++) {
 				MFace *f = &mfaces[i];
-				//if mesh has uv coords writes uv and
-				//vertex indexes
+				
+				// if mesh has uv coords writes uv and vertex indices
 				if (checkTexcoords == true && f->mat_nr == a)	{
 					// if triangle
 					if (f->v4 == 0) {
@@ -255,16 +260,11 @@ public:
 						polylist.appendValues(texindex++);
 						polylist.appendValues(f->v3);
 						polylist.appendValues(texindex++);
-						//tris.appendValues(f->v3);
-						//tris.appendValues(texindex++);
 						polylist.appendValues(f->v4);
 						polylist.appendValues(texindex++);
-						//tris.appendValues(f->v1);
-						//tris.appendValues(texindex++);
 					}
 				}
-				//if mesh has no uv coords writes only 
-				//vertex indexes
+				// if mesh has no uv coords writes only vertex indices
 				else if(f->mat_nr == a){
 					// if triangle
 					if (f->v4 == 0) {
@@ -273,9 +273,9 @@ public:
 					// quad
 					else {
 						polylist.appendValues(f->v1, f->v2, f->v3, f->v4);
-						//tris.appendValues(f->v3, f->v4, f->v1);
 					}
 				}
+				
 				else if(f->mat_nr != a) {
 					if (f->v4 == 0) {
 						texindex += 3;
@@ -285,18 +285,109 @@ public:
 					}
 				}
 			}
-			//polylist.closeElement();
+			
 			polylist.finish();
+		}
+		
+		// writes <polylist> if mesh has no materials
+		if (ob->totcol == 0) {
+			// <vcount>
+			int i;
+			std::vector<unsigned long> VCountList;
+			for (i = 0; i < totfaces; i++) {
+				MFace *f = &mfaces[i];
+				if (f->v4 == 0) {
+					VCountList.push_back(3);
+				}
+				else {
+					VCountList.push_back(4);
+				}
+			}
+			
+			
+			COLLADASW::Polylist polylist(mSW);
+			
+			// sets count attribute in <polylist>
+			polylist.setCount(totfaces);
+			
+			COLLADASW::InputList &til = polylist.getInputList();
+			
+			// creates <input> in <polylist> for vertices 
+			COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
+									(geom_name, COLLADASW::VERTEX), 0);
+			// creates <input> in <polylist> for normals
+			COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
+									(geom_name, COLLADASW::NORMAL), 0);
+			
+			til.push_back(input1);
+			til.push_back(input2);
+			
+			// if mesh has uv coords writes <input> for TEXCOORD
+			if (checkTexcoords == true)
+				{
+					COLLADASW::Input input3(COLLADASW::TEXCOORD,
+											getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 0);
+					til.push_back(input3);
+				}
+			// <vcount>
+			polylist.setVCountList(VCountList);
+			
+			// performs the actual writing
+			polylist.prepareToAppendValues();
+			
+			// <p>
+			int texindex = 0;
+			for (i = 0; i < totfaces; i++) {
+				MFace *f = &mfaces[i];
+				
+				//if mesh has uv coords writes uv and vertex indices
+				if (checkTexcoords == true)	{
+					// if triangle
+					if (f->v4 == 0) {
+						polylist.appendValues(f->v1);
+						polylist.appendValues(texindex++);
+						polylist.appendValues(f->v2);
+						polylist.appendValues(texindex++);
+						polylist.appendValues(f->v3);
+						polylist.appendValues(texindex++);
+					}
+					// quad
+					else {
+						polylist.appendValues(f->v1);
+						polylist.appendValues(texindex++);
+						polylist.appendValues(f->v2);
+						polylist.appendValues(texindex++);
+						polylist.appendValues(f->v3);
+						polylist.appendValues(texindex++);
+						polylist.appendValues(f->v4);
+						polylist.appendValues(texindex++);
+					}
+				}
+				
+				// if mesh has no uv coords writes only vertex indices 
+				else {
+					// if triangle
+					if (f->v4 == 0) {
+						polylist.appendValues(f->v1, f->v2, f->v3);	
+					}
+					// quad
+					else {
+						polylist.appendValues(f->v1, f->v2, f->v3, f->v4);
+					}
+				}
+			}
+			polylist.finish();
+			
 		}
 		
 		closeMesh();
 		closeGeometry();
-					
+		
 		dm->release(dm);
 		
 	}
 	
-	//creates <source> for positions
+	// creates <source> for positions
 	void createVertsSource(std::string geom_name, DerivedMesh *dm)
 	{
 		int totverts = dm->getNumVerts(dm);
@@ -696,7 +787,7 @@ public:
 			ep.setSpecular(cot_col);
 		}
 		
-		//performs the actual writing
+		// performs the actual writing
 		ep.addProfileElements();
 		ep.closeProfile();
 		
