@@ -146,6 +146,10 @@ struct PropertyRNA {
 
 	/* callback for testing if editable/evaluated */
 	EditableFunc editable;
+
+	/* raw access */
+	int rawoffset;
+	RawPropertyType rawtype;
 };
 
 /* Property Types */
