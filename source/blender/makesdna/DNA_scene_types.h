@@ -232,6 +232,8 @@ typedef struct RenderData {
 
 	/* render engine, octree resolution */
 	short renderer, ocres;
+	short raystructure;
+	short pad4[3];
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -659,6 +661,12 @@ typedef struct Scene {
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
 #define R_YAFRAY	1
+
+/* raytrace structure */
+#define R_RAYSTRUCTURE_HIER_BVH_BVH		0
+#define R_RAYSTRUCTURE_HIER_BVH_OCTREE	1
+#define R_RAYSTRUCTURE_SINGLE_OCTREE	2
+#define R_RAYSTRUCTURE_SINGLE_BVH		3
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001
