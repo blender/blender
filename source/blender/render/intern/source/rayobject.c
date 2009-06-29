@@ -128,6 +128,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
 
+	RE_RC_COUNT(is->count->intersect_rayface.test);
 
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
@@ -246,6 +247,8 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		}
 #endif
 
+		RE_RC_COUNT(is->count->intersect_rayface.hit);
+
 		is->isect= ok;	// wich half of the quad
 		is->labda= labda;
 		is->u= u; is->v= v;
@@ -261,24 +264,27 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 int RE_rayobject_raycast(RayObject *r, Isect *i)
 {
-	static int casted_rays = 0;
-	
-	if(casted_rays++ % (1<<20) == 0)
-		printf("Casting %d rays\n", casted_rays);
+	RE_RC_COUNT(i->count->raycast.test);
 
-/*
-	i->labda = 10000.0;
-	i->vec[0] *= i->labda;
-	i->vec[1] *= i->labda;
-	i->vec[2] *= i->labda;
-	i->labda = 1.0f;
-*/
 	i->dist = VecLength(i->vec);
 	
 	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
+	{
+		RE_RC_COUNT(i->count->raycast.hit);
+		RE_RC_COUNT(i->count->rayshadow_last_hit_optimization );
 		return 1;
+	}
 
+#ifdef RE_RAYCOUNTER
+	if(RE_rayobject_intersect(r, i))
+	{
+		RE_RC_COUNT(i->count->raycast.hit);
+		return 1;
+	}
+	return 0;
+#else
 	return RE_rayobject_intersect(r, i);
+#endif
 }
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
@@ -329,3 +335,17 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 	}
 }
 
+#ifdef RE_RAYCOUNTER
+void RE_merge_raycounter(RayCounter *dest, RayCounter *tmp)
+{
+	int i;
+	for(i=0; i<3; i++) dest->casted[i] += tmp->casted[i];
+	for(i=0; i<3; i++) dest->hit   [i] += tmp->hit   [i];
+	
+	dest->test_primitives += tmp->test_primitives;
+	dest->hit_primitives  += tmp->hit_primitives;
+	
+	dest->test_bb += tmp->test_bb;
+	dest->hit_bb  += tmp->hit_bb;
+}
+#endif

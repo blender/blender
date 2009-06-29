@@ -175,10 +175,13 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		assert( faces > 0 );
 
 		//Create Ray cast accelaration structure
-
+		
 		//TODO dynamic ocres
-//		raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
-		raytree = obr->raytree = RE_rayobject_bvh_create( faces );
+		if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
+			raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
+		else //if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_BVH)
+			raytree = obr->raytree = RE_rayobject_bvh_create( faces );
+			
 		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
 		obr->rayobi = obi;
 		
@@ -284,8 +287,11 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-//	raytree = re->raytree	= RE_rayobject_octree_create(re->r.ocres, faces);
-	raytree = re->raytree	= RE_rayobject_bvh_create(faces);
+	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
+		raytree = re->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
+	else //if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
+		raytree = re->raytree = RE_rayobject_bvh_create( faces );
+
 	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
 	
 	for(obi=re->instancetable.first; obi; obi=obi->next)
@@ -313,10 +319,10 @@ static void makeraytree_single(Render *re)
 
 void makeraytree(Render *re)
 {
-	if(1)
-		makeraytree_hier(re);
-	else
+	if(ELEM(re->r.raystructure, R_RAYSTRUCTURE_SINGLE_BVH, R_RAYSTRUCTURE_SINGLE_OCTREE))
 		makeraytree_single(re);
+	else
+		makeraytree_hier(re);
 }
 
 

@@ -31,10 +31,12 @@
 #ifndef RE_RAYTRACE_H
 #define RE_RAYTRACE_H
 
+#define RE_RAY_COUNTER
 
 /* Internals about raycasting structures can be found on intern/raytree.h */
 typedef struct RayObject RayObject;
 typedef struct Isect Isect;
+typedef struct RayCounter RayCounter;
 struct DerivedMesh;
 struct Mesh;
 
@@ -80,9 +82,41 @@ struct Isect
 	int skip;				/* RE_SKIP_CULLFACE */
 
 	float col[4];			/* RGBA for shadow_tra */
-	
+
 	void *userdata;
+	
+#ifdef RE_RAY_COUNTER
+	RayCounter *count;
+#endif
+	
 };
+
+#ifdef RE_RAYCOUNTER
+
+struct RayCounter
+{
+
+	struct
+	{
+		unsigned long long test, hit;
+		
+	} intersect_rayface, raycast;
+	
+	unsigned long long rayshadow_last_hit_optimization;
+};
+
+void RE_RC_INIT (RayCounter *rc);
+void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
+#define RE_RC_COUNT(var) (var)++
+
+#else
+
+#define RE_RC_INIT(rc)
+#define RE_RC_MERGE(dest,src)
+#define	RE_RC_COUNT(var)
+	
+#endif
+
 
 /* ray types */
 #define RE_RAY_SHADOW 0

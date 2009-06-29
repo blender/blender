@@ -199,6 +199,13 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{256, "OCTREE_RES_256", 0, "256", ""},
 		{512, "OCTREE_RES_512", 0, "512", ""},
 		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem raytrace_structure_items[] = {
+		{R_RAYSTRUCTURE_HIER_BVH_BVH, "{R_RAYSTRUCTURE_HIER_BVH_BVH", 0, "BVH of BVH's", "Create a BVH of objects (each object has it own BVH)"},
+		{R_RAYSTRUCTURE_HIER_BVH_OCTREE, "{R_RAYSTRUCTURE_HIER_BVH_OCTREE", 0, "BVH of octree", "Create a BVH of objects (each object has it own octree)"},
+		{R_RAYSTRUCTURE_SINGLE_BVH, "{R_RAYSTRUCTURE_SINGLE_BVH", 0, "Single BVH", "BVH of all primitives (no instance support)"},
+		{R_RAYSTRUCTURE_SINGLE_OCTREE, "{R_RAYSTRUCTURE_SINGLE_OCTREE", 0, "Octree", "Octree of all primitives (no instance support)"},
+		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem fixed_oversample_items[] = {
 		{5, "OVERSAMPLE_5", 0, "5", ""},
@@ -593,6 +600,12 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ocres");
 	RNA_def_property_enum_items(prop, octree_resolution_items);
 	RNA_def_property_ui_text(prop, "Octree Resolution", "Resolution of raytrace accelerator. Use higher resolutions for larger scenes.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "raytrace_structure", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "raystructure");
+	RNA_def_property_enum_items(prop, raytrace_structure_items);
+	RNA_def_property_ui_text(prop, "Raytrace Acceleration Structure", "Type of raytrace accelerator structure.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "antialiasing", PROP_BOOLEAN, PROP_NONE);
