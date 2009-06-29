@@ -137,22 +137,15 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 		params->active_file = last_file;
 
 		if(file && S_ISDIR(file->type)) {
-			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, ".") &&
-				strcmp(file->relname, "..") &&
-				strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) 
+			/* the path is too long! */
+			if (strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) 
 			{
 				// XXX error("Path too long, cannot enter this directory");
 			} else {
-				if (strcmp(file->relname, "..")==0) {
-					/* avoids /../../ */
-					BLI_parent_dir(params->dir);
-				} else {
-					strcat(params->dir, file->relname);
-					strcat(params->dir,"/");
-					params->file[0] = '\0';
-					BLI_cleanup_dir(G.sce, params->dir);
-				}
+				strcat(params->dir, file->relname);
+				strcat(params->dir,"/");
+				params->file[0] = '\0';
+				BLI_cleanup_dir(G.sce, params->dir);
 				filelist_setdir(sfile->files, params->dir);
 				filelist_free(sfile->files);
 				params->active_file = -1;

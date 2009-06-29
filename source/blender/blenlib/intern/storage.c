@@ -218,7 +218,7 @@ void BLI_builddir(char *dirname, char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
-	int rellen, newnum = 0, seen_ = 0, seen__ = 0;
+	int rellen, newnum = 0, ignore;
 	char buf[256];
 	DIR *dir;
 
@@ -238,21 +238,17 @@ void BLI_builddir(char *dirname, char *relname)
 	if ( (dir = (DIR *)opendir(".")) ){
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			
-			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0);
+			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0) {
+			}
+			else if ( ( (fname->d_name[0] == '.') && (fname->d_name[1] == 0) ) ||
+					  ( (fname->d_name[0] == '.') && (fname->d_name[1] == '.') && (fname->d_name[2] == 0)) ) {
+				/* ignore '.' and '..' */
+			}
 			else {
-				
 				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 				if (dlink){
 					strcpy(buf+rellen,fname->d_name);
-	
 					dlink->name = BLI_strdup(buf);
-	
-					if (dlink->name[0] == '.') {
-						if (dlink->name[1] == 0) seen_ = 1;
-						else if (dlink->name[1] == '.') {
-							if (dlink->name[2] == 0) seen__ = 1;
-						}
-					}
 					BLI_addhead(dirbase,dlink);
 					newnum++;
 				}
@@ -260,30 +256,6 @@ void BLI_builddir(char *dirname, char *relname)
 		}
 		
 		if (newnum){
-#ifndef WIN32		
-			if (seen_ == 0) {	/* Cachefs PATCH */
-				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				strcpy(buf+rellen,"./.");
-				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase,dlink);
-				newnum++;
-			}
-			if (seen__ == 0) {	/* MAC PATCH */
-				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				strcpy(buf+rellen,"./..");
-				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase,dlink);
-				newnum++;
-			}
-#else // WIN32
-			if (seen_ == 0) {	/* should only happen for root paths like "C:\" */
-				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				strcpy(buf+rellen,".");
-				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase,dlink);
-				newnum++;
-			}
-#endif			
 
 			if (files) files=(struct direntry *)realloc(files,(totnum+newnum) * sizeof(struct direntry));
 			else files=(struct direntry *)malloc(newnum * sizeof(struct direntry));

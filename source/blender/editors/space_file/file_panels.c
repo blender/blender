@@ -44,7 +44,7 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 		uiLayout* layout = uiLayoutRow(pa->layout, UI_LAYOUT_ALIGN_LEFT);
 		char *fname = fsmenu_get_entry(fsmenu, category, i);
 		uiItemStringO(layout, fname, icon, "FILE_OT_select_bookmark", "dir", fname);
-		if (allow_delete)
+		if (allow_delete && fsmenu_can_save(fsmenu, category, i) )
 			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
 	}
 	uiBlockEndAlign(block);
