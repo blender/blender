@@ -763,6 +763,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\file_panels.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\filelist.c"
 				>
 			</File>

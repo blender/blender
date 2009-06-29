@@ -776,7 +776,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
-				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORTALPHA;
+				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORT_ALPHA;
 				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
 				if(event->val==EVT_FILESELECT_OPEN)

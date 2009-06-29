@@ -165,6 +165,48 @@ typedef struct SpaceSeq {
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceSeq;
 
+typedef struct FileSelectParams {
+	char title[24]; /* title, also used for the text of the execute button */
+	char dir[240]; /* directory */
+	char file[80]; /* file */
+
+	short flag; /* settings for filter, hiding files and display mode */
+	short sort; /* sort order */
+	short display; /* display mode flag */
+	short filter; /* filter when (flags & FILE_FILTER) is true */
+
+	/* XXX - temporary, better move to filelist */
+	short active_bookmark;
+	short pad;
+	int	active_file;
+	int selstate;
+
+	/* XXX --- still unused -- */
+	short f_fp; /* show font preview */
+	short menu; /* currently selected option in pupmenu */
+	char fp_str[8]; /* string to use for font preview */
+	
+	char *pupmenu; /* allows menu for save options - result stored in menup */
+	
+	/* XXX --- end unused -- */
+} FileSelectParams;
+
+/* FileSelectParams.display */
+enum FileDisplayTypeE {
+	FILE_SHORTDISPLAY = 1,
+	FILE_LONGDISPLAY,
+	FILE_IMGDISPLAY
+};
+
+/* FileSelectParams.sort */
+enum FileSortTypeE {
+	FILE_SORT_NONE = 0,
+	FILE_SORT_ALPHA = 1,
+	FILE_SORT_EXTENSION,
+	FILE_SORT_TIME,
+	FILE_SORT_SIZE
+};
+
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -553,12 +595,6 @@ typedef struct SpaceImaSel {
 #define FILE_SYNCPOSE		128
 #define FILE_FILTER			256
 #define FILE_BOOKMARKS		512
-
-/* sfile->sort */
-#define FILE_SORTALPHA		0
-#define FILE_SORTDATE		1
-#define FILE_SORTSIZE		2
-#define FILE_SORTEXTENS		3
 
 /* files in filesel list: 2=ACTIVE  */
 #define HILITE				1

@@ -30,6 +30,9 @@
 
 /* internal exports only */
 
+struct ARegion;
+struct ARegionType;
+struct SpaceFile;
 
 /* file_header.c */
 void file_header_buttons(const bContext *C, ARegion *ar);
@@ -45,7 +48,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar);
 void file_calc_previews(const bContext *C, ARegion *ar);
 void file_draw_previews(const bContext *C, ARegion *ar);
 void file_draw_list(const bContext *C, ARegion *ar);
-void file_draw_fsmenu(const bContext *C, ARegion *ar);
 
 /* file_ops.h */
 struct wmOperatorType;
@@ -66,11 +68,14 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot);
 int file_exec(bContext *C, struct wmOperator *unused);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
 int file_parent_exec(bContext *C, struct wmOperator *unused);
-int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my);
+int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
 
 /* filesel.c */
 float file_string_width(const char* str);
 float file_font_pointsize();
+
+/* file_panels.c */
+void file_panels_register(struct ARegionType *art);
 
 #endif /* ED_FILE_INTERN_H */
 

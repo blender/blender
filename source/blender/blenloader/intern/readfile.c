@@ -5595,21 +5595,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* temporarily hide it */
 				ar->flag = RGN_FLAG_HIDDEN;
 				break;
-				
-			case SPACE_FILE:
-				/* channel (bookmarks/directories) region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
-				ar->alignment= RGN_ALIGN_LEFT;
-				ar->v2d.scroll= V2D_SCROLL_RIGHT;
-				/* button UI region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
-				ar->alignment= RGN_ALIGN_TOP;
-				break;
-
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
