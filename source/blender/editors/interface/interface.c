@@ -2919,14 +2919,14 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 }
 
 /* arg is user value, searchfunc and handlefunc both get it as arg */
-void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc)
+/* if active set, button opens with this item visible and selected */
+void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc, void *active)
 {
 	but->search_func= sfunc;
 	but->search_arg= arg;
 	
-	uiButSetFunc(but, bfunc, arg, NULL);
+	uiButSetFunc(but, bfunc, arg, active);
 }
-
 
 /* Program Init/Exit */
 

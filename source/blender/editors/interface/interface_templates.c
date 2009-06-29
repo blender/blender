@@ -112,6 +112,7 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 {
 	static char search[256];
 	static TemplateID template;
+	PointerRNA idptr;
 	wmEvent event;
 	wmWindow *win= CTX_wm_window(C);
 	uiBlock *block;
@@ -122,6 +123,9 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* arg_litem is malloced, can be freed by parent button */
 	template= *((TemplateID*)arg_litem);
 	
+	/* get active id for showing first item */
+	idptr= RNA_property_pointer_get(&template.ptr, template.prop);
+
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	
@@ -129,7 +133,7 @@ static uiBlock *search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
-	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb);
+	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	
 	uiBoundsBlock(block, 6);
 	uiBlockSetDirection(block, UI_DOWN);	

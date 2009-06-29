@@ -456,7 +456,7 @@ typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 		/* use inside searchfunc to add items */
 int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */
-void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
+void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
 		/* height in pixels, it's using hardcoded values still */
 int		uiSearchBoxhHeight(void);
 
