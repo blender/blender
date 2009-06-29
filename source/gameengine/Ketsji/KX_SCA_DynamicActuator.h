@@ -50,8 +50,7 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 	KX_SCA_DynamicActuator(
 		SCA_IObject* gameobj, 
 		short dyn_operation,
- 		float setmass,
-		PyTypeObject* T=&Type
+ 		float setmass
 	);
 
 	~KX_SCA_DynamicActuator(
@@ -72,11 +71,6 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 		KX_DYN_DISABLE_RIGID_BODY,
 		KX_DYN_SET_MASS,
 	};
-
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. setOperation */
 	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,setOperation);

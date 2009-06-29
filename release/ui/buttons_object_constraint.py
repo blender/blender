@@ -67,7 +67,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				row.itemR(con, "target_space", text="")
 
 			if target and owner:
-				row.itemL(icon=8) # XXX
+				row.itemL(icon="ICON_ARROW_LEFTRIGHT")
 
 			if owner:
 				row.itemR(con, "owner_space", text="")
@@ -77,13 +77,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		if con.target and subtargets:
 			if con.target.type == "ARMATURE":
-				layout.itemR(con, "subtarget", text="Bone") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target.data, "bones", text="Bone")
 				
-				row = layout.row()
-				row.itemL(text="Head/Tail:")
-				row.itemR(con, "head_tail", text="")
+				if con.type == 'COPY_LOCATION':
+					row = layout.row()
+					row.itemL(text="Head/Tail:")
+					row.itemR(con, "head_tail", text="")
 			elif con.target.type in ("MESH", "LATTICE"):
-				layout.itemR(con, "subtarget", text="Vertex Group") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 	
 	def child_of(self, layout, con):
 		self.target_template(layout, con)
@@ -528,20 +529,20 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
 	__label__ = "Bone Constraints"
-	__context__ = "constraint"
+	__context__ = "bone"
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == "ARMATURE")
+		return (ob and ob.type == "ARMATURE" and context.bone)
 		
 	def draw(self, context):
 		ob = context.object
-		pchan = ob.pose.pose_channels[0] # XXX
+		pchan = ob.pose.pose_channels[context.bone.name]
 		layout = self.layout
 
-		#row = layout.row()
-		#row.item_menu_enumO("BONE_OT_constraint_add", "type")
-		#row.itemL();
+		row = layout.row()
+		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.itemL();
 
 		for con in pchan.constraints:
 			self.draw_constraint(con)

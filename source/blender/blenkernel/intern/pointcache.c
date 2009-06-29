@@ -51,9 +51,11 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_blenlib.h"
 
 /* needed for directory lookup */
 #ifndef WIN32
@@ -213,21 +215,29 @@ static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, sho
 	filename[0] = '\0';
 	newname = filename;
 	
-	/*if (!G.relbase_valid) return 0; *//* save blend file before using pointcache */
+	if (!G.relbase_valid) return 0; /* save blend file before using disk pointcache */
 	
 	/* start with temp dir */
 	if (do_path) {
 		len = ptcache_path(pid, filename);
 		newname += len;
 	}
-	idname = (pid->ob->id.name+2);
-	/* convert chars to hex so they are always a valid filename */
-	while('\0' != *idname) {
-		snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
-		newname+=2;
-		len += 2;
+	if(strcmp(pid->cache->name, "")==0) {
+		idname = (pid->ob->id.name+2);
+		/* convert chars to hex so they are always a valid filename */
+		while('\0' != *idname) {
+			snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
+			newname+=2;
+			len += 2;
+		}
 	}
-	
+	else {
+		int temp = strlen(pid->cache->name); 
+		strcpy(newname, pid->cache->name); 
+		newname+=temp;
+		len += temp;
+	}
+
 	if (do_ext) {
 		snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 		len += 16;
@@ -247,7 +257,7 @@ PTCacheFile *BKE_ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 	if(pid->ob->id.lib && mode == PTCACHE_FILE_WRITE)
 		return NULL;
 
-	/*if (!G.relbase_valid) return NULL; *//* save blend file before using pointcache */
+	if (!G.relbase_valid) return NULL; /* save blend file before using disk pointcache */
 	
 	BKE_ptcache_id_filename(pid, filename, cfra, 1, 1);
 
@@ -286,6 +296,427 @@ int BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot)
 	return (fwrite(f, sizeof(float), tot, pf->fp) == tot);
 }
 
+static int ptcache_pid_elemsize(PTCacheID *pid)
+{
+	if(pid->type==PTCACHE_TYPE_SOFTBODY)
+		return 0; // TODO
+	else if(pid->type==PTCACHE_TYPE_PARTICLES)
+		return sizeof(ParticleKey);
+	else if(pid->type==PTCACHE_TYPE_CLOTH)
+		return 9 * sizeof(float);
+
+	return 0;
+}
+static int ptcache_pid_totelem(PTCacheID *pid)
+{
+	if(pid->type==PTCACHE_TYPE_SOFTBODY)
+		return 0; // TODO
+	else if(pid->type==PTCACHE_TYPE_PARTICLES) {
+		ParticleSystem *psys = pid->data;
+		return psys->totpart;
+	}
+	else if(pid->type==PTCACHE_TYPE_CLOTH)
+		return 0; // TODO
+
+	return 0;
+}
+
+void BKE_ptcache_update_info(PTCacheID *pid)
+{
+	PointCache *cache = pid->cache;
+	int totframes = 0;
+	char mem_info[64];
+
+	if(cache->flag & PTCACHE_DISK_CACHE) {
+		int cfra = cache->startframe;
+
+		for(; cfra<=cache->endframe; cfra++) {
+			if(BKE_ptcache_id_exist(pid, cfra))
+				totframes++;
+		}
+
+		sprintf(mem_info, "%i frames on disk", totframes);
+	}
+	else {
+		PTCacheMem *pm = cache->mem_cache.first;		
+		float framesize = 0.0f, bytes = 0.0f;
+		int mb;
+
+		if(pm)
+			framesize = (float)ptcache_pid_elemsize(pid) * (float)pm->totpoint;
+		
+		for(; pm; pm=pm->next)
+			totframes++;
+
+		bytes = totframes * framesize;
+
+		mb = (bytes > 1024.0f * 1024.0f);
+
+		sprintf(mem_info, "%i frames in memory (%.1f %s)",
+			totframes,
+			bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
+			mb ? "Mb" : "kb");
+	}
+
+	if(cache->flag & PTCACHE_OUTDATED) {
+		sprintf(cache->info, "%s, cache is outdated!", mem_info);
+	}
+	else if(cache->flag & PTCACHE_FRAMES_SKIPPED) {
+		sprintf(cache->info, "%s, not exact since frame %i.", mem_info, cache->last_exact);
+	}
+	else
+		sprintf(cache->info, "%s.", mem_info);
+}
+/* reads cache from disk or memory */
+/* possible to get old or interpolated result */
+int BKE_ptcache_read_cache(PTCacheReader *reader)
+{
+	PTCacheID *pid = reader->pid;
+	PTCacheFile *pf=NULL, *pf2=NULL;
+	PTCacheMem *pm=NULL, *pm2=NULL;
+	int totelem = reader->totelem;
+	float cfra = reader->cfra;
+	int cfrai = (int)cfra;
+	int elemsize = ptcache_pid_elemsize(pid);
+	int i, incr = elemsize / sizeof(float);
+	float frs_sec = reader->scene->r.frs_sec;
+	int cfra1=0, cfra2;
+	int ret = 0;
+
+	if(totelem == 0)
+		return 0;
+
+
+	/* first check if we have the actual frame cached */
+	if(cfra == (float)cfrai) {
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			pf= BKE_ptcache_file_open(pid, PTCACHE_FILE_READ, cfrai);
+		}
+		else {
+			pm = pid->cache->mem_cache.first;
+
+			for(; pm; pm=pm->next) {
+				if(pm->frame == cfrai)
+					break;
+			}
+		}
+	}
+
+	/* if found, use exact frame */
+	if(pf || pm) {
+		float *data;
+
+		if(pm)
+			data = pm->data;
+		else
+			data = MEM_callocN(elemsize, "pointcache read data");
+
+		for(i=0; i<totelem; i++) {
+			if(pf) {
+				if(!BKE_ptcache_file_read_floats(pf, data, incr)) {
+					BKE_ptcache_file_close(pf);
+					MEM_freeN(data);
+					return 0;
+				}
+
+				reader->set_elem(i, reader->calldata, data);
+			}
+			else {
+				reader->set_elem(i, reader->calldata, data);
+				data += incr;
+			}
+		}
+
+		if(pf) {
+			BKE_ptcache_file_close(pf);
+			MEM_freeN(data);
+		}
+
+		ret = PTCACHE_READ_EXACT;
+	}
+
+	if(ret)
+		;
+	/* no exact cache frame found so try to find cached frames around cfra */
+	else if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+		pf=NULL;
+		while(cfrai > pid->cache->startframe && !pf) {
+			cfrai--;
+			pf= BKE_ptcache_file_open(pid, PTCACHE_FILE_READ, cfrai);
+			cfra1 = cfrai;
+		}
+
+		if(reader->old_frame)
+			*(reader->old_frame) = cfrai;
+
+		cfrai = (int)cfra;
+		while(cfrai < pid->cache->endframe && !pf2) {
+			cfrai++;
+			pf2= BKE_ptcache_file_open(pid, PTCACHE_FILE_READ, cfrai);
+			cfra2 = cfrai;
+		}
+	}
+	else if(pid->cache->mem_cache.first){
+		pm = pid->cache->mem_cache.first;
+
+		while(pm->next && pm->next->frame < cfra)
+			pm= pm->next;
+
+		if(pm) {
+			if(reader->old_frame)
+				*(reader->old_frame) = pm->frame;
+			cfra1 = pm->frame;
+		}
+
+		pm2 = pid->cache->mem_cache.last;
+
+		if(pm2 && pm2->frame < cfra)
+			pm2 = NULL;
+		else {
+			while(pm2->prev && pm2->prev->frame > cfra)
+				pm2= pm2->prev;
+
+			if(pm2)
+				cfra2 = pm2->frame;
+		}
+	}
+
+	if(ret)
+		;
+	else if((pf && pf2) || (pm && pm2)) {
+		/* interpolate from nearest frames if cache isn't outdated */
+		float *data1, *data2;
+
+		if(pm) {
+			data1 = pm->data;
+			data2 = pm2->data;
+		}
+		else {
+			data1 = MEM_callocN(elemsize, "pointcache read data1");
+			data2 = MEM_callocN(elemsize, "pointcache read data2");
+		}
+
+		for(i=0; i<totelem; i++) {
+			if(pf && pf2) {
+				if(!BKE_ptcache_file_read_floats(pf, data1, incr)) {
+					BKE_ptcache_file_close(pf);
+					BKE_ptcache_file_close(pf2);
+					MEM_freeN(data1);
+					MEM_freeN(data2);
+					return 0;
+				}
+				if(!BKE_ptcache_file_read_floats(pf2, data2, incr)) {
+					BKE_ptcache_file_close(pf);
+					BKE_ptcache_file_close(pf2);
+					MEM_freeN(data1);
+					MEM_freeN(data2);
+					return 0;
+				}
+				reader->interpolate_elem(i, reader->calldata, frs_sec, cfra, (float)cfra1, (float)cfra2, data1, data2);
+			}
+			else {
+				reader->interpolate_elem(i, reader->calldata, frs_sec, cfra, (float)cfra1, (float)cfra2, data1, data2);
+				data1 += incr;
+				data2 += incr;
+			}
+		}
+
+		if(pf) {
+			BKE_ptcache_file_close(pf);
+			BKE_ptcache_file_close(pf2);
+			MEM_freeN(data1);
+			MEM_freeN(data2);
+		}
+
+		ret = PTCACHE_READ_INTERPOLATED;
+	}
+	else if(pf || pm) {
+		/* use last valid cache frame */
+		float *data;
+
+		/* don't read cache if allready simulated past cached frame */
+		if(cfra1 && cfra1 <= pid->cache->simframe) {
+			if(pf)
+				BKE_ptcache_file_close(pf);
+			if(pf2)
+				BKE_ptcache_file_close(pf2);
+
+			return 0;
+		}
+
+		if(pm)
+			data = pm->data;
+		else
+			data = MEM_callocN(elemsize, "pointcache read data");
+
+		for(i=0; i<totelem; i++) {
+			if(pf) {
+				if(!BKE_ptcache_file_read_floats(pf, data, incr)) {
+					BKE_ptcache_file_close(pf);
+					if(pf2)
+						BKE_ptcache_file_close(pf2);
+					return 0;
+				}
+				reader->set_elem(i, reader->calldata, data);
+			}
+			else {
+				reader->set_elem(i, reader->calldata, data);
+				data += incr;
+			}
+		}
+
+		if(pf) {
+			BKE_ptcache_file_close(pf);
+			MEM_freeN(data);
+		}
+		if(pf2)
+			BKE_ptcache_file_close(pf2);
+
+		ret = PTCACHE_READ_OLD;
+	}
+
+	if(pf)
+		BKE_ptcache_file_close(pf);
+	if(pf2)
+		BKE_ptcache_file_close(pf2);
+
+	if((pid->cache->flag & PTCACHE_QUICK_CACHE)==0) {
+		/* clear invalid cache frames so that better stuff can be simulated */
+		if(pid->cache->flag & PTCACHE_OUTDATED) {
+			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, cfra);
+		}
+		else if(pid->cache->flag & PTCACHE_FRAMES_SKIPPED) {
+			if(cfra <= pid->cache->last_exact)
+				pid->cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
+
+			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfra,pid->cache->last_exact));
+		}
+	}
+
+	return ret;
+}
+/* writes cache to disk or memory */
+int BKE_ptcache_write_cache(PTCacheWriter *writer)
+{
+	PointCache *cache = writer->pid->cache;
+	PTCacheFile *pf= NULL;
+	int elemsize = ptcache_pid_elemsize(writer->pid);
+	int i, incr = elemsize / sizeof(float);
+	int add = 0, overwrite = 0, ocfra;
+	float temp[14];
+
+	if(writer->totelem == 0 || writer->cfra <= 0)
+		return 0;
+
+	if(cache->flag & PTCACHE_DISK_CACHE) {
+		/* allways start from scratch on the first frame */
+		if(writer->cfra == cache->startframe) {
+			BKE_ptcache_id_clear(writer->pid, PTCACHE_CLEAR_ALL, writer->cfra);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+			add = 1;
+		}
+		else {
+			int cfra = cache->endframe;
+			/* find last cached frame */
+			while(cfra > cache->startframe && !BKE_ptcache_id_exist(writer->pid, cfra))
+				cfra--;
+
+			/* find second last cached frame */
+			ocfra = cfra-1;
+			while(ocfra > cache->startframe && !BKE_ptcache_id_exist(writer->pid, ocfra))
+				ocfra--;
+
+			if(writer->cfra > cfra) {
+				if(ocfra >= cache->startframe && cfra - ocfra < cache->step)
+					overwrite = 1;
+				else
+					add = 1;
+			}
+		}
+
+		if(add || overwrite) {
+			if(overwrite)
+				BKE_ptcache_id_clear(writer->pid, PTCACHE_CLEAR_FRAME, ocfra);
+
+			pf = BKE_ptcache_file_open(writer->pid, PTCACHE_FILE_WRITE, writer->cfra);
+			if(!pf)
+				return 0;
+
+			for(i=0; i<writer->totelem; i++) {
+				writer->set_elem(i, writer->calldata, &temp);
+				BKE_ptcache_file_write_floats(pf, &temp, incr);
+			}
+		}
+	}
+	else {
+		PTCacheMem *pm;
+		PTCacheMem *pm2;
+		float *pmdata;
+
+		pm2 = cache->mem_cache.first;
+		
+		/* allways start from scratch on the first frame */
+		if(writer->cfra == cache->startframe) {
+			BKE_ptcache_id_clear(writer->pid, PTCACHE_CLEAR_ALL, writer->cfra);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+			add = 1;
+		}
+		else {
+			pm2 = cache->mem_cache.last;
+
+			if(pm2 && writer->cfra > pm2->frame) {
+				if(pm2 && pm2->prev && pm2->frame - pm2->prev->frame < cache->step)
+					overwrite = 1;
+				else
+					add = 1;
+			}
+		}
+
+		if(overwrite) {
+			pm = cache->mem_cache.last;
+			pmdata = pm->data;
+
+			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
+				writer->set_elem(i, writer->calldata, &temp);
+				memcpy(pmdata, &temp, elemsize);
+			}
+
+			pm->frame = writer->cfra;
+		}
+		else if(add) {
+			pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
+			pm->data = MEM_callocN(elemsize * writer->totelem, "Pointcache mem data");
+			pmdata = pm->data;
+
+			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
+				writer->set_elem(i, writer->calldata, &temp);
+				memcpy(pmdata, &temp, elemsize);
+			}
+
+			pm->frame = writer->cfra;
+			pm->totpoint = writer->totelem;
+
+			BLI_addtail(&cache->mem_cache, pm);
+		}
+	}
+
+	if(add || overwrite) {
+		if(writer->cfra - cache->last_exact == 1
+			|| writer->cfra == cache->startframe) {
+			cache->last_exact = writer->cfra;
+			cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
+		}
+		else
+			cache->flag |= PTCACHE_FRAMES_SKIPPED;
+	}
+	
+	if(pf)
+		BKE_ptcache_file_close(pf);
+
+	BKE_ptcache_update_info(writer->pid);
+
+	return 1;
+}
 /* youll need to close yourself after!
  * mode - PTCACHE_CLEAR_ALL, 
 
@@ -317,62 +748,116 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 	case PTCACHE_CLEAR_ALL:
 	case PTCACHE_CLEAR_BEFORE:	
 	case PTCACHE_CLEAR_AFTER:
-		ptcache_path(pid, path);
-		
-		len = BKE_ptcache_id_filename(pid, filename, cfra, 0, 0); /* no path */
-		
-		dir = opendir(path);
-		if (dir==NULL)
-			return;
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			ptcache_path(pid, path);
+			
+			len = BKE_ptcache_id_filename(pid, filename, cfra, 0, 0); /* no path */
+			
+			dir = opendir(path);
+			if (dir==NULL)
+				return;
 
-		snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
-		
-		while ((de = readdir(dir)) != NULL) {
-			if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
-				if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
-					if (mode == PTCACHE_CLEAR_ALL) {
-						BLI_join_dirfile(path_full, path, de->d_name);
-						BLI_delete(path_full, 0, 0);
-					} else {
-						/* read the number of the file */
-						int frame, len2 = strlen(de->d_name);
-						char num[7];
+			snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
+			
+			while ((de = readdir(dir)) != NULL) {
+				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
+					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+						if (mode == PTCACHE_CLEAR_ALL) {
+							pid->cache->last_exact = 0;
+							BLI_join_dirfile(path_full, path, de->d_name);
+							BLI_delete(path_full, 0, 0);
+						} else {
+							/* read the number of the file */
+							int frame, len2 = strlen(de->d_name);
+							char num[7];
 
-						if (len2 > 15) { /* could crash if trying to copy a string out of this range*/
-							BLI_strncpy(num, de->d_name + (strlen(de->d_name) - 15), sizeof(num));
-							frame = atoi(num);
-							
-							if((mode==PTCACHE_CLEAR_BEFORE && frame < cfra)	|| 
-							   (mode==PTCACHE_CLEAR_AFTER && frame > cfra)	) {
+							if (len2 > 15) { /* could crash if trying to copy a string out of this range*/
+								BLI_strncpy(num, de->d_name + (strlen(de->d_name) - 15), sizeof(num));
+								frame = atoi(num);
 								
-								BLI_join_dirfile(path_full, path, de->d_name);
-								BLI_delete(path_full, 0, 0);
+								if((mode==PTCACHE_CLEAR_BEFORE && frame < cfra)	|| 
+								(mode==PTCACHE_CLEAR_AFTER && frame > cfra)	) {
+									
+									BLI_join_dirfile(path_full, path, de->d_name);
+									BLI_delete(path_full, 0, 0);
+								}
 							}
 						}
 					}
 				}
 			}
+			closedir(dir);
 		}
-		closedir(dir);
+		else {
+			PTCacheMem *pm= pid->cache->mem_cache.first;
+			PTCacheMem *link= NULL;
+
+			if(mode == PTCACHE_CLEAR_ALL) {
+				pid->cache->last_exact = 0;
+				for(; pm; pm=pm->next)
+					MEM_freeN(pm->data);
+				BLI_freelistN(&pid->cache->mem_cache);
+			} else {
+				while(pm) {
+					if((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
+					(mode==PTCACHE_CLEAR_AFTER && pm->frame > cfra)	) {
+						link = pm;
+						pm = pm->next;
+						MEM_freeN(link->data);
+						BLI_freelinkN(&pid->cache->mem_cache, link);
+					}
+					else
+						pm = pm->next;
+				}
+			}
+		}
 		break;
 		
 	case PTCACHE_CLEAR_FRAME:
-		len = BKE_ptcache_id_filename(pid, filename, cfra, 1, 1); /* no path */
-		BLI_delete(filename, 0, 0);
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			if(BKE_ptcache_id_exist(pid, cfra)) {
+				BKE_ptcache_id_filename(pid, filename, cfra, 1, 1); /* no path */
+				BLI_delete(filename, 0, 0);
+			}
+		}
+		else {
+			PTCacheMem *pm = pid->cache->mem_cache.first;
+
+			for(; pm; pm=pm->next) {
+				if(pm->frame == cfra) {
+					MEM_freeN(pm->data);
+					BLI_freelinkN(&pid->cache->mem_cache, pm);
+					break;
+				}
+			}
+		}
 		break;
 	}
+
+	BKE_ptcache_update_info(pid);
 }
 
 int BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 {
-	char filename[MAX_PTCACHE_FILE];
-
 	if(!pid->cache)
 		return 0;
 	
-	BKE_ptcache_id_filename(pid, filename, cfra, 1, 1);
+	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+		char filename[MAX_PTCACHE_FILE];
+		
+		BKE_ptcache_id_filename(pid, filename, cfra, 1, 1);
 
-	return BLI_exists(filename);
+		return BLI_exists(filename);
+	}
+	else {
+		PTCacheMem *pm = pid->cache->mem_cache.first;
+
+		for(; pm; pm=pm->next) {
+			if(pm->frame==cfra)
+				return 1;
+		}
+		return 0;
+	}
 }
 
 void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startframe, int *endframe, float *timescale)
@@ -380,6 +865,9 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	Object *ob;
 	PointCache *cache;
 	float offset, time, nexttime;
+
+	/* TODO: this has to be sorter out once bsystem_time gets redone, */
+	/*       now caches can handle interpolating etc. too - jahka */
 
 	/* time handling for point cache:
 	 * - simulation time is scaled by result of bsystem_time
@@ -414,10 +902,10 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	}
 }
 
-int BKE_ptcache_id_reset(PTCacheID *pid, int mode)
+int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 {
 	PointCache *cache;
-	int reset, clear;
+	int reset, clear, after;
 
 	if(!pid->cache)
 		return 0;
@@ -425,14 +913,17 @@ int BKE_ptcache_id_reset(PTCacheID *pid, int mode)
 	cache= pid->cache;
 	reset= 0;
 	clear= 0;
+	after= 0;
 
 	if(mode == PTCACHE_RESET_DEPSGRAPH) {
 		if(!(cache->flag & PTCACHE_BAKED) && !BKE_ptcache_get_continue_physics()) {
-			reset= 1;
-			clear= 1;
+			if(cache->flag & PTCACHE_QUICK_CACHE)
+				clear= 1;
+
+			after= 1;
 		}
-		else
-			cache->flag |= PTCACHE_OUTDATED;
+
+		cache->flag |= PTCACHE_OUTDATED;
 	}
 	else if(mode == PTCACHE_RESET_BAKED) {
 		if(!BKE_ptcache_get_continue_physics()) {
@@ -451,8 +942,9 @@ int BKE_ptcache_id_reset(PTCacheID *pid, int mode)
 	}
 
 	if(reset) {
-		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_SIMULATION_VALID);
+		cache->flag &= ~(PTCACHE_REDO_NEEDED|PTCACHE_SIMULATION_VALID);
 		cache->simframe= 0;
+		cache->last_exact= 0;
 
 		if(pid->type == PTCACHE_TYPE_CLOTH)
 			cloth_free_modifier(pid->ob, pid->data);
@@ -463,11 +955,13 @@ int BKE_ptcache_id_reset(PTCacheID *pid, int mode)
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+	else if(after)
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, CFRA);
 
-	return (reset || clear);
+	return (reset || clear || after);
 }
 
-int BKE_ptcache_object_reset(Object *ob, int mode)
+int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 {
 	PTCacheID pid;
 	ParticleSystem *psys;
@@ -479,7 +973,7 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 
 	if(ob->soft) {
 		BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
-		reset |= BKE_ptcache_id_reset(&pid, mode);
+		reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
@@ -488,23 +982,23 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 		if(psys->soft) {
 			BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
 			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
-				reset |= BKE_ptcache_id_reset(&pid, mode);
+				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			else
 				skip = 1;
 		}
-		else if((psys->recalc & PSYS_RECALC_RESET)==0)
+		else if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
 			skip = 1;
 
 		if(skip == 0) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);
-			reset |= BKE_ptcache_id_reset(&pid, mode);
+			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 		}
 	}
 
 	for(md=ob->modifiers.first; md; md=md->next) {
 		if(md->type == eModifierType_Cloth) {
 			BKE_ptcache_id_from_cloth(&pid, ob, (ClothModifierData*)md);
-			reset |= BKE_ptcache_id_reset(&pid, mode);
+			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 		}
 	}
 
@@ -564,7 +1058,7 @@ void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
 
 		if(CONTINUE_PHYSICS == 0) {
 			for(ob=G.main->object.first; ob; ob=ob->id.next)
-				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_OUTDATED))
+				if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
 					DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
 	}
@@ -584,12 +1078,21 @@ PointCache *BKE_ptcache_add()
 	cache= MEM_callocN(sizeof(PointCache), "PointCache");
 	cache->startframe= 1;
 	cache->endframe= 250;
+	cache->step= 10;
 
 	return cache;
 }
 
 void BKE_ptcache_free(PointCache *cache)
 {
+	PTCacheMem *pm = cache->mem_cache.first;
+	if(pm) {
+		for(; pm; pm=pm->next)
+			MEM_freeN(pm->data);
+
+		BLI_freelistN(&cache->mem_cache);
+	}
+
 	MEM_freeN(cache);
 }
 
@@ -605,3 +1108,276 @@ PointCache *BKE_ptcache_copy(PointCache *cache)
 	return ncache;
 }
 
+
+
+/* Baking */
+static int count_quick_cache(Scene *scene, int *quick_step)
+{
+	Base *base = scene->base.first;
+	PTCacheID *pid;
+	ListBase pidlist;
+	int autocache_count= 0;
+
+	for(base = scene->base.first; base; base = base->next) {
+		if(base->object) {
+			BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+			for(pid=pidlist.first; pid; pid=pid->next) {
+				if((pid->cache->flag & PTCACHE_BAKED)
+					|| (pid->cache->flag & PTCACHE_QUICK_CACHE)==0)
+					continue;
+
+				if(pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID)==0) {
+					if(!autocache_count)
+						*quick_step = pid->cache->step;
+					else
+						*quick_step = MIN2(*quick_step, pid->cache->step);
+
+					autocache_count++;
+				}
+			}
+
+			BLI_freelistN(&pidlist);
+		}
+	}
+
+	return autocache_count;
+}
+void BKE_ptcache_quick_cache_all(Scene *scene)
+{
+	PTCacheBaker baker;
+
+	baker.bake=0;
+	baker.break_data=NULL;
+	baker.break_test=NULL;
+	baker.pid=NULL;
+	baker.progressbar=NULL;
+	baker.progresscontext=NULL;
+	baker.render=0;
+	baker.scene=scene;
+
+	if(count_quick_cache(scene, &baker.quick_step))
+		BKE_ptcache_make_cache(&baker);
+}
+
+/* if bake is not given run simulations to current frame */
+void BKE_ptcache_make_cache(PTCacheBaker* baker)
+{
+	Scene *scene = baker->scene;
+	Base *base;
+	ListBase pidlist;
+	PTCacheID *pid = baker->pid;
+	PointCache *cache;
+	float frameleno = scene->r.framelen;
+	int cfrao = CFRA;
+	int startframe = MAXFRAME;
+	int endframe = CFRA;
+	int bake = baker->bake;
+	int render = baker->render;
+	int step = baker->quick_step;
+
+	G.afbreek = 0;
+
+	/* set caches to baking mode and figure out start frame */
+	if(pid) {
+		/* cache/bake a single object */
+		cache = pid->cache;
+		if((cache->flag & PTCACHE_BAKED)==0) {
+			if(pid->type==PTCACHE_TYPE_PARTICLES)
+				psys_get_pointcache_start_end(scene, pid->data, &cache->startframe, &cache->endframe);
+
+			if(bake || cache->flag & PTCACHE_REDO_NEEDED)
+				BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+
+			startframe = MAX2(cache->last_exact, cache->startframe);
+
+			if(bake) {
+				endframe = cache->endframe;
+				cache->flag |= PTCACHE_BAKING;
+			}
+			else {
+				endframe = MIN2(endframe, cache->endframe);
+			}
+
+			cache->flag &= ~PTCACHE_BAKED;
+		}
+	}
+	else for(base=scene->base.first; base; base= base->next) {
+		/* cache/bake everything in the scene */
+		BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			cache = pid->cache;
+			if((cache->flag & PTCACHE_BAKED)==0) {
+				if(pid->type==PTCACHE_TYPE_PARTICLES)
+					psys_get_pointcache_start_end(scene, pid->data, &cache->startframe, &cache->endframe);
+
+				if((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0)
+					&& ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
+					BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+
+				startframe = MIN2(startframe, cache->startframe);
+
+				if(bake || render) {
+					cache->flag |= PTCACHE_BAKING;
+
+					if(bake)
+						endframe = MAX2(endframe, cache->endframe);
+				}
+
+				cache->flag &= ~PTCACHE_BAKED;
+
+			}
+		}
+		BLI_freelistN(&pidlist);
+	}
+
+	CFRA= startframe;
+	scene->r.framelen = 1.0;
+
+	for(; CFRA <= endframe; CFRA+=step) {
+		float prog;
+
+		if(bake)
+			prog = (int)(100.0 * (float)(CFRA - startframe)/(float)(endframe-startframe));
+		else
+			prog = CFRA;
+
+		/* NOTE: baking should not redraw whole ui as this slows things down */
+		if(baker->progressbar)
+			baker->progressbar(baker->progresscontext, prog);
+		
+		scene_update_for_newframe(scene, scene->lay);
+
+		/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
+		if(baker->break_test && baker->break_test(baker->break_data))
+			break;
+	}
+
+	/* clear baking flag */
+	if(pid) {
+		cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		if(bake)
+			cache->flag |= PTCACHE_BAKED;
+	}
+	else for(base=scene->base.first; base; base= base->next) {
+		BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			cache = pid->cache;
+
+			if(step > 1)
+				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
+			else
+				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
+
+			cache->flag |= PTCACHE_SIMULATION_VALID;
+
+			if(bake)
+				cache->flag |= PTCACHE_BAKED;
+		}
+		BLI_freelistN(&pidlist);
+	}
+
+	scene->r.framelen = frameleno;
+	CFRA = cfrao;
+	scene_update_for_newframe(scene, scene->lay);
+
+	/* TODO: call redraw all windows somehow */
+}
+
+void BKE_ptcache_toggle_disk_cache(PTCacheID *pid) {
+	PointCache *cache = pid->cache;
+	PTCacheFile *pf;
+	PTCacheMem *pm;
+	int totelem=0;
+	int float_count=0;
+	int tot;
+	int last_exact = cache->last_exact;
+
+	if (!G.relbase_valid){
+		cache->flag &= ~PTCACHE_DISK_CACHE;
+		return;
+	}
+
+	totelem = ptcache_pid_totelem(pid);
+	float_count = ptcache_pid_elemsize(pid) / sizeof(float);
+
+	if(totelem==0 || float_count==0)
+		return;
+
+	tot = totelem*float_count;
+
+	/* MEM -> DISK */
+	if(cache->flag & PTCACHE_DISK_CACHE) {
+		pm = cache->mem_cache.first;
+
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+
+		for(; pm; pm=pm->next) {
+			pf = BKE_ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
+
+			if(pf) {
+				if(fwrite(pm->data, sizeof(float), tot, pf->fp) != tot) {
+					printf("Error writing to disk cache\n");
+					
+					cache->flag &= ~PTCACHE_DISK_CACHE;
+
+					BKE_ptcache_file_close(pf);
+					return;
+				}
+				BKE_ptcache_file_close(pf);
+			}
+			else
+				printf("Error creating disk cache file\n");
+		}
+
+		cache->flag &= ~PTCACHE_DISK_CACHE;
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+		cache->flag |= PTCACHE_DISK_CACHE;
+	}
+	/* DISK -> MEM */
+	else {
+		int cfra;
+		int sfra = cache->startframe;
+		int efra = cache->endframe;
+
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+
+		for(cfra=sfra; cfra <= efra; cfra++) {
+			pf = BKE_ptcache_file_open(pid, PTCACHE_FILE_READ, cfra);
+
+			if(pf) {
+				pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache mem");
+				pm->data = MEM_callocN(sizeof(float)*tot, "Pointcache mem data");
+
+				if(fread(pm->data, sizeof(float), tot, pf->fp)!= tot) {
+					printf("Error reading from disk cache\n");
+
+					cache->flag |= PTCACHE_DISK_CACHE;
+
+					MEM_freeN(pm->data);
+					MEM_freeN(pm);
+					BKE_ptcache_file_close(pf);
+					return;
+				}
+
+				pm->frame = cfra;
+				pm->totpoint = totelem;
+
+				BLI_addtail(&pid->cache->mem_cache, pm);
+
+				BKE_ptcache_file_close(pf);
+			}
+		}
+
+		cache->flag |= PTCACHE_DISK_CACHE;
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
+		cache->flag &= ~PTCACHE_DISK_CACHE;
+	}
+	
+	cache->last_exact = last_exact;
+
+	BKE_ptcache_update_info(pid);
+}

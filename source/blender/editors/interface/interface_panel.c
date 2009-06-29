@@ -104,7 +104,7 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
-	else if(ar->regiontype==RGN_TYPE_UI)
+	else if(ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS))
 		return BUT_VERTICAL;
 	
 	return 0;
@@ -1288,6 +1288,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 /**************** window level modal panel interaction **************/
 
+/* note, this is modal handler and should not swallow events for animation */
 static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 {
 	Panel *panel= userdata;
@@ -1303,8 +1304,6 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 			panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
 		else
 			panel_activate_state(C, panel, PANEL_STATE_EXIT);
-
-		return WM_UI_HANDLER_BREAK;
 	}
 	else if(event->type == MOUSEMOVE) {
 		if(data->state == PANEL_STATE_WAIT_UNTAB)

@@ -28,6 +28,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"

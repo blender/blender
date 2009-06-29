@@ -700,50 +700,6 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "style", style_items, CU_BOLD, "Style", "Style to set selection to.");
 }
 
-/******************* set material operator ********************/
-
-static int set_material_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Curve *cu= obedit->data;
-	EditFont *ef= cu->editfont;
-	int i, mat_nr, selstart, selend;
-
-	if(!BKE_font_getselection(obedit, &selstart, &selend))
-		return OPERATOR_CANCELLED;
-
-	if(RNA_property_is_set(op->ptr, "index"))
-		mat_nr= RNA_int_get(op->ptr, "index");
-	else
-		mat_nr= obedit->actcol;
-
-	for(i=selstart; i<=selend; i++)
-		ef->textbufinfo[i].mat_nr = mat_nr;
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-
-	return OPERATOR_FINISHED;
-}
-
-void FONT_OT_material_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Material";
-	ot->idname= "FONT_OT_material_set";
-	
-	/* api callbacks */
-	ot->exec= set_material_exec;
-	ot->poll= ED_operator_editfont;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Material Index", "Material slot index.", 0, INT_MAX);
-}
-
 /******************* copy text operator ********************/
 
 static void copy_selection(Object *obedit)

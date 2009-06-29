@@ -316,6 +316,12 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
 		height= winy;
 		
+	/* values used to divide, so make it safe */
+	if(width<1) width= 1;
+	if(height<1) height= 1;
+	if(winx<1) winx= 1;
+	if(winy<1) winy= 1;
+	
 	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
 	 */

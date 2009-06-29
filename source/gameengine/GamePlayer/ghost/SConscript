@@ -41,10 +41,6 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
-if env['WITH_BF_SOLID']:
-	incs.append(['#source/gameengine/Physics/Sumo', '#source/gameengine/Physics/Sumo/Fuzzics/include'])
-	incs += Split(env['BF_SOLID_INC'])
-
 incs += Split(env['BF_PYTHON_INC'])
 
 cxxflags = []

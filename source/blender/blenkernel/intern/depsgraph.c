@@ -559,7 +559,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
-			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+			if(!psys_check_enabled(ob, psys))
 				continue;
 
 			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
@@ -1831,7 +1831,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
-static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
+static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int reset)
 {
 	DagAdjList *itA;
 	Object *ob;
@@ -1844,13 +1844,13 @@ static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 				ob= (Object*)(node->ob);
 
 				if(reset || (ob->recalc & OB_RECALC)) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, curtime, 1);
+					flush_pointcache_reset(scene, itA->node, curtime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, curtime, 0);
+					flush_pointcache_reset(scene, itA->node, curtime, 0);
 			}
 		}
 	}
@@ -1908,13 +1908,13 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 				ob= (Object*)(itA->node->ob);
 
 				if(ob->recalc & OB_RECALC) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, lasttime, 1);
+					flush_pointcache_reset(sce, itA->node, lasttime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, lasttime, 0);
+					flush_pointcache_reset(sce, itA->node, lasttime, 0);
 			}
 		}
 	}
@@ -2132,7 +2132,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	if(ob==NULL || sce->theDag==NULL) return;
 
 	ob->recalc |= flag;
-	BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH);
+	BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 	
 	/* all users of this ob->data should be checked */
 	/* BUT! displists for curves are still only on cu */
@@ -2147,7 +2147,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 					for (obt=G.main->object.first; obt; obt= obt->id.next) {
 						if (obt != ob && obt->data==ob->data) {
 							obt->recalc |= OB_RECALC_DATA;
-							BKE_ptcache_object_reset(obt, PTCACHE_RESET_DEPSGRAPH);
+							BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 						}
 					}
 				}

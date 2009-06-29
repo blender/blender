@@ -1,5 +1,5 @@
 /**
- * $Id: editaction.c 17746 2008-12-08 11:19:44Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -42,6 +42,12 @@
 #include "KX_Python.h"
 #include "PyObjectPlus.h"
 
+#ifdef USE_MATHUTILS
+extern "C" {
+#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+}
+#endif
+
 inline unsigned int Size(const MT_Matrix4x4&)          { return 4; }
 inline unsigned int Size(const MT_Matrix3x3&)          { return 3; }
 inline unsigned int Size(const MT_Tuple2&)                { return 2; }
@@ -98,7 +104,38 @@ bool PyMatTo(PyObject* pymat, T& mat)
 template<class T>
 bool PyVecTo(PyObject* pyval, T& vec)
 {
-
+#ifdef USE_MATHUTILS
+	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
+	
+	if(VectorObject_Check(pyval)) {
+		VectorObject *pyvec= (VectorObject *)pyval;
+		if (pyvec->size != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", pyvec->size, Size(vec));
+			return false;
+		}
+		vec.getValue((float *) pyvec->vec);
+		return true;
+	}
+	else if(QuaternionObject_Check(pyval)) {
+		QuaternionObject *pyquat= (QuaternionObject *)pyval;
+		if (4 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 4, Size(vec));
+			return false;
+		}
+		/* xyzw -> wxyz reordering is done by PyQuatTo */
+		vec.getValue((float *) pyquat->quat);
+		return true;
+	}
+	else if(EulerObject_Check(pyval)) {
+		EulerObject *pyeul= (EulerObject *)pyval;
+		if (3 != Size(vec)) {
+			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 3, Size(vec));
+			return false;
+		}
+		vec.getValue((float *) pyeul->eul);
+		return true;
+	} else
+#endif
 	if(PyTuple_Check(pyval))
 	{
 		unsigned int numitems = PyTuple_GET_SIZE(pyval);
@@ -117,7 +154,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		
 		return true;
 	}
-	else if (BGE_PROXY_CHECK_TYPE(pyval))
+	else if (PyObject_TypeCheck(pyval, &PyObjectPlus::Type))
 	{	/* note, include this check because PySequence_Check does too much introspection
 		 * on the PyObject (like getting its __class__, on a BGE type this means searching up
 		 * the parent list each time only to discover its not a sequence.
@@ -159,6 +196,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	return false;
 }
 
+
+bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot);
+
 bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix);
 
 /**
@@ -181,15 +221,16 @@ PyObject* PyObjectFrom(const MT_Tuple2 &vec);
  */
 PyObject* PyObjectFrom(const MT_Tuple3 &vec);
 
+#ifdef USE_MATHUTILS
+/**
+ * Converts an MT_Quaternion to a python object.
+ */
+PyObject* PyObjectFrom(const MT_Quaternion &qrot);
+#endif
+
 /**
  * Converts an MT_Tuple4 to a python object.
  */
 PyObject* PyObjectFrom(const MT_Tuple4 &pos);
-
-/**
- * True if the given PyObject can be converted to an MT_Matrix
- * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)
- */
-bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank);
 
 #endif

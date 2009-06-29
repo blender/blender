@@ -5,6 +5,10 @@ class LOGIC_PT_physics(bpy.types.Panel):
 	__region_type__ = "UI"
 	__label__ = "Physics"
 
+	def poll(self, context):
+		ob = context.active_object
+		return ob and ob.game
+
 	def draw(self, context):
 		layout = self.layout
 		ob = context.active_object
@@ -56,6 +60,10 @@ class LOGIC_PT_collision_bounds(bpy.types.Panel):
 	__space_type__ = "LOGIC_EDITOR"
 	__region_type__ = "UI"
 	__label__ = "Collision Bounds"
+
+	def poll(self, context):
+		ob = context.active_object
+		return ob and ob.game
 	
 	def draw_header(self, context):
 		layout = self.layout

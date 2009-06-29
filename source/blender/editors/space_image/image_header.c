@@ -802,11 +802,11 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_REDR, ICON_VERTEXSEL,
-				xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+				xco,yco,XIC,YIC, &scene->toolsettings->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
 			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_REDR, ICON_EDGESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
 			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_REDR, ICON_FACESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
 
 			uiBlockEndAlign(block);
 		}
@@ -837,14 +837,14 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		/* snap options, identical to options in 3d view header */
 		uiBlockBeginAlign(block);
 
-		if (scene->snap_flag & SCE_SNAP) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab).");
+		if (scene->toolsettings->snap_flag & SCE_SNAP) {
+			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &scene->toolsettings->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab).");
 			xco+= XIC;
-			uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode.");
+			uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,yco,70,YIC, &scene->toolsettings->snap_target, 0, 0, 0, 0, "Snap Target Mode.");
 			xco+= 70;
 		}
 		else {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab).");	
+			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &scene->toolsettings->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab).");	
 			xco+= XIC;
 		}
 

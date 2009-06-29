@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 11904 2007-08-31 16:16:33Z sirdude $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

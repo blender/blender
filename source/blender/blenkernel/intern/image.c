@@ -1812,7 +1812,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 	Render *re= NULL;
 	RenderResult *rr= NULL;
 	
-	if(iuser->scene) {
+	if(iuser && iuser->scene) {
 		re= RE_GetRender(iuser->scene->id.name);
 		rr= RE_GetResult(re);
 	}

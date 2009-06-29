@@ -56,8 +56,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						int focusmode,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
-						SCA_IObject* gameobj,
-						PyTypeObject* T=&Type );
+						SCA_IObject* gameobj);
 
 	virtual ~KX_MouseFocusSensor() { ; };
 	virtual CValue* GetReplica() {
@@ -89,8 +88,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
 
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayTarget);
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRaySource);

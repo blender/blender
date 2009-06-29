@@ -130,10 +130,10 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 }
 
 /* Macro for building the keyboard translation */
-//#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(SCA_IInputDevice::KX_##name))
-#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name)); Py_DECREF(item)
+//#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromSsize_t(SCA_IInputDevice::KX_##name))
+#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name)); Py_DECREF(item)
 /* For the defines for types from logic bricks, we do stuff explicitly... */
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name2)); Py_DECREF(item)
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name2)); Py_DECREF(item)
 
 
 // temporarily python stuff, will be put in another place later !
@@ -181,7 +181,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
 	BLI_convertstringcode(expanded, gp_GamePythonPath);
-	return PyString_FromString(expanded);
+	return PyUnicode_FromString(expanded);
 }
 
 static char gPySendMessage_doc[] = 
@@ -306,7 +306,7 @@ static PyObject* gPySetMaxLogicFrame(PyObject*, PyObject* args)
 
 static PyObject* gPyGetMaxLogicFrame(PyObject*)
 {
-	return PyInt_FromLong(KX_KetsjiEngine::GetMaxLogicFrame());
+	return PyLong_FromSsize_t(KX_KetsjiEngine::GetMaxLogicFrame());
 }
 
 static PyObject* gPySetMaxPhysicsFrame(PyObject*, PyObject* args)
@@ -321,7 +321,7 @@ static PyObject* gPySetMaxPhysicsFrame(PyObject*, PyObject* args)
 
 static PyObject* gPyGetMaxPhysicsFrame(PyObject*)
 {
-	return PyInt_FromLong(KX_KetsjiEngine::GetMaxPhysicsFrame());
+	return PyLong_FromSsize_t(KX_KetsjiEngine::GetMaxPhysicsFrame());
 }
 
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
@@ -386,7 +386,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     while ((dirp = readdir(dp)) != NULL) {
 		if (BLI_testextensie(dirp->d_name, ".blend")) {
-			value = PyString_FromString(dirp->d_name);
+			value = PyUnicode_FromString(dirp->d_name);
 			PyList_Append(list, value);
 			Py_DECREF(value);
 		}
@@ -500,7 +500,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 static PyObject *gEvalExpression(PyObject*, PyObject* value)
 {
-	char* txt= PyString_AsString(value);
+	char* txt= _PyUnicode_AsString(value);
 	
 	if (txt==NULL) {
 		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
@@ -558,14 +558,14 @@ static struct PyMethodDef game_methods[] = {
 
 static PyObject* gPyGetWindowHeight(PyObject*, PyObject* args)
 {
-	return PyInt_FromLong((gp_Canvas ? gp_Canvas->GetHeight() : 0));
+	return PyLong_FromSsize_t((gp_Canvas ? gp_Canvas->GetHeight() : 0));
 }
 
 
 
 static PyObject* gPyGetWindowWidth(PyObject*, PyObject* args)
 {
-	return PyInt_FromLong((gp_Canvas ? gp_Canvas->GetWidth() : 0));
+	return PyLong_FromSsize_t((gp_Canvas ? gp_Canvas->GetWidth() : 0));
 }
 
 
@@ -893,7 +893,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	}
 
 	enabled = ((G.fileflags & flag) != 0);
-	return PyInt_FromLong(enabled);
+	return PyLong_FromSsize_t(enabled);
 }
 
 #define KX_TEXFACE_MATERIAL				0
@@ -937,7 +937,7 @@ static PyObject* gPyGetMaterialType(PyObject*)
 	else
 		flag = KX_TEXFACE_MATERIAL;
 	
-	return PyInt_FromLong(flag);
+	return PyLong_FromSsize_t(flag);
 }
 
 static PyObject* gPyDrawLine(PyObject*, PyObject* args)
@@ -1075,7 +1075,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	
 	PyDict_SetItemString(d, "globalDict", item=PyDict_New()); Py_DECREF(item);
 
-	ErrorObject = PyString_FromString("GameLogic.error");
+	ErrorObject = PyUnicode_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
 	Py_DECREF(ErrorObject);
 	
@@ -1362,7 +1362,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* check for builtin modules */
 	m = PyImport_AddModule("sys");
 	l = PyObject_GetAttrString(m, "builtin_module_names");
-	n = PyString_FromString(name);
+	n = PyUnicode_FromString(name);
 	
 	if (PySequence_Contains(l, n)) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
@@ -1538,7 +1538,7 @@ static void initPySysObjects__append(PyObject *sys_path, char *filename)
 	BLI_split_dirfile_basic(filename, expanded, NULL); /* get the dir part of filename only */
 	BLI_convertstringcode(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
 	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
-	item= PyString_FromString(expanded);
+	item= PyUnicode_FromString(expanded);
 	
 //	printf("SysPath - '%s', '%s', '%s'\n", expanded, filename, gp_GamePythonPath);
 	
@@ -1735,7 +1735,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 
   // Add some symbolic constants to the module
   d = PyModule_GetDict(m);
-  ErrorObject = PyString_FromString("Rasterizer.error");
+  ErrorObject = PyUnicode_FromString("Rasterizer.error");
   PyDict_SetItemString(d, "error", ErrorObject);
   Py_DECREF(ErrorObject);
 
@@ -1813,10 +1813,10 @@ static PyObject* gPyEventToCharacter(PyObject*, PyObject* args)
 	if(IsPrintable(event)) {
 		char ch[2] = {'\0', '\0'};
 		ch[0] = ToCharacter(event, (bool)shift);
-		return PyString_FromString(ch);
+		return PyUnicode_FromString(ch);
 	}
 	else {
-		return PyString_FromString("");
+		return PyUnicode_FromString("");
 	}
 }
 
@@ -2044,7 +2044,7 @@ int saveGamePythonConfig( char **marshal_buffer)
 				char *marshal_cstring;
 				
 #if PY_VERSION_HEX < 0x03000000
-				marshal_cstring = PyString_AsString(pyGlobalDictMarshal);
+				marshal_cstring = _PyUnicode_AsString(pyGlobalDictMarshal);
 				marshal_length= PyString_Size(pyGlobalDictMarshal);
 #else			// py3 uses byte arrays
 				marshal_cstring = PyBytes_AsString(pyGlobalDictMarshal);

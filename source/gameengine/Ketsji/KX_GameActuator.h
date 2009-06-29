@@ -65,8 +65,7 @@ protected:
 					 const STR_String& filename,
 					 const STR_String& loadinganimationname,
 					 KX_Scene* scene,
-					 KX_KetsjiEngine* ketsjiEngine,
-					 PyTypeObject* T=&Type);
+					 KX_KetsjiEngine* ketsjiEngine);
 	virtual ~KX_GameActuator();
 
 	virtual CValue* GetReplica();
@@ -76,10 +75,6 @@ protected:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// Deprecated functions ----->
 	KX_PYMETHOD_DOC(KX_GameActuator,GetFile);

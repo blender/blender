@@ -50,8 +50,7 @@ public:
 		const STR_String &toPropName,
 		const STR_String &subject,
 		int bodyType,
-		const STR_String &body,
-		PyTypeObject* T=&Type);
+		const STR_String &body);
 	virtual ~KX_NetworkMessageActuator();
 
 	virtual bool Update();
@@ -60,10 +59,6 @@ public:
 	/* ------------------------------------------------------------ */
 	/* Python interface ------------------------------------------- */
 	/* ------------------------------------------------------------ */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// Deprecated ----->
 	KX_PYMETHOD(KX_NetworkMessageActuator, SetToPropName);

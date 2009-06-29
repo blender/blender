@@ -10,11 +10,11 @@ class OUTLINER_HT_header(bpy.types.Header):
 		sce = context.scene
 		layout = self.layout
 
-		layout.template_header(context)
+		layout.template_header()
 
 		if context.area.show_menus:
 			row = layout.row(align=True)
-			row.itemM(context, "OUTLINER_MT_view")
+			row.itemM("OUTLINER_MT_view")
 			
 		row = layout.row()
 		row.itemR(so, "display_mode", text="")

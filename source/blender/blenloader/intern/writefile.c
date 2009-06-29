@@ -382,6 +382,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 /*These functions are used by blender's .blend system for file saving/loading.*/
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
 void IDP_WriteProperty(IDProperty *prop, void *wd);
+static void write_animdata(WriteData *wd, AnimData *adt); // XXX code needs reshuffling, but not before NLA SoC is merged back into 2.5
 
 static void IDP_WriteArray(IDProperty *prop, void *wd)
 {
@@ -549,6 +550,25 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+/* TODO: replace *cache with *cachelist once it's coded */
+#define PTCACHE_WRITE_PSYS	0
+#define PTCACHE_WRITE_CLOTH	1
+static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
+{
+	writestruct(wd, DATA, "PointCache", 1, cache);
+
+	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		PTCacheMem *pm = cache->mem_cache.first;
+
+		for(; pm; pm=pm->next) {
+			writestruct(wd, DATA, "PTCacheMem", 1, pm);
+			if(type==PTCACHE_WRITE_PSYS)
+				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
+			else if(type==PTCACHE_WRITE_CLOTH)
+				writedata(wd, DATA, 9 * sizeof(float) * pm->totpoint, pm->data);
+		}
+	}
+}
 static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
@@ -559,6 +579,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
 			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
+			if (part->adt) write_animdata(wd, part->adt);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
 		}
@@ -585,8 +606,8 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) writestruct(wd, DATA, "PointCache", 1, psys->soft->pointcache);
-		writestruct(wd, DATA, "PointCache", 1, psys->pointcache);
+		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
+		write_pointcaches(wd, psys->pointcache, PTCACHE_WRITE_PSYS);
 	}
 }
 
@@ -1007,7 +1028,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
+			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
@@ -1584,7 +1605,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
 		if(sce->toolsettings->vpaint)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);

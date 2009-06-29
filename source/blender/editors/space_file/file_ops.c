@@ -190,7 +190,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	BLI_isect_rctf(&(ar->v2d.mask), &rect, &rect);
+	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
 	file_select(sfile, ar, &rect, val );
 	WM_event_add_notifier(C, NC_WINDOW, NULL);

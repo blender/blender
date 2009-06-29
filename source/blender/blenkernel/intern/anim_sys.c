@@ -43,6 +43,7 @@ static short id_has_animdata (ID *id)
 		case ID_OB:
 		case ID_CU:
 		case ID_KE:
+		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
 		case ID_SCE:
@@ -882,6 +883,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* meshes */
 	// TODO...
+	
+	/* particles */
+	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
 	
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 

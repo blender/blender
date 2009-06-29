@@ -49,7 +49,6 @@ void FONT_OT_case_toggle(struct wmOperatorType *ot);
 void FONT_OT_case_set(struct wmOperatorType *ot);
 void FONT_OT_style_toggle(struct wmOperatorType *ot);
 void FONT_OT_style_set(struct wmOperatorType *ot);
-void FONT_OT_material_set(struct wmOperatorType *ot);
 
 void FONT_OT_text_copy(struct wmOperatorType *ot);
 void FONT_OT_text_cut(struct wmOperatorType *ot);

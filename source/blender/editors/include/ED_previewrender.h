@@ -29,16 +29,13 @@
 struct View3D;
 struct SpaceButs;
 struct RenderInfo;
+struct Scene;
 struct Image;
-struct ScrArea;
-struct uiBlock;
 struct Render;
 struct bContext;
 struct ID;
 
 #define PREVIEW_RENDERSIZE 140
-
-typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
 /* stores rendered preview  - is also used for icons */
 typedef struct RenderInfo {
@@ -74,6 +71,7 @@ void ED_preview_init_dbase(void);
 void ED_preview_free_dbase(void);
 
 void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, int sizex, int sizey);
+void ED_preview_iconrender(struct Scene *scene, struct ID *id, int *rect, int sizex, int sizey);
 
 void ED_preview_draw(const struct bContext *C, void *idp, rcti *rect);
 

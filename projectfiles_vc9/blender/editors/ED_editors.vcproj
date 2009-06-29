@@ -262,6 +262,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_pointcache.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
 				>
 			</File>
@@ -1343,11 +1347,39 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\physics\ed_pointcache.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\physics\editparticle.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_logic"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\logic_buttons.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\logic_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\logic_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\logic_window.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\space_logic.c"
 				>
 			</File>
 		</Filter>

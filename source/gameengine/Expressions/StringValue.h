@@ -40,7 +40,7 @@ public:
 	virtual void		SetValue(CValue* newval) { 	m_strString = newval->GetText(); SetModified(true);	};
 	virtual CValue*		GetReplica();
 	virtual PyObject*	ConvertValueToPython() {
-		return PyString_FromString(m_strString.Ptr());
+		return PyUnicode_FromString(m_strString.Ptr());
 	}
 
 private:

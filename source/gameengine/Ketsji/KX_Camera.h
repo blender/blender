@@ -143,7 +143,7 @@ public:
 
 	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false, PyTypeObject *T = &Type);
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, bool delete_node = false);
 	virtual ~KX_Camera();
 	
 	/** 
@@ -265,6 +265,7 @@ public:
 	 */
 	int GetViewportTop() const;
 
+	virtual int GetGameObjectType() { return OBJ_CAMERA; }
 
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
@@ -282,10 +283,6 @@ public:
 	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenRay);
-
-	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
-	virtual PyObject* py_getattro_dict();
-	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	
 	static PyObject*	pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

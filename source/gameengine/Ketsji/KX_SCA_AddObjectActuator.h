@@ -88,8 +88,7 @@ public:
 		const float *linvel,
 		bool linv_local,
 		const float *angvel,
-		bool angv_local,
-		PyTypeObject* T=&Type
+		bool angv_local
 	);
 
 	~KX_SCA_AddObjectActuator(void);
@@ -109,10 +108,6 @@ public:
 
 	virtual bool 
 	Update();
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 		SCA_IObject*	
 	GetLastCreatedObject(
