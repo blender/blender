@@ -288,7 +288,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "repeat"); 
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_repeat_set", NULL);
 	RNA_def_property_range(prop, 0.1f, 1000.0f); /* these limits have currently be chosen arbitarily, but could be extended (minimum should still be > 0 though) if needed... */
-	RNA_def_property_ui_text(prop, "Repeat", "Number of times to repeat the ");
+	RNA_def_property_ui_text(prop, "Repeat", "Number of times to repeat the action range.");
 	
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale"); 

@@ -293,6 +293,23 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	/* draw outline */
 	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 	
+	/* if action-clip strip, draw lines delimiting repeats too (in the same colour */
+	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQ(strip->repeat, 1.0f)==0) {
+		float repeatLen = (strip->actend - strip->actstart) * strip->scale;
+		int i;
+		
+		/* only draw lines for whole-numbered repeats, starting from the first full-repeat
+		 * up to the last full repeat (but not if it lies on the end of the strip)
+		 */
+		for (i = 1; i < strip->repeat; i++) {
+			float repeatPos = strip->start + (repeatLen * i);
+			
+			/* don't draw if line would end up on or after the end of the strip */
+			if (repeatPos < strip->end)
+				fdrawline(repeatPos, yminc, repeatPos, ymaxc);
+		}
+	}
+	
 	/* reset linestyle */
 	setlinestyle(0);
 } 
