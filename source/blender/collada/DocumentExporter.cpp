@@ -71,6 +71,14 @@ void QuatToAxisAngle(float *q, float *axis, float *angle)
 	}
 }
 
+char *CustomData_get_layer_name(const struct CustomData *data, int type, int n)
+{
+	int layer_index = CustomData_get_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	return data->layers[layer_index+n].name;
+}
+
 /*
   Utilities to avoid code duplication.
   Definition can take some time to understand, but they should be useful.
@@ -126,6 +134,7 @@ void forEachMaterialInScene(Scene *sce, Functor &f)
 	forEachMeshObjectInScene(sce, matfunc);
 }
 
+// TODO: optimize UV sets by making indexed list with duplicates removed
 class GeometryExporter : COLLADASW::LibraryGeometries
 {
 	Scene *mScene;
@@ -147,12 +156,7 @@ public:
 		// XXX don't use DerivedMesh, Mesh instead?
 		
 		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
-		MVert *mverts = dm->getVertArray(dm);
-		MFace *mfaces = dm->getFaceArray(dm);
-		int totfaces = dm->getNumFaces(dm);
-		int totverts = dm->getNumVerts(dm);
-		bool checkTexcoords = false;
-
+		Mesh *me = (Mesh*)ob->data;
 		std::string geom_name(ob->id.name);
 
 		// openMesh(geoId, geoName, meshId)
@@ -163,10 +167,13 @@ public:
 		
 		// writes <source> for normal coords
 		createNormalsSource(geom_name, dm);
+
+		int has_uvs = CustomData_has_layer(&me->fdata, CD_MTFACE);
 		
 		// writes <source> for uv coords if mesh has uv coords
-		checkTexcoords = createTexcoordsSource(geom_name, dm, (Mesh*)ob->data);
-		
+		if (has_uvs) {
+			createTexcoordsSource(geom_name, dm, (Mesh*)ob->data);
+		}
 		// <vertices>
 		COLLADASW::Vertices verts(mSW);
 		verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
@@ -175,209 +182,15 @@ public:
 							   getUrlBySemantics(geom_name, COLLADASW::POSITION));
 		input_list.push_back(input);
 		verts.add();
-		
-		// if mesh has per-face materials
-		for(int a = 0; a < ob->totcol; a++)	{
-			// <vcount>
-			int i;
-			int faces_in_polylist = 0;
-			std::vector<unsigned long> VCountList;
-			
-			for (i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				if (f->mat_nr == a) {
-					faces_in_polylist += 1;
-					if (f->v4 == 0) {
-						VCountList.push_back(3);
-					}
-					else {
-						VCountList.push_back(4);
-					}
-				}
+
+		// XXX slow		
+		if (ob->totcol) {
+			for(int a = 0; a < ob->totcol; a++)	{
+				createPolylist(true, a, has_uvs, ob, dm, geom_name);
 			}
-			
-			if (faces_in_polylist == 0) {
-				continue;
-			}
-			
-			Material *ma = give_current_material(ob, a+1);
-			COLLADASW::Polylist polylist(mSW);
-			
-			// sets count attribute in <polylist>
-			polylist.setCount(faces_in_polylist);
-			
-			// sets material name
-			polylist.setMaterial(ma->id.name);
-				
-			COLLADASW::InputList &til = polylist.getInputList();
-			
-			// creates <input> in <polylist> for vertices 
-			COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
-									(geom_name, COLLADASW::VERTEX), 0);
-			
-			// creates <input> in <polylist> for normals
-			COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
-									(geom_name, COLLADASW::NORMAL), 0);
-			
-			til.push_back(input1);
-			til.push_back(input2);
-			
-			// if mesh has uv coords writes <input> for TEXCOORD
-			if (checkTexcoords == true)
-				{
-					COLLADASW::Input input3(COLLADASW::TEXCOORD,
-											getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 0);
-					til.push_back(input3);
-				}
-			
-			// sets <vcount>
-			polylist.setVCountList(VCountList);
-			
-			// performs the actual writing
-			polylist.prepareToAppendValues();
-			
-			// <p>
-			int texindex = 0;
-			for (i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				
-				// if mesh has uv coords writes uv and vertex indices
-				if (checkTexcoords == true && f->mat_nr == a)	{
-					// if triangle
-					if (f->v4 == 0) {
-						polylist.appendValues(f->v1);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v2);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v3);
-						polylist.appendValues(texindex++);
-					}
-					// quad
-					else {
-						polylist.appendValues(f->v1);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v2);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v3);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v4);
-						polylist.appendValues(texindex++);
-					}
-				}
-				// if mesh has no uv coords writes only vertex indices
-				else if(f->mat_nr == a){
-					// if triangle
-					if (f->v4 == 0) {
-						polylist.appendValues(f->v1, f->v2, f->v3);	
-					}
-					// quad
-					else {
-						polylist.appendValues(f->v1, f->v2, f->v3, f->v4);
-					}
-				}
-				
-				else if(f->mat_nr != a) {
-					if (f->v4 == 0) {
-						texindex += 3;
-					}
-					else {
-						texindex += 4;
-					}
-				}
-			}
-			
-			polylist.finish();
 		}
-		
-		// writes <polylist> if mesh has no materials
-		if (ob->totcol == 0) {
-			// <vcount>
-			int i;
-			std::vector<unsigned long> VCountList;
-			for (i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				if (f->v4 == 0) {
-					VCountList.push_back(3);
-				}
-				else {
-					VCountList.push_back(4);
-				}
-			}
-			
-			
-			COLLADASW::Polylist polylist(mSW);
-			
-			// sets count attribute in <polylist>
-			polylist.setCount(totfaces);
-			
-			COLLADASW::InputList &til = polylist.getInputList();
-			
-			// creates <input> in <polylist> for vertices 
-			COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
-									(geom_name, COLLADASW::VERTEX), 0);
-			// creates <input> in <polylist> for normals
-			COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
-									(geom_name, COLLADASW::NORMAL), 0);
-			
-			til.push_back(input1);
-			til.push_back(input2);
-			
-			// if mesh has uv coords writes <input> for TEXCOORD
-			if (checkTexcoords == true)
-				{
-					COLLADASW::Input input3(COLLADASW::TEXCOORD,
-											getUrlBySemantics(geom_name, COLLADASW::TEXCOORD), 1, 0);
-					til.push_back(input3);
-				}
-			// <vcount>
-			polylist.setVCountList(VCountList);
-			
-			// performs the actual writing
-			polylist.prepareToAppendValues();
-			
-			// <p>
-			int texindex = 0;
-			for (i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				
-				//if mesh has uv coords writes uv and vertex indices
-				if (checkTexcoords == true)	{
-					// if triangle
-					if (f->v4 == 0) {
-						polylist.appendValues(f->v1);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v2);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v3);
-						polylist.appendValues(texindex++);
-					}
-					// quad
-					else {
-						polylist.appendValues(f->v1);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v2);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v3);
-						polylist.appendValues(texindex++);
-						polylist.appendValues(f->v4);
-						polylist.appendValues(texindex++);
-					}
-				}
-				
-				// if mesh has no uv coords writes only vertex indices 
-				else {
-					// if triangle
-					if (f->v4 == 0) {
-						polylist.appendValues(f->v1, f->v2, f->v3);	
-					}
-					// quad
-					else {
-						polylist.appendValues(f->v1, f->v2, f->v3, f->v4);
-					}
-				}
-			}
-			polylist.finish();
-			
+		else {
+			createPolylist(false, 0, has_uvs, ob, dm, geom_name);
 		}
 		
 		closeMesh();
@@ -385,6 +198,108 @@ public:
 		
 		dm->release(dm);
 		
+	}
+
+	// powerful because it handles both cases when there is material and when there's not
+	void createPolylist(bool has_material,
+						int material_index,
+						bool has_uvs,
+						Object *ob,
+						DerivedMesh *dm,
+						std::string& geom_name)
+	{
+		MFace *mfaces = dm->getFaceArray(dm);
+		int totfaces = dm->getNumFaces(dm);
+		Mesh *me = (Mesh*)ob->data;
+
+		// <vcount>
+		int i;
+		int faces_in_polylist = 0;
+		std::vector<unsigned long> vcount_list;
+
+		// count faces with this material
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+
+			if ((has_material && f->mat_nr == material_index) || !has_material) {
+				faces_in_polylist++;
+				if (f->v4 == 0) {
+					vcount_list.push_back(3);
+				}
+				else {
+					vcount_list.push_back(4);
+				}
+			}
+		}
+
+		// no faces using this material
+		if (faces_in_polylist == 0) {
+			return;
+		}
+			
+		Material *ma = has_material ? give_current_material(ob, material_index + 1) : NULL;
+		COLLADASW::Polylist polylist(mSW);
+			
+		// sets count attribute in <polylist>
+		polylist.setCount(faces_in_polylist);
+			
+		// sets material name
+		if (has_material)
+			polylist.setMaterial(ma->id.name);
+				
+		COLLADASW::InputList &til = polylist.getInputList();
+			
+		// creates <input> in <polylist> for vertices 
+		COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
+								(geom_name, COLLADASW::VERTEX), 0);
+			
+		// creates <input> in <polylist> for normals
+		COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
+								(geom_name, COLLADASW::NORMAL), 0);
+			
+		til.push_back(input1);
+		til.push_back(input2);
+			
+		// if mesh has uv coords writes <input> for TEXCOORD
+		int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+
+		for (i = 0; i < num_layers; i++) {
+			char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
+			COLLADASW::Input input3(COLLADASW::TEXCOORD,
+									makeUrl(makeTexcoordSourceId(geom_name, i)),
+									1, // offset always 1, this is only until we have optimized UV sets
+									0);
+			til.push_back(input3);
+		}
+			
+		// sets <vcount>
+		polylist.setVCountList(vcount_list);
+			
+		// performs the actual writing
+		polylist.prepareToAppendValues();
+			
+		// <p>
+		int texindex = 0;
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+
+			if ((has_material && f->mat_nr == material_index) || !has_material) {
+
+				unsigned int *v = &f->v1;
+				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
+					polylist.appendValues(v[j]);
+
+					if (has_uvs)
+						polylist.appendValues(texindex + j);
+				}
+			}
+
+			texindex += 3;
+			if (f->v4 != 0)
+				texindex++;
+		}
+			
+		polylist.finish();
 	}
 	
 	// creates <source> for positions
@@ -413,99 +328,70 @@ public:
 			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
 			
 		}
-		/*closes <float_array>, adds
-		  <technique_common>
-		  <accessor source = "" count = "" stride = "" >,
-		  </source> */
+		
 		source.finish();
 	
 	}
 
-	//creates <source> for texcoords
-	// returns true if mesh has uv data
-	bool createTexcoordsSource(std::string geom_name, DerivedMesh *dm, Mesh *me)
+	std::string makeTexcoordSourceId(std::string& geom_name, int layer_index)
 	{
-		
+		char suffix[20];
+		sprintf(suffix, "-%d", layer_index);
+		return getIdBySemantics(geom_name, COLLADASW::TEXCOORD) + suffix;
+	}
+
+	//creates <source> for texcoords
+	void createTexcoordsSource(std::string geom_name, DerivedMesh *dm, Mesh *me)
+	{
+
 		int totfaces = dm->getNumFaces(dm);
-		MTFace *tface = me->mtface;
 		MFace *mfaces = dm->getFaceArray(dm);
-		if(tface != NULL) {
-				
-			COLLADASW::FloatSourceF source(mSW);
-			source.setId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD));
-			source.setArrayId(getIdBySemantics(geom_name, COLLADASW::TEXCOORD) +
-							  ARRAY_ID_SUFFIX);
-			//source.setAccessorCount(getTriCount(mfaces, totfaces) * 3);
-			int i = 0;
-			int j = 0;
-			for (int i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				
-				if (f->v4 == 0) {
-					j+=3;
-				}
-				else {
-					j+=4;
-				}
+		int totuv = 0;
+		int i;
+
+		// count totuv
+		for (i = 0; i < totfaces; i++) {
+			MFace *f = &mfaces[i];
+			if (f->v4 == 0) {
+				totuv+=3;
 			}
-			source.setAccessorCount(j);
+			else {
+				totuv+=4;
+			}
+		}
+
+		int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+
+		// write <source> for each layer
+		// each <source> will get id like meshName + "map-channel-1"
+		for (int a = 0; a < num_layers; a++) {
+			MTFace *tface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
+			char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
+			
+			COLLADASW::FloatSourceF source(mSW);
+			std::string layer_id = makeTexcoordSourceId(geom_name, a);
+			source.setId(layer_id);
+			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
+			
+			source.setAccessorCount(totuv);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 			param.push_back("X");
 			param.push_back("Y");
-				
+			
 			source.prepareToAppendValues();
 			
 			for (i = 0; i < totfaces; i++) {
 				MFace *f = &mfaces[i];
-					
-				// if triangle
-				if (f->v4 == 0) {
-						
-					// get uv1's X coordinate
-					source.appendValues(tface[i].uv[0][0]);
-					// get uv1's Y coordinate
-					source.appendValues(tface[i].uv[0][1]);
-					// get uv2's X coordinate
-					source.appendValues(tface[i].uv[1][0]);
-					// etc...
-					source.appendValues(tface[i].uv[1][1]);
-					//uv3
-					source.appendValues(tface[i].uv[2][0]);
-					source.appendValues(tface[i].uv[2][1]);
-						
-						
-				}
-				// quad
-				else {
-						
-					// get uv1's X coordinate
-					source.appendValues(tface[i].uv[0][0]);
-					// get uv1's Y coordinate
-					source.appendValues(tface[i].uv[0][1]);
-					//uv2
-					source.appendValues(tface[i].uv[1][0]);
-					source.appendValues(tface[i].uv[1][1]);
-					//uv3
-					source.appendValues(tface[i].uv[2][0]);
-					source.appendValues(tface[i].uv[2][1]);
-					//uv3
-					//source.appendValues(tface[i].uv[2][0]);
-					//source.appendValues(tface[i].uv[2][1]);
-					//uv4
-					source.appendValues(tface[i].uv[3][0]);
-					source.appendValues(tface[i].uv[3][1]);
-					//uv1
-					//source.appendValues(tface[i].uv[0][0]);
-					//source.appendValues(tface[i].uv[0][1]);
-						
+				
+				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
+					source.appendValues(tface[i].uv[j][0],
+										tface[i].uv[j][1]);
 				}
 			}
-				
+			
 			source.finish();
-			return true;
 		}
-		return false;
 	}
 
 
@@ -540,14 +426,20 @@ public:
 		source.finish();
 	}
 	
-	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type) {
-		return geom_name +
-			getSuffixBySemantic(type);
+	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type, std::string other_suffix = "") {
+		return geom_name + getSuffixBySemantic(type) + other_suffix;
 	}
 	
+	
+	COLLADASW::URI getUrlBySemantics(std::string geom_name, COLLADASW::Semantics type, std::string other_suffix = "") {
+		
+		std::string id(getIdBySemantics(geom_name, type, other_suffix));
+		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
+		
+	}
 
-	COLLADASW::URI getUrlBySemantics(std::string geom_name, COLLADASW::Semantics type) {
-		std::string id(getIdBySemantics(geom_name, type));
+	COLLADASW::URI makeUrl(std::string id)
+	{
 		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 	}
 	
