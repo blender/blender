@@ -336,6 +336,71 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
 }
 
+static int bookmark_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct FSMenu* fsmenu = fsmenu_get();
+	struct FileSelectParams* params= ED_fileselect_get_params(sfile);
+
+	if (params->dir[0] != '\0') {
+		char name[FILE_MAX];
+	
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+		fsmenu_write_file(fsmenu, name);
+	}
+
+	ED_area_tag_redraw(sa);
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_add_bookmark(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Bookmark";
+	ot->idname= "FILE_OT_add_bookmark";
+	
+	/* api callbacks */
+	ot->invoke= bookmark_add_invoke;
+	ot->poll= ED_operator_file_active;
+}
+
+static int bookmark_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct FSMenu* fsmenu = fsmenu_get();
+	int nentries = fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
+	if(RNA_struct_find_property(op->ptr, "index")) {
+		int index = RNA_int_get(op->ptr, "index");
+		if ( (index >-1) && (index < nentries)) {
+			char name[FILE_MAX];
+			
+			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
+			BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+			fsmenu_write_file(fsmenu, name);
+			ED_area_tag_redraw(sa);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_delete_bookmark(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Bookmark";
+	ot->idname= "FILE_OT_delete_bookmark";
+	
+	/* api callbacks */
+	ot->invoke= bookmark_delete_invoke;
+	ot->poll= ED_operator_file_active;
+
+	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+}
+
+
 static int loadimages_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ScrArea *sa= CTX_wm_area(C);

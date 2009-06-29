@@ -58,6 +58,8 @@ void FILE_OT_select(struct wmOperatorType *ot);
 void FILE_OT_select_all_toggle(struct wmOperatorType *ot);
 void FILE_OT_select_border(struct wmOperatorType *ot);
 void FILE_OT_select_bookmark(struct wmOperatorType *ot);
+void FILE_OT_add_bookmark(struct wmOperatorType *ot);
+void FILE_OT_delete_bookmark(struct wmOperatorType *ot);
 void FILE_OT_loadimages(struct wmOperatorType *ot);
 void FILE_OT_exec(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);

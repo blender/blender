@@ -292,6 +292,8 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_refresh);
 	WM_operatortype_append(FILE_OT_bookmark_toggle);
+	WM_operatortype_append(FILE_OT_add_bookmark);
+	WM_operatortype_append(FILE_OT_delete_bookmark);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -304,7 +306,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
-	
+	WM_keymap_add_item(keymap, "FILE_OT_add_bookmark", BKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 
 	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);

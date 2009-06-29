@@ -26,7 +26,7 @@ static void do_file_panel_events(bContext *C, void *arg, int event)
 
 }
 
-static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory category, int icon)
+static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory category, int icon, int allow_delete)
 {
 	uiBlock *block;
 	uiStyle *style= U.uistyles.first;
@@ -41,26 +41,29 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiBlockBeginAlign(block);
 	for (i=0; i< nentries;++i) {
+		uiLayout* layout = uiLayoutRow(pa->layout, UI_LAYOUT_ALIGN_LEFT);
 		char *fname = fsmenu_get_entry(fsmenu, category, i);
-		uiItemStringO(pa->layout, fname, icon, "FILE_OT_select_bookmark", "dir", fname);
+		uiItemStringO(layout, fname, icon, "FILE_OT_select_bookmark", "dir", fname);
+		if (allow_delete)
+			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
 	}
 	uiBlockEndAlign(block);
 }
 
 static void file_panel_system(const bContext *C, Panel *pa)
 {
-	file_panel_category(C, pa, FS_CATEGORY_SYSTEM, ICON_DISK_DRIVE);
+	file_panel_category(C, pa, FS_CATEGORY_SYSTEM, ICON_DISK_DRIVE, 0);
 }
 
 static void file_panel_bookmarks(const bContext *C, Panel *pa)
 {
-	file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, ICON_BOOKMARKS);
+	file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, ICON_BOOKMARKS, 1);
 }
 
 
 static void file_panel_recent(const bContext *C, Panel *pa)
 {
-	file_panel_category(C, pa, FS_CATEGORY_RECENT, ICON_FILE_FOLDER);
+	file_panel_category(C, pa, FS_CATEGORY_RECENT, ICON_FILE_FOLDER, 0);
 }
 
 
