@@ -276,6 +276,8 @@ static void text_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "TEXT_OT_overwrite_toggle", INSERTKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_scroll", LEFTMOUSE, KM_PRESS, KM_ALT, 0); /* no MMB on laptops */
+
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
