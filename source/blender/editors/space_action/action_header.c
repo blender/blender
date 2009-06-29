@@ -211,7 +211,7 @@ static void act_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "ACT_OT_insert");
+	uiItemO(layout, NULL, 0, "ACT_OT_insert_keyframe");
 	
 	uiItemS(layout);
 	

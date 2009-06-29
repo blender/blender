@@ -433,10 +433,10 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		return OPERATOR_CANCELLED;
 		
-	/* get snapping mode */
+	/* what channels to affect? */
 	mode= RNA_enum_get(op->ptr, "type");
 	
-	/* snap keyframes */
+	/* insert keyframes */
 	insert_action_keys(&ac, mode);
 	
 	/* validate keyframes after editing */
@@ -448,11 +448,11 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_insert (wmOperatorType *ot)
+void ACT_OT_insert_keyframe (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "ACT_OT_insert";
+	ot->idname= "ACT_OT_insert_keyframe";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

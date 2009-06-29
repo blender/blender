@@ -399,7 +399,103 @@ void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
-// TODO: insertkey
+/* ******************** Insert Keyframes Operator ************************* */
+
+/* defines for insert keyframes tool */
+EnumPropertyItem prop_graphkeys_insertkey_types[] = {
+	{1, "ALL", 0, "All Channels", ""},
+	{2, "SEL", 0, "Only Selected Channels", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* this function is responsible for snapping keyframes to frame-times */
+static void insert_graph_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene= ac->scene;
+	float cfra= (float)CFRA;
+	short flag = 0;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	if (mode == 2) filter |= ANIMFILTER_SEL;
+	
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* init keyframing flag */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	
+	/* insert keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* adjust current frame for NLA-mapping */
+		if (adt)
+			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+		else 
+			cfra= (float)CFRA;
+			
+		/* if there's an id */
+		if (ale->id)
+			insert_keyframe(ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+		else
+			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
+	}
+	
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL)
+		return OPERATOR_CANCELLED;
+		
+	/* which channels to affect? */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* insert keyframes */
+	insert_graph_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_insert_keyframe (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframes";
+	ot->idname= "GRAPH_OT_insert_keyframe";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= graphkeys_insertkey_exec;
+	ot->poll= ED_operator_ipo_active; // xxx
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	RNA_def_enum(ot->srna, "type", prop_graphkeys_insertkey_types, 0, "Type", "");
+}
 
 /* ******************** Click-Insert Keyframes Operator ************************* */
 
