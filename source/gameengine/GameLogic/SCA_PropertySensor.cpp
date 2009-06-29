@@ -356,7 +356,7 @@ const char SCA_PropertySensor::GetType_doc[] =
 PyObject* SCA_PropertySensor::PyGetType()
 {
 	ShowDeprecationWarning("getType()", "the mode property");
-	return PyInt_FromLong(m_checktype);
+	return PyLong_FromSsize_t(m_checktype);
 }
 
 /* 2. setType */
@@ -390,7 +390,7 @@ const char SCA_PropertySensor::GetProperty_doc[] =
 PyObject* SCA_PropertySensor::PyGetProperty() 
 {
 	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyString_FromString(m_checkpropname);
+	return PyUnicode_FromString(m_checkpropname);
 }
 
 /* 4. setProperty */
@@ -427,7 +427,7 @@ const char SCA_PropertySensor::GetValue_doc[] =
 PyObject* SCA_PropertySensor::PyGetValue() 
 {
 	ShowDeprecationWarning("getValue()", "the value property");
-	return PyString_FromString(m_checkpropval);
+	return PyUnicode_FromString(m_checkpropval);
 }
 
 /* 6. setValue */

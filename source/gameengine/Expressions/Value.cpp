@@ -74,7 +74,7 @@ PyObject* CValue::PyGetName()
 {
 	ShowDeprecationWarning("getName()", "the name property");
 	
-	return PyString_FromString(this->GetName());
+	return PyUnicode_FromString(this->GetName());
 }
 
 /*#define CVALUE_DEBUG*/
@@ -555,7 +555,7 @@ PyAttributeDef CValue::Attributes[] = {
 
 PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
 	CValue * self = static_cast<CValue *> (self_v);
-	return PyString_FromString(self->GetName());
+	return PyUnicode_FromString(self->GetName());
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
@@ -599,21 +599,23 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
+#if PY_VERSION_HEX < 0x03000000
 	if (PyInt_Check(pyobj))
 	{
 		vallie = new CIntValue( (cInt)PyInt_AS_LONG(pyobj) );
 	} else
+#endif
 	if (PyLong_Check(pyobj))
 	{
 		vallie = new CIntValue( (cInt)PyLong_AsLongLong(pyobj) );
 	} else
-	if (PyString_Check(pyobj))
+	if (PyUnicode_Check(pyobj))
 	{
-		vallie = new CStringValue(PyString_AsString(pyobj),"");
+		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
 	} else
 	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		if (BGE_PROXY_REF(pyobj) && PyObject_TypeCheck(BGE_PROXY_REF(pyobj), &CValue::Type))
+		if (BGE_PROXY_REF(pyobj) && PyObject_TypeCheck((PyObject *)BGE_PROXY_REF(pyobj), &CValue::Type))
 		{
 			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 		} else {
@@ -642,7 +644,7 @@ PyObject*	CValue::ConvertKeysToPython( void )
 		std::map<STR_String,CValue*>::iterator it;
 		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
-			pystr = PyString_FromString( (*it).first );
+			pystr = PyUnicode_FromString( (*it).first );
 			PyList_Append(pylist, pystr);
 			Py_DECREF( pystr );
 		}

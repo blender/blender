@@ -1496,7 +1496,7 @@ PyObject* KX_GameObject::PyGetPosition()
 static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
-	const char *attr_str= PyString_AsString(item);
+	const char *attr_str= _PyUnicode_AsString(item);
 	CValue* resultattr;
 	PyObject* pyconvert;
 	
@@ -1530,7 +1530,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
-	const char *attr_str= PyString_AsString(key);
+	const char *attr_str= _PyUnicode_AsString(key);
 	if(attr_str==NULL)
 		PyErr_Clear();
 	
@@ -1624,7 +1624,7 @@ static int Seq_Contains(PyObject *self_v, PyObject *value)
 		return -1;
 	}
 	
-	if(PyString_Check(value) && self->GetProperty(PyString_AsString(value)))
+	if(PyUnicode_Check(value) && self->GetProperty(_PyUnicode_AsString(value)))
 		return 1;
 	
 	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
@@ -1686,7 +1686,7 @@ PyTypeObject KX_GameObject::Type = {
 PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	return PyString_FromString(self->GetName().ReadPtr());
+	return PyUnicode_FromString(self->GetName().ReadPtr());
 }
 
 PyObject* KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1959,13 +1959,13 @@ PyObject* KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	int state = 0;
 	state |= self->GetState();
-	return PyInt_FromLong(state);
+	return PyLong_FromSsize_t(state);
 }
 
 int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	int state_i = PyInt_AsLong(value);
+	int state_i = PyLong_AsSsize_t(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2179,7 +2179,7 @@ PyObject* KX_GameObject::PySetOcclusion(PyObject* args)
 PyObject* KX_GameObject::PyGetVisible()
 {
 	ShowDeprecationWarning("getVisible()", "the visible property");
-	return PyInt_FromLong(m_bVisible);	
+	return PyLong_FromSsize_t(m_bVisible);	
 }
 
 PyObject* KX_GameObject::PyGetState()
@@ -2187,13 +2187,13 @@ PyObject* KX_GameObject::PyGetState()
 	ShowDeprecationWarning("getState()", "the state property");
 	int state = 0;
 	state |= GetState();
-	return PyInt_FromLong(state);
+	return PyLong_FromSsize_t(state);
 }
 
 PyObject* KX_GameObject::PySetState(PyObject* value)
 {
 	ShowDeprecationWarning("setState()", "the state property");
-	int state_i = PyInt_AsLong(value);
+	int state_i = PyLong_AsSsize_t(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2499,7 +2499,7 @@ PyObject* KX_GameObject::PyGetPhysicsId()
 	{
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
-	return PyInt_FromLong((long)physid);
+	return PyLong_FromSsize_t((long)physid);
 }
 
 PyObject* KX_GameObject::PyGetPropertyNames()
@@ -2875,8 +2875,8 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 		return NULL;
 	
 	
-	if(PyString_Check(key)) {
-		CValue *item = GetProperty(PyString_AsString(key));
+	if(PyUnicode_Check(key)) {
+		CValue *item = GetProperty(_PyUnicode_AsString(key));
 		if (item) {
 			ret = item->ConvertValueToPython();
 			if(ret)
@@ -2945,13 +2945,13 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		}
 	}
 	
-	if (PyString_Check(value)) {
-		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
+	if (PyUnicode_Check(value)) {
+		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( _PyUnicode_AsString(value) ));
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, PyString_AsString(value));
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}

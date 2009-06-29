@@ -298,7 +298,7 @@ const char KX_SCA_AddObjectActuator::SetTime_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PySetTime(PyObject* value)
 {
 	ShowDeprecationWarning("setTime()", "the time property");
-	int deltatime = PyInt_AsLong(value);
+	int deltatime = PyLong_AsSsize_t(value);
 	if (deltatime==-1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "expected an int");
 		return NULL;
@@ -321,7 +321,7 @@ const char KX_SCA_AddObjectActuator::GetTime_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PyGetTime()
 {
 	ShowDeprecationWarning("getTime()", "the time property");
-	return PyInt_FromLong(m_timeProp);
+	return PyLong_FromSsize_t(m_timeProp);
 }
 
 
@@ -343,7 +343,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_OriginalObject->GetName().ReadPtr());
+		return PyUnicode_FromString(m_OriginalObject->GetName().ReadPtr());
 	else
 		return m_OriginalObject->GetProxy();
 }

@@ -552,7 +552,7 @@ PyObject* KX_TrackToActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_object->GetName());
+		return PyUnicode_FromString(m_object->GetName());
 	else
 		return m_object->GetProxy();
 }
@@ -589,7 +589,7 @@ const char KX_TrackToActuator::GetTime_doc[] =
 PyObject* KX_TrackToActuator::PyGetTime()
 {
 	ShowDeprecationWarning("getTime()", "the timer property");
-	return PyInt_FromLong(m_time);
+	return PyLong_FromSsize_t(m_time);
 }
 
 
@@ -601,7 +601,7 @@ const char KX_TrackToActuator::GetUse3D_doc[] =
 PyObject* KX_TrackToActuator::PyGetUse3D()
 {
 	ShowDeprecationWarning("setTime()", "the use3D property");
-	return PyInt_FromLong(!(m_allow3D == 0));
+	return PyLong_FromSsize_t(!(m_allow3D == 0));
 }
 
 

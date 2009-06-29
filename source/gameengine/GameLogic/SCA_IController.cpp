@@ -263,7 +263,7 @@ PyObject* SCA_IController::PyGetSensor(PyObject* value)
 {
 	ShowDeprecationWarning("getSensor(string)", "the sensors[string] property");
 	
-	char *scriptArg = PyString_AsString(value);
+	char *scriptArg = _PyUnicode_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
 		return NULL;
@@ -287,7 +287,7 @@ PyObject* SCA_IController::PyGetActuator(PyObject* value)
 {
 	ShowDeprecationWarning("getActuator(string)", "the actuators[string] property");
 	
-	char *scriptArg = PyString_AsString(value);
+	char *scriptArg = _PyUnicode_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
 		return NULL;
@@ -322,13 +322,13 @@ PyObject* SCA_IController::PyGetSensors()
 PyObject* SCA_IController::PyGetState()
 {
 	ShowDeprecationWarning("getState()", "the state property");
-	return PyInt_FromLong(m_statemask);
+	return PyLong_FromSsize_t(m_statemask);
 }
 
 PyObject* SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_IController* self= static_cast<SCA_IController*>(self_v);
-	return PyInt_FromLong(self->m_statemask);
+	return PyLong_FromSsize_t(self->m_statemask);
 }
 
 PyObject* SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

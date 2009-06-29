@@ -300,7 +300,7 @@ PyObject* SCA_ISensor::PyIsPositive()
 {
 	ShowDeprecationWarning("isPositive()", "the read-only positive property");
 	int retval = GetState();
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 const char SCA_ISensor::IsTriggered_doc[] = 
@@ -313,7 +313,7 @@ PyObject* SCA_ISensor::PyIsTriggered()
 	int retval = 0;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 /**
@@ -354,7 +354,7 @@ const char SCA_ISensor::GetFrequency_doc[] =
 PyObject* SCA_ISensor::PyGetFrequency()
 {
 	ShowDeprecationWarning("getFrequency()", "the frequency property");
-	return PyInt_FromLong(m_pulse_frequency);
+	return PyLong_FromSsize_t(m_pulse_frequency);
 }
 
 /**
@@ -553,13 +553,13 @@ PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_D
 	int retval = 0;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
-	return PyInt_FromLong(self->GetState());
+	return PyLong_FromSsize_t(self->GetState());
 }
 
 int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

@@ -563,7 +563,7 @@ public:
 	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
 		
 	/**
 	 * Sets the time the scene was suspended

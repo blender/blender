@@ -275,7 +275,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
 PyObject* SCA_ILogicBrick::PyGetExecutePriority()
 {
 	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
-	return PyInt_FromLong(m_Execute_Priority);
+	return PyLong_FromSsize_t(m_Execute_Priority);
 }
 
 
@@ -305,5 +305,5 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 
 PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {
-	return PyInt_FromLong(boolarg? KX_TRUE: KX_FALSE);	
+	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);	
 }

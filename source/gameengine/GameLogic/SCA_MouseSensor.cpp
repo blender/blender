@@ -253,7 +253,7 @@ const char SCA_MouseSensor::GetXPosition_doc[] =
 "\tpixels\n";
 PyObject* SCA_MouseSensor::PyGetXPosition() {
 	ShowDeprecationWarning("getXPosition()", "the position property");
-	return PyInt_FromLong(m_x);
+	return PyLong_FromSsize_t(m_x);
 }
 
 /* get y position ---------------------------------------------------------- */
@@ -264,7 +264,7 @@ const char SCA_MouseSensor::GetYPosition_doc[] =
 "\tpixels\n";
 PyObject* SCA_MouseSensor::PyGetYPosition() {
 	ShowDeprecationWarning("getYPosition()", "the position property");
-	return PyInt_FromLong(m_y);
+	return PyLong_FromSsize_t(m_y);
 }
 //<----- Deprecated
 
@@ -272,9 +272,9 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 "getButtonStatus(button)\n"
 "\tGet the given button's status (KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED).\n")
 {
-	if (PyInt_Check(value))
+	if (PyLong_Check(value))
 	{
-		int button = PyInt_AsLong(value);
+		int button = PyLong_AsSsize_t(value);
 		
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
 			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)){
@@ -284,7 +284,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		
 		SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
 		const SCA_InputEvent& event = mousedev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) button);
-		return PyInt_FromLong(event.m_status);
+		return PyLong_FromSsize_t(event.m_status);
 	}
 	
 	Py_RETURN_NONE;

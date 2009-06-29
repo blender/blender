@@ -183,14 +183,14 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				{
 					bool *val = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_SHORT:
 				{
 					short int *val = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_ENUM:
@@ -205,7 +205,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				{
 					int *val = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					PyList_SET_ITEM(resultlist,i,PyInt_FromLong(*val));
+					PyList_SET_ITEM(resultlist,i,PyLong_FromSsize_t(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_FLOAT:
@@ -229,12 +229,12 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *val = reinterpret_cast<bool*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_SHORT:
 			{
 				short int *val = reinterpret_cast<short int*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_ENUM:
 			// enum are like int, just make sure the field size is the same
@@ -246,7 +246,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_INT:
 			{
 				int *val = reinterpret_cast<int*>(ptr);
-				return PyInt_FromLong(*val);
+				return PyLong_FromSsize_t(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_FLOAT:
 			{
@@ -271,7 +271,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
-				return PyString_FromString(*val);
+				return PyUnicode_FromString(*val);
 			}
 		default:
 			return NULL;
@@ -352,9 +352,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					bool *var = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						*var = (PyInt_AsLong(item) != 0);
+						*var = (PyLong_AsSsize_t(item) != 0);
 					} 
 					else if (PyBool_Check(item))
 					{
@@ -371,9 +371,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					short int *var = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						long val = PyInt_AsLong(item);
+						long val = PyLong_AsSsize_t(item);
 						if (attrdef->m_clamp)
 						{
 							if (val < attrdef->m_imin)
@@ -407,9 +407,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					int *var = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					if (PyInt_Check(item)) 
+					if (PyLong_Check(item)) 
 					{
-						long val = PyInt_AsLong(item);
+						long val = PyLong_AsSsize_t(item);
 						if (attrdef->m_clamp)
 						{
 							if (val < attrdef->m_imin)
@@ -542,9 +542,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_BOOL:
 			{
 				bool *var = reinterpret_cast<bool*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					*var = (PyInt_AsLong(value) != 0);
+					*var = (PyLong_AsSsize_t(value) != 0);
 				} 
 				else if (PyBool_Check(value))
 				{
@@ -560,9 +560,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_SHORT:
 			{
 				short int *var = reinterpret_cast<short int*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					long val = PyInt_AsLong(value);
+					long val = PyLong_AsSsize_t(value);
 					if (attrdef->m_clamp)
 					{
 						if (val < attrdef->m_imin)
@@ -595,9 +595,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_INT:
 			{
 				int *var = reinterpret_cast<int*>(ptr);
-				if (PyInt_Check(value)) 
+				if (PyLong_Check(value)) 
 				{
-					long val = PyInt_AsLong(value);
+					long val = PyLong_AsSsize_t(value);
 					if (attrdef->m_clamp)
 					{
 						if (val < attrdef->m_imin)
@@ -682,9 +682,9 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *var = reinterpret_cast<STR_String*>(ptr);
-				if (PyString_Check(value)) 
+				if (PyUnicode_Check(value)) 
 				{
-					char *val = PyString_AsString(value);
+					char *val = _PyUnicode_AsString(value);
 					if (attrdef->m_clamp)
 					{
 						if (strlen(val) < attrdef->m_imin)
@@ -859,7 +859,7 @@ void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* n
 					co_filename= PyObject_GetAttrString(f_code, "co_filename");
 					if (co_filename) {
 						
-						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
+						printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
 						
 						Py_DECREF(f_lineno);
 						Py_DECREF(f_code);

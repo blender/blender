@@ -181,7 +181,7 @@ const char SCA_ActuatorSensor::GetActuator_doc[] =
 PyObject* SCA_ActuatorSensor::PyGetActuator() 
 {
 	ShowDeprecationWarning("getActuator()", "the actuator property");
-	return PyString_FromString(m_checkactname);
+	return PyUnicode_FromString(m_checkactname);
 }
 
 /* 4. setActuator */

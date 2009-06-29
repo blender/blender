@@ -127,13 +127,13 @@ PyObject* KX_VehicleWrapper::PyGetWheelOrientationQuaternion(PyObject* args)
 
 PyObject* KX_VehicleWrapper::PyGetNumWheels(PyObject* args)
 {
-	return PyInt_FromLong(m_vehicle->GetNumWheels());
+	return PyLong_FromSsize_t(m_vehicle->GetNumWheels());
 }
 
 
 PyObject* KX_VehicleWrapper::PyGetConstraintId(PyObject* args)
 {
-	return PyInt_FromLong(m_vehicle->GetUserConstraintId());
+	return PyLong_FromSsize_t(m_vehicle->GetUserConstraintId());
 }
 
 
@@ -264,7 +264,7 @@ PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* args)
 
 PyObject* KX_VehicleWrapper::PyGetConstraintType(PyObject* args)
 {
-	return PyInt_FromLong(m_vehicle->GetUserConstraintType());
+	return PyLong_FromSsize_t(m_vehicle->GetUserConstraintType());
 }
 
 

@@ -673,7 +673,7 @@ const char KX_IpoActuator::GetType_doc[] =
 "\tReturns the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PyGetType() {
 	ShowDeprecationWarning("getType()", "the mode property");
-	return PyInt_FromLong(m_type);
+	return PyLong_FromSsize_t(m_type);
 }
 
 /* 10. setForceIpoActsLocal:                                                 */

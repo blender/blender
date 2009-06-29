@@ -249,8 +249,8 @@ KX_PYMETHODDEF_DOC_O(KX_CDActuator, playTrack,
 "playTrack(trackNumber)\n"
 "\tPlays the track selected.\n")
 {
-	if (PyInt_Check(value)) {
-		int track = PyInt_AsLong(value);
+	if (PyLong_Check(value)) {
+		int track = PyLong_AsSsize_t(value);
 		SND_CDObject::Instance()->SetPlaymode(SND_CD_TRACK);
 		SND_CDObject::Instance()->SetTrack(track);
 		SND_CDObject::Instance()->SetPlaystate(SND_MUST_PLAY);

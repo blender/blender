@@ -140,7 +140,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 	if (!m_mesh)
 		Py_RETURN_NONE;
 
-	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
+	return PyUnicode_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
 }
 
 

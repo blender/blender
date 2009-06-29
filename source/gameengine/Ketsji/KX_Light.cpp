@@ -349,11 +349,11 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 	const char* type = attrdef->m_name;
 
 	if(strcmp(type, "SPOT")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_SPOT);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SPOT);
 	} else if (strcmp(type, "SUN")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_SUN);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SUN);
 	} else if (strcmp(type, "NORMAL")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_NORMAL);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_NORMAL);
 	}
 
 	return retvalue;
@@ -362,13 +362,13 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
-	return PyInt_FromLong(self->m_lightobj.m_type);
+	return PyLong_FromSsize_t(self->m_lightobj.m_type);
 }
 
 int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
-	int val = PyInt_AsLong(value);
+	int val = PyLong_AsSsize_t(value);
 	if((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
 		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
 		return PY_SET_ATTR_FAIL;

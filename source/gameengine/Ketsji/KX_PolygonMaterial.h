@@ -116,7 +116,7 @@ public:
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setCustomMaterial);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
 
-	virtual PyObject* py_repr(void) { return PyString_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
 	
 	static PyObject*	pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

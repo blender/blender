@@ -809,7 +809,7 @@ public:
 	 */
 	virtual PyObject* py_repr(void)
 	{
-		return PyString_FromString(GetName().ReadPtr());
+		return PyUnicode_FromString(GetName().ReadPtr());
 	}
 		
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);

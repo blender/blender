@@ -357,7 +357,7 @@ const char KX_TouchSensor::SetProperty_doc[] =
 PyObject* KX_TouchSensor::PySetProperty(PyObject* value)
 {
 	ShowDeprecationWarning("setProperty()", "the propName property");
-	char *nameArg= PyString_AsString(value);
+	char *nameArg= _PyUnicode_AsString(value);
 	if (nameArg==NULL) {
 		PyErr_SetString(PyExc_ValueError, "expected a ");
 		return NULL;
@@ -375,7 +375,7 @@ const char KX_TouchSensor::GetProperty_doc[] =
 PyObject*  KX_TouchSensor::PyGetProperty() {
 	ShowDeprecationWarning("getProperty()", "the propName property");
 	
-	return PyString_FromString(m_touchedpropname);
+	return PyUnicode_FromString(m_touchedpropname);
 }
 
 const char KX_TouchSensor::GetHitObject_doc[] = 
@@ -416,7 +416,7 @@ const char KX_TouchSensor::GetTouchMaterial_doc[] =
 PyObject* KX_TouchSensor::PyGetTouchMaterial()
 {
 	ShowDeprecationWarning("getTouchMaterial()", "the useMaterial property");
-	return PyInt_FromLong(m_bFindMaterial);
+	return PyLong_FromSsize_t(m_bFindMaterial);
 }
 
 /* 6. setTouchMaterial */
@@ -429,7 +429,7 @@ const char KX_TouchSensor::SetTouchMaterial_doc[] =
 PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject *value)
 {
 	ShowDeprecationWarning("setTouchMaterial()", "the useMaterial property");
-	int pulseArg = PyInt_AsLong(value);
+	int pulseArg = PyLong_AsSsize_t(value);
 
 	if(pulseArg ==-1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_ValueError, "expected a bool");

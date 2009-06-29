@@ -672,7 +672,7 @@ const char KX_ConstraintActuator::GetDamp_doc[] =
 "\tReturns the damping parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetDamp(){
 	ShowDeprecationWarning("getDamp()", "the damp property");
-	return PyInt_FromLong(m_posDampTime);
+	return PyLong_FromSsize_t(m_posDampTime);
 }
 
 /* 2. setRotDamp                                                                */
@@ -699,7 +699,7 @@ const char KX_ConstraintActuator::GetRotDamp_doc[] =
 "\tReturns the damping time for application of the constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetRotDamp(){
 	ShowDeprecationWarning("getRotDamp()", "the rotDamp property");
-	return PyInt_FromLong(m_rotDampTime);
+	return PyLong_FromSsize_t(m_rotDampTime);
 }
 
 /* 2. setDirection                                                                */
@@ -772,7 +772,7 @@ const char KX_ConstraintActuator::GetOption_doc[] =
 "\tReturns the option parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetOption(){
 	ShowDeprecationWarning("getOption()", "the option property");
-	return PyInt_FromLong(m_option);
+	return PyLong_FromSsize_t(m_option);
 }
 
 /* 2. setTime                                                                */
@@ -801,7 +801,7 @@ const char KX_ConstraintActuator::GetTime_doc[] =
 "\tReturns the time parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetTime(){
 	ShowDeprecationWarning("getTime()", "the time property");
-	return PyInt_FromLong(m_activeTime);
+	return PyLong_FromSsize_t(m_activeTime);
 }
 
 /* 2. setProperty                                                                */
@@ -830,7 +830,7 @@ const char KX_ConstraintActuator::GetProperty_doc[] =
 "\tReturns the property parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetProperty(){
 	ShowDeprecationWarning("getProperty()", "the 'property' property");
-	return PyString_FromString(m_property.Ptr());
+	return PyUnicode_FromString(m_property.Ptr());
 }
 
 /* 4. setDistance                                                                 */
@@ -959,7 +959,7 @@ const char KX_ConstraintActuator::GetLimit_doc[] =
 "\tReturns the type of constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetLimit() {
 	ShowDeprecationWarning("setLimit()", "the limit property");
-	return PyInt_FromLong(m_locrot);
+	return PyLong_FromSsize_t(m_locrot);
 }
 
 /* eof */

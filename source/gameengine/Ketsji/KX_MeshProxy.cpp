@@ -132,14 +132,14 @@ PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* args, PyObject* kwds)
 {
 	int num = m_meshobj->NumMaterials();
 	ShowDeprecationWarning("getNumMaterials()", "the numMaterials property");
-	return PyInt_FromLong(num);
+	return PyLong_FromSsize_t(num);
 }
 
 PyObject* KX_MeshProxy::PyGetNumPolygons()
 {
 	int num = m_meshobj->NumPolygons();
 	ShowDeprecationWarning("getNumPolygons()", "the numPolygons property");
-	return PyInt_FromLong(num);
+	return PyLong_FromSsize_t(num);
 }
 
 PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
@@ -155,7 +155,7 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
 		return NULL;
 	}
 
-	return PyString_FromString(matname.Ptr());
+	return PyUnicode_FromString(matname.Ptr());
 		
 }
 	
@@ -173,7 +173,7 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* args, PyObject* kwds)
 		return NULL;
 	}
 
-	return PyString_FromString(matname.Ptr());
+	return PyUnicode_FromString(matname.Ptr());
 		
 }
 
@@ -196,7 +196,7 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
 			length = m_meshobj->NumVertices(mat);
 	}
 	
-	return PyInt_FromLong(length);
+	return PyLong_FromSsize_t(length);
 }
 
 
@@ -286,12 +286,12 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 
 PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyInt_FromLong(self->m_meshobj->NumMaterials());
+	return PyLong_FromSsize_t(self->m_meshobj->NumMaterials());
 }
 
 PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyInt_FromLong(self->m_meshobj->NumPolygons());
+	return PyLong_FromSsize_t(self->m_meshobj->NumPolygons());
 }
 
 /* a close copy of ConvertPythonToGameObject but for meshes */
@@ -314,13 +314,13 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		}
 	}
 	
-	if (PyString_Check(value)) {
-		*object = (RAS_MeshObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String( PyString_AsString(value) ));
+	if (PyUnicode_Check(value)) {
+		*object = (RAS_MeshObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String( _PyUnicode_AsString(value) ));
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_MeshProxy in this scene", error_prefix, PyString_AsString(value));
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_MeshProxy in this scene", error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}

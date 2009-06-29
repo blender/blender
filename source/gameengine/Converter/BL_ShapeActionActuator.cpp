@@ -486,7 +486,7 @@ const char BL_ShapeActionActuator::GetAction_doc[] =
 PyObject* BL_ShapeActionActuator::PyGetAction() {
 	ShowDeprecationWarning("getAction()", "the action property");
 	if (m_action){
-		return PyString_FromString(m_action->id.name+2);
+		return PyUnicode_FromString(m_action->id.name+2);
 	}
 	Py_RETURN_NONE;
 }
@@ -845,21 +845,21 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* args) {
 PyObject* BL_ShapeActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ShapeActionActuator* self= static_cast<BL_ShapeActionActuator*>(self_v);
-	return PyString_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
+	return PyUnicode_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
 }
 
 int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	BL_ShapeActionActuator* self= static_cast<BL_ShapeActionActuator*>(self_v);
 	/* exact copy of BL_ActionActuator's function from here down */
-	if (!PyString_Check(value))
+	if (!PyUnicode_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, expected the string name of the action");
 		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
-	STR_String val = PyString_AsString(value);
+	STR_String val = _PyUnicode_AsString(value);
 	
 	if (val != "")
 	{

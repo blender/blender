@@ -81,7 +81,7 @@ public:
 	);
 	
 	// --------------------------------
-	virtual PyObject* py_repr(void) { return PyString_FromString(mMaterial->matname.ReadPtr()); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromString(mMaterial->matname.ReadPtr()); }
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );

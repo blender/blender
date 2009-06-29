@@ -438,7 +438,7 @@ PyObject* KX_CameraActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyString_FromString(m_ob->GetName().ReadPtr());
+		return PyUnicode_FromString(m_ob->GetName().ReadPtr());
 	else
 		return m_ob->GetProxy();
 }
@@ -563,7 +563,7 @@ const char KX_CameraActuator::GetXY_doc[] =
 PyObject* KX_CameraActuator::PyGetXY()
 {
 	ShowDeprecationWarning("getXY()", "the xy property");
-	return PyInt_FromLong(m_x);
+	return PyLong_FromSsize_t(m_x);
 }
 
 PyObject* KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

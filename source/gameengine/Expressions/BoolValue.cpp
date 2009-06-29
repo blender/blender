@@ -210,5 +210,5 @@ CValue* CBoolValue::GetReplica()
 
 PyObject* CBoolValue::ConvertValueToPython()
 {
-	return PyInt_FromLong(m_bool != 0);
+	return PyBool_FromLong(m_bool != 0);
 }

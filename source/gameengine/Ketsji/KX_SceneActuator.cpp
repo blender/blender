@@ -332,7 +332,7 @@ const char KX_SceneActuator::GetUseRestart_doc[] =
 PyObject* KX_SceneActuator::PyGetUseRestart()
 {
 	ShowDeprecationWarning("getUseRestart()", "the useRestart property");
-	return PyInt_FromLong(!(m_restart == 0));
+	return PyLong_FromSsize_t(!(m_restart == 0));
 }
 
 
@@ -368,7 +368,7 @@ const char KX_SceneActuator::GetScene_doc[] =
 PyObject* KX_SceneActuator::PyGetScene()
 {
 	ShowDeprecationWarning("getScene()", "the scene property");
-	return PyString_FromString(m_nextSceneName);
+	return PyUnicode_FromString(m_nextSceneName);
 }
 
 
@@ -409,7 +409,7 @@ PyObject* KX_SceneActuator::PyGetCamera()
 {
 	ShowDeprecationWarning("getCamera()", "the camera property");
 	if (m_camera) {
-		return PyString_FromString(m_camera->GetName());
+		return PyUnicode_FromString(m_camera->GetName());
 	}
 	else {
 		Py_RETURN_NONE;

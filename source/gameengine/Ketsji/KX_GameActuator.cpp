@@ -258,7 +258,7 @@ const char KX_GameActuator::GetFile_doc[] =
 PyObject* KX_GameActuator::PyGetFile(PyObject* args, PyObject* kwds)
 {	
 	ShowDeprecationWarning("getFile()", "the fileName property");
-	return PyString_FromString(m_filename);
+	return PyUnicode_FromString(m_filename);
 }
 
 /* setFile */

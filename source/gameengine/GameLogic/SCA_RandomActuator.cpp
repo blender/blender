@@ -380,14 +380,14 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 PyObject* SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
-	return PyInt_FromLong(act->m_base->GetSeed());
+	return PyLong_FromSsize_t(act->m_base->GetSeed());
 }
 
 int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
-	if (PyInt_Check(value))	{
-		int ival = PyInt_AsLong(value);
+	if (PyLong_Check(value))	{
+		int ival = PyLong_AsSsize_t(value);
 		act->m_base->SetSeed(ival);
 		return PY_SET_ATTR_SUCCESS;
 	} else {
@@ -422,7 +422,7 @@ const char SCA_RandomActuator::GetSeed_doc[] =
 PyObject* SCA_RandomActuator::PyGetSeed()
 {
 	ShowDeprecationWarning("getSeed()", "the seed property");
-	return PyInt_FromLong(m_base->GetSeed());
+	return PyLong_FromSsize_t(m_base->GetSeed());
 }
 
 /* 4. getPara1                                                           */
@@ -456,7 +456,7 @@ const char SCA_RandomActuator::GetDistribution_doc[] =
 PyObject* SCA_RandomActuator::PyGetDistribution()
 {
 	ShowDeprecationWarning("getDistribution()", "the distribution property");
-	return PyInt_FromLong(m_distribution);
+	return PyLong_FromSsize_t(m_distribution);
 }
 
 /* 9. setProperty                                                        */
@@ -491,7 +491,7 @@ const char SCA_RandomActuator::GetProperty_doc[] =
 PyObject* SCA_RandomActuator::PyGetProperty()
 {
 	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyString_FromString(m_propname);
+	return PyUnicode_FromString(m_propname);
 }
 
 /* 11. setBoolConst */

@@ -251,7 +251,7 @@ const char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] =
 PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(PyObject* value)
 {
 	ShowDeprecationWarning("setSubjectFilterText()", "subject");
-	char* Subject = PyString_AsString(value);
+	char* Subject = _PyUnicode_AsString(value);
 	if (Subject==NULL) {
 		PyErr_SetString(PyExc_TypeError, "sensor.tsetSubjectFilterText(string): KX_NetworkMessageSensor, expected a string message");
 		return NULL;
@@ -269,7 +269,7 @@ const char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
 PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount()
 {
 	ShowDeprecationWarning("getFrameMessageCount()", "frameMessageCount");
-	return PyInt_FromLong(long(m_frame_message_count));
+	return PyLong_FromSsize_t(long(m_frame_message_count));
 }
 
 // 3. Get the message bodies
@@ -295,7 +295,7 @@ const char KX_NetworkMessageSensor::GetSubject_doc[] =
 PyObject* KX_NetworkMessageSensor::PyGetSubject()
 {
 	ShowDeprecationWarning("getSubject()", "subject");
-	return PyString_FromString(m_subject ? m_subject : "");
+	return PyUnicode_FromString(m_subject ? m_subject : "");
 }
 
 // 5. Get the message subjects

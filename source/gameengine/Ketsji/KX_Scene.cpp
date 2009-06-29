@@ -1653,7 +1653,7 @@ PyMethodDef KX_Scene::Methods[] = {
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return PyString_FromString(self->GetName().ReadPtr());
+	return PyUnicode_FromString(self->GetName().ReadPtr());
 }
 
 PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1753,7 +1753,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 )
 {
 	ShowDeprecationWarning("getName()", "the name property");
-	return PyString_FromString(GetName());
+	return PyUnicode_FromString(GetName());
 }
 
 KX_PYMETHODDEF_DOC(KX_Scene, addObject,

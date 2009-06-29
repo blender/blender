@@ -834,17 +834,17 @@ KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 
 KX_PYMETHODDEF_DOC( BL_Shader, isValid, "isValid()" )
 {
-	return PyInt_FromLong( ( mShader !=0 &&  mOk ) );
+	return PyLong_FromSsize_t( ( mShader !=0 &&  mOk ) );
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, getVertexProg ,"getVertexProg( )" )
 {
-	return PyString_FromString(vertProg?vertProg:"");
+	return PyUnicode_FromString(vertProg?vertProg:"");
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg ,"getFragmentProg( )" )
 {
-	return PyString_FromString(fragProg?fragProg:"");
+	return PyUnicode_FromString(fragProg?fragProg:"");
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
@@ -1209,7 +1209,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 	for(unsigned int i=0; (i<list_size && i<4); i++)
 	{
 		PyObject *item = PySequence_GetItem(listPtr, i);
-		array_data[i] = PyInt_AsLong(item);
+		array_data[i] = PyLong_AsSsize_t(item);
 		Py_DECREF(item);
 	}
 	

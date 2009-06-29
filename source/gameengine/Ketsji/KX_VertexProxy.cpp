@@ -114,7 +114,7 @@ PyAttributeDef KX_VertexProxy::Attributes[] = {
 PyObject*
 KX_VertexProxy::py_getattro(PyObject *attr)
 {
-  char *attr_str= PyString_AsString(attr);
+  char *attr_str= _PyUnicode_AsString(attr);
   if (attr_str[1]=='\0') { // Group single letters
     // pos
     if (attr_str[0]=='x')
@@ -169,7 +169,7 @@ KX_VertexProxy::py_getattro(PyObject *attr)
 #if 0
 int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
-  char *attr_str= PyString_AsString(attr);
+  char *attr_str= _PyUnicode_AsString(attr);
   if (PySequence_Check(pyvalue))
   {
 	if (!strcmp(attr_str, "XYZ"))
@@ -384,13 +384,13 @@ PyObject* KX_VertexProxy::PySetNormal(PyObject* value)
 PyObject* KX_VertexProxy::PyGetRGBA()
 {
 	int *rgba = (int *) m_vertex->getRGBA();
-	return PyInt_FromLong(*rgba);
+	return PyLong_FromSsize_t(*rgba);
 }
 
 PyObject* KX_VertexProxy::PySetRGBA(PyObject* value)
 {
-	if PyInt_Check(value) {
-		int rgba = PyInt_AsLong(value);
+	if PyLong_Check(value) {
+		int rgba = PyLong_AsSsize_t(value);
 		m_vertex->SetRGBA(rgba);
 		m_mesh->SetMeshModified(true);
 		Py_RETURN_NONE;

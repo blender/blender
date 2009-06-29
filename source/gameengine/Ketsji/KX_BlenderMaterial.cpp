@@ -892,7 +892,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( GetMaterialIndex() );
+	return PyLong_FromSsize_t( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )

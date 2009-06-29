@@ -121,7 +121,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 )
 {
 	ShowDeprecationWarning("getOperation()", "the mode property");
-	return PyInt_FromLong((long)m_dyn_operation);
+	return PyLong_FromSsize_t((long)m_dyn_operation);
 }
 
 

@@ -307,7 +307,7 @@ const char SCA_PropertyActuator::GetProperty_doc[] =
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyString_FromString(m_propname);
+	return PyUnicode_FromString(m_propname);
 }
 
 /* 3. setValue                                                        */
@@ -337,7 +337,7 @@ const char SCA_PropertyActuator::GetValue_doc[] =
 PyObject* SCA_PropertyActuator::PyGetValue(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("getValue()", "the value property");
-	return PyString_FromString(m_exprtxt);
+	return PyUnicode_FromString(m_exprtxt);
 }
 
 /* eof */

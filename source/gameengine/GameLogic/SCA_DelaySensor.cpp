@@ -245,7 +245,7 @@ const char SCA_DelaySensor::GetDelay_doc[] =
 PyObject* SCA_DelaySensor::PyGetDelay()
 {
 	ShowDeprecationWarning("getDelay()", "the delay property");
-	return PyInt_FromLong(m_delay);
+	return PyLong_FromSsize_t(m_delay);
 }
 
 const char SCA_DelaySensor::GetDuration_doc[] = 
@@ -254,7 +254,7 @@ const char SCA_DelaySensor::GetDuration_doc[] =
 PyObject* SCA_DelaySensor::PyGetDuration()
 {
 	ShowDeprecationWarning("getDuration()", "the duration property");
-	return PyInt_FromLong(m_duration);
+	return PyLong_FromSsize_t(m_duration);
 }
 
 const char SCA_DelaySensor::GetRepeat_doc[] = 
