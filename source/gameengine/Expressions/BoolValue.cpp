@@ -29,7 +29,6 @@
 const STR_String CBoolValue::sTrueString  = "TRUE";
 const STR_String CBoolValue::sFalseString = "FALSE";
 
-
 CBoolValue::CBoolValue()
 /*
 pre: false

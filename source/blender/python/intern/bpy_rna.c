@@ -204,13 +204,13 @@ static long pyrna_struct_hash( BPy_StructRNA * self )
 /* use our own dealloc so we can free a property if we use one */
 static void pyrna_struct_dealloc( BPy_StructRNA * self )
 {
-	/* Note!! for some weired reason calling PyObject_DEL() directly crashes blender! */
 	if (self->freeptr && self->ptr.data) {
 		IDP_FreeProperty(self->ptr.data);
 		MEM_freeN(self->ptr.data);
 		self->ptr.data= NULL;
 	}
 
+	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
 	Py_TYPE(self)->tp_free(self);
 	return;
 }

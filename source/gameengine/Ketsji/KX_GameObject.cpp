@@ -1562,7 +1562,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		int set= 0;
 		
 		/* as CValue */
-		if(attr_str && BGE_PROXY_CHECK_TYPE(val)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
+		if(attr_str && PyObject_TypeCheck(val, &PyObjectPlus::Type)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
 		{
 			CValue* vallie = self->ConvertPythonToValue(val, ""); /* error unused */
 			
@@ -1672,15 +1672,17 @@ PyTypeObject KX_GameObject::Type = {
 		&Sequence,
 		&Mapping,
 		0,0,0,
-		NULL, //py_base_getattro,
-		NULL, //py_base_setattro,
+		NULL,
+		NULL,
 		0,
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
 		Methods,
 		0,
 		0,
-		&SCA_IObject::Type
+		&SCA_IObject::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

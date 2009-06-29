@@ -289,15 +289,17 @@ PyTypeObject KX_LightObject::Type = {
 		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
-		NULL, //py_base_getattro,
-		NULL, //py_base_setattro,
+		NULL,
+		NULL,
 		0,
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
 		Methods,
 		0,
 		0,
-		&KX_GameObject::Type
+		&KX_GameObject::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef KX_LightObject::Methods[] = {

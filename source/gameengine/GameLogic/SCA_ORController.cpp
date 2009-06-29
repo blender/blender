@@ -109,16 +109,15 @@ PyTypeObject SCA_ORController::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
-	0,
+	0,0,0,0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&SCA_IController::Type
+	&SCA_IController::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_ORController::Methods[] = {

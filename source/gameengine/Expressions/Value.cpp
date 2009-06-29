@@ -54,15 +54,17 @@ PyTypeObject CValue::Type = {
 	py_base_repr,
 	0,
 	0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
+	NULL,
+	NULL,
 	0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&PyObjectPlus::Type
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef CValue::Methods[] = {
@@ -613,18 +615,9 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	{
 		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
 	} else
-	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
+	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		if (BGE_PROXY_REF(pyobj) && PyObject_TypeCheck((PyObject *)BGE_PROXY_REF(pyobj), &CValue::Type))
-		{
-			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
-		} else {
-			
-			if(BGE_PROXY_REF(pyobj))	/* this is not a CValue */
-				PyErr_Format(PyExc_TypeError, "%sgame engine python type cannot be used as a property", error_prefix);
-			else						/* PyObjectPlus_Proxy has been removed, cant use */
-				PyErr_Format(PyExc_SystemError, "%s"BGE_PROXY_ERROR_MSG, error_prefix);
-		}
+		vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 	} else
 	{
 		/* return an error value from the caller */

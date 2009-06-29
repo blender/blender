@@ -135,7 +135,7 @@ typedef struct {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
-#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyObjectPlus::py_base_dealloc)
+#define BGE_PROXY_CHECK_TYPE(_type) ((_type)->tp_dealloc == PyObjectPlus::py_base_dealloc)
 
 
 								// This must be the first line of each 
@@ -439,6 +439,8 @@ public:
 	 * they take the C++ reference from the PyObjectPlus_Proxy and call
 	 * its own virtual py_repr, py_base_dealloc ,etc. functions.
 	 */
+
+	static PyObject*		py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds); /* allows subclassing */
 	static void			py_base_dealloc(PyObject *self);
 	static PyObject*		py_base_repr(PyObject *self);
 

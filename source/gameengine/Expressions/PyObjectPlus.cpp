@@ -74,10 +74,7 @@ PyTypeObject PyObjectPlus::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
-	0,
+	0,0,0,0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
@@ -96,6 +93,88 @@ PyObjectPlus::~PyObjectPlus()
 //	assert(ob_refcnt==0);
 }
 
+
+PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
+{
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus==NULL) {
+		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	return self_plus->py_repr();  
+}
+
+
+PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyTypeObject *base_type;
+	PyObjectPlus_Proxy *base = NULL;
+
+	if (!PyArg_ParseTuple(args, "O:Base PyObjectPlus", &base))
+		return NULL;
+
+	/* the 'base' PyObject may be subclassed (multiple times even)
+	 * we need to find the first C++ defined class to check 'type'
+	 * is a subclass of the base arguments type.
+	 *
+	 * This way we can share one tp_new function for every PyObjectPlus
+	 *
+	 * eg.
+	 *
+	 * # CustomOb is called 'type' in this C code
+	 * class CustomOb(GameTypes.KX_GameObject):
+	 *     pass
+	 *
+	 * # this calls py_base_new(...), the type of 'CustomOb' is checked to be a subclass of the 'cont.owner' type
+	 * ob = CustomOb(cont.owner)
+	 *
+	 * */
+	base_type= Py_TYPE(base);
+	while(base_type && !BGE_PROXY_CHECK_TYPE(base_type))
+		base_type= base_type->tp_base;
+
+	if(base_type==NULL || !BGE_PROXY_CHECK_TYPE(base_type)) {
+		PyErr_SetString(PyExc_TypeError, "can't subclass from a blender game type because the argument given is not a game class or subclass");
+		return NULL;
+	}
+
+	/* use base_type rather then Py_TYPE(base) because we could alredy be subtyped */
+	if(!PyType_IsSubtype(type, base_type)) {
+		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
+		return NULL;
+	}
+
+	/* invalidate the existing base and return a new subclassed one,
+	 * this is a bit dodgy in that it also attaches its self to the existing object
+	 * which is not really 'correct' python OO but for our use its OK. */
+
+	PyObjectPlus_Proxy *ret = (PyObjectPlus_Proxy *) type->tp_alloc(type, 0); /* starts with 1 ref, used for the return ref' */
+	ret->ref= base->ref;
+	base->ref= NULL;		/* invalidate! disallow further access */
+
+	ret->py_owns= base->py_owns;
+
+	ret->ref->m_proxy= NULL;
+
+	/* 'base' may be free'd after this func finished but not necessarily
+	 * there is no reference to the BGE data now so it will throw an error on access */
+	Py_DECREF(base);
+
+	ret->ref->m_proxy= (PyObject *)ret; /* no need to add a ref because one is added when creating. */
+	Py_INCREF(ret); /* we return a new ref but m_proxy holds a ref so we need to add one */
+
+
+	/* 'ret' will have 2 references.
+	 * - One ref is needed because ret->ref->m_proxy holds a refcount to the current proxy.
+	 * - Another is needed for returning the value.
+	 *
+	 * So we should be ok with 2 refs, but for some reason this crashes. so adding a new ref...
+	 * */
+
+	return (PyObject *)ret;
+}
+
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
@@ -104,17 +183,23 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 			self_plus->m_proxy = NULL; /* Need this to stop ~PyObjectPlus from decrefing m_proxy otherwise its decref'd twice and py-debug crashes */
 			delete self_plus;
 		}
-		
+
 		BGE_PROXY_REF(self)= NULL; // not really needed
 	}
+
+#if 0
+	/* is ok normally but not for subtyping, use tp_free instead. */
 	PyObject_DEL( self );
+#else
+	Py_TYPE(self)->tp_free(self);
+#endif
 };
 
 PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
 {
 	m_proxy= NULL;
 };
-  
+
 /*------------------------------
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
@@ -131,20 +216,8 @@ PyAttributeDef PyObjectPlus::Attributes[] = {
 
 
 PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	
-	return PyBool_FromLong(self_v ? 1:0);
-}
-
-PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
 {
-	
-	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-	if(self_plus==NULL) {
-		PyErr_SetString(PyExc_SystemError, BGE_PROXY_ERROR_MSG);
-		return NULL;
-	}
-	
-	return self_plus->py_repr();  
+	return PyBool_FromLong(self_v ? 1:0);
 }
 
 /* note, this is called as a python 'getset, where the PyAttributeDef is the closure */

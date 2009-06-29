@@ -225,7 +225,7 @@ static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 			return 1;
 		}
 	}
-	else if (BGE_PROXY_CHECK_TYPE(value)) { /* not dict like at all but this worked before __contains__ was used */
+	else if (PyObject_TypeCheck(value, &CValue::Type)) { /* not dict like at all but this worked before __contains__ was used */
 		CValue *item= static_cast<CValue *>(BGE_PROXY_REF(value));
 		for (int i=0; i < self->GetCount(); i++)
 			if (self->GetValue(i) == item) // Com
@@ -289,15 +289,17 @@ PyTypeObject CListValue::Type = {
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
 	0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
+	NULL,
+	NULL,
 	0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&CValue::Type
+	&CValue::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef CListValue::Methods[] = {

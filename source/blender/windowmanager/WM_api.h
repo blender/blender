@@ -79,7 +79,7 @@ void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short 
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 
-char		*WM_key_event_string(short type);
+const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */

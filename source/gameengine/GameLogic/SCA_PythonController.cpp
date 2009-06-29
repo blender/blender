@@ -187,7 +187,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 			}
 		}
 	}
-	else if (BGE_PROXY_CHECK_TYPE(value)) {
+	else if (PyObject_TypeCheck(value, &SCA_IActuator::Type)) {
 		PyObjectPlus *value_plus= BGE_PROXY_REF(value);
 		for(it = lacts.begin(); it!= lacts.end(); ++it) {
 			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
@@ -243,16 +243,15 @@ PyTypeObject SCA_PythonController::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		NULL, //py_base_getattro,
-		NULL, //py_base_setattro,
-		0,
+		0,0,0,0,0,0,0,0,0,
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
 		Methods,
 		0,
 		0,
-		&SCA_IController::Type
+		&SCA_IController::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef SCA_PythonController::Methods[] = {

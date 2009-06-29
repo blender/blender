@@ -580,16 +580,15 @@ PyTypeObject KX_ConstraintActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
-	0,
+	0,0,0,0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&SCA_IActuator::Type
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_ConstraintActuator::Methods[] = {

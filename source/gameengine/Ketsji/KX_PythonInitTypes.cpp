@@ -87,52 +87,6 @@
 #include "SCA_RandomActuator.h"
 #include "SCA_IController.h"
 
-
-void initPyObjectPlusType(PyTypeObject **parents)
-{
-	int i;
-
-	for (i=0; parents[i]; i++) {
-		if(PyType_Ready(parents[i]) < 0) {
-			/* This is very very unlikely */
-			printf("Error, pytype could not initialize, Blender may crash \"%s\"\n", parents[i]->tp_name);
-			return;
-		}
-
-#if 0
-		PyObject_Print(reinterpret_cast<PyObject *>parents[i], stderr, 0);
-		fprintf(stderr, "\n");
-		PyObject_Print(parents[i]->tp_dict, stderr, 0);
-		fprintf(stderr, "\n\n");
-#endif
-
-	}
-
-	 PyObject *dict= NULL;
-
-	 while(i) {
-		 i--;
-
-		 if (dict) {
-			PyDict_Update(parents[i]->tp_dict, dict);
-		 }
-		 dict= parents[i]->tp_dict;
-
-#if 1
-		PyObject_Print(reinterpret_cast<PyObject *>(parents[i]), stderr, 0);
-		fprintf(stderr, "\n");
-		PyObject_Print(parents[i]->tp_dict, stderr, 0);
-		fprintf(stderr, "\n\n");
-#endif
-
-	}
-}
-
-/*
-typedef PyObject *(*getter)(PyObject *, void *);
-typedef int (*setter)(PyObject *, PyObject *, void *);
-*/
-
 static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *attributes, int init_getset)
 {
 	PyAttributeDef *attr;
@@ -169,9 +123,6 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 
 			memset(attr_getset, 0, sizeof(PyGetSetDef));
 		}
-
-
-		return;
 	} else {
 	
 		PyObject *item;

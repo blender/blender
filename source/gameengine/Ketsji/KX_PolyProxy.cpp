@@ -55,16 +55,15 @@ PyTypeObject KX_PolyProxy::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
-	0,
+	0,0,0,0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&CValue::Type
+	&CValue::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_PolyProxy::Methods[] = {

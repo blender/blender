@@ -154,7 +154,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		
 		return true;
 	}
-	else if (BGE_PROXY_CHECK_TYPE(pyval))
+	else if (PyObject_TypeCheck(pyval, &PyObjectPlus::Type))
 	{	/* note, include this check because PySequence_Check does too much introspection
 		 * on the PyObject (like getting its __class__, on a BGE type this means searching up
 		 * the parent list each time only to discover its not a sequence.

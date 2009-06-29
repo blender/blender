@@ -221,51 +221,6 @@ SCA_IActuator* SCA_IObject::FindActuator(const STR_String& actuatorname)
 }
 
 
-
-#if 0
-const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
-{
-	bool error = false;
-	m_sDummy = MT_Vector3(0,0,0);
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		int numelem = listval->GetCount();
-		if ( numelem <= 3)
-		{
-			int index;
-			for (index = 0;index<numelem;index++)
-			{
-				m_sDummy[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		
-		// assert the list is long enough...
-		int numitems = PyList_Size(pylist);
-		if (numitems <= 3)
-		{
-			int index;
-			for (index=0;index<numitems;index++)
-			{
-				m_sDummy[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-	return m_sDummy;
-}
-#endif
-
 void SCA_IObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
@@ -349,16 +304,15 @@ PyTypeObject SCA_IObject::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	NULL, //py_base_getattro,
-	NULL, //py_base_setattro,
-	0,
+	0,0,0,0,0,0,0,0,0,
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
 	Methods,
 	0,
 	0,
-	&CValue::Type
+	&CValue::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_IObject::Methods[] = {
