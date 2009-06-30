@@ -1580,6 +1580,17 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 	} \
 }
 
+int RNA_raw_type_sizeof(RawPropertyType type)
+{
+	switch(type) {
+		case PROP_RAW_CHAR: return sizeof(char);
+		case PROP_RAW_SHORT: return sizeof(short);
+		case PROP_RAW_INT: return sizeof(int);
+		case PROP_RAW_FLOAT: return sizeof(float);
+		case PROP_RAW_DOUBLE: return sizeof(double);
+	}
+}
+
 static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *inarray, RawPropertyType intype, int inlen, int set)
 {
 	StructRNA *ptype;
@@ -1630,14 +1641,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				int a, size;
 
 				itemlen= (itemlen == 0)? 1: itemlen;
-
-				switch(out.type) {
-					case PROP_RAW_CHAR: size= sizeof(char)*itemlen; break;
-					case PROP_RAW_SHORT: size= sizeof(short)*itemlen; break;
-					case PROP_RAW_INT: size= sizeof(int)*itemlen; break;
-					case PROP_RAW_FLOAT: size= sizeof(float)*itemlen; break;
-					case PROP_RAW_DOUBLE: size= sizeof(double)*itemlen; break;
-				}
+				size= RNA_raw_type_sizeof(out.type) * itemlen;
 
 				for(a=0; a<out.len; a++) {
 					if(set) memcpy(outp, inp, size);
@@ -1817,6 +1821,11 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 
 		return !err;
 	}
+}
+
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
+{
+	return prop->rawtype;
 }
 
 int RNA_property_collection_raw_get(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len)

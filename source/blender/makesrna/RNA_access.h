@@ -606,6 +606,9 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
 int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
 int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_raw_type_sizeof(RawPropertyType type);
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
+
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
