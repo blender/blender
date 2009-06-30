@@ -151,7 +151,7 @@ IF(WIN32)
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python25.zip\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
   )
   
   FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
@@ -164,7 +164,8 @@ IF(WIN32)
     COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26_d.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
   )
 
