@@ -198,7 +198,9 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 				face->ob   = obi;
 				face->face = vlr;
 				
-				RE_rayobject_add( raytree, (RayObject*)face++ );
+				RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
+				
+				face++;
 			}
 		}
 		RE_rayobject_done( raytree );
@@ -311,7 +313,8 @@ static void makeraytree_single(Render *re)
 			face->ob   = obi;
 			face->face = vlr;
 			
-			RE_rayobject_add( raytree, (RayObject*)face++ );
+			RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
+			face++;
 		}
 	}
 	RE_rayobject_done( raytree );	

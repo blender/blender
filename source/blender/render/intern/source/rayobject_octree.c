@@ -461,7 +461,7 @@ RayObject *RE_rayobject_octree_create(int ocres, int size)
 	oc->ro_nodes_used = 0;
 
 	
-	return RayObject_unalign((RayObject*) oc);
+	return RayObject_unalignRayAPI((RayObject*) oc);
 }
 
 
@@ -631,7 +631,7 @@ static void RayObject_octree_done(RayObject *tree)
 
 	for(c=0; c<oc->ro_nodes_used; c++)
 	{
-		assert( RayObject_isFace(oc->ro_nodes[c]) );
+		assert( RayObject_isRayFace(oc->ro_nodes[c]) );
 		octree_fill_rayface(oc, (RayFace*)oc->ro_nodes[c]);
 	}
 

@@ -128,5 +128,5 @@ RayObject* RE_rayobject_mesh_create(Mesh *mesh, void *ob)
 		face->face = (void*)i;
 	}
 	
-	return RayObject_unalign((RayObject*) rm);
+	return RayObject_unalignRayAPI((RayObject*) rm);
 }

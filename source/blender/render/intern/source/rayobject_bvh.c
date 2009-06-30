@@ -69,7 +69,7 @@ RayObject *RE_rayobject_bvh_create(int size)
 	obj->bvh = BLI_bvhtree_new(size, FLT_EPSILON, 4, 6);
 	
 	INIT_MINMAX(obj->bb[0], obj->bb[1]);
-	return RayObject_unalign((RayObject*) obj);
+	return RayObject_unalignRayAPI((RayObject*) obj);
 }
 
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)

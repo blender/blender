@@ -255,7 +255,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
-		is->last_hit = (RayObject*)face;
+		is->last_hit = (RayObject*) RayObject_unalignRayFace(face);
 		return 1;
 	}
 
@@ -289,15 +289,16 @@ int RE_rayobject_raycast(RayObject *r, Isect *i)
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
-	if(RayObject_isFace(r))
+	if(RayObject_isRayFace(r))
 	{
-		return intersect_rayface( (RayFace*) r, i);
+		return intersect_rayface( (RayFace*) RayObject_align(r), i);
 	}
-	else
+	else if(RayObject_isRayAPI(r))
 	{
 		r = RayObject_align( r );
 		return r->api->raycast( r, i );
 	}
+	else assert(0);
 }
 
 void RE_rayobject_add(RayObject *r, RayObject *o)
@@ -320,19 +321,20 @@ void RE_rayobject_free(RayObject *r)
 
 void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 {
-	if(RayObject_isFace(r))
+	if(RayObject_isRayFace(r))
 	{
-		RayFace *face = (RayFace*)r;
+		RayFace *face = (RayFace*) RayObject_align(r);
 		DO_MINMAX( face->v1, min, max );
 		DO_MINMAX( face->v2, min, max );
 		DO_MINMAX( face->v3, min, max );
 		if(face->v4) DO_MINMAX( face->v4, min, max );
 	}
-	else
+	else if(RayObject_isRayAPI(r))
 	{
 		r = RayObject_align( r );
 		r->api->bb( r, min, max );
 	}
+	else assert(0);
 }
 
 #ifdef RE_RAYCOUNTER

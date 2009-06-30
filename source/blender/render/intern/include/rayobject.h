@@ -58,13 +58,15 @@
 	only 2 are used:
 
 	 addr&2  - type of object
-		0     	RayFace
-		1		RayObject (generic with API callbacks)
-		2		unused
+	 	0		Self (reserved for each structure)
+		1     	RayFace
+		2		RayObject (generic with API callbacks)
 		3		unused
 
-	0 was choosed to RayFace because thats the one where speed will be needed.
-	
+	0 means it's reserved and has it own meaning inside each ray acceleration structure
+	(this way each structure can use the allign offset to determine if a node represents a
+	 RayObject primitive, which can be used to save memory)
+
 	You actually don't need to care about this if you are only using the API
 	described on RE_raytrace.h
  */
@@ -101,10 +103,13 @@ typedef struct RayObjectAPI
 } RayObjectAPI;
 
 //TODO use intptr_t
-#define RayObject_align(o)		((RayObject*)(((int)o)&(~3)))
-#define RayObject_unalign(o)	((RayObject*)(((int)o)|1))
-#define RayObject_isFace(o)		((((int)o)&3) == 0)
+#define RayObject_align(o)				((RayObject*)(((int)o)&(~3)))
+#define RayObject_unalignRayFace(o)		((RayObject*)(((int)o)|1))
+#define RayObject_unalignRayAPI(o)		((RayObject*)(((int)o)|2))
+
 #define RayObject_isAligned(o)	((((int)o)&3) == 0)
+#define RayObject_isRayFace(o)	((((int)o)&3) == 1)
+#define RayObject_isRayAPI(o)	((((int)o)&3) == 2)
 
 /*
  * Extend min/max coords so that the rayobject is inside them

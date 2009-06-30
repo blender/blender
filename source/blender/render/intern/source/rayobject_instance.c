@@ -74,7 +74,7 @@ RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4],
 	Mat4CpyMat4(obj->target2global, transform);
 	Mat4Invert(obj->global2target, obj->target2global);
 	
-	return RayObject_unalign((RayObject*) obj);
+	return RayObject_unalignRayAPI((RayObject*) obj);
 }
 
 static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
