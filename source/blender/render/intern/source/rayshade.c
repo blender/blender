@@ -320,9 +320,9 @@ static void makeraytree_single(Render *re)
 void makeraytree(Render *re)
 {
 	if(ELEM(re->r.raystructure, R_RAYSTRUCTURE_SINGLE_BVH, R_RAYSTRUCTURE_SINGLE_OCTREE))
-		makeraytree_single(re);
+		BENCH(makeraytree_single(re), tree_build);
 	else
-		makeraytree_hier(re);
+		BENCH(makeraytree_hier(re), tree_build);
 }
 
 

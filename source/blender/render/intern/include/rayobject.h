@@ -120,4 +120,31 @@ int RE_rayobject_intersect(RayObject *r, Isect *i);
 
 #define ISECT_EPSILON ((float)FLT_EPSILON)
 
+
+
+#if !defined(_WIN32)
+
+#include <sys/time.h>
+#include <time.h>
+#include <stdio.h>
+
+#define BENCH(a,name)	\
+	do {			\
+		double _t1, _t2;				\
+		struct timeval _tstart, _tend;	\
+		clock_t _clock_init = clock();	\
+		gettimeofday ( &_tstart, NULL);	\
+		(a);							\
+		gettimeofday ( &_tend, NULL);	\
+		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
+		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
+		printf("BENCH:%s: %fs (real) %fs (cpu)\n", #name, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
+	} while(0)
+#else
+
+#define BENCH(a)	(a)
+
+#endif
+
+
 #endif
