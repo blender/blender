@@ -1356,8 +1356,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", LEFTMOUSE, KM_PRESS, KM_ALT, 0);	
-
+	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	
@@ -1380,7 +1379,6 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0); /* no MMB on laptops */
 	
 	/* borderzoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
@@ -1391,11 +1389,9 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	/* Alternative keymap for buttons listview */
 	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", LEFTMOUSE, KM_PRESS, KM_ALT, 0); /* no MMB on laptops */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0); /* no MMB on laptops */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
