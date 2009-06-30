@@ -69,9 +69,19 @@ static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory cat
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiBlockBeginAlign(block);
 	for (i=0; i< nentries;++i) {
+		char dir[FILE_MAX];
+		char temp[FILE_MAX];
 		uiLayout* layout = uiLayoutRow(pa->layout, UI_LAYOUT_ALIGN_LEFT);
-		char *fname = fsmenu_get_entry(fsmenu, category, i);
-		uiItemStringO(layout, fname, icon, "FILE_OT_select_bookmark", "dir", fname);
+		char *entry = fsmenu_get_entry(fsmenu, category, i);
+
+		/* create nice bookmark name, shows last directory in the full path currently */
+		BLI_strncpy(temp, entry, FILE_MAX);
+		BLI_add_slash(temp);
+		BLI_getlastdir(temp, dir, FILE_MAX);
+		BLI_del_slash(dir);
+
+		/* operator shows the short bookmark name, should eventually have tooltip */
+		uiItemStringO(layout, dir, icon, "FILE_OT_select_bookmark", "dir", entry);
 		if (allow_delete && fsmenu_can_save(fsmenu, category, i) )
 			uiItemIntO(layout, "", ICON_X, "FILE_OT_delete_bookmark", "index", i);
 	}
