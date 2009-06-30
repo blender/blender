@@ -606,6 +606,33 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
+int file_hidedot_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		sfile->params->flag ^= FILE_HIDE_DOT;
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+
+}
+
+
+void FILE_OT_hidedot(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Hide Dot Files";
+	ot->idname= "FILE_OT_hidedot";
+	
+	/* api callbacks */
+	ot->exec= file_hidedot_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
 struct ARegion *file_buttons_region(struct ScrArea *sa)
 {
 	ARegion *ar, *arnew;
