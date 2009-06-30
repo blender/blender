@@ -4557,6 +4557,7 @@ static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
 	uiItemR(layout, NULL, 0, &rna, "rake", 0, 0, 0);
 	uiItemR(layout, NULL, 0, &rna, "anchored", 0, 0, 0);
 	uiItemR(layout, NULL, 0, &rna, "space", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &rna, "smooth_stroke", 0, 0, 0);
 
 	uiItemR(layout, NULL, 0, &rna, "flip_direction", 0, 0, 0);
 }
