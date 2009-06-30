@@ -36,19 +36,19 @@
 #include "render_types.h"
 #include "rayobject.h"
 
-static int  RayObject_bvh_intersect(RayObject *o, Isect *isec);
-static void RayObject_bvh_add(RayObject *o, RayObject *ob);
-static void RayObject_bvh_done(RayObject *o);
-static void RayObject_bvh_free(RayObject *o);
-static void RayObject_bvh_bb(RayObject *o, float *min, float *max);
+static int  RayObject_blibvh_intersect(RayObject *o, Isect *isec);
+static void RayObject_blibvh_add(RayObject *o, RayObject *ob);
+static void RayObject_blibvh_done(RayObject *o);
+static void RayObject_blibvh_free(RayObject *o);
+static void RayObject_blibvh_bb(RayObject *o, float *min, float *max);
 
 static RayObjectAPI bvh_api =
 {
-	RayObject_bvh_intersect,
-	RayObject_bvh_add,
-	RayObject_bvh_done,
-	RayObject_bvh_free,
-	RayObject_bvh_bb
+	RayObject_blibvh_intersect,
+	RayObject_blibvh_add,
+	RayObject_blibvh_done,
+	RayObject_blibvh_free,
+	RayObject_blibvh_bb
 };
 
 typedef struct BVHObject
@@ -60,7 +60,7 @@ typedef struct BVHObject
 } BVHObject;
 
 
-RayObject *RE_rayobject_bvh_create(int size)
+RayObject *RE_rayobject_blibvh_create(int size)
 {
 	BVHObject *obj= (BVHObject*)MEM_callocN(sizeof(BVHObject), "BVHObject");
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
@@ -88,7 +88,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTr
 	}
 }
 
-static int  RayObject_bvh_intersect(RayObject *o, Isect *isec)
+static int  RayObject_blibvh_intersect(RayObject *o, Isect *isec)
 {
 	BVHObject *obj = (BVHObject*)o;
 	BVHTreeRayHit hit;
@@ -103,7 +103,7 @@ static int  RayObject_bvh_intersect(RayObject *o, Isect *isec)
 	return BLI_bvhtree_ray_cast(obj->bvh, isec->start, dir, 0.0, &hit, bvh_callback, isec);
 }
 
-static void RayObject_bvh_add(RayObject *o, RayObject *ob)
+static void RayObject_blibvh_add(RayObject *o, RayObject *ob)
 {
 	BVHObject *obj = (BVHObject*)o;
 	float min_max[6];
@@ -116,13 +116,13 @@ static void RayObject_bvh_add(RayObject *o, RayObject *ob)
 	BLI_bvhtree_insert(obj->bvh, (int)ob, min_max, 2 );	
 }
 
-static void RayObject_bvh_done(RayObject *o)
+static void RayObject_blibvh_done(RayObject *o)
 {
 	BVHObject *obj = (BVHObject*)o;
 	BLI_bvhtree_balance(obj->bvh);
 }
 
-static void RayObject_bvh_free(RayObject *o)
+static void RayObject_blibvh_free(RayObject *o)
 {
 	BVHObject *obj = (BVHObject*)o;
 
@@ -132,7 +132,7 @@ static void RayObject_bvh_free(RayObject *o)
 	MEM_freeN(obj);
 }
 
-static void RayObject_bvh_bb(RayObject *o, float *min, float *max)
+static void RayObject_blibvh_bb(RayObject *o, float *min, float *max)
 {
 	BVHObject *obj = (BVHObject*)o;
 	DO_MINMAX( obj->bb[0], min, max );

@@ -180,7 +180,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
 			raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
 		else //if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_BVH)
-			raytree = obr->raytree = RE_rayobject_bvh_create( faces );
+			raytree = obr->raytree = RE_rayobject_blibvh_create( faces );
 			
 		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
 		obr->rayobi = obi;
@@ -240,7 +240,7 @@ static void makeraytree_hier(Render *re)
 		num_objects++;
 
 	//Create raytree
-	re->raytree = RE_rayobject_bvh_create( num_objects );
+	re->raytree = RE_rayobject_blibvh_create( num_objects );
 	
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
@@ -292,7 +292,7 @@ static void makeraytree_single(Render *re)
 	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
 		raytree = re->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
 	else //if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
-		raytree = re->raytree = RE_rayobject_bvh_create( faces );
+		raytree = re->raytree = RE_rayobject_blibvh_create( faces );
 
 	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
 	
