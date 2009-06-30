@@ -618,6 +618,8 @@ void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int ty
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 ListBase uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *activeprop, int rows, int columns, int compact);
+void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
+void uiTemplateOperatorSearch(uiLayout *layout);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

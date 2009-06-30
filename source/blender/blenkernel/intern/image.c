@@ -1431,7 +1431,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		/* try to repack file */
 		if(ima->packedfile) {
 			PackedFile *pf;
-			pf = newPackedFile(ima->name);
+			pf = newPackedFile(NULL, ima->name);
 			if (pf) {
 				freePackedFile(ima->packedfile);
 				ima->packedfile = pf;
@@ -1750,7 +1750,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			
 			/* make packed file for autopack */
 			if ((ima->packedfile == NULL) && (G.fileflags & G_AUTOPACK))
-				ima->packedfile = newPackedFile(str);
+				ima->packedfile = newPackedFile(NULL, str);
 		}
 		
 		if(ima->flag & IMA_DO_PREMUL)

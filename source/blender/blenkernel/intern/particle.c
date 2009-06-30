@@ -2929,7 +2929,7 @@ void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleDa
 /************************************************/
 /*			ParticleSettings handling			*/
 /************************************************/
-void object_add_particle_system_slot(Scene *scene, Object *ob)
+void object_add_particle_system(Scene *scene, Object *ob)
 {
 	ParticleSystem *psys;
 	ModifierData *md;
@@ -2961,7 +2961,7 @@ void object_add_particle_system_slot(Scene *scene, Object *ob)
 	DAG_scene_sort(scene);
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 }
-void object_remove_particle_system_slot(Scene *scene, Object *ob)
+void object_remove_particle_system(Scene *scene, Object *ob)
 {
 	ParticleSystem *psys = psys_get_current(ob);
 	ParticleSystemModifierData *psmd;

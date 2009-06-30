@@ -266,6 +266,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_boolean(func, "compact", 0, "", "Use compact, single row list template.");
 	parm= RNA_def_collection(func, "items", 0, "", "Items visible in the list.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "template_operator_search", "uiTemplateOperatorSearch");
 }
 
 #endif

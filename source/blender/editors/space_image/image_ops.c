@@ -1114,7 +1114,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	if(as_png)
 		BKE_image_memorypack(ima);
 	else
-		ima->packedfile= newPackedFile(ima->name);
+		ima->packedfile= newPackedFile(op->reports, ima->name);
 
 	return OPERATOR_FINISHED;
 }
@@ -1162,13 +1162,76 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
+/* XXX move this to some place where it can be reused */
+
+const EnumPropertyItem unpack_method_items[] = {
+	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},
+	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
+	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},
+	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write Original File (overwrite existing)", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
+	char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+	
+	strcpy(local_name, abs_name);
+	BLI_splitdirstring(local_name, fi);
+	sprintf(local_name, "//%s/%s", folder, fi);
+
+	pup= uiPupMenuBegin(C, "Unpack file", 0);
+	layout= uiPupMenuLayout(pup);
+
+	uiItemEnumO(layout, "Remove Pack", 0, opname, "method", PF_REMOVE);
+
+	if(strcmp(abs_name, local_name)) {
+		switch(checkPackedFile(local_name, pf)) {
+			case PF_NOFILE:
+				sprintf(line, "Create %s", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				break;
+			case PF_EQUAL:
+				sprintf(line, "Use %s (identical)", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				break;
+			case PF_DIFFERS:
+				sprintf(line, "Use %s (differs)", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				sprintf(line, "Overwrite %s", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				break;
+		}
+	}
+	
+	switch(checkPackedFile(abs_name, pf)) {
+		case PF_NOFILE:
+			sprintf(line, "Create %s", abs_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			break;
+		case PF_EQUAL:
+			sprintf(line, "Use %s (identical)", abs_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			break;
+		case PF_DIFFERS:
+			sprintf(line, "Use %s (differs)", local_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			sprintf(line, "Overwrite %s", local_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			break;
+	}
+
+	uiPupMenuEnd(C, pup);
+}
+
 static int unpack_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
+	int method= RNA_enum_get(op->ptr, "method");
 
-	if(!ima)
-		return OPERATOR_CANCELLED;
-	if(!ima->packedfile)
+	if(!ima || !ima->packedfile)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
@@ -1179,7 +1242,27 @@ static int unpack_exec(bContext *C, wmOperator *op)
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
 	
-	unpackImage(ima, PF_ASK);
+	unpackImage(op->reports, ima, method);
+
+	return OPERATOR_FINISHED;
+}
+
+static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Image *ima= CTX_data_edit_image(C);
+
+	if(!ima || !ima->packedfile)
+		return OPERATOR_CANCELLED;
+
+	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
+		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(G.fileflags & G_AUTOPACK)
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+	
+	unpack_menu(C, "IMAGE_OT_unpack", ima->name, "textures", ima->packedfile);
 
 	return OPERATOR_FINISHED;
 }
@@ -1192,10 +1275,14 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= unpack_exec;
+	ot->invoke= unpack_invoke;
 	ot->poll= space_image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
 }
 
 /******************** sample image operator ********************/

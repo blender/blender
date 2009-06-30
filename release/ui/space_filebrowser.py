@@ -11,7 +11,7 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		layout = self.layout
 		
 		params = st.params 
-		layout.template_header(context)
+		layout.template_header()
 
 		if context.area.show_menus:
 			row = layout.row()
@@ -38,11 +38,8 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		row.itemR(params, "filter_sound", text="");
 		row.itemR(params, "filter_text", text="");
 
-		if params.do_filter:
-			row.active = True
-		else: 
-			row.active = False
-			
+		row.active = params.do_filter
+
 class FILEBROWSER_MT_directory(bpy.types.Menu):
 	__space_type__ = "FILE_BROWSER"
 	__label__ = "Directory"

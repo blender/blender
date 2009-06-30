@@ -287,16 +287,6 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.context)
 			CTX_store_set(C, after.context);
 
-		if(after.func)
-			after.func(C, after.func_arg1, after.func_arg2);
-		if(after.funcN)
-			after.funcN(C, after.func_argN, after.func_arg2);
-		
-		if(after.handle_func)
-			after.handle_func(C, after.handle_func_arg, after.retval);
-		if(after.butm_func)
-			after.butm_func(C, after.butm_func_arg, after.a2);
-
 		if(after.optype)
 			WM_operator_name_call(C, after.optype->idname, after.opcontext, after.opptr);
 		if(after.opptr) {
@@ -311,6 +301,16 @@ static void ui_apply_but_funcs_after(bContext *C)
 			CTX_store_set(C, NULL);
 			CTX_store_free(after.context);
 		}
+
+		if(after.func)
+			after.func(C, after.func_arg1, after.func_arg2);
+		if(after.funcN)
+			after.funcN(C, after.func_argN, after.func_arg2);
+		
+		if(after.handle_func)
+			after.handle_func(C, after.handle_func_arg, after.retval);
+		if(after.butm_func)
+			after.butm_func(C, after.butm_func_arg, after.a2);
 	}
 }
 

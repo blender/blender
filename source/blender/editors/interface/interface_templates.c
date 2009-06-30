@@ -161,9 +161,15 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	switch(event) {
 		case UI_ID_BROWSE:
 		case UI_ID_PIN:
+			printf("warning, id event %d shouldnt come here\n", event);
+			break;
 		case UI_ID_OPEN:
 		case UI_ID_ADD_NEW:
-			printf("warning, id event %d shouldnt come here\n", event);
+			if(template->idlb->last) {
+				RNA_id_pointer_create(template->idlb->last, &idptr);
+				RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+				RNA_property_update(C, &template->ptr, template->prop);
+			}
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
@@ -201,12 +207,13 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
 	lb= template->idlb;
 
+	uiBlockBeginAlign(block);
+
 	if(idptr.type)
 		type= idptr.type;
 	if(type)
 		uiDefIconBut(block, LABEL, 0, RNA_struct_ui_icon(type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiBlockBeginAlign(block);
 	if(flag & UI_ID_BROWSE)
 		uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Browse ID data");
 
@@ -225,6 +232,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		
 		if(newop) {
 			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
 			but= uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
@@ -1678,5 +1686,96 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	}
 
 	return lb;
+}
+
+/************************* Operator Search Template **************************/
+
+static void operator_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	
+	if(ot)
+		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->name, str)) {
+			if(ot->poll==NULL || ot->poll((bContext *)C)) {
+				char name[256];
+				int len= strlen(ot->name);
+				
+				/* display name for menu, can hold hotkey */
+				BLI_strncpy(name, ot->name, 256);
+				
+				/* check for hotkey */
+				if(len < 256-6) {
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, &name[len+1], 256-len-1))
+						name[len]= '|';
+				}
+				
+				if(0==uiSearchItemAdd(items, name, ot, 0))
+					break;
+			}
+		}
+	}
+}
+
+void uiTemplateOperatorSearch(uiLayout *layout)
+{
+	uiBlock *block;
+	uiBut *but;
+	static char search[256]= "";
+		
+	block= uiLayoutGetBlock(layout);
+	uiBlockSetCurLayout(block, layout);
+
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X*6, UI_UNIT_Y, "");
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+}
+
+/************************* Running Jobs Template **************************/
+
+#define B_STOPRENDER	1
+#define B_STOPCAST		2
+#define B_STOPANIM		3
+
+static void do_running_jobs(bContext *C, void *arg, int event)
+{
+	switch(event) {
+		case B_STOPRENDER:
+			G.afbreek= 1;
+			break;
+		case B_STOPCAST:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+			break;
+		case B_STOPANIM:
+			ED_screen_animation_timer(C, 0, 0);
+			break;
+	}
+}
+
+void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	Scene *scene= CTX_data_scene(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	uiBlock *block;
+
+	block= uiLayoutGetBlock(layout);
+	uiBlockSetCurLayout(block, layout);
+
+	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
+
+	if(WM_jobs_test(wm, scene))
+		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_REC, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+	if(WM_jobs_test(wm, screen))
+		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+	if(screen->animtimer)
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 

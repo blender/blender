@@ -412,7 +412,7 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 /********************** particle system slot operators *********************/
 
-static int particle_system_slot_add_exec(bContext *C, wmOperator *op)
+static int particle_system_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -420,26 +420,26 @@ static int particle_system_slot_add_exec(bContext *C, wmOperator *op)
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
-	object_add_particle_system_slot(scene, ob);
+	object_add_particle_system(scene, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_particle_system_slot_add(wmOperatorType *ot)
+void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Particle System Slot";
-	ot->idname= "OBJECT_OT_particle_system_slot_add";
+	ot->idname= "OBJECT_OT_particle_system_add";
 	
 	/* api callbacks */
-	ot->exec= particle_system_slot_add_exec;
+	ot->exec= particle_system_add_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int particle_system_slot_remove_exec(bContext *C, wmOperator *op)
+static int particle_system_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -447,20 +447,20 @@ static int particle_system_slot_remove_exec(bContext *C, wmOperator *op)
 	if(!scene || !ob)
 		return OPERATOR_CANCELLED;
 
-	object_remove_particle_system_slot(scene, ob);
+	object_remove_particle_system(scene, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_particle_system_slot_remove(wmOperatorType *ot)
+void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Particle System Slot";
-	ot->idname= "OBJECT_OT_particle_system_slot_remove";
+	ot->idname= "OBJECT_OT_particle_system_remove";
 	
 	/* api callbacks */
-	ot->exec= particle_system_slot_remove_exec;
+	ot->exec= particle_system_remove_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

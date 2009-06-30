@@ -34,7 +34,10 @@ extern "C" {
 
 #include "DNA_listBase.h"
 
-/* Reporting Information and Errors */
+/* Reporting Information and Errors
+ *
+ * These functions also accept NULL in case no error reporting
+ * is needed. */
 
 typedef enum ReportType {
 	RPT_DEBUG					= 0,

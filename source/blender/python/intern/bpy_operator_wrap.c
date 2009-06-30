@@ -353,7 +353,8 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	
 	/* remove if it already exists */
 	if ((ot=WM_operatortype_find(idname))) {
-		Py_XDECREF((PyObject*)ot->pyop_data);
+		if(ot->pyop_data)
+			Py_XDECREF((PyObject*)ot->pyop_data);
 		WM_operatortype_remove(idname);
 	}
 	

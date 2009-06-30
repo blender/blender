@@ -333,11 +333,11 @@ static VFontData *vfont_get_data(VFont *vfont)
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			} else {
-				pf= newPackedFile(vfont->name);
+				pf= newPackedFile(NULL, vfont->name);
 				
 				if(!tmpfnt)
 				{
-					tpf= newPackedFile(vfont->name);
+					tpf= newPackedFile(NULL, vfont->name);
 					
 					// Add temporary packed file to globals
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
@@ -385,8 +385,8 @@ VFont *load_vfont(char *name)
 		strcpy(dir, name);
 		BLI_splitdirstring(dir, filename);
 
-		pf= newPackedFile(name);
-		tpf= newPackedFile(name);		
+		pf= newPackedFile(NULL, name);
+		tpf= newPackedFile(NULL, name);		
 		
 		is_builtin= 0;
 	}
