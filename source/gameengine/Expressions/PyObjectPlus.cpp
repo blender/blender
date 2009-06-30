@@ -331,7 +331,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
 #ifdef USE_MATHUTILS
 				float fval[3]= {(*val)[0], (*val)[1], (*val)[2]};
-				return newVectorObject(fval, 3, Py_NEW);
+				return newVectorObject(fval, 3, Py_NEW, NULL);
 #else
 				PyObject* resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)

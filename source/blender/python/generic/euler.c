@@ -34,13 +34,6 @@
 
 
 //-------------------------DOC STRINGS ---------------------------
-static char Euler_Zero_doc[] = "() - set all values in the euler to 0";
-static char Euler_Unique_doc[] ="() - sets the euler rotation a unique shortest arc rotation - tests for gimbal lock";
-static char Euler_ToMatrix_doc[] =	"() - returns a rotation matrix representing the euler rotation";
-static char Euler_ToQuat_doc[] = "() - returns a quaternion representing the euler rotation";
-static char Euler_Rotate_doc[] = "() - rotate a euler by certain amount around an axis of rotation";
-static char Euler_copy_doc[] = "() - returns a copy of the euler.";
-static char Euler_MakeCompatible_doc[] = "(euler) - Make this user compatible with another (no axis flipping).";
 
 static PyObject *Euler_Zero( EulerObject * self );
 static PyObject *Euler_Unique( EulerObject * self );
@@ -52,22 +45,21 @@ static PyObject *Euler_copy( EulerObject * self, PyObject *args );
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Euler_methods[] = {
-	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
-	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, Euler_Unique_doc},
-	{"toMatrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
-	{"toQuat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
-	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, Euler_Rotate_doc},
-	{"makeCompatible", (PyCFunction) Euler_MakeCompatible, METH_O, Euler_MakeCompatible_doc},
-	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
-	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
+	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, NULL},
+	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, NULL},
+	{"toMatrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, NULL},
+	{"toQuat", (PyCFunction) Euler_ToQuat, METH_NOARGS, NULL},
+	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, NULL},
+	{"makeCompatible", (PyCFunction) Euler_MakeCompatible, METH_O, NULL},
+	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, NULL},
+	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with
-static PyObject *Euler_new(PyObject * self, PyObject * args, PyObject * kwargs)
+static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
 {
-
 	PyObject *listObject = NULL;
 	int size, i;
 	float eul[3];
@@ -84,7 +76,7 @@ static PyObject *Euler_new(PyObject * self, PyObject * args, PyObject * kwargs)
 		}
 	} else if (size == 0) {
 		//returns a new empty 3d euler
-		return newEulerObject(NULL, Py_NEW); 
+		return newEulerObject(NULL, Py_NEW, NULL);
 	} else {
 		listObject = args;
 	}
@@ -110,7 +102,7 @@ static PyObject *Euler_new(PyObject * self, PyObject * args, PyObject * kwargs)
 			return NULL;
 		}
 	}
-	return newEulerObject(eul, Py_NEW);
+	return newEulerObject(eul, Py_NEW, NULL);
 }
 
 //-----------------------------METHODS----------------------------
@@ -118,8 +110,11 @@ static PyObject *Euler_new(PyObject * self, PyObject * args, PyObject * kwargs)
 //return a quaternion representation of the euler
 static PyObject *Euler_ToQuat(EulerObject * self)
 {
-	float eul[3], quat[4];
+	float quat[4];
+#ifdef USE_MATHUTILS_DEG
+	float eul[3];
 	int x;
+#endif
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -133,7 +128,7 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 	EulToQuat(self->eul, quat);
 #endif
 
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------Euler.toMatrix()---------------------
 //return a matrix representation of the euler
@@ -154,16 +149,17 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 #else
 	EulToMat3(self->eul, (float (*)[3]) mat);
 #endif
-	return newMatrixObject(mat, 3, 3 , Py_NEW);
+	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
 //----------------------------Euler.unique()-----------------------
 //sets the x,y,z values to a unique euler rotation
 static PyObject *Euler_Unique(EulerObject * self)
 {
+#define PI_2		(Py_PI * 2.0)
+#define PI_HALF		(Py_PI / 2.0)
+#define PI_INV		(1.0 / Py_PI)
+
 	double heading, pitch, bank;
-	double pi2 =  Py_PI * 2.0f;
-	double piO2 = Py_PI / 2.0f;
-	double Opi2 = 1.0f / pi2;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -179,34 +175,33 @@ static PyObject *Euler_Unique(EulerObject * self)
 	bank = self->eul[2];
 #endif
 
-
 	//wrap heading in +180 / -180
 	pitch += Py_PI;
-	pitch -= floor(pitch * Opi2) * pi2;
+	pitch -= floor(pitch * PI_INV) * PI_2;
 	pitch -= Py_PI;
 
 
-	if(pitch < -piO2) {
+	if(pitch < -PI_HALF) {
 		pitch = -Py_PI - pitch;
 		heading += Py_PI;
 		bank += Py_PI;
-	} else if(pitch > piO2) {
+	} else if(pitch > PI_HALF) {
 		pitch = Py_PI - pitch;
 		heading += Py_PI;
 		bank += Py_PI;
 	}
 	//gimbal lock test
-	if(fabs(pitch) > piO2 - 1e-4) {
+	if(fabs(pitch) > PI_HALF - 1e-4) {
 		heading += bank;
 		bank = 0.0f;
 	} else {
 		bank += Py_PI;
-		bank -= (floor(bank * Opi2)) * pi2;
+		bank -= (floor(bank * PI_INV)) * PI_2;
 		bank -= Py_PI;
 	}
 
 	heading += Py_PI;
-	heading -= (floor(heading * Opi2)) * pi2;
+	heading -= (floor(heading * PI_INV)) * PI_2;
 	heading -= Py_PI;
 
 #ifdef USE_MATHUTILS_DEG
@@ -318,7 +313,7 @@ static PyObject *Euler_copy(EulerObject * self, PyObject *args)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	return newEulerObject(self->eul, Py_NEW);
+	return newEulerObject(self->eul, Py_NEW, Py_TYPE(self));
 }
 
 //----------------------------print object (internal)--------------
@@ -383,8 +378,7 @@ static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 		Py_RETURN_FALSE;
 	}
 }
-//------------------------tp_doc
-static char EulerObject_doc[] = "This is a wrapper for euler objects.";
+
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
@@ -569,8 +563,8 @@ PyTypeObject euler_Type = {
 	0,								//tp_getattro
 	0,								//tp_setattro
 	0,								//tp_as_buffer
-	Py_TPFLAGS_DEFAULT,				//tp_flags
-	EulerObject_doc,				//tp_doc
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
+	0,								//tp_doc
 	0,								//tp_traverse
 	0,								//tp_clear
 	(richcmpfunc)Euler_richcmpr,	//tp_richcompare
@@ -603,12 +597,13 @@ PyTypeObject euler_Type = {
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newEulerObject(float *eul, int type)
+PyObject *newEulerObject(float *eul, int type, PyTypeObject *base_type)
 {
 	EulerObject *self;
 	int x;
 
-	self = PyObject_NEW(EulerObject, &euler_Type);
+	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	else			self = PyObject_NEW(EulerObject, &euler_Type);
 
 	/* init callbacks as NULL */
 	self->cb_user= NULL;
@@ -635,7 +630,7 @@ PyObject *newEulerObject(float *eul, int type)
 
 PyObject *newEulerObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 {
-	EulerObject *self= (EulerObject *)newEulerObject(NULL, Py_NEW);
+	EulerObject *self= (EulerObject *)newEulerObject(NULL, Py_NEW, NULL);
 	if(self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;
