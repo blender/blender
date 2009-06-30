@@ -79,6 +79,20 @@ char *CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 	return data->layers[layer_index+n].name;
 }
 
+char *CustomData_get_active_layer_name(const CustomData *data, int type)
+{
+	/* get the layer index of the active layer of type */
+	int layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	return data->layers[layer_index].name;
+}
+
+std::string id_name(void *id)
+{
+	return ((ID*)id)->name + 2;
+}
+
 /*
   Utilities to avoid code duplication.
   Definition can take some time to understand, but they should be useful.
@@ -115,10 +129,10 @@ public:
 
 			Material *ma = give_current_material(ob, a+1);
 
-			if (find(mMat.begin(), mMat.end(), std::string(ma->id.name)) == mMat.end()) {
-				(*this->f)(ma);
+			if (find(mMat.begin(), mMat.end(), id_name(ma)) == mMat.end()) {
+				(*this->f)(ma, ob);
 
-				mMat.push_back(ma->id.name);
+				mMat.push_back(id_name(ma));
 			}
 		}
 	}
@@ -132,6 +146,18 @@ void forEachMaterialInScene(Scene *sce, Functor &f)
 {
 	ForEachMaterialFunctor<Functor> matfunc(&f);
 	forEachMeshObjectInScene(sce, matfunc);
+}
+
+// OB_MESH is assumed
+std::string getActiveUVLayerName(Object *ob)
+{
+	Mesh *me = (Mesh*)ob->data;
+
+	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	if (num_layers)
+		return std::string(CustomData_get_active_layer_name(&me->fdata, CD_MTFACE));
+		
+	return "";
 }
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
@@ -157,7 +183,7 @@ public:
 		
 		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 		Mesh *me = (Mesh*)ob->data;
-		std::string geom_name(ob->id.name);
+		std::string geom_name(id_name(ob));
 
 		// openMesh(geoId, geoName, meshId)
 		openMesh(geom_name, "", "");
@@ -245,7 +271,7 @@ public:
 			
 		// sets material name
 		if (has_material)
-			polylist.setMaterial(ma->id.name);
+			polylist.setMaterial(id_name(ma));
 				
 		COLLADASW::InputList &til = polylist.getInputList();
 			
@@ -268,7 +294,8 @@ public:
 			COLLADASW::Input input3(COLLADASW::TEXCOORD,
 									makeUrl(makeTexcoordSourceId(geom_name, i)),
 									1, // offset always 1, this is only until we have optimized UV sets
-									0);
+									i  // set number equals UV layer index
+									);
 			til.push_back(input3);
 		}
 			
@@ -466,7 +493,7 @@ public:
 	
 	void exportScene(Scene *sce) {
  		// <library_visual_scenes> <visual_scene>
-		openVisualScene(sce->id.name, "");
+		openVisualScene(id_name(sce), "");
 
 		// write <node>s
 		forEachMeshObjectInScene(sce, *this);
@@ -498,32 +525,28 @@ public:
 		node.addScale(ob->size[0], ob->size[1], ob->size[2]);
 
 		COLLADASW::InstanceGeometry instGeom(mSW);
-		std::string ob_name(ob->id.name);
+		std::string ob_name(id_name(ob));
 		instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
-				
+
 		for(int a = 0; a < ob->totcol; a++)	{
 			Material *ma = give_current_material(ob, a+1);
 						
 			COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
 			COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-			std::string matid = std::string(ma->id.name);
+			std::string matid(id_name(ma));
 			COLLADASW::InstanceMaterial im(matid, COLLADASW::URI
 										   (COLLADABU::Utils::EMPTY_STRING,
 											matid));
-			//iterate over all textures
-			//if any add to list
-			/*int c = 0;
-			for (int b = 0; b < MAX_MTEX; b++) {
-				MTex *mtex = ma->mtex[b];
-				if (mtex && mtex->tex && mtex->tex->ima) {
-					char texcoord[30];
-					sprintf(texcoord, "%d", c);
-					COLLADASW::BindVertexInput bvi(std::string("myUVs") + texcoord, "TEXCOORD", 0);
-					c++;
-					im.push_back(bvi);
-				}
+
+			// create <bind_vertex_input> for each uv layer
+			Mesh *me = (Mesh*)ob->data;
+			int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+			
+			for (int b = 0; b < totlayer; b++) {
+				char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
+				im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
 			}
-			*/
+			
 		    iml.push_back(im);
 		}
 
@@ -531,6 +554,7 @@ public:
 
 		node.end();
 	}
+
 };
 
 class ImagesExporter: COLLADASW::LibraryImages
@@ -549,7 +573,7 @@ public:
 		closeLibrary();
 	}
 
-	void operator()(Material *ma)
+	void operator()(Material *ma, Object *ob)
 	{
 		int a;
 		for (a = 0; a < MAX_MTEX; a++) {
@@ -557,11 +581,13 @@ public:
 			if (mtex && mtex->tex && mtex->tex->ima) {
 
 				Image *image = mtex->tex->ima;
-				std::string name(image->id.name);
+				std::string name(id_name(image));
 
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(image->name), image->id.name, "");
+					COLLADASW::Image img(COLLADABU::URI(image->name), name, "");
 					img.add(mSW);
+
+					mImages.push_back(name);
 				}
 			}
 		}
@@ -581,10 +607,13 @@ public:
 		closeLibrary();
 	}
 
-	void operator()(Material *ma)
+	void operator()(Material *ma, Object *ob)
 	{
-		std::vector<int> mtexindices = countmtex(ma);
-		openEffect(std::string(ma->id.name) + "-effect");
+		// create a list of indices to textures of type TEX_IMAGE
+		std::vector<int> tex_indices;
+		createTextureIndices(ma, tex_indices);
+
+		openEffect(id_name(ma) + "-effect");
 		
 		COLLADASW::EffectProfile ep(mSW);
 		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
@@ -649,11 +678,11 @@ public:
 		std::map<std::string, int> im_samp_map;
 
 		unsigned int a, b;
-		for (a = 0, b = 0; a < mtexindices.size(); a++) {
-			MTex *t = ma->mtex[mtexindices[a]];
+		for (a = 0, b = 0; a < tex_indices.size(); a++) {
+			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
 
-			std::string key(ima->id.name);
+			std::string key(id_name(ima));
 
 			// create only one <sampler>/<surface> pair for each unique image
 			if (im_samp_map.find(key) == im_samp_map.end()) {
@@ -681,38 +710,44 @@ public:
 			}
 		}
 
+		// used as fallback when MTex->uvname is "" (this is pretty common)
+		// it is indeed the correct value to use in that case
+		std::string active_uv(getActiveUVLayerName(ob));
+
 		// write textures
 		// XXX very slow
-		for (a = 0; a < mtexindices.size(); a++) {
-			MTex *t = ma->mtex[mtexindices[a]];
+		for (a = 0; a < tex_indices.size(); a++) {
+			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
 
 			// we assume map input is always TEXTCO_UV
 
-			std::string key(ima->id.name);
+			std::string key(id_name(ima));
 			int i = im_samp_map[key];
 			COLLADASW::Sampler *sampler = (COLLADASW::Sampler*)samp_surf[i][0];
 			COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
 
+			std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
+
 			// color
 			if (t->mapto & MAP_COL) {
-				ep.setDiffuse(createTexture(ima, sampler, surface));
+				ep.setDiffuse(createTexture(ima, uvname, sampler, surface));
 			}
 			// ambient
 			if (t->mapto & MAP_AMB) {
-				ep.setAmbient(createTexture(ima, sampler, surface));
+				ep.setAmbient(createTexture(ima, uvname, sampler, surface));
 			}
 			// specular
 			if (t->mapto & MAP_SPEC) {
-				ep.setSpecular(createTexture(ima, sampler, surface));
+				ep.setSpecular(createTexture(ima, uvname, sampler, surface));
 			}
 			// emission
 			if (t->mapto & MAP_EMIT) {
-				ep.setEmission(createTexture(ima, sampler, surface));
+				ep.setEmission(createTexture(ima, uvname, sampler, surface));
 			}
 			// reflective
 			if (t->mapto & MAP_REF) {
-				ep.setReflective(createTexture(ima, sampler, surface));
+				ep.setReflective(createTexture(ima, uvname, sampler, surface));
 			}
 		}
 		// performs the actual writing
@@ -722,13 +757,13 @@ public:
 	}
 	
 	COLLADASW::ColorOrTexture createTexture(Image *ima,
+											std::string& uv_layer_name,
 											COLLADASW::Sampler *sampler,
 											COLLADASW::Surface *surface)
 	{
 		
-		COLLADASW::Texture texture(ima->id.name);
-		// XXX change "myUVs" to UV layer's name
-		texture.setTexcoord(std::string("myUVs"));
+		COLLADASW::Texture texture(id_name(ima));
+		texture.setTexcoord(uv_layer_name);
 		texture.setSurface(*surface);
 		texture.setSampler(*sampler);
 		
@@ -745,18 +780,15 @@ public:
 	
 	//returns the array of mtex indices which have image 
 	//need this for exporting textures
-	std::vector<int> countmtex(Material *ma)
+	void createTextureIndices(Material *ma, std::vector<int> &indices)
 	{
-		std::vector<int> mtexindices;
-		for (int a = 0; a < 18; a++) {
+		indices.clear();
+
+		for (int a = 0; a < MAX_MTEX; a++) {
 			if (ma->mtex[a] && ma->mtex[a]->tex->type == TEX_IMAGE){
-				mtexindices.push_back(a);
-			}
-			else {
-				continue;
+				indices.push_back(a);
 			}
 		}
-		return mtexindices;
 	}
 };
 
@@ -773,9 +805,9 @@ public:
 		closeLibrary();
 	}
 
-	void operator()(Material *ma)
+	void operator()(Material *ma, Object *ob)
 	{
-		std::string name(ma->id.name);
+		std::string name(id_name(ma));
 
 		openMaterial(name);
 
@@ -798,6 +830,8 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 
 	//<asset>
 	COLLADASW::Asset asset(&sw);
+	// XXX ask blender devs about this?
+	asset.setUnit("meter", 1.0);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	asset.add();
 	
@@ -822,7 +856,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	se.exportScene(sce);
 	
 	//<scene>
-	std::string scene_name(sce->id.name);
+	std::string scene_name(id_name(sce));
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   scene_name));
 	scene.add();
