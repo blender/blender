@@ -39,6 +39,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "IMB_imbuf_types.h"
+
 static void rna_Image_animated_update(bContext *C, PointerRNA *ptr)
 {
 	Image *ima= (Image*)ptr->data;
@@ -50,6 +52,18 @@ static void rna_Image_animated_update(bContext *C, PointerRNA *ptr)
 		if(ima->twend>=nr) ima->twend= nr-1;
 		if(ima->twsta>ima->twend) ima->twsta= 1;
 	}
+}
+
+static int rna_Image_dirty_get(PointerRNA *ptr)
+{
+	Image *ima= (Image*)ptr->data;
+	ImBuf *ibuf;
+
+	for(ibuf=ima->ibufs.first; ibuf; ibuf=ibuf->next)
+		if(ibuf->userflags & IB_BITMAPDIRTY)
+			return 1;
+	
+	return 0;
 }
 
 #else
@@ -173,6 +187,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "dirty", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dirty", "Image has changed and is not saved.");
 
 	/* generated image (image_generated_change_cb) */
 	prop= RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);

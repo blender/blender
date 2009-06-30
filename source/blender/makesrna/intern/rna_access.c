@@ -1588,6 +1588,7 @@ int RNA_raw_type_sizeof(RawPropertyType type)
 		case PROP_RAW_INT: return sizeof(int);
 		case PROP_RAW_FLOAT: return sizeof(float);
 		case PROP_RAW_DOUBLE: return sizeof(double);
+		default: return 0;
 	}
 }
 
