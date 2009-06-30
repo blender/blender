@@ -583,45 +583,13 @@ public:
 
 	void operator()(Material *ma)
 	{
+		std::vector<int> mtexindices = countmtex(ma);
 		openEffect(std::string(ma->id.name) + "-effect");
 		
 		COLLADASW::EffectProfile ep(mSW);
-		
 		ep.setProfileType(COLLADASW::EffectProfile::COMMON);
-		
-		std::vector<int> mtexindices = countmtex(ma);
-		
-		//for (int a = 0; a < mtexindices.size(); a++) {
-			
-			//open <profile_common>
 		ep.openProfile();
-			/*
-			//need this for making each texcoord unique
-			char texcoord[30];
-			sprintf(texcoord, "%d", a);
-			
-			//<newparam> <surface> <init_from>
-			Image *ima = ma->mtex[mtexindices[a]]->tex->ima;
-			COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-									   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-			COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-			sio.setImageReference(ima->id.name);
-			surface.setInitOption(sio);
-			
-			//<newparam> <sampler> <source>
-			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-									   ima->id.name + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-			
-			//<lambert> <diffuse> <texture>	
-			COLLADASW::Texture texture(ima->id.name);
-			texture.setTexcoord(std::string("myUVs") + texcoord);
-			texture.setSurface(surface);
-			texture.setSampler(sampler);
-			
-			//<texture>
-			COLLADASW::ColorOrTexture cot(texture);
-			ep.setDiffuse(cot);
-			*/
+		// set shader type - one of three blinn, phong or lambert
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			ep.setShaderType(COLLADASW::EffectProfile::BLINN);
 		}
@@ -629,41 +597,9 @@ public:
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 		}
 		else {
-			// XXX write error 
+			// XXX write warning "Current shader type is not supported" 
 			ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
 		}
-			
-		// emission 
-		COLLADASW::ColorOrTexture cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-		ep.setEmission(cot_col);
-		
-		// diffuse
-		cot_col = getcol(ma->r, ma->g, ma->b, 1.0f);
-		ep.setDiffuse(cot_col);
-		
-		// ambient
-		cot_col = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
-		ep.setAmbient(cot_col);
-			
-		// reflective, reflectivity
-		if (ma->mode & MA_RAYMIRROR) {
-			cot_col = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
-			ep.setReflective(cot_col);
-			ep.setReflectivity(ma->ray_mirror);
-		}
-		else {
-			cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-			ep.setReflective(cot_col);
-			ep.setReflectivity(0.0f);
-		}
-		
-		// transparent, transparency
-		if (ep.getShaderType() != COLLADASW::EffectProfile::BLINN) {
-			cot_col = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-			ep.setTransparent(cot_col);
-		}
-		ep.setTransparency(ma->alpha);
-		
 		// index of refraction
 		if (ma->mode & MA_RAYTRANSP) {
 			ep.setIndexOfRefraction(ma->ang);
@@ -671,28 +607,140 @@ public:
 		else {
 			ep.setIndexOfRefraction(1.0f);
 		}
-		
-		// specular, shininess, diffuse
-		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
-			ep.setShininess(ma->spec);
-			cot_col = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-			ep.setSpecular(cot_col);
+		// transparency
+		ep.setTransparency(ma->alpha);
+		// shininess
+		ep.setShininess(ma->spec);
+		// emission
+		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+		ep.setEmission(cot);
+		// diffuse 
+		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
+		ep.setDiffuse(cot);
+		// ambient
+		cot = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
+		ep.setAmbient(cot);
+		// reflective, reflectivity
+		if (ma->mode & MA_RAYMIRROR) {
+			cot = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
+			ep.setReflective(cot);
+			ep.setReflectivity(ma->ray_mirror);
 		}
-		
+		else {
+			cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			ep.setReflective(cot);
+			ep.setReflectivity(0.0f);
+		}
+		// specular, shininess
+		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
+			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+			ep.setSpecular(cot);
+		}
+
+		// XXX make this more readable if possible
+
+		// create <sampler> and <surface> for each image
+		COLLADASW::Sampler samplers[MAX_MTEX];
+		COLLADASW::Surface surfaces[MAX_MTEX];
+		void *samp_surf[MAX_MTEX][2];
+
+		// image to index to samp_surf map
+		// samp_surf[index] stores 2 pointers, sampler and surface
+		std::map<std::string, int> im_samp_map;
+
+		unsigned int a, b;
+		for (a = 0, b = 0; a < mtexindices.size(); a++) {
+			MTex *t = ma->mtex[mtexindices[a]];
+			Image *ima = t->tex->ima;
+
+			std::string key(ima->id.name);
+
+			// create only one <sampler>/<surface> pair for each unique image
+			if (im_samp_map.find(key) == im_samp_map.end()) {
+				//<newparam> <surface> <init_from>
+				COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+				sio.setImageReference(key);
+				surface.setInitOption(sio);
+
+				//<newparam> <sampler> <source>
+				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+
+				// copy values to arrays since they will live longer
+				samplers[a] = sampler;
+				surfaces[a] = surface;
+
+				// store pointers so they can be used later when we create <texture>s
+				samp_surf[b][0] = &samplers[a];
+				samp_surf[b][1] = &surfaces[a];
+				
+				im_samp_map[key] = b;
+				b++;
+			}
+		}
+
+		// write textures
+		// XXX very slow
+		for (a = 0; a < mtexindices.size(); a++) {
+			MTex *t = ma->mtex[mtexindices[a]];
+			Image *ima = t->tex->ima;
+
+			// we assume map input is always TEXTCO_UV
+
+			std::string key(ima->id.name);
+			int i = im_samp_map[key];
+			COLLADASW::Sampler *sampler = (COLLADASW::Sampler*)samp_surf[i][0];
+			COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
+
+			// color
+			if (t->mapto & MAP_COL) {
+				ep.setDiffuse(createTexture(ima, sampler, surface));
+			}
+			// ambient
+			if (t->mapto & MAP_AMB) {
+				ep.setAmbient(createTexture(ima, sampler, surface));
+			}
+			// specular
+			if (t->mapto & MAP_SPEC) {
+				ep.setSpecular(createTexture(ima, sampler, surface));
+			}
+			// emission
+			if (t->mapto & MAP_EMIT) {
+				ep.setEmission(createTexture(ima, sampler, surface));
+			}
+			// reflective
+			if (t->mapto & MAP_REF) {
+				ep.setReflective(createTexture(ima, sampler, surface));
+			}
+		}
 		// performs the actual writing
 		ep.addProfileElements();
 		ep.closeProfile();
+		closeEffect();	
+	}
+	
+	COLLADASW::ColorOrTexture createTexture(Image *ima,
+											COLLADASW::Sampler *sampler,
+											COLLADASW::Surface *surface)
+	{
 		
-		//}
+		COLLADASW::Texture texture(ima->id.name);
+		// XXX change "myUVs" to UV layer's name
+		texture.setTexcoord(std::string("myUVs"));
+		texture.setSurface(*surface);
+		texture.setSampler(*sampler);
 		
-		closeEffect();
+		COLLADASW::ColorOrTexture cot(texture);
+		return cot;
 	}
 	
 	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a)
 	{
 		COLLADASW::Color color(r,g,b,a);
-		COLLADASW::ColorOrTexture cot_col(color);
-		return cot_col;
+		COLLADASW::ColorOrTexture cot(color);
+		return cot;
 	}
 	
 	//returns the array of mtex indices which have image 
@@ -700,19 +748,13 @@ public:
 	std::vector<int> countmtex(Material *ma)
 	{
 		std::vector<int> mtexindices;
-		for (int a = 0; a < 18; a++){
-			if (!ma->mtex[a]){
+		for (int a = 0; a < 18; a++) {
+			if (ma->mtex[a] && ma->mtex[a]->tex->type == TEX_IMAGE){
+				mtexindices.push_back(a);
+			}
+			else {
 				continue;
 			}
-			Tex *tex = ma->mtex[a]->tex;
-			if(!tex){
-				continue;
-			}
-			Image *ima = tex->ima;
-			if(!ima){
-				continue;
-			}
-			mtexindices.push_back(a);
 		}
 		return mtexindices;
 	}
