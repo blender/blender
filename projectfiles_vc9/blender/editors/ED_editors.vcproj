@@ -799,11 +799,11 @@
 			Name="space_info"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_info\info_header.c"
+				RelativePath="..\..\..\source\blender\editors\space_info\info_intern.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_info\info_intern.h"
+				RelativePath="..\..\..\source\blender\editors\space_info\info_ops.c"
 				>
 			</File>
 			<File
