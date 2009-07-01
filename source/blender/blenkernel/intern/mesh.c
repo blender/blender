@@ -803,6 +803,8 @@ void nurbs_to_mesh(Object *ob)
 
 	dl= cu->disp.first;
 	while(dl) {
+		int smooth= dl->rt & CU_SMOOTH ? 1 : 0;
+		
 		if(dl->type==DL_SEGM) {
 			startvert= vertcount;
 			a= dl->parts*dl->nr;
@@ -819,6 +821,7 @@ void nurbs_to_mesh(Object *ob)
 				for(b=1; b<dl->nr; b++) {
 					mface->v1= startvert+ofs+b-1;
 					mface->v2= startvert+ofs+b;
+					if(smooth) mface->flag |= ME_SMOOTH;
 					mface++;
 				}
 			}
@@ -843,6 +846,7 @@ void nurbs_to_mesh(Object *ob)
 						mface->v1= startvert+ofs+b;
 						if(b==dl->nr-1) mface->v2= startvert+ofs;
 						else mface->v2= startvert+ofs+b+1;
+						if(smooth) mface->flag |= ME_SMOOTH;
 						mface++;
 					}
 				}
@@ -868,6 +872,7 @@ void nurbs_to_mesh(Object *ob)
 				mface->v4= 0;
 				test_index_face(mface, NULL, 0, 3);
 				
+				if(smooth) mface->flag |= ME_SMOOTH;
 				mface++;
 				index+= 3;
 			}
@@ -915,6 +920,8 @@ void nurbs_to_mesh(Object *ob)
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
 					test_index_face(mface, NULL, 0, 4);
+					
+					if(smooth) mface->flag |= ME_SMOOTH;
 					mface++;
 
 					p4= p3; 
