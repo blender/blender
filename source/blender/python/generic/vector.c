@@ -1897,7 +1897,11 @@ PyTypeObject vector_Type = {
 
 	&Vector_NumMethods,                       /* PyNumberMethods *tp_as_number; */
 	&Vector_SeqMethods,                       /* PySequenceMethods *tp_as_sequence; */
+#if (PY_VERSION_HEX >= 0x03000000)
 	&Vector_AsMapping,                       /* PyMappingMethods *tp_as_mapping; */
+#else
+	NULL,
+#endif
 
 	/* More standard operations (here for binary compatibility) */
 

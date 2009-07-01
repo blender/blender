@@ -1182,7 +1182,11 @@ PyTypeObject matrix_Type = {
 	(reprfunc) Matrix_repr,			/*tp_repr*/
 	&Matrix_NumMethods,				/*tp_as_number*/
 	&Matrix_SeqMethods,				/*tp_as_sequence*/
+#if (PY_VERSION_HEX >= 0x03000000)
 	&Matrix_AsMapping,				/*tp_as_mapping*/
+#else
+	0,
+#endif
 	0,								/*tp_hash*/
 	0,								/*tp_call*/
 	0,								/*tp_str*/
