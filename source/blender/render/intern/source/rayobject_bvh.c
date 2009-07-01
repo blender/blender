@@ -125,12 +125,12 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 		for(i=0; i<BVH_NCHILDS; i++)
 			if(RayObject_isAligned(node->child[i]))
 			{
-				hit = dfs_raycast(node->child[i], isec);
+				hit |= dfs_raycast(node->child[i], isec);
 				if(hit && isec->mode == RE_RAY_SHADOW) return hit;
 			}
 			else
 			{
-				hit = RE_rayobject_intersect( (RayObject*)node->child[i], isec);
+				hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
 				if(hit && isec->mode == RE_RAY_SHADOW) return hit;
 			}
 	}
