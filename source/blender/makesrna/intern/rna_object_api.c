@@ -36,6 +36,10 @@
 
 #include "DNA_object_types.h"
 
+#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
+
+#include "ED_mesh.h"
+
 /* parameter to rna_Object_create_mesh */
 typedef enum CreateMeshType {
 	CREATE_MESH_PREVIEW = 0,
@@ -55,10 +59,6 @@ typedef enum CreateMeshType {
 #include "DNA_meshdata_types.h"
 
 #include "BLI_arithb.h"
-
-#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
-
-#include "ED_mesh.h"
 
 /* copied from init_render_mesh (render code) */
 static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports, int type)
@@ -108,7 +108,7 @@ static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *rep
 
 	/* free duplilist if a user forgets to */
 	if (ob->duplilist) {
-		BKE_reportf(reports, RPT_WARNING, "%s.dupli_list has not been freed.", RNA_struct_identifier(&RNA_Object));
+		BKE_reportf(reports, RPT_WARNING, "Object.dupli_list has not been freed.");
 
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist= NULL;
@@ -155,6 +155,47 @@ static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *r
 	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
 }
 
+static int rna_Object_add_vertex_group(Object *ob, char *group_name)
+{
+	bDeformGroup *defgroup= add_defgroup_name(ob, group_name);
+	return BLI_findindex(&ob->defbase, defgroup);
+}
+
+/*
+static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
+{
+	if (ob->type != OB_MESH) {
+		BKE_report(reports, RPT_ERROR, "Object should be of MESH type.");
+		return;
+	}
+
+	Mesh *me = (Mesh*)ob->data;
+	int group_index = get_defgroup_num(ob, group);
+	if (group_index == -1) {
+		BKE_report(reports, RPT_ERROR, "No deform groups assigned to mesh.");
+		return;
+	}
+
+	if (assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD && assignmode != WEIGHT_SUBTRACT) {
+		BKE_report(reports, RPT_ERROR, "Bad assignment mode." );
+		return;
+	}
+
+	// makes a set of dVerts corresponding to the mVerts
+	if (!me->dvert) 
+		create_dverts(&me->id);
+
+	// loop list adding verts to group 
+	for (i= 0; i < totindex; i++) {
+		if(i < 0 || i >= me->totvert) {
+			BKE_report(reports, RPT_ERROR, "Bad vertex index in list.");
+			return;
+		}
+
+		add_vert_defnr(ob, group_index, i, weight, assignmode);
+	}
+}
+*/
 
 #else
 
@@ -190,6 +231,12 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object belongs.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_vertex_group", "rna_Object_add_vertex_group");
+	RNA_def_function_ui_description(func, "Add vertex group to object.");
+	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name.");
+	parm= RNA_def_int(func, "group_index", 0, 0, 0, "", "Index of the created vertex group.", 0, 0);
+	RNA_def_function_return(func, parm);
 }
 
 #endif

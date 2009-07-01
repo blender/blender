@@ -232,6 +232,12 @@ static void rna_Mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+/*
+static void rna_Mesh_add_faces(Mesh *mesh)
+{
+}
+*/
+
 static void rna_Mesh_add_geometry(Mesh *mesh, int verts, int edges, int faces)
 {
 	if(verts)
@@ -240,6 +246,11 @@ static void rna_Mesh_add_geometry(Mesh *mesh, int verts, int edges, int faces)
 		rna_Mesh_add_edges(mesh, edges);
 	if(faces)
 		rna_Mesh_add_faces(mesh, faces);
+}
+
+static void rna_Mesh_add_uv_layer(Mesh *me)
+{
+	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface);
 }
 
 #else
@@ -266,6 +277,9 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Create a copy of this Mesh datablock.");
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_uv_layer", "rna_Mesh_add_uv_layer");
+	RNA_def_function_ui_description(func, "Add new UV layer to Mesh.");
 
 	/*
 	func= RNA_def_function(srna, "add_geom", "rna_Mesh_add_geom");

@@ -384,6 +384,7 @@ static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 	}
 }
 
+/*
 static PointerRNA rna_DupliObject_object_get(PointerRNA *ptr)
 {
 	DupliObject *dob= (DupliObject*)ptr->data;
@@ -391,6 +392,7 @@ static PointerRNA rna_DupliObject_object_get(PointerRNA *ptr)
 	RNA_pointer_create(&dob->ob->id, &RNA_Object, dob->ob, &newptr);
 	return newptr;
 }
+*/
 
 #else
 
@@ -1207,9 +1209,9 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	/* RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA); */
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
+	/* RNA_def_property_struct_type(prop, "Object"); */
 	RNA_def_property_pointer_sdna(prop, NULL, "ob");
-	RNA_def_property_pointer_funcs(prop, "rna_DupliObject_object_get", NULL, NULL);
+	/* RNA_def_property_pointer_funcs(prop, "rna_DupliObject_object_get", NULL, NULL); */
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object this DupliObject represents.");
 
