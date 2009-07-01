@@ -1220,7 +1220,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	BLI_edgehashIterator_free(ehi);
 
 	/* free old CustomData and assign new one */
-	CustomData_free(&dm->edgeData, dm->numVertData);
+	CustomData_free(&dm->edgeData, dm->numEdgeData);
 	dm->edgeData = edgeData;
 	dm->numEdgeData = numEdges;
 

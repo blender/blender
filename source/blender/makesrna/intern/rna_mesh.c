@@ -716,8 +716,8 @@ static void rna_def_medge(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+	// XXX allows creating invalid meshes
 
 	prop= RNA_def_property(srna, "crease", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_MEdge_crease_get", "rna_MEdge_crease_set", NULL);
@@ -758,8 +758,8 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+	// XXX allows creating invalid meshes
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
@@ -1104,7 +1104,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
-	// XXX RNA_def_property_collection_funcs(prop, "rna_Mesh_verts_begin", 0, 0, 0, 0, 0, 0, "add_verts", "remove_verts");
 
 	prop= RNA_def_property(srna, "edges", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "medge", "totedge");
