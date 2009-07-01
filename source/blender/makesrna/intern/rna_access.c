@@ -3050,23 +3050,46 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 
 			if(prop->flag & PROP_RNAPTR) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);
+				break;
+ 			}
+			
+			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				return -1;
 			}
-			else if (ptype!=srna) {
-				if (!RNA_struct_is_a(srna, ptype)) {
-					fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(ptype));
-					return -1;
-				}
-
-				*((void**)dest)= *((void**)src);
-			}
+ 
+			*((void**)dest)= *((void**)src);
 
 			break;
 		}
 	case PROP_COLLECTION:
 		{
-			/* XXX collections are not supported yet */
-			fprintf(stderr, "%s.%s: for parameter %s, collections are not supported yet\n", tid, fid, pid);
-			return -1;
+			StructRNA *ptype;
+			ListBase *lb, *clb;
+			Link *link;
+			CollectionPointerLink *clink;
+
+			if (ftype!='C') {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, a collection was expected\n", tid, fid, pid);
+				return -1;
+			}
+
+			lb= (ListBase *)src;
+			clb= (ListBase *)dest;
+			ptype= RNA_property_pointer_type(ptr, prop);
+			
+			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, a collection of objects of type %s was expected, passed a collection of objects of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				return -1;
+			}
+
+			for (link= lb->first; link; link= link->next) {
+				clink= MEM_callocN(sizeof(CollectionPointerLink), "CCollectionPointerLink");
+				RNA_pointer_create(NULL, srna, link, &clink->ptr);
+				BLI_addtail(clb, clink);
+			}
+
+			break;
 		}
 	default: 
 		{
@@ -3164,6 +3187,13 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 				err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, iter.data, &arg, srna, tid, fid, pid);
 				break;
 			}
+		case PROP_COLLECTION:
+			{
+				StructRNA *srna= va_arg(args, StructRNA*);
+				ListBase *arg= va_arg(args, ListBase*);
+				err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, iter.data, &arg, srna, tid, fid, pid);
+				break;
+			}
 		default:
 			{
 				/* handle errors */
@@ -3221,6 +3251,13 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 					err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata, srna, tid, fid, pid);
 					break;
 				}
+			case PROP_COLLECTION:
+				{
+					StructRNA *srna= va_arg(args, StructRNA*);
+					ListBase **arg= va_arg(args, ListBase**);
+					err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata, srna, tid, fid, pid);
+					break;
+				}			
 			default:
 				{
 					/* handle errors */
@@ -3248,4 +3285,5 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 
 	return 0;
 }
+
 
