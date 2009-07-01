@@ -273,7 +273,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 			/*X of vert, Y of hoz. no calculation needed */
 			newvec[0]= a1x;
 			newvec[1]= b1y;
-			return newVectorObject(newvec, 2, Py_NEW);
+			return newVectorObject(newvec, 2, Py_NEW, NULL);
 		}
 		
 		yi = (float)(((b1y / fabs(b1x - b2x)) * fabs(b2x - a1x)) + ((b2y / fabs(b1x - b2x)) * fabs(b1x - a1x)));
@@ -285,7 +285,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		}
 		newvec[0]= a1x;
 		newvec[1]= yi;
-		return newVectorObject(newvec, 2, Py_NEW);
+		return newVectorObject(newvec, 2, Py_NEW, NULL);
 	} else if (fabs(a2y-a1y) < eul) {  /* hoz line1 */
 		if (fabs(b2y-b1y) < eul) { /*hoz line2*/
 			Py_RETURN_NONE; /*2 hoz lines dont intersect*/
@@ -300,7 +300,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		}
 		newvec[0]= xi;
 		newvec[1]= a1y;
-		return newVectorObject(newvec, 2, Py_NEW);
+		return newVectorObject(newvec, 2, Py_NEW, NULL);
 	}
 	
 	b1 = (a2y-a1y)/(a2x-a1x);
@@ -317,7 +317,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 	if ((a1x-xi)*(xi-a2x) >= 0 && (b1x-xi)*(xi-b2x) >= 0 && (a1y-yi)*(yi-a2y) >= 0 && (b1y-yi)*(yi-b2y)>=0) {
 		newvec[0]= xi;
 		newvec[1]= yi;
-		return newVectorObject(newvec, 2, Py_NEW);
+		return newVectorObject(newvec, 2, Py_NEW, NULL);
 	}
 	Py_RETURN_NONE;
 }
@@ -355,7 +355,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	lambda = lambda_cp_line_ex(pt_in, l1, l2, pt_out);
 	
 	ret = PyTuple_New(2);
-	PyTuple_SET_ITEM( ret, 0, newVectorObject(pt_out, 3, Py_NEW) );
+	PyTuple_SET_ITEM( ret, 0, newVectorObject(pt_out, 3, Py_NEW, NULL) );
 	PyTuple_SET_ITEM( ret, 1, PyFloat_FromDouble(lambda) );
 	return ret;
 }
@@ -535,7 +535,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	list= PyList_New(resolu);
 	fp= coord_array;
 	for(i=0; i<resolu; i++, fp= fp+dims) {
-		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW));
+		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW, NULL));
 	}
 	MEM_freeN(coord_array);
 	return list;

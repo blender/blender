@@ -76,9 +76,9 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		return NULL;
 	}
 	
-	if (PyString_Check(pyindex))
+	if (PyUnicode_Check(pyindex))
 	{
-		CValue *item = ((CListValue*) list)->FindValue(PyString_AsString(pyindex));
+		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
 		if (item) {
 			PyObject* pyobj = item->ConvertValueToPython();
 			if(pyobj)
@@ -87,14 +87,14 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 				return item->GetProxy();
 		}
 	}
-	else if (PyInt_Check(pyindex))
+	else if (PyLong_Check(pyindex))
 	{
-		int index = PyInt_AsLong(pyindex);
+		int index = PyLong_AsSsize_t(pyindex);
 		return listvalue_buffer_item(self, index); /* wont add a ref */
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	PyErr_Format(PyExc_KeyError, "CList[key]: '%s' key not in list", PyString_AsString(pyindex_str));
+	PyErr_Format(PyExc_KeyError, "CList[key]: '%s' key not in list", _PyUnicode_AsString(pyindex_str));
 	Py_DECREF(pyindex_str);
 	return NULL;
 }
@@ -220,12 +220,12 @@ static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 		return -1;
 	}
 	
-	if (PyString_Check(value)) {
-		if (self->FindValue((const char *)PyString_AsString(value))) {
+	if (PyUnicode_Check(value)) {
+		if (self->FindValue((const char *)_PyUnicode_AsString(value))) {
 			return 1;
 		}
 	}
-	else if (BGE_PROXY_CHECK_TYPE(value)) { /* not dict like at all but this worked before __contains__ was used */
+	else if (PyObject_TypeCheck(value, &CValue::Type)) { /* not dict like at all but this worked before __contains__ was used */
 		CValue *item= static_cast<CValue *>(BGE_PROXY_REF(value));
 		for (int i=0; i < self->GetCount(); i++)
 			if (self->GetValue(i) == item) // Com
@@ -289,24 +289,18 @@ PyTypeObject CListValue::Type = {
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
 	0,
-	py_base_getattro,
-	py_base_setattro,
+	NULL,
+	NULL,
 	0,
-	Py_TPFLAGS_DEFAULT,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 	0,0,0,0,0,0,0,
-	Methods
-};
-
-
-
-PyParentObject CListValue::Parents[] = {
-	&CListValue::Type,
+	Methods,
+	0,
+	0,
 	&CValue::Type,
-		NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-
 
 PyMethodDef CListValue::Methods[] = {
 	/* List style access */
@@ -329,21 +323,12 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::py_getattro(PyObject* attr) {
-	py_getattro_up(CValue);
-}
-
-PyObject* CListValue::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CListValue::CListValue(PyTypeObject *T ) 
-: CPropValue(T)
+CListValue::CListValue()
+: CPropValue()
 {
 	m_bReleaseContents=true;	
 }
@@ -559,7 +544,7 @@ PyObject* CListValue::Pyindex(PyObject *value)
 		CValue* elem = 			GetValue(i);
 		if (checkobj==elem || CheckEqual(checkobj,elem))
 		{
-			result = PyInt_FromLong(i);
+			result = PyLong_FromSsize_t(i);
 			break;
 		}
 	}
@@ -582,7 +567,7 @@ PyObject* CListValue::Pycount(PyObject* value)
 	
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
-		return PyInt_FromLong(0);
+		return PyLong_FromSsize_t(0);
 	}
 
 	int numelem = GetCount();
@@ -596,7 +581,7 @@ PyObject* CListValue::Pycount(PyObject* value)
 	}
 	checkobj->Release();
 
-	return PyInt_FromLong(numfound);
+	return PyLong_FromSsize_t(numfound);
 }
 
 /* Matches python dict.get(key, [default]) */
@@ -623,7 +608,7 @@ PyObject* CListValue::Pyget(PyObject *args)
 /* Matches python dict.has_key() */
 PyObject* CListValue::Pyhas_key(PyObject* value)
 {
-	if (PyString_Check(value) && FindValue((const char *)PyString_AsString(value)))
+	if (PyUnicode_Check(value) && FindValue((const char *)_PyUnicode_AsString(value)))
 		Py_RETURN_TRUE;
 	
 	Py_RETURN_FALSE;

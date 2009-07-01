@@ -53,6 +53,7 @@ typedef struct bScreen {
 	ListBase regionbase;				/* screen level regions (menus), runtime only */
 	
 	struct Scene *scene;
+	struct Scene *newscene;				/* temporary when switching */
 	
 	short full;							/* fade out? */
 	short winid;						/* winid from WM, starts with 1 */

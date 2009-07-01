@@ -95,6 +95,18 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 }
 
 
+void WM_operator_stack_clear(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op;
+	
+	while((op= wm->operators.first)) {
+		BLI_remlink(&wm->operators, op);
+		WM_operator_free(op);
+	}
+	
+}
+
 /* ****************************************** */
 
 void wm_check(bContext *C)

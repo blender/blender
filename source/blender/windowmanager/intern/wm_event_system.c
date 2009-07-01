@@ -49,6 +49,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -234,6 +235,8 @@ void wm_event_do_notifiers(bContext *C)
 			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
 			}
+
+			BKE_ptcache_quick_cache_all(scene);
 		}		
 	}
 	CTX_wm_window_set(C, NULL);
@@ -773,7 +776,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
-				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORTALPHA;
+				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORT_ALPHA;
 				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
 				if(event->val==EVT_FILESELECT_OPEN)

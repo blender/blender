@@ -81,17 +81,17 @@ static int setColor (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 3
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 2)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 3 ints");
 		return -1;
 	}
 	// set color
-	getFilter(self)->setColor((unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2))));
+	getFilter(self)->setColor((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))));
 	// success
 	return 0;
 }
@@ -108,15 +108,15 @@ static int setLimits (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 2
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set limits
-	getFilter(self)->setLimits((unsigned short)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned short)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1))));
+	getFilter(self)->setLimits((unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+		(unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))));
 	// success
 	return 0;
 }

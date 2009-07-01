@@ -416,12 +416,12 @@ static int rna_UILayout_active_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetActive(ptr->data, value);
+	uiLayoutSetActive(ptr->data, value);
 }
 
 static void rna_UILayout_op_context_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetOperatorContext(ptr->data, value);
+	uiLayoutSetOperatorContext(ptr->data, value);
 }
 
 static int rna_UILayout_op_context_get(struct PointerRNA *ptr)
@@ -436,7 +436,7 @@ static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_enabled_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetEnabled(ptr->data, value);
+	uiLayoutSetEnabled(ptr->data, value);
 }
 
 static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
@@ -446,7 +446,7 @@ static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_red_alert_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetRedAlert(ptr->data, value);
+	uiLayoutSetRedAlert(ptr->data, value);
 }
 
 static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
@@ -456,7 +456,7 @@ static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_keep_aspect_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetKeepAspect(ptr->data, value);
+	uiLayoutSetKeepAspect(ptr->data, value);
 }
 
 static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
@@ -466,7 +466,7 @@ static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetAlignment(ptr->data, value);
+	uiLayoutSetAlignment(ptr->data, value);
 }
 
 static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
@@ -476,7 +476,7 @@ static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_scale_x_set(struct PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleX(ptr->data, value);
+	uiLayoutSetScaleX(ptr->data, value);
 }
 
 static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
@@ -486,7 +486,7 @@ static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleY(ptr->data, value);
+	uiLayoutSetScaleY(ptr->data, value);
 }
 
 #else // RNA_RUNTIME

@@ -163,6 +163,46 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sfilen;
 }
 
+static void file_refresh(const bContext *C, ScrArea *sa)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+
+	if (!sfile->files) {
+		sfile->files = filelist_new();
+		filelist_setdir(sfile->files, params->dir);
+		params->active_file = -1; // added this so it opens nicer (ton)
+	}
+	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
+	if (filelist_empty(sfile->files))
+	{
+		filelist_readdir(sfile->files);
+	}
+	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
+	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
+}
+
+static void file_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	SpaceFile* sfile = (SpaceFile*)sa->spacedata.first;
+
+	/* context changes */
+	switch(wmn->category) {
+		case NC_FILE:
+			switch (wmn->data) {
+				case ND_FILELIST:
+					if (sfile->files) filelist_free(sfile->files);
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_PARAMS:
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
+	}
+}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
@@ -188,30 +228,8 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
-	
-	if (!sfile->files) {
-		sfile->files = filelist_new();
-		filelist_setdir(sfile->files, params->dir);
-		params->active_file = -1; // added this so it opens nicer (ton)
-	}
 
 	layout = ED_fileselect_get_layout(sfile, ar);
-
-	if (filelist_empty(sfile->files))
-	{
-		unsigned int filter = 0;
-		filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
-		if (params->flag & FILE_FILTER) {
-			filter = params->filter ;
-		} else {
-			filter = 0;
-		}
-
-		filelist_setfilter(sfile->files, filter);
-		filelist_readdir(sfile->files);
-		
-		if(params->sort!=FILE_SORTALPHA) filelist_sort(sfile->files, params->sort);		
-	}
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -274,20 +292,25 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_refresh);
 	WM_operatortype_append(FILE_OT_bookmark_toggle);
+	WM_operatortype_append(FILE_OT_add_bookmark);
+	WM_operatortype_append(FILE_OT_delete_bookmark);
+	WM_operatortype_append(FILE_OT_hidedot);
 }
 
 /* NOTE: do not add .blend file reading on this level */
 void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
-	
+	WM_keymap_add_item(keymap, "FILE_OT_add_bookmark", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
-
+	
 	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_bookmark", LEFTMOUSE, KM_PRESS, 0, 0);
 }
@@ -295,56 +318,31 @@ void file_keymap(struct wmWindowManager *wm)
 
 static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
-
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
-
-	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
+	ED_region_panels_init(wm, ar);
 }
 
 static void file_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	View2D *v2d= &ar->v2d;
-	float col[3];
+	ED_region_panels(C, ar, 1, NULL);
+}
 
-	UI_GetThemeColor3fv(TH_PANEL, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/* data... */
-	UI_view2d_view_ortho(C, v2d);
-
-	file_draw_fsmenu(C, ar);
+static void file_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		
+	}
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void file_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	file_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -386,6 +384,8 @@ void ED_spacetype_file(void)
 	st->free= file_free;
 	st->init= file_init;
 	st->duplicate= file_duplicate;
+	st->refresh= file_refresh;
+	st->listener= file_listener;
 	st->operatortypes= file_operatortypes;
 	st->keymap= file_keymap;
 	
@@ -405,6 +405,7 @@ void ED_spacetype_file(void)
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	art->init= file_header_area_init;
 	art->draw= file_header_area_draw;
+	// art->listener= file_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: ui */
@@ -421,10 +422,13 @@ void ED_spacetype_file(void)
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 240;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->listener= file_channel_area_listener;
 	art->init= file_channel_area_init;
 	art->draw= file_channel_area_draw;
 	BLI_addhead(&st->regiontypes, art);
-	
+	file_panels_register(art);
+
+
 	BKE_spacetype_register(st);
 
 }

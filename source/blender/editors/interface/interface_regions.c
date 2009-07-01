@@ -435,6 +435,9 @@ struct uiSearchItems {
 	char **names;
 	void **pointers;
 	int *icons;
+
+	AutoComplete *autocpl;
+	void *active;
 };
 
 typedef struct uiSearchboxData {
@@ -451,6 +454,19 @@ typedef struct uiSearchboxData {
 /* returns zero if nothing to add */
 int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid)
 {
+	/* hijack for autocomplete */
+	if(items->autocpl) {
+		autocomplete_do_name(items->autocpl, name);
+		return 1;
+	}
+	
+	/* hijack for finding active item */
+	if(items->active) {
+		if(poin==items->active)
+			items->offset_i= items->totitem;
+		items->totitem++;
+		return 1;
+	}
 	
 	if(items->totitem>=items->maxitem) {
 		items->more= 1;
@@ -590,20 +606,52 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 	/* reset vars */
 	data->items.totitem= 0;
 	data->items.more= 0;
-	if(reset==0)
+	if(reset==0) {
 		data->items.offset_i= data->items.offset;
+	}
 	else {
 		data->items.offset_i= data->items.offset= 0;
 		data->active= 0;
+		
+		/* handle active */
+		if(but->search_func && but->func_arg2) {
+			data->items.active= but->func_arg2;
+			but->search_func(C, but->search_arg, but->editstr, &data->items);
+			data->items.active= NULL;
+			
+			/* found active item, calculate real offset by centering it */
+			if(data->items.totitem) {
+				/* first case, begin of list */
+				if(data->items.offset_i < data->items.maxitem) {
+					data->active= data->items.offset_i+1;
+					data->items.offset_i= 0;
+				}
+				else {
+					/* second case, end of list */
+					if(data->items.totitem - data->items.offset_i <= data->items.maxitem) {
+						data->active= 1 + data->items.offset_i - data->items.totitem + data->items.maxitem;
+						data->items.offset_i= data->items.totitem - data->items.maxitem;
+					}
+					else {
+						/* center active item */
+						data->items.offset_i -= data->items.maxitem/2;
+						data->active= 1 + data->items.maxitem/2;
+					}
+				}
+			}
+			data->items.offset= data->items.offset_i;
+			data->items.totitem= 0;
+		}
 	}
 	
 	/* callback */
 	if(but->search_func)
 		but->search_func(C, but->search_arg, but->editstr, &data->items);
 	
-	if(reset) {
+	/* handle case where editstr is equal to one of items */
+	if(reset && data->active==0) {
 		int a;
-		/* handle case where editstr is equal to one of items */
+		
 		for(a=0; a<data->items.totitem; a++) {
 			char *cpoin= strchr(data->items.names[a], '|');
 			
@@ -620,6 +668,18 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, int reset)
 	ui_searchbox_select(C, ar, but, 0);
 	
 	ED_region_tag_redraw(ar);
+}
+
+void ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
+{
+	uiSearchboxData *data= ar->regiondata;
+
+	data->items.autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
+
+	but->search_func(C, but->search_arg, but->editstr, &data->items);
+
+	autocomplete_end(data->items.autocpl, str);
+	data->items.autocpl= NULL;
 }
 
 static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
@@ -647,13 +707,15 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 		}
 		/* indicate more */
 		if(data->items.more) {
+			ui_searchbox_butrect(&rect, data, data->items.maxitem-1);
 			glEnable(GL_BLEND);
-			UI_icon_draw((data->bbox.xmax-data->bbox.xmin)/2, 8, ICON_TRIA_DOWN);
+			UI_icon_draw((rect.xmax-rect.xmin)/2, rect.ymin-9, ICON_TRIA_DOWN);
 			glDisable(GL_BLEND);
 		}
 		if(data->items.offset) {
+			ui_searchbox_butrect(&rect, data, 0);
 			glEnable(GL_BLEND);
-			UI_icon_draw((data->bbox.xmax-data->bbox.xmin)/2, data->bbox.ymax-13, ICON_TRIA_UP);
+			UI_icon_draw((rect.xmax-rect.xmin)/2, rect.ymax-7, ICON_TRIA_UP);
 			glDisable(GL_BLEND);
 		}
 	}
@@ -683,7 +745,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiSearchboxData *data;
 	float aspect= but->block->aspect;
 	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy;
+	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
 	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
@@ -736,6 +798,14 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		x2f= but->x2 + 5;	/* symmetrical */
 		y2f= but->y1;
 		y1f= y2f - uiSearchBoxhHeight();
+
+		ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
+		ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
+
+		x1f += ofsx;
+		x2f += ofsx;
+		y1f += ofsy;
+		y2f += ofsy;
 	
 		/* minimal width */
 		if(x2f - x1f < 150) x2f= x1f+150; // XXX arbitrary
@@ -2692,6 +2762,8 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
 		else if(report->type >= RPT_WARNING)
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
+		else if(report->type >= RPT_INFO)
+			BLI_dynstr_appendf(ds, "Info %%t|%s", report->message);
 	}
 
 	str= BLI_dynstr_get_cstring(ds);

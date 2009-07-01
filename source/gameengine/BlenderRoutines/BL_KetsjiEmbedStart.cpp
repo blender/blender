@@ -65,6 +65,14 @@
 
 #include "SYS_System.h"
 
+#include "GPU_extensions.h"
+#include "Value.h"
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 	/***/
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -77,21 +85,13 @@
 //XXX #include "BIF_scrarea.h"
 
 #include "BKE_main.h"
-//#include "BKE_context.h"
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
 #include "DNA_scene_types.h"
 	/***/
 
-#include "GPU_extensions.h"
-#include "Value.h"
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 //XXX #include "BSE_headerbuttons.h"
+#include "BKE_context.h"
 #include "../../blender/windowmanager/WM_types.h"
 #include "../../blender/windowmanager/wm_window.h"
 #include "../../blender/windowmanager/wm_event_system.h"
@@ -118,19 +118,10 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-
-/* screw it, BKE_context.h is complaining! */
-extern "C" struct wmWindow *CTX_wm_window(const bContext *C);
-extern "C" struct ScrArea *CTX_wm_area(const bContext *C);
-extern "C" struct ARegion *CTX_wm_region(const bContext *C);
-extern "C" struct Scene *CTX_data_scene(const bContext *C);
-extern "C" struct Main *CTX_data_main(const bContext *C);
-
 extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_framing)
 {
 	/* context values */
 	struct wmWindow *win= CTX_wm_window(C);
-	struct ScrArea *area= CTX_wm_area(C); // curarea
 	struct ARegion *ar= CTX_wm_region(C);
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
@@ -159,8 +150,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 
 	do
 	{
-		View3D *v3d= (View3D*) area->spacedata.first;
-		RegionView3D *rv3d= (RegionView3D*) ar->regiondata;
+		View3D *v3d= CTX_wm_view3d(C);
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -239,13 +230,12 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 			scene->camera= v3d->camera;
 		}
 
-	
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
 		float camzoom;
 		int i;
-		
+
 		for (i = 0; i < 16; i++)
 		{
 			float *viewmat_linear= (float*) rv3d->viewmat;
@@ -257,7 +247,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		if(v3d->persp==V3D_CAMOB) {
+		if(rv3d->persp==V3D_CAMOB) {
 			camzoom = (1.41421 + (rv3d->camzoom / 50.0));
 			camzoom *= camzoom;
 		}
@@ -348,10 +338,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (v3d->persp != V3D_CAMOB)
+			if (rv3d->persp != V3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
+				ketsjiengine->SetCameraOverrideUseOrtho((rv3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
@@ -587,7 +577,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 }
 
 extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
-								 struct ScrArea *area,
 								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,

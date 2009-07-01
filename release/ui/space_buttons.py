@@ -11,7 +11,7 @@ class Buttons_HT_header(bpy.types.Header):
 		so = context.space_data
 		scene = context.scene
 
-		layout.template_header(context)
+		layout.template_header()
 
 		if context.area.show_menus:
 			row = layout.row(align=True)

@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

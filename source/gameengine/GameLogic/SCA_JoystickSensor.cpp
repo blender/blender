@@ -46,9 +46,8 @@ SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   short int joymode,
 									   int axis, int axisf,int prec,
 									   int button,
-									   int hat, int hatf, bool allevents,
-									   PyTypeObject* T )
-									   :SCA_ISensor(gameobj,eventmgr,T),
+									   int hat, int hatf, bool allevents)
+									   :SCA_ISensor(gameobj,eventmgr),
 									   m_pJoystickMgr(eventmgr),
 									   m_axis(axis),
 									   m_axisf(axisf),
@@ -269,22 +268,16 @@ PyTypeObject SCA_JoystickSensor::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-
-PyParentObject SCA_JoystickSensor::Parents[] = {
-		&SCA_JoystickSensor::Type,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
 		&SCA_ISensor::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
+		0,0,0,0,0,0,
+		py_base_new
 };
-
 
 PyMethodDef SCA_JoystickSensor::Methods[] = {
 	//Deprecated functions ------>
@@ -328,20 +321,6 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_JoystickSensor::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_JoystickSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_JoystickSensor::py_setattro(PyObject *attr, PyObject *value) 
-{
-	py_setattro_up(SCA_ISensor);
-}
-
 
 /* get index ---------------------------------------------------------- */
 const char SCA_JoystickSensor::GetIndex_doc[] = 
@@ -349,7 +328,7 @@ const char SCA_JoystickSensor::GetIndex_doc[] =
 "\tReturns the joystick index to use.\n";
 PyObject* SCA_JoystickSensor::PyGetIndex( ) {
 	ShowDeprecationWarning("getIndex()", "the index property");
-	return PyInt_FromLong(m_joyindex);
+	return PyLong_FromSsize_t(m_joyindex);
 }
 
 
@@ -359,7 +338,7 @@ const char SCA_JoystickSensor::SetIndex_doc[] =
 "\tSets the joystick index to use.\n";
 PyObject* SCA_JoystickSensor::PySetIndex( PyObject* value ) {
 	ShowDeprecationWarning("setIndex()", "the index property");
-	int index = PyInt_AsLong( value ); /* -1 on error, will raise an error in this case */
+	int index = PyLong_AsSsize_t( value ); /* -1 on error, will raise an error in this case */
 	if (index < 0 || index >= JOYINDEX_MAX) {
 		PyErr_SetString(PyExc_ValueError, "joystick index out of range or not an int");
 		return NULL;
@@ -410,7 +389,7 @@ PyObject* SCA_JoystickSensor::PyGetAxisValue( ) {
 	PyObject *list= PyList_New(axis_index);
 	
 	while(axis_index--) {
-		PyList_SET_ITEM(list, axis_index, PyInt_FromLong(joy->GetAxisPosition(axis_index)));
+		PyList_SET_ITEM(list, axis_index, PyLong_FromSsize_t(joy->GetAxisPosition(axis_index)));
 	}
 	
 	return list;
@@ -423,7 +402,7 @@ const char SCA_JoystickSensor::GetThreshold_doc[] =
 "\tReturns the threshold of the axis.\n";
 PyObject* SCA_JoystickSensor::PyGetThreshold( ) {
 	ShowDeprecationWarning("getThreshold()", "the threshold property");
-	return PyInt_FromLong(m_precision);
+	return PyLong_FromSsize_t(m_precision);
 }
 
 
@@ -447,7 +426,7 @@ const char SCA_JoystickSensor::GetButton_doc[] =
 "\tReturns the current button this sensor is checking.\n";
 PyObject* SCA_JoystickSensor::PyGetButton( ) {
 	ShowDeprecationWarning("getButton()", "the button property");
-	return PyInt_FromLong(m_button);
+	return PyLong_FromSsize_t(m_button);
 }
 
 /* set button  -------------------------------------------------------- */
@@ -456,7 +435,7 @@ const char SCA_JoystickSensor::SetButton_doc[] =
 "\tSets the button the sensor reacts to.\n";
 PyObject* SCA_JoystickSensor::PySetButton( PyObject* value ) {
 	ShowDeprecationWarning("setButton()", "the button property");
-	int button = PyInt_AsLong(value);
+	int button = PyLong_AsSsize_t(value);
 	if(button==-1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_ValueError, "expected an int");
 		return NULL;
@@ -487,7 +466,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonActiveList( ) {
 	if(joy) {
 		for (i=0; i < joy->GetNumberOfButtons(); i++) {
 			if (joy->aButtonPressIsPositive(i)) {
-				value = PyInt_FromLong(i);
+				value = PyLong_FromSsize_t(i);
 				PyList_Append(ls, value);
 				Py_DECREF(value);
 			}
@@ -549,7 +528,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfAxes( ) {
 	ShowDeprecationWarning("getNumAxes()", "the numAxis property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	// when the joystick is null their is 0 exis still. dumb but scripters should use isConnected()
-	return PyInt_FromLong( joy ? joy->GetNumberOfAxes() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfAxes() : 0 );
 }
 
 
@@ -559,7 +538,7 @@ const char SCA_JoystickSensor::NumberOfButtons_doc[] =
 PyObject* SCA_JoystickSensor::PyNumberOfButtons( ) {
 	ShowDeprecationWarning("getNumButtons()", "the numButtons property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfButtons() : 0 );
 }
 
 
@@ -569,7 +548,7 @@ const char SCA_JoystickSensor::NumberOfHats_doc[] =
 PyObject* SCA_JoystickSensor::PyNumberOfHats( ) {
 	ShowDeprecationWarning("getNumHats()", "the numHats property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfHats() : 0 );
 }
 
 const char SCA_JoystickSensor::Connected_doc[] = 
@@ -591,7 +570,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_values(void *self_v, const KX_PYAT
 	PyObject *list= PyList_New(axis_index);
 	
 	while(axis_index--) {
-		PyList_SET_ITEM(list, axis_index, PyInt_FromLong(joy->GetAxisPosition(axis_index)));
+		PyList_SET_ITEM(list, axis_index, PyLong_FromSsize_t(joy->GetAxisPosition(axis_index)));
 	}
 	
 	return list;
@@ -607,7 +586,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 		return NULL;
 	}
 	
-	return PyInt_FromLong(joy->GetAxisPosition(self->m_axis-1));
+	return PyLong_FromSsize_t(joy->GetAxisPosition(self->m_axis-1));
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_hat_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -619,7 +598,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_hat_values(void *self_v, const KX_PYATT
 	PyObject *list= PyList_New(hat_index);
 	
 	while(hat_index--) {
-		PyList_SET_ITEM(list, hat_index, PyInt_FromLong(joy->GetHat(hat_index)));
+		PyList_SET_ITEM(list, hat_index, PyLong_FromSsize_t(joy->GetHat(hat_index)));
 	}
 	
 	return list;
@@ -630,28 +609,28 @@ PyObject* SCA_JoystickSensor::pyattr_get_hat_single(void *self_v, const KX_PYATT
 	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
 	
-	return PyInt_FromLong(joy->GetHat(self->m_hat-1));
+	return PyLong_FromSsize_t(joy->GetHat(self->m_hat-1));
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
-	return PyInt_FromLong( joy ? joy->GetNumberOfAxes() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfAxes() : 0 );
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
-	return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfButtons() : 0 );
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_JoystickSensor* self= static_cast<SCA_JoystickSensor*>(self_v);
 	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
-	return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
+	return PyLong_FromSsize_t( joy ? joy->GetNumberOfHats() : 0 );
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_connected(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

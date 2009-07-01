@@ -559,7 +559,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
-			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+			if(!psys_check_enabled(ob, psys))
 				continue;
 
 			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&

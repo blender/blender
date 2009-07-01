@@ -2205,11 +2205,9 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
 	*sfra = MAX2(1, (int)part->sta);
 	*efra = MIN2((int)(part->end + part->lifetime + 1.0), scene->r.efra);
 }
-static float *particle_state_ptr(int index, void *psys_ptr)
+static void particle_write_state(int index, ParticleSystem *psys, float *data)
 {
-	ParticleSystem *psys= psys_ptr;
-
-	return (float *)(&(psys->particles+index)->state);
+	memcpy(data, (float *)(&(psys->particles+index)->state), sizeof(ParticleKey));
 }
 static void particle_read_state(int index, void *psys_ptr, float *data)
 {
@@ -2222,24 +2220,35 @@ static void particle_read_state(int index, void *psys_ptr, float *data)
 
 	copy_particle_key(&pa->state, key, 1);
 }
-static void particle_cache_interpolate(int index, void *psys_ptr, float frs_sec, float cfra, int cfra1, int cfra2, float *data1, float *data2)
+static void particle_cache_interpolate(int index, void *psys_ptr, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2)
 {
 	ParticleSystem *psys= psys_ptr;
 	ParticleData *pa = psys->particles + index;
 	ParticleKey keys[4];
-	float dfra;
+	float dfra, cfra1f = (float)cfra1, cfra2f(float);
+
+	cfra = MIN2(cfra, pa->dietime);
+	cfra1 = MIN2(cfra1, pa->dietime);
+	cfra2 = MIN2(cfra2, pa->dietime);
 
 	keys[1] = *((ParticleKey*)data1);
 	keys[2] = *((ParticleKey*)data2);
 
-	dfra = keys[2].time - keys[1].time;
+	if(cfra1 == cfra2) {
+		copy_particle_key(&pa->state, &keys[1], 1);
+		return;
+	}
+
+	dfra = cfra2 - cfra1;
 
 	VecMulf(keys[1].vel, dfra / frs_sec);
 	VecMulf(keys[2].vel, dfra / frs_sec);
 
-	psys_interpolate_particle(-1, keys, (keys[1].time - cfra) / dfra, &pa->state, 1);
+	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
 
 	VecMulf(pa->state.vel, frs_sec / dfra);
+
+	pa->state.time = cfra;
 }
 static void write_particles_to_cache(Object *ob, ParticleSystem *psys, int cfra)
 {
@@ -2250,22 +2259,20 @@ static void write_particles_to_cache(Object *ob, ParticleSystem *psys, int cfra)
 
 	writer.calldata = psys;
 	writer.cfra = cfra;
-	writer.elem_ptr = particle_state_ptr;
+	writer.set_elem = particle_write_state;
 	writer.pid = &pid;
 	writer.totelem = psys->totpart;
 
 	BKE_ptcache_write_cache(&writer);
 }
 
-static int get_particles_from_cache(Scene *scene, Object *ob, ParticleSystem *psys, float cfra, int allow_interpolate, int allow_old, int *old_frame)
+static int get_particles_from_cache(Scene *scene, Object *ob, ParticleSystem *psys, float cfra, int *old_frame)
 {
 	PTCacheReader reader;
 	PTCacheID pid;
 	
 	BKE_ptcache_id_from_particles(&pid, ob, psys);
 
-	reader.allow_interpolate = allow_interpolate;
-	reader.allow_old = allow_old;
 	reader.calldata = psys;
 	reader.cfra = cfra;
 	reader.interpolate_elem = particle_cache_interpolate;
@@ -2402,6 +2409,8 @@ static void add_to_effectors(ListBase *lb, Scene *scene, Object *ob, Object *obs
 		Object *tob;
 
 		for(i=0; epsys; epsys=epsys->next,i++){
+			if(!psys_check_enabled(ob, epsys))
+				continue;
 			type=0;
 			if(epsys!=psys || (psys->part->flag & PART_SELF_EFFECT)){
 				epart=epsys->part;
@@ -4366,7 +4375,7 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 			pa->alive = PARS_UNBORN;
 		else if(dietime <= cfra){
 			if(dietime > psys->cfra){
-				state.time = pa->dietime;
+				state.time = dietime;
 				psys_get_particle_state(scene, ob,psys,p,&state,1);
 				push_reaction(ob,psys,p,PART_EVENT_DEATH,&state);
 			}
@@ -4668,9 +4677,9 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 
 	/* try to read from the cache */
 	if(usecache) {
-		int result = get_particles_from_cache(scene, ob, psys, (float)framenr, 0, 1, &old_framenr);
+		int result = get_particles_from_cache(scene, ob, psys, (float)framenr, &old_framenr);
 
-		if(result == PTCACHE_READ_EXACT) {
+		if(result == PTCACHE_READ_EXACT || result == PTCACHE_READ_INTERPOLATED) {
 			//if(part->phystype==PART_PHYS_KEYED && psys->flag&PSYS_FIRST_KEYED) {
 			//	psys_count_keyed_targets(ob,psys);
 			//	set_keyed_keys(scene, ob, psys);
@@ -4687,15 +4696,12 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 			cache->simframe= framenr;
 			cache->flag |= PTCACHE_SIMULATION_VALID;
 
-			if(cache->flag & PTCACHE_OUTDATED)
-				BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
+			if(result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+				write_particles_to_cache(ob, psys, cfra);
 
 			return;
 		}
-		else if((cache->flag & PTCACHE_AUTOCACHE)==0 && result==PTCACHE_READ_OLD) {
-			/* clear cache after current frame */
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
-
+		else if(result==PTCACHE_READ_OLD) {
 			/* set old cfra */
 			psys->cfra = (float)old_framenr;
 
@@ -4712,15 +4718,6 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 		else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
 			psys_reset(psys, PSYS_RESET_CACHE_MISS);
 			psys->cfra=cfra;
-			psys->recalc = 0;
-			return;
-		}
-
-		if(framenr != startframe && framedelta != 1 && cache->flag & PTCACHE_AUTOCACHE) {
-			//psys_reset(psys, PSYS_RESET_CACHE_MISS);
-			/* make sure cache is recalculated */
-			BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_FRAME, (int)cfra);
-			psys->cfra = cfra;
 			psys->recalc = 0;
 			return;
 		}

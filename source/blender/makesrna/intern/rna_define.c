@@ -112,7 +112,7 @@ StructDefRNA *rna_find_struct_def(StructRNA *srna)
 	return NULL;
 }
 
-PropertyDefRNA *rna_find_struct_property_def(PropertyRNA *prop)
+PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 {
 	StructDefRNA *dsrna;
 	PropertyDefRNA *dprop;
@@ -123,7 +123,7 @@ PropertyDefRNA *rna_find_struct_property_def(PropertyRNA *prop)
 		return NULL;
 	}
 
-	dsrna= rna_find_struct_def(DefRNA.laststruct);
+	dsrna= rna_find_struct_def(srna);
 	dprop= dsrna->cont.properties.last;
 	for (; dprop; dprop= dprop->prev)
 		if (dprop->prop==prop)
@@ -150,7 +150,7 @@ PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 		return NULL;
 	}
 
-	dprop= rna_find_struct_property_def(prop);
+	dprop= rna_find_struct_property_def(DefRNA.laststruct, prop);
 	if (dprop)
 		return dprop;
 
@@ -1311,7 +1311,7 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 	if (dp==NULL) return NULL;
 
 	ds= rna_find_struct_def((StructRNA*)dp->cont);
@@ -1371,7 +1371,7 @@ void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *struc
 
 	RNA_def_property_boolean_sdna(prop, structname, propname, booleanbit);
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 
 	if(dp)
 		dp->booleannegative= 1;
@@ -1468,7 +1468,7 @@ void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structnam
 
 	RNA_def_property_enum_sdna(prop, structname, propname);
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 
 	if(dp)
 		dp->enumbitflags= 1;
@@ -2249,7 +2249,6 @@ int rna_parameter_size(PropertyRNA *parm)
 #endif
 			}
 			case PROP_COLLECTION:
-				/* XXX does not work yet */
 				return sizeof(ListBase);
 		}
 	}

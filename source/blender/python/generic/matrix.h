@@ -33,8 +33,7 @@
 #include <Python.h>
 
 extern PyTypeObject matrix_Type;
-
-#define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
+#define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 
 typedef float **ptRow;
 typedef struct _Matrix { /* keep aligned with BaseMathObject in Mathutils.h */
@@ -58,7 +57,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 /*prototypes*/
-PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type);
+PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type, PyTypeObject *base_type);
 PyObject *newMatrixObject_cb(PyObject *user, int rowSize, int colSize, int cb_type, int cb_subtype);
 
 extern int mathutils_matrix_vector_cb_index;

@@ -49,7 +49,6 @@ void				filelist_free_icons();
 struct FileList *	filelist_copy(struct FileList* filelist);
 int					filelist_find(struct FileList* filelist, char *file);
 void				filelist_free(struct FileList* filelist);
-void				filelist_freelib(struct FileList* filelist);
 void				filelist_sort(struct FileList* filelist, short sort);
 int					filelist_numfiles(struct FileList* filelist);
 const char *		filelist_dir(struct FileList* filelist);

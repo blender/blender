@@ -34,8 +34,7 @@
 #include "../intern/bpy_compat.h"
 
 extern PyTypeObject vector_Type;
-
-#define VectorObject_Check(v) (((PyObject *)v)->ob_type == &vector_Type)
+#define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
 
 typedef struct { /* keep aligned with BaseMathObject in Mathutils.h */
 	PyObject_VAR_HEAD 
@@ -50,7 +49,7 @@ typedef struct { /* keep aligned with BaseMathObject in Mathutils.h */
 } VectorObject;
 
 /*prototypes*/
-PyObject *newVectorObject(float *vec, int size, int type);
+PyObject *newVectorObject(float *vec, int size, int type, PyTypeObject *base_type);
 PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
 
 #endif				/* EXPP_vector_h */

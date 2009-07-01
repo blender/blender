@@ -1088,7 +1088,7 @@ static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v)
 				}
 				
 				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(ima, PF_ASK);
+					unpackImage(NULL, ima, PF_ASK); /* XXX report errors */
 					ED_undo_push(C, "Unpack image");
 				}
 			} 
@@ -1097,7 +1097,7 @@ static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v)
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 					// XXX error("Can't pack painted image. Save image or use Repack as PNG.");
 				} else {
-					ima->packedfile = newPackedFile(ima->name);
+					ima->packedfile = newPackedFile(NULL, ima->name); /* XXX report errors */
 					ED_undo_push(C, "Pack image");
 				}
 			}

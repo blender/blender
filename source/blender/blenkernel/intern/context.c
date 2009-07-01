@@ -358,6 +358,9 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 		return 1;
 	}
 
+	list->first= NULL;
+	list->last= NULL;
+
 	return 0;
 }
 

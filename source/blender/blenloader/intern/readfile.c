@@ -5595,21 +5595,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* temporarily hide it */
 				ar->flag = RGN_FLAG_HIDDEN;
 				break;
-				
-			case SPACE_FILE:
-				/* channel (bookmarks/directories) region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
-				ar->alignment= RGN_ALIGN_LEFT;
-				ar->v2d.scroll= V2D_SCROLL_RIGHT;
-				/* button UI region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
-				ar->alignment= RGN_ALIGN_TOP;
-				break;
-
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
@@ -9013,6 +8998,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tx;
 		ParticleSettings *part;
 		Object *ob;
+		PTCacheID *pid;
+		ListBase pidlist;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -9073,14 +9060,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
-			ParticleSystem *psys = ob->particlesystem.first;
 
-			for(; psys; psys=psys->next) {
-				if(psys->pointcache)
-					psys->pointcache->flag |= PTCACHE_DISK_CACHE;
-			}
+			BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			/* TODO: softbody & cloth caches */
+			for(pid=pidlist.first; pid; pid=pid->next)
+				pid->cache->flag |= PTCACHE_DISK_CACHE;
+
+			BLI_freelistN(&pidlist);
 		}
 	}
 

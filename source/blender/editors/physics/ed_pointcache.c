@@ -31,6 +31,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_force.h"
+#include "DNA_modifier_types.h"
 
 #include "BKE_context.h"
 #include "BKE_particle.h"
@@ -39,7 +40,7 @@
 #include "BKE_utildefines.h" 
 #include "BKE_pointcache.h"
 #include "BKE_global.h"
-#include "BKE_multires.h"
+#include "BKE_modifier.h"
 
 #include "BLI_blenlib.h"
 
@@ -81,6 +82,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.pid = NULL;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
+	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 	baker.progressbar = (void (*)(void *, int))WM_timecursor;
@@ -104,11 +106,10 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *op)
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			pid->cache->flag &= ~PTCACHE_BAKED;
-			BKE_ptcache_id_reset(scene, pid, PTCACHE_RESET_OUTDATED);
 		}
+		
+		BLI_freelistN(&pidlist);
 	}
-
-	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 
@@ -127,6 +128,8 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
 }
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
@@ -137,6 +140,112 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= ptcache_free_bake_all_exec;
 	ot->poll= ptcache_bake_all_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/**************************** cloth **********************************/
+static int ptcache_bake_cloth_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+
+	if(!scene || !ob || ob->id.lib || !clmd)
+		return 0;
+	
+	return 1;
+}
+
+static int ptcache_bake_cloth_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	PTCacheID pid;
+	PTCacheBaker baker;
+
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+
+	baker.scene = scene;
+	baker.pid = &pid;
+	baker.bake = RNA_boolean_get(op->ptr, "bake");
+	baker.render = 0;
+	baker.quick_step = 1;
+	baker.break_test = cache_break_test;
+	baker.break_data = NULL;
+	baker.progressbar = WM_timecursor;
+	baker.progresscontext = CTX_wm_window(C);
+
+	BKE_ptcache_make_cache(&baker);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+static int ptcache_free_bake_cloth_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	PTCacheID pid;
+
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	pid.cache->flag &= ~PTCACHE_BAKED;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+void PTCACHE_OT_cache_cloth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake Cloth";
+	ot->idname= "PTCACHE_OT_cache_cloth";
+	
+	/* api callbacks */
+	ot->exec= ptcache_bake_cloth_exec;
+	ot->poll= ptcache_bake_cloth_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
+}
+void PTCACHE_OT_free_bake_cloth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Free Cloth Bake";
+	ot->idname= "PTCACHE_OT_free_bake_cloth";
+	
+	/* api callbacks */
+	ot->exec= ptcache_free_bake_cloth_exec;
+	ot->poll= ptcache_bake_cloth_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+static int ptcache_bake_from_cloth_cache_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	PTCacheID pid;
+
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	pid.cache->flag |= PTCACHE_BAKED;
+
+	return OPERATOR_FINISHED;
+}
+void PTCACHE_OT_bake_from_cloth_cache(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake From Cache";
+	ot->idname= "PTCACHE_OT_bake_from_cloth_cache";
+	
+	/* api callbacks */
+	ot->exec= ptcache_bake_from_cloth_cache_exec;
+	ot->poll= ptcache_bake_cloth_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -168,6 +277,7 @@ static int ptcache_bake_particle_system_exec(bContext *C, wmOperator *op)
 	baker.pid = &pid;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
+	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 	baker.progressbar = (void (*)(void *, int))WM_timecursor;
@@ -188,7 +298,6 @@ static int ptcache_free_bake_particle_system_exec(bContext *C, wmOperator *op)
 
 	BKE_ptcache_id_from_particles(&pid, ob, psys);
 	psys->pointcache->flag &= ~PTCACHE_BAKED;
-	BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 
@@ -256,6 +365,9 @@ void ED_operatortypes_pointcache(void)
 	WM_operatortype_append(PTCACHE_OT_cache_particle_system);
 	WM_operatortype_append(PTCACHE_OT_free_bake_particle_system);
 	WM_operatortype_append(PTCACHE_OT_bake_from_particles_cache);
+	WM_operatortype_append(PTCACHE_OT_cache_cloth);
+	WM_operatortype_append(PTCACHE_OT_free_bake_cloth);
+	WM_operatortype_append(PTCACHE_OT_bake_from_cloth_cache);
 }
 
 //void ED_keymap_pointcache(wmWindowManager *wm)

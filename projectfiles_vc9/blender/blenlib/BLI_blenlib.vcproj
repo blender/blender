@@ -652,7 +652,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_fileops.h"
+				RelativePath="..\..\..\source\blender\blenlib\BLI_fileops.h"
 				>
 			</File>
 			<File

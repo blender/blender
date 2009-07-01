@@ -42,10 +42,9 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_NORController::SCA_NORController(SCA_IObject* gameobj,
-									 PyTypeObject* T)
+SCA_NORController::SCA_NORController(SCA_IObject* gameobj)
 	:
-	SCA_IController(gameobj,T)
+	SCA_IController(gameobj)
 {
 }
 
@@ -116,19 +115,15 @@ PyTypeObject SCA_NORController::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_NORController::Parents[] = {
-	&SCA_NORController::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IController::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_NORController::Methods[] = {
@@ -138,13 +133,5 @@ PyMethodDef SCA_NORController::Methods[] = {
 PyAttributeDef SCA_NORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_NORController::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IController);
-}
-
-PyObject* SCA_NORController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IController);
-}
 
 /* eof */

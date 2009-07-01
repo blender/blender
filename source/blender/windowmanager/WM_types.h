@@ -128,6 +128,7 @@ typedef struct wmNotifier {
 #define	NC_BRUSH			(11<<24)
 #define	NC_TEXT				(12<<24)
 #define NC_WORLD			(13<<24)
+#define NC_FILE				(14<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -182,6 +183,10 @@ typedef struct wmNotifier {
 	/* NC_TEXT Text */
 #define ND_CURSOR			(50<<16)
 #define ND_DISPLAY			(51<<16)
+	
+	/* NC_FILE Filebrowser */
+#define ND_PARAMS			(60<<16)
+#define ND_FILELIST			(61<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

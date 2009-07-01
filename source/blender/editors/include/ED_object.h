@@ -63,6 +63,7 @@ struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int
 #define EM_FREEDATA		1
 #define EM_FREEUNDO		2
 #define EM_WAITCURSOR	4
+#define EM_DO_UNDO		8
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 

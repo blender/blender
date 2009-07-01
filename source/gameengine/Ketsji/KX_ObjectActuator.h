@@ -135,8 +135,7 @@ public:
 		const MT_Vector3& linV,
 		const MT_Vector3& angV,
 		const short damping,
-		const KX_LocalFlags& flag,
-		PyTypeObject* T=&Type
+		const KX_LocalFlags& flag
 	);
 	~KX_ObjectActuator();
 	CValue* GetReplica();
@@ -163,10 +162,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int	py_setattro(PyObject *attr, PyObject *value);
 
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForce);

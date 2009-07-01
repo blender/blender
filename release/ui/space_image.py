@@ -96,9 +96,9 @@ class IMAGE_MT_image(bpy.types.Menu):
 				else:
 					layout.itemO("IMAGE_OT_pack")
 
-				# only for dirty && specific image types : XXX poll?
-				#if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				if False:
+				# only for dirty && specific image types, perhaps
+				# this could be done in operator poll too
+				if ima.dirty:
 					if ima.source in ("FILE", "GENERATED") and ima.type != "MULTILAYER":
 						layout.item_booleanO("IMAGE_OT_pack", "as_png", True, text="Pack As PNG")
 
@@ -215,8 +215,10 @@ class IMAGE_HT_header(bpy.types.Header):
 			if show_uvedit:
 				row.itemM("IMAGE_MT_select")
 
-			# XXX menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
-			row.itemM("IMAGE_MT_image")
+			if ima and ima.dirty:
+				row.itemM("IMAGE_MT_image", text="Image*")
+			else:
+				row.itemM("IMAGE_MT_image", text="Image")
 
 			if show_uvedit:
 				row.itemM("IMAGE_MT_uvs")
@@ -273,16 +275,8 @@ class IMAGE_HT_header(bpy.types.Header):
 				row.itemR(settings, "snap_mode", text="")
 
 			"""
-			/* uv layers */
-			{
-				Object *obedit= CTX_data_edit_object(C);
-				char menustr[34*MAX_MTFACE];
-				static int act;
-				
-				image_menu_uvlayers(obedit, menustr, &act);
-
-				but = uiDefButI(block, MENU, B_NOP, menustr ,xco,yco,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing.");
-				// uiButSetFunc(but, do_image_buttons_set_uvlayer_callback, &act, NULL);
+			mesh = context.edit_object.data
+			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_layers")
 			"""
 
 		if ima:
@@ -352,6 +346,10 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 	__region_type__ = "UI"
 	__label__ = "View Properties"
 
+	def poll(self, context):
+		sima = context.space_data
+		return (sima and (sima.image or sima.show_uvedit))
+
 	def draw(self, context):
 		sima = context.space_data
 		layout = self.layout
@@ -366,10 +364,12 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 		if ima:
 			col.itemR(ima, "display_aspect")
 
-		col = split.column()
-		col.itemR(sima, "draw_repeated", text="Repeat")
-		if show_uvedit:
-			col.itemR(uvedit, "normalized_coordinates")
+			col = split.column()
+			col.itemR(sima, "draw_repeated", text="Repeat")
+			if show_uvedit:
+				col.itemR(uvedit, "normalized_coordinates", text="Normalized")
+		elif show_uvedit:
+			col.itemR(uvedit, "normalized_coordinates", text="Normalized")
 
 		if show_uvedit:
 			col = layout.column()
@@ -385,21 +385,6 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 			#col.itemR(uvedit, "draw_edges")
 			#col.itemR(uvedit, "draw_faces")
 
-class IMAGE_PT_curves(bpy.types.Panel):
-	__space_type__ = "IMAGE_EDITOR"
-	__region_type__ = "UI"
-	__label__ = "Curves"
-
-	def poll(self, context):
-		sima = context.space_data
-		return (sima and sima.image)
-
-	def draw(self, context):
-		sima = context.space_data
-		layout = self.layout
-
-		layout.template_curve_mapping(sima.curves)
-
 bpy.types.register(IMAGE_MT_view)
 bpy.types.register(IMAGE_MT_select)
 bpy.types.register(IMAGE_MT_image)
@@ -411,5 +396,4 @@ bpy.types.register(IMAGE_MT_uvs)
 bpy.types.register(IMAGE_HT_header)
 bpy.types.register(IMAGE_PT_game_properties)
 bpy.types.register(IMAGE_PT_view_properties)
-#bpy.types.register(IMAGE_PT_curves)
 
