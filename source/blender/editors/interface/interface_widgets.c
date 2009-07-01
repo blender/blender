@@ -1679,12 +1679,12 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	rect1= *rect;
 
 	if(horizontal) {
-		fac= (rect->xmax - rect->xmin)/(size-1);
+		fac= (rect->xmax - rect->xmin)/(size);
 		rect1.xmin= rect1.xmin + ceil(fac*(value - but->softmin));
 		rect1.xmax= rect1.xmin + ceil(fac*(but->a1 - but->softmin));
 	}
 	else {
-		fac= (rect->ymax - rect->ymin)/(size-1);
+		fac= (rect->ymax - rect->ymin)/(size);
 		rect1.ymax= rect1.ymax - ceil(fac*(value - but->softmin));
 		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
 	}

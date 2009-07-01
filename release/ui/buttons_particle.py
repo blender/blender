@@ -33,7 +33,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "particle_systems", "active_particle_system_index")
+			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
 
 			col = row.column(align=True)
 			col.itemO("OBJECT_OT_particle_system_add", icon="ICON_ZOOMIN", text="")

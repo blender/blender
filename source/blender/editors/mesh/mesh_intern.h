@@ -234,5 +234,14 @@ void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
 
+/* ******************* mesh_layers.c */
+
+void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
+void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
+void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
+void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
+void MESH_OT_sticky_add(struct wmOperatorType *ot);
+void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+
 #endif // MESH_INTERN_H
 

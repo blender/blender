@@ -105,6 +105,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
+
+	int list_scroll, list_size;
+	char list_search[64];
 } Panel;
 
 typedef struct Header {

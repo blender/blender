@@ -439,6 +439,9 @@ typedef struct ToolSettings {
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
 	
+	/* Vertex groups */
+	float vgroup_weight;
+
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
@@ -470,7 +473,6 @@ typedef struct ToolSettings {
 	float uvcalc_radius;
 	float uvcalc_cubesize;
 	float uvcalc_margin;
-	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -537,7 +539,7 @@ typedef struct ToolSettings {
 	/* Alt+RMB option */
 	char edge_mode;
 
-	/* transform */
+	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
 } ToolSettings;

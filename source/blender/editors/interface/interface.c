@@ -2184,7 +2184,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
 
-				if(min == max) {
+				if(type != ROW && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}
@@ -2199,7 +2199,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
-				if(min == max) {
+				if(type != ROW && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}

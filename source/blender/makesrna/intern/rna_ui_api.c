@@ -259,6 +259,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "template_list", "uiTemplateList");
 	api_ui_item_rna_common(func);
+	parm= RNA_def_pointer(func, "active_data", "AnyType", "", "Data from which to take property for the active element.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);

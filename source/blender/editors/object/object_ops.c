@@ -104,6 +104,18 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_mdef_bind);
 
 	WM_operatortype_append(OBJECT_OT_constraint_add);
+
+	WM_operatortype_append(OBJECT_OT_vertex_group_add);
+	WM_operatortype_append(OBJECT_OT_vertex_group_remove);
+	WM_operatortype_append(OBJECT_OT_vertex_group_assign);
+	WM_operatortype_append(OBJECT_OT_vertex_group_remove_from);
+	WM_operatortype_append(OBJECT_OT_vertex_group_select);
+	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
+	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
+	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
+
+	WM_operatortype_append(OBJECT_OT_shape_key_add);
+	WM_operatortype_append(OBJECT_OT_shape_key_remove);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

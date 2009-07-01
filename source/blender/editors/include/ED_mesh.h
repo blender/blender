@@ -110,7 +110,6 @@ void		undo_push_mesh(struct bContext *C, char *name);
 struct EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
 void             EM_set_actFace(struct EditMesh *em, struct EditFace *efa);
 float            EM_face_area(struct EditFace *efa);
-void             EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
 void		EM_select_edge(struct EditEdge *eed, int sel);
 void		EM_select_face(struct EditFace *efa, int sel);
@@ -133,6 +132,9 @@ void		EM_editselection_center(float *center, struct EditSelection *ese);
 struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_face_idx_array, float *limit);
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
+
+void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
+void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;

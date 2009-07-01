@@ -9011,12 +9011,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* struct audio data moved to renderdata */
+		/* toolsettings */
 		for(scene= main->scene.first; scene; scene= scene->id.next) {
 			scene->r.audio = scene->audio;
 			
-			if(!scene->toolsettings->uv_selectmode)
+			if(!scene->toolsettings->uv_selectmode) {
 				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
+				scene->toolsettings->vgroup_weight= 1.0f;
+			}
 		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in

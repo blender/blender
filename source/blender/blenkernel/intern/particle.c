@@ -230,7 +230,7 @@ void psys_set_current_num(Object *ob, int index)
 	if(ob==0) return;
 
 	for(psys=ob->particlesystem.first, i=0; psys; psys=psys->next, i++) {
-		if(i == index - 1)
+		if(i == index)
 			psys->flag |= PSYS_CURRENT;
 		else
 			psys->flag &= ~PSYS_CURRENT;
