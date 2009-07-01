@@ -46,12 +46,14 @@ void RE_rayobject_done(RayObject *r);
 void RE_rayobject_free(RayObject *r);
 
 /* RayObject constructors */
+
 RayObject* RE_rayobject_octree_create(int ocres, int size);
-RayObject* RE_rayobject_blibvh_create(int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
 
-//RayObject* RayObject_derivedmesh_create(struct DerivedMesh*, void *ob);
-RayObject* RE_rayobject_mesh_create(struct Mesh*, void *ob);
+#define RE_rayobject_tree_create RE_rayobject_bvh_create
+RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
+RayObject* RE_rayobject_bvh_create(int size);		/* rayobject_bvh.c */
+
 
 /* Ray Intersection */
 struct Isect

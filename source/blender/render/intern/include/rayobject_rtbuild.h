@@ -50,8 +50,8 @@ typedef struct RTBuilder
 	/* axis used (if any) on the split method */
 	int split_axis;
 	
-	/* links to child partitions calculated during splitting */
-	RayObject **child[MAX_CHILDS+1];
+	/* child partitions calculated during splitting */
+	int child_offset[MAX_CHILDS+1];
 
 } RTBuilder;
 
@@ -63,22 +63,9 @@ int rtbuild_size(RTBuilder *b);
 
 /* used during tree reorganization */
 RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);
-void rtbuild_mean_split(RTBuilder *b, int nchilds, int axis);
-void rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds);
 
-/*
-static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *b)
-{
-	int i;
-	int nc = rtbuild_mean_split_largest_axis(b, BVH_NCHILDS);
-	RTBuilder tmp;
-	
-	BVHNode *bvh = tree->next_node++;
-
-	bvh->split_axis = tmp->split_axis;	
-	for(i=0; i<nc; i++)
-		bvh->child[i] = bvh_rearrange( rtbuild_get_child(b, i, &tmp) );
-}
- */
+/* Calculates child partitions and returns number of efectively needed partitions */
+int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis);
+int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds);
 
 #endif

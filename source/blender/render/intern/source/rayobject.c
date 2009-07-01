@@ -36,6 +36,34 @@
 #include "render_types.h"
 #include "rayobject.h"
 
+
+/*
+ * Determines the distance that the ray must travel to hit the bounding volume of the given node
+ * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
+ *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
+ */
+float RE_rayobject_bb_intersect(const Isect *isec, const float *bb)
+{
+	float dist;
+	
+	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
+	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
+	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
+	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
+	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
+	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
+
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return FLT_MAX;
+	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return FLT_MAX;
+
+	dist = t1x;
+	if (t1y > dist) dist = t1y;
+    if (t1z > dist) dist = t1z;
+	return dist;
+}
+
+
 /* only for self-intersecting test with current render face (where ray left) */
 static int intersection2(VlakRen *face, float r0, float r1, float r2, float rx1, float ry1, float rz1)
 {
@@ -262,28 +290,43 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	return 0;
 }
 
-int RE_rayobject_raycast(RayObject *r, Isect *i)
+int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {
-	RE_RC_COUNT(i->count->raycast.test);
+	int i;
+	RE_RC_COUNT(isec->count->raycast.test);
 
-	i->dist = VecLength(i->vec);
+	/* Setup vars used on raycast */
+	isec->dist = VecLength(isec->vec);
 	
-	if(i->mode==RE_RAY_SHADOW && i->last_hit && RE_rayobject_intersect(i->last_hit, i))
+	for(i=0; i<3; i++)
 	{
-		RE_RC_COUNT(i->count->raycast.hit);
-		RE_RC_COUNT(i->count->rayshadow_last_hit_optimization );
+		isec->idot_axis[i]		= 1.0f / isec->vec[i];
+		
+		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
+		
+		isec->bv_index[2*i]		= i+3*isec->bv_index[2*i];
+		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
+	}
+
+	
+	/* Last hit heuristic */
+	if(isec->mode==RE_RAY_SHADOW && isec->last_hit && RE_rayobject_intersect(isec->last_hit, isec))
+	{
+		RE_RC_COUNT(isec->count->raycast.hit);
+		RE_RC_COUNT(isec->count->rayshadow_last_hit_optimization );
 		return 1;
 	}
 
 #ifdef RE_RAYCOUNTER
-	if(RE_rayobject_intersect(r, i))
+	if(RE_rayobject_intersect(r, isec))
 	{
-		RE_RC_COUNT(i->count->raycast.hit);
+		RE_RC_COUNT(isec->count->raycast.hit);
 		return 1;
 	}
 	return 0;
 #else
-	return RE_rayobject_intersect(r, i);
+	return RE_rayobject_intersect(r, isec);
 #endif
 }
 

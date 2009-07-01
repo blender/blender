@@ -2,12 +2,13 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
+#include <assert.h>
 
 static int partition_nth_element(RTBuilder *b, int _begin, int _end, int n);
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis);
 
 
-static void RayObject_rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
+static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
 {
 	int i;
 
@@ -16,35 +17,35 @@ static void RayObject_rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **
 	b->split_axis = 0;
 	
 	for(i=0; i<MAX_CHILDS; i++)
-		b->child[i] = 0;
+		b->child_offset[i] = 0;
 }
 
-RTBuilder* RayObject_rtbuild_create(int size)
+RTBuilder* rtbuild_create(int size)
 {
 	RTBuilder *builder  = (RTBuilder*) MEM_mallocN( sizeof(RTBuilder), "RTBuilder" );
-	RayObject **memblock= (RayObject**)MEM_mallocN( sizeof(RayObject*),"RTBuilder.objects");
-	RayObject_rtbuild_init(builder, memblock, memblock);
+	RayObject **memblock= (RayObject**)MEM_mallocN( sizeof(RayObject*)*size,"RTBuilder.objects");
+	rtbuild_init(builder, memblock, memblock);
 	return builder;
 }
 
-void RayObject_rtbuild_free(RTBuilder *b)
+void rtbuild_free(RTBuilder *b)
 {
 	MEM_freeN(b->begin);
 	MEM_freeN(b);
 }
 
-void RayObject_rtbuild_add(RTBuilder *b, RayObject *o)
+void rtbuild_add(RTBuilder *b, RayObject *o)
 {
 	*(b->end++) = o;
 }
 
 RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 {
-	RayObject_rtbuild_init( tmp, b->child[child], b->child[child+1] );
+	rtbuild_init( tmp, b->begin + b->child_offset[child], b->begin + b->child_offset[child+1] );
 	return tmp;
 }
 
-int RayObject_rtbuild_size(RTBuilder *b)
+int rtbuild_size(RTBuilder *b)
 {
 	return b->end - b->begin;
 }
@@ -86,17 +87,23 @@ static int calc_largest_axis(RTBuilder *b)
 //Unballanced mean
 //TODO better balance nodes
 //TODO suport for variable number of partitions (its hardcoded in 2)
-void rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
+int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 {
-	int nth[3] = {0, (b->end - b->begin)/2, b->end-b->begin};
-	split_leafs(b, nth, 2, axis);
+	b->child_offset[0] = 0;
+	b->child_offset[1] = (b->end - b->begin) / 2;
+	b->child_offset[2] = (b->end - b->begin);
+	
+	assert( b->child_offset[0] != b->child_offset[1] && b->child_offset[1] != b->child_offset[2]);
+
+	split_leafs(b, b->child_offset, 2, axis);
+	return 2;
 }
 	
 	
-void rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
+int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 {
 	int axis = calc_largest_axis(b);
-	rtbuild_mean_split(b, nchilds, axis);
+	return rtbuild_mean_split(b, nchilds, axis);
 }
 
 
@@ -110,11 +117,12 @@ static void sort_swap(RTBuilder *b, int i, int j)
 	SWAP(RayObject*, b->begin[i], b->begin[j]);
 }
  
-static int sort_get_value(RTBuilder *b, int i)
+static float sort_get_value(RTBuilder *b, int i)
 {
 	float min[3], max[3];
+	INIT_MINMAX(min, max);
 	RE_rayobject_merge_bb(b->begin[i], min, max);
-	return max[i];
+	return max[b->split_axis];
 }
  
 static int medianof3(RTBuilder *d, int a, int b, int c)
@@ -174,9 +182,14 @@ static int partition(RTBuilder *b, int lo, int mid, int hi)
 	int i=lo, j=hi;
 	while (1)
 	{
-		while (sort_get_value(b,i) < x) i++;
+		while(sort_get_value(b,i) < x)
+			i++;
+
 		j--;
-		while (x < sort_get_value(b,j)) j--;
+
+		while(x < sort_get_value(b,j))
+			j--;
+
 		if(!(i < j))
 			return i;
 
