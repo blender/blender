@@ -1198,10 +1198,10 @@ void ACT_OT_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "Current frame", ""},
-	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "Vertical Axis", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "Horizontal Axis", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "First Selected Marker", ""},
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
+	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

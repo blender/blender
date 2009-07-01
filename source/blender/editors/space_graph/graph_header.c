@@ -157,18 +157,18 @@ static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_un
 
 static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, "To Current Frame", 0, "GRAPH_OT_snap", "mode", GRAPHKEYS_SNAP_CFRA);
-	uiItemEnumO(layout, "To Nearest Frame", 0, "GRAPH_OT_snap", "mode", GRAPHKEYS_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, "To Nearest Second", 0, "GRAPH_OT_snap", "mode", GRAPHKEYS_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, "To Nearest Marker", 0, "GRAPH_OT_snap", "mode", GRAPHKEYS_SNAP_NEAREST_MARKER);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_MARKER);
 }
 
 static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, "Over Current Frame", 0, "GRAPH_OT_mirror", "mode", GRAPHKEYS_MIRROR_CFRA);
-	uiItemEnumO(layout, "Over Vertical Axis", 0, "GRAPH_OT_mirror", "mode", GRAPHKEYS_MIRROR_YAXIS);
-	uiItemEnumO(layout, "Over Horizontal Axis", 0, "GRAPH_OT_mirror", "mode", GRAPHKEYS_MIRROR_XAXIS);
-	uiItemEnumO(layout, "Over Selected Marker", 0, "GRAPH_OT_mirror", "mode", GRAPHKEYS_MIRROR_MARKER);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_CFRA);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_YAXIS);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_XAXIS);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_MARKER);
 }
 
 static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)

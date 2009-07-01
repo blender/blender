@@ -167,18 +167,18 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, "To Current Frame", 0, "ACT_OT_snap", "mode", ACTKEYS_SNAP_CFRA);
-	uiItemEnumO(layout, "To Nearest Frame", 0, "ACT_OT_snap", "mode", ACTKEYS_SNAP_NEAREST_FRAME);
-	uiItemEnumO(layout, "To Nearest Second", 0, "ACT_OT_snap", "mode", ACTKEYS_SNAP_NEAREST_SECOND);
-	uiItemEnumO(layout, "To Nearest Marker", 0, "ACT_OT_snap", "mode", ACTKEYS_SNAP_NEAREST_MARKER);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_CFRA);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_FRAME);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_SECOND);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_MARKER);
 }
 
 static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemEnumO(layout, "Over Current Frame", 0, "ACT_OT_mirror", "mode", ACTKEYS_MIRROR_CFRA);
-	uiItemEnumO(layout, "Over Vertical Axis", 0, "ACT_OT_mirror", "mode", ACTKEYS_MIRROR_YAXIS);
-	uiItemEnumO(layout, "Over Horizontal Axis", 0, "ACT_OT_mirror", "mode", ACTKEYS_MIRROR_XAXIS);
-	uiItemEnumO(layout, "Over Selected Marker", 0, "ACT_OT_mirror", "mode", ACTKEYS_MIRROR_MARKER);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_CFRA);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_YAXIS);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_XAXIS);
+	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_MARKER);
 }
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)

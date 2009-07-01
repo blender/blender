@@ -1581,10 +1581,10 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "Current frame", ""},
-	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "Vertical Axis", ""},
-	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "Horizontal Axis", ""},
-	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "First Selected Marker", ""},
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
+	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
+	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
+	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
