@@ -19,6 +19,7 @@
 #include "COLLADAFWTranslate.h"
 #include "COLLADAFWScale.h"
 #include "COLLADAFWRotate.h"
+#include "COLLADAFWEffect.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -40,6 +41,7 @@ extern "C"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_material_types.h"
 
 #include "DocumentImporter.h"
 
@@ -97,6 +99,7 @@ private:
 	bContext *mContext;
 
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
+	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
 
 	class UnitConverter
 	{
@@ -221,12 +224,12 @@ public:
 
 		for (i = 0; i < visualScene->getRootNodes().getCount(); i++) {
 			COLLADAFW::Node *node = visualScene->getRootNodes()[i];
-
+			
 			// TODO: check node type
 			if (node->getType() != COLLADAFW::Node::NODE) {
 				continue;
 			}
-
+			
 			Object *ob = add_object(sce, OB_MESH);
 
 			const std::string& id = node->getOriginalId();
@@ -239,13 +242,13 @@ public:
 			// though a node may have more of them...
 
 			// TODO: join multiple <instance_geometry> meshes into 1, and link object with it
-
+			
 			COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
 			if (geom.getCount() < 1) {
 				fprintf(stderr, "Node hasn't got any geometry.\n");
 				continue;
 			}
-
+			
 			const COLLADAFW::UniqueId& uid = geom[0]->getInstanciatedObjectId();
 			if (uid_mesh_map.find(uid) == uid_mesh_map.end()) {
 				// XXX report to user
@@ -254,9 +257,9 @@ public:
 				fprintf(stderr, "Couldn't find a mesh by UID.\n");
 				continue;
 			}
-
+			
 			set_mesh(ob, uid_mesh_map[uid]);
-
+			
 			float rot[3][3];
 			Mat3One(rot);
 			
@@ -287,7 +290,7 @@ public:
 						float rot_copy[3][3];
 						float mat[3][3];
 						AxisAngleToQuat(quat, axis, angle);
-
+						
 						QuatToMat3(quat, mat);
 						Mat3CpyMat3(rot_copy, rot);
 						Mat3MulMat3(rot, rot_copy, mat);
@@ -312,7 +315,7 @@ public:
 					break;
 				}
 			}
-
+			
 			Mat3ToEul(rot, ob->rot);
 
 		}
@@ -496,8 +499,9 @@ public:
 	{
 		// TODO: create and store a material.
 		// Let it have 0 users for now.
-		/*std::string name = material->getOriginalId();
-		  add_material(name);*/
+		const std::string& str_mat_id = material->getOriginalId();
+		Material *ma = add_material((char*)str_mat_id.c_str());
+		this->uid_material_map[material->getInstantiatedEffect()] = ma;
 		return true;
 	}
 
@@ -505,6 +509,79 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeEffect( const COLLADAFW::Effect* effect ) 
 	{
+		
+		const COLLADAFW::UniqueId& uid = effect->getUniqueId();
+		if (uid_material_map.find(uid) == uid_material_map.end()) {
+			// XXX report to user
+			// this could happen if a mesh was not created
+			// (e.g. if it contains unsupported geometry)
+			fprintf(stderr, "Couldn't find a material by UID.\n");
+			return true;
+		}
+		
+		Material *ma = uid_material_map[uid];
+		
+		COLLADAFW::CommonEffectPointerArray ef_array = effect->getCommonEffects();
+		if (ef_array.getCount() < 1) {
+			fprintf(stderr, "Effect hasn't got any common effects.\n");
+		}
+		
+		COLLADAFW::EffectCommon *ef = ef_array[0];
+		COLLADAFW::EffectCommon::ShaderType shader = ef->getShaderType();
+		
+		// blinn
+		if (shader == COLLADAFW::EffectCommon::SHADER_BLINN) {
+			ma->spec_shader = MA_SPEC_BLINN;
+			ma->spec = ef->getShininess().getFloatValue();
+		}
+		// phong
+		else if (shader == COLLADAFW::EffectCommon::SHADER_PHONG) {
+			ma->spec_shader = MA_SPEC_PHONG;
+			ma->spec = ef->getShininess().getFloatValue();
+		}
+		// lambert
+		else if (shader == COLLADAFW::EffectCommon::SHADER_LAMBERT) {
+			ma->diff_shader = MA_DIFF_LAMBERT;
+		}
+		// default - lambert
+		else {
+			ma->diff_shader = MA_DIFF_LAMBERT;
+			fprintf(stderr, "Current shader type is not supported.\n");
+		}
+		// reflectivity
+		ma->ray_mirror = ef->getReflectivity().getFloatValue();
+		// index of refraction
+		ma->ang = ef->getIndexOfRefraction().getFloatValue();
+		
+		COLLADAFW::Color col;
+		// diffuse
+		if (ef->getDiffuse().isColor()) {
+			col = ef->getDiffuse().getColor();
+			ma->r = col.getRed();
+			ma->g = col.getGreen();
+			ma->b = col.getBlue();
+		}
+		// ambient
+		if (ef->getAmbient().isColor()) {
+			col = ef->getAmbient().getColor();
+			ma->ambr = col.getRed();
+			ma->ambg = col.getGreen();
+			ma->ambb = col.getBlue();
+		}
+		// specular
+		if (ef->getSpecular().isColor()) {
+			col = ef->getSpecular().getColor();
+			ma->specr = col.getRed();
+			ma->specg = col.getGreen();
+			ma->specb = col.getBlue();
+		}
+		// reflective
+		if (ef->getReflective().isColor()) {
+			col = ef->getReflective().getColor();
+			ma->mirr = col.getRed();
+			ma->mirg = col.getGreen();
+			ma->mirb = col.getBlue();
+		}
 		return true;
 	}
 

@@ -5,6 +5,8 @@
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_lamp_types.h"
 
 extern "C" 
 {
@@ -43,6 +45,11 @@ extern "C"
 #include <COLLADASWTexture.h>
 #include <COLLADASWLibraryMaterials.h>
 #include <COLLADASWBindMaterial.h>
+#include <COLLADASWLibraryCameras.h>
+#include <COLLADASWLibraryLights.h>
+#include <COLLADASWInstanceCamera.h>
+#include <COLLADASWInstanceLight.h>
+#include <COLLADASWCameraOptic.h>
 
 #include <vector>
 #include <algorithm> // std::find
@@ -108,6 +115,34 @@ void forEachMeshObjectInScene(Scene *sce, Functor &f)
 		Object *ob = base->object;
 			
 		if (ob->type == OB_MESH && ob->data) {
+			f(ob);
+		}
+		base= base->next;
+	}
+}
+
+template<class Functor>
+void forEachCameraObjectInScene(Scene *sce, Functor &f)
+{
+	Base *base= (Base*) sce->base.first;
+	while(base) {
+		Object *ob = base->object;
+			
+		if (ob->type == OB_CAMERA && ob->data) {
+			f(ob);
+		}
+		base= base->next;
+	}
+}
+
+template<class Functor>
+void forEachLampObjectInScene(Scene *sce, Functor &f)
+{
+	Base *base= (Base*) sce->base.first;
+	while(base) {
+		Object *ob = base->object;
+			
+		if (ob->type == OB_LAMP && ob->data) {
 			f(ob);
 		}
 		base= base->next;
@@ -184,10 +219,10 @@ public:
 		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 		Mesh *me = (Mesh*)ob->data;
 		std::string geom_name(id_name(ob));
-
+		
 		// openMesh(geoId, geoName, meshId)
 		openMesh(geom_name, "", "");
-
+		
 		// writes <source> for vertex coords
 		createVertsSource(geom_name, dm);
 		
@@ -497,6 +532,8 @@ public:
 
 		// write <node>s
 		forEachMeshObjectInScene(sce, *this);
+		forEachCameraObjectInScene(sce, *this);
+		forEachLampObjectInScene(sce, *this);
 		
 		// </visual_scene> </library_visual_scenes>
 		closeVisualScene();
@@ -507,6 +544,7 @@ public:
 	// called for each object
 	void operator()(Object *ob) {
 		COLLADASW::Node node(mSW);
+		std::string ob_name(id_name(ob));
 		node.start();
 
 		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
@@ -521,37 +559,50 @@ public:
 		QuatToAxisAngle(quat, axis, &angle);
 		angle_deg = angle * 180.0f / M_PI;
 		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
-
 		node.addScale(ob->size[0], ob->size[1], ob->size[2]);
-
-		COLLADASW::InstanceGeometry instGeom(mSW);
-		std::string ob_name(id_name(ob));
-		instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
-
-		for(int a = 0; a < ob->totcol; a++)	{
-			Material *ma = give_current_material(ob, a+1);
-						
-			COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
-			COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-			std::string matid(id_name(ma));
-			COLLADASW::InstanceMaterial im(matid, COLLADASW::URI
-										   (COLLADABU::Utils::EMPTY_STRING,
-											matid));
-
-			// create <bind_vertex_input> for each uv layer
-			Mesh *me = (Mesh*)ob->data;
-			int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+		
+		// <instance_geometry>
+		if (ob->type == OB_MESH) {
+			COLLADASW::InstanceGeometry instGeom(mSW);
+			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
 			
-			for (int b = 0; b < totlayer; b++) {
-				char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
-				im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
+			for(int a = 0; a < ob->totcol; a++)	{
+				Material *ma = give_current_material(ob, a+1);
+				
+				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
+				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
+				std::string matid(id_name(ma));
+				COLLADASW::InstanceMaterial im(matid, COLLADASW::URI
+											   (COLLADABU::Utils::EMPTY_STRING,
+												matid));
+
+				// create <bind_vertex_input> for each uv layer
+				Mesh *me = (Mesh*)ob->data;
+				int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+				
+				for (int b = 0; b < totlayer; b++) {
+					char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
+					im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
+				}
+				
+				iml.push_back(im);
 			}
 			
-		    iml.push_back(im);
+			instGeom.add();
 		}
-
-		instGeom.add();
-
+		
+		// <instance_camera>
+		else if (ob->type == OB_CAMERA) {
+			COLLADASW::InstanceCamera instCam(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
+			instCam.add();
+		}
+		
+		// <instance_light>
+		else if (ob->type == OB_LAMP) {
+			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
+			instLa.add();
+		}
+		
 		node.end();
 	}
 
@@ -818,6 +869,95 @@ public:
 	}
 };
 
+class CamerasExporter: COLLADASW::LibraryCameras
+{
+public:
+	CamerasExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryCameras(sw){}
+	void exportCameras(Scene *sce)
+	{
+		openLibrary();
+		
+		forEachCameraObjectInScene(sce, *this);
+		
+		closeLibrary();
+	}
+	void operator()(Object *ob)
+	{
+		// XXX add other params later
+		Camera *cam = (Camera*)ob->data;
+		std::string cam_name(id_name(ob));
+		if (cam->type == CAM_PERSP) {
+			COLLADASW::PerspectiveOptic persp(mSW);
+			persp.setXFov(1.0);
+			//persp.setYFov(1.0);
+			persp.setAspectRatio(1.0);
+			persp.setZFar(cam->clipend);
+			persp.setZNear(cam->clipsta);
+			COLLADASW::Camera ccam(mSW, &persp, cam_name);
+			addCamera(ccam);
+		}
+		else {
+			COLLADASW::OrthographicOptic ortho(mSW);
+			ortho.setXMag(1.0);
+			//ortho.setYMag(1.0, true);
+			ortho.setAspectRatio(1.0);
+			ortho.setZFar(cam->clipend);
+			ortho.setZNear(cam->clipsta);
+			COLLADASW::Camera ccam(mSW, &ortho, cam_name);
+			addCamera(ccam);
+		}
+	}	
+};
+
+class LightsExporter: COLLADASW::LibraryLights
+{
+public:
+	LightsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryLights(sw){}
+	void exportLights(Scene *sce)
+	{
+		openLibrary();
+		
+		forEachLampObjectInScene(sce, *this);
+		
+		closeLibrary();
+	}
+	void operator()(Object *ob)
+	{
+		Lamp *la = (Lamp*)ob->data;
+		std::string la_name(id_name(ob));
+		COLLADASW::Color col(la->r, la->g, la->b);
+		
+		// sun
+		if (la->type == LA_SUN) {
+			COLLADASW::DirectionalLight cla(mSW, la_name, la->energy);
+			cla.setColor(col);
+			addLight(cla);
+		}
+		// hemi
+		else if (la->type == LA_HEMI) {
+			COLLADASW::AmbientLight cla(mSW, la_name, la->energy);
+			cla.setColor(col);
+			addLight(cla);
+		}
+		// spot
+		// XXX add other params later
+		else if (la->type == LA_SPOT) {
+			COLLADASW::SpotLight cla(mSW, la_name, la->energy);
+			cla.setColor(col);
+			addLight(cla);
+		}
+		// lamp
+		else if (la->type != LA_AREA) {
+			COLLADASW::PointLight cla(mSW, la_name, la->energy);
+			cla.setColor(col);
+			addLight(cla);
+		}
+		else {
+			// XXX write error
+			return;
+		}
+	}
+};
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
@@ -825,43 +965,51 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 		COLLADABU::NativeString(std::string(filename));
 	COLLADASW::StreamWriter sw(native_filename);
 
-	//open <Collada>
+	// open <Collada>
 	sw.startDocument();
 
-	//<asset>
+	// <asset>
 	COLLADASW::Asset asset(&sw);
 	// XXX ask blender devs about this?
 	asset.setUnit("meter", 1.0);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	asset.add();
 	
-	//<library_images>
+	// <library_cameras>
+	CamerasExporter ce(&sw);
+	ce.exportCameras(sce);
+	
+	// <library_lights>
+	LightsExporter le(&sw);
+	le.exportLights(sce);
+	
+	// <library_images>
 	ImagesExporter ie(&sw);
 	ie.exportImages(sce);
 	
-	//<library_effects>
+	// <library_effects>
 	EffectsExporter ee(&sw);
 	ee.exportEffects(sce);
 	
-	//<library_materials>
+	// <library_materials>
 	MaterialsExporter me(&sw);
 	me.exportMaterials(sce);
 
-	//<library_geometries>
+	// <library_geometries>
 	GeometryExporter ge(&sw);
 	ge.exportGeom(sce);
 	
-	//<library_visual_scenes>
+	// <library_visual_scenes>
 	SceneExporter se(&sw);
 	se.exportScene(sce);
 	
-	//<scene>
+	// <scene>
 	std::string scene_name(id_name(sce));
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
 											   scene_name));
 	scene.add();
 	
-	//close <Collada>
+	// close <Collada>
 	sw.endDocument();
 
 }
