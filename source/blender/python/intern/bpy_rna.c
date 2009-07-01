@@ -35,6 +35,7 @@
 #include "RNA_define.h" /* for defining our own rna */
 
 #include "MEM_guardedalloc.h"
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
@@ -820,108 +821,246 @@ static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 	return len;
 }
 
-static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
+/* internal use only */
+static PyObject *prop_subscript_collection_int(BPy_PropertyRNA * self, int keynum)
 {
-	PyObject *ret;
 	PointerRNA newptr;
-	int keynum = 0;
-	char *keyname = NULL;
-	
+
+	if(keynum < 0) keynum += RNA_property_collection_length(&self->ptr, self->prop);
+
+	if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr))
+		return pyrna_struct_CreatePyObject(&newptr);
+
+	PyErr_SetString(PyExc_IndexError, "out of range");
+	return NULL;
+}
+static PyObject *prop_subscript_array_int(BPy_PropertyRNA * self, int keynum)
+{
+	int len= RNA_property_array_length(self->prop);
+
+	if(keynum < 0) keynum += len;
+
+	if(keynum >= 0 && keynum < len)
+		return pyrna_prop_to_py_index(&self->ptr, self->prop, keynum);
+
+	PyErr_SetString(PyExc_IndexError, "out of range");
+	return NULL;
+}
+
+static PyObject *prop_subscript_collection_str(BPy_PropertyRNA * self, char *keyname)
+{
+	PointerRNA newptr;
+	if(RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
+		return pyrna_struct_CreatePyObject(&newptr);
+
+	PyErr_SetString(PyExc_KeyError, "key not found");
+	return NULL;
+}
+/* static PyObject *prop_subscript_array_str(BPy_PropertyRNA * self, char *keyname) */
+
+
+
+
+#if PY_VERSION_HEX >= 0x03000000
+static PyObject *prop_subscript_collection_slice(BPy_PropertyRNA * self, int start, int stop)
+{
+	PointerRNA newptr;
+	PyObject *list = PyList_New(stop - start);
+	int count;
+
+	start = MIN2(start,stop); /* values are clamped from  */
+
+	for(count = start; count < stop; count++) {
+		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, count - start, &newptr)) {
+			PyList_SetItem(list, count - start, pyrna_struct_CreatePyObject(&newptr));
+		}
+		else {
+			Py_DECREF(list);
+
+			PyErr_SetString(PyExc_RuntimeError, "error getting an rna struct from a collection");
+			return NULL;
+		}
+	}
+
+	return list;
+}
+static PyObject *prop_subscript_array_slice(BPy_PropertyRNA * self, int start, int stop)
+{
+	PyObject *list = PyList_New(stop - start);
+	int count;
+
+	start = MIN2(start,stop); /* values are clamped from PySlice_GetIndicesEx */
+
+	for(count = start; count < stop; count++)
+		PyList_SetItem(list, count - start, pyrna_prop_to_py_index(&self->ptr, self->prop, count));
+
+	return list;
+}
+#endif
+
+static PyObject *prop_subscript_collection(BPy_PropertyRNA * self, PyObject *key)
+{
 	if (PyUnicode_Check(key)) {
-		keyname = _PyUnicode_AsString(key);
-	} else if (PyLong_Check(key)) {
-		keynum = PyLong_AsSsize_t(key);
-	} else {
+		return prop_subscript_collection_str(self, _PyUnicode_AsString(key));
+	}
+	else if (PyLong_Check(key)) {
+		return prop_subscript_collection_int(self, PyLong_AsSsize_t(key));
+	}
+#if PY_VERSION_HEX >= 0x03000000
+	else if (PySlice_Check(key)) {
+		int len= RNA_property_collection_length(&self->ptr, self->prop);
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return prop_subscript_collection_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
+			return NULL;
+		}
+	}
+#endif
+	else {
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be a string or an int");
 		return NULL;
 	}
-	
-	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
-		int ok;
-		if (keyname)	ok = RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr);
-		else			ok = RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr);
-		
-		if (ok) {
-			ret = pyrna_struct_CreatePyObject(&newptr);
-		} else {
-			PyErr_SetString(PyExc_AttributeError, "out of range");
-			ret = NULL;
-		}
-		
-	} else if (keyname) {
-		PyErr_SetString(PyExc_AttributeError, "string keys are only supported for collections");
-		ret = NULL;
-	} else {
-		int len = RNA_property_array_length(self->prop);
-		
-		if (len==0) { /* not an array*/
-			PyErr_Format(PyExc_AttributeError, "not an array or collection %d", keynum);
-			ret = NULL;
-		}
-		
-		if (keynum >= len){
-			PyErr_SetString(PyExc_AttributeError, "index out of range");
-			ret = NULL;
-		} else { /* not an array*/
-			ret = pyrna_prop_to_py_index(&self->ptr, self->prop, keynum);
-		}
-	}
-	
-	return ret;
 }
 
-
-static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, PyObject *value )
+static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 {
-	int ret = 0;
-	int keynum = 0;
-	char *keyname = NULL;
+	/*if (PyUnicode_Check(key)) {
+		return prop_subscript_array_str(self, _PyUnicode_AsString(key));
+	} else*/
+	if (PyLong_Check(key)) {
+		return prop_subscript_array_int(self, PyLong_AsSsize_t(key));
+	}
+#if PY_VERSION_HEX >= 0x03000000
+	else if (PySlice_Check(key)) {
+		int len= RNA_property_array_length(self->prop);
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return prop_subscript_array_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
+			return NULL;
+		}
+	}
+#endif
+	else {
+		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
+		return NULL;
+	}
+}
+
+static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
+{
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		return prop_subscript_collection(self, key);
+	} else if (RNA_property_array_length(self->prop)) { /* arrays are currently fixed length, zero length means its not an array */
+		return prop_subscript_array(self, key);
+	} else {
+		PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
+		return NULL;
+	}
+
+}
+
+#if PY_VERSION_HEX >= 0x03000000
+static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int end, PyObject *value)
+{
+	int count;
+
+	/* values are clamped from */
+	begin = MIN2(begin,end);
+
+	for(count = begin; count < end; count++) {
+		if(pyrna_py_to_prop_index(&self->ptr, self->prop, count - begin, value) == -1) {
+			/* TODO - this is wrong since some values have been assigned... will need to fix that */
+			return -1; /* pyrna_struct_CreatePyObject should set the error */
+		}
+	}
+
+	return 0;
+}
+#endif
+
+static int prop_subscript_ass_array_int(BPy_PropertyRNA * self, int keynum, PyObject *value)
+{
+
+	int len= RNA_property_array_length(self->prop);
+
+	if(keynum < 0) keynum += len;
+
+	if(keynum >= 0 && keynum < len)
+		return pyrna_py_to_prop_index(&self->ptr, self->prop, keynum, value);
+
+	PyErr_SetString(PyExc_IndexError, "out of range");
+	return -1;
+}
+
+static int pyrna_prop_ass_subscript( BPy_PropertyRNA * self, PyObject *key, PyObject *value )
+{
+	/* char *keyname = NULL; */ /* not supported yet */
 	
 	if (!RNA_property_editable(&self->ptr, self->prop)) {
 		PyErr_Format( PyExc_AttributeError, "PropertyRNA - attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(self->prop), RNA_struct_identifier(self->ptr.type) );
 		return -1;
 	}
 	
-	if (PyUnicode_Check(key)) {
-		keyname = _PyUnicode_AsString(key);
-	} else if (PyLong_Check(key)) {
-		keynum = PyLong_AsSsize_t(key);
-	} else {
-		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - invalid key, key must be a string or an int");
+	/* maybe one day we can support this... */
+	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+		PyErr_Format( PyExc_AttributeError, "PropertyRNA - attribute \"%s\" from \"%s\" is a collection, assignment not supported", RNA_property_identifier(self->prop), RNA_struct_identifier(self->ptr.type) );
 		return -1;
 	}
-	
-	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
-		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - assignment is not supported for collections (yet)");
-		ret = -1;
-	} else if (keyname) {
-		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - string keys are only supported for collections");
-		ret = -1;
-	} else {
-		int len = RNA_property_array_length(self->prop);
-		
-		if (len==0) { /* not an array*/
-			PyErr_Format(PyExc_AttributeError, "PropertyRNA - not an array or collection %d", keynum);
-			ret = -1;
+
+	if (PyLong_Check(key)) {
+		return prop_subscript_ass_array_int(self, PyLong_AsSsize_t(key), value);
+	}
+#if PY_VERSION_HEX >= 0x03000000
+	else if (PySlice_Check(key)) {
+		int len= RNA_property_array_length(self->prop);
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (slicelength <= 0) {
+			return 0;
 		}
-		
-		if (keynum >= len){
-			PyErr_SetString(PyExc_AttributeError, "PropertyRNA - index out of range");
-			ret = -1;
-		} else {
-			ret = pyrna_py_to_prop_index(&self->ptr, self->prop, keynum, value);
+		else if (step == 1) {
+			return prop_subscript_ass_array_slice(self, start, stop, value);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
+			return -1;
 		}
 	}
-	
-	return ret;
+#endif
+	else {
+		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
+		return -1;
+	}
 }
-
 
 
 static PyMappingMethods pyrna_prop_as_mapping = {
 	( lenfunc ) pyrna_prop_len,	/* mp_length */
 	( binaryfunc ) pyrna_prop_subscript,	/* mp_subscript */
-	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
+	( objobjargproc ) pyrna_prop_ass_subscript,	/* mp_ass_subscript */
 };
 
 static int pyrna_prop_contains(BPy_PropertyRNA * self, PyObject *value)
@@ -1252,8 +1391,10 @@ static int foreach_parse_args(
 		/*values to assign */
 		char **attr, PyObject **seq, int *tot, int *size, RawPropertyType *raw_type, int *attr_tot, int *attr_signed)
 {
+#if 0
 	int array_tot;
 	int target_tot;
+#endif
 
 	*size= *raw_type= *attr_tot= *attr_signed= 0;
 
@@ -1340,7 +1481,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 			Py_buffer buf;
 			PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT);
 
-			/* check if the buffer matches, TODO - signed/unsigned types */
+			/* check if the buffer matches */
 
 			buffer_is_compat = foreach_compat_buffer(raw_type, attr_signed, buf.format);
 
