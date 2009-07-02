@@ -155,10 +155,15 @@ static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *r
 	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
 }
 
-static int rna_Object_add_vertex_group(Object *ob, char *group_name)
+static bDeformGroup *rna_Object_add_vertex_group(Object *ob, char *group_name)
 {
-	bDeformGroup *defgroup= add_defgroup_name(ob, group_name);
-	return BLI_findindex(&ob->defbase, defgroup);
+	return add_defgroup_name(ob, group_name);
+}
+
+static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeformGroup *def, float weight, int assignmode)
+{
+	/* creates dverts if needed */
+	add_vert_to_defgroup(ob, def, vertex_index, weight, assignmode);
 }
 
 /*
@@ -210,6 +215,13 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem assign_mode_items[] = {
+		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace."}, /* TODO: more meaningful descriptions */
+		{WEIGHT_ADD, "ADD", 0, "Add", "Add."},
+		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract."},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
@@ -234,9 +246,20 @@ void RNA_api_object(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_vertex_group", "rna_Object_add_vertex_group");
 	RNA_def_function_ui_description(func, "Add vertex group to object.");
-	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name.");
-	parm= RNA_def_int(func, "group_index", 0, 0, 0, "", "Index of the created vertex group.", 0, 0);
+	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_vertex_to_group", "rna_Object_add_vertex_to_group");
+	RNA_def_function_ui_description(func, "Add vertex to a vertex group.");
+	parm= RNA_def_int(func, "vertex_index", 0, 0, 0, "", "Vertex index.", 0, 0);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to add vertex to.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight.", 0.0f, 1.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

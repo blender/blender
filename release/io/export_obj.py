@@ -464,7 +464,7 @@ def write(filename, objects, scene,
 			# XXX
 			# High Quality Normals
 			if EXPORT_NORMALS and face_index_pairs:
-				pass
+				me.calc_normals()
 #				if EXPORT_NORMALS_HQ:
 #					BPyMesh.meshCalcNormals(me)
 #				else:

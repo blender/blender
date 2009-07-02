@@ -253,6 +253,11 @@ static void rna_Mesh_add_uv_layer(Mesh *me)
 	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface);
 }
 
+static void rna_Mesh_calc_normals(Mesh *me)
+{
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -280,6 +285,9 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_uv_layer", "rna_Mesh_add_uv_layer");
 	RNA_def_function_ui_description(func, "Add new UV layer to Mesh.");
+
+	func= RNA_def_function(srna, "calc_normals", "rna_Mesh_calc_normals");
+	RNA_def_function_ui_description(func, "Calculate vertex normals.");
 
 	/*
 	func= RNA_def_function(srna, "add_geom", "rna_Mesh_add_geom");

@@ -40,6 +40,7 @@
 #include "BKE_mesh.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 
 #include "DNA_mesh_types.h"
 
@@ -68,7 +69,7 @@ static Object* rna_Main_add_object(Main *main, int type, char *name)
 }
 
 /*
-  WARNING: the following example shows when this function should not be called
+  NOTE: the following example shows when this function should _not_ be called
 
   ob = bpy.data.add_object()
   scene.add_object(ob)
@@ -86,6 +87,20 @@ static void rna_Main_remove_object(Main *main, ReportList *reports, Object *ob)
 	else
 		BKE_report(reports, RPT_ERROR, "Object must have zero users to be removed.");
 }
+
+static Material *rna_Main_add_material(Main *main, char *name)
+{
+	return add_material(name);
+}
+
+/* TODO: remove material? */
+
+struct Tex *rna_Main_add_texture(Main *main, char *name)
+{
+	return add_texture(name);
+}
+
+/* TODO: remove texture? */
 
 #else
 
@@ -136,6 +151,19 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Remove a mesh if it has zero users.");
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_material", "rna_Main_add_material");
+	RNA_def_function_ui_description(func, "Add a new material.");
+	parm= RNA_def_string(func, "name", "Material", 0, "", "New name for the datablock."); /* optional */
+	parm= RNA_def_pointer(func, "material", "Material", "", "New material.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_texture", "rna_Main_add_texture");
+	RNA_def_function_ui_description(func, "Add a new texture.");
+	parm= RNA_def_string(func, "name", "Tex", 0, "", "New name for the datablock."); /* optional */
+	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture.");
+	RNA_def_function_return(func, parm);
+
 }
 
 #endif

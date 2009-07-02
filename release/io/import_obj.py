@@ -42,7 +42,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 
 from Blender import Mesh, Draw, Window, Texture, Material, sys
 import bpy
-import BPyMesh
+# import BPyMesh
 import BPyImage
 import BPyMessages
 
@@ -130,9 +130,11 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	# This function sets textures defined in .mtl file                                 #
 	#==================================================================================#
 	def load_material_image(blender_material, context_material_name, imagepath, type):
-		
-		texture= bpy.data.textures.new(type)
-		texture.setType('Image')
+
+		texture= bpy.data.add_texture(type)
+		texture.type= 'IMAGE'
+# 		texture= bpy.data.textures.new(type)
+# 		texture.setType('Image')
 		
 		# Absolute path - c:\.. etc would work here
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
@@ -182,7 +184,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	#Create new materials
 	for name in unique_materials: # .keys()
 		if name != None:
-			unique_materials[name]= bpy.data.materials.new(name)
+			unique_materials[name]= bpy.data.add_material(name)
+# 			unique_materials[name]= bpy.data.materials.new(name)
 			unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
 	unique_materials[None]= None
@@ -190,7 +193,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	for libname in material_libs:
 		mtlpath= DIR + libname
-		if not sys.exists(mtlpath):
+		if not bpy.sys.exists(mtlpath):
+# 		if not sys.exists(mtlpath):
 			#print '\tError Missing MTL: "%s"' % mtlpath
 			pass
 		else:
@@ -210,17 +214,23 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 					line_split= line.split()
 					line_lower= line.lower().lstrip()
 					if line_lower.startswith('ka'):
-						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+						context_material.mirror_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+# 						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
 					elif line_lower.startswith('kd'):
-						context_material.setRGBCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+						context_material.diffuse_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+# 						context_material.setRGBCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
 					elif line_lower.startswith('ks'):
-						context_material.setSpecCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+						context_material.specular_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+# 						context_material.setSpecCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
 					elif line_lower.startswith('ns'):
-						context_material.setHardness( int((float(line_split[1])*0.51)) )
+						context_material.specular_hardness = int((float(line_split[1])*0.51))
+# 						context_material.setHardness( int((float(line_split[1])*0.51)) )
 					elif line_lower.startswith('ni'): # Refraction index
-						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
+						context_material.ior = max(1, min(float(line_split[1]), 3))
+# 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
 					elif line_lower.startswith('d') or line_lower.startswith('tr'):
-						context_material.setAlpha(float(line_split[1]))
+						context_material.alpha = float(line_split[1])
+# 						context_material.setAlpha(float(line_split[1]))
 					elif line_lower.startswith('map_ka'):
 						img_filepath= line_value(line.split())
 						if img_filepath:
@@ -395,39 +405,39 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 						edge_dict[i1,i2]=  1
 			
 			# FGons into triangles
-			if has_ngons and len_face_vert_loc_indicies > 4:
+# 			if has_ngons and len_face_vert_loc_indicies > 4:
 				
-				ngon_face_indices= BPyMesh.ngon(verts_loc, face_vert_loc_indicies)
-				faces.extend(\
-				[(\
-				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
-				[face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
-				context_material,\
-				context_smooth_group,\
-				context_object)\
-				for ngon in ngon_face_indices]\
-				)
+# 				ngon_face_indices= BPyMesh.ngon(verts_loc, face_vert_loc_indicies)
+# 				faces.extend(\
+# 				[(\
+# 				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
+# 				[face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
+# 				context_material,\
+# 				context_smooth_group,\
+# 				context_object)\
+# 				for ngon in ngon_face_indices]\
+# 				)
 				
-				# edges to make fgons
-				if CREATE_FGONS:
-					edge_users= {}
-					for ngon in ngon_face_indices:
-						for i in (0,1,2):
-							i1= face_vert_loc_indicies[ngon[i  ]]
-							i2= face_vert_loc_indicies[ngon[i-1]]
-							if i1>i2: i1,i2= i2,i1
+# 				# edges to make fgons
+# 				if CREATE_FGONS:
+# 					edge_users= {}
+# 					for ngon in ngon_face_indices:
+# 						for i in (0,1,2):
+# 							i1= face_vert_loc_indicies[ngon[i  ]]
+# 							i2= face_vert_loc_indicies[ngon[i-1]]
+# 							if i1>i2: i1,i2= i2,i1
 							
-							try:
-								edge_users[i1,i2]+=1
-							except KeyError:
-								edge_users[i1,i2]= 1
+# 							try:
+# 								edge_users[i1,i2]+=1
+# 							except KeyError:
+# 								edge_users[i1,i2]= 1
 					
-					for key, users in edge_users.iteritems():
-						if users>1:
-							fgon_edges[key]= None
+# 					for key, users in edge_users.iteritems():
+# 						if users>1:
+# 							fgon_edges[key]= None
 				
-				# remove all after 3, means we dont have to pop this one.
-				faces.pop(f_idx)
+# 				# remove all after 3, means we dont have to pop this one.
+# 				faces.pop(f_idx)
 		
 		
 	# Build sharp edges
@@ -564,32 +574,35 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 				me_edges[ed].flag |= SHARP
 # 		del SHARP
 	
-# 	if CREATE_EDGES:
+	if CREATE_EDGES:
+
+		me.add_geometry(0, len(edges))
+
+		# edges is (should be) a list of (a, b) tuples
+		me.edges.foreach_set("verts", unpack_list(edges))
 # 		me_edges.extend( edges )
 	
 # 	del me_edges
-	
+
+	me.calc_normals()
 # 	me.calcNormals()
 
 	ob= bpy.data.add_object("MESH", "Mesh")
 	ob.data= me
+	scn.add_object(ob)
 # 	ob= scn.objects.new(me)
 	new_objects.append(ob)
 
-# 	# Create the vertex groups. No need to have the flag passed here since we test for the 
-# 	# content of the vertex_groups. If the user selects to NOT have vertex groups saved then
-# 	# the following test will never run
-# 	for group_name, group_indicies in vertex_groups.iteritems():
-# 		i= ob.add_vertex_group(group_name)
-# # 		me.addVertGroup(group_name)
-# 		me.assign_verts_to_group(group_index, group_indicies, len(group_indicies), 1.0, 'REPLACE')
-# # 		me.assignVertsToGroup(group_name, group_indicies, 1.00, Mesh.AssignModes.REPLACE)
+	# Create the vertex groups. No need to have the flag passed here since we test for the 
+	# content of the vertex_groups. If the user selects to NOT have vertex groups saved then
+	# the following test will never run
+	for group_name, group_indicies in vertex_groups.iteritems():
+		group= ob.add_vertex_group(group_name)
+# 		me.addVertGroup(group_name)
+		for vertex_index in group_indicies:
+			ob.add_vertex_to_group(vertex_index, group, 1.0, 'REPLACE')
+# 		me.assignVertsToGroup(group_name, group_indicies, 1.00, Mesh.AssignModes.REPLACE)
 
-
-class Mesh(bpy.types.Mesh):
-
-	def assign_verts_to_group(self, group_index, vert_indices, weight):
-		
 
 def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 	'''
@@ -700,16 +713,16 @@ def get_float_func(filepath):
 	return float
 
 def load_obj(filepath,
-						 CLAMP_SIZE= 0.0, 
-						 CREATE_FGONS= True, 
-						 CREATE_SMOOTH_GROUPS= True, 
-						 CREATE_EDGES= True, 
-						 SPLIT_OBJECTS= True, 
-						 SPLIT_GROUPS= True, 
-						 SPLIT_MATERIALS= True, 
-						 ROTATE_X90= True, 
-						 IMAGE_SEARCH=True,
-						 POLYGROUPS=False):
+			 CLAMP_SIZE= 0.0, 
+			 CREATE_FGONS= True, 
+			 CREATE_SMOOTH_GROUPS= True, 
+			 CREATE_EDGES= True, 
+			 SPLIT_OBJECTS= True, 
+			 SPLIT_GROUPS= True, 
+			 SPLIT_MATERIALS= True, 
+			 ROTATE_X90= True, 
+			 IMAGE_SEARCH=True,
+			 POLYGROUPS=False):
 	'''
 	Called by the user interface or another script.
 	load_obj(path) - should give acceptable results.
@@ -997,30 +1010,30 @@ def load_obj(filepath,
 		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 	
 	# nurbs support
-	for context_nurbs in nurbs:
-		create_nurbs(scn, context_nurbs, verts_loc, new_objects)
+# 	for context_nurbs in nurbs:
+# 		create_nurbs(scn, context_nurbs, verts_loc, new_objects)
 	
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3
 	
-	if CLAMP_SIZE:
-		# Get all object bounds
-		for ob in new_objects:
-			for v in ob.getBoundBox():
-				for axis, value in enumerate(v):
-					if axis_min[axis] > value:	axis_min[axis]= value
-					if axis_max[axis] < value:	axis_max[axis]= value
+# 	if CLAMP_SIZE:
+# 		# Get all object bounds
+# 		for ob in new_objects:
+# 			for v in ob.getBoundBox():
+# 				for axis, value in enumerate(v):
+# 					if axis_min[axis] > value:	axis_min[axis]= value
+# 					if axis_max[axis] < value:	axis_max[axis]= value
 		
-		# Scale objects
-		max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
-		scale= 1.0
+# 		# Scale objects
+# 		max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
+# 		scale= 1.0
 		
-		while CLAMP_SIZE < max_axis * scale:
-			scale= scale/10.0
+# 		while CLAMP_SIZE < max_axis * scale:
+# 			scale= scale/10.0
 		
-		for ob in new_objects:
-			ob.setSize(scale, scale, scale)
+# 		for ob in new_objects:
+# 			ob.setSize(scale, scale, scale)
 	
 	# Better rotate the vert locations
 	#if not ROTATE_X90:
@@ -1276,5 +1289,10 @@ else:
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)
 # check later: line 489
-# edge flags, edges, normals: lines 508-528
-# vertex groups: line 533 - cannot assign vertex groups
+# can convert now: edge flags, edges: lines 508-528
+# ngon (uses python module BPyMesh): 384-414
+# nurbs: 947-
+# clamp size: cannot get bound box with RNA - neither I can write RNA struct function that returns it -
+# again, RNA limitation
+# warning: uses bpy.sys.exists
+# get back to l 140 (here)

@@ -1134,6 +1134,8 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_sss(brna);
 	rna_def_material_mtex(brna);
 	rna_def_material_strand(brna);
+
+	RNA_api_material(srna);
 }
 
 void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeget, const char *structname)
