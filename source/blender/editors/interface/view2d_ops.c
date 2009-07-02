@@ -1095,15 +1095,23 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 			vsm->zone= mouse_in_scroller_handle(y, v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max); 
 		}
 	}
+	
 	UI_view2d_scrollers_free(scrollers);
+	ED_region_tag_redraw(ar);
 }
 
 /* cleanup temp customdata  */
 static void scroller_activate_exit(bContext *C, wmOperator *op)
 {
 	if (op->customdata) {
+		v2dScrollerMove *vsm= op->customdata;
+
+		vsm->v2d->scroll_ui &= ~(V2D_SCROLL_H_ACTIVE|V2D_SCROLL_V_ACTIVE);
+		
 		MEM_freeN(op->customdata);
-		op->customdata= NULL;				
+		op->customdata= NULL;		
+		
+		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 } 
 
@@ -1239,6 +1247,11 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_PASS_THROUGH;
 			}			
 		}
+		
+		if(vsm->scroller=='h')
+			v2d->scroll_ui |= V2D_SCROLL_H_ACTIVE;
+		else
+			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;
 		
 		/* still ok, so can add */
 		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);

@@ -118,6 +118,10 @@ typedef struct View2D {
 #define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		
 #define V2D_SCROLL_HORIZONTAL_HIDE	(1<<8)
 
+/* scroll_ui, activate flag for drawing */
+#define V2D_SCROLL_H_ACTIVE			(1<<0)
+#define V2D_SCROLL_V_ACTIVE			(1<<1)
+
 /* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
 	/* all quadrants free */
 #define V2D_ALIGN_FREE			0

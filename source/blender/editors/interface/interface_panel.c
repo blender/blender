@@ -106,7 +106,7 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 	}
 	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return BUT_VERTICAL;
-	else if(ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS))
+	else if(ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
 	
 	return 0;

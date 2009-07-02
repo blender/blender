@@ -321,6 +321,19 @@ void BLF_draw_default(float x, float y, float z, char *str)
 	}
 }
 
+void BLF_default_rotation(float angle)
+{
+	
+	if (global_font_default>=0) {
+		global_font[global_font_default]->angle= angle;
+		if(angle)
+			global_font[global_font_default]->flags |= BLF_ROTATION;
+		else
+			global_font[global_font_default]->flags &= ~BLF_ROTATION;
+	}
+}
+
+
 void BLF_draw(char *str)
 {
 	FontBLF *font;
