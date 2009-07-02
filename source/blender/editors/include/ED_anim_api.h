@@ -296,11 +296,11 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
-struct uiBlock;
+struct uiLayout;
 
 /* draw a given F-Modifier for some layout/UI-Block */
 // XXX not quite complete yet
-void ANIM_uiTemplate_fmodifier_draw(struct uiBlock *block, ListBase *modifiers, struct FModifier *fcm, int *yco);
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

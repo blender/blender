@@ -97,7 +97,7 @@
 // XXX for now, roundbox has it's callback func set to NULL to not intercept events
 #define DRAW_BACKDROP(height) \
 	{ \
-		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, *yco-height, width+3, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
+		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, yco-height, width+3, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
 	}
 
 /* callback to verify modifier data */
@@ -134,26 +134,19 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 /* --------------- */
 	
 /* draw settings for generator modifier */
-static void draw_modifier__generator(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short width)
 {
+	// XXX TEMP WARNING
+	uiItemL(layout, "Generator FModifier UI not yet implemented again", ICON_ERROR);
+	
+#if 0 // TODO: port to the new system
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
+	uiBlock *block= uiLayoutGetBlock(layout);
 	char gen_mode[]="Generator Type%t|Expanded Polynomial%x0|Factorised Polynomial%x1";
-	int cy= *yco - 30;
+	int cy= yco - 30;
 	uiBut *but;
 	
-	/* set the height */
-	(*height) = 90;
-	switch (data->mode) {
-		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
-			(*height) += 20*(data->poly_order+1) + 20;
-			break;
-		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
-			(*height) += 20 * data->poly_order + 15;
-			break;
-	}
-	
 	/* basic settings (backdrop + mode selector + some padding) */
-	DRAW_BACKDROP((*height));
 	uiBlockBeginAlign(block);
 		but= uiDefButI(block, MENU, B_FMODIFIER_REDRAW, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
 		uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
@@ -237,97 +230,79 @@ static void draw_modifier__generator(uiBlock *block, FModifier *fcm, int *yco, s
 		}
 			break;
 	}
+#endif 
 }
 
 /* --------------- */
 
 /* draw settings for noise modifier */
-static void draw_modifier__fn_generator(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__fn_generator(uiLayout *layout, FModifier *fcm, short width)
 {
-	FMod_FunctionGenerator *data= (FMod_FunctionGenerator *)fcm->data;
-	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
-	char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4|Normalised Sin%x5";
+	uiLayout *col= uiLayoutColumn(layout, 0); // no grouping for now
+	PointerRNA ptr;
 	
-	/* set the height */
-	(*height) = 80;
+	/* init the RNA-pointer */
+	RNA_pointer_create(NULL, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
-	/* basic settings (backdrop + some padding) */
-	DRAW_BACKDROP((*height));
-	
-	uiDefButI(block, MENU, B_FMODIFIER_REDRAW, fn_type,
-			  3, cy, 300, 20, &data->type, 0, 0, 0, 0, "Type of function used to generate values");
-	
-	
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Amplitude:", 
-			  3, cy1, 150, 20, &data->amplitude, 0.000001, 10000.0, 0.01, 3, "Scale factor determining the maximum/minimum values.");
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Value Offset:", 
-			  3, cy2, 150, 20, &data->value_offset, 0.0, 10000.0, 0.01, 3, "Constant factor to offset values by.");
-	
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Phase Multiplier:", 
-			  155, cy1, 150, 20, &data->phase_multiplier, 0.0, 100000.0, 0.1, 3, "Scale factor determining the 'speed' of the function.");
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Phase Offset:", 
-			  155, cy2, 150, 20, &data->phase_offset, 0.0, 100000.0, 0.1, 3, "Constant factor to offset time by for function.");
-
+	/* add the settings */
+	uiItemR(col, NULL, 0, &ptr, "amplitude", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "phase_offset", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "value_offset", 0, 0, 0);
 }
 
 /* --------------- */
 
 /* draw settings for cycles modifier */
-static void draw_modifier__cycles(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__cycles(uiLayout *layout, FModifier *fcm, short width)
 {
-	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2|Repeat Mirrored%x3";
-	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
+	uiLayout *split, *col;
+	PointerRNA ptr;
 	
-	/* set the height */
-	(*height) = 80;
+	/* init the RNA-pointer */
+	RNA_pointer_create(NULL, &RNA_FModifierCycles, fcm, &ptr);
 	
-	/* basic settings (backdrop + some padding) */
-	DRAW_BACKDROP((*height));
+	/* split into 2 columns 
+	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
+	 */
+	split= uiLayoutSplit(layout, 0.5f);
 	
-	/* 'before' range */
-	uiDefBut(block, LABEL, 1, "Before:", 4, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
-	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 3,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 3, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
-	uiBlockEndAlign(block);
-	
-	/* 'after' range */
-	uiDefBut(block, LABEL, 1, "After:", 155, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
-	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 157,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 157, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
-	uiBlockEndAlign(block);
+	/* before range */
+	col= uiLayoutColumn(split, 1);
+	uiItemL(col, "Before:", 0);
+	uiItemR(col, "", 0, &ptr, "before_mode", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "before_cycles", 0, 0, 0);
+		
+	/* after range */
+	col= uiLayoutColumn(split, 1);
+	uiItemL(col, "After:", 0);
+	uiItemR(col, "", 0, &ptr, "after_mode", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "after_cycles", 0, 0, 0);
 }
 
 /* --------------- */
 
 /* draw settings for noise modifier */
-static void draw_modifier__noise(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__noise(uiLayout *layout, FModifier *fcm, short width)
 {
-	FMod_Noise *data= (FMod_Noise *)fcm->data;
-	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
-	char blend_mode[]="Modification %t|Replace %x0|Add %x1|Subtract %x2|Multiply %x3";
+	uiLayout *split, *col;
+	PointerRNA ptr;
 	
-	/* set the height */
-	(*height) = 80;
+	/* init the RNA-pointer */
+	RNA_pointer_create(NULL, &RNA_FModifierNoise, fcm, &ptr);
 	
-	/* basic settings (backdrop + some padding) */
-	DRAW_BACKDROP((*height));
+	/* split into 2 columns */
+	split= uiLayoutSplit(layout, 0.5f);
 	
-	uiDefButS(block, MENU, B_FMODIFIER_REDRAW, blend_mode,
-			  3, cy, 150, 20, &data->modification, 0, 0, 0, 0, "Method of combining the results of this modifier and other modifiers.");
+	/* col 1 */
+	col= uiLayoutColumn(split, 0);
+	uiItemR(col, NULL, 0, &ptr, "size", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "strength", 0, 0, 0);
 	
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Size:", 
-			  3, cy1, 150, 20, &data->size, 0.000001, 10000.0, 0.01, 3, "");
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Strength:", 
-			  3, cy2, 150, 20, &data->strength, 0.0, 10000.0, 0.01, 3, "");
-	
-	uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Phase:", 
-			  155, cy1, 150, 20, &data->phase, 0.0, 100000.0, 0.1, 3, "");
-	uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Depth:", 
-			  155, cy2, 150, 20, &data->depth, 0, 128, 1, 3, "");
-
+	/* col 2 */
+	col= uiLayoutColumn(split, 0);
+	uiItemR(col, NULL, 0, &ptr, "phase", 0, 0, 0);
+	uiItemR(col, NULL, 0, &ptr, "depth", 0, 0, 0);
 }
 
 /* --------------- */
@@ -492,21 +467,16 @@ static void fmod_envelope_deletepoint_cb (bContext *C, void *fcm_dv, void *ind_v
 }
 
 /* draw settings for envelope modifier */
-static void draw_modifier__envelope(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__envelope(uiLayout *layout, FModifier *fcm, short width)
 {
+	uiItemL(layout, "Envelope FModifier UI not yet recoded in layout engine", ICON_ERROR);
+#if 0 // XXX FIXME: recode in new layout style
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
+	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
-	int cy= (*yco - 28);
+	int cy= (yco - 28);
 	int i;
-	
-	/* set the height:
-	 *	- basic settings + variable height from envelope controls
-	 */
-	(*height) = 115 + (35 * env->totvert);
-	
-	/* basic settings (backdrop + general settings + some padding) */
-	DRAW_BACKDROP((*height));
 	
 	/* General Settings */
 	uiDefBut(block, LABEL, 1, "Envelope:", 10, cy, 100, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
@@ -543,83 +513,104 @@ static void draw_modifier__envelope(uiBlock *block, FModifier *fcm, int *yco, sh
 		uiBlockBeginAlign(block);
 		cy -= 25;
 	}
+#endif
 }
 
 /* --------------- */
 
 /* draw settings for limits modifier */
-static void draw_modifier__limits(uiBlock *block, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__limits(uiLayout *layout, FModifier *fcm, short width)
 {
-	FMod_Limits *data= (FMod_Limits *)fcm->data;
-	const int togButWidth = 50;
-	const int textButWidth = ((width/2)-togButWidth);
+	uiLayout *split, *col, *row;
+	PointerRNA ptr;
 	
-	/* set the height */
-	(*height) = 60;
+	/* init the RNA-pointer */
+	RNA_pointer_create(NULL, &RNA_FModifierLimits, fcm, &ptr);
 	
-	/* basic settings (backdrop + some padding) */
-	DRAW_BACKDROP((*height));
+	/* row 1: minimum */
+	{
+		row= uiLayoutRow(layout, 0);
+		
+		/* split into 2 columns */
+		split= uiLayoutSplit(layout, 0.5f);
+		
+		/* x-minimum */
+		col= uiLayoutColumn(split, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "minimum_x", 0, 0, 0);
+			
+		/* y-minimum*/
+		col= uiLayoutColumn(split, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "minimum_y", 0, 0, 0);
+	}
 	
-	/* Draw Pairs of LimitToggle+LimitValue */
-	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMIN, B_FMODIFIER_REDRAW, "xMin", 5, *yco-30, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+togButWidth, *yco-30, (textButWidth-5), 18, &data->rect.xmin, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Lowest x value to allow"); 
-	uiBlockEndAlign(block); 
-	
-	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMAX, B_FMODIFIER_REDRAW, "XMax", 5+(width-(textButWidth-5)-togButWidth), *yco-30, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+(width-textButWidth-5), *yco-30, (textButWidth-5), 18, &data->rect.xmax, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Highest x value to allow"); 
-	uiBlockEndAlign(block); 
-	
-	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMIN, B_FMODIFIER_REDRAW, "yMin", 5, *yco-52, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+togButWidth, *yco-52, (textButWidth-5), 18, &data->rect.ymin, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Lowest y value to allow"); 
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMAX, B_FMODIFIER_REDRAW, "YMax", 5+(width-(textButWidth-5)-togButWidth), *yco-52, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5+(width-textButWidth-5), *yco-52, (textButWidth-5), 18, &data->rect.ymax, -UI_FLT_MAX, UI_FLT_MAX, 0.1,0.5,"Highest y value to allow"); 
-	uiBlockEndAlign(block); 
+	/* row 2: minimum */
+	{
+		row= uiLayoutRow(layout, 0);
+		
+		/* split into 2 columns */
+		split= uiLayoutSplit(layout, 0.5f);
+		
+		/* x-minimum */
+		col= uiLayoutColumn(split, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "maximum_x", 0, 0, 0);
+			
+		/* y-minimum*/
+		col= uiLayoutColumn(split, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "maximum_y", 0, 0, 0);
+	}
 }
 
 /* --------------- */
 
-// FIXME: remove dependency for F-Curve
-void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, ListBase *modifiers, FModifier *fcm, int *yco)
+
+void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+	uiLayout *box, *row, *subrow;
+	uiBlock *block;
 	uiBut *but;
-	short active= (fcm->flag & FMODIFIER_FLAG_ACTIVE);
 	short width= 314;
-	short height = 0; 
-	int rb_col;
 	
 	/* draw header */
 	{
+		/* get layout-row + UI-block for this */
+		box= uiLayoutBox(layout);
+		
+		row= uiLayoutRow(box, 0);
+		block= uiLayoutGetBlock(row); // err...
+		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
-		/* rounded header */
-		rb_col= (active)?-20:20;
-		but= uiDefBut(block, ROUNDBOX, B_REDR, "", 0, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
+		/* left-align -------------------------------------------- */
+		subrow= uiLayoutRow(row, 0);
+		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 		
 		/* expand */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	5, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded.");
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	0, -1, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded.");
 		
 		/* checkbox for 'active' status (for now) */
-		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	25, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one.");
+		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	0, -1, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one.");
 		uiButSetFunc(but, activate_fmodifier_cb, modifiers, fcm);
 		
 		/* name */
 		if (fmi)
-			uiDefBut(block, LABEL, 1, fmi->name,	10+40, *yco, 150, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiDefBut(block, LABEL, 1, fmi->name,	0, 0, 150, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
 		else
-			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+40, *yco, 150, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	0, 0, 150, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+		
+		/* right-align ------------------------------------------- */
+		subrow= uiLayoutRow(row, 0);
+		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 		
 		/* 'mute' button */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_MUTED, B_REDR, ICON_MUTE_IPO_OFF,	10+(width-60), *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is temporarily muted (not evaluated).");
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_MUTED, B_REDR, ICON_MUTE_IPO_OFF,	0, 0, UI_UNIT_X, UI_UNIT_Y, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is temporarily muted (not evaluated).");
 		
 		/* delete button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
+		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
 		uiButSetFunc(but, delete_fmodifier_cb, modifiers, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -627,43 +618,39 @@ void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, ListBase *modifiers, FModif
 	
 	/* when modifier is expanded, draw settings */
 	if (fcm->flag & FMODIFIER_FLAG_EXPANDED) {
+		/* set up the flexible-box layout which acts as the backdrop for the modifier settings */
+		box= uiLayoutBox(layout); 
+		
 		/* draw settings for individual modifiers */
 		switch (fcm->type) {
 			case FMODIFIER_TYPE_GENERATOR: /* Generator */
-				draw_modifier__generator(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__generator(box, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_FN_GENERATOR: /* Built-In Function Generator */
-				draw_modifier__fn_generator(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__fn_generator(box, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_CYCLES: /* Cycles */
-				draw_modifier__cycles(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__cycles(box, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
-				draw_modifier__envelope(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__envelope(box, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
-				draw_modifier__limits(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__limits(box, fcm, width);
 				break;
 			
 			case FMODIFIER_TYPE_NOISE: /* Noise */
-				draw_modifier__noise(block, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__noise(box, fcm, width);
 				break;
 			
 			default: /* unknown type */
-				height= 96;
-				//DRAW_BACKDROP(height); // XXX buggy...
 				break;
 		}
 	}
-	
-	/* adjust height for new to start */
-	(*yco) -= (height + 27); 
 }
 
 /* ********************************************** */
-
- 

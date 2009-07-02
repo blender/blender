@@ -366,22 +366,30 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	bAnimListElem *ale;
 	FCurve *fcu;
 	FModifier *fcm;
+	uiLayout *col, *row;
 	uiBlock *block;
-	int yco= 190;
 	
-	if(!graph_panel_context(C, &ale, &fcu))
+	if (!graph_panel_context(C, &ale, &fcu))
 		return;
 	
-	block= uiLayoutFreeBlock(pa->layout);
+	block= uiLayoutGetBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
 	
 	/* 'add modifier' button at top of panel */
-	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
-	uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 225, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+	{
+		row= uiLayoutRow(pa->layout, 0);
+		block= uiLayoutGetBlock(row);
+		
+		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
+		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 0, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+	}
 	
 	/* draw each modifier */
-	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
-		ANIM_uiTemplate_fmodifier_draw(block, &fcu->modifiers, fcm, &yco);
+	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+		col= uiLayoutColumn(pa->layout, 1);
+		
+		ANIM_uiTemplate_fmodifier_draw(col, &fcu->modifiers, fcm);
+	}
 
 	MEM_freeN(ale);
 }

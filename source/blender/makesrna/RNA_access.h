@@ -179,6 +179,7 @@ extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
 extern StructRNA RNA_FModifierEnvelope;
+extern StructRNA RNA_FModifierEnvelopeControlPoint;
 extern StructRNA RNA_FModifierFunctionGenerator;
 extern StructRNA RNA_FModifierGenerator;
 extern StructRNA RNA_FModifierGenerator_PolyExpanded;
