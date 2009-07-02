@@ -230,7 +230,7 @@ static void rna_def_fmodifier_function_generator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierFunctionGenerator", "FModifier");
-	RNA_def_struct_ui_text(srna, "Built-In Function F-Curve Modifier", "Generates values using a Built-In Function.");
+	RNA_def_struct_ui_text(srna, "Built-In Function F-Modifier", "Generates values using a Built-In Function.");
 	RNA_def_struct_sdna_from(srna, "FMod_FunctionGenerator", "data");
 	
 	/* coefficients */
@@ -264,7 +264,7 @@ static void rna_def_fmodifier_envelope(BlenderRNA *brna)
 	//PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierEnvelope", "FModifier");
-	RNA_def_struct_ui_text(srna, "Envelope F-Curve Modifier", "Scales the values of the modified F-Curve.");
+	RNA_def_struct_ui_text(srna, "Envelope F-Modifier", "Scales the values of the modified F-Curve.");
 	RNA_def_struct_sdna_from(srna, "FMod_Envelope", "data");
 }
 
@@ -283,7 +283,7 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierCycles", "FModifier");
-	RNA_def_struct_ui_text(srna, "Cycles F-Curve Modifier", "Repeats the values of the modified F-Curve.");
+	RNA_def_struct_ui_text(srna, "Cycles F-Modifier", "Repeats the values of the modified F-Curve.");
 	RNA_def_struct_sdna_from(srna, "FMod_Cycles", "data");
 	
 	/* before */
@@ -312,7 +312,7 @@ static void rna_def_fmodifier_python(BlenderRNA *brna)
 	//PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierPython", "FModifier");
-	RNA_def_struct_ui_text(srna, "Python F-Curve Modifier", "Performs user-defined operation on the modified F-Curve.");
+	RNA_def_struct_ui_text(srna, "Python F-Modifier", "Performs user-defined operation on the modified F-Curve.");
 	RNA_def_struct_sdna_from(srna, "FMod_Python", "data");
 }
 
@@ -324,7 +324,7 @@ static void rna_def_fmodifier_limits(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierLimits", "FModifier");
-	RNA_def_struct_ui_text(srna, "Limits F-Curve Modifier", "Limits the time/value ranges of the modified F-Curve.");
+	RNA_def_struct_ui_text(srna, "Limits F-Modifier", "Limits the time/value ranges of the modified F-Curve.");
 	RNA_def_struct_sdna_from(srna, "FMod_Limits", "data");
 	
 	prop= RNA_def_property(srna, "use_minimum_x", PROP_BOOLEAN, PROP_NONE);
@@ -375,7 +375,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierNoise", "FModifier");
-	RNA_def_struct_ui_text(srna, "Noise F-Curve Modifier", "Gives randomness to the modified F-Curve.");
+	RNA_def_struct_ui_text(srna, "Noise F-Modifier", "Gives randomness to the modified F-Curve.");
 	RNA_def_struct_sdna_from(srna, "FMod_Noise", "data");
 	
 	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
@@ -411,7 +411,7 @@ void rna_def_fmodifier(BlenderRNA *brna)
 	/* base struct definition */
 	srna= RNA_def_struct(brna, "FModifier", NULL);
 	RNA_def_struct_refine_func(srna, "rna_FModifierType_refine");
-	RNA_def_struct_ui_text(srna, "FCurve Modifier", "Modifier for values of F-Curve.");
+	RNA_def_struct_ui_text(srna, "F-Modifier", "Modifier for values of F-Curve.");
 	
 #if 0 // XXX not used yet
 	/* name */
@@ -509,6 +509,27 @@ void rna_def_channeldriver(BlenderRNA *brna)
 
 /* *********************** */
 
+static void rna_def_fpoint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "FCurveSample", NULL);
+	RNA_def_struct_sdna(srna, "FPoint");
+	RNA_def_struct_ui_text(srna, "F-Curve Sample", "Sample point for F-Curve.");
+	
+	/* Boolean values */
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
+	RNA_def_property_ui_text(prop, "Selected", "Selection status");
+	
+	/* Vector value */
+	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_sdna(prop, NULL, "vec");
+	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
+}
+
 void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -559,7 +580,7 @@ void rna_def_fcurve(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fpt", "totvert");
-	RNA_def_property_struct_type(prop, "CurvePoint"); // XXX FPoints not BPoints here! FPoints are much smaller!
+	RNA_def_property_struct_type(prop, "FCurveSample");
 	RNA_def_property_ui_text(prop, "Sampled Points", "Sampled animation data");
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
@@ -577,6 +598,7 @@ void rna_def_fcurve(BlenderRNA *brna)
 void RNA_def_fcurve(BlenderRNA *brna)
 {
 	rna_def_fcurve(brna);
+	rna_def_fpoint(brna);
 	
 	rna_def_drivertarget(brna);
 	rna_def_channeldriver(brna);

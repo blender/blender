@@ -174,6 +174,7 @@ extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_Event;
 extern StructRNA RNA_FCurve;
+extern StructRNA RNA_FCurveSample;
 extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;

@@ -294,6 +294,15 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
 /* ************************************************* */
+/* F-MODIFIER TOOLS */
+
+struct uiBlock;
+
+/* draw a given F-Modifier for some layout/UI-Block */
+// XXX not quite complete yet
+void ANIM_uiTemplate_fmodifier_draw(struct uiBlock *block, struct FCurve *fcu, struct FModifier *fcm, int *yco);
+
+/* ************************************************* */
 /* ASSORTED TOOLS */
 
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
