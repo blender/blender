@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <assert.h>
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -58,6 +59,7 @@ struct BVHNode
 {
 	BVHNode *child[BVH_NCHILDS];
 	float	*bb; //[6]; //[2][3];
+	char split_axis;
 };
 
 struct BVHTree
@@ -125,7 +127,7 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 	int hit = 0;
 	if(RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX)
 	{
-//		if(isec->idot_axis[node->split_axis] > 0.0f)
+		if(isec->idot_axis[node->split_axis] > 0.0f)
 		{
 			int i;
 			for(i=0; i<BVH_NCHILDS; i++)
@@ -142,7 +144,6 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
-/*
 		else
 		{
 			int i;
@@ -158,7 +159,6 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
-*/
 	}
 	return hit;
 }
@@ -180,16 +180,25 @@ static void bvh_add(BVHTree *obj, RayObject *ob)
 	rtbuild_add( obj->builder, ob );
 }
 
-static BVHNode *bvh_new_node(BVHTree *tree)
+static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 {
-	BVHNode *node = tree->next_node++;
+	BVHNode *node = tree->alloc + nid - 1;
+	if(node+1 > tree->next_node)
+		tree->next_node = node+1;
+		
 	node->bb = tree->bb_next;
 	tree->bb_next += 6;
 	
 	return node;
 }
 
-static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder)
+static int child_id(int pid, int nchild)
+{
+	//N child of node A = A * K + (2 - K) + N, (0 <= N < K)
+	return pid*BVH_NCHILDS+(2-BVH_NCHILDS)+nchild;
+}
+
+static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 {
 	if(rtbuild_size(builder) == 1)
 	{
@@ -197,7 +206,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder)
 //
 //
 		int i;
-		BVHNode *parent = bvh_new_node(tree);
+		BVHNode *parent = bvh_new_node(tree, nid);
 		
 		INIT_MINMAX(parent->bb, parent->bb+3);
 
@@ -217,13 +226,13 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder)
 		int nc = rtbuild_mean_split_largest_axis(builder, BVH_NCHILDS);
 		RTBuilder tmp;
 	
-		BVHNode *parent = bvh_new_node(tree);
+		BVHNode *parent = bvh_new_node(tree, nid);
 
 		INIT_MINMAX(parent->bb, parent->bb+3);
-//		bvh->split_axis = tmp->split_axis;
+		parent->split_axis = builder->split_axis;
 		for(i=0; i<nc; i++)
 		{
-			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp) );
+			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp), child_id(nid,i) );
 			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
 		}
 		for(; i<BVH_NCHILDS; i++)
@@ -243,12 +252,14 @@ static void bvh_done(BVHTree *obj)
 	obj->alloc = (BVHNode*)MEM_mallocN( sizeof(BVHNode)*needed_nodes, "BVHTree.Nodes");
 	obj->next_node = obj->alloc;
 
-	obj->bb_alloc = (float*)MEM_mallocN( sizeof(float)*6*needed_nodes, "BVHTree.Nodes");
+	obj->bb_alloc = (float*)MEM_mallocN( sizeof(float)*6*needed_nodes, "BVHTree.NodesBB");
 	obj->bb_next  = obj->bb_alloc;
 	
-	obj->root = bvh_rearrange( obj, obj->builder );
+	obj->root = bvh_rearrange( obj, obj->builder, 1 );
 
 	assert(obj->alloc+needed_nodes >= obj->next_node);
+	
+	printf("BVH: Used %d nodes\n", obj->next_node-obj->alloc);
 	
 
 	rtbuild_free( obj->builder );

@@ -42,8 +42,9 @@
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  */
-float RE_rayobject_bb_intersect(const Isect *isec, const float *bb)
+float RE_rayobject_bb_intersect(const Isect *isec, const float *_bb)
 {
+	const float *bb = _bb;
 	float dist;
 	
 	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];

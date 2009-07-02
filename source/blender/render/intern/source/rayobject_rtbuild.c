@@ -67,8 +67,10 @@ int rtbuild_get_largest_axis(RTBuilder *b)
 
 	INIT_MINMAX(min, max);
 	merge_bb( b, min, max);
-		
-	VECSUB(sub, max, min);
+	
+	sub[0] = max[0]-min[0];
+	sub[1] = max[1]-min[1];
+	sub[2] = max[2]-min[2];
 	if(sub[0] > sub[1])
 	{
 		if(sub[0] > sub[2])
@@ -90,8 +92,9 @@ int rtbuild_get_largest_axis(RTBuilder *b)
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 {
 	int i;
-	int leafs_per_child;
+	int mleafs_per_child, Mleafs_per_child;
 	int tot_leafs  = rtbuild_size(b);
+	int missing_leafs;
 
 	long long s;
 
@@ -99,25 +102,41 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 	
 	//TODO optimize calc of leafs_per_child
 	for(s=nchilds; s<tot_leafs; s*=nchilds);
-	leafs_per_child = s/nchilds;
+	Mleafs_per_child = s/nchilds;
+	mleafs_per_child = Mleafs_per_child/nchilds;
 	
-	assert(leafs_per_child*nchilds >= tot_leafs);
-	
+	//split min leafs per child	
 	b->child_offset[0] = 0;
-	for(i=1; ; i++)
+	for(i=1; i<=nchilds; i++)
+		b->child_offset[i] = mleafs_per_child;
+	
+	//split remaining leafs
+	missing_leafs = tot_leafs - mleafs_per_child*nchilds;
+	for(i=1; i<=nchilds; i++)
 	{
-		assert(i <= nchilds);
-		
-		b->child_offset[i] = b->child_offset[i-1] + leafs_per_child;
-		if(b->child_offset[i] >= tot_leafs)
+		if(missing_leafs > Mleafs_per_child - mleafs_per_child)
 		{
-			b->child_offset[i] = tot_leafs;
-			split_leafs(b, b->child_offset, i, axis);
-			
-			assert(i > 1);
-			return i;
+			b->child_offset[i] += Mleafs_per_child - mleafs_per_child;
+			missing_leafs -= Mleafs_per_child - mleafs_per_child;
+		}
+		else
+		{
+			b->child_offset[i] += missing_leafs;
+			missing_leafs = 0;
+			break;
 		}
 	}
+	
+	//adjust for accumulative offsets
+	for(i=1; i<=nchilds; i++)
+		b->child_offset[i] += b->child_offset[i-1];
+
+	//Count created childs
+	for(i=nchilds; b->child_offset[i] == b->child_offset[i-1]; i--);
+	split_leafs(b, b->child_offset, i, axis);
+	
+	assert( b->child_offset[0] == 0 && b->child_offset[i] == tot_leafs );
+	return i;
 }
 	
 	
@@ -166,15 +185,15 @@ static int medianof3(RTBuilder *d, int a, int b, int c)
 	}
 	else
 	{
-		if(fc > fb)
-			return b;
-		else
+		if(fc < fb)
 		{
-			if(fc > fa)
-				return c;
-			else
+			if(fc < fa)
 				return a;
+			else
+				return c;
 		}
+		else
+			return b;
 	}
 }
 
@@ -203,14 +222,9 @@ static int partition(RTBuilder *b, int lo, int mid, int hi)
 	int i=lo, j=hi;
 	while (1)
 	{
-		while(sort_get_value(b,i) < x)
-			i++;
-
+		while(sort_get_value(b,i) < x) i++;
 		j--;
-
-		while(x < sort_get_value(b,j))
-			j--;
-
+		while(x < sort_get_value(b,j)) j--;
 		if(!(i < j))
 			return i;
 
@@ -226,7 +240,7 @@ static int partition(RTBuilder *b, int lo, int mid, int hi)
 // after a call to this function you can expect one of:
 //      every node to left of a[n] are smaller or equal to it
 //      every node to the right of a[n] are greater or equal to it
-static int partition_nth_element(RTBuilder *b, int _begin, int _end, int n)
+static int partition_nth_element(RTBuilder *b, int _begin, int n, int _end)
 {
 	int begin = _begin, end = _end, cut;
 	while(end-begin > 3)
@@ -246,10 +260,10 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 {
 	int i;
 	b->split_axis = split_axis;
+
 	for(i=0; i < partitions-1; i++)
 	{
-		if(nth[i] >= nth[partitions])
-			break;
+		assert(nth[i] < nth[i+1] && nth[i+1] < nth[partitions]);
 
 		partition_nth_element(b, nth[i],  nth[i+1], nth[partitions] );
 	}
