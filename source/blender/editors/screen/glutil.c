@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: glutil.c 11920 2007-09-02 17:25:03Z elubie $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

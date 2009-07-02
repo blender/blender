@@ -48,8 +48,9 @@ KX_CDActuator::KX_CDActuator(SCA_IObject* gameobject,
 							 KX_CDACT_TYPE type,
 							 int track,
 							 short start,
-							 short end)
-							 : SCA_IActuator(gameobject)
+							 short end,
+							 PyTypeObject* T)
+							 : SCA_IActuator(gameobject,T)
 {
 	m_soundscene = soundscene;
 	m_type = type;
@@ -170,16 +171,24 @@ PyTypeObject KX_CDActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+
+PyParentObject KX_CDActuator::Parents[] = {
+	&KX_CDActuator::Type,
+		&SCA_IActuator::Type,
+		&SCA_ILogicBrick::Type,
+		&CValue::Type,
+		NULL
+};
+
+
 
 PyMethodDef KX_CDActuator::Methods[] = {
 	// Deprecated ----->
@@ -207,6 +216,22 @@ int KX_CDActuator::pyattr_setGain(void *self, const struct KX_PYATTRIBUTE_DEF *a
 	SND_CDObject::Instance()->SetGain(act->m_gain);
 	return PY_SET_ATTR_SUCCESS;
 }
+
+PyObject* KX_CDActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_CDActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_CDActuator::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_IActuator);
+}
+
+
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_CDActuator, startCD,
 "startCD()\n"
@@ -248,8 +273,8 @@ KX_PYMETHODDEF_DOC_O(KX_CDActuator, playTrack,
 "playTrack(trackNumber)\n"
 "\tPlays the track selected.\n")
 {
-	if (PyLong_Check(value)) {
-		int track = PyLong_AsSsize_t(value);
+	if (PyInt_Check(value)) {
+		int track = PyInt_AsLong(value);
 		SND_CDObject::Instance()->SetPlaymode(SND_CD_TRACK);
 		SND_CDObject::Instance()->SetTrack(track);
 		SND_CDObject::Instance()->SetPlaystate(SND_MUST_PLAY);

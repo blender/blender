@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: UI_resources.h 13057 2007-12-30 12:08:28Z aligorith $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

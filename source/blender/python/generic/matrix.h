@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: matrix.h 20248 2009-05-18 04:11:54Z campbellbarton $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -37,19 +37,17 @@ extern PyTypeObject matrix_Type;
 #define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
 
 typedef float **ptRow;
-typedef struct _Matrix { /* keep aligned with BaseMathObject in Mathutils.h */
-	PyObject_VAR_HEAD
-	float *contigPtr;	/*1D array of data (alias)*/
-	PyObject *cb_user;	/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;	/*is wrapped data?*/
-	/* end BaseMathObject */
-
-	unsigned char rowSize;
-	unsigned int colSize;
-	ptRow			matrix;		/*ptr to the contigPtr (accessor)*/
-
+typedef struct _Matrix {
+	PyObject_VAR_HEAD 
+	struct{
+		float *py_data;		/*python managed*/
+		float *blend_data;	/*blender managed*/
+	}data;
+	ptRow matrix;			/*ptr to the contigPtr (accessor)*/
+	float *contigPtr;		/*1D array of data (alias)*/
+	int rowSize;
+	int colSize;
+	int wrapped;			/*is wrapped data?*/
 } MatrixObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -59,9 +57,5 @@ blender (stored in blend_data). This is an either/or struct not both*/
 
 /*prototypes*/
 PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type);
-PyObject *newMatrixObject_cb(PyObject *user, int rowSize, int colSize, int cb_type, int cb_subtype);
-
-extern int mathutils_matrix_vector_cb_index;
-extern struct Mathutils_Callback mathutils_matrix_vector_cb;
 
 #endif				/* EXPP_matrix_H */

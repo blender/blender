@@ -145,6 +145,7 @@ char *WM_operator_pystring(wmOperator *op)
 	const char *arg_name= NULL;
 
 	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
 
 	/* for building the string */
 	DynStr *dynstr= BLI_dynstr_new();
@@ -154,9 +155,10 @@ char *WM_operator_pystring(wmOperator *op)
 	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
 
 	iterprop= RNA_struct_iterator_property(op->ptr->type);
+	RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
-	RNA_PROP_BEGIN(op->ptr, propptr, iterprop) {
-		prop= propptr.data;
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
 		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
@@ -168,7 +170,8 @@ char *WM_operator_pystring(wmOperator *op)
 		MEM_freeN(buf);
 		first_iter = 0;
 	}
-	RNA_PROP_END;
+
+	RNA_property_collection_end(&iter);
 
 	BLI_dynstr_append(dynstr, ")");
 
@@ -288,7 +291,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr, 2);
+	uiDefAutoButsRNA(C, layout, &ptr);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -330,7 +333,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr, 2);
+	uiDefAutoButsRNA(C, layout, op->ptr);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -399,7 +402,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 						name[len]= '|';
 				}
 				
-				if(0==uiSearchItemAdd(items, name, ot, 0))
+				if(0==uiSearchItemAdd(items, name, ot))
 					break;
 			}
 		}
@@ -418,7 +421,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
@@ -500,7 +503,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
-	int event= RNA_int_get(op->ptr, "nr");
+	int event= RNA_enum_get(op->ptr, "nr");
 
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -554,7 +557,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_property(ot->srna, "nr", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
 }
 
 /* ********* main file *********** */

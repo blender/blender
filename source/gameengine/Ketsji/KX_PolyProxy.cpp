@@ -55,15 +55,18 @@ PyTypeObject KX_PolyProxy::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&CValue::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject KX_PolyProxy::Parents[] = {
+	&KX_PolyProxy::Type,
+	&CValue::Type,
+	&PyObjectPlus::Type,
+	NULL
 };
 
 PyMethodDef KX_PolyProxy::Methods[] = {
@@ -95,17 +98,16 @@ PyAttributeDef KX_PolyProxy::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#if 0
 PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 {
-	char *attr_str= _PyUnicode_AsString(attr);
+	char *attr_str= PyString_AsString(attr);
 	if (!strcmp(attr_str, "matname"))
 	{
-		return PyUnicode_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
+		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 	}
 	if (!strcmp(attr_str, "texture"))
 	{
-		return PyUnicode_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
+		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
 	}
 	if (!strcmp(attr_str, "material"))
 	{
@@ -134,35 +136,38 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 				// found it
 				break;
 		}
-		return PyLong_FromSsize_t(matid);
+		return PyInt_FromLong(matid);
 	}
 	if (!strcmp(attr_str, "v1"))
 	{
-		return PyLong_FromSsize_t(m_polygon->GetVertexOffset(0));
+		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
 	}
 	if (!strcmp(attr_str, "v2"))
 	{
-		return PyLong_FromSsize_t(m_polygon->GetVertexOffset(1));
+		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
 	}
 	if (!strcmp(attr_str, "v3"))
 	{
-		return PyLong_FromSsize_t(m_polygon->GetVertexOffset(2));
+		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
 	}
 	if (!strcmp(attr_str, "v4"))
 	{
-		return PyLong_FromSsize_t(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
+		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
 	}
 	if (!strcmp(attr_str, "visible"))
 	{
-		return PyLong_FromSsize_t(m_polygon->IsVisible());
+		return PyInt_FromLong(m_polygon->IsVisible());
 	}
 	if (!strcmp(attr_str, "collide"))
 	{
-		return PyLong_FromSsize_t(m_polygon->IsCollider());
+		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	// py_getattro_up(CValue); // XXX -- todo, make all these attributes
+	py_getattro_up(CValue);
 }
-#endif
+
+PyObject* KX_PolyProxy::py_getattro_dict() {
+	py_getattro_dict_up(CValue);
+}
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
 :	m_polygon(polygon),
@@ -199,37 +204,37 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex,
 			// found it
 			break;
 	}
-	return PyLong_FromSsize_t(matid);
+	return PyInt_FromLong(matid);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getNumVertex,
 "getNumVertex() : returns the number of vertex of the polygon, 3 or 4\n")
 {
-	return PyLong_FromSsize_t(m_polygon->VertexCount());
+	return PyInt_FromLong(m_polygon->VertexCount());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isVisible,
 "isVisible() : returns whether the polygon is visible or not\n")
 {
-	return PyLong_FromSsize_t(m_polygon->IsVisible());
+	return PyInt_FromLong(m_polygon->IsVisible());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isCollider,
 "isCollider() : returns whether the polygon is receives collision or not\n")
 {
-	return PyLong_FromSsize_t(m_polygon->IsCollider());
+	return PyInt_FromLong(m_polygon->IsCollider());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialName,
 "getMaterialName() : returns the polygon material name, \"NoMaterial\" if no material\n")
 {
-	return PyUnicode_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
+	return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getTextureName,
 "getTexturelName() : returns the polygon texture name, \"NULL\" if no texture\n")
 {
-	return PyUnicode_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
+	return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
 }
 
 KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
@@ -250,9 +255,9 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < m_polygon->VertexCount())
 	{
-		return PyLong_FromSsize_t(m_polygon->GetVertexOffset(index));
+		return PyInt_FromLong(m_polygon->GetVertexOffset(index));
 	}
-	return PyLong_FromSsize_t(0);
+	return PyInt_FromLong(0);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMesh,

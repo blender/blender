@@ -61,10 +61,19 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE=False
 
+WITH_BF_ODE = False
+BF_ODE = LIBDIR + '/ode'
+BF_ODE_INC = '${BF_ODE}/include'
+BF_ODE_LIB = '${BF_ODE}/lib/libode.a'
+
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
+
+BF_SOLID = '#extern/solid'
+BF_SOLID_INC = '${BF_SOLID}'
+BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr

@@ -221,6 +221,7 @@ static void clear_global(void)
 {
 //	extern short winqueue_break;	/* screen.c */
 
+// XXX	freeAllRad();
 	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
 	

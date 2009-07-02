@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_particle.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,7 +38,6 @@
 #include "DNA_scene_types.h"
 
 #include "WM_types.h"
-#include "WM_api.h"
 
 #ifdef RNA_RUNTIME
 
@@ -46,110 +45,48 @@
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
-#include "BLI_arithb.h"
-
-/* property update functions */
 static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_REDO;
-
-		if(ob)
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	}
-	else {
+	if(ptr->type==&RNA_ParticleSystem)
+		part = ((ParticleSystem*)ptr->data)->part;
+	else
 		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_REDO);
-	}
+
+	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_REDO);
 }
 
 static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_RESET;
-
-		if(ob) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		}
-	}
-	else {
+	if(ptr->type==&RNA_ParticleSystem)
+		part = ((ParticleSystem*)ptr->data)->part;
+	else
 		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET);
-	}
+
+	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_RESET|PSYS_RECALC_REDO);
 }
 
 static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_RESET|PSYS_RECALC_TYPE;
-
-		if(ob) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		}
-	}
-	else {
+	if(ptr->type==&RNA_ParticleSystem)
+		part = ((ParticleSystem*)ptr->data)->part;
+	else
 		part = ptr->id.data;
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
-	}
+
+	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_RESET|PSYS_RECALC_TYPE|PSYS_RECALC_REDO);
 }
 
 static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	ParticleSettings *part;
-
-	if(ptr->type==&RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
-		Object *ob = psys_find_object(scene, psys);
-		
-		psys->recalc = PSYS_RECALC_CHILD;
-
-		if(ob)
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	}
-	else {
+	if(ptr->type==&RNA_ParticleSystem)
+		part = ((ParticleSystem*)ptr->data)->part;
+	else
 		part = ptr->id.data;
 
-		psys_flush_particle_settings(scene, part, PSYS_RECALC_CHILD);
-	}
-}
-static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
-{
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSettings *part = psys_get_current(ob)->part;
-
-	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
-}
-
-static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
-{
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSystem *psys = psys_get_current(ob);
-
-	if(psys->part)
-		psys->part->id.us--;
-
-	psys->part = (ParticleSettings *)value.data;
-
-	if(psys->part)
-		psys->part->id.us++;
+	psys_flush_particle_settings(CTX_data_scene(C), part, PSYS_RECALC_CHILD);
 }
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
@@ -950,7 +887,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3d view");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "material", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "omat");
@@ -1487,9 +1424,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-	
-	/* animation here? */
-	rna_def_animdata_common(srna);
+
+#if 0
+	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ipo");
+	RNA_def_property_struct_type(prop, "Ipo");
+	RNA_def_property_ui_text(prop, "Ipo", "");
+#endif
 
 //	struct PartDeflect *pd;
 //	struct PartDeflect *pd2;
@@ -1510,15 +1452,9 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
 
-	/* access to particle settings is redirected through functions */
-	/* to allow proper id-buttons functionality */
 	prop= RNA_def_property(srna, "settings", PROP_POINTER, PROP_NEVER_NULL);
-	//RNA_def_property_pointer_sdna(prop, NULL, "part");
-	RNA_def_property_struct_type(prop, "ParticleSettings");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "part");
 	RNA_def_property_ui_text(prop, "Settings", "Particle system settings.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "particles", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "particles", "totpart");
@@ -1733,14 +1669,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
-
-	/* offset ob */
-	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "parent");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Parent", "Use this object's coordinate system instead of global coordinate system.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-
 }
 
 void RNA_def_particle(BlenderRNA *brna)

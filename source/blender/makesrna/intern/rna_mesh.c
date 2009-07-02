@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_mesh.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -234,29 +234,6 @@ static int rna_Mesh_uv_layers_length(PointerRNA *ptr)
 	return rna_CustomDataLayer_length(ptr, CD_MTFACE);
 }
 
-static PointerRNA rna_Mesh_active_uv_layer_get(PointerRNA *ptr)
-{
-	Mesh *me= (Mesh*)ptr->data;
-	int index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
-	CustomDataLayer *cdl= (index == -1)? NULL: &me->fdata.layers[index];
-
-	return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFaceLayer, cdl);
-}
-
-static void rna_Mesh_active_uv_layer_set(PointerRNA *ptr, PointerRNA value)
-{
-	Mesh *me= (Mesh*)ptr->data;
-	CustomDataLayer *cdl;
-	int a;
-
-	for(cdl=me->fdata.layers, a=0; a<me->fdata.totlayer; cdl++, a++) {
-		if(value.data == cdl) {
-			CustomData_set_layer_active_index(&me->fdata, CD_MTFACE, a);
-			return;
-		}
-	}
-}
-
 static void rna_MeshTextureFace_uv1_get(PointerRNA *ptr, float *values)
 {
 	MTFace *mtface= (MTFace*)ptr->data;
@@ -369,29 +346,6 @@ static void rna_Mesh_vcol_layers_begin(CollectionPropertyIterator *iter, Pointer
 static int rna_Mesh_vcol_layers_length(PointerRNA *ptr)
 {
 	return rna_CustomDataLayer_length(ptr, CD_MCOL);
-}
-
-static PointerRNA rna_Mesh_active_vcol_layer_get(PointerRNA *ptr)
-{
-	Mesh *me= (Mesh*)ptr->data;
-	int index= CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
-	CustomDataLayer *cdl= (index == -1)? NULL: &me->fdata.layers[index];
-
-	return rna_pointer_inherit_refine(ptr, &RNA_MeshColorLayer, cdl);
-}
-
-static void rna_Mesh_active_vcol_layer_set(PointerRNA *ptr, PointerRNA value)
-{
-	Mesh *me= (Mesh*)ptr->data;
-	CustomDataLayer *cdl;
-	int a;
-
-	for(cdl=me->fdata.layers, a=0; a<me->fdata.totlayer; cdl++, a++) {
-		if(value.data == cdl) {
-			CustomData_set_layer_active_index(&me->fdata, CD_MCOL, a);
-			return;
-		}
-	}
 }
 
 static void rna_MeshColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1121,33 +1075,17 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshSticky");
 	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates.");
 
-	/* UV layers */
-
 	prop= RNA_def_property(srna, "uv_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_uv_layers_begin", 0, 0, 0, "rna_Mesh_uv_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_ui_text(prop, "UV Layers", "");
 
-	prop= RNA_def_property(srna, "active_uv_layer", PROP_POINTER, PROP_UNSIGNED);
-	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_uv_layer_get", "rna_Mesh_active_uv_layer_set", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active UV Layer", "Active UV layer.");
-
-	/* VCol layers */
-
 	prop= RNA_def_property(srna, "vcol_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_vcol_layers_begin", 0, 0, 0, "rna_Mesh_vcol_layers_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
 	RNA_def_property_ui_text(prop, "Vertex Color Layers", "");
-
-	prop= RNA_def_property(srna, "active_vcol_layer", PROP_POINTER, PROP_UNSIGNED);
-	RNA_def_property_struct_type(prop, "MeshColorLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_vcol_layer_get", "rna_Mesh_active_vcol_layer_set", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Vertex Color Layer", "Active vertex color layer.");
 
 	prop= RNA_def_property(srna, "float_layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");

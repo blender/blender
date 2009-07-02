@@ -42,8 +42,9 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 		float float_arg,
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
-		RAS_IRenderTools* rendertools)
-    : SCA_IActuator(gameobj),
+		RAS_IRenderTools* rendertools,
+        PyTypeObject* T)
+    : SCA_IActuator(gameobj, T),
      m_type(type),
 	 m_disableMotionBlur(flag),
 	 m_float_arg(float_arg),
@@ -123,16 +124,22 @@ PyTypeObject SCA_2DFilterActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+PyParentObject SCA_2DFilterActuator::Parents[] = {
+        &SCA_2DFilterActuator::Type,
+        &SCA_IActuator::Type,
+        &SCA_ILogicBrick::Type,
+        &CValue::Type,
+        NULL
+};
+
 
 PyMethodDef SCA_2DFilterActuator::Methods[] = {
 	/* add python functions to deal with m_msg... */
@@ -147,3 +154,18 @@ PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("value", 0.0, 100.0, SCA_2DFilterActuator, m_float_arg),
 	{ NULL }	//Sentinel
 };
+
+PyObject* SCA_2DFilterActuator::py_getattro(PyObject *attr) 
+{
+    py_getattro_up(SCA_IActuator);
+}
+
+PyObject* SCA_2DFilterActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int SCA_2DFilterActuator::py_setattro(PyObject *attr, PyObject* value) 
+{
+	py_setattro_up(SCA_IActuator);
+}
+

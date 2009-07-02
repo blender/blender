@@ -737,7 +737,10 @@ void BLI_splitdirstring(char *di, char *fi)
 }
 
 char *BLI_gethome(void) {
-	#if !defined(WIN32)
+	#ifdef __BeOS
+		return "/boot/home/";		/* BeOS 4.5: doubleclick at icon doesnt give home env */
+
+	#elif !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */

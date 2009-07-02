@@ -49,6 +49,10 @@ endif
 # default (overriden by windows)
 SOEXT = .so
 
+ifeq ($(OS),beos)
+    LLIBS = -L/boot/develop/lib/x86/ -lGL -lbe -L/boot/home/config/lib/
+endif
+
 ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
     LLIBS    += -lz -lstdc++

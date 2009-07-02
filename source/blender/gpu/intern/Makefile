@@ -35,7 +35,7 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "darwin freebsd linux openbsd solaris windows"))
+ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char
 endif
 

@@ -189,7 +189,7 @@ static short swap_selection_bpoint(BPoint *bp)
 		return select_bpoint(bp, SELECT, 1, VISIBLE);
 }
 
-int isNurbsel(Nurb *nu)
+short isNurbsel(Nurb *nu)
 {
 	BezTriple *bezt;
 	BPoint *bp;

@@ -67,7 +67,8 @@ public:
 					  const STR_String& propname,
 					  const STR_String& propval,
 					  const STR_String& propmaxval,
-					  KX_PROPSENSOR_TYPE checktype);
+					  KX_PROPSENSOR_TYPE checktype,
+					  PyTypeObject* T=&Type );
 	
 	/** 
 	 *  For property sensor, it is used to release the pre-calculated expression
@@ -87,6 +88,10 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. getType */
 	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetType);

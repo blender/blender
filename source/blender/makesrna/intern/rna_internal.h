@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_internal.h 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -145,6 +145,7 @@ void RNA_def_object_force(struct BlenderRNA *brna);
 void RNA_def_packedfile(struct BlenderRNA *brna);
 void RNA_def_particle(struct BlenderRNA *brna);
 void RNA_def_pose(struct BlenderRNA *brna);
+void RNA_def_radio(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
@@ -255,7 +256,6 @@ void rna_freelistN(struct ListBase *listbase);
 StructDefRNA *rna_find_struct_def(StructRNA *srna);
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func);
 PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm);
-PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop);
 
 /* Pointer Handling */
 

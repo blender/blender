@@ -327,10 +327,12 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 #endif
 	if(sima->image) {
 		ImBuf *ibuf= ED_space_image_buffer(sima);
+		float xuser_asp, yuser_asp;
 		
+		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
-			width= ibuf->x;
-			height= ibuf->y;
+			width= ibuf->x*xuser_asp;
+			height= ibuf->y*yuser_asp;
 		}
 		else if(sima->image->type==IMA_TYPE_R_RESULT) {
 			/* not very important, just nice */
@@ -681,7 +683,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	*aspx= *aspy= 1.0;
 
 	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	   (ima->aspx==0.0 || ima->aspy==0.0))
+	   (ima->tpageflag & IMA_TILES) || (ima->aspx==0.0 || ima->aspy==0.0))
 		return;
 
 	/* x is always 1 */

@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: drawnode.c 17439 2008-11-13 09:57:11Z kakbarnf $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: sequencer_buttons.c 20279 2009-05-19 17:13:33Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -49,7 +49,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
-#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -235,8 +234,6 @@ void wm_event_do_notifiers(bContext *C)
 			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
 			}
-
-			BKE_ptcache_quick_cache_all(scene);
 		}		
 	}
 	CTX_wm_window_set(C, NULL);

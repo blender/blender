@@ -340,7 +340,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 	
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		object_add_type(C, OB_MESH);
-		ED_object_enter_editmode(C, EM_DO_UNDO);
+		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
@@ -388,7 +388,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Mesh";
+	ot->name= "Mesh";
 	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
@@ -398,8 +398,8 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_scene_editable;
 	
-	/* flags: no register or undo, this operator calls operators */
-	ot->flag= 0; //OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* flags */
+	ot->flag= 0;
 	
 	RNA_def_enum(ot->srna, "type", prop_mesh_types, 0, "Primitive", "");
 }
@@ -462,7 +462,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Curve";
+	ot->name= "Curve";
 	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
@@ -520,7 +520,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface";
+	ot->name= "Surface";
 	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
@@ -557,7 +557,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Text";
+	ot->name= "Text";
 	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
@@ -602,7 +602,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Add Armature";
+	ot->name= "Armature";
 	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
@@ -1395,8 +1395,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -2601,8 +2600,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	ED_anim_dag_flush_update(C);	
 	
 	return OPERATOR_FINISHED;
 }
@@ -2650,7 +2648,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= 0;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
@@ -3351,7 +3349,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
 	
-	if(flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
@@ -3664,7 +3661,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			if(!psys)
 				return;
 
-			if(pset->selectmode & SCE_SELECT_POINT)
+			if(scene->selectmode & SCE_SELECT_POINT)
 				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
 			else
 				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");

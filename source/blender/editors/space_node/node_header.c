@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: node_header.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

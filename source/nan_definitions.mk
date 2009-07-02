@@ -91,6 +91,7 @@ endif
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
+    export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
     export NAN_DECIMATION ?= $(LCGDIR)/decimation
@@ -130,6 +131,45 @@ endif
   endif
 
   # Platform Dependent settings go below:
+  ifeq ($(OS),beos)
+
+    export ID = $(USER)
+    export HOST = $(HOSTNAME)
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_TIFF ?= $(LCGDIR)/tiff
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+    # l10n
+    #export INTERNATIONAL ?= true
+
+  else
   ifeq ($(OS),darwin)
 
     export ID = $(shell whoami)
@@ -549,6 +589,7 @@ endif
   endif # irix
   endif # freebsd
   endif # darwin
+  endif # beos
 
 endif # CONFIG_GUESS
 

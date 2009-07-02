@@ -32,8 +32,6 @@
 //#define USE_DL_EXPORT
 #include "Python.h"
 
-#define USE_MATHUTILS // Blender 2.5x api will use mathutils, for a while we might want to test without it
-
 #ifdef __FreeBSD__
 #include <osreldate.h>
 #if __FreeBSD_version > 500039

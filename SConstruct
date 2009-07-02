@@ -285,7 +285,9 @@ if 'blenderlite' in B.targets:
 	target_env_defs['WITH_BF_SDL'] = False
 	target_env_defs['WITH_BF_JPEG'] = False
 	target_env_defs['WITH_BF_PNG'] = False
+	target_env_defs['WITH_BF_ODE'] = False
 	target_env_defs['WITH_BF_BULLET'] = False
+	target_env_defs['WITH_BF_SOLID'] = False
 	target_env_defs['WITH_BF_BINRELOC'] = False
 	target_env_defs['BF_BUILDINFO'] = False
 	target_env_defs['BF_NO_ELBEEM'] = True

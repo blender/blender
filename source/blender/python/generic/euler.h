@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: euler.h 20248 2009-05-18 04:11:54Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -40,13 +40,12 @@ extern PyTypeObject euler_Type;
 
 typedef struct {
 	PyObject_VAR_HEAD 
-	float *eul;					/*1D array of data */
-	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;		/* wrapped data type? */
-	/* end BaseMathObject */
-
+	struct{
+		float *py_data;		//python managed
+		float *blend_data;	//blender managed
+	}data;
+	float *eul;				//1D array of data (alias)
+	int wrapped;			//is wrapped data?
 } EulerObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -56,6 +55,5 @@ blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
 PyObject *newEulerObject( float *eul, int type );
-PyObject *newEulerObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif				/* EXPP_euler_h */

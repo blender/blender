@@ -26,10 +26,10 @@ class DATA_PT_mesh(DataButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if ob:
-			split.template_ID(ob, "data")
+			split.template_ID(context, ob, "data")
 			split.itemS()
 		elif mesh:
-			split.template_ID(space, "pin_id")
+			split.template_ID(context, space, "pin_id")
 			split.itemS()
 
 		if mesh:
@@ -46,46 +46,6 @@ class DATA_PT_mesh(DataButtonsPanel):
 			sub.itemR(mesh, "vertex_normal_flip")
 			sub.itemR(mesh, "double_sided")
 			
-			layout.itemR(mesh, "texco_mesh")
-
-
-class DATA_PT_materials(DataButtonsPanel):
-	__idname__ = "DATA_PT_materials"
-	__label__ = "Materials"
-	
-	def poll(self, context):
-		return (context.object and context.object.type in ('MESH', 'CURVE', 'FONT', 'SURFACE'))
-
-	def draw(self, context):
-		layout = self.layout
-		ob = context.object
-
-		row = layout.row()
-
-		row.template_list(ob, "materials", "active_material_index")
-
-		col = row.column(align=True)
-		col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
-
-		row = layout.row(align=True)
-
-		row.itemO("OBJECT_OT_material_slot_assign", text="Assign");
-		row.itemO("OBJECT_OT_material_slot_select", text="Select");
-		row.itemO("OBJECT_OT_material_slot_deselect", text="Deselect");
-
-		layout.itemS()
-
-		box= layout.box()
-
-		row = box.row()
-		row.template_list(ob, "materials", "active_material_index", compact=True)
-
-		subrow = row.row(align=True)
-		subrow.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-		subrow.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
-
-
+			layout.itemR(mesh, "texco_mesh")			
+					
 bpy.types.register(DATA_PT_mesh)
-bpy.types.register(DATA_PT_materials)
-

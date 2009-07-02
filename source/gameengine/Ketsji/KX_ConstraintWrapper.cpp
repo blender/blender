@@ -38,8 +38,8 @@
 KX_ConstraintWrapper::KX_ConstraintWrapper(
 						PHY_ConstraintType ctype,
 						int constraintId,
-						PHY_IPhysicsEnvironment* physenv) :
-		PyObjectPlus(),
+						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
+		PyObjectPlus(T),
 		m_constraintId(constraintId),
 		m_constraintType(ctype),
 		m_physenv(physenv)
@@ -51,7 +51,7 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 
 PyObject* KX_ConstraintWrapper::PyGetConstraintId()
 {
-	return PyLong_FromSsize_t(m_constraintId);
+	return PyInt_FromLong(m_constraintId);
 }
 
 
@@ -99,16 +99,36 @@ PyTypeObject KX_ConstraintWrapper::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&PyObjectPlus::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+PyParentObject KX_ConstraintWrapper::Parents[] = {
+	&KX_ConstraintWrapper::Type,
+	NULL
+};
+
+//here you can search for existing data members (like mass,friction etc.)
+PyObject* KX_ConstraintWrapper::py_getattro(PyObject *attr)
+{
+	py_getattro_up(PyObjectPlus);
+}
+
+PyObject* KX_ConstraintWrapper::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
+int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* value)
+{
+	py_setattro_up(PyObjectPlus);	
+};
+
+
+
+
 
 PyMethodDef KX_ConstraintWrapper::Methods[] = {
 	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_NOARGS},

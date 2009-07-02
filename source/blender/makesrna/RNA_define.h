@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: RNA_define.h 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,7 +80,7 @@ PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont, const char *identifier, c
 PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
 PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
 
-PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);

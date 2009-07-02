@@ -589,6 +589,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\makesrna.c"
 				>
 			</File>
@@ -681,19 +685,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main_api.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh_api.c"
 				>
 			</File>
 			<File
@@ -710,10 +706,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object_api.c"
 				>
 			</File>
 			<File
@@ -734,6 +726,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_property.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_radio.c"
 				>
 			</File>
 			<File
@@ -785,10 +781,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ui_api.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_userdef.c"
 				>
 			</File>
@@ -802,10 +794,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm_api.c"
 				>
 			</File>
 			<File

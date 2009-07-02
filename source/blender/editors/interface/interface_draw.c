@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: interface_draw.c 15733 2008-07-24 09:23:13Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

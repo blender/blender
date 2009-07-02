@@ -315,19 +315,13 @@ static void init_fastshade_shadeinput(Render *re)
 
 static Render *fastshade_get_render(Scene *scene)
 {
-	/* XXX ugly global still, but we can't do preview while rendering */
-	if(G.rendering==0) {
-		
-		Render *re= RE_GetRender("_Shade View_");
-		if(re==NULL) {
-			re= RE_NewRender("_Shade View_");
-		
-			RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
-		}
-		return re;
-	}
+	Render *re= RE_GetRender("_Shade View_");
+	if(re==NULL) {
+		re= RE_NewRender("_Shade View_");
 	
-	return NULL;
+		RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
+	}
+	return re;
 }
 
 /* called on file reading */
@@ -617,20 +611,18 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 void shadeMeshMCol(Scene *scene, Object *ob, Mesh *me)
 {
-	Render *re= fastshade_get_render(scene);
 	int a;
 	char *cp;
 	unsigned int *mcol= (unsigned int*)me->mcol;
 	
-	if(re) {
-		mesh_create_shadedColors(re, ob, 1, &mcol, NULL);
-		me->mcol= (MCol*)mcol;
+	Render *re= fastshade_get_render(scene);
+	mesh_create_shadedColors(re, ob, 1, &mcol, NULL);
+	me->mcol= (MCol*)mcol;
 
-		/* swap bytes */
-		for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
-			SWAP(char, cp[0], cp[3]);
-			SWAP(char, cp[1], cp[2]);
-		}
+	/* swap bytes */
+	for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
+		SWAP(char, cp[0], cp[3]);
+		SWAP(char, cp[1], cp[2]);
 	}
 }
 
@@ -649,8 +641,6 @@ void shadeDispList(Scene *scene, Base *base)
 	int a, need_orco;
 	
 	re= fastshade_get_render(scene);
-	if(re==NULL)
-		return;
 	
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {

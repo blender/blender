@@ -32,6 +32,7 @@ include nan_definitions.mk
 
 SOURCEDIR = source/gameengine/Physics
 DIR = $(OCGDIR)/gameengine/blphys
-DIRS = common Dummy Bullet
+DIRS = common Sumo Dummy Bullet
+#DIRS += BlOde
 
 include nan_subdirs.mk

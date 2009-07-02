@@ -3,7 +3,7 @@
  * various string, file, list operations.
  *
  *
- * $Id$
+ * $Id: util.c 17433 2008-11-12 21:16:53Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

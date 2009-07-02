@@ -40,8 +40,9 @@
 
 SCA_ActuatorSensor::SCA_ActuatorSensor(SCA_EventManager* eventmgr,
 									 SCA_IObject* gameobj,
-									 const STR_String& actname)
-	: SCA_ISensor(gameobj,eventmgr),
+									 const STR_String& actname,
+									 PyTypeObject* T )
+	: SCA_ISensor(gameobj,eventmgr,T),
 	  m_checkactname(actname)
 {
 	m_actuator = GetParent()->FindActuator(m_checkactname);
@@ -137,15 +138,19 @@ PyTypeObject SCA_ActuatorSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_ISensor::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject SCA_ActuatorSensor::Parents[] = {
+	&SCA_ActuatorSensor::Type,
+	&SCA_ISensor::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
@@ -160,6 +165,18 @@ PyAttributeDef SCA_ActuatorSensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("actuator",0,100,false,SCA_ActuatorSensor,m_checkactname,CheckActuator),
 	{ NULL }	//Sentinel
 };
+
+PyObject* SCA_ActuatorSensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_ActuatorSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
+}
+
+int SCA_ActuatorSensor::py_setattro(PyObject *attr, PyObject *value) {
+	py_setattro_up(SCA_ISensor);
+}
 
 int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 {
@@ -180,7 +197,7 @@ const char SCA_ActuatorSensor::GetActuator_doc[] =
 PyObject* SCA_ActuatorSensor::PyGetActuator() 
 {
 	ShowDeprecationWarning("getActuator()", "the actuator property");
-	return PyUnicode_FromString(m_checkactname);
+	return PyString_FromString(m_checkactname);
 }
 
 /* 4. setActuator */

@@ -94,7 +94,8 @@ public:
 					   bool bAllKeys,
 					   const STR_String& targetProp,
 					   const STR_String& toggleProp,
-					   SCA_IObject* gameobj);
+					   SCA_IObject* gameobj,
+					   PyTypeObject* T=&Type );
 	virtual ~SCA_KeyboardSensor();
 	virtual CValue* GetReplica();
 	virtual void Init();
@@ -108,6 +109,10 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	/** 1. GetKey : check which key this sensor looks at */

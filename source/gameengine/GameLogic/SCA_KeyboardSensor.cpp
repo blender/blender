@@ -48,8 +48,9 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 									   bool bAllKeys,
 									   const STR_String& targetProp,
 									   const STR_String& toggleProp,
-									   SCA_IObject* gameobj)
-	:SCA_ISensor(gameobj,keybdmgr),
+									   SCA_IObject* gameobj,
+									   PyTypeObject* T )
+	:SCA_ISensor(gameobj,keybdmgr,T),
 	 m_pKeyboardMgr(keybdmgr),
 	 m_hotkey(hotkey),
 	 m_qual(qual),
@@ -417,7 +418,7 @@ const char SCA_KeyboardSensor::GetKey_doc[] =
 PyObject* SCA_KeyboardSensor::PyGetKey()
 {
 	ShowDeprecationWarning("getKey()", "the key property");
-	return PyLong_FromSsize_t(m_hotkey);
+	return PyInt_FromLong(m_hotkey);
 }
 
 /** 2. SetKey: change the key to look at */
@@ -449,7 +450,7 @@ const char SCA_KeyboardSensor::GetHold1_doc[] =
 PyObject* SCA_KeyboardSensor::PyGetHold1()
 {
 	ShowDeprecationWarning("getHold1()", "the hold1 property");
-	return PyLong_FromSsize_t(m_qual);
+	return PyInt_FromLong(m_qual);
 }
 
 /** 4. SetHold1: change the first bucky bit */
@@ -481,7 +482,7 @@ const char SCA_KeyboardSensor::GetHold2_doc[] =
 PyObject* SCA_KeyboardSensor::PyGetHold2()
 {
 	ShowDeprecationWarning("getHold2()", "the hold2 property");
-	return PyLong_FromSsize_t(m_qual2);
+	return PyInt_FromLong(m_qual2);
 }
 
 /** 6. SetHold2: change the second bucky bit */
@@ -531,8 +532,8 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys()
 				|| (inevent.m_status == SCA_InputEvent::KX_JUSTRELEASED))
 			{
 				PyObject* keypair = PyList_New(2);
-				PyList_SET_ITEM(keypair,0,PyLong_FromSsize_t(i));
-				PyList_SET_ITEM(keypair,1,PyLong_FromSsize_t(inevent.m_status));
+				PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+				PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
 				PyList_SET_ITEM(resultlist,index,keypair);
 				index++;
 				
@@ -571,8 +572,8 @@ PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys()
 				 || (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED))
 			{
 				PyObject* keypair = PyList_New(2);
-				PyList_SET_ITEM(keypair,0,PyLong_FromSsize_t(i));
-				PyList_SET_ITEM(keypair,1,PyLong_FromSsize_t(inevent.m_status));
+				PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+				PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
 				PyList_SET_ITEM(resultlist,index,keypair);
 				index++;
 				
@@ -591,12 +592,12 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 "getKeyStatus(keycode)\n"
 "\tGet the given key's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
 {
-	if (!PyLong_Check(value)) {
+	if (!PyInt_Check(value)) {
 		PyErr_SetString(PyExc_ValueError, "sensor.getKeyStatus(int): Keyboard Sensor, expected an int");
 		return NULL;
 	}
 	
-	int keycode = PyLong_AsSsize_t(value);
+	int keycode = PyInt_AsLong(value);
 	
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
 		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
@@ -606,7 +607,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 	
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 	const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) keycode);
-	return PyLong_FromSsize_t(inevent.m_status);
+	return PyInt_FromLong(inevent.m_status);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -630,15 +631,19 @@ PyTypeObject SCA_KeyboardSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_ISensor::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject SCA_KeyboardSensor::Parents[] = {
+	&SCA_KeyboardSensor::Type,
+	&SCA_ISensor::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
@@ -667,6 +672,20 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+PyObject* SCA_KeyboardSensor::py_getattro(PyObject *attr)
+{
+  py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_KeyboardSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
+}
+
+int SCA_KeyboardSensor::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_ISensor);
+}
+
 
 PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -682,8 +701,8 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
 			PyObject* keypair = PyList_New(2);
-			PyList_SET_ITEM(keypair,0,PyLong_FromSsize_t(i));
-			PyList_SET_ITEM(keypair,1,PyLong_FromSsize_t(inevent.m_status));
+			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+			PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
 			PyList_Append(resultlist,keypair);
 		}
 	}	

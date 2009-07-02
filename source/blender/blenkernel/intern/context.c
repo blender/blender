@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: context.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -358,9 +358,6 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 		return 1;
 	}
 
-	list->first= NULL;
-	list->last= NULL;
-
 	return 0;
 }
 
@@ -368,20 +365,15 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result))
+	if(ctx_data_get((bContext*)C, member, &result)) {
 		return result.ptr;
-	else
-		return PointerRNA_NULL;
-}
-
-PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type)
-{
-	PointerRNA ptr = CTX_data_pointer_get(C, member);
-
-	if(ptr.data && ptr.type == type)
+	}
+	else {
+		PointerRNA ptr;
+		memset(&ptr, 0, sizeof(ptr));
 		return ptr;
-	
-	return PointerRNA_NULL;
+	}
+
 }
 
 ListBase CTX_data_collection_get(const bContext *C, const char *member)

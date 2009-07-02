@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: BDR_drawaction.h 17579 2008-11-26 11:01:56Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

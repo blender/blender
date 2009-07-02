@@ -77,7 +77,8 @@ class KX_SceneActuator : public SCA_IActuator
 					 KX_Scene* scene,
 					 KX_KetsjiEngine* ketsjiEngine,
 					 const STR_String& nextSceneName,
-					 KX_Camera* camera);
+					 KX_Camera* camera,
+					 PyTypeObject* T=&Type);
 	virtual ~KX_SceneActuator();
 
 	virtual CValue* GetReplica();
@@ -90,6 +91,10 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. set                                                                */
 	/* Removed */

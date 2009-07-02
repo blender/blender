@@ -1,5 +1,5 @@
 /**
-* $Id$
+* $Id: sequence.c 17508 2008-11-20 00:34:24Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

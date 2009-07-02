@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: logic_window.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -3056,12 +3056,12 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ******************************* */
 	xco= 500; yco= 170; width= 300;
 
-	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, UI_UNIT_Y, "");
+	uiDefPulldownBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, 19, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, BUTS_CONT_SEL,  B_REDR, "Sel", xco+110, yco+35, (width-100)/3, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
-	uiDefButBitS(block, TOG, BUTS_CONT_ACT, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
-	uiDefButBitS(block, TOG, BUTS_CONT_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
+	uiDefButBitS(block, TOG, BUTS_CONT_SEL,  B_REDR, "Sel", xco+110, yco+35, (width-100)/3, 19, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
+	uiDefButBitS(block, TOG, BUTS_CONT_ACT, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, 19, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
+	uiDefButBitS(block, TOG, BUTS_CONT_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, 19, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
 	uiBlockEndAlign(block);
 	
 	ob= CTX_data_active_object(C);
@@ -3077,9 +3077,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
 //		if(ob->controllers.first) uiSetCurFont(block, UI_HELVB);
-		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Active Object name");
+		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 0, 0, 0, "Active Object name");
 //		if(ob->controllers.first) uiSetCurFont(block, UI_HELV);
-		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
+		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
 		uiBlockEndAlign(block);
 		yco-=20;
 		
@@ -3100,7 +3100,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		if(ob->scaflag & OB_SHOWCONT) {
 
 			/* first show the state */
-			uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 36, UI_UNIT_Y, "Object state menu: store and retrieve initial state");
+			uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 36, 19, "Object state menu: store and retrieve initial state");
 
 			if (!ob->state)
 				ob->state = 1;
@@ -3116,9 +3116,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 				}
 			}
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
-			uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+248), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
-			uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D",(short)(xco+270), yco-10, 15, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
+			uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, 19, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
+			uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+248), yco-10, 22, 19, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
+			uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D",(short)(xco+270), yco-10, 15, 19, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
 			uiBlockEndAlign(block);
 
 			yco-=35;
@@ -3142,17 +3142,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 							if (act)
 								act->flag |= ACT_VISIBLE;
 						}
-						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, UI_UNIT_Y, &cont->flag, 0, 0, 0, 0, "Delete Controller");
-						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &cont->flag, 0, 0, 0, 0, "Controller settings");
-						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, UI_UNIT_Y, &cont->flag, 0, 0, 0, 0, "Mark controller for execution before all non-marked controllers (good for startup scripts)");
+						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
+						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
+						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Mark controller for execution before all non-marked controllers (good for startup scripts)");
 
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
-						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
+						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");
 				
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
-							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, UI_UNIT_Y, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), UI_UNIT_Y, cont->name, 0, 31, 0, 0, "Controller name");
+							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, 19, &cont->type, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-158), 19, cont->name, 0, 31, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -3162,17 +3162,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 						else {
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
-							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, 19, cont, 0, 0, 0, 0, "Controller type");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
+							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), 19, cont, 0, 0, 0, 0, "Controller name");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
 							ycoo= yco;
 						}
 				
-						but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+						but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, 19, 19, NULL, 0, 0, 0, 0, "");
 						uiSetButLink(but, NULL, (void ***)&(cont->links), &cont->totlinks, LINK_CONTROLLER, LINK_ACTUATOR);
 				
-						uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, UI_UNIT_X, UI_UNIT_Y, cont, LINK_CONTROLLER, 0, 0, 0, "");
+						uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, 19, 19, cont, LINK_CONTROLLER, 0, 0, 0, "");
 						/* offset is >0 if at least one controller was displayed */
 						offset++;
 						yco-=20;
@@ -3188,13 +3188,13 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ******************************* */
 	xco= 10; yco= 170; width= 400;
 
-	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, UI_UNIT_Y, "");
+	uiDefPulldownBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, 19, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, BUTS_SENS_SEL, B_REDR, "Sel", xco+80, yco+35, (width-70)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
-	uiDefButBitS(block, TOG, BUTS_SENS_ACT, B_REDR, "Act", xco+80+(width-70)/4, yco+35, (width-70)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
-	uiDefButBitS(block, TOG, BUTS_SENS_LINK, B_REDR, "Link", xco+80+2*(width-70)/4, yco+35, (width-70)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
-	uiDefButBitS(block, TOG, BUTS_SENS_STATE, B_REDR, "State", xco+80+3*(width-70)/4, yco+35, (width-70)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show only sensors connected to active states");
+	uiDefButBitS(block, TOG, BUTS_SENS_SEL, B_REDR, "Sel", xco+80, yco+35, (width-70)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
+	uiDefButBitS(block, TOG, BUTS_SENS_ACT, B_REDR, "Act", xco+80+(width-70)/4, yco+35, (width-70)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
+	uiDefButBitS(block, TOG, BUTS_SENS_LINK, B_REDR, "Link", xco+80+2*(width-70)/4, yco+35, (width-70)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
+	uiDefButBitS(block, TOG, BUTS_SENS_STATE, B_REDR, "State", xco+80+3*(width-70)/4, yco+35, (width-70)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show only sensors connected to active states");
 	uiBlockEndAlign(block);
 	
 	for(a=0; a<count; a++) {
@@ -3207,9 +3207,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
 //		if(ob->sensors.first) uiSetCurFont(block, UI_HELVB);
-		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
+		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
 //		if(ob->sensors.first) uiSetCurFont(block, UI_HELV);
-		uiDefButBitS(block, TOG, OB_ADDSENS, B_ADD_SENS, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Sensor");
+		uiDefButBitS(block, TOG, OB_ADDSENS, B_ADD_SENS, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Sensor");
 		uiBlockEndAlign(block);
 		yco-=20;
 		
@@ -3226,17 +3226,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 					pin = (slogic->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1:0 ;
 					
 					sens->flag |= SENS_VISIBLE;
-					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
+					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
 					if (pin)
-						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, ICON_PINNED, (short)(xco+width-44), yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, ICON_PINNED, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
 					
-					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &sens->flag, 0, 0, 0, 0, "Sensor settings");
+					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
-						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, UI_UNIT_Y, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens->name, 0, 31, 0, 0, "Sensor name");
+						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3246,13 +3246,13 @@ void logic_buttons(bContext *C, ARegion *ar)
 					else {
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
-						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
-					but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+					but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, 19, 19, NULL, 0, 0, 0, 0, "");
 					uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
 
 					yco-=20;
@@ -3266,13 +3266,13 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ******************************* */
 	xco= 900; yco= 170; width= 400;
 	
-	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 90, UI_UNIT_Y, "");
+	uiDefPulldownBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 90, 19, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, BUTS_ACT_SEL, B_REDR, "Sel", xco+110, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
-	uiDefButBitS(block, TOG, BUTS_ACT_ACT, B_REDR, "Act", xco+110+(width-100)/4, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
-	uiDefButBitS(block, TOG, BUTS_ACT_LINK, B_REDR, "Link", xco+110+2*(width-100)/4, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
-	uiDefButBitS(block, TOG, BUTS_ACT_STATE, B_REDR, "State", xco+110+3*(width-100)/4, yco+35, (width-100)/4, UI_UNIT_Y, &slogic->scaflag, 0, 0, 0, 0, "Show only actuators connected to active states");
+	uiDefButBitS(block, TOG, BUTS_ACT_SEL, B_REDR, "Sel", xco+110, yco+35, (width-100)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show all selected Objects");
+	uiDefButBitS(block, TOG, BUTS_ACT_ACT, B_REDR, "Act", xco+110+(width-100)/4, yco+35, (width-100)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show active Object");
+	uiDefButBitS(block, TOG, BUTS_ACT_LINK, B_REDR, "Link", xco+110+2*(width-100)/4, yco+35, (width-100)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
+	uiDefButBitS(block, TOG, BUTS_ACT_STATE, B_REDR, "State", xco+110+3*(width-100)/4, yco+35, (width-100)/4, 19, &slogic->scaflag, 0, 0, 0, 0, "Show only actuators connected to active states");
 	uiBlockEndAlign(block);
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
@@ -3283,9 +3283,9 @@ void logic_buttons(bContext *C, ARegion *ar)
 		/* presume it is only objects for now */
 		uiBlockBeginAlign(block);
 //		if(ob->actuators.first) uiSetCurFont(block, UI_HELVB);
-		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco,(short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
+		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco,(short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
 //		if(ob->actuators.first) uiSetCurFont(block, UI_HELV);
-		uiDefButBitS(block, TOG, OB_ADDACT, B_ADD_ACT, "Add",(short)(xco+width-40), yco, 50, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Add a new Actuator");
+		uiDefButBitS(block, TOG, OB_ADDACT, B_ADD_ACT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Actuator");
 		uiBlockEndAlign(block);
 		yco-=20;
 		
@@ -3301,15 +3301,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 					pin = (slogic->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1:0 ;
 					
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */
-					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Delete Actuator");
+					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
 					if (pin)
-						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, ICON_PINNED, (short)(xco+width-44), yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
-					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &act->flag, 0, 0, 0, 0, "Display the actuator");
+						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, ICON_PINNED, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display the actuator");
 					
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
-						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, UI_UNIT_Y, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act->name, 0, 31, 0, 0, "Actuator name");
+						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3319,14 +3319,14 @@ void logic_buttons(bContext *C, ARegion *ar)
 					else {
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
-						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}
 
-					uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, UI_UNIT_X, UI_UNIT_Y, act, LINK_ACTUATOR, 0, 0, 0, "");
+					uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, 19, 19, act, LINK_ACTUATOR, 0, 0, 0, "");
 
 					yco-=20;
 				}

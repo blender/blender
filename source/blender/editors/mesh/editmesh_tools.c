@@ -787,7 +787,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-	RegionView3D *rv3d = ED_view3d_context_rv3d(C);		
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
 		
 	int steps = RNA_int_get(op->ptr,"steps");
 	
@@ -949,7 +949,7 @@ static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
 	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
@@ -1056,7 +1056,7 @@ static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
 	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[1]);

@@ -230,16 +230,16 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	 */
 	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
 
-	newarr = MEM_callocN(idp_size_table[(int)prop->subtype]*newsize, "idproperty array resized");
+	newarr = MEM_callocN(idp_size_table[prop->subtype]*newsize, "idproperty array resized");
 	if (newlen >= prop->len) {
 		/* newlen is bigger*/
-		memcpy(newarr, prop->data.pointer, prop->len*idp_size_table[(int)prop->subtype]);
+		memcpy(newarr, prop->data.pointer, prop->len*idp_size_table[prop->subtype]);
 		idp_resize_group_array(prop, newlen, newarr);
 	}
 	else {
 		/* newlen is smaller*/
 		idp_resize_group_array(prop, newlen, newarr);
-		memcpy(newarr, prop->data.pointer, newlen*prop->len*idp_size_table[(int)prop->subtype]);
+		memcpy(newarr, prop->data.pointer, newlen*prop->len*idp_size_table[prop->subtype]);
 	}
 
 	MEM_freeN(prop->data.pointer);
@@ -546,7 +546,7 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 		return BSTR_EQ(IDP_String(prop1), IDP_String(prop2));
 	else if(prop1->type == IDP_ARRAY) {
 		if(prop1->len == prop2->len && prop1->subtype == prop2->subtype)
-			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype]*prop1->len);
+			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[prop1->subtype]*prop1->len);
 		else
 			return 0;
 	}

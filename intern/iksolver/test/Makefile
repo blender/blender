@@ -46,7 +46,7 @@ LIBS += $(OCGDIR)/intern/$(LIBNAME)/$(DEBUG_DIR)libiksolver.a
 
 SLIBS += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 
-ifeq ($(OS),$(findstring $(OS), "darwin linux freebsd openbsd"))
+ifeq ($(OS),$(findstring $(OS), "beos darwin linux freebsd openbsd"))
     LLIBS = -L/usr/X11R6/lib -lglut -pthread
 endif
 

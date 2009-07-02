@@ -102,19 +102,17 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 
 static int draw_uvs_face_check(Scene *scene)
 {
-	ToolSettings *ts= scene->toolsettings;
-
 	/* checks if we are selecting only faces */
-	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		if(scene->selectmode == SCE_SELECT_FACE)
 			return 2;
-		else if(ts->selectmode & SCE_SELECT_FACE)
+		else if(scene->selectmode & SCE_SELECT_FACE)
 			return 1;
 		else
 			return 0;
 	}
 	else
-		return (ts->uv_selectmode == UV_SELECT_FACE);
+		return (scene->toolsettings->uv_selectmode == UV_SELECT_FACE);
 }
 
 static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
@@ -420,7 +418,7 @@ static void draw_uvs_other(SpaceImage *sima, Scene *scene, Object *obedit, MTFac
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
-	ToolSettings *ts;
+	ToolSettings *settings;
 	Mesh *me= obedit->data;
 	EditMesh *em;
 	EditFace *efa, *efa_act;
@@ -434,13 +432,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	em= BKE_mesh_get_editmesh(me);
 	activetf= EM_get_active_mtface(em, &efa_act, NULL, 0); /* will be set to NULL if hidden */
 
-	ts= scene->toolsettings;
+	settings= scene->toolsettings;
 
 	drawfaces= draw_uvs_face_check(scene);
-	if(ts->uv_flag & UV_SYNC_SELECTION)
-		interpedges= (ts->selectmode & SCE_SELECT_VERTEX);
+	if(settings->uv_flag & UV_SYNC_SELECTION)
+		interpedges= (scene->selectmode & SCE_SELECT_VERTEX);
 	else
-		interpedges= (ts->uv_selectmode == UV_SELECT_VERTEX);
+		interpedges= (settings->uv_selectmode == UV_SELECT_VERTEX);
 	
 	/* draw other uvs */
 	if(sima->flag & SI_DRAW_OTHER)
@@ -456,7 +454,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			/* when sync selection is enabled, all faces are drawn (except for hidden)
 			 * so if cage is the same as the final, theres no point in drawing this */
-			if(!((ts->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
+			if(!((settings->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
 				draw_uvs_dm_shadow(finaldm);
 			
 			/* release derivedmesh again */

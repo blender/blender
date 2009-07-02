@@ -67,7 +67,7 @@ static PyObject * getMaterialID (PyObject *self, PyObject *args)
 // get last error description
 static PyObject * getLastError (PyObject *self, PyObject *args)
 {
-	return PyUnicode_FromString(Exception::m_lastError.c_str());
+	return PyString_FromString(Exception::m_lastError.c_str());
 }
 
 // set log file

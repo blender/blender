@@ -66,7 +66,8 @@ public:
 					class SND_Scene*	sndscene,
 					KX_SOUNDACT_TYPE type,
 					short start,
-					short end);
+					short end,
+					PyTypeObject* T=&Type);
 
 	~KX_SoundActuator();
 
@@ -79,6 +80,10 @@ public:
 	/* -------------------------------------------------------------------- */
 	/* Python interface --------------------------------------------------- */
 	/* -------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	KX_PYMETHOD_DOC_NOARGS(KX_SoundActuator, startSound);
 	KX_PYMETHOD_DOC_NOARGS(KX_SoundActuator, pauseSound);

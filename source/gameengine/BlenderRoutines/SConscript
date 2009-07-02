@@ -11,8 +11,7 @@ incs += ' #intern/ghost/include'
 incs += ' #intern/moto/include #source/gameengine/Ketsji #source/blender/blenlib'
 incs += ' #source/blender/blenkernel #source/blender'
 incs += ' #source/blender/blenfont #source/blender/editors/include'
-incs += ' #source/blender/makesdna #source/blender/makesrna'
-incs += ' #source/gameengine/Rasterizer #source/gameengine/GameLogic'
+incs += ' #source/blender/makesdna #source/gameengine/Rasterizer #source/gameengine/GameLogic'
 incs += ' #source/gameengine/Expressions #source/gameengine/Network'
 incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common'
 incs += ' #source/gameengine/Physics/Bullet'
@@ -20,6 +19,11 @@ incs += ' #source/gameengine/Network/LoopBackNetwork'
 incs += ' #intern/SoundSystem #source/blender/misc #source/blender/blenloader'
 incs += ' #extern/glew/include #source/blender/gpu'
 incs += ' #source/blender/windowmanager'
+
+if env['WITH_BF_SOLID']:
+	incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/Fuzzics/include'
+	incs += ' ' + env['BF_SOLID_INC']
+	defs.append('USE_SUMO_SOLID')
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

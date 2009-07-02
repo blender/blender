@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: BLI_blenlib.h 17433 2008-11-12 21:16:53Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  *
- * $Id$ 
+ * $Id: $ 
 */
 
 #ifndef BLI_STRING_H

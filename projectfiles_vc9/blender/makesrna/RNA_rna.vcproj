@@ -183,10 +183,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna.cRNA_blender_cpp.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_brush_gen.c"
 				>
 			</File>
@@ -296,6 +292,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_property_gen.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_radio_gen.c"
 				>
 			</File>
 			<File

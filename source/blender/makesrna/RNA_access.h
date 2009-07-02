@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: RNA_access.h 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -172,7 +172,6 @@ extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
-extern StructRNA RNA_Event;
 extern StructRNA RNA_FCurve;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
@@ -514,8 +513,6 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
-char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
-
 /* Properties
  *
  * Access to struct properties. All this works with RNA pointers rather than
@@ -543,9 +540,6 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
-
-int RNA_enum_identifier(const EnumPropertyItem *item, const int value, const char **identifier);
-int RNA_enum_name(const EnumPropertyItem *item, const int value, const char **name);
 
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
@@ -599,11 +593,6 @@ void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
-
-/* efficient functions to set properties for arrays */
-int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
-int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
-int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
@@ -696,28 +685,6 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 			PointerRNA itemptr= rna_macro_iter.ptr;
 
 #define RNA_END \
-		} \
-		RNA_property_collection_end(&rna_macro_iter); \
-	}
-
-#define RNA_PROP_BEGIN(sptr, itemptr, prop) \
-	{ \
-		CollectionPropertyIterator rna_macro_iter; \
-		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
-			PointerRNA itemptr= rna_macro_iter.ptr;
-
-#define RNA_PROP_END \
-		} \
-		RNA_property_collection_end(&rna_macro_iter); \
-	}
-
-#define RNA_STRUCT_BEGIN(sptr, prop) \
-	{ \
-		CollectionPropertyIterator rna_macro_iter; \
-		for(RNA_property_collection_begin(sptr, RNA_struct_iterator_property(sptr->type), &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
-			PropertyRNA *prop= rna_macro_iter.ptr.data;
-
-#define RNA_STRUCT_END \
 		} \
 		RNA_property_collection_end(&rna_macro_iter); \
 	}

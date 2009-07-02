@@ -70,8 +70,9 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   int acttype,
 							   bool ipo_as_force,
 							   bool ipo_add,
-							   bool ipo_local)
-	: SCA_IActuator(gameobj),
+							   bool ipo_local,
+							   PyTypeObject* T) 
+	: SCA_IActuator(gameobj,T),
 	m_bNegativeEvent(false),
 	m_startframe (starttime),
 	m_endframe(endtime),
@@ -428,15 +429,19 @@ PyTypeObject KX_IpoActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject KX_IpoActuator::Parents[] = {
+	&KX_IpoActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef KX_IpoActuator::Methods[] = {
@@ -472,6 +477,18 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+PyObject* KX_IpoActuator::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_IpoActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_IpoActuator::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 /* set --------------------------------------------------------------------- */
 const char KX_IpoActuator::Set_doc[] = 
@@ -672,7 +689,7 @@ const char KX_IpoActuator::GetType_doc[] =
 "\tReturns the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PyGetType() {
 	ShowDeprecationWarning("getType()", "the mode property");
-	return PyLong_FromSsize_t(m_type);
+	return PyInt_FromLong(m_type);
 }
 
 /* 10. setForceIpoActsLocal:                                                 */

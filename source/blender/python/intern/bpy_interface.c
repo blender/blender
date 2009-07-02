@@ -37,11 +37,6 @@
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
-/* external util modukes */
-
-#include "../generic/Mathutils.h"
-#include "../generic/Geometry.h"
-#include "../generic/BGL.h"
 
 
 void BPY_free_compiled_text( struct Text *text )
@@ -66,17 +61,11 @@ static void bpy_init_modules( void )
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
 	PyModule_AddObject( mod, "props", BPY_rna_props() );
 	PyModule_AddObject( mod, "ops", BPY_operator_module() );
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
 	
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
-
-
-	/* stand alone utility modules not related to blender directly */
-	Geometry_Init("Geometry");
-	Mathutils_Init("Mathutils");
-	BGL_Init("BGL");
 }
 
 #if (PY_VERSION_HEX < 0x02050000)

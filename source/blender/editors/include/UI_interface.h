@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: UI_interface.h 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -53,8 +53,6 @@ struct uiStyle;
 struct uiFontStyle;
 struct ColorBand;
 struct CurveMapping;
-struct Image;
-struct ImageUser;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -417,7 +415,7 @@ void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr, int columns);
+void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr);
 
 /* Links
  *
@@ -454,9 +452,9 @@ typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, char *str, 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 		
 		/* use inside searchfunc to add items */
-int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
+int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */
-void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
+void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
 		/* height in pixels, it's using hardcoded values still */
 int		uiSearchBoxhHeight(void);
 
@@ -609,15 +607,13 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *unlinkop);
+	char *newop, char *openop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
-void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
-ListBase uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *activeprop, int rows, int columns, int compact);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
@@ -634,7 +630,6 @@ void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, cha
 void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
-void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
 
 void uiItemL(uiLayout *layout, char *name, int icon); /* label */
 void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname); /* menu */

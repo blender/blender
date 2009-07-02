@@ -59,7 +59,6 @@
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_screen_types.h"
 
 #include "RE_pipeline.h"
@@ -2510,9 +2509,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* flush multires changes (for sculpt) */
 	multires_force_update(CTX_data_active_object(C));
 	
-	/* get editmode results */
-	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
-	
+	// get editmode results
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
 	// store spare

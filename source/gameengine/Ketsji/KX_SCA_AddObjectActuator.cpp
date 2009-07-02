@@ -55,9 +55,10 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 												   const float *linvel,
 												   bool linv_local,
 												   const float *angvel,
-												   bool angv_local)
+												   bool angv_local,
+												   PyTypeObject* T)
 	: 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, T),
 	m_OriginalObject(original),
 	m_scene(scene),
 	
@@ -186,17 +187,20 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
+PyParentObject KX_SCA_AddObjectActuator::Parents[] = {
+	&KX_SCA_AddObjectActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
+};
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   // ---> deprecated
   {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_O, (PY_METHODCHAR)SetTime_doc},
@@ -259,6 +263,21 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 		return actuator->m_lastCreatedObject->GetProxy();
 }
 
+
+PyObject* KX_SCA_AddObjectActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_AddObjectActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_SCA_AddObjectActuator::py_setattro(PyObject *attr, PyObject* value) 
+{
+	py_setattro_up(SCA_IActuator);
+}
+
 /* 1. setObject */
 const char KX_SCA_AddObjectActuator::SetObject_doc[] = 
 "setObject(object)\n"
@@ -297,7 +316,7 @@ const char KX_SCA_AddObjectActuator::SetTime_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PySetTime(PyObject* value)
 {
 	ShowDeprecationWarning("setTime()", "the time property");
-	int deltatime = PyLong_AsSsize_t(value);
+	int deltatime = PyInt_AsLong(value);
 	if (deltatime==-1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "expected an int");
 		return NULL;
@@ -320,7 +339,7 @@ const char KX_SCA_AddObjectActuator::GetTime_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PyGetTime()
 {
 	ShowDeprecationWarning("getTime()", "the time property");
-	return PyLong_FromSsize_t(m_timeProp);
+	return PyInt_FromLong(m_timeProp);
 }
 
 
@@ -342,7 +361,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyUnicode_FromString(m_OriginalObject->GetName().ReadPtr());
+		return PyString_FromString(m_OriginalObject->GetName().ReadPtr());
 	else
 		return m_OriginalObject->GetProxy();
 }

@@ -41,8 +41,9 @@ KX_NetworkMessageActuator::KX_NetworkMessageActuator(
 	const STR_String &toPropName,
 	const STR_String &subject,
 	int bodyType,
-	const STR_String &body) :
-	SCA_IActuator(gameobj),
+	const STR_String &body,
+	PyTypeObject* T) :
+	SCA_IActuator(gameobj,T),
 	m_networkscene(networkscene),
 	m_toPropName(toPropName),
 	m_subject(subject),
@@ -117,15 +118,19 @@ PyTypeObject KX_NetworkMessageActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject KX_NetworkMessageActuator::Parents[] = {
+	&KX_NetworkMessageActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef KX_NetworkMessageActuator::Methods[] = {
@@ -149,6 +154,18 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("body", 0, 100, false, KX_NetworkMessageActuator, m_body),
 	{ NULL }	//Sentinel
 };
+
+PyObject* KX_NetworkMessageActuator::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_NetworkMessageActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_NetworkMessageActuator::py_setattro(PyObject *attr, PyObject *value) {
+	py_setattro_up(SCA_IActuator);
+}
 
 // Deprecated ----->
 // 1. SetToPropName

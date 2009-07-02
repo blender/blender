@@ -25,18 +25,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
 #ifndef BLI_STORAGE_H
 #define BLI_STORAGE_H
 
-/* NOTE: these have to be defined before including unistd.h! */
 #ifndef __APPLE__
 #ifndef WIN32
-#ifndef _LARGEFILE_SOURCE
-#define _LARGEFILE_SOURCE
-#define _LARGEFILE64_SOURCE
+#define _LARGEFILE_SOURCE 1
 #define _FILE_OFFSET_BITS 64
-#endif
 #endif
 #endif
 

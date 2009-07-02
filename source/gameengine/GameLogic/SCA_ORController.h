@@ -39,11 +39,18 @@ class SCA_ORController : public SCA_IController
 	Py_Header;
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
-	SCA_ORController(SCA_IObject* gameobj);
+	SCA_ORController(SCA_IObject* gameobj, PyTypeObject* T=&Type);
 
 	virtual ~SCA_ORController();
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
+
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 };
 
 #endif //__KX_ORCONTROLLER

@@ -49,8 +49,9 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 								   KX_Scene *scene,
 								   KX_KetsjiEngine* ketsjiEngine,
 								   const STR_String& nextSceneName,
-								   KX_Camera* camera)
-								   : SCA_IActuator(gameobj)
+								   KX_Camera* camera,
+								   PyTypeObject* T)
+								   : SCA_IActuator(gameobj, T)
 {
 	m_mode = mode;
 	m_scene  = scene;
@@ -133,7 +134,7 @@ bool KX_SceneActuator::Update()
 		{
 			// if no camera is set and the parent object is a camera, use it as the camera
 			SCA_IObject* parent = GetParent();
-			if (parent->GetGameObjectType()==SCA_IObject::OBJ_CAMERA)
+			if (parent->isA(&KX_Camera::Type))
 			{
 				m_scene->SetActiveCamera((KX_Camera*)parent);
 			}
@@ -238,16 +239,25 @@ PyTypeObject KX_SceneActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+
+PyParentObject KX_SceneActuator::Parents[] =
+{
+	&KX_SceneActuator::Type,
+		&SCA_IActuator::Type,
+		&SCA_ILogicBrick::Type,
+		&CValue::Type,
+		NULL
+};
+
+
 
 PyMethodDef KX_SceneActuator::Methods[] =
 {
@@ -269,6 +279,20 @@ PyAttributeDef KX_SceneActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mode", KX_SCENE_NODEF+1, KX_SCENE_MAX-1, true, KX_SceneActuator, m_mode),
 	{ NULL }	//Sentinel
 };
+
+PyObject* KX_SceneActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SceneActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_SceneActuator::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 PyObject* KX_SceneActuator::pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -331,7 +355,7 @@ const char KX_SceneActuator::GetUseRestart_doc[] =
 PyObject* KX_SceneActuator::PyGetUseRestart()
 {
 	ShowDeprecationWarning("getUseRestart()", "the useRestart property");
-	return PyLong_FromSsize_t(!(m_restart == 0));
+	return PyInt_FromLong(!(m_restart == 0));
 }
 
 
@@ -367,7 +391,7 @@ const char KX_SceneActuator::GetScene_doc[] =
 PyObject* KX_SceneActuator::PyGetScene()
 {
 	ShowDeprecationWarning("getScene()", "the scene property");
-	return PyUnicode_FromString(m_nextSceneName);
+	return PyString_FromString(m_nextSceneName);
 }
 
 
@@ -408,7 +432,7 @@ PyObject* KX_SceneActuator::PyGetCamera()
 {
 	ShowDeprecationWarning("getCamera()", "the camera property");
 	if (m_camera) {
-		return PyUnicode_FromString(m_camera->GetName());
+		return PyString_FromString(m_camera->GetName());
 	}
 	else {
 		Py_RETURN_NONE;

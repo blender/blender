@@ -1031,7 +1031,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
-		PropertyRNA *prop, *iterprop;
+		PropertyRNA *prop, *iterprop, *nameprop;
 		PropertyType proptype;
 		PropertySubType propsubtype;
 		int a, tot;
@@ -1043,10 +1043,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			te->name= RNA_struct_name_get_alloc(ptr, NULL, 0);
+			nameprop= RNA_struct_name_property(ptr->type);
 
-			if(te->name)
+			if(nameprop) {
+				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
 				te->flag |= TE_FREE_NAME;
+			}
 			else
 				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
@@ -3073,7 +3075,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	TreeElement *tem, *temnext, *temsub;
 	TreeStoreElem *tse, *tsenext;
 	PointerRNA *ptr, *nextptr;
-	PropertyRNA *prop;
+	PropertyRNA *prop, *nameprop;
 	char *newpath=NULL;
 	
 	/* optimise tricks:
@@ -3117,16 +3119,17 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
 				else if(RNA_property_type(prop) == PROP_COLLECTION) {
-					char buf[128], *name;
-
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
 					nextptr= &temnext->rnaptr;
-					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
+					nameprop= RNA_struct_name_property(nextptr->type);
 					
-					if(name) {
+					if(nameprop) {
 						/* if possible, use name as a key in the path */
+						char buf[128], *name;
+						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
+						
 						newpath= RNA_path_append(*path, NULL, prop, 0, name);
 						
 						if(name != buf)

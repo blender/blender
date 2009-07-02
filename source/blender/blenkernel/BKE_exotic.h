@@ -47,6 +47,7 @@ int BKE_read_exotic(struct Scene *scene, char *name);
 
 void write_dxf(struct Scene *scene, char *str);
 void write_vrml(struct Scene *scene, char *str);
+void write_videoscape(struct Scene *scene, char *str);
 void write_stl(struct Scene *scene, char *str);
 
 #endif

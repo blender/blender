@@ -136,14 +136,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);*/
 
-	func= RNA_def_function(srna, "item_pointerR", "uiItemPointerR");
-	api_ui_item_common(func);
-	api_ui_item_rna_common(func);
-	parm= RNA_def_pointer(func, "search_data", "AnyType", "", "Data from which to take collection to search in.");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
-	parm= RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-
 	func= RNA_def_function(srna, "itemO", "uiItemO");
 	api_ui_item_op_common(func);
 
@@ -197,7 +189,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "itemM", "uiItemM");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
 	parm= RNA_def_string(func, "menu", "", 0, "", "Identifier of the menu.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -213,12 +206,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "context", "Context", "", "Current context.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_rna_common(func);
 	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
+	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a new ID block.");
 	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
 
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
@@ -249,23 +245,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
-
-	func= RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm= RNA_def_pointer(func, "image", "Image", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "image_user", "ImageUser", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-
-	func= RNA_def_function(srna, "template_list", "uiTemplateList");
-	api_ui_item_rna_common(func);
-	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
-	parm= RNA_def_int(func, "columns", 5, 0, INT_MAX, "", "Number of columns to display.", 0, INT_MAX);
-	parm= RNA_def_boolean(func, "compact", 0, "", "Use compact, single row list template.");
-	parm= RNA_def_collection(func, "items", 0, "", "Items visible in the list.");
-	RNA_def_function_return(func, parm);
 }
 
 #endif

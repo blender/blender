@@ -50,7 +50,6 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
-#include "ED_pointcache.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
@@ -90,7 +89,6 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_curve();
 	ED_operatortypes_armature();
 	ED_marker_operatortypes();
-	ED_operatortypes_pointcache();
 	
 	ui_view2d_operatortypes();
 	

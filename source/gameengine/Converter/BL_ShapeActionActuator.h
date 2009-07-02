@@ -50,8 +50,9 @@ public:
 						short	playtype,
 						short	blendin,
 						short	priority,
-						float	stride) 
-		: SCA_IActuator(gameobj),
+						float	stride,
+						PyTypeObject* T=&Type) 
+		: SCA_IActuator(gameobj,T),
 		
 		m_lastpos(0, 0, 0),
 		m_blendframe(0),
@@ -104,6 +105,10 @@ public:
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
 	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetType);
+
+	virtual PyObject* py_getattro(PyObject* attr);
+	virtual PyObject*		py_getattro_dict();
+	virtual int py_setattro(PyObject* attr, PyObject* value);
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

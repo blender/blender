@@ -210,7 +210,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift)
 	{
 		/* toggle snap and reinit */
-		t->settings->snap_flag ^= SCE_SNAP;
+		t->scene->snap_flag ^= SCE_SNAP;
 		initSnapping(t, NULL);
 		status = 1;
 	}
@@ -282,10 +282,10 @@ int validSnappingNormal(TransInfo *t)
 
 void initSnapping(TransInfo *t, wmOperator *op)
 {
-	ToolSettings *ts = t->settings;
+	Scene *scene = t->scene;
 	Object *obedit = t->obedit;
 	int snapping = 0;
-	short snap_mode = t->settings->snap_target;
+	short snap_mode = t->scene->snap_target;
 	
 	resetSnapping(t);
 	
@@ -310,8 +310,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	}
 	else
 	{
-		snapping = ((ts->snap_flag & SCE_SNAP) == SCE_SNAP);
-		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
+		snapping = ((scene->snap_flag & SCE_SNAP) == SCE_SNAP);
+		t->tsnap.align = ((t->scene->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
 	}
 	
 	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
@@ -542,7 +542,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 		SnapMode mode;
 		
-		if (t->settings->snap_mode == SCE_SNAP_MODE_VOLUME)
+		if (t->scene->snap_mode == SCE_SNAP_MODE_VOLUME)
 		{
 			ListBase depth_peels;
 			DepthPeel *p1, *p2;
@@ -575,7 +575,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 					p1->flag = 1;
 		
 					/* if peeling objects, take the first and last from each object */			
-					if (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT)
+					if (t->scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
 					{
 						DepthPeel *peel;
 						for (peel = p1->next; peel; peel = peel->next)
@@ -1346,7 +1346,6 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 
 int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth)
 {
-	ToolSettings *ts= scene->toolsettings;
 	int retval = 0;
 	
 	if (ob->type == OB_MESH) {
@@ -1364,13 +1363,13 @@ int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obma
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		}
 		
-		retval = snapDerivedMesh(ts->snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, mval, loc, no, dist, depth);
+		retval = snapDerivedMesh(scene->snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, mval, loc, no, dist, depth);
 
 		dm->release(dm);
 	}
 	else if (ob->type == OB_ARMATURE)
 	{
-		retval = snapArmature(ts->snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, loc, no, dist, depth);
+		retval = snapArmature(scene->snap_mode, ar, ob, ob->data, obmat, ray_start, ray_normal, mval, loc, no, dist, depth);
 	}
 	
 	return retval;

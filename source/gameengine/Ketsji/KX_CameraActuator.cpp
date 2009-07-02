@@ -56,9 +56,10 @@ KX_CameraActuator::KX_CameraActuator(
 	float hght,
 	float minhght,
 	float maxhght,
-	bool  xytog
+	bool  xytog,
+	PyTypeObject* T
 ): 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, T),
 	m_ob (obj),
 	m_height (hght),
 	m_minHeight (minhght),
@@ -384,15 +385,19 @@ PyTypeObject KX_CameraActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject KX_CameraActuator::Parents[] = {
+	&KX_CameraActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
@@ -419,6 +424,18 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	{NULL}
 };
 
+PyObject* KX_CameraActuator::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_CameraActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_CameraActuator::py_setattro(PyObject *attr, PyObject* value) {
+	py_setattro_up(SCA_IActuator);
+}
+
 /* get obj  ---------------------------------------------------------- */
 const char KX_CameraActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
@@ -437,7 +454,7 @@ PyObject* KX_CameraActuator::PyGetObject(PyObject* args)
 		Py_RETURN_NONE;
 	
 	if (ret_name_only)
-		return PyUnicode_FromString(m_ob->GetName().ReadPtr());
+		return PyString_FromString(m_ob->GetName().ReadPtr());
 	else
 		return m_ob->GetProxy();
 }
@@ -562,7 +579,7 @@ const char KX_CameraActuator::GetXY_doc[] =
 PyObject* KX_CameraActuator::PyGetXY()
 {
 	ShowDeprecationWarning("getXY()", "the xy property");
-	return PyLong_FromSsize_t(m_x);
+	return PyInt_FromLong(m_x);
 }
 
 PyObject* KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

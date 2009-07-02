@@ -104,6 +104,7 @@
 #include "rendercore.h"
 #include "renderdatabase.h"
 #include "renderpipeline.h"
+#include "radio.h"
 #include "shadbuf.h"
 #include "shading.h"
 #include "strand.h"
@@ -1884,9 +1885,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			state.time=cfra;
 			if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
 				continue;
-
-			if(psys->parent)
-				Mat4MulVecfl(psys->parent->obmat, state.co);
 
 			VECCOPY(loc,state.co);
 			if(part->ren_as!=PART_DRAW_BB)
@@ -4310,9 +4308,8 @@ void RE_Database_Free(Render *re)
 	}
 
 	free_mesh_orco_hash(re);
-#if 0	/* radio can be redone better */
+
 	end_radio_render();
-#endif
 	end_render_materials();
 	end_render_textures();
 	
@@ -4739,11 +4736,10 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
 		if (re->r.renderer==R_INTERN) {
-#if 0		/* RADIO was removed */
 			/* RADIO (uses no R anymore) */
 			if(!re->test_break(re->tbh))
 				if(re->r.mode & R_RADIO) do_radio_render(re);
-#endif
+			
 			/* raytree */
 			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {

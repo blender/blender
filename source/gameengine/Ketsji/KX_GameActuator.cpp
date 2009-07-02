@@ -49,8 +49,9 @@ KX_GameActuator::KX_GameActuator(SCA_IObject *gameobj,
 								   const STR_String& filename,
 								   const STR_String& loadinganimationname,
 								   KX_Scene* scene,
-								   KX_KetsjiEngine* ketsjiengine)
-								   : SCA_IActuator(gameobj)
+								   KX_KetsjiEngine* ketsjiengine,
+								   PyTypeObject* T)
+								   : SCA_IActuator(gameobj, T)
 {
 	m_mode = mode;
 	m_filename = filename;
@@ -223,16 +224,25 @@ PyTypeObject KX_GameActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+
+PyParentObject KX_GameActuator::Parents[] =
+{
+	&KX_GameActuator::Type,
+		&SCA_IActuator::Type,
+		&SCA_ILogicBrick::Type,
+		&CValue::Type,
+		NULL
+};
+
+
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
@@ -249,6 +259,21 @@ PyAttributeDef KX_GameActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+PyObject* KX_GameActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_GameActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_GameActuator::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_IActuator);
+}
+
+
 // Deprecated ----->
 /* getFile */
 const char KX_GameActuator::GetFile_doc[] = 
@@ -257,7 +282,7 @@ const char KX_GameActuator::GetFile_doc[] =
 PyObject* KX_GameActuator::PyGetFile(PyObject* args, PyObject* kwds)
 {	
 	ShowDeprecationWarning("getFile()", "the fileName property");
-	return PyUnicode_FromString(m_filename);
+	return PyString_FromString(m_filename);
 }
 
 /* setFile */

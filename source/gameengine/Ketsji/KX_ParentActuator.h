@@ -68,7 +68,8 @@ class KX_ParentActuator : public SCA_IActuator
 						int mode,
 						bool addToCompound,
 						bool ghost,
-						SCA_IObject *ob);
+						SCA_IObject *ob,
+						PyTypeObject* T=&Type);
 	virtual ~KX_ParentActuator();
 	virtual bool Update();
 	
@@ -80,6 +81,10 @@ class KX_ParentActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	/* These are used to get and set m_ob */
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);

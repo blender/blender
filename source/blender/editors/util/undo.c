@@ -183,8 +183,6 @@ void ED_undo_redo(bContext *C)
 
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
-	/* "last operator" should disappear, later we can tie ths with undo stack nicer */
-	WM_operator_stack_clear(C);
 	return ed_undo_step(C, 1);
 }
 static int ed_redo_exec(bContext *C, wmOperator *op)

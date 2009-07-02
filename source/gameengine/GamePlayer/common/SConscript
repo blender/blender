@@ -59,6 +59,11 @@ incs = ['.',
 #                    'unix/GPU_System.cpp']
 #   gp_common_env.Append ( CPPPATH = ['unix'])
 
+if env['WITH_BF_SOLID']:
+	incs.append('#source/gameengine/Physics/Sumo')
+	incs.append('#source/gameengine/Physics/Sumo/Fuzzics/include')
+	incs += Split(env['BF_SOLID_INC'])
+
 incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])

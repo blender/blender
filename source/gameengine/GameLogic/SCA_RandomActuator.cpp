@@ -50,8 +50,9 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 									 SCA_RandomActuator::KX_RANDOMACT_MODE mode,
 									 float para1,
 									 float para2,
-									 const STR_String &propName)
-	: SCA_IActuator(gameobj),
+									 const STR_String &propName,
+									 PyTypeObject* T)
+	: SCA_IActuator(gameobj, T),
 	  m_propname(propName),
 	  m_parameter1(para1),
 	  m_parameter2(para2),
@@ -331,15 +332,19 @@ PyTypeObject SCA_RandomActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject SCA_RandomActuator::Parents[] = {
+	&SCA_RandomActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef SCA_RandomActuator::Methods[] = {
@@ -379,20 +384,33 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 PyObject* SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
-	return PyLong_FromSsize_t(act->m_base->GetSeed());
+	return PyInt_FromLong(act->m_base->GetSeed());
 }
 
 int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
-	if (PyLong_Check(value))	{
-		int ival = PyLong_AsSsize_t(value);
+	if (PyInt_Check(value))	{
+		int ival = PyInt_AsLong(value);
 		act->m_base->SetSeed(ival);
 		return PY_SET_ATTR_SUCCESS;
 	} else {
 		PyErr_SetString(PyExc_TypeError, "actuator.seed = int: Random Actuator, expected an integer");
 		return PY_SET_ATTR_FAIL;
 	}
+}
+
+PyObject* SCA_RandomActuator::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* SCA_RandomActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int SCA_RandomActuator::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(SCA_IActuator);
 }
 
 /* 1. setSeed                                                            */
@@ -421,7 +439,7 @@ const char SCA_RandomActuator::GetSeed_doc[] =
 PyObject* SCA_RandomActuator::PyGetSeed()
 {
 	ShowDeprecationWarning("getSeed()", "the seed property");
-	return PyLong_FromSsize_t(m_base->GetSeed());
+	return PyInt_FromLong(m_base->GetSeed());
 }
 
 /* 4. getPara1                                                           */
@@ -455,7 +473,7 @@ const char SCA_RandomActuator::GetDistribution_doc[] =
 PyObject* SCA_RandomActuator::PyGetDistribution()
 {
 	ShowDeprecationWarning("getDistribution()", "the distribution property");
-	return PyLong_FromSsize_t(m_distribution);
+	return PyInt_FromLong(m_distribution);
 }
 
 /* 9. setProperty                                                        */
@@ -490,7 +508,7 @@ const char SCA_RandomActuator::GetProperty_doc[] =
 PyObject* SCA_RandomActuator::PyGetProperty()
 {
 	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyUnicode_FromString(m_propname);
+	return PyString_FromString(m_propname);
 }
 
 /* 11. setBoolConst */

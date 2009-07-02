@@ -56,7 +56,7 @@ class KX_TrackToActuator : public SCA_IActuator
 
   public:
 	KX_TrackToActuator(SCA_IObject* gameobj, SCA_IObject *ob, int time,
-				       bool threedee,int trackflag,int upflag);
+				       bool threedee,int trackflag,int upflag, PyTypeObject* T=&Type);
 	virtual ~KX_TrackToActuator();
 	virtual CValue* GetReplica() {
 		KX_TrackToActuator* replica = new KX_TrackToActuator(*this);
@@ -70,6 +70,9 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual bool Update(double curtime, bool frame);
 
 	/* Python part */
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	/* These are used to get and set m_ob */
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);

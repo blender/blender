@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: BIF_cursors.h 7739 2006-06-15 14:22:59Z broken $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

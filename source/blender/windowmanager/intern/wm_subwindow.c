@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: mywindow.c 9584 2007-01-03 13:45:03Z ton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

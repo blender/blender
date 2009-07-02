@@ -61,7 +61,8 @@ public:
 	 * This class also inherits the default copy constructors
 	 */
 
-	SCA_IActuator(SCA_IObject* gameobj); 
+	SCA_IActuator(SCA_IObject* gameobj,
+				  PyTypeObject* T =&Type); 
 
 	/**
 	 * UnlinkObject(...)

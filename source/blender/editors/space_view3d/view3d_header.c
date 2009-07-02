@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: view3d_header.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1812,7 +1812,6 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 {
 #if 0
 	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	
 	switch(event) {
 	case 1:
@@ -1871,22 +1870,22 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 		Transform();
 		break;
 	case 15:
-		ts->snap_flag &= ~SCE_SNAP;
+		scene->snap_flag &= ~SCE_SNAP;
 		break;
 	case 16:
-		ts->snap_flag |= SCE_SNAP;
+		scene->snap_flag |= SCE_SNAP;
 		break;
 	case 17:
-		ts->snap_target = SCE_SNAP_TARGET_CLOSEST;
+		scene->snap_target = SCE_SNAP_TARGET_CLOSEST;
 		break;
 	case 18:
-		ts->snap_target = SCE_SNAP_TARGET_CENTER;
+		scene->snap_target = SCE_SNAP_TARGET_CENTER;
 		break;
 	case 19:
-		ts->snap_target = SCE_SNAP_TARGET_MEDIAN;
+		scene->snap_target = SCE_SNAP_TARGET_MEDIAN;
 		break;
 	case 20:
-		ts->snap_target = SCE_SNAP_TARGET_ACTIVE;
+		scene->snap_target = SCE_SNAP_TARGET_ACTIVE;
 		break;
 	case 21:
 		alignmenu();
@@ -1897,7 +1896,7 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 
 static uiBlock *view3d_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
@@ -1949,7 +1948,7 @@ static uiBlock *view3d_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
 	{
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-		if (ts->snap_flag & SCE_SNAP)
+		if (scene->snap_flag & SCE_SNAP)
 		{
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Grid",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
@@ -1962,7 +1961,7 @@ static uiBlock *view3d_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
 			
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-		switch(ts->snap_target)
+		switch(scene->snap_target)
 		{
 			case SCE_SNAP_TARGET_CLOSEST:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Closest",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
@@ -2651,34 +2650,34 @@ static uiBlock *view3d_edit_objectmenu(bContext *C, ARegion *ar, void *arg_unuse
 
 static void do_view3d_edit_propfalloffmenu(bContext *C, void *arg, int event)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 	
-	ts->prop_mode= event;
+	scene->prop_mode= event;
 	
 }
 
 static uiBlock *view3d_edit_propfalloffmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
 	block= uiBeginBlock(C, ar, "view3d_edit_propfalloffmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_propfalloffmenu, NULL);
 	
-	if (ts->prop_mode==PROP_SMOOTH) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
+	if (scene->prop_mode==PROP_SMOOTH) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
-	if (ts->prop_mode==PROP_SPHERE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sphere|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SPHERE, "");
+	if (scene->prop_mode==PROP_SPHERE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sphere|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SPHERE, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sphere|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SPHERE, "");
-	if (ts->prop_mode==PROP_ROOT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Root|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_ROOT, "");
+	if (scene->prop_mode==PROP_ROOT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Root|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_ROOT, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Root|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_ROOT, "");
-	if (ts->prop_mode==PROP_SHARP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
+	if (scene->prop_mode==PROP_SHARP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
-	if (ts->prop_mode==PROP_LIN) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
+	if (scene->prop_mode==PROP_LIN) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Linear|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
-	if (ts->prop_mode==PROP_RANDOM) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Random|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_RANDOM, "");
+	if (scene->prop_mode==PROP_RANDOM) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Random|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_RANDOM, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Random|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_RANDOM, "");
-	if (ts->prop_mode==PROP_CONST) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
+	if (scene->prop_mode==PROP_CONST) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Constant|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
 		
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -2699,7 +2698,7 @@ void do_view3d_edit_mesh_verticesmenu(bContext *C, void *arg, int event)
 		make_parent();
 		break;
 	case 1: /* remove doubles */
-		count= removedoublesflag(1, 0, ts->doublimit);
+		count= removedoublesflag(1, 0, scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
@@ -2769,18 +2768,18 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 	switch(event) {
 		 
 	case 0: /* subdivide smooth */
-		esubdivideflag(1, 0.0, ts->editbutflag | B_SMOOTH,1,0);
+		esubdivideflag(1, 0.0, scene->toolsettings->editbutflag | B_SMOOTH,1,0);
 		ED_undo_push(C, "Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
-		esubdivideflag(1, fac, ts->editbutflag,1,0);
+		esubdivideflag(1, fac, scene->toolsettings->editbutflag,1,0);
 		ED_undo_push(C, "Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
-		esubdivideflag(1, 0.0, ts->editbutflag,1,0);
+		esubdivideflag(1, 0.0, scene->toolsettings->editbutflag,1,0);
 		ED_undo_push(C, "Subdivide");
 		break;
 	case 3: /* knife subdivide */
@@ -3143,7 +3142,6 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(bContext *C, ARegion *ar, void *arg
 static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 {
 #if 0
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -3187,12 +3185,12 @@ static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 		Transform();
 		break;
 	case 12: /* proportional edit (toggle) */
-		if(ts->proportional) ts->proportional= 0;
-		else ts->proportional= 1;
+		if(scene->proportional) scene->proportional= 0;
+		else scene->proportional= 1;
 		break;
 	case 13: /* automerge edit (toggle) */
-		if(ts->automerge) ts->automerge= 0;
-		else ts->automerge= 1;
+		if(scene->automerge) scene->automerge= 0;
+		else scene->automerge= 1;
 		break;
 	case 15:
 		uv_autocalc_tface();
@@ -3206,7 +3204,7 @@ static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 
 static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -3252,7 +3250,7 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 		
 	
 	
-	if(ts->proportional) {
+	if(scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
@@ -3263,7 +3261,7 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	/* PITA but we should let users know that automerge cant work with multires :/ */
 	uiDefIconTextBut(block, BUTM, 1,
-			ts->automerge ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
+			scene->automerge ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
 			((Mesh*)obedit->data)->mr ? "AutoMerge Editing (disabled by multires)" : "AutoMerge Editing",
 			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
@@ -3538,8 +3536,8 @@ static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
 		Transform();
 		break;
 	case 5: /* proportional edit (toggle) */
-		if(ts->proportional) ts->proportional= 0;
-		else ts->proportional= 1;
+		if(scene->proportional) scene->proportional= 0;
+		else scene->proportional= 1;
 		break;
 	case 7: /* delete keyframe */
 		common_deletekey();
@@ -3550,7 +3548,7 @@ static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
 
 static uiBlock *view3d_edit_latticemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 		
@@ -3576,7 +3574,7 @@ static uiBlock *view3d_edit_latticemenu(bContext *C, ARegion *ar, void *arg_unus
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(ts->proportional) {
+	if(scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -4697,7 +4695,7 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void view3d_select_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
 
@@ -4706,7 +4704,7 @@ static void view3d_select_particlemenu(bContext *C, uiLayout *layout, void *arg_
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_all_toggle");
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_linked");
 
-	if(ts->particle.selectmode & SCE_SELECT_POINT) {
+	if(scene->selectmode & SCE_SELECT_POINT) {
 		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last"); // |W, 4
 		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first"); // |W, 3
 	}
@@ -4726,7 +4724,7 @@ static void view3d_particle_showhidemenu(bContext *C, uiLayout *layout, void *ar
 
 static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Scene *scene= CTX_data_scene(C);
 
 	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	// add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -4741,7 +4739,7 @@ static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles"); // |W, 5
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_delete");
-	if(ts->particle.selectmode & SCE_SELECT_POINT)
+	if(scene->selectmode & SCE_SELECT_POINT)
 		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide"); // |W, 2
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey"); // |W, 1
 
@@ -4875,7 +4873,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 {
 	wmWindow *win= CTX_wm_window(C);
 	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Base *basact= CTX_data_active_base(C);
@@ -5010,7 +5007,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		if(em) {
 			if(shift==0 || em->selectmode==0)
 				em->selectmode= SCE_SELECT_VERTEX;
-			ts->selectmode= em->selectmode;
+			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Vertex");
@@ -5024,7 +5021,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				}
 				em->selectmode = SCE_SELECT_EDGE;
 			}
-			ts->selectmode= em->selectmode;
+			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Edge");
@@ -5033,12 +5030,12 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	case B_SEL_FACE:
 		if(em) {
 			if( shift==0 || em->selectmode==0){
-				if( ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
-					if(ctrl) EM_convertsel(em, (ts->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+				if( ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
+					if(ctrl) EM_convertsel(em, (scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
 				}
 				em->selectmode = SCE_SELECT_FACE;
 			}
-			ts->selectmode= em->selectmode;
+			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
 			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Face");
@@ -5046,15 +5043,15 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		break;	
 
 	case B_SEL_PATH:
-		ts->particle.selectmode= SCE_SELECT_PATH;
+		scene->selectmode= SCE_SELECT_PATH;
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
-		ts->particle.selectmode = SCE_SELECT_POINT;
+		scene->selectmode = SCE_SELECT_POINT;
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
-		ts->particle.selectmode = SCE_SELECT_END;
+		scene->selectmode = SCE_SELECT_END;
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	
@@ -5283,7 +5280,6 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
@@ -5453,11 +5449,11 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		if((obedit && (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || G.f & G_PARTICLEEDIT) {
 		
 			uiBlockBeginAlign(block);
-			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(ts->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
+			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
 			xco+= XIC+10;
 		
-			if(ts->proportional) {
-				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,yco,XIC+10,YIC, &(ts->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
+			if(scene->proportional) {
+				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,yco,XIC+10,YIC, &(scene->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
 				xco+= XIC+10;
 			}
 			uiBlockEndAlign(block);
@@ -5468,21 +5464,21 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		if (BIF_snappingSupported(obedit)) {
 			uiBlockBeginAlign(block);
 
-			if (ts->snap_flag & SCE_SNAP) {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");
+			if (scene->snap_flag & SCE_SNAP) {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");
 				xco+= XIC;
-				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
+				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
-				if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
+				if (scene->snap_mode == SCE_SNAP_MODE_VOLUME) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
 				}
-				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(ts->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
+				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
-				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &ts->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= XIC+70;
 			} else {
-				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &ts->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
 			}
 
@@ -5513,11 +5509,11 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
 			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Point select mode");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Point select mode");
 			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			

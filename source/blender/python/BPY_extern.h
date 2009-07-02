@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: BPY_extern.h 12334 2007-10-21 23:00:29Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,8 +50,6 @@ struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct Script;				/* DNA_screen_types.h */
 struct BPyMenu;
 struct bContext;
-struct ReportList;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

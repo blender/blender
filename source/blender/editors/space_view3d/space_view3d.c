@@ -122,24 +122,6 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 	return arnew;
 }
 
-/* ****************************************************** */
-
-/* function to always find a regionview3d context inside 3D window */
-RegionView3D *ED_view3d_context_rv3d(bContext *C)
-{
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	
-	if(rv3d==NULL) {
-		ScrArea *sa =CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar;
-			for(ar= sa->regionbase.first; ar; ar= ar->next)
-				if(ar->regiontype==RGN_TYPE_WINDOW)
-					return ar->regiondata;
-		}
-	}
-	return rv3d;
-}
 
 
 /* ******************** default callbacks for view3d space ***************** */

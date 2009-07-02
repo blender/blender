@@ -222,36 +222,5 @@ typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_ANGLE
 } wmRadialControlMode;
 
-/* ************** wmEvent ************************ */
-/* for read-only rna access, dont save this */
-
-/* each event should have full modifier state */
-/* event comes from eventmanager and from keymap */
-typedef struct wmEvent {
-	struct wmEvent *next, *prev;
-	
-	short type;			/* event code itself (short, is also in keymap) */
-	short val;			/* press, release, scrollvalue */
-	short x, y;			/* mouse pointer position, screen coord */
-	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
-	short prevx, prevy;	/* previous mouse pointer position */
-	short unicode;		/* future, ghost? */
-	char ascii;			/* from ghost */
-	char pad;
-	
-	/* modifier states */
-	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;				/* rawkey modifier */
-	
-	/* keymap item, set by handler (weak?) */
-	const char *keymap_idname;
-	
-	/* custom data */
-	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	short customdatafree;
-	
-} wmEvent;
-
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

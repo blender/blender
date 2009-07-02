@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: drawipo.c 17512 2008-11-20 05:55:42Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

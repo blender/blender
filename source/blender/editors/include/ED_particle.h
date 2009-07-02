@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: ED_editparticle.h $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -50,8 +50,9 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   SND_Scene*	sndscene,
 								   KX_SOUNDACT_TYPE type,
 								   short start,
-								   short end)
-								   : SCA_IActuator(gameobj)
+								   short end,
+								   PyTypeObject* T)
+								   : SCA_IActuator(gameobj,T)
 {
 	m_soundObject = sndobj;
 	m_soundScene = sndscene;
@@ -249,16 +250,24 @@ PyTypeObject KX_SoundActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+
+PyParentObject KX_SoundActuator::Parents[] = {
+	&KX_SoundActuator::Type,
+		&SCA_IActuator::Type,
+		&SCA_ILogicBrick::Type,
+		&CValue::Type,
+		NULL
+};
+
+
 
 PyMethodDef KX_SoundActuator::Methods[] = {
 	// Deprecated ----->
@@ -331,13 +340,25 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, stopSound,
 }
 
 /* Atribute setting and getting -------------------------------------------- */
+PyObject* KX_SoundActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SoundActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_SoundActuator::py_setattro(PyObject *attr, PyObject* value) {
+	py_setattro_up(SCA_IActuator);
+}
 
 PyObject* KX_SoundActuator::pyattr_get_filename(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!actuator->m_soundObject)
 	{
-		return PyUnicode_FromString("");
+		return PyString_FromString("");
 	}
 	STR_String objectname = actuator->m_soundObject->GetObjectName();
 	char* name = objectname.Ptr();
@@ -346,7 +367,7 @@ PyObject* KX_SoundActuator::pyattr_get_filename(void *self, const struct KX_PYAT
 		PyErr_SetString(PyExc_RuntimeError, "value = actuator.fileName: KX_SoundActuator, unable to get sound fileName");
 		return NULL;
 	} else
-		return PyUnicode_FromString(name);
+		return PyString_FromString(name);
 }
 
 PyObject* KX_SoundActuator::pyattr_get_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
@@ -381,7 +402,7 @@ PyObject* KX_SoundActuator::pyattr_get_looping(void *self, const struct KX_PYATT
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	int looping = (actuator->m_soundObject) ? actuator->m_soundObject->GetLoopMode() : (int)SND_LOOP_OFF;
-	PyObject* result = PyLong_FromSsize_t(looping);
+	PyObject* result = PyInt_FromLong(looping);
 	
 	return result;
 }
@@ -559,7 +580,7 @@ PyObject* KX_SoundActuator::PyGetFilename()
 	ShowDeprecationWarning("getFilename()", "the fileName property");
 	if (!m_soundObject)
 	{
-		return PyUnicode_FromString("");
+		return PyString_FromString("");
 	}
 	STR_String objectname = m_soundObject->GetObjectName();
 	char* name = objectname.Ptr();
@@ -568,7 +589,7 @@ PyObject* KX_SoundActuator::PyGetFilename()
 		PyErr_SetString(PyExc_RuntimeError, "Unable to get sound fileName");
 		return NULL;
 	} else
-		return PyUnicode_FromString(name);
+		return PyString_FromString(name);
 }
 
 PyObject* KX_SoundActuator::PySetGain(PyObject* args)
@@ -668,7 +689,7 @@ PyObject* KX_SoundActuator::PyGetLooping()
 {
 	ShowDeprecationWarning("getLooping()", "the looping property");
 	int looping = (m_soundObject) ? m_soundObject->GetLoopMode() : (int)SND_LOOP_OFF;
-	PyObject* result = PyLong_FromSsize_t(looping);
+	PyObject* result = PyInt_FromLong(looping);
 	
 	return result;
 }
@@ -756,7 +777,7 @@ PyObject* KX_SoundActuator::PySetType(PyObject* args)
 PyObject* KX_SoundActuator::PyGetType()
 {
 	ShowDeprecationWarning("getType()", "the mode property");
-	return PyLong_FromSsize_t(m_type);
+	return PyInt_FromLong(m_type);
 }
 // <-----
 

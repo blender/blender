@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: BDR_gpencil.h 19541 2009-04-05 06:54:47Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: RNA_types.h 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -110,9 +110,7 @@ typedef enum PropertyFlag {
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,
 	PROP_RUNTIME = 512,
-	PROP_IDPROPERTY = 1024,
-	PROP_RAW_ACCESS = 8192,
-	PROP_RAW_ARRAY = 16384,
+	PROP_IDPROPERTY = 1024
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -133,21 +131,6 @@ typedef struct CollectionPointerLink {
 	struct CollectionPointerLink *next, *prev;
 	PointerRNA ptr;
 } CollectionPointerLink;
-
-typedef enum RawPropertyType {
-	PROP_RAW_CHAR,
-	PROP_RAW_SHORT,
-	PROP_RAW_INT,
-	PROP_RAW_FLOAT,
-	PROP_RAW_DOUBLE
-} RawPropertyType;
-
-typedef struct RawArray {
-	void *array;
-	RawPropertyType type;
-	int len;
-	int stride;
-} RawArray;
 
 /* Iterator Utility */
 

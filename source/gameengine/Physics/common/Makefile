@@ -40,7 +40,7 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
-CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO)/include -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../blender
 # these two needed because of blenkernel
 CPPFLAGS += -I../../blender/makesdna

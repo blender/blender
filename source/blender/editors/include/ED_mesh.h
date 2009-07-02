@@ -147,9 +147,6 @@ int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short r
 void		EM_hide_mesh(struct EditMesh *em, int swap);
 void		EM_reveal_mesh(struct EditMesh *em);
 
-void		EM_select_by_material(struct EditMesh *em, int index);
-void		EM_deselect_by_material(struct EditMesh *em, int index); 
-
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 

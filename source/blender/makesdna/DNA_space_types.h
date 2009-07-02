@@ -229,7 +229,7 @@ typedef struct SpaceImage {
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
-	char around;
+	char pad;
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float zoom, pad4;				/* user defined zoom level */

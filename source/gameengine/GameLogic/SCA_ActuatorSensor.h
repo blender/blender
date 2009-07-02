@@ -46,7 +46,8 @@ class SCA_ActuatorSensor : public SCA_ISensor
 public:
 	SCA_ActuatorSensor(class SCA_EventManager* eventmgr,
 					  SCA_IObject* gameobj,
-					  const STR_String& actname);
+					  const STR_String& actname,
+					  PyTypeObject* T=&Type );
 	
 	virtual ~SCA_ActuatorSensor();
 	virtual CValue* GetReplica();
@@ -59,6 +60,10 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 3. setProperty */
 	KX_PYMETHOD_DOC_VARARGS(SCA_ActuatorSensor,SetActuator);

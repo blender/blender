@@ -79,7 +79,8 @@ public:
 		class KX_GameObject* gameobj,
 		bool bFindMaterial,
 		bool bTouchPulse,
-		const STR_String& touchedpropname) ;
+		const STR_String& touchedpropname,
+		PyTypeObject* T=&Type) ;
 	virtual ~KX_TouchSensor();
 
 	virtual CValue* GetReplica();
@@ -120,6 +121,10 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+	
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated ----->
 	/* 1. setProperty */

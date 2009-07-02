@@ -19,8 +19,7 @@ SET(INC
   ../../../source/blender/windowmanager
   ../../../source/blender 
   ../../../source/blender/include
-  ../../../source/blender/makesdna
-  ../../../source/blender/makesrna 
+  ../../../source/blender/makesdna 
   ../../../source/gameengine/Rasterizer 
   ../../../source/gameengine/GameLogic
   ../../../source/gameengine/Expressions 

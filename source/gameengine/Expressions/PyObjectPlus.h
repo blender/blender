@@ -45,15 +45,21 @@
  * Python defines
 ------------------------------*/
 
-#ifdef USE_MATHUTILS
-extern "C" {
-#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
-}
+
+
+#if PY_VERSION_HEX > 0x03000000
+#define PyString_FromString PyUnicode_FromString
+#define PyString_FromFormat PyUnicode_FromFormat
+#define PyString_Check PyUnicode_Check
+#define PyString_Size PyUnicode_GetSize
+
+#define PyInt_FromLong PyLong_FromSsize_t
+#define PyInt_AsLong PyLong_AsSsize_t
+#define PyString_AsString _PyUnicode_AsString
+#define PyInt_Check PyLong_Check
+#define PyInt_AS_LONG PyLong_AsLong // TODO - check this one
 #endif
 
-extern "C" {
-#include "../../blender/python/intern/bpy_compat.h"
-}
 
 
 /*
@@ -135,7 +141,7 @@ typedef struct {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
-#define BGE_PROXY_CHECK_TYPE(_type) ((_type)->tp_dealloc == PyObjectPlus::py_base_dealloc)
+#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyObjectPlus::py_base_dealloc)
 
 
 								// This must be the first line of each 
@@ -145,9 +151,40 @@ typedef struct {
   static PyTypeObject   Type; \
   static PyMethodDef    Methods[]; \
   static PyAttributeDef Attributes[]; \
+  static PyParentObject Parents[]; \
   virtual PyTypeObject *GetType(void) {return &Type;}; \
+  virtual PyParentObject *GetParents(void) {return Parents;} \
   virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
   virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
+
+
+
+
+								// This defines the py_getattro_up macro
+								// which allows attribute and method calls
+								// to be properly passed up the hierarchy.
+								// 
+								// Note, PyDict_GetItem() WONT set an exception!
+								// let the py_base_getattro function do this.
+
+#define py_getattro_up(Parent) \
+	\
+	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
+	 \
+	if(descr) { \
+		if (PyCObject_Check(descr)) { \
+			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr)); \
+		} else if (descr->ob_type->tp_descr_get) { \
+			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy); \
+		} else { \
+			return NULL; \
+		} \
+	} else { \
+		return Parent::py_getattro(attr); \
+	}
+
+#define py_getattro_dict_up(Parent) \
+	return py_getattr_dict(Parent::py_getattro_dict(), Type.tp_dict);
 
 /*
  * nonzero values are an error for setattr
@@ -159,6 +196,29 @@ typedef struct {
 #define PY_SET_ATTR_FAIL		 1
 #define PY_SET_ATTR_MISSING		-1
 #define PY_SET_ATTR_SUCCESS		 0
+
+#define py_setattro_up(Parent) \
+	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
+	 \
+	if(descr) { \
+		if (PyCObject_Check(descr)) { \
+			const PyAttributeDef* attrdef= reinterpret_cast<const PyAttributeDef *>(PyCObject_AsVoidPtr(descr)); \
+			if (attrdef->m_access == KX_PYATTRIBUTE_RO) { \
+				PyErr_Format(PyExc_AttributeError, "\"%s\" is read only", PyString_AsString(attr)); \
+				return PY_SET_ATTR_FAIL; \
+			} \
+			else { \
+				return py_set_attrdef((void *)this, attrdef, value); \
+			} \
+		} else { \
+			PyErr_Format(PyExc_AttributeError, "\"%s\" cannot be set", PyString_AsString(attr)); \
+			return PY_SET_ATTR_FAIL; \
+		} \
+	} else { \
+		PyErr_Clear(); \
+		return Parent::py_setattro(attr, value); \
+	}
+
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -429,7 +489,7 @@ class PyObjectPlus : public SG_QList
 	Py_Header;							// Always start with Py_Header
 	
 public:
-	PyObjectPlus();
+	PyObjectPlus(PyTypeObject *T);
 
 	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 	
@@ -437,19 +497,30 @@ public:
 	
 	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
 	 * they take the C++ reference from the PyObjectPlus_Proxy and call
-	 * its own virtual py_repr, py_base_dealloc ,etc. functions.
+	 * its own virtual py_getattro, py_setattro etc. functions.
 	 */
-
-	static PyObject*		py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds); /* allows subclassing */
 	static void			py_base_dealloc(PyObject *self);
+	static  PyObject*		py_base_getattro(PyObject * self, PyObject *attr);
+	static  int			py_base_setattro(PyObject *self, PyObject *attr, PyObject *value);
 	static PyObject*		py_base_repr(PyObject *self);
 
 	/* These are all virtual python methods that are defined in each class
 	 * Our own fake subclassing calls these on each class, then calls the parent */
+	virtual PyObject*		py_getattro(PyObject *attr);
+	virtual PyObject*		py_getattro_dict();
+	virtual int			py_delattro(PyObject *attr);
+	virtual int			py_setattro(PyObject *attr, PyObject *value);
 	virtual PyObject*		py_repr(void);
 
-	static PyObject*		py_get_attrdef(PyObject *self_py, const PyAttributeDef *attrdef);
-	static int				py_set_attrdef(PyObject *self_py, PyObject *value, const PyAttributeDef *attrdef);
+	static PyObject*		py_get_attrdef(void *self, const PyAttributeDef *attrdef);
+	static int				py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value);
+	
+	/* isA() methods, shonky replacement for pythons issubclass()
+	 * which we cant use because we have our own subclass system  */
+	bool isA(PyTypeObject *T);
+	bool isA(const char *mytypename);
+	
+	KX_PYMETHOD_O(PyObjectPlus,isA);
 	
 	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
 	static PyObject*	pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

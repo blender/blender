@@ -42,9 +42,10 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_XORController::SCA_XORController(SCA_IObject* gameobj)
+SCA_XORController::SCA_XORController(SCA_IObject* gameobj,
+									 PyTypeObject* T)
 	:
-	SCA_IController(gameobj)
+	SCA_IController(gameobj,T)
 {
 }
 
@@ -119,15 +120,19 @@ PyTypeObject SCA_XORController::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IController::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject SCA_XORController::Parents[] = {
+	&SCA_XORController::Type,
+	&SCA_IController::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef SCA_XORController::Methods[] = {
@@ -137,5 +142,13 @@ PyMethodDef SCA_XORController::Methods[] = {
 PyAttributeDef SCA_XORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
+
+PyObject* SCA_XORController::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IController);
+}
+
+PyObject* SCA_XORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
+}
 
 /* eof */

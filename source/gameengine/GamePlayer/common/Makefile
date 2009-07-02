@@ -50,6 +50,8 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_SUMO)/include
+CPPFLAGS += -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_ZLIB)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
@@ -67,6 +69,7 @@ CPPFLAGS += -I../../../gameengine/Network/LoopBackNetwork
 CPPFLAGS += -I../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../gameengine/SceneGraph
 CPPFLAGS += -I../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
+CPPFLAGS += -I../../../gameengine/Physics/Sumo
 CPPFLAGS += -I../../../gameengine/Physics/common
 
 ###############################

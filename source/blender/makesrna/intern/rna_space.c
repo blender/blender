@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_space.c 21247 2009-06-29 21:50:53Z jaguarandi $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -246,10 +246,19 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+#if 0
+	static EnumPropertyItem select_mode_items[] = {
+		{SI_SELECT_VERTEX, "VERTEX", 0, "Vertex", "Vertex selection mode."},
+		//{SI_SELECT_EDGE, "Edge", 0, "Edge", "Edge selection mode."},
+		{SI_SELECT_FACE, "FACE", 0, "Face", "Face selection mode."},
+		{SI_SELECT_ISLAND, "ISLAND", 0, "Island", "Island selection mode."},
+		{0, NULL, 0, NULL, NULL}};
+#endif
+
 	static EnumPropertyItem sticky_mode_items[] = {
-		{SI_STICKY_DISABLE, "DISABLED", ICON_STICKY_UVS_DISABLE, "Disabled", "Sticky vertex selection disabled."},
-		{SI_STICKY_LOC, "SHARED_LOCATION", ICON_STICKY_UVS_LOC, "SHARED_LOCATION", "Select UVs that are at the same location and share a mesh vertex."},
-		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "SHARED_VERTEX", "Select UVs that share mesh vertex, irrespective if they are in the same location."},
+		{SI_STICKY_DISABLE, "DISABLED", 0, "Disabled", "Sticky vertex selection disabled."},
+		{SI_STICKY_LOC, "SHARED_LOCATION", 0, "SHARED_LOCATION", "Select UVs that are at the same location and share a mesh vertex."},
+		{SI_STICKY_VERTEX, "SHARED_VERTEX", 0, "SHARED_VERTEX", "Select UVs that share mesh vertex, irrespective if they are in the same location."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dt_uv_items[] = {
@@ -264,18 +273,17 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		{SI_UVDT_STRETCH_AREA, "AREA", 0, "Area", "Area distortion between UV and 3D faces."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
-		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
-		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "SpaceUVEditor", NULL);
 	RNA_def_struct_sdna(srna, "SpaceImage");
 	RNA_def_struct_nested(brna, srna, "SpaceImageEditor");
 	RNA_def_struct_ui_text(srna, "Space UV Editor", "UV editor data for the image editor space.");
 
 	/* selection */
+	/*prop= RNA_def_property(srna, "selection_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "selectmode");
+	RNA_def_property_enum_items(prop, select_mode_items);
+	RNA_def_property_ui_text(prop, "Selection Mode", "UV selection and display mode.");*/
+
 	prop= RNA_def_property(srna, "sticky_selection_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sticky");
 	RNA_def_property_enum_items(prop, sticky_mode_items);
@@ -305,15 +313,16 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Stretch Type", "Type of stretch to draw.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "draw_modified_edges", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DRAWSHADOW);
-	RNA_def_property_ui_text(prop, "Draw Modified Edges", "Draw edges after modifiers are applied.");
+	prop= RNA_def_property(srna, "draw_modified_edges", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "dt_uvstretch");
+	RNA_def_property_enum_items(prop, dt_uvstretch_items);
+	RNA_def_property_ui_text(prop, "Draw Modified Edges", "Draw edges from the final mesh after object modifier evaluation.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "draw_other_objects", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DRAW_OTHER);
-	RNA_def_property_ui_text(prop, "Draw Other Objects", "Draw other selected objects that share the same image.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+	/*prop= RNA_def_property(srna, "local_view", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LOCAL_UV);
+	RNA_def_property_ui_text(prop, "Local View", "Draw only faces with the currently displayed image assigned.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);*/
 
 	prop= RNA_def_property(srna, "normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
@@ -321,6 +330,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	/* todo: move edge and face drawing options here from G.f */
+
+	/* editing */
+	/*prop= RNA_def_property(srna, "sync_selection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_SYNC_UVSEL);
+	RNA_def_property_ui_text(prop, "Sync Selection", "Keep UV and edit mode mesh selection in sync.");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);*/
 
 	prop= RNA_def_property(srna, "snap_to_pixels", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_PIXELSNAP);
@@ -333,12 +348,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "live_unwrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LIVE_UNWRAP);
 	RNA_def_property_ui_text(prop, "Live Unwrap", "Continuously unwrap the selected UV island while transforming pinned vertices.");
-
-	prop= RNA_def_property(srna, "pivot", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "around");
-	RNA_def_property_enum_items(prop, pivot_items);
-	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot.");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 }
 
 static void rna_def_space_outliner(BlenderRNA *brna)
@@ -566,17 +575,18 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem buttons_context_items[] = {
-		{BCONTEXT_SCENE, "SCENE", ICON_SCENE, "Scene", "Scene"},
-		{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
-		{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
-		{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraint", "Constraint"},
-		{BCONTEXT_MODIFIER, "MODIFIER", ICON_MODIFIER, "Modifier", "Modifier"},
-		{BCONTEXT_DATA, "DATA", 0, "Data", "Data"},
-		{BCONTEXT_BONE, "BONE", ICON_BONE_DATA, "Bone", "Bone"},
-		{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
-		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
-		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
-		{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
+		{BCONTEXT_SCENE, "SCENE", 0, "Scene", ""},
+		{BCONTEXT_WORLD, "WORLD", 0, "World", ""},
+		{BCONTEXT_OBJECT, "OBJECT", 0, "Object", ""},
+		{BCONTEXT_DATA, "DATA", 0, "Data", ""},
+		{BCONTEXT_MATERIAL, "MATERIAL", 0, "Material", ""},
+		{BCONTEXT_TEXTURE, "TEXTURE", 0, "Texture", ""},
+		{BCONTEXT_PARTICLE, "PARTICLE", 0, "Particle", ""},
+		{BCONTEXT_PHYSICS, "PHYSICS", 0, "Physics", ""},
+		{BCONTEXT_GAME, "GAME", 0, "Game", ""},
+		{BCONTEXT_BONE, "BONE", 0, "Bone", ""},
+		{BCONTEXT_MODIFIER, "MODIFIER", 0, "Modifier", ""},
+		{BCONTEXT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem panel_alignment_items[] = {
@@ -592,13 +602,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, buttons_context_items);
 	RNA_def_property_ui_text(prop, "Buttons Context", "The type of active data to display and edit in the buttons window");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "panel_alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
 	RNA_def_property_enum_items(prop, panel_alignment_items);
 	RNA_def_property_ui_text(prop, "Panel Alignment", "Arrangement of the panels within the buttons window");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* pinned data */
 	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);

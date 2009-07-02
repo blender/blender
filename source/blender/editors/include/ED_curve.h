@@ -30,7 +30,6 @@
 
 struct Base;
 struct bContext;
-struct Nurb;
 struct Object;
 struct Scene;
 struct Text;
@@ -52,8 +51,6 @@ void	free_editNurb	(struct Object *obedit);
 void	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, int type, int newname);
-
-int		isNurbsel		(struct Nurb *nu);;
 
 /* editfont.h */
 void	undo_push_font	(struct bContext *C, char *name);

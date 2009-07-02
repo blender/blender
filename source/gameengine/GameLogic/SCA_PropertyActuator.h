@@ -64,7 +64,9 @@ public:
 		SCA_IObject* sourceObj,
 		const STR_String& propname,
 		const STR_String& expr,
-		int acttype);
+		int acttype,
+		PyTypeObject* T=&Type
+	);
 
 
 	~SCA_PropertyActuator();
@@ -83,6 +85,10 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
+
+	virtual PyObject*  py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// python wrapped methods
 	KX_PYMETHOD_DOC(SCA_PropertyActuator,SetProperty);

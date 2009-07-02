@@ -105,7 +105,7 @@ protected:
 
 public:
 	
-	SCA_IObject();
+	SCA_IObject(PyTypeObject* T=&Type);
 	virtual ~SCA_IObject();
 
 	SCA_ControllerList& GetControllers()
@@ -199,12 +199,15 @@ public:
 	unsigned int GetState(void)	{ return m_state; }
 
 //	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
+	
+	// here come the python forwarded methods
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	virtual int GetGameObjectType() {return -1;}
 	
 	typedef enum ObjectTypes {
 		OBJ_ARMATURE=0,
-		OBJ_CAMERA=1,
 	}ObjectTypes;
 
 };

@@ -615,7 +615,7 @@ int find_material_index(Object *ob, Material *ma)
 	return 0;	   
 }
 
-void object_add_material_slot(Object *ob)
+void new_material_to_objectdata(Object *ob)
 {
 	Material *ma;
 	
@@ -854,7 +854,7 @@ void automatname(Material *ma)
 }
 
 
-void object_remove_material_slot(Object *ob)
+void delete_material_index(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;

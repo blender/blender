@@ -215,18 +215,26 @@ public:
 	// Construction / Destruction
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-	CValue();
+	CValue(PyTypeObject *T = &Type);
 	//static PyObject*	PyMake(PyObject*,PyObject*);
 	virtual PyObject *py_repr(void)
 	{
-		return PyUnicode_FromString((const char*)GetText());
+		return PyString_FromString((const char*)GetText());
 	}
 
+
+
+	virtual PyObject*			py_getattro(PyObject *attr);
+	virtual PyObject*			py_getattro_dict();
 	virtual PyObject*	ConvertValueToPython() {
 		return NULL;
 	}
 
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj, const char *error_prefix);
+
+
+	virtual int				py_delattro(PyObject *attr);
+	virtual int				py_setattro(PyObject *attr, PyObject* value);
 	
 	static PyObject * pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
@@ -409,8 +417,8 @@ class CPropValue : public CValue
 public:
 
 #ifndef NO_EXP_PYTHON_EMBEDDING	
-	CPropValue() :
-	  CValue(),
+	CPropValue(PyTypeObject* T=&Type) :
+	  CValue(T),
 #else
 	CPropValue() :
 #endif //NO_EXP_PYTHON_EMBEDDING

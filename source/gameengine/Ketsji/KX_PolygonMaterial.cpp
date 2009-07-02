@@ -51,8 +51,8 @@
 
 #include "KX_PyMath.h"
 
-KX_PolygonMaterial::KX_PolygonMaterial()
-		: PyObjectPlus(),
+KX_PolygonMaterial::KX_PolygonMaterial(PyTypeObject *T) 
+		: PyObjectPlus(T),
 		  RAS_IPolyMaterial(),
 
 	m_tface(NULL),
@@ -115,7 +115,7 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 		PyObject *ret = PyObject_CallMethod(m_pymaterial, "activate", "(NNO)", pyRasty, pyCachingInfo, (PyObject*) this->m_proxy);
 		if (ret)
 		{
-			bool value = PyLong_AsSsize_t(ret);
+			bool value = PyInt_AsLong(ret);
 			Py_DECREF(ret);
 			dopass = value;
 		}
@@ -255,16 +255,32 @@ PyTypeObject KX_PolygonMaterial::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&PyObjectPlus::Type,
 		0,0,0,0,0,0,
-		py_base_new
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+PyParentObject KX_PolygonMaterial::Parents[] = {
+	&KX_PolygonMaterial::Type,
+	&PyObjectPlus::Type,
+	NULL
+};
+
+PyObject* KX_PolygonMaterial::py_getattro(PyObject *attr)
+{	
+	py_getattro_up(PyObjectPlus);
+}
+
+PyObject* KX_PolygonMaterial::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
+int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
+{
+	py_setattro_up(PyObjectPlus);
+}
 
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(material)")
 {
@@ -331,13 +347,13 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 PyObject* KX_PolygonMaterial::pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyUnicode_FromString(self->m_texturename.ReadPtr());
+	return PyString_FromString(self->m_texturename.ReadPtr());
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyUnicode_FromString(self->m_materialname.ReadPtr());
+	return PyString_FromString(self->m_materialname.ReadPtr());
 }
 
 /* this does not seem useful */
@@ -354,7 +370,7 @@ PyObject* KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATT
 	if (self->m_tface && self->m_tface->tpage)
 		bindcode= self->m_tface->tpage->bindcode;
 	
-	return PyLong_FromSsize_t(bindcode);
+	return PyInt_FromLong(bindcode);
 }
 
 

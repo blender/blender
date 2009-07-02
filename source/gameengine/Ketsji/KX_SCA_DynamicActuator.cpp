@@ -47,7 +47,9 @@
 
 /* Integration hooks ------------------------------------------------------- */
 
-PyTypeObject KX_SCA_DynamicActuator::Type = {
+	PyTypeObject 
+
+KX_SCA_DynamicActuator::Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -64,16 +66,21 @@ PyTypeObject KX_SCA_DynamicActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
+
+PyParentObject KX_SCA_DynamicActuator::Parents[] = {
+	&KX_SCA_DynamicActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
+};
+
 
 PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
 	// ---> deprecated
@@ -87,6 +94,21 @@ PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
+
+
+PyObject* KX_SCA_DynamicActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_DynamicActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_SCA_DynamicActuator::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 
 /* 1. setOperation */
@@ -120,7 +142,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 )
 {
 	ShowDeprecationWarning("getOperation()", "the mode property");
-	return PyLong_FromSsize_t((long)m_dyn_operation);
+	return PyInt_FromLong((long)m_dyn_operation);
 }
 
 
@@ -130,9 +152,10 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 
 KX_SCA_DynamicActuator::KX_SCA_DynamicActuator(SCA_IObject *gameobj,
 													   short dyn_operation,
-													   float setmass) :
+													   float setmass,
+													   PyTypeObject* T) : 
 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, T),
 	m_dyn_operation(dyn_operation),
 	m_setmass(setmass)
 {

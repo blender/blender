@@ -54,8 +54,9 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 											 int locrotxyz,
 											 int time,
 											 int option,
-											 char *property) :
-	SCA_IActuator(gameobj),
+											 char *property,
+											 PyTypeObject* T) : 
+	SCA_IActuator(gameobj, T),
 	m_refDirVector(refDir),
 	m_currentTime(0)
 {
@@ -580,15 +581,19 @@ PyTypeObject KX_ConstraintActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
+};
+
+PyParentObject KX_ConstraintActuator::Parents[] = {
+	&KX_ConstraintActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef KX_ConstraintActuator::Methods[] = {
@@ -634,6 +639,21 @@ PyAttributeDef KX_ConstraintActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+PyObject* KX_ConstraintActuator::py_getattro(PyObject *attr) 
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_ConstraintActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_ConstraintActuator::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IActuator);
+}
+
+
 int KX_ConstraintActuator::pyattr_check_direction(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ConstraintActuator* act = static_cast<KX_ConstraintActuator*>(self);
@@ -671,7 +691,7 @@ const char KX_ConstraintActuator::GetDamp_doc[] =
 "\tReturns the damping parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetDamp(){
 	ShowDeprecationWarning("getDamp()", "the damp property");
-	return PyLong_FromSsize_t(m_posDampTime);
+	return PyInt_FromLong(m_posDampTime);
 }
 
 /* 2. setRotDamp                                                                */
@@ -698,7 +718,7 @@ const char KX_ConstraintActuator::GetRotDamp_doc[] =
 "\tReturns the damping time for application of the constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetRotDamp(){
 	ShowDeprecationWarning("getRotDamp()", "the rotDamp property");
-	return PyLong_FromSsize_t(m_rotDampTime);
+	return PyInt_FromLong(m_rotDampTime);
 }
 
 /* 2. setDirection                                                                */
@@ -771,7 +791,7 @@ const char KX_ConstraintActuator::GetOption_doc[] =
 "\tReturns the option parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetOption(){
 	ShowDeprecationWarning("getOption()", "the option property");
-	return PyLong_FromSsize_t(m_option);
+	return PyInt_FromLong(m_option);
 }
 
 /* 2. setTime                                                                */
@@ -800,7 +820,7 @@ const char KX_ConstraintActuator::GetTime_doc[] =
 "\tReturns the time parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetTime(){
 	ShowDeprecationWarning("getTime()", "the time property");
-	return PyLong_FromSsize_t(m_activeTime);
+	return PyInt_FromLong(m_activeTime);
 }
 
 /* 2. setProperty                                                                */
@@ -829,7 +849,7 @@ const char KX_ConstraintActuator::GetProperty_doc[] =
 "\tReturns the property parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetProperty(){
 	ShowDeprecationWarning("getProperty()", "the 'property' property");
-	return PyUnicode_FromString(m_property.Ptr());
+	return PyString_FromString(m_property.Ptr());
 }
 
 /* 4. setDistance                                                                 */
@@ -958,7 +978,7 @@ const char KX_ConstraintActuator::GetLimit_doc[] =
 "\tReturns the type of constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetLimit() {
 	ShowDeprecationWarning("setLimit()", "the limit property");
-	return PyLong_FromSsize_t(m_locrot);
+	return PyInt_FromLong(m_locrot);
 }
 
 /* eof */

@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: BGL.c 20922 2009-06-16 07:16:51Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -83,13 +83,8 @@ static PyObject *Buffer_getattr( PyObject * self, char *name );
 static PyObject *Buffer_repr( PyObject * self );
 
 PyTypeObject buffer_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
+	PyObject_HEAD_INIT( NULL )      /* required python macro */
+	0,	/*ob_size */
 	"buffer",		/*tp_name */
 	sizeof( Buffer ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
@@ -1092,7 +1087,7 @@ static struct PyMethodDef BGL_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef BGL_module_def = {
-	PyModuleDef_HEAD_INIT,
+	{}, /* m_base */
 	"BGL",  /* m_name */
 	0,  /* m_doc */
 	0,  /* m_size */

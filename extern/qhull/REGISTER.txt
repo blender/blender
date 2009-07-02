@@ -1,0 +1,37 @@
+Dear User of Geometry Center Software:
+
+We would like to find out how you are using our software.  Think of
+Geometry Center software as a new kind of shareware: you share your
+science and successes with us, and we share our software and support
+with you. 
+
+If you use Geometry Center software, please send us a note telling
+us what you are doing with it.
+
+We need to know:
+
+  (1) What you are working on - an abstract of your work would be
+      fine.
+
+  (2) What Geometry Center software you use.
+
+  (3) How that software has helped you, for example, by increasing
+      your productivity or allowing you to do things you could not do
+      before.  In particular, if you feel that Geometry Center
+      software has had a direct bearing on your work, please tell us
+      about this.
+
+We encourage you to cite the use of any Geometry Center software you
+have used in your publications.  
+
+To cite Qhull, use
+
+    Barber, C.B., Dobkin, D.P., and Huhdanpaa, H.T., "The Quickhull 
+	algorithm for convex hulls," ACM Trans. on Mathematical Software,
+	Dec 1996.  http://www.geom.umn.edu/software/qhull
+
+Please send e-mail to
+
+    qhull@geom.umn.edu
+
+Thank you!

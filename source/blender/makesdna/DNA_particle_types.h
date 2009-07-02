@@ -34,8 +34,6 @@
 
 #include "DNA_ID.h"
 
-struct AnimData;
-
 typedef struct HairKey {
 	float co[3];	/* location of hair vertex */
 	float time;		/* time along hair, default 0-100 */
@@ -102,7 +100,6 @@ typedef struct ParticleData {
 
 typedef struct ParticleSettings {
 	ID id;
-	struct AnimData *adt;
 
 	int flag;
 	short type, from, distr;
@@ -170,7 +167,7 @@ typedef struct ParticleSettings {
 	struct Group *eff_group;
 	struct Object *dup_ob;
 	struct Object *bb_ob;
-	struct Ipo *ipo;				// xxx depreceated... old animation system
+	struct Ipo *ipo;
 	struct PartDeflect *pd;
 	struct PartDeflect *pd2;
 } ParticleSettings;
@@ -195,7 +192,6 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct Object *target_ob;
 	struct Object *keyed_ob;
 	struct Object *lattice;
-	struct Object *parent;					/* particles from global space -> parent space */
 
 	struct ListBase effectors, reactevents;	/* runtime */
 	

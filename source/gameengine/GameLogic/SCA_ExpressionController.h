@@ -42,7 +42,8 @@ class SCA_ExpressionController : public SCA_IController
 
 public:
 	SCA_ExpressionController(SCA_IObject* gameobj,
-							 const STR_String& exprtext);
+							 const STR_String& exprtext,
+							 PyTypeObject* T=&Type );
 
 	virtual ~SCA_ExpressionController();
 	virtual CValue* GetReplica();
@@ -53,6 +54,14 @@ public:
 	 *  so that self references are removed before the controller itself is released
 	 */
 	virtual void Delete();
+
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+
+//	virtual PyObject* py_getattro(PyObject *attr);
+//	virtual PyObject* py_getattro_dict();
+
 };
 
 #endif //__KX_EXPRESSIONCONTROLLER

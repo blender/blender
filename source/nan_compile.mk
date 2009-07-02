@@ -71,6 +71,21 @@ DBG_CCFLAGS	+= -g
 
 # OS dependent parts ---------------------------------------------------
 
+ifeq ($(OS),beos)
+    CC	= gcc
+    CCC	= g++
+    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    REL_CFLAGS	+= -O2
+    REL_CCFLAGS	+= -O2
+    NAN_DEPEND	= true
+    OPENGL_HEADERS  = .
+    CPPFLAGS	+= -D__BeOS
+    AR	= ar
+    ARFLAGS = ruv
+    ARFLAGSQUIET = ru
+endif
+
 ifeq ($(OS),darwin)
     CC	= gcc
     CCC	= g++

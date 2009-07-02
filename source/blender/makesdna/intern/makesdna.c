@@ -98,6 +98,7 @@ char *includefiles[] = {
 	"DNA_object_force.h",
 	"DNA_object_fluidsim.h",
 	"DNA_world_types.h",
+	"DNA_radio_types.h",
 	"DNA_scene_types.h",
 	"DNA_view3d_types.h",
 	"DNA_view2d_types.h",	
@@ -1123,6 +1124,7 @@ int main(int argc, char ** argv)
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_world_types.h"
+#include "DNA_radio_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_view2d_types.h"	

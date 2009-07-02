@@ -62,6 +62,13 @@
 #include <sys/vfs.h>
 #endif
 
+#ifdef __BeOS
+struct statfs {
+	int f_bsize;
+	int f_bfree;
+};
+#endif
+
 #ifdef __APPLE__
 /* For statfs */
 #include <sys/param.h>
@@ -70,7 +77,7 @@
 
 
 #include <fcntl.h>
-#if !defined(WIN32)
+#if !defined(__BeOS) && !defined(WIN32)
 #include <sys/mtio.h>			/* tape comando's */
 #endif
 #include <string.h>			/* strcpy etc.. */
@@ -193,6 +200,9 @@ double BLI_diskfree(char *dir)
 
 #if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) 
 	if (statfs(name, &disk)) return(-1);
+#endif
+#ifdef __BeOS
+	return -1;
 #endif
 
 #if defined (__sun__) || defined (__sun) || defined (__sgi)

@@ -159,7 +159,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width((char *)str);
+	return BLF_width(str);
 }
 
 float file_font_pointsize()

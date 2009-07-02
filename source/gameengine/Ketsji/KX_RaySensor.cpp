@@ -55,8 +55,9 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					bool bXRay,
 					double distance,
 					int axis,
-					KX_Scene* ketsjiScene)
-			: SCA_ISensor(gameobj,eventmgr),
+					KX_Scene* ketsjiScene,
+					PyTypeObject* T)
+			: SCA_ISensor(gameobj,eventmgr, T),
 					m_propertyname(propname),
 					m_bFindMaterial(bFindMaterial),
 					m_bXRay(bXRay),
@@ -335,16 +336,20 @@ PyTypeObject KX_RaySensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_ISensor::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 
+};
+
+PyParentObject KX_RaySensor::Parents[] = {
+	&KX_RaySensor::Type,
+	&SCA_ISensor::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
 };
 
 PyMethodDef KX_RaySensor::Methods[] = {
@@ -440,6 +445,20 @@ PyObject* KX_RaySensor::PyGetHitNormal()
 	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
 
 	return retVal;
+}
+
+
+
+PyObject* KX_RaySensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_ISensor);
+}
+
+PyObject* KX_RaySensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
+}
+
+int KX_RaySensor::py_setattro(PyObject *attr, PyObject *value) {
+	py_setattro_up(SCA_ISensor);
 }
 
 // <----- Deprecated

@@ -98,18 +98,6 @@ public:
         m_el[0][2] = *m++; m_el[1][2] = *m++; m_el[2][2] = *m;
     }
 
-    void setValue3x3(const float *m) {
-        m_el[0][0] = *m++; m_el[1][0] = *m++; m_el[2][0] = *m++;
-        m_el[0][1] = *m++; m_el[1][1] = *m++; m_el[2][1] = *m++;
-        m_el[0][2] = *m++; m_el[1][2] = *m++; m_el[2][2] = *m;
-    }
-
-    void setValue3x3(const double *m) {
-        m_el[0][0] = *m++; m_el[1][0] = *m++; m_el[2][0] = *m++;
-        m_el[0][1] = *m++; m_el[1][1] = *m++; m_el[2][1] = *m++;
-        m_el[0][2] = *m++; m_el[1][2] = *m++; m_el[2][2] = *m;
-    }
-
     void setValue(MT_Scalar xx, MT_Scalar xy, MT_Scalar xz, 
                   MT_Scalar yx, MT_Scalar yy, MT_Scalar yz, 
                   MT_Scalar zx, MT_Scalar zy, MT_Scalar zz) {
@@ -204,18 +192,6 @@ public:
         *m++ = m_el[0][0]; *m++ = m_el[1][0]; *m++ = m_el[2][0]; *m++ = 0.0;
         *m++ = m_el[0][1]; *m++ = m_el[1][1]; *m++ = m_el[2][1]; *m++ = 0.0;
         *m++ = m_el[0][2]; *m++ = m_el[1][2]; *m++ = m_el[2][2]; *m   = 0.0;
-    }
-
-    void getValue3x3(float *m) const {
-        *m++ = (float) m_el[0][0]; *m++ = (float) m_el[1][0]; *m++ = (float) m_el[2][0];
-        *m++ = (float) m_el[0][1]; *m++ = (float) m_el[1][1]; *m++ = (float) m_el[2][1];
-        *m++ = (float) m_el[0][2]; *m++ = (float) m_el[1][2]; *m++ = (float) m_el[2][2];
-    }
-
-    void getValue3x3(double *m) const {
-        *m++ = m_el[0][0]; *m++ = m_el[1][0]; *m++ = m_el[2][0];
-        *m++ = m_el[0][1]; *m++ = m_el[1][1]; *m++ = m_el[2][1];
-        *m++ = m_el[0][2]; *m++ = m_el[1][2]; *m++ = m_el[2][2];
     }
 
     MT_Quaternion getRotation() const;

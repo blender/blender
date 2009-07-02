@@ -48,13 +48,15 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
 							 class KX_Scene* scene,
- 							 PHY_IPhysicsController* ctrl)
+ 							 PHY_IPhysicsController*	ctrl,
+							 PyTypeObject* T)
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
 							 false,
-							 touchedpropname
-							 /*, scene */),
+							 touchedpropname,
+							 /* scene, */
+							 T),
 			 m_Margin(margin),
 			 m_ResetMargin(resetmargin)
 
@@ -270,16 +272,25 @@ PyTypeObject KX_NearSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&KX_TouchSensor::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
+
+
+
+PyParentObject KX_NearSensor::Parents[] = {
+	&KX_NearSensor::Type,
+	&KX_TouchSensor::Type,
+	&SCA_ISensor::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
+};
+
+
 
 PyMethodDef KX_NearSensor::Methods[] = {
 	//No methods
@@ -291,3 +302,18 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
 	{NULL} //Sentinel
 };
+
+
+PyObject* KX_NearSensor::py_getattro(PyObject *attr)
+{
+	py_getattro_up(KX_TouchSensor);
+}
+
+PyObject* KX_NearSensor::py_getattro_dict() {
+	py_getattro_dict_up(KX_TouchSensor);
+}
+
+int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)
+{
+	py_setattro_up(KX_TouchSensor);
+}

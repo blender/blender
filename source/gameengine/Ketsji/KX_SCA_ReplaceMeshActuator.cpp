@@ -50,7 +50,9 @@
 
 /* Integration hooks ------------------------------------------------------- */
 
-PyTypeObject KX_SCA_ReplaceMeshActuator::Type = {
+	PyTypeObject 
+
+KX_SCA_ReplaceMeshActuator::Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
 #else
@@ -67,16 +69,22 @@ PyTypeObject KX_SCA_ReplaceMeshActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,0,0,0,
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-	0,0,0,0,0,0,0,
-	Methods,
-	0,
-	0,
-	&SCA_IActuator::Type,
 	0,0,0,0,0,0,
-	py_base_new
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
+
+PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
+	&KX_SCA_ReplaceMeshActuator::Type,
+	&SCA_IActuator::Type,
+	&SCA_ILogicBrick::Type,
+	&CValue::Type,
+	NULL
+};
+
+
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
@@ -90,6 +98,20 @@ PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("mesh", KX_SCA_ReplaceMeshActuator, pyattr_get_mesh, pyattr_set_mesh),
 	{ NULL }	//Sentinel
 };
+
+PyObject* KX_SCA_ReplaceMeshActuator::py_getattro(PyObject *attr)
+{
+	py_getattro_up(SCA_IActuator);
+}
+
+PyObject* KX_SCA_ReplaceMeshActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
+int KX_SCA_ReplaceMeshActuator::py_setattro(PyObject *attr, PyObject* value) 
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -139,7 +161,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 	if (!m_mesh)
 		Py_RETURN_NONE;
 
-	return PyUnicode_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
+	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
 }
 
 
@@ -156,9 +178,10 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 
 KX_SCA_ReplaceMeshActuator::KX_SCA_ReplaceMeshActuator(SCA_IObject *gameobj,
 													   class RAS_MeshObject *mesh,
-													   SCA_IScene* scene) :
+													   SCA_IScene* scene,
+													   PyTypeObject* T) : 
 
-	SCA_IActuator(gameobj),
+	SCA_IActuator(gameobj, T),
 	m_mesh(mesh),
 	m_scene(scene)
 {

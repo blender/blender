@@ -383,7 +383,6 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	}
 }
 
-#if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
@@ -440,7 +439,6 @@ static void image_panel_view_properties(const bContext *C, Panel *pa)
 	}
 	image_editcursor_buts(C, &ar->v2d, block);
 }
-#endif
 
 void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 				   int evt_nop, int evt_change,
@@ -1025,53 +1023,42 @@ static void image_load_fs_cb(bContext *C, void *ima_pp_v, void *iuser_v)
 static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	BKE_image_multilayer_index(rr_v, iuser_v); 
-	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 }
 static void image_multi_inclay_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	RenderResult *rr= rr_v;
 	ImageUser *iuser= iuser_v;
 	int tot= BLI_countlist(&rr->layers) + (rr->rectf?1:0);  /* fake compo result layer */
-
-	if(iuser->layer<tot-1) {
+	if(iuser->layer<tot-1)
 		iuser->layer++;
-		BKE_image_multilayer_index(rr, iuser); 
-		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
-	}
+	BKE_image_multilayer_index(rr, iuser); 
 }
 static void image_multi_declay_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	ImageUser *iuser= iuser_v;
-
-	if(iuser->layer>0) {
+	if(iuser->layer>0)
 		iuser->layer--;
-		BKE_image_multilayer_index(rr_v, iuser); 
-		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
-	}
+	BKE_image_multilayer_index(rr_v, iuser); 
 }
 static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	RenderResult *rr= rr_v;
 	ImageUser *iuser= iuser_v;
 	RenderLayer *rl= BLI_findlink(&rr->layers, iuser->layer);
-
 	if(rl) {
 		int tot= BLI_countlist(&rl->passes) + (rl->rectf?1:0);	/* builtin render result has no combined pass in list */
 		if(iuser->pass<tot-1) {
 			iuser->pass++;
 			BKE_image_multilayer_index(rr, iuser); 
-			WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 		}
 	}
 }
 static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	ImageUser *iuser= iuser_v;
-
 	if(iuser->pass>0) {
 		iuser->pass--;
 		BKE_image_multilayer_index(rr_v, iuser); 
-		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 	}
 }
 
@@ -1366,23 +1353,6 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 	 uiBlockEndAlign(block);
 }	
 
-void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
-{
-	uiBlock *block= uiLayoutFreeBlock(layout);
-	Scene *scene= CTX_data_scene(C);
-	RenderResult *rr;
-
-	/* render layers and passes */
-	if(ima && iuser) {
-		rr= BKE_image_get_renderresult(scene, ima);
-
-		if(rr) {
-			uiBlockBeginAlign(block);
-			uiblock_layer_pass_buttons(block, rr, iuser, 0, 0, 0, 160);
-			uiBlockEndAlign(block);
-		}
-	}
-}
 
 static void image_panel_properties(const bContext *C, Panel *pa)
 {
@@ -1405,6 +1375,12 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_properties");
 	strcpy(pt->label, "Image Properties");
 	pt->draw= image_panel_properties;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image view properties");
+	strcpy(pt->idname, "IMAGE_PT_view_properties");
+	strcpy(pt->label, "View Properties");
+	pt->draw= image_panel_view_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint");

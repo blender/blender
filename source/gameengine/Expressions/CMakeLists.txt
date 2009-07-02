@@ -32,7 +32,6 @@ SET(INC
   ../../../intern/string
   ../../../intern/moto/include
   ../../../source/gameengine/SceneGraph
-  ../../../source/blender/blenloader
   ${PYTHON_INC}
 )
 

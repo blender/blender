@@ -72,13 +72,13 @@ static PyObject * getColor (PyFilter * self, void * closure)
 static int setColor (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PyLong_Check(value))
+	if (value == NULL || !PyInt_Check(value))
 	{
 		PyErr_SetString(PyExc_TypeError, "filt.colorIdx = int: VideoTexture.FilterNormal, expected the value must be a int");
 		return -1;
 	}
 	// set color index
-	getFilter(self)->setColor((unsigned short)(PyLong_AsSsize_t(value)));
+	getFilter(self)->setColor((unsigned short)(PyInt_AsLong(value)));
 	// success
 	return 0;
 }
