@@ -150,9 +150,46 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 
 /* ******************* */
 
+char *view3d_context_string(const bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+
+	if(obedit) {
+		switch(obedit->type) {
+			case OB_MESH:
+				return "editmode_mesh";
+			case OB_CURVE:
+				return "editmode_curve";
+			case OB_SURF:
+				return "editmode_surface";
+			case OB_FONT:
+				return "editmode_text";
+			case OB_ARMATURE:
+				return "editmode_armature";
+			case OB_MBALL:
+				return "editmode_mball";
+			case OB_LATTICE:
+				return "editmode_lattice";
+		}
+	}
+	else {
+		Object *ob = CTX_data_active_object(C);
+		
+		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
+		else if (G.f & G_SCULPTMODE)  return "sculptmode";
+		else if (G.f & G_WEIGHTPAINT) return "weightpaint";
+		else if (G.f & G_VERTEXPAINT) return "vertexpaint";
+		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
+		else if(G.f & G_PARTICLEEDIT) return "particlemode";
+	}
+	
+	return "objectmode";
+}
+
 typedef struct CustomTool {
 	struct CustomTool *next, *prev;
 	char opname[OP_MAX_TYPENAME];
+	char context[OP_MAX_TYPENAME];
 } CustomTool;
 
 static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
@@ -164,6 +201,7 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 		
 		BLI_addtail(arg_listbase, ct);
 		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
+		BLI_strncpy(ct->context, view3d_context_string(C), OP_MAX_TYPENAME);
 	}
 		
 }
@@ -221,43 +259,28 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 }
 
 
-static void view3d_panel_tools(const bContext *C, Panel *pa)
+static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 {
-	static ListBase tools= {NULL, NULL};
-	Object *obedit= CTX_data_edit_object(C);
-//	Object *obact = CTX_data_active_object(C);
+	SpaceLink *sl= CTX_wm_space_data(C);
+	SpaceType *st= NULL;
 	uiLayout *col;
+	const char *context= view3d_context_string(C);
 	
-	if(obedit) {
-		if(obedit->type==OB_MESH) {
-			
-			col= uiLayoutColumn(pa->layout, 1);
-			uiItemFullO(col, NULL, 0, "MESH_OT_spin", NULL, WM_OP_INVOKE_REGION_WIN);
-			uiItemFullO(col, NULL, 0, "MESH_OT_screw", NULL, WM_OP_INVOKE_REGION_WIN);
-			
-			if(tools.first) {
-				CustomTool *ct;
-				
-				for(ct= tools.first; ct; ct= ct->next) {
-					col= uiLayoutColumn(pa->layout, 1);
-					uiItemFullO(col, NULL, 0, ct->opname, NULL, WM_OP_INVOKE_REGION_WIN);
-				}
+	if(sl)
+		st= BKE_spacetype_from_id(sl->spacetype);
+	
+	if(st && st->toolshelf.first) {
+		CustomTool *ct;
+		
+		for(ct= st->toolshelf.first; ct; ct= ct->next) {
+			if(0==strncmp(context, ct->context, OP_MAX_TYPENAME)) {
+				col= uiLayoutColumn(pa->layout, 1);
+				uiItemFullO(col, NULL, 0, ct->opname, NULL, WM_OP_INVOKE_REGION_WIN);
 			}
-			col= uiLayoutColumn(pa->layout, 1);
-			uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &tools, "Add Operator", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add tool");
 		}
 	}
-	else {
-		
-		col= uiLayoutColumn(pa->layout, 1);
-		uiItemFullO(col, NULL, 0, "OBJECT_OT_delete", NULL, WM_OP_INVOKE_REGION_WIN);
-		uiItemFullO(col, NULL, 0, "OBJECT_OT_primitive_add", NULL, WM_OP_INVOKE_REGION_WIN);
-		
-		col= uiLayoutColumn(pa->layout, 1);
-		uiItemFullO(col, NULL, 0, "OBJECT_OT_parent_set", NULL, WM_OP_INVOKE_REGION_WIN);
-		uiItemFullO(col, NULL, 0, "OBJECT_OT_parent_clear", NULL, WM_OP_INVOKE_REGION_WIN);
-		
-	}
+	col= uiLayoutColumn(pa->layout, 1);
+	uiDefBlockBut(uiLayoutGetBlock(pa->layout), tool_search_menu, &st->toolshelf, "Add Tool", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Add Tool in shelf, gets saved in files");
 }
 
 
@@ -266,10 +289,15 @@ void view3d_toolbar_register(ARegionType *art)
 	PanelType *pt;
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel tools");
-	strcpy(pt->idname, "VIEW3D_PT_tools");
-	strcpy(pt->label, "Tools");
-	pt->draw= view3d_panel_tools;
+	strcpy(pt->idname, "VIEW3D_PT_tool_shelf");
+	strcpy(pt->label, "Tool Shelf");
+	pt->draw= view3d_panel_tool_shelf;
 	BLI_addtail(&art->paneltypes, pt);
+}
+
+void view3d_tool_props_register(ARegionType *art)
+{
+	PanelType *pt;
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
@@ -277,6 +305,8 @@ void view3d_toolbar_register(ARegionType *art)
 	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }
+
+/* ********** operator to open/close toolbar region */
 
 static int view3d_toolbar(bContext *C, wmOperator *op)
 {

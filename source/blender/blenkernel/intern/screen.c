@@ -78,6 +78,8 @@ static void spacetype_free(SpaceType *st)
 	}
 	
 	BLI_freelistN(&st->regiontypes);
+	BLI_freelistN(&st->toolshelf);
+
 }
 
 void BKE_spacetypes_free(void)

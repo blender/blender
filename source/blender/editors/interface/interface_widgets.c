@@ -293,13 +293,15 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxyi= maxy - 1.0f;
 	float facxi= 1.0f/(maxxi-minxi); /* for uv */
 	float facyi= 1.0f/(maxyi-minyi);
-	int a, tot= 0;
+	int a, tot= 0, minsize;
 	
-	if(2.0f*rad > rect->ymax-rect->ymin)
-		rad= 0.5f*(rect->ymax-rect->ymin);
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
+	
+	if(2.0f*rad > minsize)
+		rad= 0.5f*minsize;
 
-	if(2.0f*(radi+1.0f) > rect->ymax-rect->ymin)
-		radi= 0.5f*(rect->ymax-rect->ymin) - 1.0f;
+	if(2.0f*(radi+1.0f) > minsize)
+		radi= 0.5f*minsize - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
