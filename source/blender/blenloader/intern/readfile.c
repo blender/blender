@@ -9220,7 +9220,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ts->normalsize == 0.0) {
 				ts->normalsize= 0.1f;
 				ts->selectmode= SCE_SELECT_VERTEX;
+				
+				/* autokeying - setting should be taken from the user-prefs
+				 * but the userprefs version may not have correct flags set 
+				 * (i.e. will result in blank box when enabled)
+				 */
 				ts->autokey_mode= U.autokey_mode;
+				if (ts->autokey_mode == 0) 
+					ts->autokey_mode= 2; /* 'add/replace' but not on */
 			}
 		}
 	}
