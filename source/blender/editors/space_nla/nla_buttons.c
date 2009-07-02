@@ -289,7 +289,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 {
 	PointerRNA strip_ptr;
 	uiLayout *layout= pa->layout;
-	//uiLayout *column, *row, *subcol;
+	uiLayout *column;
 	uiBlock *block;
 
 	/* check context and also validity of pointer */
@@ -299,10 +299,15 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
-	// influence
-	// strip_time
-	// animated_influence
-	// animated_time
+	column= uiLayoutColumn(layout, 1);
+	uiLayoutSetEnabled(column, 0);		// XXX for now, don't allow user to edit
+		uiItemR(column, NULL, 0, &strip_ptr, "animated_influence", 0, 0, 0);
+		uiItemR(column, NULL, 0, &strip_ptr, "influence", 0, 0, 0);
+		
+	column= uiLayoutColumn(layout, 1);
+	uiLayoutSetEnabled(column, 0);		// XXX for now, don't allow user to edit
+		uiItemR(column, NULL, 0, &strip_ptr, "animated_time", 0, 0, 0);
+		uiItemR(column, NULL, 0, &strip_ptr, "strip_time", 0, 0, 0);
 }
 
 /* F-Modifiers for active NLA-Strip */

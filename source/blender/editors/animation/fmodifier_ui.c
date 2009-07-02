@@ -215,7 +215,7 @@ static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short wid
 			/* draw controls for each pair of coefficients */
 			row= uiLayoutRow(layout, 1);
 			block= uiLayoutGetBlock(row);
-				uiDefBut(block, LABEL, 1, "y = ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "y=", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
 			
 			cp= data->coefficients;
 			for (i=0; (i < data->poly_order) && (cp); i++, cp+=2) {
@@ -225,7 +225,7 @@ static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short wid
 				/* coefficients */
 				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Coefficient of x");
 				
-				uiDefBut(block, LABEL, 1, "x + ", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "x+", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp+1, -UI_FLT_MAX, UI_FLT_MAX, 10, 3, "Second coefficient");
 				
