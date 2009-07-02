@@ -1000,34 +1000,6 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 
 /* ******************* general ******************************** */
 
-/* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).  
- * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed 
- * when the caller is done with it.
- */
-// TODO: move this to anim api with another name?
-bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
-{
-	ListBase anim_data = {NULL, NULL};
-	int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE | ANIMFILTER_CURVESONLY);
-	int items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* We take the first F-Curve only, since some other ones may have had 'active' flag set
-	 * if they were from linked data.
-	 */
-	if (items) {
-		bAnimListElem *ale= (bAnimListElem *)anim_data.first;
-		
-		/* remove first item from list, then free the rest of the list and return the stored one */
-		BLI_remlink(&anim_data, ale);
-		BLI_freelistN(&anim_data);
-		
-		return ale;
-	}
-	
-	/* no active F-Curve */
-	return NULL;
-}
-
 void graph_buttons_register(ARegionType *art)
 {
 	PanelType *pt;

@@ -92,7 +92,7 @@ void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_ipo_active;
 }
 
 /* ************************** registration - operator types **********************************/

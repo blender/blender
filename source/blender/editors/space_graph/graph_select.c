@@ -182,7 +182,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -316,7 +316,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->exec= graphkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -506,7 +506,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_columnselect_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -926,7 +926,7 @@ void GRAPH_OT_clickselect (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_clickselect_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* id-props */
 	// XXX should we make this into separate operators?

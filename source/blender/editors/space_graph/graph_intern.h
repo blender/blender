@@ -141,7 +141,16 @@ void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 void GRAPH_OT_properties(struct wmOperatorType *ot);
 void graph_buttons_register(struct ARegionType *art);
 
+/* ***************************************** */
+/* graph_utils.c */
+
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
+
+short fcurve_needs_draw_fmodifier_controls(struct FCurve *fcu, struct FModifier *fcm);
+
+int graphop_visible_keyframes_poll(struct bContext *C);
+int graphop_editable_keyframes_poll(struct bContext *C);
+int graphop_active_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
 /* graph_ops.c */

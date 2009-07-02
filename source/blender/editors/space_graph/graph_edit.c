@@ -189,7 +189,7 @@ void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -236,7 +236,7 @@ void GRAPH_OT_view_all (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_viewall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -347,7 +347,7 @@ void GRAPH_OT_ghost_curves_create (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_create_ghostcurves_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -390,7 +390,7 @@ void GRAPH_OT_ghost_curves_clear (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_clear_ghostcurves_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_ipo_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -488,7 +488,7 @@ void GRAPH_OT_insert_keyframe (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_insertkey_exec;
-	ot->poll= ED_operator_ipo_active; // xxx
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -575,7 +575,7 @@ void GRAPH_OT_click_insert (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= graphkeys_click_insert_invoke;
 	ot->exec= graphkeys_click_insert_exec;
-	ot->poll= ED_operator_areaactive; // XXX active + editable poll
+	ot->poll= graphop_active_fcurve_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -657,7 +657,7 @@ void GRAPH_OT_copy (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_copy_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -696,7 +696,7 @@ void GRAPH_OT_paste (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_paste_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -764,7 +764,7 @@ void GRAPH_OT_duplicate (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= graphkeys_duplicate_invoke;
 	ot->exec= graphkeys_duplicate_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -825,7 +825,7 @@ void GRAPH_OT_delete (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= graphkeys_delete_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -886,7 +886,7 @@ void GRAPH_OT_clean (wmOperatorType *ot)
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
 	ot->exec= graphkeys_clean_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -967,7 +967,7 @@ void GRAPH_OT_bake (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm; // FIXME...
 	ot->exec= graphkeys_bake_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1092,7 +1092,7 @@ void GRAPH_OT_sample (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_sample_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1167,7 +1167,7 @@ void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_expo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1235,7 +1235,7 @@ void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_ipo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1322,7 +1322,7 @@ void GRAPH_OT_handletype (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_handletype_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1411,7 +1411,7 @@ void GRAPH_OT_euler_filter (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_euler_filter_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1438,7 +1438,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* loop over action data, averaging values */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1476,7 +1476,7 @@ void GRAPH_OT_frame_jump (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_framejump_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1568,7 +1568,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_snap_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1679,7 +1679,7 @@ void GRAPH_OT_mirror (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graphkeys_mirror_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1732,7 +1732,7 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= graphkeys_smooth_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_editable_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1795,7 +1795,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= graph_fmodifier_add_exec;
-	ot->poll= ED_operator_areaactive; // XXX need active F-Curve
+	ot->poll= graphop_active_fcurve_poll; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
