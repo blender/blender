@@ -31,7 +31,22 @@
 
 #include "DNA_object_fluidsim.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
+
+#include "MEM_guardedalloc.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_particle_types.h"
+
+#include "BKE_depsgraph.h"
+#include "BKE_fluidsim.h"
+#include "BKE_main.h"
+#include "BKE_modifier.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 {
@@ -55,6 +70,75 @@ static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 		default:
 			return &RNA_FluidSettings;
 	}
+}
+
+static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= (Object*)ptr->id.data;
+	FluidsimModifierData *fluidmd;
+	ParticleSystemModifierData *psmd;
+	ParticleSystem *psys;
+	ParticleSettings *part;
+	
+	fluidmd= (FluidsimModifierData*)modifiers_findByType(ob, eModifierType_Fluidsim);
+	fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; // clear flag
+
+	/* remove fluidsim particle system */
+	if(fluidmd->fss->type & OB_FLUIDSIM_PARTICLE) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			if(psys->part->type == PART_FLUID)
+				break;
+
+		if(ob->type == OB_MESH && !psys) {
+			/* add particle system */
+			part= psys_new_settings("PSys", bmain);
+			psys= MEM_callocN(sizeof(ParticleSystem), "particle_system");
+
+			part->type= PART_FLUID;
+			psys->part= part;
+			psys->pointcache= BKE_ptcache_add();
+			psys->flag |= PSYS_ENABLED;
+			BLI_addtail(&ob->particlesystem,psys);
+
+			/* add modifier */
+			psmd= (ParticleSystemModifierData*)modifier_new(eModifierType_ParticleSystem);
+			sprintf(psmd->modifier.name, "FluidParticleSystem" );
+			psmd->psys= psys;
+			BLI_addtail(&ob->modifiers, psmd);
+		}
+	}
+	else {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(psys->part->type == PART_FLUID) {
+				/* clear modifier */
+				psmd= psys_get_modifier(ob, psys);
+				BLI_remlink(&ob->modifiers, psmd);
+				modifier_free((ModifierData *)psmd);
+
+				/* clear particle system */
+				BLI_remlink(&ob->particlesystem, psys);
+				psys_free(ob, psys);
+			}
+		}
+	}
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+}
+
+static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	FluidsimSettings *fss= (FluidsimSettings*)ptr->data;
+
+	fluid_estimate_memory(ob, fss, value);
+}
+
+static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
+{
+	return 32;
 }
 
 #else
@@ -128,6 +212,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "guiDisplayMode");
 	RNA_def_property_enum_items(prop, quality_items);
 	RNA_def_property_ui_text(prop, "Viewport Display Mode", "How to display the mesh in the viewport.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "render_display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "renderDisplayMode");
@@ -142,6 +227,12 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store baked fluid simulation files in.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+
+	prop= RNA_def_property(srna, "memory_estimate", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_DomainFluidSettings_memory_estimate_get", "rna_DomainFluidSettings_memory_estimate_length", NULL);
+	RNA_def_property_ui_text(prop, "Memory Estimate", "Estimated amount of memory needed for baking the domain.");
 
 	/* advanced settings */
 
@@ -336,6 +427,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store and load particles from.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 }
 
 static void rna_def_fluidsim_control(BlenderRNA *brna)
@@ -393,7 +485,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_fluid_type_items[] = {
-		{0, "NONE", 0, "None", ""},
+		{OB_FLUIDSIM_ENABLE, "NONE", 0, "None", ""},
 		{OB_FLUIDSIM_DOMAIN, "DOMAIN", 0, "Domain", "Bounding box of this object represents the computational domain of the fluid simulation."},
 		{OB_FLUIDSIM_FLUID, "FLUID", 0, "Fluid", "Object represents a volume of fluid in the simulation."},
 		{OB_FLUIDSIM_OBSTACLE, "OBSTACLE", 0, "Obstacle", "Object is a fixed obstacle."},
@@ -409,18 +501,11 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_FluidSettings_refine");
 	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings", "Fluid simulation settings for an object taking part in the simulation.");
 
-	/* enable and type */
-
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type", OB_FLUIDSIM_ENABLE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // needs to create modifier
-	RNA_def_property_ui_text(prop, "Enabled", "Sets object to participate in fluid simulation.");
-
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_fluid_type_items);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // needs to update variables
 	RNA_def_property_ui_text(prop, "Type", "Type of participation in the fluid simulation.");
+	RNA_def_property_update(prop, 0, "rna_FluidSettings_update_type");
 
 	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
 	//RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by fluid simulation settings.");

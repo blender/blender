@@ -497,7 +497,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			"world", "object", "meshe", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", NULL};
+			"cloth", "soft_body", "fluid", "collision", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -615,7 +615,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		if(ptr && ptr->data) {
 			Object *ob= ptr->data;
-			CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodySettings, ob->soft);
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Softbody);
+			CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodyModifier, md);
 			return 1;
 		}
 	}
@@ -626,6 +627,16 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Object *ob= ptr->data;
 			ModifierData *md= modifiers_findByType(ob, eModifierType_Fluidsim);
 			CTX_data_pointer_set(result, &ob->id, &RNA_FluidSimulationModifier, md);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "collision")) {
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Collision);
+			CTX_data_pointer_set(result, &ob->id, &RNA_CollisionModifier, md);
 			return 1;
 		}
 	}

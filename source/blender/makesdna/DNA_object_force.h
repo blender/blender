@@ -271,7 +271,7 @@ typedef struct SoftBody {
 #define PTCACHE_REDO_NEEDED			258
 
 /* ob->softflag */
-#define OB_SB_ENABLE	1
+#define OB_SB_ENABLE	1		/* deprecated, use modifier */
 #define OB_SB_GOAL		2
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8

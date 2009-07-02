@@ -41,6 +41,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_texture.h"
@@ -471,6 +472,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 static int new_particle_settings_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
 	ParticleSettings *part= CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings).data;
 	Object *ob;
 	PointerRNA ptr;
@@ -479,7 +481,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 	if(part)
 		part= psys_copy_settings(part);
 	else
-		part= psys_new_settings("PSys", NULL);
+		part= psys_new_settings("PSys", bmain);
 
 	/* attempt to assign to material slot */
 	ptr= CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);

@@ -45,7 +45,7 @@
 #include "BLI_blenlib.h"
 
 #include "ED_screen.h"
-#include "ED_pointcache.h"
+#include "ED_physics.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
