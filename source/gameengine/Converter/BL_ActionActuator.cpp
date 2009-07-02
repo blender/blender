@@ -446,7 +446,7 @@ PyObject* BL_ActionActuator::PyGetAction(PyObject* args,
 	ShowDeprecationWarning("getAction()", "the action property");
 
 	if (m_action){
-		return PyString_FromString(m_action->id.name+2);
+		return PyUnicode_FromString(m_action->id.name+2);
 	}
 	Py_RETURN_NONE;
 }
@@ -796,7 +796,7 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* args,
 }
 
 PyObject* BL_ActionActuator::PyGetChannel(PyObject* value) {
-	char *string= PyString_AsString(value);
+	char *string= _PyUnicode_AsString(value);
 	
 	if (!string) {
 		PyErr_SetString(PyExc_TypeError, "expected a single string");
@@ -888,7 +888,7 @@ PyObject* BL_ActionActuator::PySetType(PyObject* args,
 PyObject* BL_ActionActuator::PyGetContinue() {
 	ShowDeprecationWarning("getContinue()", "the continue property");
 
-    return PyInt_FromLong((long)(m_end_reset==0));
+    return PyLong_FromSsize_t((long)(m_end_reset==0));
 }
 
 PyObject* BL_ActionActuator::PySetContinue(PyObject* value) {
@@ -1005,19 +1005,15 @@ PyTypeObject BL_ActionActuator::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject BL_ActionActuator::Parents[] = {
-	&BL_ActionActuator::Type,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
 		&SCA_IActuator::Type,
-		&SCA_ILogicBrick::Type,
-		&CValue::Type,
-		NULL
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef BL_ActionActuator::Methods[] = {
@@ -1065,37 +1061,24 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* BL_ActionActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-PyObject* BL_ActionActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int BL_ActionActuator::py_setattro(PyObject *attr, PyObject* value) {
-	py_setattro_up(SCA_IActuator);
-}
-
-
 PyObject* BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
-	return PyString_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
+	return PyUnicode_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
 }
 
 int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
 	
-	if (!PyString_Check(value))
+	if (!PyUnicode_Check(value))
 	{
 		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, expected the string name of the action");
 		return PY_SET_ATTR_FAIL;
 	}
 
 	bAction *action= NULL;
-	STR_String val = PyString_AsString(value);
+	STR_String val = _PyUnicode_AsString(value);
 	
 	if (val != "")
 	{

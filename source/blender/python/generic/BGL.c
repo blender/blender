@@ -83,8 +83,13 @@ static PyObject *Buffer_getattr( PyObject * self, char *name );
 static PyObject *Buffer_repr( PyObject * self );
 
 PyTypeObject buffer_Type = {
-	PyObject_HEAD_INIT( NULL )      /* required python macro */
-	0,	/*ob_size */
+#if (PY_VERSION_HEX >= 0x02060000)
+	PyVarObject_HEAD_INIT(NULL, 0)
+#else
+	/* python 2.5 and below */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+#endif
 	"buffer",		/*tp_name */
 	sizeof( Buffer ),	/*tp_basicsize */
 	0,			/*tp_itemsize */

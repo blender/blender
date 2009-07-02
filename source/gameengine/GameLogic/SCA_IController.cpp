@@ -37,10 +37,9 @@
 #include <config.h>
 #endif
 
-SCA_IController::SCA_IController(SCA_IObject* gameobj,
-								 PyTypeObject* T)
+SCA_IController::SCA_IController(SCA_IObject* gameobj)
 	:
-	SCA_ILogicBrick(gameobj,T),
+	SCA_ILogicBrick(gameobj),
 	m_statemask(0),
 	m_justActivated(false)
 {
@@ -216,17 +215,15 @@ PyTypeObject SCA_IController::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject SCA_IController::Parents[] = {
-	&SCA_IController::Type,
-	&CValue::Type,
-	NULL
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&SCA_ILogicBrick::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef SCA_IController::Methods[] = {
@@ -248,22 +245,6 @@ PyAttributeDef SCA_IController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_IController::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_ILogicBrick);
-}
-
-PyObject* SCA_IController::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ILogicBrick);
-}
-
-int SCA_IController::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ILogicBrick);
-}
-
-
-
 PyObject* SCA_IController::PyGetActuators()
 {
 	ShowDeprecationWarning("getActuators()", "the actuators property");
@@ -281,7 +262,7 @@ PyObject* SCA_IController::PyGetSensor(PyObject* value)
 {
 	ShowDeprecationWarning("getSensor(string)", "the sensors[string] property");
 	
-	char *scriptArg = PyString_AsString(value);
+	char *scriptArg = _PyUnicode_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
 		return NULL;
@@ -305,7 +286,7 @@ PyObject* SCA_IController::PyGetActuator(PyObject* value)
 {
 	ShowDeprecationWarning("getActuator(string)", "the actuators[string] property");
 	
-	char *scriptArg = PyString_AsString(value);
+	char *scriptArg = _PyUnicode_AsString(value);
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
 		return NULL;
@@ -340,13 +321,13 @@ PyObject* SCA_IController::PyGetSensors()
 PyObject* SCA_IController::PyGetState()
 {
 	ShowDeprecationWarning("getState()", "the state property");
-	return PyInt_FromLong(m_statemask);
+	return PyLong_FromSsize_t(m_statemask);
 }
 
 PyObject* SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_IController* self= static_cast<SCA_IController*>(self_v);
-	return PyInt_FromLong(self->m_statemask);
+	return PyLong_FromSsize_t(self->m_statemask);
 }
 
 PyObject* SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

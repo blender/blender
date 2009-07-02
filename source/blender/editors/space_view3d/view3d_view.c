@@ -1431,6 +1431,9 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	Scene *startscene = CTX_data_scene(C);
 	
 #if GAMEBLENDER == 1
+	
+	view3d_operator_needs_opengl(C);
+	
 	SaveState(C);
 	StartKetsjiShell(C, 1);
 	RestoreState(C);

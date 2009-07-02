@@ -936,7 +936,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->rnasearchprop= searchprop;
 		but->flag |= UI_ICON_LEFT|UI_TEXT_LEFT;
 
-		uiButSetSearchFunc(but, rna_search_cb, but, NULL);
+		uiButSetSearchFunc(but, rna_search_cb, but, NULL, NULL);
 	}
 }
 

@@ -86,10 +86,8 @@ static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
 
 KX_GameObject::KX_GameObject(
 	void* sgReplicationInfo,
-	SG_Callbacks callbacks,
-	PyTypeObject* T
-) : 
-	SCA_IObject(T),
+	SG_Callbacks callbacks)
+	: SCA_IObject(),
 	m_bDyna(false),
 	m_layer(0),
 	m_pBlenderObject(NULL),
@@ -1498,7 +1496,7 @@ PyObject* KX_GameObject::PyGetPosition()
 static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
-	const char *attr_str= PyString_AsString(item);
+	const char *attr_str= _PyUnicode_AsString(item);
 	CValue* resultattr;
 	PyObject* pyconvert;
 	
@@ -1532,7 +1530,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
-	const char *attr_str= PyString_AsString(key);
+	const char *attr_str= _PyUnicode_AsString(key);
 	if(attr_str==NULL)
 		PyErr_Clear();
 	
@@ -1564,7 +1562,7 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		int set= 0;
 		
 		/* as CValue */
-		if(attr_str && BGE_PROXY_CHECK_TYPE(val)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
+		if(attr_str && PyObject_TypeCheck(val, &PyObjectPlus::Type)==0) /* dont allow GameObjects for eg to be assigned to CValue props */
 		{
 			CValue* vallie = self->ConvertPythonToValue(val, ""); /* error unused */
 			
@@ -1626,7 +1624,7 @@ static int Seq_Contains(PyObject *self_v, PyObject *value)
 		return -1;
 	}
 	
-	if(PyString_Check(value) && self->GetProperty(PyString_AsString(value)))
+	if(PyUnicode_Check(value) && self->GetProperty(_PyUnicode_AsString(value)))
 		return 1;
 	
 	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
@@ -1674,30 +1672,23 @@ PyTypeObject KX_GameObject::Type = {
 		&Sequence,
 		&Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
+		NULL,
+		NULL,
 		0,
-		Py_TPFLAGS_DEFAULT,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
 		0,0,0,0,0,0,0,
-		Methods
-};
-
-
-
-
-
-
-PyParentObject KX_GameObject::Parents[] = {
-	&KX_GameObject::Type,
+		Methods,
+		0,
+		0,
 		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	return PyString_FromString(self->GetName().ReadPtr());
+	return PyUnicode_FromString(self->GetName().ReadPtr());
 }
 
 PyObject* KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1922,7 +1913,7 @@ PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIB
 #ifdef USE_MATHUTILS
 	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
 #else
-	return PyObjectFrom(self->NodeGetLocalScale());
+	return PyObjectFrom(self->NodeGetLocalScaling());
 #endif
 }
 
@@ -1970,13 +1961,13 @@ PyObject* KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	int state = 0;
 	state |= self->GetState();
-	return PyInt_FromLong(state);
+	return PyLong_FromSsize_t(state);
 }
 
 int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	int state_i = PyInt_AsLong(value);
+	int state_i = PyLong_AsSsize_t(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2046,128 +2037,6 @@ PyObject* KX_GameObject::pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_
 	Py_INCREF(self->m_attr_dict);
 	return self->m_attr_dict;
 }
-
-/* We need these because the macros have a return in them */
-PyObject* KX_GameObject::py_getattro__internal(PyObject *attr)
-{
-	py_getattro_up(SCA_IObject);
-}
-
-int KX_GameObject::py_setattro__internal(PyObject *attr, PyObject *value)	// py_setattro method
-{
-	py_setattro_up(SCA_IObject);
-}
-
-
-PyObject* KX_GameObject::py_getattro(PyObject *attr)
-{
-	PyObject *object= py_getattro__internal(attr);
-	
-	if (object==NULL && m_attr_dict)
-	{
-		/* backup the exception incase the attr doesnt exist in the dict either */
-		PyObject *err_type, *err_value, *err_tb;
-		PyErr_Fetch(&err_type, &err_value, &err_tb);
-		
-		object= PyDict_GetItem(m_attr_dict, attr);
-		if (object) {
-			Py_INCREF(object);
-			
-			PyErr_Clear();
-			Py_XDECREF( err_type );
-			Py_XDECREF( err_value );
-			Py_XDECREF( err_tb );
-		}
-		else {
-			PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
-		}
-	}
-	return object;
-}
-
-PyObject* KX_GameObject::py_getattro_dict() {
-	//py_getattro_dict_up(SCA_IObject);
-	PyObject *dict= py_getattr_dict(SCA_IObject::py_getattro_dict(), Type.tp_dict);
-	if(dict==NULL)
-		return NULL;
-	
-	/* normally just return this but KX_GameObject has some more items */
-
-	
-	/* Not super fast getting as a list then making into dict keys but its only for dir() */
-	PyObject *list= ConvertKeysToPython();
-	if(list)
-	{
-		int i;
-		for(i=0; i<PyList_Size(list); i++)
-			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
-	}
-	else
-		PyErr_Clear();
-	
-	Py_DECREF(list);
-	
-	/* Add m_attr_dict if we have it */
-	if(m_attr_dict)
-		PyDict_Update(dict, m_attr_dict);
-	
-	return dict;
-}
-
-int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
-{
-	int ret= py_setattro__internal(attr, value);
-	
-	if (ret==PY_SET_ATTR_SUCCESS) {
-		/* remove attribute in our own dict to avoid double ups */
-		/* NOTE: Annoying that we also do this for setting builtin attributes like mass and visibility :/ */
-		if (m_attr_dict) {
-			if (PyDict_DelItem(m_attr_dict, attr) != 0)
-				PyErr_Clear();
-		}
-	}
-	
-	if (ret==PY_SET_ATTR_COERCE_FAIL) {
-		/* CValue attribute exists, remove CValue and add PyDict value */
-		RemoveProperty(PyString_AsString(attr));
-		ret= PY_SET_ATTR_MISSING;
-	}
-	
-	if (ret==PY_SET_ATTR_MISSING) {
-		/* Lazy initialization */
-		if (m_attr_dict==NULL)
-			m_attr_dict = PyDict_New();
-		
-		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
-			PyErr_Clear();
-			ret= PY_SET_ATTR_SUCCESS;
-		}
-		else {
-			PyErr_Format(PyExc_AttributeError, "gameOb.myAttr = value: KX_GameObject, failed assigning value to internal dictionary");
-			ret= PY_SET_ATTR_FAIL;
-		}
-	}
-	
-	return ret;	
-}
-
-
-int	KX_GameObject::py_delattro(PyObject *attr)
-{
-	ShowDeprecationWarning("del ob.attr", "del ob['attr'] for user defined properties");
-	
-	char *attr_str= PyString_AsString(attr); 
-	
-	if (RemoveProperty(attr_str)) // XXX - should call CValues instead but its only 2 lines here
-		return PY_SET_ATTR_SUCCESS;
-	
-	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
-		return PY_SET_ATTR_SUCCESS;
-	
-	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
-	return PY_SET_ATTR_MISSING;
-}
-
 
 PyObject* KX_GameObject::PyApplyForce(PyObject* args)
 {
@@ -2312,7 +2181,7 @@ PyObject* KX_GameObject::PySetOcclusion(PyObject* args)
 PyObject* KX_GameObject::PyGetVisible()
 {
 	ShowDeprecationWarning("getVisible()", "the visible property");
-	return PyInt_FromLong(m_bVisible);	
+	return PyLong_FromSsize_t(m_bVisible);	
 }
 
 PyObject* KX_GameObject::PyGetState()
@@ -2320,13 +2189,13 @@ PyObject* KX_GameObject::PyGetState()
 	ShowDeprecationWarning("getState()", "the state property");
 	int state = 0;
 	state |= GetState();
-	return PyInt_FromLong(state);
+	return PyLong_FromSsize_t(state);
 }
 
 PyObject* KX_GameObject::PySetState(PyObject* value)
 {
 	ShowDeprecationWarning("setState()", "the state property");
-	int state_i = PyInt_AsLong(value);
+	int state_i = PyLong_AsSsize_t(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2632,7 +2501,7 @@ PyObject* KX_GameObject::PyGetPhysicsId()
 	{
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
-	return PyInt_FromLong((long)physid);
+	return PyLong_FromSsize_t((long)physid);
 }
 
 PyObject* KX_GameObject::PyGetPropertyNames()
@@ -3008,8 +2877,8 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 		return NULL;
 	
 	
-	if(PyString_Check(key)) {
-		CValue *item = GetProperty(PyString_AsString(key));
+	if(PyUnicode_Check(key)) {
+		CValue *item = GetProperty(_PyUnicode_AsString(key));
 		if (item) {
 			ret = item->ConvertValueToPython();
 			if(ret)
@@ -3078,13 +2947,13 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		}
 	}
 	
-	if (PyString_Check(value)) {
-		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
+	if (PyUnicode_Check(value)) {
+		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( _PyUnicode_AsString(value) ));
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, PyString_AsString(value));
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}

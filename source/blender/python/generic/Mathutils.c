@@ -176,7 +176,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW);
+			return newVectorObject(rot, 3, Py_NEW, NULL);
 		}
 	}else if(VectorObject_Check(arg1)){
 		vec = (VectorObject*)arg1;
@@ -201,7 +201,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW);
+			return newVectorObject(rot, 3, Py_NEW, NULL);
 		}
 	}
 
@@ -311,7 +311,7 @@ static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 	for(x = 0; x < vec1->size; x++) {
 		vec[x] = 0.5f * (vec1->vec[x] + vec2->vec[x]);
 	}
-	return newVectorObject(vec, vec1->size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ProjectVecs() -------------
 //projects vector 1 onto vector 2
@@ -348,7 +348,7 @@ static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 	for(x = 0; x < size; x++) {
 		vec[x] = (float)(dot * vec2->vec[x]);
 	}
-	return newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, size, Py_NEW, NULL);
 }
 //----------------------------------MATRIX FUNCTIONS--------------------
 //----------------------------------Mathutils.RotationMatrix() ----------
@@ -493,7 +493,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.TranslationMatrix() -------
 //creates a translation matrix
@@ -520,7 +520,7 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 	mat[13] = vec->vec[1];
 	mat[14] = vec->vec[2];
 
-	return newMatrixObject(mat, 4, 4, Py_NEW);
+	return newMatrixObject(mat, 4, 4, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ScaleMatrix() -------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
@@ -598,7 +598,7 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.OrthoProjectionMatrix() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
@@ -701,7 +701,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ShearMatrix() -------------
 //creates a shear matrix
@@ -768,7 +768,7 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------QUATERNION FUNCTIONS-----------------
 
@@ -801,7 +801,7 @@ static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 		tempQuat[x] /= (float)(dot * dot);
 	}
 	QuatMul(quat, tempQuat, quatV->quat);
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.Slerp() ------------------
 //attemps to interpolate 2 quaternions and return the result
@@ -862,7 +862,7 @@ static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 	quat[2] = (float)(quat_u[2] * x + quat_v[2] * y);
 	quat[3] = (float)(quat_u[3] * x + quat_v[3] * y);
 
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------------EULER FUNCTIONS----------------------
 //---------------------------------INTERSECTION FUNCTIONS--------------------
@@ -936,7 +936,7 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 	VecMulf(dir, t);
 	VecAddf(pvec, orig, dir);
 
-	return newVectorObject(pvec, 3, Py_NEW);
+	return newVectorObject(pvec, 3, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.LineIntersect() -------------------
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
@@ -993,8 +993,8 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		}
 		else {
 			tuple = PyTuple_New( 2 );
-			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW) );
-			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW) );
+			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW, NULL) );
+			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW, NULL) );
 			return tuple;
 		}
 	}
@@ -1055,7 +1055,7 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 	VecAddf(n1, n2, n1);
 	Normalize(n1);
 
-	return newVectorObject(n1, 3, Py_NEW);
+	return newVectorObject(n1, 3, Py_NEW, NULL);
 }
 
 //----------------------------Mathutils.TriangleNormal() -------------------
@@ -1091,7 +1091,7 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 	Crossf(n, e2, e1);
 	Normalize(n);
 
-	return newVectorObject(n, 3, Py_NEW);
+	return newVectorObject(n, 3, Py_NEW, NULL);
 }
 
 //--------------------------------- AREA FUNCTIONS--------------------
@@ -1244,7 +1244,7 @@ PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
 {
-	PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
+	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
 }
 
 void BaseMathObject_dealloc(BaseMathObject * self)
@@ -1254,6 +1254,6 @@ void BaseMathObject_dealloc(BaseMathObject * self)
 		PyMem_Free(self->data);
 
 	Py_XDECREF(self->cb_user);
-	PyObject_DEL(self);
+	Py_TYPE(self)->tp_free(self); // PyObject_DEL(self); // breaks subtypes
 }
 

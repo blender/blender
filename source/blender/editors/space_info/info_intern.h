@@ -30,10 +30,17 @@
 
 /* internal exports only */
 
+struct wmOperatorType;
 
 /* info_header.c */
 void info_header_buttons(const bContext *C, ARegion *ar);
 
+void FILE_OT_pack_all(struct wmOperatorType *ot);
+void FILE_OT_unpack_all(struct wmOperatorType *ot);
+void FILE_OT_make_paths_relative(struct wmOperatorType *ot);
+void FILE_OT_make_paths_absolute(struct wmOperatorType *ot);
+void FILE_OT_report_missing_files(struct wmOperatorType *ot);
+void FILE_OT_find_missing_files(struct wmOperatorType *ot);
 
 #endif /* ED_INFO_INTERN_H */
 

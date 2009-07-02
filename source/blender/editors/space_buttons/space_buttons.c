@@ -220,8 +220,8 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(TEXTURE_OT_new);
 	WM_operatortype_append(WORLD_OT_new);
 
-	WM_operatortype_append(OBJECT_OT_particle_system_slot_add);
-	WM_operatortype_append(OBJECT_OT_particle_system_slot_remove);
+	WM_operatortype_append(OBJECT_OT_particle_system_add);
+	WM_operatortype_append(OBJECT_OT_particle_system_remove);
 
 	WM_operatortype_append(PARTICLE_OT_new);
 }
@@ -331,6 +331,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_MODE:
 					ED_area_tag_redraw(sa);
 					break;
 					

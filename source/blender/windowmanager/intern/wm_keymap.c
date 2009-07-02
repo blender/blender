@@ -154,7 +154,7 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 
 /* ***************** get string from key events **************** */
 
-char *WM_key_event_string(short type)
+const char *WM_key_event_string(short type)
 {
 	const char *name= NULL;
 	if(RNA_enum_name(event_type_items, (int)type, &name))

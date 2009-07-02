@@ -327,7 +327,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_params)
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
-	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb);
+	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb, NULL);
 	
 	uiBoundsBlock(block, 6);
 	uiBlockSetDirection(block, UI_DOWN);	

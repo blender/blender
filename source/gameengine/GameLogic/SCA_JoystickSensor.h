@@ -106,8 +106,7 @@ public:
 					   short int joymode,
 					   int axis, int axisf,int prec,
 					   int button,
-					   int hat, int hatf, bool allevents,
-					   PyTypeObject* T=&Type );
+					   int hat, int hatf, bool allevents);
 	virtual ~SCA_JoystickSensor();
 	virtual CValue* GetReplica();
 	
@@ -122,10 +121,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* Joystick Index */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);

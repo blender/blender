@@ -41,19 +41,6 @@
 
 static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat); /* utility func */
 
-/*-------------------------DOC STRINGS ---------------------------*/
-static char Vector_Zero_doc[] = "() - set all values in the vector to 0";
-static char Vector_Normalize_doc[] = "() - normalize the vector";
-static char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
-static char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
-static char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
-static char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
-static char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
-static char Vector_Reflect_doc[] = "(mirror) - return a vector reflected on the mirror normal";
-static char Vector_Cross_doc[] = "(other) - return the cross product between this vector and another";
-static char Vector_Dot_doc[] = "(other) - return the dot product between this vector and another";
-static char Vector_copy_doc[] = "() - return a copy of the vector";
-static char Vector_swizzle_doc[] = "Swizzle: Get or set axes in specified order";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 static PyObject *Vector_Zero( VectorObject * self );
 static PyObject *Vector_Normalize( VectorObject * self );
@@ -68,18 +55,18 @@ static PyObject *Vector_Dot( VectorObject * self, VectorObject * value );
 static PyObject *Vector_copy( VectorObject * self );
 
 static struct PyMethodDef Vector_methods[] = {
-	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
-	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, Vector_Normalize_doc},
-	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, Vector_Negate_doc},
-	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, Vector_Resize2D_doc},
-	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize3D_doc},
-	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize4D_doc},
-	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
-	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, Vector_Reflect_doc},
-	{"cross", ( PyCFunction ) Vector_Cross, METH_O, Vector_Dot_doc},
-	{"dot", ( PyCFunction ) Vector_Dot, METH_O, Vector_Cross_doc},
-	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
-	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
+	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, NULL},
+	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, NULL},
+	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, NULL},
+	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, NULL},
+	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, NULL},
+	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, NULL},
+	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, NULL},
+	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, NULL},
+	{"cross", ( PyCFunction ) Vector_Cross, METH_O, NULL},
+	{"dot", ( PyCFunction ) Vector_Dot, METH_O, NULL},
+	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, NULL},
+	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -104,7 +91,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		}
 	} else if (size == 0) {
 		//returns a new empty 3d vector
-		return newVectorObject(NULL, 3, Py_NEW); 
+		return newVectorObject(NULL, 3, Py_NEW, type);
 	} else {
 		listObject = args;
 	}
@@ -131,7 +118,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		vec[i]= f;
 		Py_DECREF(v);
 	}
-	return newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, size, Py_NEW, type);
 }
 
 /*-----------------------------METHODS---------------------------- */
@@ -362,7 +349,7 @@ static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 
 	vectoquat(vec, track, up, quat);
 
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 
 /*----------------------------Vector.reflect(mirror) ----------------------
@@ -414,7 +401,7 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 	reflect[1] = (dot2 * mirror[1]) - vec[1];
 	reflect[2] = (dot2 * mirror[2]) - vec[2];
 	
-	return newVectorObject(reflect, self->size, Py_NEW);
+	return newVectorObject(reflect, self->size, Py_NEW, NULL);
 }
 
 static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
@@ -434,7 +421,7 @@ static PyObject *Vector_Cross( VectorObject * self, VectorObject * value )
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 	
-	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW);
+	vecCross = (VectorObject *)newVectorObject(NULL, 3, Py_NEW, NULL);
 	Crossf(vecCross->vec, self->vec, value->vec);
 	return (PyObject *)vecCross;
 }
@@ -470,7 +457,7 @@ static PyObject *Vector_copy(VectorObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
-	return newVectorObject(self->vec, self->size, Py_NEW);
+	return newVectorObject(self->vec, self->size, Py_NEW, Py_TYPE(self));
 }
 
 /*----------------------------print object (internal)-------------
@@ -647,7 +634,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] +	vec2->vec[i];
 		}
-		return newVectorObject(vec, vec1->size, Py_NEW);
+		return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 	}
 	
 	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
@@ -717,7 +704,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 		vec[i] = vec1->vec[i] -	vec2->vec[i];
 	}
 
-	return newVectorObject(vec, vec1->size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 }
 
 /*------------------------obj -= obj------------------------------
@@ -812,7 +799,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] * scalar;
 		}
-		return newVectorObject(vec, vec1->size, Py_NEW);
+		return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 		
 	}
 	
@@ -912,7 +899,7 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 	for(i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
-	return newVectorObject(vec, vec1->size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 }
 
 /*------------------------obj /= obj------------------------------
@@ -960,11 +947,9 @@ static PyObject *Vector_neg(VectorObject *self)
 		vec[i] = -self->vec[i];
 	}
 
-	return newVectorObject(vec, self->size, Py_NEW);
+	return newVectorObject(vec, self->size, Py_NEW, Py_TYPE(self));
 }
 
-/*------------------------tp_doc*/
-static char VectorObject_doc[] = "This is a wrapper for vector objects.";
 /*------------------------vec_magnitude_nosqrt (internal) - for comparing only */
 static double vec_magnitude_nosqrt(float *data, int size)
 {
@@ -1066,17 +1051,139 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		Py_RETURN_FALSE;
 	}
 }
+
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Vector_SeqMethods = {
 	(inquiry) Vector_len,						/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,								/* sq_repeat */
+	(ssizeargfunc) 0,							/* sq_repeat */
 	(ssizeargfunc) Vector_item,					/* sq_item */
-	(ssizessizeargfunc) Vector_slice,				/* sq_slice */
+#if (PY_VERSION_HEX < 0x03000000)
+	(ssizessizeargfunc) Vector_slice,			/* sq_slice */ /* PY2 ONLY */
+#else
+	NULL,
+#endif
 	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
-	(ssizessizeobjargproc) Vector_ass_slice,		/* sq_ass_slice */
+#if (PY_VERSION_HEX < 0x03000000)
+	(ssizessizeobjargproc) Vector_ass_slice,	/* sq_ass_slice */ /* PY2 ONLY */
+#else
+	NULL,
+#endif
 };
+
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += self->size;
+		return Vector_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->size, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Vector_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "vector indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += self->size;
+		return Vector_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->size, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Vector_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "vector indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return -1;
+	}
+}
+
+static PyMappingMethods Vector_AsMapping = {
+	(lenfunc)Vector_len,
+	(binaryfunc)Vector_subscript,
+	(objobjargproc)Vector_ass_subscript
+};
+#endif /*  (PY_VERSION_HEX >= 0x03000000) */
  
+#if (PY_VERSION_HEX >= 0x03000000)
+static PyNumberMethods Vector_NumMethods = {
+		(binaryfunc)	Vector_add,	/*nb_add*/
+		(binaryfunc)	Vector_sub,	/*nb_subtract*/
+		(binaryfunc)	Vector_mul,	/*nb_multiply*/
+		0,							/*nb_remainder*/
+		0,							/*nb_divmod*/
+		0,							/*nb_power*/
+		(unaryfunc) 	Vector_neg,	/*nb_negative*/
+		(unaryfunc) 	0,	/*tp_positive*/
+		(unaryfunc) 	0,	/*tp_absolute*/
+		(inquiry)	0,	/*tp_bool*/
+		(unaryfunc)	0,	/*nb_invert*/
+		0,				/*nb_lshift*/
+		(binaryfunc)0,	/*nb_rshift*/
+		0,				/*nb_and*/
+		0,				/*nb_xor*/
+		0,				/*nb_or*/
+		0,				/*nb_int*/
+		0,				/*nb_reserved*/
+		0,				/*nb_float*/
+		Vector_iadd,	/* nb_inplace_add */
+		Vector_isub,	/* nb_inplace_subtract */
+		Vector_imul,	/* nb_inplace_multiply */
+		0,				/* nb_inplace_remainder */
+		0,				/* nb_inplace_power */
+		0,				/* nb_inplace_lshift */
+		0,				/* nb_inplace_rshift */
+		0,				/* nb_inplace_and */
+		0,				/* nb_inplace_xor */
+		0,				/* nb_inplace_or */
+		0,				/* nb_floor_divide */
+		Vector_div,		/* nb_true_divide */
+		0,				/* nb_inplace_floor_divide */
+		Vector_idiv,	/* nb_inplace_true_divide */
+		0,			/* nb_index */
+};
+#else
 static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
 	(binaryfunc) Vector_sub,					/* __sub__ */
@@ -1122,6 +1229,8 @@ static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) NULL,							/*__ifloordiv__*/
 	(binaryfunc) NULL,							/*__itruediv__*/
 };
+#endif
+
 /*------------------PY_OBECT DEFINITION--------------------------*/
 
 /*
@@ -1225,7 +1334,7 @@ static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
 		axisA++;
 	}
 	
-	return newVectorObject(vec, axisA, Py_NEW);
+	return newVectorObject(vec, axisA, Py_NEW, Py_TYPE(self));
 }
 
 /* Set the items of this vector using a swizzle.
@@ -1373,342 +1482,342 @@ static PyGetSetDef Vector_getseters[] = {
 	 NULL},
 	
 	/* autogenerated swizzle attrs, see python script below */
-	{"xx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 36 */
-	{"xxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 292 */
-	{"xxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2340 */
-	{"xxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2852 */
-	{"xxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3364 */
-	{"xxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3876 */
-	{"xxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 356 */
-	{"xxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2404 */
-	{"xxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2916 */
-	{"xxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3428 */
-	{"xxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3940 */
-	{"xxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 420 */
-	{"xxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2468 */
-	{"xxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2980 */
-	{"xxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3492 */
-	{"xxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4004 */
-	{"xxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 484 */
-	{"xxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2532 */
-	{"xxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3044 */
-	{"xxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3556 */
-	{"xxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4068 */
-	{"xy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 44 */
-	{"xyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 300 */
-	{"xyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2348 */
-	{"xyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2860 */
-	{"xyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3372 */
-	{"xyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3884 */
-	{"xyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 364 */
-	{"xyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2412 */
-	{"xyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2924 */
-	{"xyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3436 */
-	{"xyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3948 */
-	{"xyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 428 */
-	{"xyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2476 */
-	{"xyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2988 */
-	{"xyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3500 */
-	{"xyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4012 */
-	{"xyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 492 */
-	{"xywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2540 */
-	{"xywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3052 */
-	{"xywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3564 */
-	{"xyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4076 */
-	{"xz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 52 */
-	{"xzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 308 */
-	{"xzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2356 */
-	{"xzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2868 */
-	{"xzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3380 */
-	{"xzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3892 */
-	{"xzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 372 */
-	{"xzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2420 */
-	{"xzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2932 */
-	{"xzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3444 */
-	{"xzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3956 */
-	{"xzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 436 */
-	{"xzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2484 */
-	{"xzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2996 */
-	{"xzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3508 */
-	{"xzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4020 */
-	{"xzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 500 */
-	{"xzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2548 */
-	{"xzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3060 */
-	{"xzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3572 */
-	{"xzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4084 */
-	{"xw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 60 */
-	{"xwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 316 */
-	{"xwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2364 */
-	{"xwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2876 */
-	{"xwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3388 */
-	{"xwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3900 */
-	{"xwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 380 */
-	{"xwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2428 */
-	{"xwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2940 */
-	{"xwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3452 */
-	{"xwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3964 */
-	{"xwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 444 */
-	{"xwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2492 */
-	{"xwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3004 */
-	{"xwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3516 */
-	{"xwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4028 */
-	{"xww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 508 */
-	{"xwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2556 */
-	{"xwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3068 */
-	{"xwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3580 */
-	{"xwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4092 */
-	{"yx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 37 */
-	{"yxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 293 */
-	{"yxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2341 */
-	{"yxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2853 */
-	{"yxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3365 */
-	{"yxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3877 */
-	{"yxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 357 */
-	{"yxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2405 */
-	{"yxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2917 */
-	{"yxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3429 */
-	{"yxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3941 */
-	{"yxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 421 */
-	{"yxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2469 */
-	{"yxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2981 */
-	{"yxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3493 */
-	{"yxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4005 */
-	{"yxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 485 */
-	{"yxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2533 */
-	{"yxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3045 */
-	{"yxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3557 */
-	{"yxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4069 */
-	{"yy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 45 */
-	{"yyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 301 */
-	{"yyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2349 */
-	{"yyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2861 */
-	{"yyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3373 */
-	{"yyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3885 */
-	{"yyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 365 */
-	{"yyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2413 */
-	{"yyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2925 */
-	{"yyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3437 */
-	{"yyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3949 */
-	{"yyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 429 */
-	{"yyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2477 */
-	{"yyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2989 */
-	{"yyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3501 */
-	{"yyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4013 */
-	{"yyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 493 */
-	{"yywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2541 */
-	{"yywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3053 */
-	{"yywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3565 */
-	{"yyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4077 */
-	{"yz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 53 */
-	{"yzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 309 */
-	{"yzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2357 */
-	{"yzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2869 */
-	{"yzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3381 */
-	{"yzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3893 */
-	{"yzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 373 */
-	{"yzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2421 */
-	{"yzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2933 */
-	{"yzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3445 */
-	{"yzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3957 */
-	{"yzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 437 */
-	{"yzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2485 */
-	{"yzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2997 */
-	{"yzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3509 */
-	{"yzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4021 */
-	{"yzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 501 */
-	{"yzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2549 */
-	{"yzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3061 */
-	{"yzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3573 */
-	{"yzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4085 */
-	{"yw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 61 */
-	{"ywx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 317 */
-	{"ywxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2365 */
-	{"ywxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2877 */
-	{"ywxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3389 */
-	{"ywxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3901 */
-	{"ywy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 381 */
-	{"ywyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2429 */
-	{"ywyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2941 */
-	{"ywyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3453 */
-	{"ywyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3965 */
-	{"ywz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 445 */
-	{"ywzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2493 */
-	{"ywzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3005 */
-	{"ywzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3517 */
-	{"ywzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4029 */
-	{"yww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 509 */
-	{"ywwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2557 */
-	{"ywwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3069 */
-	{"ywwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3581 */
-	{"ywww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4093 */
-	{"zx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 38 */
-	{"zxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 294 */
-	{"zxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2342 */
-	{"zxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2854 */
-	{"zxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3366 */
-	{"zxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3878 */
-	{"zxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 358 */
-	{"zxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2406 */
-	{"zxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2918 */
-	{"zxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3430 */
-	{"zxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3942 */
-	{"zxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 422 */
-	{"zxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2470 */
-	{"zxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2982 */
-	{"zxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3494 */
-	{"zxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4006 */
-	{"zxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 486 */
-	{"zxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2534 */
-	{"zxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3046 */
-	{"zxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3558 */
-	{"zxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4070 */
-	{"zy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 46 */
-	{"zyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 302 */
-	{"zyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2350 */
-	{"zyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2862 */
-	{"zyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3374 */
-	{"zyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3886 */
-	{"zyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 366 */
-	{"zyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2414 */
-	{"zyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2926 */
-	{"zyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3438 */
-	{"zyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3950 */
-	{"zyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 430 */
-	{"zyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2478 */
-	{"zyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2990 */
-	{"zyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3502 */
-	{"zyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4014 */
-	{"zyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 494 */
-	{"zywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2542 */
-	{"zywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3054 */
-	{"zywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3566 */
-	{"zyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4078 */
-	{"zz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 54 */
-	{"zzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 310 */
-	{"zzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2358 */
-	{"zzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2870 */
-	{"zzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3382 */
-	{"zzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3894 */
-	{"zzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 374 */
-	{"zzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2422 */
-	{"zzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2934 */
-	{"zzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3446 */
-	{"zzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3958 */
-	{"zzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 438 */
-	{"zzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2486 */
-	{"zzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2998 */
-	{"zzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3510 */
-	{"zzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4022 */
-	{"zzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 502 */
-	{"zzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2550 */
-	{"zzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3062 */
-	{"zzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3574 */
-	{"zzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4086 */
-	{"zw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 62 */
-	{"zwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 318 */
-	{"zwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2366 */
-	{"zwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2878 */
-	{"zwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3390 */
-	{"zwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3902 */
-	{"zwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 382 */
-	{"zwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2430 */
-	{"zwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2942 */
-	{"zwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3454 */
-	{"zwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3966 */
-	{"zwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 446 */
-	{"zwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2494 */
-	{"zwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3006 */
-	{"zwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3518 */
-	{"zwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4030 */
-	{"zww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 510 */
-	{"zwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2558 */
-	{"zwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3070 */
-	{"zwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3582 */
-	{"zwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4094 */
-	{"wx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 39 */
-	{"wxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 295 */
-	{"wxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2343 */
-	{"wxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2855 */
-	{"wxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3367 */
-	{"wxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3879 */
-	{"wxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 359 */
-	{"wxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2407 */
-	{"wxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2919 */
-	{"wxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3431 */
-	{"wxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3943 */
-	{"wxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 423 */
-	{"wxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2471 */
-	{"wxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2983 */
-	{"wxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3495 */
-	{"wxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4007 */
-	{"wxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 487 */
-	{"wxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2535 */
-	{"wxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3047 */
-	{"wxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3559 */
-	{"wxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4071 */
-	{"wy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 47 */
-	{"wyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 303 */
-	{"wyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2351 */
-	{"wyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2863 */
-	{"wyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3375 */
-	{"wyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3887 */
-	{"wyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 367 */
-	{"wyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2415 */
-	{"wyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2927 */
-	{"wyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3439 */
-	{"wyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3951 */
-	{"wyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 431 */
-	{"wyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2479 */
-	{"wyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2991 */
-	{"wyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3503 */
-	{"wyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4015 */
-	{"wyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 495 */
-	{"wywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2543 */
-	{"wywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3055 */
-	{"wywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3567 */
-	{"wyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4079 */
-	{"wz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 55 */
-	{"wzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 311 */
-	{"wzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2359 */
-	{"wzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2871 */
-	{"wzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3383 */
-	{"wzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3895 */
-	{"wzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 375 */
-	{"wzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2423 */
-	{"wzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2935 */
-	{"wzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3447 */
-	{"wzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3959 */
-	{"wzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 439 */
-	{"wzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2487 */
-	{"wzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2999 */
-	{"wzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3511 */
-	{"wzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4023 */
-	{"wzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 503 */
-	{"wzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2551 */
-	{"wzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3063 */
-	{"wzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3575 */
-	{"wzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4087 */
-	{"ww",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 63 */
-	{"wwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 319 */
-	{"wwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2367 */
-	{"wwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2879 */
-	{"wwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3391 */
-	{"wwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3903 */
-	{"wwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 383 */
-	{"wwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2431 */
-	{"wwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2943 */
-	{"wwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3455 */
-	{"wwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3967 */
-	{"wwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 447 */
-	{"wwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2495 */
-	{"wwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3007 */
-	{"wwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3519 */
-	{"wwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4031 */
-	{"www",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 511 */
-	{"wwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2559 */
-	{"wwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3071 */
-	{"wwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3583 */
-	{"wwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4095 */
+	{"xx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 36 */
+	{"xxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 292 */
+	{"xxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2340 */
+	{"xxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2852 */
+	{"xxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3364 */
+	{"xxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3876 */
+	{"xxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 356 */
+	{"xxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2404 */
+	{"xxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2916 */
+	{"xxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3428 */
+	{"xxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3940 */
+	{"xxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 420 */
+	{"xxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2468 */
+	{"xxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2980 */
+	{"xxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3492 */
+	{"xxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4004 */
+	{"xxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 484 */
+	{"xxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2532 */
+	{"xxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3044 */
+	{"xxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3556 */
+	{"xxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4068 */
+	{"xy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 44 */
+	{"xyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 300 */
+	{"xyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2348 */
+	{"xyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2860 */
+	{"xyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3372 */
+	{"xyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3884 */
+	{"xyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 364 */
+	{"xyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2412 */
+	{"xyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2924 */
+	{"xyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3436 */
+	{"xyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3948 */
+	{"xyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 428 */
+	{"xyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2476 */
+	{"xyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2988 */
+	{"xyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3500 */
+	{"xyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4012 */
+	{"xyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 492 */
+	{"xywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2540 */
+	{"xywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3052 */
+	{"xywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3564 */
+	{"xyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4076 */
+	{"xz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 52 */
+	{"xzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 308 */
+	{"xzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2356 */
+	{"xzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2868 */
+	{"xzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3380 */
+	{"xzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3892 */
+	{"xzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 372 */
+	{"xzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2420 */
+	{"xzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2932 */
+	{"xzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3444 */
+	{"xzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3956 */
+	{"xzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 436 */
+	{"xzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2484 */
+	{"xzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2996 */
+	{"xzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3508 */
+	{"xzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4020 */
+	{"xzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 500 */
+	{"xzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2548 */
+	{"xzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3060 */
+	{"xzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3572 */
+	{"xzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4084 */
+	{"xw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 60 */
+	{"xwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 316 */
+	{"xwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2364 */
+	{"xwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2876 */
+	{"xwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3388 */
+	{"xwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3900 */
+	{"xwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 380 */
+	{"xwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2428 */
+	{"xwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2940 */
+	{"xwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3452 */
+	{"xwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3964 */
+	{"xwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 444 */
+	{"xwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2492 */
+	{"xwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3004 */
+	{"xwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3516 */
+	{"xwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4028 */
+	{"xww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 508 */
+	{"xwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2556 */
+	{"xwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3068 */
+	{"xwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3580 */
+	{"xwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((0|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4092 */
+	{"yx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 37 */
+	{"yxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 293 */
+	{"yxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2341 */
+	{"yxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2853 */
+	{"yxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3365 */
+	{"yxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3877 */
+	{"yxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 357 */
+	{"yxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2405 */
+	{"yxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2917 */
+	{"yxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3429 */
+	{"yxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3941 */
+	{"yxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 421 */
+	{"yxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2469 */
+	{"yxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2981 */
+	{"yxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3493 */
+	{"yxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4005 */
+	{"yxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 485 */
+	{"yxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2533 */
+	{"yxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3045 */
+	{"yxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3557 */
+	{"yxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4069 */
+	{"yy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 45 */
+	{"yyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 301 */
+	{"yyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2349 */
+	{"yyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2861 */
+	{"yyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3373 */
+	{"yyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3885 */
+	{"yyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 365 */
+	{"yyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2413 */
+	{"yyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2925 */
+	{"yyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3437 */
+	{"yyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3949 */
+	{"yyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 429 */
+	{"yyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2477 */
+	{"yyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2989 */
+	{"yyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3501 */
+	{"yyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4013 */
+	{"yyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 493 */
+	{"yywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2541 */
+	{"yywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3053 */
+	{"yywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3565 */
+	{"yyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4077 */
+	{"yz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 53 */
+	{"yzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 309 */
+	{"yzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2357 */
+	{"yzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2869 */
+	{"yzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3381 */
+	{"yzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3893 */
+	{"yzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 373 */
+	{"yzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2421 */
+	{"yzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2933 */
+	{"yzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3445 */
+	{"yzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3957 */
+	{"yzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 437 */
+	{"yzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2485 */
+	{"yzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2997 */
+	{"yzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3509 */
+	{"yzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4021 */
+	{"yzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 501 */
+	{"yzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2549 */
+	{"yzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3061 */
+	{"yzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3573 */
+	{"yzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4085 */
+	{"yw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 61 */
+	{"ywx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 317 */
+	{"ywxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2365 */
+	{"ywxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2877 */
+	{"ywxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3389 */
+	{"ywxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3901 */
+	{"ywy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 381 */
+	{"ywyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2429 */
+	{"ywyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2941 */
+	{"ywyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3453 */
+	{"ywyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3965 */
+	{"ywz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 445 */
+	{"ywzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2493 */
+	{"ywzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3005 */
+	{"ywzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3517 */
+	{"ywzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4029 */
+	{"yww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 509 */
+	{"ywwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2557 */
+	{"ywwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3069 */
+	{"ywwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3581 */
+	{"ywww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((1|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4093 */
+	{"zx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 38 */
+	{"zxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 294 */
+	{"zxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2342 */
+	{"zxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2854 */
+	{"zxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3366 */
+	{"zxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3878 */
+	{"zxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 358 */
+	{"zxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2406 */
+	{"zxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2918 */
+	{"zxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3430 */
+	{"zxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3942 */
+	{"zxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 422 */
+	{"zxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2470 */
+	{"zxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2982 */
+	{"zxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3494 */
+	{"zxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4006 */
+	{"zxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 486 */
+	{"zxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2534 */
+	{"zxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3046 */
+	{"zxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3558 */
+	{"zxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4070 */
+	{"zy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 46 */
+	{"zyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 302 */
+	{"zyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2350 */
+	{"zyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2862 */
+	{"zyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3374 */
+	{"zyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3886 */
+	{"zyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 366 */
+	{"zyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2414 */
+	{"zyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2926 */
+	{"zyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3438 */
+	{"zyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3950 */
+	{"zyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 430 */
+	{"zyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2478 */
+	{"zyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2990 */
+	{"zyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3502 */
+	{"zyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4014 */
+	{"zyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 494 */
+	{"zywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2542 */
+	{"zywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3054 */
+	{"zywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3566 */
+	{"zyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4078 */
+	{"zz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 54 */
+	{"zzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 310 */
+	{"zzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2358 */
+	{"zzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2870 */
+	{"zzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3382 */
+	{"zzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3894 */
+	{"zzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 374 */
+	{"zzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2422 */
+	{"zzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2934 */
+	{"zzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3446 */
+	{"zzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3958 */
+	{"zzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 438 */
+	{"zzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2486 */
+	{"zzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2998 */
+	{"zzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3510 */
+	{"zzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4022 */
+	{"zzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 502 */
+	{"zzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2550 */
+	{"zzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3062 */
+	{"zzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3574 */
+	{"zzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4086 */
+	{"zw",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 62 */
+	{"zwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 318 */
+	{"zwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2366 */
+	{"zwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2878 */
+	{"zwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3390 */
+	{"zwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3902 */
+	{"zwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 382 */
+	{"zwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2430 */
+	{"zwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2942 */
+	{"zwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3454 */
+	{"zwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3966 */
+	{"zwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 446 */
+	{"zwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2494 */
+	{"zwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3006 */
+	{"zwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3518 */
+	{"zwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4030 */
+	{"zww",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 510 */
+	{"zwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2558 */
+	{"zwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3070 */
+	{"zwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3582 */
+	{"zwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((2|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4094 */
+	{"wx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 39 */
+	{"wxx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 295 */
+	{"wxxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2343 */
+	{"wxxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2855 */
+	{"wxxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3367 */
+	{"wxxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3879 */
+	{"wxy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 359 */
+	{"wxyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2407 */
+	{"wxyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2919 */
+	{"wxyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3431 */
+	{"wxyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3943 */
+	{"wxz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 423 */
+	{"wxzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2471 */
+	{"wxzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2983 */
+	{"wxzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3495 */
+	{"wxzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4007 */
+	{"wxw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 487 */
+	{"wxwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2535 */
+	{"wxwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3047 */
+	{"wxwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3559 */
+	{"wxww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4071 */
+	{"wy",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 47 */
+	{"wyx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 303 */
+	{"wyxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2351 */
+	{"wyxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2863 */
+	{"wyxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3375 */
+	{"wyxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3887 */
+	{"wyy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 367 */
+	{"wyyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2415 */
+	{"wyyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2927 */
+	{"wyyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3439 */
+	{"wyyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3951 */
+	{"wyz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 431 */
+	{"wyzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2479 */
+	{"wyzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2991 */
+	{"wyzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3503 */
+	{"wyzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4015 */
+	{"wyw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 495 */
+	{"wywx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2543 */
+	{"wywy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3055 */
+	{"wywz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3567 */
+	{"wyww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4079 */
+	{"wz",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 55 */
+	{"wzx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 311 */
+	{"wzxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2359 */
+	{"wzxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2871 */
+	{"wzxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3383 */
+	{"wzxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3895 */
+	{"wzy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 375 */
+	{"wzyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2423 */
+	{"wzyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2935 */
+	{"wzyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3447 */
+	{"wzyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3959 */
+	{"wzz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 439 */
+	{"wzzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2487 */
+	{"wzzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2999 */
+	{"wzzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3511 */
+	{"wzzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4023 */
+	{"wzw",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 503 */
+	{"wzwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2551 */
+	{"wzwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3063 */
+	{"wzwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3575 */
+	{"wzww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4087 */
+	{"ww",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 63 */
+	{"wwx",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 319 */
+	{"wwxx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2367 */
+	{"wwxy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2879 */
+	{"wwxz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3391 */
+	{"wwxw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3903 */
+	{"wwy",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 383 */
+	{"wwyx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2431 */
+	{"wwyy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2943 */
+	{"wwyz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3455 */
+	{"wwyw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3967 */
+	{"wwz",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 447 */
+	{"wwzx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2495 */
+	{"wwzy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3007 */
+	{"wwzz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3519 */
+	{"wwzw", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4031 */
+	{"www",  (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2))))}, /* 511 */
+	{"wwwx", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((0|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 2559 */
+	{"wwwy", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((1|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3071 */
+	{"wwwz", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((2|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 3583 */
+	{"wwww", (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)((3|SWIZZLE_VALID_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((3|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  )}, /* 4095 */
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1745,7 +1854,7 @@ items.sort(key = lambda a: a[0].replace('x', '0').replace('y', '1').replace('z',
 unique = set()
 for key, val in items:
 	num = eval(val)
-	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)Vector_setSwizzle, Vector_swizzle_doc, (void *)((unsigned int)%s)}, // %s' % (key, (' '*(4-len(key))), axis_dict[key], num)
+	print '\t{"%s", %s(getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, (void *)((unsigned int)%s)}, // %s' % (key, (' '*(4-len(key))), axis_dict[key], num)
 	unique.add(num)
 
 if len(unique) != len(items):
@@ -1788,7 +1897,11 @@ PyTypeObject vector_Type = {
 
 	&Vector_NumMethods,                       /* PyNumberMethods *tp_as_number; */
 	&Vector_SeqMethods,                       /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+#if (PY_VERSION_HEX >= 0x03000000)
+	&Vector_AsMapping,                       /* PyMappingMethods *tp_as_mapping; */
+#else
+	NULL,
+#endif
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -1802,8 +1915,8 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT,
-	VectorObject_doc,                       /*  char *tp_doc;  Documentation string */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
 	NULL,                       /* traverseproc tp_traverse; */
@@ -1855,10 +1968,13 @@ PyTypeObject vector_Type = {
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newVectorObject(float *vec, int size, int type)
+PyObject *newVectorObject(float *vec, int size, int type, PyTypeObject *base_type)
 {
 	int i;
-	VectorObject *self = PyObject_NEW(VectorObject, &vector_Type);
+	VectorObject *self;
+
+	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	else			self = PyObject_NEW(VectorObject, &vector_Type);
 	
 	if(size > 4 || size < 2)
 		return NULL;
@@ -1894,7 +2010,7 @@ PyObject *newVectorObject(float *vec, int size, int type)
 PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_subtype)
 {
 	float dummy[4] = {0.0, 0.0, 0.0, 0.0}; /* dummy init vector, callbacks will be used on access */
-	VectorObject *self= (VectorObject *)newVectorObject(dummy, size, Py_NEW);
+	VectorObject *self= (VectorObject *)newVectorObject(dummy, size, Py_NEW, NULL);
 	if(self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;
@@ -1941,7 +2057,7 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 		vecNew[z++] = (float)dot;
 		dot = 0.0f;
 	}
-	return newVectorObject(vecNew, vec_size, Py_NEW);
+	return newVectorObject(vecNew, vec_size, Py_NEW, NULL);
 }
 
 /*----------------------------Vector.negate() --------------------

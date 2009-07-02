@@ -183,6 +183,12 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	
+	WM_operatortype_append(MESH_OT_uv_texture_add);
+	WM_operatortype_append(MESH_OT_uv_texture_remove);
+	WM_operatortype_append(MESH_OT_vertex_color_add);
+	WM_operatortype_append(MESH_OT_vertex_color_remove);
+	WM_operatortype_append(MESH_OT_sticky_add);
+	WM_operatortype_append(MESH_OT_sticky_remove);
 }
 
 /* note mesh keymap also for other space? */

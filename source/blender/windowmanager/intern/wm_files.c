@@ -575,7 +575,7 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 //	}
 	
 	if (G.fileflags & G_AUTOPACK) {
-		packAll();
+		packAll(G.main, reports);
 	}
 	
 	ED_object_exit_editmode(C, 0);

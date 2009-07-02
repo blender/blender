@@ -120,7 +120,7 @@ private:
 	void			ClearUniforms();
 
 public:
-	BL_Shader(PyTypeObject *T=&Type);
+	BL_Shader();
 	virtual ~BL_Shader();
 
 	// Unused for now tangent is set as 
@@ -202,9 +202,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual PyObject* py_repr(void) { return PyString_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
+	virtual PyObject* py_repr(void) { return PyUnicode_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

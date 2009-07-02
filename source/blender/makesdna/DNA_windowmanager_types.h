@@ -88,7 +88,8 @@ typedef struct wmWindow {
 	
 	int winid, pad;		/* winid also in screens, is for retrieving this window after read */
 	
-	struct bScreen *screen;	/* active screen */
+	struct bScreen *screen;		/* active screen */
+	struct bScreen *newscreen;	/* temporary when switching */
 	char screenname[32];	/* MAX_ID_NAME for matching window with active screen after file read */
 	
 	short posx, posy, sizex, sizey;	/* window coords */

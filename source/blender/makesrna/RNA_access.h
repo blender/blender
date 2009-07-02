@@ -174,6 +174,7 @@ extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_Event;
 extern StructRNA RNA_FCurve;
+extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
 extern StructRNA RNA_FModifierEnvelope;
@@ -374,6 +375,7 @@ extern StructRNA RNA_SpaceNLA;
 extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpaceSequenceEditor;
 extern StructRNA RNA_SpaceTextEditor;
+extern StructRNA RNA_SpaceFileBrowser;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_SpotLamp;
@@ -604,6 +606,14 @@ void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
+
+/* efficient functions to set properties for arrays */
+int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
+int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_raw_type_sizeof(RawPropertyType type);
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
+
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);

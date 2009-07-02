@@ -184,6 +184,10 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
 	RNA_def_property_ui_text(prop, "Space", "Limit brush application to the distance specified by spacing.");
+
+	prop= RNA_def_property(srna, "smooth_stroke", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SMOOTH_STROKE);
+	RNA_def_property_ui_text(prop, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path.");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);

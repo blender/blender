@@ -350,7 +350,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		sub.itemR(md, "factor")
 		sub.itemR(md, "repeat")
 		
-		layout.template_pointer(md, "vertex_group", ob, "vertex_groups")
+		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		
 	def softbody(self, layout, ob, md):
 		layout.itemL(text="See Softbody panel.")

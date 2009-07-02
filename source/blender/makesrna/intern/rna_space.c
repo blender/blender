@@ -96,8 +96,8 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceOutliner;
 		case SPACE_BUTS:
 			return &RNA_SpaceButtonsWindow;
-		/* case SPACE_FILE:
-			return &RNA_SpaceFileBrowser;*/
+		case SPACE_FILE:
+			return &RNA_SpaceFileBrowser;
 		case SPACE_IMAGE:
 			return &RNA_SpaceImageEditor;
 		/*case SPACE_INFO:
@@ -208,6 +208,13 @@ void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 
 	st->text= value.data;
 	st->top= 0;
+}
+
+void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceFile *sfile= (SpaceFile*)(ptr->data);
+
+	sfile->params= value.data;
 }
 
 /* Space Buttons */
@@ -971,12 +978,124 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	// TODO... autosnap, dopesheet?
 }
 
+static void rna_def_fileselect_params(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem file_display_items[] = {
+		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
+		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
+		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem file_sort_items[] = {
+		{FILE_SORT_ALPHA, "FILE_SORT_ALPHA", ICON_SORTALPHA, "Sort alphabetically", "Sort the file list alphabetically."},
+		{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension."},
+		{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time."},
+		{FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_SORTSIZE, "Sort by size", "Sort files by size."},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "FileSelectParams", NULL);
+	RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters.");
+
+	prop= RNA_def_property(srna, "display", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "display");
+	RNA_def_property_enum_items(prop, file_display_items);
+	RNA_def_property_ui_text(prop, "Display Mode", "Display mode for the file list");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "do_filter", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_FILTER);
+	RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files.");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "hide_dot", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
+	RNA_def_property_ui_text(prop, "Hide Dot Files", "Hide hidden dot files.");
+	RNA_def_property_update(prop, NC_FILE | ND_FILELIST , NULL);
+
+	prop= RNA_def_property(srna, "sort", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "sort");
+	RNA_def_property_enum_items(prop, file_sort_items);
+	RNA_def_property_ui_text(prop, "Sort", "");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", IMAGEFILE);
+	RNA_def_property_ui_text(prop, "Filter Images", "Show image files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_IMAGE, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_blender", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
+	RNA_def_property_ui_text(prop, "Filter Blender", "Show .blend files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_BLEND, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_movie", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", MOVIEFILE);
+	RNA_def_property_ui_text(prop, "Filter Movies", "Show movie files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_MOVIE, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_script", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", PYSCRIPTFILE);
+	RNA_def_property_ui_text(prop, "Filter Script", "Show script files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_SCRIPT, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_font", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", FTFONTFILE);
+	RNA_def_property_ui_text(prop, "Filter Fonts", "Show font files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_FONT, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_sound", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", SOUNDFILE);
+	RNA_def_property_ui_text(prop, "Filter Sound", "Show sound files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_SOUND, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_text", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", TEXTFILE);
+	RNA_def_property_ui_text(prop, "Filter Text", "Show text files.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_BLANK, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "filter_folder", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
+	RNA_def_property_ui_text(prop, "Filter Folder", "Show folders.");
+	RNA_def_property_ui_icon(prop, ICON_FILE_FOLDER, 0);
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	
+}
+
+static void rna_def_space_filebrowser(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SpaceFileBrowser", "Space");
+	RNA_def_struct_sdna(srna, "SpaceFile");
+	RNA_def_struct_ui_text(srna, "Space File Browser", "File browser space data.");
+
+	prop= RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "params");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceFileBrowser_params_set", NULL);
+	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser.");
+
+}
+
 void RNA_def_space(BlenderRNA *brna)
 {
 	rna_def_space(brna);
 	rna_def_space_image(brna);
 	rna_def_space_sequencer(brna);
 	rna_def_space_text(brna);
+	rna_def_fileselect_params(brna);
+	rna_def_space_filebrowser(brna);
 	rna_def_space_outliner(brna);
 	rna_def_background_image(brna);
 	rna_def_space_3dview(brna);

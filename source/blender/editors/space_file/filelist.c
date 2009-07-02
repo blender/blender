@@ -823,16 +823,16 @@ void filelist_sort(struct FileList* filelist, short sort)
 	int num;/*  , act= 0; */
 
 	switch(sort) {
-	case FILE_SORTALPHA:
+	case FILE_SORT_ALPHA:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);	
 		break;
-	case FILE_SORTDATE:
+	case FILE_SORT_TIME:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_date);	
 		break;
-	case FILE_SORTSIZE:
+	case FILE_SORT_SIZE:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_size);	
 		break;
-	case FILE_SORTEXTENS:
+	case FILE_SORT_EXTENSION:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);	
 	}
 

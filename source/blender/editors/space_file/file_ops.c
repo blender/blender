@@ -42,6 +42,8 @@
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -135,22 +137,15 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 		params->active_file = last_file;
 
 		if(file && S_ISDIR(file->type)) {
-			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, ".") &&
-				strcmp(file->relname, "..") &&
-				strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) 
+			/* the path is too long! */
+			if (strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) 
 			{
 				// XXX error("Path too long, cannot enter this directory");
 			} else {
-				if (strcmp(file->relname, "..")==0) {
-					/* avoids /../../ */
-					BLI_parent_dir(params->dir);
-				} else {
-					strcat(params->dir, file->relname);
-					strcat(params->dir,"/");
-					params->file[0] = '\0';
-					BLI_cleanup_dir(G.sce, params->dir);
-				}
+				strcat(params->dir, file->relname);
+				strcat(params->dir,"/");
+				params->file[0] = '\0';
+				BLI_cleanup_dir(G.sce, params->dir);
 				filelist_setdir(sfile->files, params->dir);
 				filelist_free(sfile->files);
 				params->active_file = -1;
@@ -234,7 +229,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* single select, deselect all selected first */
 		file_deselect_all(sfile);
 		file_select(sfile, ar, &rect, val );
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
 	}
 	return OPERATOR_FINISHED;
 }
@@ -299,75 +294,25 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 
 /* ---------- BOOKMARKS ----------- */
 
-static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x, short y, FSMenuCategory category)
-{
-	struct FSMenu* fsmenu = fsmenu_get();
-	int nentries = fsmenu_get_nentries(fsmenu, category);
-	int linestep = file_font_pointsize()*2.0f;
-	short xs, ys;
-	int i;
-	int selected = -1;
-
-	for (i=0; i < nentries; ++i) {
-		fsmenu_get_pos(fsmenu, category, i, &xs, &ys);
-		if ( (y<=ys) && (y>ys-linestep) ) {
-			fsmenu_select_entry(fsmenu, category, i);
-			selected = i;
-			break;
-		}
-	}
-	return selected;
-}
-
-static void file_select_bookmark(SpaceFile* sfile, ARegion* ar, short x, short y)
-{
-	float fx, fy;
-	int selected;
-	FSMenuCategory category = FS_CATEGORY_SYSTEM;
-
-	if (BLI_in_rcti(&ar->v2d.mask, x, y)) {
-		char *entry;
-
-		UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
-		selected = file_select_bookmark_category(sfile, ar, fx, fy, FS_CATEGORY_SYSTEM);
-		if (selected<0) {
-			category = FS_CATEGORY_BOOKMARKS;
-			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
-		}
-		if (selected<0) {
-			category = FS_CATEGORY_RECENT;
-			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
-		}
-		
-		if (selected>=0) {
-			entry= fsmenu_get_entry(fsmenu_get(), category, selected);			
-			/* which string */
-			if (entry) {
-				FileSelectParams* params = sfile->params;
-				BLI_strncpy(params->dir, entry, sizeof(params->dir));
-				BLI_cleanup_dir(G.sce, params->dir);
-				filelist_free(sfile->files);	
-				filelist_setdir(sfile->files, params->dir);
-				params->file[0] = '\0';			
-				params->active_file = -1;
-			}
-		}
-	}
-}
-
 static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);	
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 
-	short x, y;
+	if(RNA_struct_find_property(op->ptr, "dir")) {
+		char entry[256];
+		FileSelectParams* params = sfile->params;
 
-	x = event->x - ar->winrct.xmin;
-	y = event->y - ar->winrct.ymin;
+		RNA_string_get(op->ptr, "dir", entry);
+		BLI_strncpy(params->dir, entry, sizeof(params->dir));
+		BLI_cleanup_dir(G.sce, params->dir);
+		filelist_free(sfile->files);	
+		filelist_setdir(sfile->files, params->dir);
+		params->file[0] = '\0';			
+		params->active_file = -1;
 
-	file_select_bookmark(sfile, ar, x, y);
-	ED_area_tag_redraw(sa);
+		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+	}
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -380,7 +325,74 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= bookmark_select_invoke;
 	ot->poll= ED_operator_file_active;
+
+	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
 }
+
+static int bookmark_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct FSMenu* fsmenu = fsmenu_get();
+	struct FileSelectParams* params= ED_fileselect_get_params(sfile);
+
+	if (params->dir[0] != '\0') {
+		char name[FILE_MAX];
+	
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+		fsmenu_write_file(fsmenu, name);
+	}
+
+	ED_area_tag_redraw(sa);
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_add_bookmark(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Bookmark";
+	ot->idname= "FILE_OT_add_bookmark";
+	
+	/* api callbacks */
+	ot->invoke= bookmark_add_invoke;
+	ot->poll= ED_operator_file_active;
+}
+
+static int bookmark_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct FSMenu* fsmenu = fsmenu_get();
+	int nentries = fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
+	if(RNA_struct_find_property(op->ptr, "index")) {
+		int index = RNA_int_get(op->ptr, "index");
+		if ( (index >-1) && (index < nentries)) {
+			char name[FILE_MAX];
+			
+			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
+			BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+			fsmenu_write_file(fsmenu, name);
+			ED_area_tag_redraw(sa);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_delete_bookmark(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Bookmark";
+	ot->idname= "FILE_OT_delete_bookmark";
+	
+	/* api callbacks */
+	ot->invoke= bookmark_delete_invoke;
+	ot->poll= ED_operator_file_active;
+
+	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+}
+
 
 static int loadimages_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -548,7 +560,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 		filelist_free(sfile->files);
 		sfile->params->active_file = -1;
 	}		
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 
 	return OPERATOR_FINISHED;
 
@@ -575,8 +587,8 @@ int file_refresh_exec(bContext *C, wmOperator *unused)
 		filelist_setdir(sfile->files, sfile->params->dir);
 		filelist_free(sfile->files);
 		sfile->params->active_file = -1;
-	}		
-	ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 
 	return OPERATOR_FINISHED;
 
@@ -594,14 +606,58 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
+int file_hidedot_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		sfile->params->flag ^= FILE_HIDE_DOT;
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+
+}
+
+
+void FILE_OT_hidedot(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Hide Dot Files";
+	ot->idname= "FILE_OT_hidedot";
+	
+	/* api callbacks */
+	ot->exec= file_hidedot_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
 struct ARegion *file_buttons_region(struct ScrArea *sa)
 {
-	ARegion *ar;
+	ARegion *ar, *arnew;
 	
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_CHANNELS)
 			return ar;
-	return NULL;
+
+	/* add subdiv level; after header */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for file panels");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_CHANNELS;
+	arnew->alignment= RGN_ALIGN_LEFT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
 }
 
 int file_bookmark_toggle_exec(bContext *C, wmOperator *unused)

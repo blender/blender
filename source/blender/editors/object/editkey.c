@@ -55,6 +55,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -70,11 +71,15 @@
 
 #include "ED_object.h"
 
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "object_intern.h"
 
 /* XXX */
 static void BIF_undo_push() {}
-static void error() {}
 /* XXX */
 
 #if 0 // XXX old animation system
@@ -394,25 +399,6 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 
 /* ******************** */
 
-void insert_shapekey(Scene *scene, Object *ob)
-{
-	if(get_mesh(ob) && get_mesh(ob)->mr) {
-		error("Cannot create shape keys on a multires mesh.");
-	}
-	else {
-		Key *key;
-	
-		if(ob->type==OB_MESH) insert_meshkey(scene, ob->data, 1);
-		else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob->data, 1);
-		else if(ob->type==OB_LATTICE) insert_lattkey(scene, ob->data, 1);
-	
-		key= ob_get_key(ob);
-		ob->shapenr= BLI_countlist(&key->block);
-	
-		BIF_undo_push("Add Shapekey");
-	}
-}
-
 void delete_key(Scene *scene, Object *ob)
 {
 	KeyBlock *kb, *rkb;
@@ -471,6 +457,123 @@ void delete_key(Scene *scene, Object *ob)
 	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 	
 	BIF_undo_push("Delete Shapekey");
+}
+
+/********************** shape key operators *********************/
+
+static int shape_key_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Key *key;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(ob->type==OB_MESH) insert_meshkey(scene, ob->data, 1);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob->data, 1);
+	else if(ob->type==OB_LATTICE) insert_lattkey(scene, ob->data, 1);
+
+	key= ob_get_key(ob);
+	ob->shapenr= BLI_countlist(&key->block);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Shape Key";
+	ot->idname= "OBJECT_OT_shape_key_add";
+	
+	/* api callbacks */
+	ot->exec= shape_key_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int shape_key_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene= CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
+	KeyBlock *kb, *rkb;
+	Key *key;
+	//IpoCurve *icu;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+	
+	key= ob_get_key(ob);
+	if(key==NULL)
+		return OPERATOR_CANCELLED;
+	
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+	if(kb) {
+		for(rkb= key->block.first; rkb; rkb= rkb->next)
+			if(rkb->relative == ob->shapenr-1)
+				rkb->relative= 0;
+
+		BLI_remlink(&key->block, kb);
+		key->totkey--;
+		if(key->refkey== kb)
+			key->refkey= key->block.first;
+			
+		if(kb->data) MEM_freeN(kb->data);
+		MEM_freeN(kb);
+		
+		for(kb= key->block.first; kb; kb= kb->next)
+			if(kb->adrcode>=ob->shapenr)
+				kb->adrcode--;
+		
+#if 0 // XXX old animation system
+		if(key->ipo) {
+			
+			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
+				if(icu->adrcode==ob->shapenr-1) {
+					BLI_remlink(&key->ipo->curve, icu);
+					free_ipo_curve(icu);
+					break;
+				}
+			}
+			for(icu= key->ipo->curve.first; icu; icu= icu->next) 
+				if(icu->adrcode>=ob->shapenr)
+					icu->adrcode--;
+		}
+#endif // XXX old animation system		
+		
+		if(ob->shapenr>1) ob->shapenr--;
+	}
+	
+	if(key->totkey==0) {
+		if(GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= NULL;
+		else if(GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= NULL;
+		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
+
+		free_libblock_us(&(bmain->key), key);
+	}
+	
+	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Shape Key";
+	ot->idname= "OBJECT_OT_shape_key_remove";
+	
+	/* api callbacks */
+	ot->exec= shape_key_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void move_keys(Object *ob)
@@ -560,3 +663,4 @@ void move_keys(Object *ob)
 	BIF_undo_push("Move Shapekey(s)");
 #endif
 }
+

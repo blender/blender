@@ -52,21 +52,14 @@ int		fsmenu_get_nentries		(struct FSMenu* fsmenu, FSMenuCategory category);
 	 */
 char*	fsmenu_get_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 
-void	fsmenu_select_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
-
-int		fsmenu_is_selected		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
-
-	/** Sets the position of the  fsmenu entry at @a index */
-void	fsmenu_set_pos			(struct FSMenu* fsmenu, FSMenuCategory category, int index, short xs, short ys);
-
-	/** Returns the position of the  fsmenu entry at @a index. return value is 1 if successful, 0 otherwise */
-int		fsmenu_get_pos			(struct FSMenu* fsmenu, FSMenuCategory category, int index, short* xs, short* ys);
-
 	/** Inserts a new fsmenu entry with the given @a path.
 	 * Duplicate entries are not added.
 	 * @param sorted Should entry be inserted in sorted order?
 	 */
 void	fsmenu_insert_entry		(struct FSMenu* fsmenu, FSMenuCategory category, char *path, int sorted, short save);
+
+	/** Return whether the entry was created by the user and can be saved and deleted */
+short   fsmenu_can_save			(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 
 	/** Removes the fsmenu entry at the given @a index. */
 void	fsmenu_remove_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);

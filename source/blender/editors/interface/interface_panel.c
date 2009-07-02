@@ -104,6 +104,8 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
+	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
+		return BUT_VERTICAL;
 	else if(ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS))
 		return BUT_VERTICAL;
 	
@@ -125,6 +127,8 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 				return 1;
 	}
 	else if(ar->regiontype==RGN_TYPE_UI)
+		return 1;
+	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return 1;
 
 	/* in case panel is added or disappears */

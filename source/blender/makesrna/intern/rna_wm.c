@@ -147,6 +147,8 @@ EnumPropertyItem event_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "WM_api.h"
+
 #include "BKE_idprop.h"
 
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
@@ -213,6 +215,28 @@ static int rna_Event_ascii_length(PointerRNA *ptr)
 {
 	wmEvent *event= (wmEvent*)ptr->id.data;
 	return (event->ascii)? 1 : 0;
+}
+
+static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
+{
+	wmWindow *win= (wmWindow*)ptr->data;
+
+	if(value.data == NULL)
+		return;
+
+	/* exception: can't set screens inside of area/region handers */
+	win->newscreen= value.data;
+}
+
+static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
+{
+	wmWindow *win= (wmWindow*)ptr->data;
+
+	/* exception: can't set screens inside of area/region handers */
+	if(win->newscreen) {
+		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
+		win->newscreen= NULL;
+	}
 }
 
 #else
@@ -349,6 +373,23 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "OS Key", "True when the shift key is held.");
 }
 
+static void rna_def_window(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Window", NULL);
+	RNA_def_struct_ui_text(srna, "Window", "Open window.");
+	RNA_def_struct_sdna(srna, "wmWindow");
+
+	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "Screen");
+	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window.");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL);
+	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
+}
+
 static void rna_def_windowmanager(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -362,6 +403,10 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Operator");
 	RNA_def_property_ui_text(prop, "Operators", "Operator registry.");
 
+	prop= RNA_def_property(srna, "windows", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Window");
+	RNA_def_property_ui_text(prop, "Windows", "Open windows.");
+
 	RNA_api_wm(srna);
 }
 
@@ -371,6 +416,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_operator_utils(brna);
 	rna_def_operator_filelist_element(brna);
 	rna_def_event(brna);
+	rna_def_window(brna);
 	rna_def_windowmanager(brna);
 }
 

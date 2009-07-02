@@ -1522,6 +1522,323 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 	}
 }
 
+int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)
+{
+	CollectionPropertyIterator iter;
+	ArrayIterator *internal;
+	char *arrayp;
+
+	if(!(prop->flag & PROP_RAW_ARRAY) || !(itemprop->flag & PROP_RAW_ACCESS))
+		return 0;
+
+	RNA_property_collection_begin(ptr, prop, &iter);
+
+	if(iter.valid) {
+		/* get data from array iterator and item property */
+		internal= iter.internal;
+		arrayp= (iter.valid)? iter.ptr.data: NULL;
+
+		if(internal->skip || !RNA_property_editable(&iter.ptr, itemprop)) {
+			/* we might skip some items, so it's not a proper array */
+			RNA_property_collection_end(&iter);
+			return 0;
+		}
+
+		array->array= arrayp + itemprop->rawoffset;
+		array->stride= internal->itemsize;
+		array->len= ((char*)internal->endptr - arrayp)/internal->itemsize;
+		array->type= itemprop->rawtype;
+	}
+	else
+		memset(array, 0, sizeof(RawArray));
+
+	RNA_property_collection_end(&iter);
+
+	return 1;
+}
+
+#define RAW_GET(dtype, var, raw, a) \
+{ \
+	switch(raw.type) { \
+		case PROP_RAW_CHAR: var = (dtype)((char*)raw.array)[a]; break; \
+		case PROP_RAW_SHORT: var = (dtype)((short*)raw.array)[a]; break; \
+		case PROP_RAW_INT: var = (dtype)((int*)raw.array)[a]; break; \
+		case PROP_RAW_FLOAT: var = (dtype)((float*)raw.array)[a]; break; \
+		case PROP_RAW_DOUBLE: var = (dtype)((double*)raw.array)[a]; break; \
+		default: var = (dtype)0; \
+	} \
+}
+
+#define RAW_SET(dtype, raw, a, var) \
+{ \
+	switch(raw.type) { \
+		case PROP_RAW_CHAR: ((char*)raw.array)[a] = (char)var; break; \
+		case PROP_RAW_SHORT: ((short*)raw.array)[a] = (short)var; break; \
+		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break; \
+		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break; \
+		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break; \
+	} \
+}
+
+int RNA_raw_type_sizeof(RawPropertyType type)
+{
+	switch(type) {
+		case PROP_RAW_CHAR: return sizeof(char);
+		case PROP_RAW_SHORT: return sizeof(short);
+		case PROP_RAW_INT: return sizeof(int);
+		case PROP_RAW_FLOAT: return sizeof(float);
+		case PROP_RAW_DOUBLE: return sizeof(double);
+		default: return 0;
+	}
+}
+
+static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *inarray, RawPropertyType intype, int inlen, int set)
+{
+	StructRNA *ptype;
+	PointerRNA itemptr;
+	PropertyRNA *itemprop, *iprop;
+	PropertyType itemtype;
+	RawArray in;
+	int itemlen= 0;
+
+	/* initialize in array, stride assumed 0 in following code */
+	in.array= inarray;
+	in.type= intype;
+	in.len= inlen;
+	in.stride= 0;
+
+	ptype= RNA_property_pointer_type(ptr, prop);
+
+	/* try to get item property pointer */
+	RNA_pointer_create(NULL, ptype, NULL, &itemptr);
+	itemprop= RNA_struct_find_property(&itemptr, propname);
+
+	if(itemprop) {
+		/* we have item property pointer */
+		RawArray out;
+
+		/* check type */
+		itemtype= RNA_property_type(itemprop);
+
+		if(!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+			BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported.");
+			return 0;
+		}
+
+		/* check item array */
+		itemlen= RNA_property_array_length(itemprop);
+
+		/* try to access as raw array */
+		if(RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
+			if(in.len != itemlen*out.len) {
+				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d).", out.len*itemlen, in.len);
+				return 0;
+			}
+			
+			/* matching raw types */
+			if(out.type == in.type) {
+				void *inp= in.array;
+				void *outp= out.array;
+				int a, size;
+
+				itemlen= (itemlen == 0)? 1: itemlen;
+				size= RNA_raw_type_sizeof(out.type) * itemlen;
+
+				for(a=0; a<out.len; a++) {
+					if(set) memcpy(outp, inp, size);
+					else memcpy(inp, outp, size);
+
+					inp= (char*)inp + size;
+					outp= (char*)outp + out.stride;
+				}
+
+				return 1;
+			}
+
+			/* could also be faster with non-matching types,
+			 * for now we just do slower loop .. */
+		}
+	}
+
+	{
+		void *tmparray= NULL;
+		int tmplen= 0;
+		int err= 0, j, a= 0;
+
+		/* no item property pointer, can still be id property, or
+		 * property of a type derived from the collection pointer type */
+		RNA_PROP_BEGIN(ptr, itemptr, prop) {
+			if(itemptr.data) {
+				if(itemprop) {
+					/* we got the property already */
+					iprop= itemprop;
+				}
+				else {
+					/* not yet, look it up and verify if it is valid */
+					iprop= RNA_struct_find_property(&itemptr, propname);
+
+					if(iprop) {
+						itemlen= RNA_property_array_length(iprop);
+						itemtype= RNA_property_type(iprop);
+					}
+					else {
+						BKE_reportf(reports, RPT_ERROR, "Property named %s not found.", propname);
+						err= 1;
+						break;
+					}
+
+					if(!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+						BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported.");
+						err= 1;
+						break;
+					}
+				}
+
+				/* editable check */
+				if(RNA_property_editable(&itemptr, iprop)) {
+					if(a+itemlen > in.len) {
+						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
+						err= 1;
+						break;
+					}
+
+					if(itemlen == 0) {
+						/* handle conversions */
+						if(set) {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									int b;
+									RAW_GET(int, b, in, a);
+									RNA_property_boolean_set(&itemptr, iprop, b);
+									break;
+								}
+								case PROP_INT: {
+									int i;
+									RAW_GET(int, i, in, a);
+									RNA_property_int_set(&itemptr, iprop, i);
+									break;
+								}
+								case PROP_FLOAT: {
+									float f;
+									RAW_GET(float, f, in, a);
+									RNA_property_float_set(&itemptr, iprop, f);
+									break;
+								}
+								default:
+									break;
+							}
+						}
+						else {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									int b= RNA_property_boolean_get(&itemptr, iprop);
+									RAW_SET(int, in, a, b);
+									break;
+								}
+								case PROP_INT: {
+									int i= RNA_property_int_get(&itemptr, iprop);
+									RAW_SET(int, in, a, i);
+									break;
+								}
+								case PROP_FLOAT: {
+									float f= RNA_property_float_get(&itemptr, iprop);
+									RAW_SET(float, in, a, f);
+									break;
+								}
+								default:
+									break;
+							}
+						}
+						a++;
+					}
+					else {
+						/* allocate temporary array if needed */
+						if(tmparray && tmplen != itemlen) {
+							MEM_freeN(tmparray);
+							tmparray= NULL;
+						}
+						if(!tmparray) {
+							tmparray= MEM_callocN(sizeof(float)*itemlen, "RNA tmparray\n");
+							tmplen= itemlen;
+						}
+
+						/* handle conversions */
+						if(set) {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									for(j=0; j<itemlen; j++, a++)
+										RAW_GET(int, ((int*)tmparray)[j], in, a);
+									RNA_property_boolean_set_array(&itemptr, iprop, tmparray);
+									break;
+								}
+								case PROP_INT: {
+									for(j=0; j<itemlen; j++, a++)
+										RAW_GET(int, ((int*)tmparray)[j], in, a);
+									RNA_property_int_set_array(&itemptr, iprop, tmparray);
+									break;
+								}
+								case PROP_FLOAT: {
+									for(j=0; j<itemlen; j++, a++)
+										RAW_GET(float, ((float*)tmparray)[j], in, a);
+									RNA_property_float_set_array(&itemptr, iprop, tmparray);
+									break;
+								}
+								default:
+									break;
+							}
+						}
+						else {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									RNA_property_boolean_get_array(&itemptr, iprop, tmparray);
+									for(j=0; j<itemlen; j++, a++)
+										RAW_SET(int, in, a, ((int*)tmparray)[j]);
+									break;
+								}
+								case PROP_INT: {
+									RNA_property_int_get_array(&itemptr, iprop, tmparray);
+									for(j=0; j<itemlen; j++, a++)
+										RAW_SET(int, in, a, ((int*)tmparray)[j]);
+									break;
+								}
+								case PROP_FLOAT: {
+									RNA_property_float_get_array(&itemptr, iprop, tmparray);
+									for(j=0; j<itemlen; j++, a++)
+										RAW_SET(float, in, a, ((float*)tmparray)[j]);
+									break;
+								}
+								default:
+									break;
+							}
+						}
+					}
+				}
+			}
+		}
+		RNA_PROP_END;
+
+		if(tmparray)
+			MEM_freeN(tmparray);
+
+		return !err;
+	}
+}
+
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
+{
+	return prop->rawtype;
+}
+
+int RNA_property_collection_raw_get(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len)
+{
+	return rna_raw_access(reports, ptr, prop, propname, array, type, len, 0);
+}
+
+int RNA_property_collection_raw_set(ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len)
+{
+	return rna_raw_access(reports, ptr, prop, propname, array, type, len, 1);
+}
+
 /* Standard iterator functions */
 
 void rna_iterator_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
@@ -2733,23 +3050,46 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 
 			if(prop->flag & PROP_RNAPTR) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);
+				break;
+ 			}
+			
+			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				return -1;
 			}
-			else if (ptype!=srna) {
-				if (!RNA_struct_is_a(srna, ptype)) {
-					fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(ptype));
-					return -1;
-				}
-
-				*((void**)dest)= *((void**)src);
-			}
+ 
+			*((void**)dest)= *((void**)src);
 
 			break;
 		}
 	case PROP_COLLECTION:
 		{
-			/* XXX collections are not supported yet */
-			fprintf(stderr, "%s.%s: for parameter %s, collections are not supported yet\n", tid, fid, pid);
-			return -1;
+			StructRNA *ptype;
+			ListBase *lb, *clb;
+			Link *link;
+			CollectionPointerLink *clink;
+
+			if (ftype!='C') {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, a collection was expected\n", tid, fid, pid);
+				return -1;
+			}
+
+			lb= (ListBase *)src;
+			clb= (ListBase *)dest;
+			ptype= RNA_property_pointer_type(ptr, prop);
+			
+			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, a collection of objects of type %s was expected, passed a collection of objects of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				return -1;
+			}
+
+			for (link= lb->first; link; link= link->next) {
+				clink= MEM_callocN(sizeof(CollectionPointerLink), "CCollectionPointerLink");
+				RNA_pointer_create(NULL, srna, link, &clink->ptr);
+				BLI_addtail(clb, clink);
+			}
+
+			break;
 		}
 	default: 
 		{
@@ -2847,6 +3187,13 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 				err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, iter.data, &arg, srna, tid, fid, pid);
 				break;
 			}
+		case PROP_COLLECTION:
+			{
+				StructRNA *srna= va_arg(args, StructRNA*);
+				ListBase *arg= va_arg(args, ListBase*);
+				err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, iter.data, &arg, srna, tid, fid, pid);
+				break;
+			}
 		default:
 			{
 				/* handle errors */
@@ -2904,6 +3251,13 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 					err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata, srna, tid, fid, pid);
 					break;
 				}
+			case PROP_COLLECTION:
+				{
+					StructRNA *srna= va_arg(args, StructRNA*);
+					ListBase **arg= va_arg(args, ListBase**);
+					err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata, srna, tid, fid, pid);
+					break;
+				}			
 			default:
 				{
 					/* handle errors */
@@ -2931,4 +3285,5 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 
 	return 0;
 }
+
 

@@ -33,11 +33,11 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "particle_systems", "active_particle_system_index")
+			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
 
 			col = row.column(align=True)
-			col.itemO("OBJECT_OT_particle_system_slot_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("OBJECT_OT_particle_system_slot_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("OBJECT_OT_particle_system_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("OBJECT_OT_particle_system_remove", icon="ICON_ZOOMOUT", text="")
 
 		if psys:
 			split = layout.split(percentage=0.65)

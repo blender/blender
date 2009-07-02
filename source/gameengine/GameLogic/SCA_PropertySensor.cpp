@@ -48,9 +48,8 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 									 const STR_String& propname,
 									 const STR_String& propval,
 									 const STR_String& propmaxval,
-									 KX_PROPSENSOR_TYPE checktype,
-									 PyTypeObject* T )
-	: SCA_ISensor(gameobj,eventmgr,T),
+									 KX_PROPSENSOR_TYPE checktype)
+	: SCA_ISensor(gameobj,eventmgr),
 	  m_checktype(checktype),
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
@@ -319,19 +318,15 @@ PyTypeObject SCA_PropertySensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_PropertySensor::Parents[] = {
-	&SCA_PropertySensor::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
@@ -353,19 +348,6 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-
-PyObject* SCA_PropertySensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_PropertySensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
-
-int SCA_PropertySensor::py_setattro(PyObject *attr, PyObject *value) {
-	py_setattro_up(SCA_ISensor);
-}
-
 /* 1. getType */
 const char SCA_PropertySensor::GetType_doc[] = 
 "getType()\n"
@@ -373,7 +355,7 @@ const char SCA_PropertySensor::GetType_doc[] =
 PyObject* SCA_PropertySensor::PyGetType()
 {
 	ShowDeprecationWarning("getType()", "the mode property");
-	return PyInt_FromLong(m_checktype);
+	return PyLong_FromSsize_t(m_checktype);
 }
 
 /* 2. setType */
@@ -407,7 +389,7 @@ const char SCA_PropertySensor::GetProperty_doc[] =
 PyObject* SCA_PropertySensor::PyGetProperty() 
 {
 	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyString_FromString(m_checkpropname);
+	return PyUnicode_FromString(m_checkpropname);
 }
 
 /* 4. setProperty */
@@ -444,7 +426,7 @@ const char SCA_PropertySensor::GetValue_doc[] =
 PyObject* SCA_PropertySensor::PyGetValue() 
 {
 	ShowDeprecationWarning("getValue()", "the value property");
-	return PyString_FromString(m_checkpropval);
+	return PyUnicode_FromString(m_checkpropval);
 }
 
 /* 6. setValue */

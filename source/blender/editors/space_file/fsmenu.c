@@ -65,7 +65,6 @@ struct _FSMenuEntry {
 
 	char *path;
 	short save;
-	short xs, ys;
 };
 
 typedef struct FSMenu
@@ -73,9 +72,6 @@ typedef struct FSMenu
 	FSMenuEntry *fsmenu_system;
 	FSMenuEntry *fsmenu_bookmarks;
 	FSMenuEntry *fsmenu_recent;
-
-	FSMenuCategory selected_category;
-	int selected_entry;
 
 } FSMenu;
 
@@ -87,17 +83,6 @@ struct FSMenu* fsmenu_get(void)
 		g_fsmenu=MEM_callocN(sizeof(struct FSMenu), "fsmenu");
 	}
 	return g_fsmenu;
-}
-
-void fsmenu_select_entry(struct FSMenu* fsmenu, FSMenuCategory category, int index)
-{
-	fsmenu->selected_category = category;
-	fsmenu->selected_entry = index;
-}
-
-int	fsmenu_is_selected(struct FSMenu* fsmenu, FSMenuCategory category, int index)
-{
-	return (category==fsmenu->selected_category) && (index==fsmenu->selected_entry);
 }
 
 static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory category)
@@ -154,35 +139,15 @@ char *fsmenu_get_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx)
 	return fsme?fsme->path:NULL;
 }
 
-void fsmenu_set_pos(struct FSMenu* fsmenu, FSMenuCategory category, int idx, short xs, short ys)
+short fsmenu_can_save (struct FSMenu* fsmenu, FSMenuCategory category, int idx)
 {
 	FSMenuEntry *fsme;
 
 	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
 		idx--;
 
-	if (fsme) {
-		fsme->xs = xs;
-		fsme->ys = ys;
-	}
+	return fsme?fsme->save:0;
 }
-
-int	fsmenu_get_pos (struct FSMenu* fsmenu, FSMenuCategory category, int idx, short* xs, short* ys)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
-		idx--;
-
-	if (fsme) {
-		*xs = fsme->xs;
-		*ys = fsme->ys;
-		return 1;
-	}
-
-	return 0;
-}
-
 
 void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, char *path, int sorted, short save)
 {

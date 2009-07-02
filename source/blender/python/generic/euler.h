@@ -35,8 +35,7 @@
 #include "../intern/bpy_compat.h"
 
 extern PyTypeObject euler_Type;
-
-#define EulerObject_Check(v) (Py_TYPE(v) == &euler_Type)
+#define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
 
 typedef struct {
 	PyObject_VAR_HEAD 
@@ -55,7 +54,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newEulerObject( float *eul, int type );
+PyObject *newEulerObject( float *eul, int type, PyTypeObject *base_type);
 PyObject *newEulerObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif				/* EXPP_euler_h */

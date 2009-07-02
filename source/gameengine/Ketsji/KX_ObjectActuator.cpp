@@ -53,10 +53,9 @@ KX_ObjectActuator(
 	const MT_Vector3& linV,
 	const MT_Vector3& angV,
 	const short damping,
-	const KX_LocalFlags& flag,
-	PyTypeObject* T
+	const KX_LocalFlags& flag
 ) : 
-	SCA_IActuator(gameobj,T),
+	SCA_IActuator(gameobj),
 	m_force(force),
 	m_torque(torque),
 	m_dloc(dloc),
@@ -342,19 +341,15 @@ PyTypeObject KX_ObjectActuator::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject KX_ObjectActuator::Parents[] = {
-	&KX_ObjectActuator::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_IActuator::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_ObjectActuator::Methods[] = {
@@ -413,20 +408,6 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("reference", KX_ObjectActuator,pyattr_get_reference,pyattr_set_reference),
 	{ NULL }	//Sentinel
 };
-
-PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_IActuator);
-}
-
-
-PyObject* KX_ObjectActuator::py_getattro_dict() {
-	py_getattro_dict_up(SCA_IActuator);
-}
-
-int KX_ObjectActuator::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_IActuator);
-}
 
 /* Attribute get/set functions */
 
@@ -574,7 +555,7 @@ int KX_ObjectActuator::pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.Torque = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.Torque = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -610,7 +591,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DLoc = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DLoc = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -646,7 +627,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DRot = (PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DRot = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
