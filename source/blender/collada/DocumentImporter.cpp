@@ -101,6 +101,17 @@ private:
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
+
+	// this structure is used to assign material indices to faces
+	// when materials are assigned to an object
+	struct Primitive {
+		MFace *mface;
+		int totface;
+	};
+	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
+	// amazing name!
+	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
+
 	class UnitConverter
 	{
 	private:
@@ -249,8 +260,8 @@ public:
 				continue;
 			}
 			
-			const COLLADAFW::UniqueId& uid = geom[0]->getInstanciatedObjectId();
-			if (uid_mesh_map.find(uid) == uid_mesh_map.end()) {
+			const COLLADAFW::UniqueId& geom_uid = geom[0]->getInstanciatedObjectId();
+			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
 				// XXX report to user
 				// this could happen if a mesh was not created
 				// (e.g. if it contains unsupported geometry)
@@ -258,7 +269,7 @@ public:
 				continue;
 			}
 			
-			set_mesh(ob, uid_mesh_map[uid]);
+			set_mesh(ob, uid_mesh_map[geom_uid]);
 			
 			float rot[3][3];
 			Mat3One(rot);
@@ -316,15 +327,42 @@ public:
 				}
 			}
 			Mat3ToEul(rot, ob->rot);
-			
+
+			// assign materials to object
+			// assign material indices to mesh faces
 			for (k = 0; k < geom[0]->getMaterialBindings().getCount(); k++) {
-				const COLLADAFW::UniqueId& mat_uid = geom[0]->getMaterialBindings()[k].getReferencedMaterial();
+				
+				const COLLADAFW::UniqueId& mat_uid =
+					geom[0]->getMaterialBindings()[k].getReferencedMaterial();
+
 				if (uid_material_map.find(mat_uid) == uid_material_map.end()) {
 					// This should not happen
-					fprintf(stderr, "This mesh has no materials.\n");
+					fprintf(stderr, "Cannot find material by UID.\n");
 					continue;
 				}
+
 				assign_material(ob, uid_material_map[mat_uid], ob->totcol + 1);
+
+				MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[geom_uid];
+				COLLADAFW::MaterialId mat_id = geom[0]->getMaterialBindings()[k].getMaterialId();
+				
+				// if there's geometry that uses this material,
+				// set mface->mat_nr=k for each face in that geometry
+				if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
+
+					std::vector<Primitive>& prims = mat_prim_map[mat_id];
+
+					std::vector<Primitive>::iterator it;
+
+					for (it = prims.begin(); it != prims.end(); it++) {
+						Primitive& prim = *it;
+
+						int l = 0;
+						while (l++ < prim.totface) {
+							prim.mface->mat_nr = k;
+						}
+					}
+				}
 			}
 		}
 		
@@ -360,7 +398,7 @@ public:
 			fprintf(stderr, "Mesh type %s is not supported\n", geomTypeToStr(cgeom->getType()));
 			return true;
 		}
-
+		
 		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeom;
 		
 		// first check if we can import this mesh
@@ -451,6 +489,9 @@ public:
 
 		// read faces
 		MFace *mface = me->mface;
+
+		MaterialIdPrimitiveArrayMap mat_prim_map;
+		
 		for (i = 0; i < prim_arr.getCount(); i++){
 			
  			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
@@ -460,14 +501,20 @@ public:
 			unsigned int *indices = mp->getPositionIndices().getData();
 			int k;
 			int type = mp->getPrimitiveType();
+
+			// since we cannot set mface->mat_nr here, we store part of me->mface in Primitive
+			Primitive prim = {mface, 0};
 			
 			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
 				for (k = 0; k < prim_totface; k++){
 					mface->v1 = indices[0];
 					mface->v2 = indices[1];
 					mface->v3 = indices[2];
+					
 					indices += 3;
 					mface++;
+					
+					prim.totface++;
 				}
 			}
 			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
@@ -492,10 +539,60 @@ public:
 						
 					}
 					mface++;
+
+					prim.totface++;
 				}
 			}
+			// XXX primitive could have no materials
+			// check if primitive has material
+			mat_prim_map[mp->getMaterialId()].push_back(prim);
 		}
+
+		geom_uid_mat_mapping_map[cgeom->getUniqueId()] = mat_prim_map;
+
+		/*
+		// UVs
+		MeshVertexData& uvcoord = cmesh->getUVCoords();
 		
+		// get number of UV sets
+		int totuvset = uvcoord.getNumInputInfos();
+		
+		// for each uv set 
+		for (i = 0; i < totuvset; i++) {
+			
+			std::string uv_name = uvcoord.getName(i);
+			me->mtface = CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, uv_name);
+			
+			size_t stride = uvcoord.getStride(i);
+			size_t totindex = uvcoord.getLength(i);
+			size_t totuv = (totindex/stride);
+			size_t start = i * stride;
+			
+			// for each uv coord in this set 
+			for (int j = start; j < totindex; j += stride) {
+				
+				switch(uvcoord.getType()) {
+				case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+					COLLADAFW::ArrayPrimitiveType<float>* values = uvcoord.getFloatValues();
+					
+					float u = (*values)[j];
+					float v = (*values)[j + 1];
+					
+					break;
+				case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+					COLLADAFW::ArrayPrimitiveType<double>* values = uvcoord.getDoubleValues();
+					
+					float u = (float)(*values)[j];
+					float v = (float)(*values)[j + 1];
+					
+					break;
+				}
+				
+			}
+		}
+		*/
+		
+		// normals
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 		return true;
 	}

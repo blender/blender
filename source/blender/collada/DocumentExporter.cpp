@@ -281,7 +281,7 @@ public:
 		// count faces with this material
 		for (i = 0; i < totfaces; i++) {
 			MFace *f = &mfaces[i];
-
+			
 			if ((has_material && f->mat_nr == material_index) || !has_material) {
 				faces_in_polylist++;
 				if (f->v4 == 0) {
