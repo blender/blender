@@ -41,7 +41,7 @@
  * generate with simple calls, and then convert to the theirs
  * specific structure on the fly.
  */
-#define MAX_CHILDS 32
+#define RTBUILD_MAX_CHILDS 32
 typedef struct RTBuilder
 {
 	/* list to all primitives in this tree */
@@ -51,7 +51,7 @@ typedef struct RTBuilder
 	int split_axis;
 	
 	/* child partitions calculated during splitting */
-	int child_offset[MAX_CHILDS+1];
+	int child_offset[RTBUILD_MAX_CHILDS+1];
 
 } RTBuilder;
 
@@ -67,5 +67,6 @@ RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);
 /* Calculates child partitions and returns number of efectively needed partitions */
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis);
 int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds);
+int rtbuild_get_largest_axis(RTBuilder *b);
 
 #endif

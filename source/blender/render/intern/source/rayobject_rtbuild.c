@@ -1,8 +1,10 @@
+#include <assert.h>
+#include <math.h>
+
 #include "rayobject_rtbuild.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
-#include <assert.h>
 
 static int partition_nth_element(RTBuilder *b, int _begin, int _end, int n);
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis);
@@ -16,7 +18,7 @@ static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
 	b->end   = end;
 	b->split_axis = 0;
 	
-	for(i=0; i<MAX_CHILDS; i++)
+	for(i=0; i<RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
 }
 
@@ -59,7 +61,7 @@ static void merge_bb(RTBuilder *b, float *min, float *max)
 		RE_rayobject_merge_bb(*index, min, max);
 }
 
-static int calc_largest_axis(RTBuilder *b)
+int rtbuild_get_largest_axis(RTBuilder *b)
 {
 	float min[3], max[3], sub[3];
 
@@ -84,25 +86,44 @@ static int calc_largest_axis(RTBuilder *b)
 }
 
 
-//Unballanced mean
-//TODO better balance nodes
-//TODO suport for variable number of partitions (its hardcoded in 2)
+//Left balanced tree
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 {
-	b->child_offset[0] = 0;
-	b->child_offset[1] = (b->end - b->begin) / 2;
-	b->child_offset[2] = (b->end - b->begin);
-	
-	assert( b->child_offset[0] != b->child_offset[1] && b->child_offset[1] != b->child_offset[2]);
+	int i;
+	int leafs_per_child;
+	int tot_leafs  = rtbuild_size(b);
 
-	split_leafs(b, b->child_offset, 2, axis);
-	return 2;
+	long long s;
+
+	assert(nchilds <= RTBUILD_MAX_CHILDS);
+	
+	//TODO optimize calc of leafs_per_child
+	for(s=nchilds; s<tot_leafs; s*=nchilds);
+	leafs_per_child = s/nchilds;
+	
+	assert(leafs_per_child*nchilds >= tot_leafs);
+	
+	b->child_offset[0] = 0;
+	for(i=1; ; i++)
+	{
+		assert(i <= nchilds);
+		
+		b->child_offset[i] = b->child_offset[i-1] + leafs_per_child;
+		if(b->child_offset[i] >= tot_leafs)
+		{
+			b->child_offset[i] = tot_leafs;
+			split_leafs(b, b->child_offset, i, axis);
+			
+			assert(i > 1);
+			return i;
+		}
+	}
 }
 	
 	
 int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 {
-	int axis = calc_largest_axis(b);
+	int axis = rtbuild_get_largest_axis(b);
 	return rtbuild_mean_split(b, nchilds, axis);
 }
 

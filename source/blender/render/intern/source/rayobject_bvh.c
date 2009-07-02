@@ -35,7 +35,7 @@
 #include "rayobject_rtbuild.h"
 #include "rayobject.h"
 
-#define BVH_NCHILDS	2
+#define BVH_NCHILDS	4
 typedef struct BVHTree BVHTree;
 
 static int  bvh_intersect(BVHTree *obj, Isect *isec);
@@ -57,7 +57,7 @@ typedef struct BVHNode BVHNode;
 struct BVHNode
 {
 	BVHNode *child[BVH_NCHILDS];
-	float	 bb[2][3];
+	float	*bb; //[6]; //[2][3];
 };
 
 struct BVHTree
@@ -65,6 +65,7 @@ struct BVHTree
 	RayObject rayobj;
 
 	BVHNode *alloc, *next_node, *root;
+	float *bb_alloc, *bb_next;
 	RTBuilder *builder;
 
 };
@@ -90,6 +91,9 @@ static void bvh_free(BVHTree *obj)
 	if(obj->alloc)
 		MEM_freeN(obj->alloc);
 
+	if(obj->bb_alloc)
+		MEM_freeN(obj->bb_alloc);
+
 	MEM_freeN(obj);
 }
 
@@ -99,8 +103,8 @@ static void bvh_merge_bb(BVHNode *node, float *min, float *max)
 	if(RayObject_isAligned(node))
 	{
 		//TODO only half operations needed
-		DO_MINMAX(node->bb[0], min, max);
-		DO_MINMAX(node->bb[1], min, max);
+		DO_MINMAX(node->bb  , min, max);
+		DO_MINMAX(node->bb+3, min, max);
 	}
 	else
 	{
@@ -121,18 +125,40 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 	int hit = 0;
 	if(RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX)
 	{
-		int i;
-		for(i=0; i<BVH_NCHILDS; i++)
-			if(RayObject_isAligned(node->child[i]))
-			{
-				hit |= dfs_raycast(node->child[i], isec);
-				if(hit && isec->mode == RE_RAY_SHADOW) return hit;
-			}
-			else
-			{
-				hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
-				if(hit && isec->mode == RE_RAY_SHADOW) return hit;
-			}
+//		if(isec->idot_axis[node->split_axis] > 0.0f)
+		{
+			int i;
+			for(i=0; i<BVH_NCHILDS; i++)
+				if(RayObject_isAligned(node->child[i]))
+				{
+					if(node->child[i] == 0) break;
+					
+					hit |= dfs_raycast(node->child[i], isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+				}
+				else
+				{
+					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+				}
+		}
+/*
+		else
+		{
+			int i;
+			for(i=BVH_NCHILDS-1; i>=0; i--)
+				if(RayObject_isAligned(node->child[i]))
+				{
+					hit |= dfs_raycast(node->child[i], isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+				}
+				else
+				{
+					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+				}
+		}
+*/
 	}
 	return hit;
 }
@@ -154,11 +180,36 @@ static void bvh_add(BVHTree *obj, RayObject *ob)
 	rtbuild_add( obj->builder, ob );
 }
 
+static BVHNode *bvh_new_node(BVHTree *tree)
+{
+	BVHNode *node = tree->next_node++;
+	node->bb = tree->bb_next;
+	tree->bb_next += 6;
+	
+	return node;
+}
+
 static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder)
 {
 	if(rtbuild_size(builder) == 1)
 	{
-		return (BVHNode*)builder->begin[0];
+//		return (BVHNode*)builder->begin[0];
+//
+//
+		int i;
+		BVHNode *parent = bvh_new_node(tree);
+		
+		INIT_MINMAX(parent->bb, parent->bb+3);
+
+		for(i=0; i<1; i++)
+		{
+			parent->child[i] = (BVHNode*)builder->begin[i];
+			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
+		}
+		for(; i<BVH_NCHILDS; i++)
+			parent->child[i] = 0;
+
+		return parent;
 	}
 	else
 	{
@@ -166,15 +217,17 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder)
 		int nc = rtbuild_mean_split_largest_axis(builder, BVH_NCHILDS);
 		RTBuilder tmp;
 	
-		BVHNode *parent = tree->next_node++;
+		BVHNode *parent = bvh_new_node(tree);
 
-		INIT_MINMAX(parent->bb[0], parent->bb[1]);
+		INIT_MINMAX(parent->bb, parent->bb+3);
 //		bvh->split_axis = tmp->split_axis;
 		for(i=0; i<nc; i++)
 		{
 			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp) );
-			bvh_merge_bb(parent->child[i], parent->bb[0], parent->bb[1]);
+			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
 		}
+		for(; i<BVH_NCHILDS; i++)
+			parent->child[i] = 0;
 
 		return parent;
 	}
@@ -189,6 +242,10 @@ static void bvh_done(BVHTree *obj)
 	assert(needed_nodes > 0);
 	obj->alloc = (BVHNode*)MEM_mallocN( sizeof(BVHNode)*needed_nodes, "BVHTree.Nodes");
 	obj->next_node = obj->alloc;
+
+	obj->bb_alloc = (float*)MEM_mallocN( sizeof(float)*6*needed_nodes, "BVHTree.Nodes");
+	obj->bb_next  = obj->bb_alloc;
+	
 	obj->root = bvh_rearrange( obj, obj->builder );
 
 	assert(obj->alloc+needed_nodes >= obj->next_node);
