@@ -130,10 +130,14 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 
 static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)
 {
+#ifdef DISABLE_ELBEEM
+	value[0]= '\0';
+#else
 	Object *ob= (Object*)ptr->id.data;
 	FluidsimSettings *fss= (FluidsimSettings*)ptr->data;
 
 	fluid_estimate_memory(ob, fss, value);
+#endif
 }
 
 static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
