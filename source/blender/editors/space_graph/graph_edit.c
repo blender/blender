@@ -1769,9 +1769,9 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	type= RNA_enum_get(op->ptr, "type");
 	
 	/* add F-Modifier of specified type to active F-Curve, and make it the active one */
-	fcm= fcurve_add_modifier(fcu, type);
+	fcm= add_fmodifier(&fcu->modifiers, type);
 	if (fcm)
-		fcurve_set_active_modifier(fcu, fcm);
+		set_active_fmodifier(&fcu->modifiers, fcm);
 	else {
 		BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
 		return OPERATOR_CANCELLED;

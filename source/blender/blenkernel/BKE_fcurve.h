@@ -104,15 +104,15 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 
 /* ---------------------- */
 
-struct FModifier *fcurve_add_modifier(struct FCurve *fcu, int type);
-void fcurve_copy_modifiers(ListBase *dst, ListBase *src);
-void fcurve_remove_modifier(struct FCurve *fcu, struct FModifier *fcm);
-void fcurve_free_modifiers(struct FCurve *fcu);
+struct FModifier *add_fmodifier(ListBase *modifiers, int type);
+void copy_fmodifiers(ListBase *dst, ListBase *src);
+void remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
+void free_fmodifiers(ListBase *modifiers);
 
-struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
-void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
+struct FModifier *find_active_fmodifier(ListBase *modifiers);
+void set_active_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 
-short fcurve_has_suitable_modifier(struct FCurve *fcu, int mtype, short acttype);
+short list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
 
 float evaluate_time_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float cvalue, float evaltime);
 void evaluate_value_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float *cvalue, float evaltime);

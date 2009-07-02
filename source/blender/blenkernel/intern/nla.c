@@ -69,8 +69,6 @@
 // TODO: with things like transitions, should these get freed too? Maybe better as a UI tool
 void free_nlastrip (ListBase *strips, NlaStrip *strip)
 {
-	FModifier *fcm, *fmn;
-	
 	/* sanity checks */
 	if (strip == NULL)
 		return;
@@ -86,13 +84,8 @@ void free_nlastrip (ListBase *strips, NlaStrip *strip)
 	/* free own F-Curves */
 	free_fcurves(&strip->fcurves);
 	
-	/* free F-Modifiers */
-	for (fcm= strip->modifiers.first; fcm; fcm= fmn) {
-		fmn= fcm->next;
-		
-		BLI_remlink(&strip->modifiers, fcm);
-		fcurve_remove_modifier(NULL, fcm);
-	}
+	/* free own F-Modifiers */
+	free_fmodifiers(&strip->modifiers);
 	
 	/* free the strip itself */
 	if (strips)
@@ -167,7 +160,7 @@ NlaStrip *copy_nlastrip (NlaStrip *strip)
 		
 	/* copy F-Curves and modifiers */
 	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
-	fcurve_copy_modifiers(&strip_d->modifiers, &strip->modifiers);
+	copy_fmodifiers(&strip_d->modifiers, &strip->modifiers);
 	
 	/* return the strip */
 	return strip_d;

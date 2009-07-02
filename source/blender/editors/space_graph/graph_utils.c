@@ -194,7 +194,7 @@ int graphop_visible_keyframes_poll (bContext *C)
 		 */
 		if (fcu->bezt == NULL)
 			continue;
-		fcm= fcurve_find_active_modifier(fcu);
+		fcm= find_active_fmodifier(&fcu->modifiers);
 		
 		found= (fcurve_needs_draw_fmodifier_controls(fcu, fcm) == 0);
 		if (found) break;
@@ -244,7 +244,7 @@ int graphop_editable_keyframes_poll (bContext *C)
 		 */
 		if (fcu->bezt == NULL)
 			continue;
-		fcm= fcurve_find_active_modifier(fcu);
+		fcm= find_active_fmodifier(&fcu->modifiers);
 		
 		found= (fcurve_needs_draw_fmodifier_controls(fcu, fcm) == 0);
 		if (found) break;

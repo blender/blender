@@ -112,23 +112,23 @@ static void validate_fmodifier_cb (bContext *C, void *fcm_v, void *dummy)
 }
 
 /* callback to set the active modifier */
-static void activate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
+static void activate_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 {
-	FCurve *fcu= (FCurve *)fcu_v;
+	ListBase *modifiers = (ListBase *)fmods_v;
 	FModifier *fcm= (FModifier *)fcm_v;
 	
-	/* call API function to set the active modifier for active F-Curve */
-	fcurve_set_active_modifier(fcu, fcm);
+	/* call API function to set the active modifier for active modifier-stack */
+	set_active_fmodifier(modifiers, fcm);
 }
 
 /* callback to remove the given modifier  */
-static void delete_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
+static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 {
-	FCurve *fcu= (FCurve *)fcu_v;
+	ListBase *modifiers = (ListBase *)fmods_v;
 	FModifier *fcm= (FModifier *)fcm_v;
 	
-	/* remove the given F-Modifier from the F-Curve */
-	fcurve_remove_modifier(fcu, fcm);
+	/* remove the given F-Modifier from the active modifier-stack */
+	remove_fmodifier(modifiers, fcm);
 }
 
 /* --------------- */
@@ -588,6 +588,7 @@ static void draw_modifier__limits(uiBlock *block, FModifier *fcm, int *yco, shor
 void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+	ListBase *modifiers= &fcu->modifiers; // XXX fixme... should be arg
 	uiBut *but;
 	short active= (fcm->flag & FMODIFIER_FLAG_ACTIVE);
 	short width= 314;
@@ -607,7 +608,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, FCurve *fcu, FModifier *fcm
 		
 		/* checkbox for 'active' status (for now) */
 		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	25, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one.");
-		uiButSetFunc(but, activate_fmodifier_cb, fcu, fcm);
+		uiButSetFunc(but, activate_fmodifier_cb, modifiers, fcm);
 		
 		/* name */
 		if (fmi)
@@ -620,7 +621,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, FCurve *fcu, FModifier *fcm
 		
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
-		uiButSetFunc(but, delete_fmodifier_cb, fcu, fcm);
+		uiButSetFunc(but, delete_fmodifier_cb, modifiers, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}

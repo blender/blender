@@ -795,7 +795,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	 */
 	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		FModifier *fcm= fcurve_find_active_modifier(fcu);
+		FModifier *fcm= find_active_fmodifier(&fcu->modifiers);
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* map keyframes for drawing if scaled F-Curve */
