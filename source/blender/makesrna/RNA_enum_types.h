@@ -1,5 +1,5 @@
 /**
- * $Id: RNA_enum_types.h 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -39,6 +39,9 @@ extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
 
 extern EnumPropertyItem fmodifier_type_items[];
+
+extern EnumPropertyItem event_value_items[];
+extern EnumPropertyItem event_type_items[];
 
 #endif /* RNA_ENUM_TYPES */
 

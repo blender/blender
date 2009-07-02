@@ -151,7 +151,7 @@ IF(WIN32)
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python25.zip\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
   )
   
   FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
@@ -164,7 +164,8 @@ IF(WIN32)
     COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26_d.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
   )
 
@@ -198,7 +199,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render blender_radiosity)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render)
 
 IF(WITH_ELBEEM)
   SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
@@ -218,7 +219,6 @@ IF(UNIX)
     bf_ghost 
     bf_string 
     blender_render 
-    blender_radiosity 
     blender_ONL 
     bf_python 
     bf_gen_python 
@@ -238,7 +238,6 @@ IF(UNIX)
     bf_kernel 
     bf_decimation 
     bf_elbeem 
-    bf_yafray 
     bf_IK 
     bf_memutil 
     bf_guardedalloc 
@@ -264,10 +263,7 @@ IF(UNIX)
     bf_ngnetwork 
     extern_bullet 
     bf_loopbacknetwork 
-    bf_sumo 
     bf_common 
-    extern_solid 
-    extern_qhull 
     bf_moto 
     bf_python
     bf_gen_python

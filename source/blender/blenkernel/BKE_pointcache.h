@@ -31,6 +31,8 @@
 
 #include "DNA_ID.h"
 
+#include "MEM_guardedalloc.h"
+
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL		0
@@ -42,6 +44,7 @@
 #define PTCACHE_RESET_DEPSGRAPH		0
 #define PTCACHE_RESET_BAKED			1
 #define PTCACHE_RESET_OUTDATED		2
+#define PTCACHE_RESET_FREE			3
 
 /* Add the blendfile name after blendcache_ */
 #define PTCACHE_EXT ".bphys"
@@ -55,6 +58,11 @@
 #define PTCACHE_TYPE_SOFTBODY	0
 #define PTCACHE_TYPE_PARTICLES	1
 #define PTCACHE_TYPE_CLOTH		2
+
+/* PTCache read return code */
+#define PTCACHE_READ_EXACT				1
+#define PTCACHE_READ_INTERPOLATED		2
+#define PTCACHE_READ_OLD				3
 
 /* Structs */
 struct Object;
@@ -80,6 +88,40 @@ typedef struct PTCacheID {
 	struct PointCache *cache;
 } PTCacheID;
 
+typedef struct PTCacheWriter {
+	struct PTCacheID *pid;
+	int cfra;
+	int totelem;
+
+	void (*set_elem)(int index, void *calldata, float *data);
+	void *calldata;
+} PTCacheWriter;
+
+typedef struct PTCacheReader {
+	struct Scene *scene;
+	struct PTCacheID *pid;
+	float cfra;
+	int totelem;
+
+	void (*set_elem)(int elem_index, void *calldata, float *data);
+	void (*interpolate_elem)(int index, void *calldata, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2);
+	void *calldata;
+
+	int *old_frame;
+} PTCacheReader;
+
+typedef struct PTCacheBaker {
+	struct Scene *scene;
+	int bake;
+	int render;
+	int quick_step;
+	struct PTCacheID *pid;
+	int (*break_test)(void *data);
+	void *break_data;
+	void (*progressbar)(void *data, int num);
+	void *progresscontext;
+} PTCacheBaker;
+
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
@@ -93,15 +135,21 @@ void BKE_ptcache_remove(void);
 /* ID specific functions */
 void	BKE_ptcache_id_clear(PTCacheID *id, int mode, int cfra);
 int		BKE_ptcache_id_exist(PTCacheID *id, int cfra);
-int		BKE_ptcache_id_reset(PTCacheID *id, int mode);
+int		BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
 void	BKE_ptcache_id_time(PTCacheID *pid, struct Scene *scene, float cfra, int *startframe, int *endframe, float *timescale);
-int		BKE_ptcache_object_reset(struct Object *ob, int mode);
+int		BKE_ptcache_object_reset(struct Scene *scene, struct Object *ob, int mode);
 
 /* File reading/writing */
 PTCacheFile	*BKE_ptcache_file_open(PTCacheID *id, int mode, int cfra);
 void         BKE_ptcache_file_close(PTCacheFile *pf);
 int          BKE_ptcache_file_read_floats(PTCacheFile *pf, float *f, int tot);
 int          BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot);
+
+void BKE_ptcache_update_info(PTCacheID *pid);
+
+/* General cache reading/writing */
+int			 BKE_ptcache_read_cache(PTCacheReader *reader);
+int			 BKE_ptcache_write_cache(PTCacheWriter *writer);
 
 /* Continue physics */
 void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
@@ -111,5 +159,10 @@ int BKE_ptcache_get_continue_physics(void);
 struct PointCache *BKE_ptcache_add(void);
 void BKE_ptcache_free(struct PointCache *cache);
 struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
+
+/* Baking */
+void BKE_ptcache_quick_cache_all(struct Scene *scene);
+void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
+void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 
 #endif

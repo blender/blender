@@ -1,5 +1,5 @@
 /**
- * $Id: report.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -65,8 +65,8 @@ void BKE_reports_init(ReportList *reports, int flag)
 
 	memset(reports, 0, sizeof(ReportList));
 
-	reports->storelevel= RPT_WARNING;
-	reports->printlevel= RPT_WARNING;
+	reports->storelevel= RPT_INFO;
+	reports->printlevel= RPT_INFO;
 	reports->flag= flag;
 }
 

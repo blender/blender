@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_report.h 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -34,7 +34,10 @@ extern "C" {
 
 #include "DNA_listBase.h"
 
-/* Reporting Information and Errors */
+/* Reporting Information and Errors
+ *
+ * These functions also accept NULL in case no error reporting
+ * is needed. */
 
 typedef enum ReportType {
 	RPT_DEBUG					= 0,

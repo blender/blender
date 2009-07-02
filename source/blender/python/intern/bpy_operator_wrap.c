@@ -1,6 +1,6 @@
 
 /**
- * $Id: bpy_operator_wrap.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -47,98 +47,6 @@
 #define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
 
-static PyObject *pyop_dict_from_event(wmEvent *event)
-{
-	PyObject *dict= PyDict_New();
-	PyObject *item;
-	char *cstring, ascii[2];
-
-	/* type */
-	item= PyUnicode_FromString(WM_key_event_string(event->type));
-	PyDict_SetItemString(dict, "type", item);	Py_DECREF(item);
-
-	/* val */
-	switch(event->val) {
-	case KM_ANY:
-		cstring = "ANY";
-		break;
-	case KM_RELEASE:
-		cstring = "RELEASE";
-		break;
-	case KM_PRESS:
-		cstring = "PRESS";
-		break;
-	default:
-		cstring = "UNKNOWN";
-		break;
-	}
-
-	item= PyUnicode_FromString(cstring);
-	PyDict_SetItemString(dict, "val", item);	Py_DECREF(item);
-
-	/* x, y (mouse) */
-	item= PyLong_FromLong(event->x);
-	PyDict_SetItemString(dict, "x", item);		Py_DECREF(item);
-
-	item= PyLong_FromLong(event->y);
-	PyDict_SetItemString(dict, "y", item);		Py_DECREF(item);
-
-	item= PyLong_FromLong(event->prevx);
-	PyDict_SetItemString(dict, "prevx", item);	Py_DECREF(item);
-
-	item= PyLong_FromLong(event->prevy);
-	PyDict_SetItemString(dict, "prevy", item);	Py_DECREF(item);
-
-	/* ascii */
-	ascii[0]= event->ascii;
-	ascii[1]= '\0';
-	item= PyUnicode_FromString(ascii);
-	PyDict_SetItemString(dict, "ascii", item);	Py_DECREF(item);
-
-	/* modifier keys */
-	item= PyLong_FromLong(event->shift);
-	PyDict_SetItemString(dict, "shift", item);	Py_DECREF(item);
-
-	item= PyLong_FromLong(event->ctrl);
-	PyDict_SetItemString(dict, "ctrl", item);	Py_DECREF(item);
-
-	item= PyLong_FromLong(event->alt);
-	PyDict_SetItemString(dict, "alt", item);	Py_DECREF(item);
-
-	item= PyLong_FromLong(event->oskey);
-	PyDict_SetItemString(dict, "oskey", item);	Py_DECREF(item);
-
-
-
-	/* modifier */
-#if 0
-	item= PyTuple_New(0);
-	if(event->keymodifier & KM_SHIFT) {
-		_PyTuple_Resize(&item, size+1);
-		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("SHIFT"));
-		size++;
-	}
-	if(event->keymodifier & KM_CTRL) {
-		_PyTuple_Resize(&item, size+1);
-		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("CTRL"));
-		size++;
-	}
-	if(event->keymodifier & KM_ALT) {
-		_PyTuple_Resize(&item, size+1);
-		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("ALT"));
-		size++;
-	}
-	if(event->keymodifier & KM_OSKEY) {
-		_PyTuple_Resize(&item, size+1);
-		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("OSKEY"));
-		size++;
-	}
-	PyDict_SetItemString(dict, "keymodifier", item);	Py_DECREF(item);
-#endif
-
-	return dict;
-}
-
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
 	{"CANCELLED", OPERATOR_CANCELLED},
@@ -180,6 +88,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 	PointerRNA ptr_context;
 	PointerRNA ptr_operator;
+	PointerRNA ptr_event;
 	PyObject *py_operator;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -198,15 +107,9 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		
 		/* Assign instance attributes from operator properties */
 		{
-			PropertyRNA *prop, *iterprop;
-			CollectionPropertyIterator iter;
 			const char *arg_name;
 
-			iterprop= RNA_struct_iterator_property(op->ptr->type);
-			RNA_property_collection_begin(op->ptr, iterprop, &iter);
-
-			for(; iter.valid; RNA_property_collection_next(&iter)) {
-				prop= iter.ptr.data;
+			RNA_STRUCT_BEGIN(op->ptr, prop) {
 				arg_name= RNA_property_identifier(prop);
 
 				if (strcmp(arg_name, "rna_type")==0) continue;
@@ -215,8 +118,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 				PyObject_SetAttrString(py_class_instance, arg_name, item);
 				Py_DECREF(item);
 			}
-
-			RNA_property_collection_end(&iter);
+			RNA_STRUCT_END;
 		}
 
 		/* set operator pointer RNA as instance "__operator__" attribute */
@@ -230,11 +132,13 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		if (mode==PYOP_INVOKE) {
 			item= PyObject_GetAttrString(py_class, "invoke");
 			args = PyTuple_New(3);
+			
+			RNA_pointer_create(NULL, &RNA_Event, event, &ptr_event);
 
 			// PyTuple_SET_ITEM "steals" object reference, it is
 			// an object passed shouldn't be DECREF'ed
 			PyTuple_SET_ITEM(args, 1, pyrna_struct_CreatePyObject(&ptr_context));
-			PyTuple_SET_ITEM(args, 2, pyop_dict_from_event(event));
+			PyTuple_SET_ITEM(args, 2, pyrna_struct_CreatePyObject(&ptr_event));
 		}
 		else if (mode==PYOP_EXEC) {
 			item= PyObject_GetAttrString(py_class, "execute");
@@ -449,7 +353,8 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	
 	/* remove if it already exists */
 	if ((ot=WM_operatortype_find(idname))) {
-		Py_XDECREF((PyObject*)ot->pyop_data);
+		if(ot->pyop_data)
+			Py_XDECREF((PyObject*)ot->pyop_data);
 		WM_operatortype_remove(idname);
 	}
 	

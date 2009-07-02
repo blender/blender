@@ -31,6 +31,7 @@
 #include "BKE_utildefines.h"	/* ABS */
 
 #include "DNA_view3d_types.h" /* for G.vd (view3d) */
+#include "DNA_windowmanager_types.h" /* for G.vd (view3d) */
 
 #include "WM_types.h"
 

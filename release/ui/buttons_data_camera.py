@@ -26,10 +26,10 @@ class DATA_PT_camera(DataButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if ob:
-			split.template_ID(context, ob, "data")
+			split.template_ID(ob, "data")
 			split.itemS()
 		elif arm:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
 
 		if cam:

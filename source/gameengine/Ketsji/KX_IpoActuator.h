@@ -121,8 +121,7 @@ public:
 				   int acttype,
 				   bool ipo_as_force, 
 				   bool ipo_add,
-				   bool ipo_local,
-				   PyTypeObject* T=&Type);
+				   bool ipo_local);
 	virtual ~KX_IpoActuator() {};
 
 	virtual CValue* GetReplica() {
@@ -138,10 +137,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 	
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC_VARARGS(KX_IpoActuator,Set);

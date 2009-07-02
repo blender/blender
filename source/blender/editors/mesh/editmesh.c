@@ -841,7 +841,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	
 	em= me->edit_mesh;
 	
-	em->selectmode= scene->selectmode; // warning needs to be synced
+	em->selectmode= scene->toolsettings->selectmode; // warning needs to be synced
 	em->act_face = NULL;
 	em->totvert= tot= me->totvert;
 	em->totedge= me->totedge;
@@ -1556,7 +1556,7 @@ static int mesh_separate_material(Scene *scene, Base *editbase)
 		/* clear selection, we're going to use that to select material group */
 		EM_clear_flag_all(em, SELECT);
 		/* select the material */
-		editmesh_select_by_material(em, curr_mat);
+		EM_select_by_material(em, curr_mat);
 		/* and now separate */
 		if(0==mesh_separate_selected(scene, editbase)) {
 			BKE_mesh_end_editmesh(me, em);

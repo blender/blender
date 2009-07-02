@@ -61,9 +61,20 @@ void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
 
 /* buttons_ops.c */
+void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_remove(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_assign(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_select(struct wmOperatorType *ot);
+void OBJECT_OT_material_slot_deselect(struct wmOperatorType *ot);
+
 void MATERIAL_OT_new(struct wmOperatorType *ot);
 void TEXTURE_OT_new(struct wmOperatorType *ot);
 void WORLD_OT_new(struct wmOperatorType *ot);
+
+void OBJECT_OT_particle_system_add(struct wmOperatorType *ot);
+void OBJECT_OT_particle_system_remove(struct wmOperatorType *ot);
+
+void PARTICLE_OT_new(struct wmOperatorType *ot);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

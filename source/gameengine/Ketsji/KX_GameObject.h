@@ -63,6 +63,10 @@ struct Object;
 /* utility conversion function */
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
 
+#ifdef USE_MATHUTILS
+void KX_GameObject_Mathutils_Callback_Init(void);
+#endif
+
 /**
  * KX_GameObject is the main class for dynamic objects.
  */
@@ -185,8 +189,7 @@ public:
 
 	KX_GameObject(
 		void* sgReplicationInfo,
-		SG_Callbacks callbacks,
-		PyTypeObject* T=&Type
+		SG_Callbacks callbacks
 	);
 
 	virtual 
@@ -393,6 +396,7 @@ public:
 	void	NodeSetLocalPosition(const MT_Point3& trans	);
 
 	void	NodeSetLocalOrientation(const MT_Matrix3x3& rot	);
+	void	NodeSetGlobalOrientation(const MT_Matrix3x3& rot	);
 
 	void	NodeSetLocalScale(	const MT_Vector3& scale	);
 
@@ -406,21 +410,13 @@ public:
 		double time
 	);
 
-	const 
-		MT_Matrix3x3&			
-	NodeGetWorldOrientation(
-	) const;
+	const MT_Matrix3x3& NodeGetWorldOrientation(  ) const;
+	const MT_Vector3& NodeGetWorldScaling(  ) const;
+	const MT_Point3& NodeGetWorldPosition(  ) const;
 
-	const 
-		MT_Vector3&			
-	NodeGetWorldScaling(
-	) const;
-
-	const 
-		MT_Point3&			
-	NodeGetWorldPosition(
-	) const;
-
+	const MT_Matrix3x3& NodeGetLocalOrientation(  ) const;
+	const MT_Vector3& NodeGetLocalScaling(  ) const;
+	const MT_Point3& NodeGetLocalPosition(  ) const;
 
 	/**
 	 * @section scene graph node accessor functions.
@@ -811,22 +807,10 @@ public:
 	/**
 	 * @section Python interface functions.
 	 */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
-	virtual int				py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void)
 	{
-		return PyString_FromString(GetName().ReadPtr());
+		return PyUnicode_FromString(GetName().ReadPtr());
 	}
-	
-	
-	/* quite annoying that we need these but the bloody 
-	 * py_getattro_up and py_setattro_up macro's have a returns in them! */
-	PyObject* py_getattro__internal(PyObject *attr);
-	int py_setattro__internal(PyObject *attr, PyObject *value);		// py_setattro method
-	
 		
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);

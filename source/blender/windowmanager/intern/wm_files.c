@@ -294,8 +294,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	G.relbase_valid = 0;
 	if (!from_memory) {
 		BLI_make_file_string(G.sce, tstr, home, ".B25.blend");
-		if(!BLI_exists(tstr))
-			BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	}
 	strcpy(scestr, G.sce);	/* temporary store */
 	
@@ -577,7 +575,7 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 //	}
 	
 	if (G.fileflags & G_AUTOPACK) {
-		packAll();
+		packAll(G.main, reports);
 	}
 	
 	ED_object_exit_editmode(C, 0);

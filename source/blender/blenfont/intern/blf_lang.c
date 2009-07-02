@@ -1,5 +1,5 @@
 /**
- * $Id: blf_lang.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

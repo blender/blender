@@ -43,6 +43,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -110,7 +111,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_STRING:
-			but= uiDefButR(block, TEX, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			if(icon && name && strcmp(name, "") == 0)
+				but= uiDefIconButR(block, TEX, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else if(icon)
+				but= uiDefIconTextButR(block, TEX, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else
+				but= uiDefButR(block, TEX, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		case PROP_POINTER: {
 			PointerRNA pptr;
@@ -120,6 +126,8 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			if(!pptr.type)
 				pptr.type= RNA_property_pointer_type(ptr, prop);
 			icon= RNA_struct_ui_icon(pptr.type);
+			if(icon == ICON_DOT)
+				icon= 0;
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
@@ -139,68 +147,38 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int columns)
 {
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	uiLayout *split;
+	uiLayout *split, *col;
 	char *name;
 
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
+	RNA_STRUCT_BEGIN(ptr, prop) {
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
-		split = uiLayoutSplit(layout, 0.5f);
-
 		name= (char*)RNA_property_ui_name(prop);
 
-		uiItemL(uiLayoutColumn(split, 0), name, 0);
-		uiItemFullR(uiLayoutColumn(split, 0), "", 0, ptr, prop, -1, 0, 0, 0, 0);
-	}
+		if(columns == 1) {
+			col= uiLayoutColumn(layout, 1);
+			uiItemL(col, name, 0);
+		}
+		else if(columns == 2) {
+			split = uiLayoutSplit(layout, 0.5f);
 
-	RNA_property_collection_end(&iter);
-}
+			uiItemL(uiLayoutColumn(split, 0), name, 0);
+			col= uiLayoutColumn(split, 0);
+		}
 
-/* temp call, single collumn, test for toolbar only */
-void uiDefAutoButsRNA_single(const bContext *C, uiLayout *layout, PointerRNA *ptr)
-{
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *prop;
-	uiLayout *col;
-	char *name;
-	
-	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
-	
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-	
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-		
-		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
-			continue;
-		
-		name= (char*)RNA_property_ui_name(prop);
-		col= uiLayoutColumn(layout, 1);
-		uiItemL(col, name, 0);
-		
 		/* temp hack to show normal button for spin/screw */
 		if(strcmp(name, "Axis")==0) {
-			uiDefButR(uiLayoutGetBlock(layout), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
+			uiDefButR(uiLayoutGetBlock(col), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
 		}
 		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
 	}
-	
-	RNA_property_collection_end(&iter);
+	RNA_STRUCT_END;
 }
-
 
 /***************************** ID Utilities *******************************/
 /* note, C code version, will be replaced with version in interface_templates.c */
@@ -304,9 +282,25 @@ static void id_search_cb(const struct bContext *C, void *arg_params, char *str, 
 	ID *id;
 	
 	for(id= params->lb->first; id; id= id->next) {
+		int iconid= 0;
+		
+		
+		/* icon */
+		switch(GS(id->name))
+		{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				iconid= BKE_icon_getid(id);
+				break;
+			default:
+				break;
+		}
 		
 		if(BLI_strcasestr(id->name+2, str)) {
-			if(0==uiSearchItemAdd(items, id->name+2, id))
+			if(0==uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
 		}
 	}
@@ -333,7 +327,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_params)
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
-	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb);
+	uiButSetSearchFunc(but, id_search_cb, &params, id_search_call_cb, NULL);
 	
 	uiBoundsBlock(block, 6);
 	uiBlockSetDirection(block, UI_DOWN);	

@@ -49,6 +49,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -234,6 +235,8 @@ void wm_event_do_notifiers(bContext *C)
 			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
 			}
+
+			BKE_ptcache_quick_cache_all(scene);
 		}		
 	}
 	CTX_wm_window_set(C, NULL);
@@ -730,17 +733,20 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
 	ARegion *menu= CTX_wm_menu(C);
-	int retval;
+	int retval, always_pass;
 			
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
 	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
+	/* in advance to avoid access to freed event on window close */
+	always_pass= wm_event_always_pass(event);
+
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
 	/* putting back screen context */
-	if((retval != WM_UI_HANDLER_BREAK) || wm_event_always_pass(event)) {
+	if((retval != WM_UI_HANDLER_BREAK) || always_pass) {
 		CTX_wm_area_set(C, area);
 		CTX_wm_region_set(C, region);
 		CTX_wm_menu_set(C, menu);
@@ -773,7 +779,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
-				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORTALPHA;
+				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORT_ALPHA;
 				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
 				if(event->val==EVT_FILESELECT_OPEN)
@@ -869,6 +875,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
+	int always_pass;
 
 	if(handlers==NULL) return action;
 	
@@ -878,6 +885,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 		/* optional boundbox */
 		if(handler_boundbox_test(handler, event)) {
+			/* in advance to avoid access to freed event on window close */
+			always_pass= wm_event_always_pass(event);
 		
 			/* modal+blocking handler */
 			if(handler->flag & WM_HANDLER_BLOCKING)
@@ -909,7 +918,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
-			if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
+			if(!always_pass && action==WM_HANDLER_BREAK)
 				break;
 		}
 		

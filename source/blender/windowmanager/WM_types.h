@@ -58,37 +58,6 @@ enum {
 	WM_OP_EXEC_SCREEN
 };
 
-/* ************** wmEvent ************************ */
-
-/* each event should have full modifier state */
-/* event comes from eventmanager and from keymap */
-typedef struct wmEvent {
-	struct wmEvent *next, *prev;
-	
-	short type;			/* event code itself (short, is also in keymap) */
-	short val;			/* press, release, scrollvalue */
-	short x, y;			/* mouse pointer position, screen coord */
-	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
-	short prevx, prevy;	/* previous mouse pointer position */
-	short unicode;		/* future, ghost? */
-	char ascii;			/* from ghost */
-	char pad;
-	
-	/* modifier states */
-	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;				/* rawkey modifier */
-	
-	/* keymap item, set by handler (weak?) */
-	const char *keymap_idname;
-	
-	/* custom data */
-	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	short customdatafree;
-	
-} wmEvent;
-
-
 /* ************** wmKeyMap ************************ */
 
 /* modifier */
@@ -159,6 +128,7 @@ typedef struct wmNotifier {
 #define	NC_BRUSH			(11<<24)
 #define	NC_TEXT				(12<<24)
 #define NC_WORLD			(13<<24)
+#define NC_FILE				(14<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -213,6 +183,10 @@ typedef struct wmNotifier {
 	/* NC_TEXT Text */
 #define ND_CURSOR			(50<<16)
 #define ND_DISPLAY			(51<<16)
+	
+	/* NC_FILE Filebrowser */
+#define ND_PARAMS			(60<<16)
+#define ND_FILELIST			(61<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

@@ -210,9 +210,20 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
+	WM_operatortype_append(OBJECT_OT_material_slot_add);
+	WM_operatortype_append(OBJECT_OT_material_slot_remove);
+	WM_operatortype_append(OBJECT_OT_material_slot_assign);
+	WM_operatortype_append(OBJECT_OT_material_slot_select);
+	WM_operatortype_append(OBJECT_OT_material_slot_deselect);
+
 	WM_operatortype_append(MATERIAL_OT_new);
 	WM_operatortype_append(TEXTURE_OT_new);
 	WM_operatortype_append(WORLD_OT_new);
+
+	WM_operatortype_append(OBJECT_OT_particle_system_add);
+	WM_operatortype_append(OBJECT_OT_particle_system_remove);
+
+	WM_operatortype_append(PARTICLE_OT_new);
 }
 
 void buttons_keymap(struct wmWindowManager *wm)
@@ -220,14 +231,23 @@ void buttons_keymap(struct wmWindowManager *wm)
 	
 }
 
+//#define PY_HEADER
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
+#ifdef PY_HEADER
+	ED_region_header_init(ar);
+#else
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+#endif
 }
 
 static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 {
+#ifdef PY_HEADER
+	ED_region_header(C, ar);
+#else
+
 	float col[3];
 	
 	/* clear */
@@ -243,7 +263,8 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
 	buttons_header_buttons(C, ar);
-	
+#endif	
+
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
@@ -310,6 +331,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_MODE:
 					ED_area_tag_redraw(sa);
 					break;
 					
@@ -327,6 +349,11 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_GEOM_SELECT:
 					ED_area_tag_redraw(sa);
 					break;
+				case ND_SHADING:
+				case ND_SHADING_DRAW:
+					/* currently works by redraws... if preview is set, it (re)starts job */
+					sbuts->preview= 1;
+					break;
 			}
 			break;
 		case NC_MATERIAL:
@@ -337,7 +364,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
-					printf("shader notifier \n");
 					break;
 			}					
 			break;

@@ -43,7 +43,7 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 
 		if ma or la or wo:
 			if slot:
-				split.template_ID(context, slot, "texture", new="TEXTURE_OT_new")
+				split.template_ID(slot, "texture", new="TEXTURE_OT_new")
 			else:
 				split.itemS()
 
@@ -54,7 +54,7 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 			elif wo:
 				split.itemR(wo, "active_texture_index", text="Active")
 		elif tex:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
 
 		layout.itemS()

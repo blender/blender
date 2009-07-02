@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_context.h 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -131,6 +131,7 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
    - the dir listbase consits of LinkData items */
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
+PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
 ListBase CTX_data_dir_get(const bContext *C);
 void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);

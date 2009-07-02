@@ -72,7 +72,7 @@ class SCA_PythonController : public SCA_IController
 	//virtual	CValue*		AddRef();
 	//virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
 
-	SCA_PythonController(SCA_IObject* gameobj, int mode, PyTypeObject* T = &Type);
+	SCA_PythonController(SCA_IObject* gameobj, int mode);
 	virtual ~SCA_PythonController();
 
 	virtual CValue* GetReplica();
@@ -96,10 +96,6 @@ class SCA_PythonController : public SCA_IController
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
 	static SCA_IActuator* LinkedActuatorFromPy(PyObject *value);
-		
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 		
 	KX_PYMETHOD_O(SCA_PythonController,Activate);

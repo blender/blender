@@ -76,10 +76,11 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "GPU_draw.h"
+
 #include "PIL_time.h" /* smoothview */
 
 #include "view3d_intern.h"	// own include
-
 
 /* use this call when executing an operator,
    event system doesn't set for each event the
@@ -1430,6 +1431,9 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	Scene *startscene = CTX_data_scene(C);
 	
 #if GAMEBLENDER == 1
+	
+	view3d_operator_needs_opengl(C);
+	
 	SaveState(C);
 	StartKetsjiShell(C, 1);
 	RestoreState(C);

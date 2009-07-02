@@ -2878,6 +2878,16 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
+	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		PTCacheMem *pm;
+
+		link_list(fd, &cache->mem_cache);
+
+		pm = cache->mem_cache.first;
+
+		for(; pm; pm=pm->next)
+			pm->data = newdataadr(fd, pm->data);
+	}
 	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
 	cache->simframe= 0;
 }
@@ -2889,7 +2899,9 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	part= main->particle.first;
 	while(part) {
 		if(part->id.flag & LIB_NEEDLINK) {
+			if (part->adt) lib_link_animdata(fd, &part->id, part->adt);
 			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
+			
 			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
@@ -2902,6 +2914,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
+	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
 }
@@ -3142,10 +3155,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
 		direct_link_customdata(fd, &mesh->mr->fdata, lvl->totface);
 		
-		if(!mesh->mr->edge_flags)
-			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
-		if(!mesh->mr->edge_creases)
-			mesh->mr->edge_creases= MEM_callocN(sizeof(char)*lvl->totedge, "Multires Edge Creases");
+		mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
+		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
 			
@@ -3933,8 +3944,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	direct_link_keyingsets(fd, &sce->keyingsets);
 	
 	sce->basact= newdataadr(fd, sce->basact);
-
-	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if(sce->toolsettings) {
@@ -5586,21 +5595,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* temporarily hide it */
 				ar->flag = RGN_FLAG_HIDDEN;
 				break;
-				
-			case SPACE_FILE:
-				/* channel (bookmarks/directories) region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_CHANNELS;
-				ar->alignment= RGN_ALIGN_LEFT;
-				ar->v2d.scroll= V2D_SCROLL_RIGHT;
-				/* button UI region */
-				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
-				ar->alignment= RGN_ALIGN_TOP;
-				break;
-
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
@@ -7096,22 +7090,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 
 	if(main->versionfile <= 234) {
-		Scene *sce;
 		World *wo;
 		bScreen *sc;
-		int set_zbuf_sel=0;
 		
 		// force sumo engine to be active
 		for (wo = main->world.first; wo; wo= wo->id.next) {
 			if(wo->physicsEngine==0) wo->physicsEngine = 2;
 		}
 		
-		for (sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->selectmode==0) {
-				sce->selectmode= SCE_SELECT_VERTEX;
-				set_zbuf_sel= 1;
-			}
-		}
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -7119,7 +7105,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D *)sl;
-						if(set_zbuf_sel) v3d->flag |= V3D_ZBUF_SELECT;
+						v3d->flag |= V3D_ZBUF_SELECT;
 					}
 					else if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText *)sl;
@@ -7154,16 +7140,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 236) {
 		Object *ob;
-		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
 		Material *ma;
 		bScreen *sc;
 
-		while(sce) {
-			if(sce->editbutsize==0.0) sce->editbutsize= 0.1f;
-			
-			sce= sce->id.next;
-		}
 		while(cam) {
 			if(cam->ortho_scale==0.0) {
 				cam->ortho_scale= 256.0f/cam->lens;
@@ -8789,15 +8769,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	/* autokey mode settings now used from scene, but need to be initialised off userprefs */
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 8)) {
-		Scene *sce;
-		
-		for (sce= main->scene.first; sce; sce= sce->id.next) {
-			if (sce->autokey_mode == 0)
-				sce->autokey_mode= U.autokey_mode;
-		}
-	}
 
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 9)) {
 		Lamp *la= main->lamp.first;
@@ -8990,6 +8961,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	}
 
+	if (main->versionfile < 249 && main->subversionfile < 2) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				SEQP_BEGIN(ed, seq) {
+					if (seq->strip && seq->strip->proxy){
+						if (sce->r.size != 100.0) {
+							seq->strip->proxy->size
+								= sce->r.size;
+						} else {
+							seq->strip->proxy->size
+								= 25.0;
+						}
+						seq->strip->proxy->quality =90;
+					}
+				}
+				SEQ_END
+			}
+			
+			sce= sce->id.next;
+		}
+
+	}
+
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
@@ -8998,6 +8997,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Tex *tx;
 		ParticleSettings *part;
+		Object *ob;
+		PTCacheID *pid;
+		ListBase pidlist;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
@@ -9009,12 +9011,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* struct audio data moved to renderdata */
+		/* toolsettings */
 		for(scene= main->scene.first; scene; scene= scene->id.next) {
 			scene->r.audio = scene->audio;
 			
-			if(!scene->toolsettings->uv_selectmode)
+			if(!scene->toolsettings->uv_selectmode) {
 				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
+				scene->toolsettings->vgroup_weight= 1.0f;
+			}
 		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
@@ -9040,7 +9044,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
 		}
 
-		/* particle settings conversion */
+		/* particle draw and render types */
 		for(part= main->particle.first; part; part= part->id.next) {
 			if(part->draw_as) {
 				if(part->draw_as == PART_DRAW_DOT) {
@@ -9056,6 +9060,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		/* set old pointcaches to have disk cache flag */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+
+			BKE_ptcache_ids_from_object(&pidlist, ob);
+
+			for(pid=pidlist.first; pid; pid=pid->next)
+				pid->cache->flag |= PTCACHE_DISK_CACHE;
+
+			BLI_freelistN(&pidlist);
+		}
 	}
 
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
@@ -9063,6 +9077,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Object *ob;
 		Material *ma;
+		Scene *sce;
+		ToolSettings *ts;
 		int i;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -9135,36 +9151,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->mode &= ~MA_HALO;
 			}
 		}
-	}
-	
-	if (main->versionfile < 249 && main->subversionfile < 2) {
-		Scene *sce= main->scene.first;
-		Sequence *seq;
-		Editing *ed;
-		
-		while(sce) {
-			ed= sce->ed;
-			if(ed) {
-				SEQP_BEGIN(ed, seq) {
-					if (seq->strip && seq->strip->proxy){
-						if (sce->r.size != 100.0) {
-							seq->strip->proxy->size
-								= sce->r.size;
-						} else {
-							seq->strip->proxy->size
-								= 25.0;
-						}
-						seq->strip->proxy->quality =90;
-					}
-				}
-				SEQ_END
+
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			ts= sce->toolsettings;
+			if(ts->normalsize == 0.0) {
+				ts->normalsize= 0.1f;
+				ts->selectmode= SCE_SELECT_VERTEX;
+				ts->autokey_mode= U.autokey_mode;
 			}
-			
-			sce= sce->id.next;
 		}
-
 	}
-
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -9517,6 +9513,8 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 	expand_doit(fd, mainvar, part->dup_group);
 	expand_doit(fd, mainvar, part->eff_group);
 	expand_doit(fd, mainvar, part->bb_ob);
+	
+	expand_animdata(fd, mainvar, part->adt);
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)

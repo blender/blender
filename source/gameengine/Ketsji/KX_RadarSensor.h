@@ -70,8 +70,7 @@ public:
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
-			PyTypeObject* T = &Type);
+			class KX_Scene* kxscene);
 	KX_RadarSensor();
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();
@@ -89,9 +88,7 @@ public:
 		KX_RADAR_AXIS_NEG_Z
 	};
 
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject* value);
+	/* python */
 	virtual sensortype GetSensorType() { return ST_RADAR; }
 
 	//Deprecated ----->

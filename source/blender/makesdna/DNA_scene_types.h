@@ -39,7 +39,6 @@ extern "C" {
 #include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
-struct Radio;
 struct Object;
 struct World;
 struct Scene;
@@ -48,6 +47,7 @@ struct Group;
 struct Text;
 struct bNodeTree;
 struct AnimData;
+struct Editing;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -158,7 +158,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_REFRACT	1024
 #define SCE_PASS_INDEXOB	2048
 #define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192
+#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
@@ -385,6 +385,8 @@ typedef struct ParticleEditSettings {
 
 	float emitterdist;
 	int draw_timed;
+
+	int selectmode, pad;
 } ParticleEditSettings;
 
 typedef struct TransformOrientation {
@@ -439,19 +441,27 @@ typedef struct ToolSettings {
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
 	
+	/* Vertex groups */
+	float vgroup_weight;
+
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
 	/*Triangle to Quad conversion threshold*/
 	float jointrilimit;
-	/* Extrude Tools */
+	/* Editmode Tools */
 	float degr; 
 	short step;
 	short turn; 
 	
-	float extr_offs; 
-	float doublimit;
-	
+	float extr_offs; 	/* extrude offset */
+	float doublimit;	/* remove doubles limit */
+	float normalsize;	/* size of normals */
+	short automerge;
+
+	/* Selection Mode for Mesh */
+	short selectmode;
+
 	/* Primitive Settings */
 	/* UV Sphere */
 	short segments;
@@ -465,7 +475,6 @@ typedef struct ToolSettings {
 	float uvcalc_radius;
 	float uvcalc_cubesize;
 	float uvcalc_margin;
-	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -487,8 +496,11 @@ typedef struct ToolSettings {
 	/* Select Group Threshold */
 	float select_thresh;
 	
-	/* IPO-Editor */
+	/* Graph Editor */
 	float clean_thresh;
+
+	/* Auto-Keying Mode */
+	short autokey_mode, pad2;	/* defines in DNA_userdef_types.h */
 	
 	/* Retopo */
 	char retopo_mode;
@@ -515,7 +527,6 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	int   skgen_pad;
 	
 	/* Skeleton Sketching */
 	struct Object *skgen_template;
@@ -529,7 +540,10 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[2];
+
+	/* Transform */
+	short snap_mode, snap_flag, snap_target;
+	short proportional, prop_mode;
 } ToolSettings;
 
 typedef struct bStats {
@@ -550,29 +564,22 @@ typedef struct Scene {
 	struct Image *ima;
 	
 	ListBase base;
-	struct Base *basact;
+	struct Base *basact;		/* active base */
 	struct Object *obedit;		/* name replaces old G.obedit */
 	
-	float cursor[3];
+	float cursor[3];			/* 3d cursor location */
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
 	
-	/* editmode stuff */
-	float editbutsize;                      /* size of normals */
-	short selectmode;						/* for mesh only! */
-	short proportional, prop_mode;
-	short automerge, pad5;
 	
 	short flag;								/* various settings */
-	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h) */
 	
 	short use_nodes;
 	
 	struct bNodeTree *nodetree;	
 	
-	void *ed;								/* sequence editor data is allocated here */
-	struct Radio *radio;
+	struct Editing *ed;								/* sequence editor data is allocated here */
 	
 	struct GameFraming framing;
 
@@ -582,20 +589,20 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
-	struct AudioData audio;		/* DEPRICATED 2.5 */
+	struct AudioData audio;		/* DEPRECATED 2.5 */
 	
 	ScriptLink scriptlink;
 	
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	short jumpframe;
-	short snap_mode, snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
+	short recalc;				/* recalc = counterpart of ob->recalc */
+
+	short jumpframe;
 
 	/* frame step. */
 	int frame_step;
@@ -801,27 +808,27 @@ typedef struct Scene {
 
 /* base->flag is in DNA_object_types.h */
 
-/* scene->snap_flag */
+/* toolsettings->snap_flag */
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
-/* scene->snap_target */
+/* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
-/* scene->snap_mode */
+/* toolsettings->snap_mode */
 #define SCE_SNAP_MODE_VERTEX	0
 #define SCE_SNAP_MODE_EDGE		1
 #define SCE_SNAP_MODE_FACE		2
 #define SCE_SNAP_MODE_VOLUME	3
 
-/* sce->selectmode */
+/* toolsettings->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
 
-/* sce->selectmode for particles */
+/* toolsettings->particle.selectmode for particles */
 #define SCE_SELECT_PATH		1
 #define SCE_SELECT_POINT	2
 #define SCE_SELECT_END		4
@@ -829,7 +836,7 @@ typedef struct Scene {
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1
 
-/* sce->prop_mode (proportional falloff) */
+/* toolsettings->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0
 #define PROP_SPHERE            1
 #define PROP_ROOT              2
@@ -896,7 +903,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uv_selectmode */
 #define UV_SELECT_VERTEX	1
-#define UV_SELECT_EDGE		2 /* not implemented */
+#define UV_SELECT_EDGE		2
 #define UV_SELECT_FACE		4
 #define UV_SELECT_ISLAND	8
 

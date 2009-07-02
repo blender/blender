@@ -1,5 +1,5 @@
 /**
- * $Id: rna_main.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -264,7 +264,7 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i][0], PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i][1]);
-		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, "add_mesh", "remove_mesh");
+		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
 

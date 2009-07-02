@@ -3543,7 +3543,7 @@ static void displaceModifier_updateDepgraph(
 	}
 }
 
-static void validate_layer_name(const CustomData *data, int type, char *name)
+static void validate_layer_name(const CustomData *data, int type, char *name, char *outname)
 {
 	int index = -1;
 
@@ -3556,8 +3556,10 @@ static void validate_layer_name(const CustomData *data, int type, char *name)
 		* deleted, so assign the active layer to name
 		*/
 		index = CustomData_get_active_layer_index(data, CD_MTFACE);
-		strcpy(name, data->layers[index].name);
+		strcpy(outname, data->layers[index].name);
 	}
+	else
+		strcpy(outname, name);
 }
 
 static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
@@ -3583,12 +3585,11 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 					"get_texture_coords done");
 			int numFaces = dm->getNumFaces(dm);
+			char uvname[32];
 			MTFace *tf;
 
-			validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name);
-
-			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
-					dmd->uvlayer_name);
+			validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);
+			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 			/* verts are given the UV from the first face that uses them */
 			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
@@ -3884,6 +3885,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
 	float aspect;
+	char uvname[32];
 	
 	if(umd->aspecty != 0) aspect = umd->aspectx / umd->aspecty;
 	else aspect = 1.0f;
@@ -3898,12 +3900,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(!dm->getFaceDataArray(dm, CD_MTFACE)) return dm;
 
 	/* make sure we're using an existing layer */
-	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name);
+	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
 
 	/* make sure we are not modifying the original UV layer */
 	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
-			CD_MTFACE,
-   umd->uvlayer_name);
+			CD_MTFACE, uvname);
 
 	numVerts = dm->getNumVerts(dm);
 
@@ -5185,12 +5186,11 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 					"get_texture_coords done");
 			int numFaces = dm->getNumFaces(dm);
+			char uvname[32];
 			MTFace *tf;
 
-			validate_layer_name(&dm->faceData, CD_MTFACE, wmd->uvlayer_name);
-
-			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
-					wmd->uvlayer_name);
+			validate_layer_name(&dm->faceData, CD_MTFACE, wmd->uvlayer_name, uvname);
+			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 			/* verts are given the UV from the first face that uses them */
 			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
@@ -6294,6 +6294,9 @@ CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, ModifierData 
 	Material *ma;
 	MTex *mtex;
 	int i;
+
+	if(!psmd->psys->part)
+		return 0;
 
 	ma= give_current_material(ob, psmd->psys->part->omat);
 	if(ma) {

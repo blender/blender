@@ -1,6 +1,6 @@
 /* DataToC output of file <Bfont> */
 /*
- * $Id: Bfont.c 125 2002-11-25 12:02:15Z mein $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

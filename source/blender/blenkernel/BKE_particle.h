@@ -217,6 +217,8 @@ char *psys_menu_string(struct Object *ob, int for_sb);
 
 struct ParticleSystem *psys_get_current(struct Object *ob);
 short psys_get_current_num(struct Object *ob);
+void psys_set_current_num(Object *ob, int index);
+struct Object *psys_find_object(struct Scene *scene, struct ParticleSystem *psys);
 //struct ParticleSystem *psys_get(struct Object *ob, int index);
 struct ParticleData *psys_get_selected_particle(struct ParticleSystem *psys, int *index);
 struct ParticleKey *psys_get_selected_key(struct ParticleSystem *psys, int pa_index, int *key_index);
@@ -249,6 +251,8 @@ void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int tim
 void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
+void object_add_particle_system(struct Scene *scene, struct Object *ob);
+void object_remove_particle_system(struct Scene *scene, struct Object *ob);
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
 void psys_flush_particle_settings(struct Scene *scene, struct ParticleSettings *part, int recalc);
@@ -290,10 +294,13 @@ void psys_get_reactor_target(struct Object *ob, struct ParticleSystem *psys, str
 void psys_init_effectors(struct Scene *scene, struct Object *obsrc, struct Group *group, struct ParticleSystem *psys);
 void psys_end_effectors(struct ParticleSystem *psys);
 
+void psys_get_pointcache_start_end(struct Scene *scene, struct ParticleSystem *psys, int *sfra, int *efra);
+
 void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
 /* ----------- functions needed only inside particlesystem ------------ */
 /* particle.c */
+void psys_interpolate_particle(short type, struct ParticleKey keys[4], float dt, struct ParticleKey *result, int velocity);
 void psys_key_to_object(struct Object *ob, struct ParticleKey *key, float imat[][4]);
 //void psys_key_to_geometry(struct DerivedMesh *dm, struct ParticleData *pa, struct ParticleKey *key);
 //void psys_key_from_geometry(struct DerivedMesh *dm, struct ParticleData *pa, struct ParticleKey *key);

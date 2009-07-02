@@ -53,7 +53,7 @@ protected:
 	CValue* GetEvent();
 
 public:
-	SCA_ILogicBrick(SCA_IObject* gameobj,PyTypeObject* T );
+	SCA_ILogicBrick(SCA_IObject* gameobj);
 	virtual ~SCA_ILogicBrick();
 
 	void SetExecutePriority(int execute_Priority);
@@ -121,10 +121,6 @@ public:
 	}
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 

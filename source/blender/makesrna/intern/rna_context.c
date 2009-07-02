@@ -1,5 +1,5 @@
 /**
- * $Id: rna_context.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -40,11 +40,11 @@ static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_WindowManager, CTX_wm_manager(C));
 }
 
-/*static PointerRNA rna_Context_window_get(PointerRNA *ptr)
+static PointerRNA rna_Context_window_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_Window, CTX_wm_window(C));
-}*/
+}
 
 static PointerRNA rna_Context_screen_get(PointerRNA *ptr)
 {
@@ -96,6 +96,12 @@ static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Scene, CTX_data_scene(C));
 }
 
+static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
+{
+	bContext *C= (bContext*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
+}
+
 #else
 
 void RNA_def_context(BlenderRNA *brna)
@@ -113,10 +119,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "WindowManager");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_manager_get", NULL, NULL);
 
-	/* prop= RNA_def_property(srna, "window", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "window", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Window");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_window_get", NULL, NULL); */
+	RNA_def_property_pointer_funcs(prop, "rna_Context_window_get", NULL, NULL);
 
 	prop= RNA_def_property(srna, "screen", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -153,6 +159,12 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "ToolSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_tool_settings_get", NULL, NULL);
+
 }
 
 #endif

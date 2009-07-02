@@ -84,7 +84,7 @@
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, "", "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORTALPHA);
+		ED_fileselect_set_params(sfile, "", "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
 	}
 	return sfile->params;
 }
@@ -159,7 +159,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width(str);
+	return BLF_width((char *)str);
 }
 
 float file_font_pointsize()

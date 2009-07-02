@@ -114,7 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				RuntimeLibrary="0"
@@ -180,6 +180,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_armature_gen.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna.cRNA_blender_cpp.h"
 				>
 			</File>
 			<File
@@ -292,10 +296,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_property_gen.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_radio_gen.c"
 				>
 			</File>
 			<File

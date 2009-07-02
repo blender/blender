@@ -1,5 +1,5 @@
 /**
- * $Id: editarmature_sketch.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -243,6 +243,7 @@ void BIF_makeListTemplates(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	Base *base;
 	int index = 0;
 
@@ -263,7 +264,7 @@ void BIF_makeListTemplates(bContext *C)
 			index++;
 			BLI_ghash_insert(TEMPLATES_HASH, SET_INT_IN_POINTER(index), ob);
 			
-			if (ob == scene->toolsettings->skgen_template)
+			if (ob == ts->skgen_template)
 			{
 				TEMPLATES_CURRENT = index;
 			}
@@ -305,8 +306,9 @@ char *BIF_listTemplates(bContext *C)
 
 int   BIF_currentTemplate(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
-	if (TEMPLATES_CURRENT == 0 && scene->toolsettings->skgen_template != NULL)
+	ToolSettings *ts = CTX_data_tool_settings(C);
+
+	if (TEMPLATES_CURRENT == 0 && ts->skgen_template != NULL)
 	{
 		GHashIterator ghi;
 		BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
@@ -316,7 +318,7 @@ int   BIF_currentTemplate(bContext *C)
 			Object *ob = BLI_ghashIterator_getValue(&ghi);
 			int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 			
-			if (ob == scene->toolsettings->skgen_template)
+			if (ob == ts->skgen_template)
 			{
 				TEMPLATES_CURRENT = key;
 				break;
@@ -360,8 +362,8 @@ RigGraph* sk_makeTemplateGraph(bContext *C, Object *ob)
 
 int BIF_nbJointsTemplate(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
-	RigGraph *rg = sk_makeTemplateGraph(C, scene->toolsettings->skgen_template);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	RigGraph *rg = sk_makeTemplateGraph(C, ts->skgen_template);
 	
 	if (rg)
 	{
@@ -375,7 +377,7 @@ int BIF_nbJointsTemplate(bContext *C)
 
 char * BIF_nameBoneTemplate(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *stk = GLOBAL_sketch;
 	RigGraph *rg;
 	int index = 0;
@@ -385,7 +387,7 @@ char * BIF_nameBoneTemplate(bContext *C)
 		index = stk->active_stroke->nb_points;
 	}
 	
-	rg = sk_makeTemplateGraph(C, scene->toolsettings->skgen_template);
+	rg = sk_makeTemplateGraph(C, ts->skgen_template);
 	
 	if (rg == NULL)
 	{
@@ -418,14 +420,14 @@ void  BIF_freeTemplates(bContext *C)
 
 void  BIF_setTemplate(bContext *C, int index)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	if (index > 0)
 	{
-		scene->toolsettings->skgen_template = BLI_ghash_lookup(TEMPLATES_HASH, SET_INT_IN_POINTER(index));
+		ts->skgen_template = BLI_ghash_lookup(TEMPLATES_HASH, SET_INT_IN_POINTER(index));
 	}
 	else
 	{
-		scene->toolsettings->skgen_template = NULL;
+		ts->skgen_template = NULL;
 		
 		if (TEMPLATE_RIGG != NULL)
 		{
@@ -439,19 +441,19 @@ void  BIF_setTemplate(bContext *C, int index)
 
 void sk_autoname(bContext *C, ReebArc *arc)
 {
-	Scene *scene = CTX_data_scene(C);
-	if (scene->toolsettings->skgen_retarget_options & SK_RETARGET_AUTONAME)
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	if (ts->skgen_retarget_options & SK_RETARGET_AUTONAME)
 	{
 		if (arc == NULL)
 		{
-			char *num = scene->toolsettings->skgen_num_string;
+			char *num = ts->skgen_num_string;
 			int i = atoi(num);
 			i++;
 			BLI_snprintf(num, 8, "%i", i);
 		}
 		else
 		{
-			char *side = scene->toolsettings->skgen_side_string;
+			char *side = ts->skgen_side_string;
 			int valid = 0;
 			int caps = 0;
 			
@@ -525,7 +527,7 @@ ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4], float tmat[][3])
 
 void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	float imat[4][4];
 	float tmat[3][3];
@@ -541,7 +543,7 @@ void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 	
 	sk_autoname(C, arc);
 	
-	rg = sk_makeTemplateGraph(C, scene->toolsettings->skgen_template);
+	rg = sk_makeTemplateGraph(C, ts->skgen_template);
 
 	BIF_retargetArc(C, arc, rg);
 	
@@ -1408,10 +1410,10 @@ void sk_startStroke(SK_Sketch *sketch)
 
 void sk_endStroke(bContext *C, SK_Sketch *sketch)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	sk_shrinkStrokeBuffer(sketch->active_stroke);
 
-	if (scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
+	if (ts->bone_sketching & BONE_SKETCHING_ADJUST)
 	{
 		sk_endOverdraw(sketch);
 	}
@@ -1521,10 +1523,10 @@ int sk_addStrokeDrawPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 
 int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	int point_added = 0;
 
-	if (scene->snap_mode == SCE_SNAP_MODE_VOLUME)
+	if (ts->snap_mode == SCE_SNAP_MODE_VOLUME)
 	{
 		ListBase depth_peels;
 		DepthPeel *p1, *p2;
@@ -1557,7 +1559,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 				p1->flag = 1;
 	
 				/* if peeling objects, take the first and last from each object */			
-				if (scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
+				if (ts->snap_flag & SCE_SNAP_PEEL_OBJECT)
 				{
 					DepthPeel *peel;
 					for (peel = p1->next; peel; peel = peel->next)
@@ -1627,7 +1629,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 
 		/* snap to strokes */
-		// if (scene->snap_mode == SCE_SNAP_MODE_VERTEX) /* snap all the time to strokes */
+		// if (ts->snap_mode == SCE_SNAP_MODE_VERTEX) /* snap all the time to strokes */
 		for (snap_stk = sketch->strokes.first; snap_stk; snap_stk = snap_stk->next)
 		{
 			SK_Point *spt = NULL;
@@ -1713,7 +1715,7 @@ int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 
 void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	int point_added = 0;
 	
 	if (snap)
@@ -1726,7 +1728,7 @@ void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawDa
 		point_added = sk_addStrokeDrawPoint(C, sketch, stk, dd);
 	}
 	
-	if (stk == sketch->active_stroke && scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
+	if (stk == sketch->active_stroke && ts->bone_sketching & BONE_SKETCHING_ADJUST)
 	{
 		sk_updateOverdraw(C, sketch, stk, dd);
 	}
@@ -1951,7 +1953,7 @@ static int iteratorStopped(void *arg)
 void sk_convertStroke(bContext *C, SK_Stroke *stk)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	bArmature *arm = obedit->data;
 	SK_Point *head;
 	EditBone *parent = NULL;
@@ -1990,17 +1992,17 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 
 					initStrokeIterator(iter, stk, head_index, i);
 					
-					if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
+					if (ts->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
 					{
-						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
+						bone = subdivideArcBy(ts, arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 					}
-					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
+					else if (ts->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
-						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextLengthSubdivision);
+						bone = subdivideArcBy(ts, arm, arm->edbo, iter, invmat, tmat, nextLengthSubdivision);
 					}
-					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
+					else if (ts->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
-						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextFixedSubdivision);
+						bone = subdivideArcBy(ts, arm, arm->edbo, iter, invmat, tmat, nextFixedSubdivision);
 					}
 				}
 				
@@ -2042,14 +2044,14 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 
 void sk_convert(bContext *C, SK_Sketch *sketch)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Stroke *stk;
 	
 	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
 		if (stk->selected == 1)
 		{
-			if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+			if (ts->bone_sketching_convert == SK_CONVERT_RETARGET)
 			{
 				sk_retargetStroke(C, stk);
 			}
@@ -2693,7 +2695,7 @@ void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 	rect.ymin= mval[1]-5;
 	rect.ymax= mval[1]+5;
 		
-	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
 	if (hits>0)
 	{
@@ -2743,6 +2745,7 @@ void sk_queueRedrawSketch(SK_Sketch *sketch)
 
 void sk_drawSketch(Scene *scene, SK_Sketch *sketch, int with_names)
 {
+	ToolSettings *ts= scene->toolsettings;
 	SK_Stroke *stk;
 	
 	glDisable(GL_DEPTH_TEST);
@@ -2779,7 +2782,7 @@ void sk_drawSketch(Scene *scene, SK_Sketch *sketch, int with_names)
 		
 			if (stk->selected == 1)
 			{
-				sk_drawStrokeSubdivision(scene->toolsettings, stk);
+				sk_drawStrokeSubdivision(ts, stk);
 			}
 		}
 	
@@ -2794,9 +2797,9 @@ void sk_drawSketch(Scene *scene, SK_Sketch *sketch, int with_names)
 		{
 			SK_Point *last = sk_lastStrokePoint(sketch->active_stroke);
 			
-			if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+			if (ts->bone_sketching & BONE_SKETCHING_QUICK)
 			{
-				sk_drawStrokeSubdivision(scene->toolsettings, sketch->active_stroke);
+				sk_drawStrokeSubdivision(ts, sketch->active_stroke);
 			}
 			
 			if (last != NULL)
@@ -2839,7 +2842,7 @@ void sk_drawSketch(Scene *scene, SK_Sketch *sketch, int with_names)
 
 int sk_finish_stroke(bContext *C, SK_Sketch *sketch)
 {
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 
 	if (sketch->active_stroke != NULL)
 	{
@@ -2847,9 +2850,9 @@ int sk_finish_stroke(bContext *C, SK_Sketch *sketch)
 		
 		sk_endStroke(C, sketch);
 		
-		if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+		if (ts->bone_sketching & BONE_SKETCHING_QUICK)
 		{
-			if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+			if (ts->bone_sketching_convert == SK_CONVERT_RETARGET)
 			{
 				sk_retargetStroke(C, stk);
 			}
@@ -3196,11 +3199,11 @@ static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
 int ED_operator_sketch_mode_active_stroke(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	
 	if (obedit && 
 		obedit->type == OB_ARMATURE && 
-		scene->toolsettings->bone_sketching & BONE_SKETCHING &&
+		ts->bone_sketching & BONE_SKETCHING &&
 		GLOBAL_sketch != NULL &&
 		GLOBAL_sketch->active_stroke != NULL)
 	{
@@ -3215,12 +3218,12 @@ int ED_operator_sketch_mode_active_stroke(bContext *C)
 int ED_operator_sketch_mode_gesture(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	
 	if (obedit && 
 		obedit->type == OB_ARMATURE && 
-		scene->toolsettings->bone_sketching & BONE_SKETCHING &&
-		(scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK) == 0 &&
+		ts->bone_sketching & BONE_SKETCHING &&
+		(ts->bone_sketching & BONE_SKETCHING_QUICK) == 0 &&
 		GLOBAL_sketch != NULL &&
 		GLOBAL_sketch->active_stroke == NULL)
 	{
@@ -3235,12 +3238,12 @@ int ED_operator_sketch_mode_gesture(bContext *C)
 int ED_operator_sketch_full_mode(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	
 	if (obedit && 
 		obedit->type == OB_ARMATURE && 
-		scene->toolsettings->bone_sketching & BONE_SKETCHING && 
-		(scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK) == 0)
+		ts->bone_sketching & BONE_SKETCHING && 
+		(ts->bone_sketching & BONE_SKETCHING_QUICK) == 0)
 	{
 		return 1;
 	}
@@ -3253,11 +3256,11 @@ int ED_operator_sketch_full_mode(bContext *C)
 int ED_operator_sketch_mode(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	
 	if (obedit && 
 		obedit->type == OB_ARMATURE && 
-		scene->toolsettings->bone_sketching & BONE_SKETCHING)
+		ts->bone_sketching & BONE_SKETCHING)
 	{
 		return 1;
 	}

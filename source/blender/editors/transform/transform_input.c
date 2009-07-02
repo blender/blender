@@ -1,5 +1,5 @@
 /**
- * $Id: transform_input.c 18142 2008-12-29 07:19:16Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,6 +26,7 @@
 #include <math.h>
 
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_arithb.h"
 

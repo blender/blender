@@ -1,5 +1,5 @@
 /**
- * $Id: rna_internal_types.h 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -146,6 +146,10 @@ struct PropertyRNA {
 
 	/* callback for testing if editable/evaluated */
 	EditableFunc editable;
+
+	/* raw access */
+	int rawoffset;
+	RawPropertyType rawtype;
 };
 
 /* Property Types */

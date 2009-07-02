@@ -1,5 +1,5 @@
 /* 
- * $Id: Mathutils.c 20922 2009-06-16 07:16:51Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -96,7 +96,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 
 #if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Mathutils_module_def = {
-	{}, /* m_base */
+	PyModuleDef_HEAD_INIT,
 	"Mathutils",  /* m_name */
 	M_Mathutils_doc,  /* m_doc */
 	0,  /* m_size */
@@ -137,81 +137,12 @@ PyObject *Mathutils_Init(const char *from)
 	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
 	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
 	
+	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
+
 	return (submodule);
 }
 
 //-----------------------------METHODS----------------------------
-//----------------column_vector_multiplication (internal)---------
-//COLUMN VECTOR Multiplication (Matrix X Vector)
-// [1][2][3]   [a]
-// [4][5][6] * [b]
-// [7][8][9]   [c]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0;
-
-	if(mat->rowSize != vec->size){
-		if(mat->rowSize == 4 && vec->size != 3){
-			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-
-	for(x = 0; x < vec->size; x++){
-		vecCopy[x] = vec->vec[x];
-		}
-
-	for(x = 0; x < mat->rowSize; x++) {
-		for(y = 0; y < mat->colSize; y++) {
-			dot += mat->matrix[x][y] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec->size, Py_NEW);
-}
-
-//-----------------row_vector_multiplication (internal)-----------
-//ROW VECTOR Multiplication - Vector X Matrix
-//[x][y][z] *  [1][2][3]
-//             [4][5][6]
-//             [7][8][9]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0, vec_size = vec->size;
-
-	if(mat->colSize != vec_size){
-		if(mat->rowSize == 4 && vec_size != 3){
-			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-	
-	for(x = 0; x < vec_size; x++){
-		vecCopy[x] = vec->vec[x];
-	}
-
-	//muliplication
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec_size, Py_NEW);
-}
-
 //-----------------quat_rotation (internal)-----------
 //This function multiplies a vector/point * quat or vice versa
 //to rotate the point/vector by the quaternion
@@ -224,8 +155,15 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 
 	if(QuaternionObject_Check(arg1)){
 		quat = (QuaternionObject*)arg1;
+		if(!BaseMath_ReadCallback(quat))
+			return NULL;
+
 		if(VectorObject_Check(arg2)){
 			vec = (VectorObject*)arg2;
+			
+			if(!BaseMath_ReadCallback(vec))
+				return NULL;
+			
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
 				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
 				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
@@ -238,12 +176,19 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW);
+			return newVectorObject(rot, 3, Py_NEW, NULL);
 		}
 	}else if(VectorObject_Check(arg1)){
 		vec = (VectorObject*)arg1;
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
 		if(QuaternionObject_Check(arg2)){
 			quat = (QuaternionObject*)arg2;
+			if(!BaseMath_ReadCallback(quat))
+				return NULL;
+
 			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
 				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
 				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
@@ -256,7 +201,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
 				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
 				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW);
+			return newVectorObject(rot, 3, Py_NEW, NULL);
 		}
 	}
 
@@ -308,6 +253,9 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	if(vec1->size != vec2->size)
 		goto AttributeError1; //bad sizes
 
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
+	
 	//since size is the same....
 	size = vec1->size;
 
@@ -327,8 +275,11 @@ static PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 
 	angleRads = (double)saacos(dot);
 
+#ifdef USE_MATHUTILS_DEG
 	return PyFloat_FromDouble(angleRads * (180/ Py_PI));
-
+#else
+	return PyFloat_FromDouble(angleRads);
+#endif
 AttributeError1:
 	PyErr_SetString(PyExc_AttributeError, "Mathutils.AngleBetweenVecs(): expects (2) VECTOR objects of the same size\n");
 	return NULL;
@@ -353,11 +304,14 @@ static PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.MidpointVecs(): expects (2) vector objects of the same size\n");
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
 
 	for(x = 0; x < vec1->size; x++) {
 		vec[x] = 0.5f * (vec1->vec[x] + vec2->vec[x]);
 	}
-	return newVectorObject(vec, vec1->size, Py_NEW);
+	return newVectorObject(vec, vec1->size, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ProjectVecs() -------------
 //projects vector 1 onto vector 2
@@ -377,6 +331,10 @@ static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 		return NULL;
 	}
 
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
+
+	
 	//since they are the same size...
 	size = vec1->size;
 
@@ -390,7 +348,7 @@ static PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args)
 	for(x = 0; x < size; x++) {
 		vec[x] = (float)(dot * vec2->vec[x]);
 	}
-	return newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, size, Py_NEW, NULL);
 }
 //----------------------------------MATRIX FUNCTIONS--------------------
 //----------------------------------Mathutils.RotationMatrix() ----------
@@ -409,12 +367,19 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.RotationMatrix(): expected float int and optional string and vector\n");
 		return NULL;
 	}
-	
+
+#ifdef USE_MATHUTILS_DEG
 	/* Clamp to -360:360 */
 	while (angle<-360.0f)
 		angle+=360.0;
 	while (angle>360.0f)
 		angle-=360.0;
+#else
+	while (angle<-(Py_PI*2))
+		angle+=(Py_PI*2);
+	while (angle>(Py_PI*2))
+		angle-=(Py_PI*2);
+#endif
 	
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
@@ -439,9 +404,16 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): the arbitrary axis must be a 3D vector\n");
 			return NULL;
 		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
 	}
+#ifdef USE_MATHUTILS_DEG
 	//convert to radians
 	angle = angle * (float) (Py_PI / 180);
+#endif
+
 	if(axis == NULL && matSize == 2) {
 		//2D rotation matrix
 		mat[0] = (float) cos (angle);
@@ -521,7 +493,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.TranslationMatrix() -------
 //creates a translation matrix
@@ -538,13 +510,17 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 		PyErr_SetString(PyExc_TypeError, "Mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec))
+		return NULL;
+	
 	//create a identity matrix and add translation
 	Mat4One((float(*)[4]) mat);
 	mat[12] = vec->vec[0];
 	mat[13] = vec->vec[1];
 	mat[14] = vec->vec[2];
 
-	return newMatrixObject(mat, 4, 4, Py_NEW);
+	return newMatrixObject(mat, 4, 4, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ScaleMatrix() -------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
@@ -570,6 +546,10 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
 	}
 	if(vec == NULL) {	//scaling along axis
 		if(matSize == 2) {
@@ -618,7 +598,7 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.OrthoProjectionMatrix() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
@@ -645,6 +625,10 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 			PyErr_SetString(PyExc_AttributeError, "Mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
 	}
 	if(vec == NULL) {	//ortho projection onto cardinal plane
 		if(((strcmp(plane, "x") == 0)
@@ -717,7 +701,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.ShearMatrix() -------------
 //creates a shear matrix
@@ -784,7 +768,7 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW);
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
 //----------------------------------QUATERNION FUNCTIONS-----------------
 
@@ -801,6 +785,10 @@ static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.DifferenceQuats(): expected Quaternion types");
 		return NULL;
 	}
+
+	if(!BaseMath_ReadCallback(quatU) || !BaseMath_ReadCallback(quatV))
+		return NULL;
+
 	tempQuat[0] = quatU->quat[0];
 	tempQuat[1] = -quatU->quat[1];
 	tempQuat[2] = -quatU->quat[2];
@@ -813,7 +801,7 @@ static PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 		tempQuat[x] /= (float)(dot * dot);
 	}
 	QuatMul(quat, tempQuat, quatV->quat);
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.Slerp() ------------------
 //attemps to interpolate 2 quaternions and return the result
@@ -828,6 +816,10 @@ static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 		PyErr_SetString(PyExc_TypeError, "Mathutils.Slerp(): expected Quaternion types and float");
 		return NULL;
 	}
+
+	if(!BaseMath_ReadCallback(quatU) || !BaseMath_ReadCallback(quatV))
+		return NULL;
+
 	if(param > 1.0f || param < 0.0f) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.Slerp(): interpolation factor must be between 0.0 and 1.0");
 		return NULL;
@@ -870,7 +862,7 @@ static PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 	quat[2] = (float)(quat_u[2] * x + quat_v[2] * y);
 	quat[3] = (float)(quat_u[3] * x + quat_v[3] * y);
 
-	return newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 //----------------------------------EULER FUNCTIONS----------------------
 //---------------------------------INTERSECTION FUNCTIONS--------------------
@@ -891,6 +883,9 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 		return NULL;
 	}
 
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(ray) || !BaseMath_ReadCallback(ray_off))
+		return NULL;
+	
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
 	VECCOPY(v3, vec3->vec);
@@ -941,7 +936,7 @@ static PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 	VecMulf(dir, t);
 	VecAddf(pvec, orig, dir);
 
-	return newVectorObject(pvec, 3, Py_NEW);
+	return newVectorObject(pvec, 3, Py_NEW, NULL);
 }
 //----------------------------------Mathutils.LineIntersect() -------------------
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
@@ -959,6 +954,10 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
+		return NULL;
+	
 	if( vec1->size == 3 || vec1->size == 2) {
 		int result;
 		
@@ -994,8 +993,8 @@ static PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		}
 		else {
 			tuple = PyTuple_New( 2 );
-			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW) );
-			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW) );
+			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW, NULL) );
+			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW, NULL) );
 			return tuple;
 		}
 	}
@@ -1029,6 +1028,10 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
+		return NULL;
+	
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
 	VECCOPY(v3, vec3->vec);
@@ -1052,7 +1055,7 @@ static PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 	VecAddf(n1, n2, n1);
 	Normalize(n1);
 
-	return newVectorObject(n1, 3, Py_NEW);
+	return newVectorObject(n1, 3, Py_NEW, NULL);
 }
 
 //----------------------------Mathutils.TriangleNormal() -------------------
@@ -1073,6 +1076,9 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
+		return NULL;
 
 	VECCOPY(v1, vec1->vec);
 	VECCOPY(v2, vec2->vec);
@@ -1085,7 +1091,7 @@ static PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 	Crossf(n, e2, e1);
 	Normalize(n);
 
-	return newVectorObject(n, 3, Py_NEW);
+	return newVectorObject(n, 3, Py_NEW, NULL);
 }
 
 //--------------------------------- AREA FUNCTIONS--------------------
@@ -1105,6 +1111,9 @@ static PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
 		return NULL;
 	}
+	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
+		return NULL;
 
 	if (vec1->size == 3) {
 		VECCOPY(v1, vec1->vec);
@@ -1154,8 +1163,8 @@ int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
 }
 /*---------------------- EXPP_VectorsAreEqual -------------------------
   Builds on EXPP_FloatsAreEqual to test vectors */
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
-
+int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
+{
 	int x;
 	for (x=0; x< size; x++){
 		if (EXPP_FloatsAreEqual(vecA[x], vecB[x], floatSteps) == 0)
@@ -1165,6 +1174,86 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
 }
 
 
+/* Mathutils Callbacks */
 
-//#######################################################################
-//#############################DEPRECATED################################
+/* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
+Mathutils_Callback *mathutils_callbacks[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+
+int Mathutils_RegisterCallback(Mathutils_Callback *cb)
+{
+	int i;
+	
+	/* find the first free slot */
+	for(i= 0; mathutils_callbacks[i]; i++) {
+		if(mathutils_callbacks[i]==cb) /* alredy registered? */
+			return i;
+	}
+	
+	mathutils_callbacks[i] = cb;
+	return i;
+}
+
+/* use macros to check for NULL */
+int _BaseMathObject_ReadCallback(BaseMathObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->get(self->cb_user, self->cb_subtype, self->data))
+		return 1;
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
+}
+
+int _BaseMathObject_WriteCallback(BaseMathObject *self)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->set(self->cb_user, self->cb_subtype, self->data))
+		return 1;
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
+}
+
+int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->get_index(self->cb_user, self->cb_subtype, self->data, index))
+		return 1;
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
+}
+
+int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
+{
+	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
+	if(cb->set_index(self->cb_user, self->cb_subtype, self->data, index))
+		return 1;
+
+	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	return 0;
+}
+
+/* BaseMathObject generic functions for all mathutils types */
+PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
+{
+	PyObject *ret= self->cb_user ? self->cb_user : Py_None;
+	Py_INCREF(ret);
+	return ret;
+}
+
+PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
+{
+	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
+}
+
+void BaseMathObject_dealloc(BaseMathObject * self)
+{
+	/* only free non wrapped */
+	if(self->wrapped != Py_WRAP)
+		PyMem_Free(self->data);
+
+	Py_XDECREF(self->cb_user);
+	Py_TYPE(self)->tp_free(self); // PyObject_DEL(self); // breaks subtypes
+}
+

@@ -1,7 +1,7 @@
 /**
  * BKE_fluidsim.h 
  *	
- * $Id: LBM_fluidsim.h 17433 2008-11-12 21:16:53Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

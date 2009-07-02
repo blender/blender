@@ -222,6 +222,34 @@ short psys_get_current_num(Object *ob)
 	
 	return i;
 }
+void psys_set_current_num(Object *ob, int index)
+{
+	ParticleSystem *psys;
+	short i;
+
+	if(ob==0) return;
+
+	for(psys=ob->particlesystem.first, i=0; psys; psys=psys->next, i++) {
+		if(i == index)
+			psys->flag |= PSYS_CURRENT;
+		else
+			psys->flag &= ~PSYS_CURRENT;
+	}
+}
+Object *psys_find_object(Scene *scene, ParticleSystem *psys)
+{
+	Base *base = scene->base.first;
+	ParticleSystem *tpsys;
+
+	for(base = scene->base.first; base; base = base->next) {
+		for(tpsys = base->object->particlesystem.first; psys; psys=psys->next) {
+			if(tpsys == psys)
+				return base->object;
+		}
+	}
+
+	return NULL;
+}
 /* change object's active particle system */
 void psys_change_act(void *ob_v, void *act_v)
 {
@@ -293,7 +321,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	ParticleSystemModifierData *psmd;
 	Mesh *me;
 
-	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part)
 		return 0;
 
 	if(ob->type == OB_MESH) {
@@ -864,7 +892,7 @@ static void weighted_particle_vector(float *v1, float *v2, float *v3, float *v4,
 	vec[1]= weights[0]*v1[1] + weights[1]*v2[1] + weights[2]*v3[1] + weights[3]*v4[1];
 	vec[2]= weights[0]*v1[2] + weights[1]*v2[2] + weights[2]*v3[2] + weights[3]*v4[2];
 }
-static void interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
+void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
 {
 	float t[4];
 
@@ -2569,7 +2597,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 			}
 
 			/* now we should have in chronologiacl order k1<=k2<=t<=k3<=k4 with keytime between [0,1]->[k2,k3] (k1 & k4 used for cardinal & bspline interpolation)*/
-			interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
+			psys_interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
 				: ((psys->part->flag & PART_HAIR_BSPLINE) ? KEY_BSPLINE : KEY_CARDINAL)
 				,keys, keytime, &result, 0);
 
@@ -2901,6 +2929,61 @@ void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleDa
 /************************************************/
 /*			ParticleSettings handling			*/
 /************************************************/
+void object_add_particle_system(Scene *scene, Object *ob)
+{
+	ParticleSystem *psys;
+	ModifierData *md;
+	ParticleSystemModifierData *psmd;
+
+	if(!ob || ob->type != OB_MESH)
+		return;
+
+	psys = ob->particlesystem.first;
+	for(; psys; psys=psys->next)
+		psys->flag &= ~PSYS_CURRENT;
+
+	psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+	psys->pointcache = BKE_ptcache_add();
+	BLI_addtail(&ob->particlesystem, psys);
+
+	psys->part = psys_new_settings("PSys", NULL);
+
+	md= modifier_new(eModifierType_ParticleSystem);
+	sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	psmd= (ParticleSystemModifierData*) md;
+	psmd->psys=psys;
+	BLI_addtail(&ob->modifiers, md);
+
+	psys->totpart=0;
+	psys->flag = PSYS_ENABLED|PSYS_CURRENT;
+	psys->cfra=bsystem_time(scene,ob,scene->r.cfra+1,0.0);
+
+	DAG_scene_sort(scene);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+}
+void object_remove_particle_system(Scene *scene, Object *ob)
+{
+	ParticleSystem *psys = psys_get_current(ob);
+	ParticleSystemModifierData *psmd;
+
+	if(!psys)
+		return;
+
+	/* clear modifier */
+	psmd= psys_get_modifier(ob, psys);
+	BLI_remlink(&ob->modifiers, psmd);
+	modifier_free((ModifierData *)psmd);
+
+	/* clear particle system */
+	BLI_remlink(&ob->particlesystem, psys);
+	psys_free(ob,psys);
+
+	if(ob->particlesystem.first)
+		((ParticleSystem *) ob->particlesystem.first)->flag |= PSYS_CURRENT;
+
+	DAG_scene_sort(scene);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+}
 static void default_particle_settings(ParticleSettings *part)
 {
 	int i;
@@ -2987,6 +3070,9 @@ ParticleSettings *psys_new_settings(char *name, Main *main)
 {
 	ParticleSettings *part;
 
+	if(main==NULL)
+		main = G.main;
+
 	part= alloc_libblock(&main->particle, ID_PA, name);
 	
 	default_particle_settings(part);
@@ -3062,7 +3148,6 @@ void make_local_particlesettings(ParticleSettings *part)
 		}
 	}
 }
-
 void psys_flush_particle_settings(Scene *scene, ParticleSettings *part, int recalc)
 {
 	Base *base = scene->base.first;
@@ -3495,7 +3580,7 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 			QuatInterpol(state->rot,keys[1].rot,keys[2].rot,keytime);
 		}
 
-		interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
+		psys_interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
 			: ((psys->part->flag & PART_HAIR_BSPLINE) ? KEY_BSPLINE : KEY_CARDINAL)
 			,keys, keytime, state, 1);
 
@@ -3702,6 +3787,8 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 			if((pa->alive==PARS_UNBORN && (part->flag & PART_UNBORN)==0)
 				|| (pa->alive==PARS_DEAD && (part->flag & PART_DIED)==0))
 				return 0;
+
+		state->time = MIN2(state->time, pa->dietime);
 	}
 
 	if(psys->flag & PSYS_KEYED){
@@ -3776,7 +3863,7 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 							VecMulf(keys[1].vel, dfra / frs_sec);
 							VecMulf(keys[2].vel, dfra / frs_sec);
 							
-							interpolate_particle(-1, keys, keytime, state, 1);
+							psys_interpolate_particle(-1, keys, keytime, state, 1);
 							
 							/* convert back to real velocity */
 							VecMulf(state->vel, frs_sec / dfra);

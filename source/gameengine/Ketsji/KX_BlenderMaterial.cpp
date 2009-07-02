@@ -42,10 +42,8 @@ BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 
 //static PyObject *gTextureDict = 0;
 
-KX_BlenderMaterial::KX_BlenderMaterial(
-	PyTypeObject *T
-	)
-:	PyObjectPlus(T),
+KX_BlenderMaterial::KX_BlenderMaterial()
+:	PyObjectPlus(),
 	RAS_IPolyMaterial(),
 	mMaterial(NULL),
 	mShader(0),
@@ -813,35 +811,16 @@ PyTypeObject KX_BlenderMaterial::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
-		Methods
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&PyObjectPlus::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
-
-
-PyParentObject KX_BlenderMaterial::Parents[] = {
-	&KX_BlenderMaterial::Type,
-	&PyObjectPlus::Type,
-	NULL
-};
-
-
-PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
-{
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* KX_BlenderMaterial::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
-int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
-{
-	return PyObjectPlus::py_setattro(attr, pyvalue);
-}
-
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 {
@@ -912,7 +891,7 @@ void KX_BlenderMaterial::SetBlenderGLSLShader(int layer)
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
-	return PyInt_FromLong( GetMaterialIndex() );
+	return PyLong_FromSsize_t( GetMaterialIndex() );
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )

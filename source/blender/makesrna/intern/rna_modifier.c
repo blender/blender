@@ -1,5 +1,5 @@
 /**
- * $Id: rna_modifier.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -41,35 +41,35 @@
 #include "WM_types.h"
 
 EnumPropertyItem modifier_type_items[] ={
-	{eModifierType_Armature, "ARMATURE", 0, "Armature", ""},
-	{eModifierType_Array, "ARRAY", 0, "Array", ""},
-	{eModifierType_Bevel, "BEVEL", 0, "Bevel", ""},
-	{eModifierType_Boolean, "BOOLEAN", 0, "Boolean", ""},
-	{eModifierType_Build, "BUILD", 0, "Build", ""},
-	{eModifierType_Cast, "CAST", 0, "Cast", ""},
-	{eModifierType_Cloth, "CLOTH", 0, "Cloth", ""},
-	{eModifierType_Collision, "COLLISION", 0, "Collision", ""},
-	{eModifierType_Curve, "CURVE", 0, "Curve", ""},
-	{eModifierType_Decimate, "DECIMATE", 0, "Decimate", ""},
-	{eModifierType_Displace, "DISPLACE", 0, "Displace", ""},
-	{eModifierType_EdgeSplit, "EDGE_SPLIT", 0, "Edge Split", ""},
-	{eModifierType_Explode, "EXPLODE", 0, "Explode", ""},
-	{eModifierType_Fluidsim, "FLUID_SIMULATION", 0, "Fluid Simulation", ""},
-	{eModifierType_Hook, "HOOK", 0, "Hook", ""},
-	{eModifierType_Lattice, "LATTICE", 0, "Lattice", ""},
-	{eModifierType_Mask, "MASK", 0, "Mask", ""},
-	{eModifierType_MeshDeform, "MESH_DEFORM", 0, "Mesh Deform", ""},
-	{eModifierType_Mirror, "MIRROR", 0, "Mirror", ""},
-	{eModifierType_Multires, "MULTIRES", 0, "Multires", ""},
-	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", 0, "Particle Instance", ""},
-	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", 0, "Particle System", ""},
-	{eModifierType_Shrinkwrap, "SHRINKWRAP", 0, "Shrinkwrap", ""},
-	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", 0, "Simple Deform", ""},
-	{eModifierType_Smooth, "SMOOTH", 0, "Smooth", ""},
-	{eModifierType_Softbody, "SOFTBODY", 0, "Softbody", ""},
-	{eModifierType_Subsurf, "SUBSURF", 0, "Subsurf", ""},
-	{eModifierType_UVProject, "UV_PROJECT", 0, "UV Project", ""},
-	{eModifierType_Wave, "WAVE", 0, "Wave", ""},
+	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
+	{eModifierType_Array, "ARRAY", ICON_MOD_ARRAY, "Array", ""},
+	{eModifierType_Bevel, "BEVEL", ICON_MOD_BEVEL, "Bevel", ""},
+	{eModifierType_Boolean, "BOOLEAN", ICON_MOD_BOOLEAN, "Boolean", ""},
+	{eModifierType_Build, "BUILD", ICON_MOD_BUILD, "Build", ""},
+	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
+	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
+	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
+	{eModifierType_Curve, "CURVE", ICON_MOD_CURVE, "Curve", ""},
+	{eModifierType_Decimate, "DECIMATE", ICON_MOD_DECIM, "Decimate", ""},
+	{eModifierType_Displace, "DISPLACE", ICON_MOD_DISPLACE, "Displace", ""},
+	{eModifierType_EdgeSplit, "EDGE_SPLIT", ICON_MOD_EDGESPLIT, "Edge Split", ""},
+	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
+	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
+	{eModifierType_Hook, "HOOK", ICON_HOOK, "Hook", ""},
+	{eModifierType_Lattice, "LATTICE", ICON_MOD_LATTICE, "Lattice", ""},
+	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
+	{eModifierType_MeshDeform, "MESH_DEFORM", ICON_MOD_MESHDEFORM, "Mesh Deform", ""},
+	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
+	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multires", ""},
+	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
+	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
+	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
+	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
+	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
+	{eModifierType_Softbody, "SOFTBODY", ICON_MOD_SOFT, "Softbody", ""},
+	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subsurf", ""},
+	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
+	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 

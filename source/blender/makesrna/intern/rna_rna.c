@@ -1,5 +1,5 @@
 /**
- * $Id: rna_rna.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -309,14 +309,16 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 		}
 	} while((srna=srna->base));
 
-	group= RNA_struct_idproperties(ptr, 0);
+	if(ptr->data) {
+		group= RNA_struct_idproperties(ptr, 0);
 
-	if(group) {
-		for(idp=group->data.group.first; idp; idp=idp->next) {
-			if(strcmp(idp->name, key) == 0) {
-				propptr.type= &RNA_Property;
-				propptr.data= idp;
-				return propptr;
+		if(group) {
+			for(idp=group->data.group.first; idp; idp=idp->next) {
+				if(strcmp(idp->name, key) == 0) {
+					propptr.type= &RNA_Property;
+					propptr.data= idp;
+					return propptr;
+				}
 			}
 		}
 	}

@@ -48,9 +48,8 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_AlwaysSensor::SCA_AlwaysSensor(class SCA_EventManager* eventmgr,
-								 SCA_IObject* gameobj,
-								 PyTypeObject* T)
-	: SCA_ISensor(gameobj,eventmgr, T)
+								 SCA_IObject* gameobj)
+	: SCA_ISensor(gameobj,eventmgr)
 {
 	//SetDrawColor(255,0,0);
 	Init();
@@ -121,19 +120,15 @@ PyTypeObject SCA_AlwaysSensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject SCA_AlwaysSensor::Parents[] = {
-	&SCA_AlwaysSensor::Type,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_AlwaysSensor::Methods[] = {
@@ -143,13 +138,5 @@ PyMethodDef SCA_AlwaysSensor::Methods[] = {
 PyAttributeDef SCA_AlwaysSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-
-PyObject* SCA_AlwaysSensor::py_getattro(PyObject *attr) {
-	py_getattro_up(SCA_ISensor);
-}
-
-PyObject* SCA_AlwaysSensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ISensor);
-}
 
 /* eof */

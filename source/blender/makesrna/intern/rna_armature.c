@@ -1,5 +1,5 @@
 /**
- * $Id: rna_armature.c 21247 2009-06-29 21:50:53Z jaguarandi $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -443,6 +443,30 @@ void rna_EditBone_tail_selected_set(PointerRNA *ptr, int value)
 	else data->flag &= ~BONE_TIPSEL;
 }
 
+static void rna_Armature_bones_next(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+	Bone *bone= (Bone*)internal->link;
+
+	if(bone->childbase.first)
+		internal->link= (Link*)bone->childbase.first;
+	else if(bone->next)
+		internal->link= (Link*)bone->next;
+	else {
+		internal->link= NULL;
+
+		do {
+			bone= bone->parent;
+			if(bone && bone->next) {
+				internal->link= (Link*)bone->next;
+				break;
+			}
+		} while(bone);
+	}
+
+	iter->valid= (internal->link != NULL);
+}
+
 #else
 
 static void rna_def_bone_common(StructRNA *srna, int editbone)
@@ -660,6 +684,7 @@ void rna_def_armature(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
+	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_ui_text(prop, "Bones", "");
 

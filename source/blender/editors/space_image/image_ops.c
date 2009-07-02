@@ -577,34 +577,30 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 
 /**************** load/replace/save callbacks ******************/
 
-static char *filesel_imagetype_string(Image *ima)
-{
-	char *strp, *str= MEM_callocN(15*32, "menu for filesel");
-	
-	strp= str;
-	str += sprintf(str, "Save Image as: %%t|");
-	str += sprintf(str, "Targa %%x%d|", R_TARGA);
-	str += sprintf(str, "Targa Raw %%x%d|", R_RAWTGA);
-	str += sprintf(str, "PNG %%x%d|", R_PNG);
-	str += sprintf(str, "BMP %%x%d|", R_BMP);
-	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+/* XXX make dynamic */
+static const EnumPropertyItem image_file_type_items[] = {
+		{R_TARGA, "TARGA", 0, "Targa", ""},
+		{R_RAWTGA, "TARGA RAW", 0, "Targa Raw", ""},
+		{R_PNG, "PNG", 0, "PNG", ""},
+		{R_BMP, "BMP", 0, "BMP", ""},
+		{R_JPEG90, "JPEG", 0, "Jpeg", ""},
 #ifdef WITH_OPENJPEG
-	str += sprintf(str, "Jpeg 2000 %%x%d|", R_JP2);
+		{R_JP2, "JPEG_2000", 0, "Jpeg 2000", ""},
 #endif
-	str += sprintf(str, "Iris %%x%d|", R_IRIS);
-	if(G.have_libtiff)
-		str += sprintf(str, "Tiff %%x%d|", R_TIFF);
-	str += sprintf(str, "Radiance HDR %%x%d|", R_RADHDR);
-	str += sprintf(str, "Cineon %%x%d|", R_CINEON);
-	str += sprintf(str, "DPX %%x%d|", R_DPX);
+		{R_IRIS, "IRIS", 0, "Iris", ""},
+	//if(G.have_libtiff)
+		{R_TIFF, "TIFF", 0, "Tiff", ""},
+		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
+		{R_CINEON, "CINEON", 0, "Cineon", ""},
+		{R_DPX, "DPX", 0, "DPX", ""},
 #ifdef WITH_OPENEXR
-	str += sprintf(str, "OpenEXR %%x%d|", R_OPENEXR);
+		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
 	/* saving sequences of multilayer won't work, they copy buffers  */
-	if(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER);
-	else str += sprintf(str, "MultiLayer %%x%d|", R_MULTILAYER);
+	/*if(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER);
+	else*/
+		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
 #endif	
-	return strp;
-}
+		{0, NULL, 0, NULL, NULL}};
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
@@ -799,7 +795,9 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
+	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
 	RNA_string_get(op->ptr, "filename", str);
+
 	save_image_doit(C, sima, scene, op, str);
 
 	return OPERATOR_FINISHED;
@@ -820,10 +818,6 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* always opens fileselect */
 	if(ibuf) {
-		char *strp;
-		
-		strp= filesel_imagetype_string(ima); // XXX unused still
-		
 		/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
 		if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
 			sima->imtypenr= R_MULTILAYER;
@@ -831,14 +825,14 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			sima->imtypenr= scene->r.imtype;
 		else
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+
+		RNA_enum_set(op->ptr, "file_type", sima->imtypenr);
 		
 		if(ibuf->name[0]==0)
 			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
 		
 		// XXX note: we can give default menu enums to operator for this 
 		image_filesel(C, op, ibuf->name);
-
-		MEM_freeN(strp);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -862,6 +856,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
+	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
 }
 
 /******************** save image operator ********************/
@@ -1119,7 +1114,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	if(as_png)
 		BKE_image_memorypack(ima);
 	else
-		ima->packedfile= newPackedFile(ima->name);
+		ima->packedfile= newPackedFile(op->reports, ima->name);
 
 	return OPERATOR_FINISHED;
 }
@@ -1167,13 +1162,76 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
+/* XXX move this to some place where it can be reused */
+
+const EnumPropertyItem unpack_method_items[] = {
+	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},
+	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
+	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},
+	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write Original File (overwrite existing)", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
+	char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+	
+	strcpy(local_name, abs_name);
+	BLI_splitdirstring(local_name, fi);
+	sprintf(local_name, "//%s/%s", folder, fi);
+
+	pup= uiPupMenuBegin(C, "Unpack file", 0);
+	layout= uiPupMenuLayout(pup);
+
+	uiItemEnumO(layout, "Remove Pack", 0, opname, "method", PF_REMOVE);
+
+	if(strcmp(abs_name, local_name)) {
+		switch(checkPackedFile(local_name, pf)) {
+			case PF_NOFILE:
+				sprintf(line, "Create %s", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				break;
+			case PF_EQUAL:
+				sprintf(line, "Use %s (identical)", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				break;
+			case PF_DIFFERS:
+				sprintf(line, "Use %s (differs)", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				sprintf(line, "Overwrite %s", local_name);
+				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				break;
+		}
+	}
+	
+	switch(checkPackedFile(abs_name, pf)) {
+		case PF_NOFILE:
+			sprintf(line, "Create %s", abs_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			break;
+		case PF_EQUAL:
+			sprintf(line, "Use %s (identical)", abs_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			break;
+		case PF_DIFFERS:
+			sprintf(line, "Use %s (differs)", local_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			sprintf(line, "Overwrite %s", local_name);
+			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			break;
+	}
+
+	uiPupMenuEnd(C, pup);
+}
+
 static int unpack_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
+	int method= RNA_enum_get(op->ptr, "method");
 
-	if(!ima)
-		return OPERATOR_CANCELLED;
-	if(!ima->packedfile)
+	if(!ima || !ima->packedfile)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
@@ -1184,7 +1242,27 @@ static int unpack_exec(bContext *C, wmOperator *op)
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
 	
-	unpackImage(ima, PF_ASK);
+	unpackImage(op->reports, ima, method);
+
+	return OPERATOR_FINISHED;
+}
+
+static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Image *ima= CTX_data_edit_image(C);
+
+	if(!ima || !ima->packedfile)
+		return OPERATOR_CANCELLED;
+
+	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
+		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(G.fileflags & G_AUTOPACK)
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+	
+	unpack_menu(C, "IMAGE_OT_unpack", ima->name, "textures", ima->packedfile);
 
 	return OPERATOR_FINISHED;
 }
@@ -1197,10 +1275,14 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= unpack_exec;
+	ot->invoke= unpack_invoke;
 	ot->poll= space_image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
 }
 
 /******************** sample image operator ********************/
