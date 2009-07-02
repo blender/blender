@@ -100,7 +100,7 @@ private:
 
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
-
+	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	class UnitConverter
 	{
 	private:
@@ -262,9 +262,9 @@ public:
 			
 			float rot[3][3];
 			Mat3One(rot);
-			
+			int k;
 			// transform Object
-			for (int k = 0; k < node->getTransformations().getCount(); k ++) {
+			for (k = 0; k < node->getTransformations().getCount(); k ++) {
 				COLLADAFW::Transformation *transform = node->getTransformations()[k];
 				COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
 				switch(type) {
@@ -315,11 +315,19 @@ public:
 					break;
 				}
 			}
-			
 			Mat3ToEul(rot, ob->rot);
-
+			
+			for (k = 0; k < geom[0]->getMaterialBindings().getCount(); k++) {
+				const COLLADAFW::UniqueId& mat_uid = geom[0]->getMaterialBindings()[k].getReferencedMaterial();
+				if (uid_material_map.find(mat_uid) == uid_material_map.end()) {
+					// This should not happen
+					fprintf(stderr, "This mesh has no materials.\n");
+					continue;
+				}
+				assign_material(ob, uid_material_map[mat_uid], ob->totcol + 1);
+			}
 		}
-
+		
 		mVisualScenes.push_back(*visualScene);
 
 		return true;
@@ -341,7 +349,7 @@ public:
 		// - write geometry
 
 		// - ignore usupported primitive types
-
+		
 		// TODO: import also uvs, normals
 		// XXX what to do with normal indices?
 		// XXX num_normals may be != num verts, then what to do?
@@ -357,7 +365,6 @@ public:
 		
 		// first check if we can import this mesh
 		COLLADAFW::MeshPrimitiveArray& prim_arr = cmesh->getMeshPrimitives();
-
 		int i;
 		
 		for (i = 0; i < prim_arr.getCount(); i++) {
@@ -495,13 +502,14 @@ public:
 
 	/** When this method is called, the writer must write the material.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeMaterial( const COLLADAFW::Material* material ) 
+	virtual bool writeMaterial( const COLLADAFW::Material* cmat ) 
 	{
-		// TODO: create and store a material.
-		// Let it have 0 users for now.
-		const std::string& str_mat_id = material->getOriginalId();
+		
+		const std::string& str_mat_id = cmat->getOriginalId();
 		Material *ma = add_material((char*)str_mat_id.c_str());
-		this->uid_material_map[material->getInstantiatedEffect()] = ma;
+		
+		this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
+		this->uid_material_map[cmat->getUniqueId()] = ma;
 		return true;
 	}
 
@@ -511,21 +519,20 @@ public:
 	{
 		
 		const COLLADAFW::UniqueId& uid = effect->getUniqueId();
-		if (uid_material_map.find(uid) == uid_material_map.end()) {
-			// XXX report to user
-			// this could happen if a mesh was not created
-			// (e.g. if it contains unsupported geometry)
+		if (uid_effect_map.find(uid) == uid_effect_map.end()) {
 			fprintf(stderr, "Couldn't find a material by UID.\n");
 			return true;
 		}
 		
-		Material *ma = uid_material_map[uid];
+		Material *ma = uid_effect_map[uid];
 		
 		COLLADAFW::CommonEffectPointerArray ef_array = effect->getCommonEffects();
 		if (ef_array.getCount() < 1) {
 			fprintf(stderr, "Effect hasn't got any common effects.\n");
+			return true;
 		}
-		
+		// XXX TODO: Take all common effects
+		// Currently only first <effect_common> is supported
 		COLLADAFW::EffectCommon *ef = ef_array[0];
 		COLLADAFW::EffectCommon::ShaderType shader = ef->getShaderType();
 		
