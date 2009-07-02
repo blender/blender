@@ -150,8 +150,11 @@ static int dfs_raycast(BVHNode *node, Isect *isec)
 			for(i=BVH_NCHILDS-1; i>=0; i--)
 				if(RayObject_isAligned(node->child[i]))
 				{
-					hit |= dfs_raycast(node->child[i], isec);
-					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					if(node->child[i])
+					{
+						hit |= dfs_raycast(node->child[i], isec);
+						if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+					}
 				}
 				else
 				{
@@ -259,7 +262,7 @@ static void bvh_done(BVHTree *obj)
 
 	assert(obj->alloc+needed_nodes >= obj->next_node);
 	
-	printf("BVH: Used %d nodes\n", obj->next_node-obj->alloc);
+//	printf("BVH: Used %d nodes\n", obj->next_node-obj->alloc);
 	
 
 	rtbuild_free( obj->builder );
