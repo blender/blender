@@ -1,5 +1,5 @@
 /**
- * $Id: fcurve.c 21023 2009-06-20 04:02:49Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1314,11 +1314,6 @@ static FModifierTypeInfo FMI_MODNAME = {
  * 	1) simple polynomial generator:
  *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
  *		- Factorised form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
- *	2) simple builin 'functions':
- *		of the form (y = C[0] * fn( C[1]*x + C[2] ) + C[3])
- * 	   where fn() can be any one of:
- *		sin, cos, tan, ln, sqrt
- *	3) expression...
  */
 
 static void fcm_generator_free (FModifier *fcm)
@@ -1409,42 +1404,8 @@ static void fcm_generator_verify (FModifier *fcm)
 				data->arraysize= data->poly_order * 2;
 			}
 		}
-			break;
-			
-		case FCM_GENERATOR_FUNCTION: /* builtin function */
-		{
-			/* arraysize needs to be 4*/
-			if (data->arraysize != 4) {
-				float *nc;
-				
-				/* free the old data */
-				if (data->coefficients)
-					MEM_freeN(data->coefficients);
-				
-				/* make new coefficients array, and init using default values */
-				nc= data->coefficients= MEM_callocN(sizeof(float)*4, "FMod_Generator_Coefs");
-				data->arraysize= 4;
-				
-				nc[0]= 1.0f;
-				nc[1]= 1.0f;
-				nc[2]= 0.0f;
-				nc[3]= 0.0f;
-			}
-		}
 			break;	
 	}
-}
-
-/* Unary 'normalised sine' function
- * 	y = sin(PI + x) / (PI * x),
- * except for x = 0 when y = 1.
- */
-static double sinc (double x)
-{
-    if (fabs(x) < 0.0001)
-        return 1.0;
-    else
-        return sin(M_PI * x) / (M_PI * x);
 }
 
 static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
@@ -1509,86 +1470,6 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			}
 		}
 			break;
-			
-		case FCM_GENERATOR_FUNCTION: /* builtin function */
-		{
-			double arg= data->coefficients[1]*evaltime + data->coefficients[2];
-			double (*fn)(double v) = NULL;
-			
-			/* get function pointer to the func to use:
-			 * WARNING: must perform special argument validation hereto guard against crashes  
-			 */
-			switch (data->func_type)
-			{
-				/* simple ones */			
-				case FCM_GENERATOR_FN_SIN: /* sine wave */
-					fn= sin;
-					break;
-				case FCM_GENERATOR_FN_COS: /* cosine wave */
-					fn= cos;
-					break;
-				case FCM_GENERATOR_FN_SINC: /* normalised sine wave */
-					fn= sinc;
-					break;
-					
-				/* validation required */
-				case FCM_GENERATOR_FN_TAN: /* tangent wave */
-				{
-					/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
-					if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
-						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
-							*cvalue = 0.0f; /* no value possible here */
-					}
-					else
-						fn= tan;
-				}
-					break;
-				case FCM_GENERATOR_FN_LN: /* natural log */
-				{
-					/* check that value is greater than 1? */
-					if (arg > 1.0f) {
-						fn= log;
-					}
-					else {
-						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
-							*cvalue = 0.0f; /* no value possible here */
-					}
-				}
-					break;
-				case FCM_GENERATOR_FN_SQRT: /* square root */
-				{
-					/* no negative numbers */
-					if (arg > 0.0f) {
-						fn= sqrt;
-					}
-					else {
-						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
-							*cvalue = 0.0f; /* no value possible here */
-					}
-				}
-					break;
-				
-				default:
-					printf("Invalid Function-Generator for F-Modifier - %d \n", data->func_type);
-			}
-			
-			/* execute function callback to set value if appropriate */
-			if (fn) {
-				float value= (float)(data->coefficients[0]*fn(arg) + data->coefficients[3]);
-				
-				if (data->flag & FCM_GENERATOR_ADDITIVE)
-					*cvalue += value;
-				else
-					*cvalue= value;
-			}
-		}
-			break;
-
-#ifndef DISABLE_PYTHON
-		case FCM_GENERATOR_EXPRESSION: /* py-expression */
-			// TODO...
-			break;
-#endif /* DISABLE_PYTHON */
 	}
 }
 
@@ -1605,6 +1486,128 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	fcm_generator_verify, /* verify */
 	NULL, /* evaluate time */
 	fcm_generator_evaluate /* evaluate */
+};
+
+/* Built-In Function Generator F-Curve Modifier --------------------------- */
+
+/* This uses the general equation for equations:
+ * 		y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
+ *
+ * where amplitude, phase_multiplier/offset, y_offset are user-defined coefficients,
+ * x is the evaluation 'time', and 'y' is the resultant value
+ *
+ * Functions available are
+ *	sin, cos, tan, sinc (normalised sin), natural log, square root 
+ */
+
+static void fcm_fn_generator_new_data (void *mdata)
+{
+	FMod_FunctionGenerator *data= (FMod_FunctionGenerator *)mdata;
+	
+	/* set amplitude and phase multiplier to 1.0f so that something is generated */
+	data->amplitude= 1.0f;
+	data->phase_multiplier= 1.0f;
+}
+
+/* Unary 'normalised sine' function
+ * 	y = sin(PI + x) / (PI * x),
+ * except for x = 0 when y = 1.
+ */
+static double sinc (double x)
+{
+    if (fabs(x) < 0.0001)
+        return 1.0;
+    else
+        return sin(M_PI * x) / (M_PI * x);
+}
+
+static void fcm_fn_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_FunctionGenerator *data= (FMod_FunctionGenerator *)fcm->data;
+	double arg= data->phase_multiplier*evaltime + data->phase_offset;
+	double (*fn)(double v) = NULL;
+	
+	/* get function pointer to the func to use:
+	 * WARNING: must perform special argument validation hereto guard against crashes  
+	 */
+	switch (data->type)
+	{
+		/* simple ones */			
+		case FCM_GENERATOR_FN_SIN: /* sine wave */
+			fn= sin;
+			break;
+		case FCM_GENERATOR_FN_COS: /* cosine wave */
+			fn= cos;
+			break;
+		case FCM_GENERATOR_FN_SINC: /* normalised sine wave */
+			fn= sinc;
+			break;
+			
+		/* validation required */
+		case FCM_GENERATOR_FN_TAN: /* tangent wave */
+		{
+			/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
+			if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+					*cvalue = 0.0f; /* no value possible here */
+			}
+			else
+				fn= tan;
+		}
+			break;
+		case FCM_GENERATOR_FN_LN: /* natural log */
+		{
+			/* check that value is greater than 1? */
+			if (arg > 1.0f) {
+				fn= log;
+			}
+			else {
+				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+					*cvalue = 0.0f; /* no value possible here */
+			}
+		}
+			break;
+		case FCM_GENERATOR_FN_SQRT: /* square root */
+		{
+			/* no negative numbers */
+			if (arg > 0.0f) {
+				fn= sqrt;
+			}
+			else {
+				if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+					*cvalue = 0.0f; /* no value possible here */
+			}
+		}
+			break;
+		
+		default:
+			printf("Invalid Function-Generator for F-Modifier - %d \n", data->type);
+	}
+	
+	/* execute function callback to set value if appropriate */
+	if (fn) {
+		float value= (float)(data->amplitude*fn(arg) + data->value_offset);
+		
+		if (data->flag & FCM_GENERATOR_ADDITIVE)
+			*cvalue += value;
+		else
+			*cvalue= value;
+	}
+}
+
+static FModifierTypeInfo FMI_FN_GENERATOR = {
+	FMODIFIER_TYPE_FN_GENERATOR, /* type */
+	sizeof(FMod_FunctionGenerator), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */
+	FMI_REQUIRES_NOTHING, /* requirements */
+	"Built-In Function", /* name */
+	"FMod_FunctionGenerator", /* struct name */
+	NULL, /* free data */
+	NULL, /* copy data */
+	fcm_fn_generator_new_data, /* new data */
+	NULL, /* verify */
+	NULL, /* evaluate time */
+	fcm_fn_generator_evaluate /* evaluate */
 };
 
 /* Envelope F-Curve Modifier --------------------------- */
@@ -2081,12 +2084,13 @@ static void fmods_init_typeinfo ()
 {
 	fmodifiersTypeInfo[0]=  NULL; 					/* 'Null' F-Curve Modifier */
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
-	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
-	fmodifiersTypeInfo[3]=  &FMI_CYCLES;			/* Cycles F-Curve Modifier */
-	fmodifiersTypeInfo[4]=  &FMI_NOISE;				/* Apply-Noise F-Curve Modifier */
-	fmodifiersTypeInfo[5]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
-	fmodifiersTypeInfo[6]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
-	fmodifiersTypeInfo[7]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
+	fmodifiersTypeInfo[2]=	&FMI_FN_GENERATOR;		/* Built-In Function Generator F-Curve Modifier */
+	fmodifiersTypeInfo[3]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
+	fmodifiersTypeInfo[4]=  &FMI_CYCLES;			/* Cycles F-Curve Modifier */
+	fmodifiersTypeInfo[5]=  &FMI_NOISE;				/* Apply-Noise F-Curve Modifier */
+	fmodifiersTypeInfo[6]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
+	fmodifiersTypeInfo[7]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
+	fmodifiersTypeInfo[8]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only

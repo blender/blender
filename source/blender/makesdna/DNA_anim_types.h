@@ -1,5 +1,5 @@
 /**
- * $Id: DNA_anim_types.h 21023 2009-06-20 04:02:49Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -66,6 +66,7 @@ typedef struct FModifier {
 enum {
 	FMODIFIER_TYPE_NULL = 0,
 	FMODIFIER_TYPE_GENERATOR,
+	FMODIFIER_TYPE_FN_GENERATOR,
 	FMODIFIER_TYPE_ENVELOPE,
 	FMODIFIER_TYPE_CYCLES,
 	FMODIFIER_TYPE_NOISE,		/* unimplemented - generate variations using some basic noise generator... */
@@ -91,38 +92,54 @@ enum {
 
 /* --- */
 
-/* generator modifier data */
+/* Generator modifier data */
 typedef struct FMod_Generator {
-		/* generator based on PyExpression */
-	char expression[256];		/* python expression to use as generator */
-	
 		/* general generator information */
 	float *coefficients;		/* coefficients array */
 	unsigned int arraysize;		/* size of the coefficients array */
 	
-	short poly_order;			/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
-	short func_type;			/* builtin math function eFMod_Generator_Functions */
-	
-	int pad;
+	int poly_order;				/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
+	int mode;					/* which 'generator' to use eFMod_Generator_Modes */
 	
 		/* settings */
-	short flag;					/* settings */
-	short mode;					/* which 'generator' to use eFMod_Generator_Modes */
+	int flag;					/* settings */
 } FMod_Generator;
 
 /* generator modes */
 enum {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
 	FCM_GENERATOR_POLYNOMIAL_FACTORISED,
-	FCM_GENERATOR_FUNCTION,
-	FCM_GENERATOR_EXPRESSION,
 } eFMod_Generator_Modes;
 
-/* generator flags */
+
+/* generator flags 
+ *	- shared by Generator and Function Generator
+ */
 enum {
 		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
 	FCM_GENERATOR_ADDITIVE	= (1<<0),
 } eFMod_Generator_Flags;
+
+
+/* 'Built-In Function' Generator modifier data
+ * 
+ * This uses the general equation for equations:
+ * 		y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
+ *
+ * where amplitude, phase_multiplier/offset, y_offset are user-defined coefficients,
+ * x is the evaluation 'time', and 'y' is the resultant value
+ */
+typedef struct FMod_FunctionGenerator {
+		/* coefficients for general equation (as above) */
+	float amplitude;
+	float phase_multiplier;
+	float phase_offset;
+	float value_offset;
+	
+		/* flags */
+	int type;				/* eFMod_Generator_Functions */
+	int flag;				/* eFMod_Generator_flags */
+} FMod_FunctionGenerator;
 
 /* 'function' generator types */
 enum {

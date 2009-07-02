@@ -32,6 +32,8 @@ struct bContext;
 struct wmWindowManager;
 struct bAnimContext;
 struct bAnimListElem;
+struct FCurve;
+struct FModifier;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;

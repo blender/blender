@@ -37,6 +37,7 @@
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
 	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator", ""},
+	{FMODIFIER_TYPE_FN_GENERATOR, "FNGENERATOR", 0, "Built-In Function", ""},
 	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope", ""},
 	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", ""},
 	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", ""},
@@ -46,62 +47,6 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
-
-float FModGenFunc_amplitude_get(PointerRNA *ptr)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	return (data->coefficients) ? (float)data->coefficients[0] : 1.0f;
-}
-
-void FModGenFunc_amplitude_set(PointerRNA *ptr, float value)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	if (data->coefficients) data->coefficients[0]= value;
-}
-
-float FModGenFunc_pre_multiplier_get(PointerRNA *ptr)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	return (data->coefficients) ? (float)data->coefficients[1] : 1.0f;
-}
-
-void FModGenFunc_pre_multiplier_set(PointerRNA *ptr, float value)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	if (data->coefficients) data->coefficients[1]= value;
-}
-
-float FModGenFunc_x_offset_get(PointerRNA *ptr)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	return (data->coefficients) ? (float)data->coefficients[2] : 0.0f;
-}
-
-void FModGenFunc_x_offset_set(PointerRNA *ptr, float value)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	if (data->coefficients) data->coefficients[2]= value;
-}
-
-float FModGenFunc_y_offset_get(PointerRNA *ptr)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	return (data->coefficients) ? (float)data->coefficients[3] : 0.0f;
-}
-
-void FModGenFunc_y_offset_set(PointerRNA *ptr, float value)
-{
-	FModifier *fcm = (FModifier *)(ptr->data);
-	FMod_Generator *data= (FMod_Generator*)(fcm->data);
-	if (data->coefficients) data->coefficients[3]= value;
-}
 
 /* --------- */
 
@@ -118,13 +63,12 @@ StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 				case FCM_GENERATOR_POLYNOMIAL:
 					return &RNA_FModifierGenerator_PolyExpanded;
 				//case FCM_GENERATOR_POLYNOMIAL_FACTORISED:
-				case FCM_GENERATOR_FUNCTION:
-					return &RNA_FModifierGenerator_Function;
-				//case FCM_GENERATOR_EXPRESSION:
 				default:
 					return &RNA_FModifierGenerator;
 			}
 		}
+		case FMODIFIER_TYPE_FN_GENERATOR:
+			return &RNA_FModifierFunctionGenerator;
 		case FMODIFIER_TYPE_ENVELOPE:
 			return &RNA_FModifierEnvelope;
 		case FMODIFIER_TYPE_CYCLES:
@@ -222,8 +166,6 @@ static void rna_def_fmodifier_generator_common(StructRNA *srna)
 	static EnumPropertyItem prop_mode_items[] = {
 		{FCM_GENERATOR_POLYNOMIAL, "POLYNOMIAL", 0, "Expanded Polynomial", ""},
 		{FCM_GENERATOR_POLYNOMIAL_FACTORISED, "POLYNOMIAL_FACTORISED", 0, "Factorised Polynomial", ""},
-		{FCM_GENERATOR_FUNCTION, "FUNCTION", 0, "Built-In Function", ""},
-		{FCM_GENERATOR_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* struct wrapping settings */
@@ -273,7 +215,7 @@ static void rna_def_fmodifier_generator_polyexpanded(BlenderRNA *brna)
 	//RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power).");
 }
 
-static void rna_def_fmodifier_generator_function(BlenderRNA *brna)
+static void rna_def_fmodifier_function_generator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -286,35 +228,32 @@ static void rna_def_fmodifier_generator_function(BlenderRNA *brna)
 		{4, "LN", 0, "Natural Logarithm", ""},
 		{5, "SINC", 0, "Normalised Sine", "sin(x) / x"},
 		{0, NULL, 0, NULL, NULL}};
-		
 	
-	srna= RNA_def_struct(brna, "FModifierGenerator_Function", "FModifier");
-	RNA_def_struct_ui_text(srna, "Built-In Function Generator", "Generates values for modified F-Curve using Built-In Function.");
-	
-	/* common settings */
-	rna_def_fmodifier_generator_common(srna);
-	
-	/* type */
-	prop= RNA_def_property(srna, "func_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Type", "Type of Built-In function to use as generator.");
+	srna= RNA_def_struct(brna, "FModifierFunctionGenerator", "FModifier");
+	RNA_def_struct_ui_text(srna, "Built-In Function F-Curve Modifier", "Generates values using a Built-In Function.");
+	RNA_def_struct_sdna_from(srna, "FMod_FunctionGenerator", "data");
 	
 	/* coefficients */
 	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "FModGenFunc_amplitude_get", "FModGenFunc_amplitude_set", NULL);
-	RNA_def_property_ui_text(prop, "Amplitude", "Scale factor for y-values generated by the function.");
+	RNA_def_property_ui_text(prop, "Amplitude", "Scale factor determining the maximum/minimum values.");
 	
-	prop= RNA_def_property(srna, "pre_multiplier", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "FModGenFunc_pre_multiplier_get", "FModGenFunc_pre_multiplier_set", NULL);
-	RNA_def_property_ui_text(prop, "PreMultiplier", "Scale factor for x-value inputs to function.");
+	prop= RNA_def_property(srna, "phase_multiplier", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Phase Multiplier", "Scale factor determining the 'speed' of the function.");
 	
-	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "FModGenFunc_x_offset_get", "FModGenFunc_x_offset_set", NULL);
-	RNA_def_property_ui_text(prop, "X Offset", "Offset for x-value inputs to function.");
+	prop= RNA_def_property(srna, "phase_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Phase Offset", "Constant factor to offset time by for function.");
 	
-	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "FModGenFunc_y_offset_get", "FModGenFunc_y_offset_set", NULL);
-	RNA_def_property_ui_text(prop, "Y Offset", "Offset for y-values generated by the function.");
+	prop= RNA_def_property(srna, "value_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Value Offset", "Constant factor to offset values by.");
+	
+	/* flags */
+	prop= RNA_def_property(srna, "additive", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_GENERATOR_ADDITIVE);
+	RNA_def_property_ui_text(prop, "Additive", "Values generated by this modifier are applied on top of the existing values instead of overwriting them.");
+	
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of built-in function to use.");
 }
 
 /* --------- */
@@ -646,7 +585,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	
 	rna_def_fmodifier_generator(brna);
 		rna_def_fmodifier_generator_polyexpanded(brna);
-		rna_def_fmodifier_generator_function(brna);
+	rna_def_fmodifier_function_generator(brna);
 	rna_def_fmodifier_envelope(brna);
 	rna_def_fmodifier_cycles(brna);
 	rna_def_fmodifier_python(brna);
