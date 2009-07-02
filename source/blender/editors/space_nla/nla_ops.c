@@ -155,6 +155,8 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_apply_scale);
 	WM_operatortype_append(NLA_OT_clear_scale);
+	
+	WM_operatortype_append(NLA_OT_fmodifier_add);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -254,6 +256,9 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_apply_scale", AKEY, KM_PRESS, KM_CTRL, 0);
 		/* clear scale */
 	WM_keymap_add_item(keymap, "NLA_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
+	
+		/* add f-modifier */
+	WM_keymap_add_item(keymap, "NLA_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_NLA);

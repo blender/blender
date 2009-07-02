@@ -381,7 +381,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	
 	/* draw each modifier */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
-		ANIM_uiTemplate_fmodifier_draw(block, fcu, fcm, &yco);
+		ANIM_uiTemplate_fmodifier_draw(block, &fcu->modifiers, fcm, &yco);
 
 	MEM_freeN(ale);
 }

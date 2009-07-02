@@ -1741,7 +1741,7 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 /* ************************************************************************** */
 /* F-CURVE MODIFIERS */
 
-/* ******************** Add F-Curve Modifier Operator *********************** */
+/* ******************** Add F-Modifier Operator *********************** */
 
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {

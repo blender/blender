@@ -105,6 +105,8 @@ void NLA_OT_move_down(wmOperatorType *ot);
 void NLA_OT_apply_scale(wmOperatorType *ot);
 void NLA_OT_clear_scale(wmOperatorType *ot);
 
+void NLA_OT_fmodifier_add(wmOperatorType *ot);
+
 
 /* **************************************** */
 /* nla_channels.c */

@@ -309,18 +309,28 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 static void nla_panel_modifiers(const bContext *C, Panel *pa)
 {
 	PointerRNA strip_ptr;
+	NlaStrip *strip;
+	FModifier *fcm;
 	uiLayout *layout= pa->layout;
-	//uiLayout *column, *row, *subcol;
 	uiBlock *block;
+	int yco = 190; // xxx old
 
 	/* check context and also validity of pointer */
 	if (!nla_panel_context(C, NULL, &strip_ptr))
 		return;
+	strip= strip_ptr.data;
 		
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
-		
-	// TODO...
+	
+	/* 'add modifier' button at top of panel */
+	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
+	// FIXME: we need to set the only-active property so that this will only add modifiers for the active strip (not all selected)
+	uiDefButO(block, BUT, "NLA_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 225, 150, 20, "Adds a new F-Modifier for the active NLA Strip");
+	
+	/* draw each modifier */
+	for (fcm= strip->modifiers.first; fcm; fcm= fcm->next)
+		ANIM_uiTemplate_fmodifier_draw(block, &strip->modifiers, fcm, &yco);
 }
 
 /* ******************* general ******************************** */

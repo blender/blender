@@ -41,7 +41,7 @@ struct gla2DDrawInfo;
 struct Object;
 struct bActionGroup;
 struct FCurve;
-struct IpoCurve; // xxx
+struct FModifier;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -300,7 +300,7 @@ struct uiBlock;
 
 /* draw a given F-Modifier for some layout/UI-Block */
 // XXX not quite complete yet
-void ANIM_uiTemplate_fmodifier_draw(struct uiBlock *block, struct FCurve *fcu, struct FModifier *fcm, int *yco);
+void ANIM_uiTemplate_fmodifier_draw(struct uiBlock *block, ListBase *modifiers, struct FModifier *fcm, int *yco);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

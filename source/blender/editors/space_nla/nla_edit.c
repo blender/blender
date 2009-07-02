@@ -66,6 +66,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1018,6 +1019,86 @@ void NLA_OT_clear_scale (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* *********************************************** */
+/* NLA Modifiers */
+
+/* ******************** Add F-Modifier Operator *********************** */
+
+static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	FModifier *fcm;
+	int type= RNA_enum_get(op->ptr, "type");
+	short onlyActive = RNA_boolean_get(op->ptr, "only_active");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, add the specified modifier to all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		int i = 1;
+		
+		for (strip= nlt->strips.first; strip; strip=strip->next, i++) {
+			/* only add F-Modifier if on active strip? */
+			if ((onlyActive) && (strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+				continue;
+			
+			/* add F-Modifier of specified type to selected, and make it the active one */
+			fcm= add_fmodifier(&strip->modifiers, type);
+			
+			if (fcm)
+				set_active_fmodifier(&strip->modifiers, fcm);
+			else {
+				char errormsg[128];
+				sprintf(errormsg, "Modifier couldn't be added to (%s : %d). See console for details.", nlt->name, i);
+				
+				BKE_report(op->reports, RPT_ERROR, errormsg);
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+ 
+void NLA_OT_fmodifier_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add F-Modifier";
+	ot->idname= "NLA_OT_fmodifier_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= nla_fmodifier_add_exec;
+	ot->poll= nlaop_poll_tweakmode_off; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
 }
 
 /* *********************************************** */

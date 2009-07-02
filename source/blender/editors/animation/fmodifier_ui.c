@@ -585,10 +585,9 @@ static void draw_modifier__limits(uiBlock *block, FModifier *fcm, int *yco, shor
 /* --------------- */
 
 // FIXME: remove dependency for F-Curve
-void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
+void ANIM_uiTemplate_fmodifier_draw (uiBlock *block, ListBase *modifiers, FModifier *fcm, int *yco)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-	ListBase *modifiers= &fcu->modifiers; // XXX fixme... should be arg
 	uiBut *but;
 	short active= (fcm->flag & FMODIFIER_FLAG_ACTIVE);
 	short width= 314;
