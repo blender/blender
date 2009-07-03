@@ -1457,8 +1457,6 @@ static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *e
 				
 	sculpt_restore_mesh(sd);
 	do_symmetrical_brush_actions(sd, cache);
-				
-	sculpt_post_stroke_free(sd->session);
 }
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
@@ -1526,7 +1524,9 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 			}
 			else
 				sculpt_brush_stroke_add_step(C, op, event, mouse);
+
 			sculpt_flush_update(C);
+			sculpt_post_stroke_free(sd->session);
 		}
 		else
 			ED_region_tag_redraw(ar);
