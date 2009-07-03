@@ -48,7 +48,7 @@ class DATA_PT_lattice(DataButtonsPanel):
 			row.itemR(lat, "interpolation_type_w", expand=True)
 			
 			row = layout.row()
+			row.itemO("LATTICE_OT_make_regular")
 			row.itemR(lat, "outside")
-			row.itemR(lat, "shape_keys")
 
 bpy.types.register(DATA_PT_lattice)

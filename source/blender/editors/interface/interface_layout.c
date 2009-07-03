@@ -699,7 +699,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(type == PROP_STRING && strcmp(name, "") == 0)
+	if(ELEM(type, PROP_STRING, PROP_POINTER) && strcmp(name, "") == 0)
 		name= "non-empty";
 
 	w= ui_text_icon_width(layout, name, icon);

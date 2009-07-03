@@ -78,10 +78,6 @@
 
 #include "object_intern.h"
 
-/* XXX */
-static void BIF_undo_push() {}
-/* XXX */
-
 #if 0 // XXX old animation system
 static void default_key_ipo(Scene *scene, Key *key)
 {
@@ -117,7 +113,7 @@ static void default_key_ipo(Scene *scene, Key *key)
 #endif // XXX old animation system
 	
 
-/* **************************************** */
+/************************* Mesh ************************/
 
 void mesh_to_key(Mesh *me, KeyBlock *kb)
 {
@@ -213,7 +209,7 @@ void insert_meshkey(Scene *scene, Mesh *me, short rel)
 	mesh_to_key(me, kb);
 }
 
-/* ******************** */
+/************************* Lattice ************************/
 
 void latt_to_key(Lattice *lt, KeyBlock *kb)
 {
@@ -271,7 +267,7 @@ void insert_lattkey(Scene *scene, Lattice *lt, short rel)
 	latt_to_key(lt, kb);
 }
 
-/* ******************************** */
+/************************* Curve ************************/
 
 void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 {
@@ -383,7 +379,7 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 	if(cu->key==NULL) {
 		cu->key= add_key( (ID *)cu);
 
-		if (rel)
+		if(rel)
 			cu->key->type = KEY_RELATIVE;
 //		else
 //			default_key_ipo(scene, cu->key);	// XXX old animation system
@@ -396,79 +392,11 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 	else curve_to_key(cu, kb, &cu->nurb);
 }
 
+/*********************** add shape key ***********************/
 
-/* ******************** */
-
-void delete_key(Scene *scene, Object *ob)
+void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob)
 {
-	KeyBlock *kb, *rkb;
 	Key *key;
-	//IpoCurve *icu;
-	
-	key= ob_get_key(ob);
-	if(key==NULL) return;
-	
-	kb= BLI_findlink(&key->block, ob->shapenr-1);
-
-	if(kb) {
-		for(rkb= key->block.first; rkb; rkb= rkb->next)
-			if(rkb->relative == ob->shapenr-1)
-				rkb->relative= 0;
-
-		BLI_remlink(&key->block, kb);
-		key->totkey--;
-		if(key->refkey== kb) key->refkey= key->block.first;
-			
-		if(kb->data) MEM_freeN(kb->data);
-		MEM_freeN(kb);
-		
-		for(kb= key->block.first; kb; kb= kb->next) {
-			if(kb->adrcode>=ob->shapenr)
-				kb->adrcode--;
-		}
-		
-#if 0 // XXX old animation system
-		if(key->ipo) {
-			
-			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
-				if(icu->adrcode==ob->shapenr-1) {
-					BLI_remlink(&key->ipo->curve, icu);
-					free_ipo_curve(icu);
-					break;
-				}
-			}
-			for(icu= key->ipo->curve.first; icu; icu= icu->next) 
-				if(icu->adrcode>=ob->shapenr)
-					icu->adrcode--;
-		}
-#endif // XXX old animation system		
-		
-		if(ob->shapenr>1) ob->shapenr--;
-	}
-	
-	if(key->totkey==0) {
-		if(GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= NULL;
-		else if(GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= NULL;
-		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
-
-		free_libblock_us(&(G.main->key), key);
-	}
-	
-	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
-	
-	BIF_undo_push("Delete Shapekey");
-}
-
-/********************** shape key operators *********************/
-
-static int shape_key_add_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Key *key;
-
-	if(!ob)
-		return OPERATOR_CANCELLED;
 
 	if(ob->type==OB_MESH) insert_meshkey(scene, ob->data, 1);
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(scene, ob->data, 1);
@@ -478,38 +406,20 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 	ob->shapenr= BLI_countlist(&key->block);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	
-	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_shape_key_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Shape Key";
-	ot->idname= "OBJECT_OT_shape_key_add";
-	
-	/* api callbacks */
-	ot->exec= shape_key_add_exec;
+/*********************** remove shape key ***********************/
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int shape_key_remove_exec(bContext *C, wmOperator *op)
+int ED_object_shape_key_remove(bContext *C, Scene *scene, Object *ob)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Scene *scene= CTX_data_scene(C);
 	Main *bmain= CTX_data_main(C);
 	KeyBlock *kb, *rkb;
 	Key *key;
 	//IpoCurve *icu;
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-	
 	key= ob_get_key(ob);
 	if(key==NULL)
-		return OPERATOR_CANCELLED;
+		return 0;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 
@@ -559,6 +469,48 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
 	
 	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return 1;
+}
+
+/********************** shape key operators *********************/
+
+static int shape_key_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	ED_object_shape_key_add(C, scene, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Shape Key";
+	ot->idname= "OBJECT_OT_shape_key_add";
+	
+	/* api callbacks */
+	ot->exec= shape_key_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int shape_key_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene= CTX_data_scene(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+	
+	if(!ED_object_shape_key_remove(C, scene, ob))
+		return OPERATOR_CANCELLED;
 	
 	return OPERATOR_FINISHED;
 }

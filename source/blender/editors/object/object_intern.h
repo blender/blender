@@ -78,6 +78,9 @@ void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
 void remake_editLatt(Object *obedit);
 
+void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
+void LATTICE_OT_make_regular(struct wmOperatorType *ot);
+
 /* editgroup.c */
 void GROUP_OT_group_create(struct wmOperatorType *ot);
 void GROUP_OT_objects_remove(struct wmOperatorType *ot);

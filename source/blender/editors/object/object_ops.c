@@ -122,6 +122,9 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
+
+	WM_operatortype_append(LATTICE_OT_select_all_toggle);
+	WM_operatortype_append(LATTICE_OT_make_regular);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -168,5 +171,9 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	/* Lattice */
+	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+
+	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 }
 

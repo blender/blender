@@ -34,6 +34,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_image_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
@@ -284,6 +285,14 @@ int ED_operator_editfont(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_FONT)
 		return NULL != ((Curve *)obedit->data)->editfont;
+	return 0;
+}
+
+int ED_operator_editlattice(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_LATTICE)
+		return NULL != ((Lattice *)obedit->data)->editlatt;
 	return 0;
 }
 

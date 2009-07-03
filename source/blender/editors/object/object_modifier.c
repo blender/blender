@@ -763,9 +763,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
-		
-		if(ELEM4(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Surface, eModifierType_Fluidsim)) continue;
+		if(ELEM(i, eModifierType_ParticleSystem, eModifierType_Surface)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
