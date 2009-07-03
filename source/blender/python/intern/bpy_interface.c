@@ -162,14 +162,14 @@ void BPY_start_python_path(void)
 
 #if (defined(WIN32) || defined(WIN64))
 #if defined(FREE_WINDOWS)
-	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle)
+	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
 	putenv(py_path);
 #else
 	_putenv_s("PYTHONPATH", py_path_bundle);
 #endif
 #else
 #ifdef __sgi
-	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle)
+	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
 	putenv(py_path);
 #else
 	setenv("PYTHONPATH", py_path_bundle, 1);
