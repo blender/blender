@@ -386,6 +386,12 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 			/* check if there's space between the two */
 			if (IS_EQ(s1->end, s2->start))
 				continue;
+			/* make neither one is a transition 
+			 *	- although this is impossible to create with the standard tools, 
+			 * 	  the user may have altered the settings
+			 */
+			if (ELEM(NLASTRIP_TYPE_TRANSITION, s1->type, s2->type))
+				continue;
 				
 			/* allocate new strip */
 			strip= MEM_callocN(sizeof(NlaStrip), "NlaStrip");
@@ -577,8 +583,18 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 			nstrip= strip->next;
 			
 			/* if selected, delete */
-			if (strip->flag & NLASTRIP_FLAG_SELECT)
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* if a strip either side of this was a transition, delete those too */
+				if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION)) 
+					free_nlastrip(&nlt->strips, strip->prev);
+				if ((nstrip) && (nstrip->type == NLASTRIP_TYPE_TRANSITION)) {
+					nstrip= nstrip->next;
+					free_nlastrip(&nlt->strips, strip->next);
+				}
+				
+				/* finally, delete this strip */
 				free_nlastrip(&nlt->strips, strip);
+			}
 		}
 	}
 	
@@ -1026,6 +1042,36 @@ void NLA_OT_clear_scale (wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
+/* present a special customised popup menu for this, with some filtering */
+static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int i;
+	
+	pup= uiPupMenuBegin(C, "Add F-Modifier", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* start from 1 to skip the 'Invalid' modifier type */
+	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
+		FModifierTypeInfo *fmi= get_fmodifier_typeinfo(i);
+		
+		/* check if modifier is valid for this context */
+		if (fmi == NULL)
+			continue;
+		if (i == FMODIFIER_TYPE_CYCLES) /* we already have repeat... */
+			continue;
+		
+		/* add entry to add this type of modifier */
+		uiItemEnumO(layout, fmi->name, 0, "NLA_OT_fmodifier_add", "type", i);
+	}
+	uiItemS(layout);
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
 static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -1089,7 +1135,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	ot->idname= "NLA_OT_fmodifier_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
+	ot->invoke= nla_fmodifier_add_invoke;
 	ot->exec= nla_fmodifier_add_exec;
 	ot->poll= nlaop_poll_tweakmode_off; 
 	

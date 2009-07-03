@@ -341,7 +341,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 	for (fcm= strip->modifiers.first; fcm; fcm= fcm->next) {
 		col= uiLayoutColumn(pa->layout, 1);
 		
-		ANIM_uiTemplate_fmodifier_draw(col, &strip->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(col, strip_ptr.id.data, &strip->modifiers, fcm);
 	}
 }
 

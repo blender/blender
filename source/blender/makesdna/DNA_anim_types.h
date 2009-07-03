@@ -69,7 +69,7 @@ enum {
 	FMODIFIER_TYPE_FN_GENERATOR,
 	FMODIFIER_TYPE_ENVELOPE,
 	FMODIFIER_TYPE_CYCLES,
-	FMODIFIER_TYPE_NOISE,		/* unimplemented - generate variations using some basic noise generator... */
+	FMODIFIER_TYPE_NOISE,
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,

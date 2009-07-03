@@ -300,7 +300,7 @@ struct uiLayout;
 
 /* draw a given F-Modifier for some layout/UI-Block */
 // XXX not quite complete yet
-void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, ListBase *modifiers, struct FModifier *fcm);
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

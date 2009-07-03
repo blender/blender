@@ -66,7 +66,6 @@
 /* Remove the given NLA strip from the NLA track it occupies, free the strip's data,
  * and the strip itself. 
  */
-// TODO: with things like transitions, should these get freed too? Maybe better as a UI tool
 void free_nlastrip (ListBase *strips, NlaStrip *strip)
 {
 	/* sanity checks */
@@ -793,6 +792,7 @@ void BKE_nla_action_pushdown (AnimData *adt)
 			/* not first, so extend mode can only be NLASTRIP_EXTEND_HOLD_FORWARD not NLASTRIP_EXTEND_HOLD,
 			 * so that it doesn't override strips in previous tracks
 			 */
+			// FIXME: this needs to be more automated, since user can rearrange strips
 			strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
 	}
@@ -844,7 +844,7 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 			if (strip->act == activeStrip->act)
 				strip->flag |= NLASTRIP_FLAG_TWEAKUSER;
 			else
-				strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER; // XXX probably don't need to clear this...
+				strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
 		}
 	}
 	
@@ -887,8 +887,8 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 		
 	// TODO: need to sync the user-strip with the new state of the action!
 		
-	/* for all NLA-tracks, clear the 'disabled' flag
-	 * for all NLA-strips, clear the 'tweak-user' flag
+	/* for all Tracks, clear the 'disabled' flag
+	 * for all Strips, clear the 'tweak-user' flag
 	 */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
 		nlt->flag &= ~NLATRACK_DISABLED;

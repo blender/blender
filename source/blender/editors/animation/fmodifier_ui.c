@@ -134,7 +134,7 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 /* --------------- */
 	
 /* draw settings for generator modifier */
-static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	uiLayout *col, *row;
@@ -143,7 +143,7 @@ static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short wid
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierFunctionGenerator, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* basic settings (backdrop + mode selector + some padding) */
 	col= uiLayoutColumn(layout, 1);
@@ -248,31 +248,36 @@ static void draw_modifier__generator(uiLayout *layout, FModifier *fcm, short wid
 /* --------------- */
 
 /* draw settings for noise modifier */
-static void draw_modifier__fn_generator(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
-	uiLayout *col= uiLayoutColumn(layout, 0); // no grouping for now
+	uiLayout *col;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierFunctionGenerator, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* add the settings */
-	uiItemR(col, NULL, 0, &ptr, "amplitude", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "phase_offset", 0, 0, 0);
-	uiItemR(col, NULL, 0, &ptr, "value_offset", 0, 0, 0);
+	col= uiLayoutColumn(layout, 1);
+		uiItemR(col, "", 0, &ptr, "type", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "additive", 0, 0, 1);
+	
+	col= uiLayoutColumn(layout, 0); // no grouping for now
+		uiItemR(col, NULL, 0, &ptr, "amplitude", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "phase_offset", 0, 0, 0);
+		uiItemR(col, NULL, 0, &ptr, "value_offset", 0, 0, 0);
 }
 
 /* --------------- */
 
 /* draw settings for cycles modifier */
-static void draw_modifier__cycles(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	uiLayout *split, *col;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierCycles, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierCycles, fcm, &ptr);
 	
 	/* split into 2 columns 
 	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
@@ -295,13 +300,16 @@ static void draw_modifier__cycles(uiLayout *layout, FModifier *fcm, short width)
 /* --------------- */
 
 /* draw settings for noise modifier */
-static void draw_modifier__noise(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	uiLayout *split, *col;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierNoise, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
+	
+	/* blending mode */
+	uiItemR(layout, NULL, 0, &ptr, "modification", 0, 0, 0);
 	
 	/* split into 2 columns */
 	split= uiLayoutSplit(layout, 0.5f);
@@ -479,7 +487,7 @@ static void fmod_envelope_deletepoint_cb (bContext *C, void *fcm_dv, void *ind_v
 }
 
 /* draw settings for envelope modifier */
-static void draw_modifier__envelope(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
@@ -490,7 +498,7 @@ static void draw_modifier__envelope(uiLayout *layout, FModifier *fcm, short widt
 	int i;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierEnvelope, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierEnvelope, fcm, &ptr);
 	
 	/* general settings */
 	col= uiLayoutColumn(layout, 1);
@@ -534,13 +542,13 @@ static void draw_modifier__envelope(uiLayout *layout, FModifier *fcm, short widt
 /* --------------- */
 
 /* draw settings for limits modifier */
-static void draw_modifier__limits(uiLayout *layout, FModifier *fcm, short width)
+static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	uiLayout *split, *col, *row;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(NULL, &RNA_FModifierLimits, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifierLimits, fcm, &ptr);
 	
 	/* row 1: minimum */
 	{
@@ -582,7 +590,7 @@ static void draw_modifier__limits(uiLayout *layout, FModifier *fcm, short width)
 /* --------------- */
 
 
-void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ListBase *modifiers, FModifier *fcm)
+void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *subrow;
@@ -639,27 +647,27 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ListBase *modifiers, FMod
 		/* draw settings for individual modifiers */
 		switch (fcm->type) {
 			case FMODIFIER_TYPE_GENERATOR: /* Generator */
-				draw_modifier__generator(box, fcm, width);
+				draw_modifier__generator(box, id, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_FN_GENERATOR: /* Built-In Function Generator */
-				draw_modifier__fn_generator(box, fcm, width);
+				draw_modifier__fn_generator(box, id, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_CYCLES: /* Cycles */
-				draw_modifier__cycles(box, fcm, width);
+				draw_modifier__cycles(box, id, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
-				draw_modifier__envelope(box, fcm, width);
+				draw_modifier__envelope(box, id, fcm, width);
 				break;
 				
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
-				draw_modifier__limits(box, fcm, width);
+				draw_modifier__limits(box, id, fcm, width);
 				break;
 			
 			case FMODIFIER_TYPE_NOISE: /* Noise */
-				draw_modifier__noise(box, fcm, width);
+				draw_modifier__noise(box, id, fcm, width);
 				break;
 			
 			default: /* unknown type */

@@ -228,6 +228,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, not editable, since this is dangerous
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of NLA Strip.");
 	
@@ -296,7 +297,10 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0001f, 1000.0f); /* these limits can be extended, but beyond this, we can get some crazy+annoying bugs due to numeric errors */
 	RNA_def_property_ui_text(prop, "Scale", "Scaling factor for action.");
 	
-	// TODO: strip's F-Curves?
+	/* Strip's F-Curves */
+	prop= RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FCurve");
+	RNA_def_property_ui_text(prop, "F-Curves", "F-Curves for controlling the strip's influence and timing.");
 	
 	/* Strip's F-Modifiers */
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);

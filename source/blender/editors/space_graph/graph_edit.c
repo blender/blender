@@ -73,6 +73,7 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
+#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "BIF_transform.h"
@@ -1743,6 +1744,34 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
+/* present a special customised popup menu for this, with some filtering */
+static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int i;
+	
+	pup= uiPupMenuBegin(C, "Add F-Curve Modifier", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* start from 1 to skip the 'Invalid' modifier type */
+	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
+		FModifierTypeInfo *fmi= get_fmodifier_typeinfo(i);
+		
+		/* check if modifier is valid for this context */
+		if (fmi == NULL)
+			continue;
+		
+		/* add entry to add this type of modifier */
+		uiItemEnumO(layout, fmi->name, 0, "GRAPH_OT_fmodifier_add", "type", i);
+	}
+	uiItemS(layout);
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
 static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -1793,7 +1822,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	ot->idname= "GRAPH_OT_fmodifier_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
+	ot->invoke= graph_fmodifier_add_invoke;
 	ot->exec= graph_fmodifier_add_exec;
 	ot->poll= graphop_active_fcurve_poll; 
 	
