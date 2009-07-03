@@ -1639,7 +1639,7 @@ void ui_draw_link_bezier(rcti *rect)
 }
 
 /* function in use for buttons and for view2d sliders */
-void widget_scroll_draw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int state)
+void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int state)
 {
 	uiWidgetBase wtb;
 	float rad;
@@ -1718,7 +1718,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
 	}
 
-	widget_scroll_draw(wcol, rect, &rect1, state);
+	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 
 }
 

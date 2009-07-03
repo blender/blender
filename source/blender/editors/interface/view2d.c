@@ -1461,7 +1461,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			slider.ymin= hor.ymin;
 			slider.ymax= hor.ymax;
 			
-			widget_scroll_draw(&wcol, &hor, &slider, (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SELECT:0);
+			uiWidgetScrollDraw(&wcol, &hor, &slider, (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SELECT:0);
 		}
 		
 		/* scale indicators */
@@ -1553,7 +1553,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			slider.ymin= vs->vert_min;
 			slider.ymax= vs->vert_max;
 			
-			widget_scroll_draw(&wcol, &vert, &slider, (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SELECT:0);
+			uiWidgetScrollDraw(&wcol, &vert, &slider, (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SELECT:0);
 		}
 		
 		
