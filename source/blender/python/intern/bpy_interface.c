@@ -147,10 +147,43 @@ wchar_t* Py_GetPath(void)
 }
 #endif
 
+
+/* must be called before Py_Initialize */
+void BPY_start_python_path(void)
+{
+	char *py_path_bundle= BLI_gethome_folder("python");
+
+	if(py_path_bundle==NULL)
+		return;
+
+	/* set the environment path */
+	printf("found bundled python: %s\n", py_path_bundle);
+
+#if (defined(WIN32) || defined(WIN64))
+#if defined(FREE_WINDOWS)
+	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle)
+	putenv(py_path);
+#else
+	_putenv_s("PYTHONPATH", py_path_bundle);
+#endif
+#else
+#ifdef __sgi
+	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle)
+	putenv(py_path);
+#else
+	setenv("PYTHONPATH", py_path_bundle, 1); /* initializing the video driver can cause crashes on some systems - Campbell */
+#endif
+#endif
+
+}
+
+
 void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
+	BPY_start_python_path(); /* allow to use our own included python */
+
 	Py_Initialize(  );
 	
 	//PySys_SetArgv( argc_copy, argv_copy );
