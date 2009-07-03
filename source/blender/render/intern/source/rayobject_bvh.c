@@ -59,7 +59,7 @@ struct BVHNode
 {
 	BVHNode *child[BVH_NCHILDS];
 	float	*bb; //[6]; //[2][3];
-	char split_axis;
+	int split_axis;
 };
 
 struct BVHTree
@@ -205,23 +205,31 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 {
 	if(rtbuild_size(builder) == 1)
 	{
-//		return (BVHNode*)builder->begin[0];
-//
-//
-		int i;
-		BVHNode *parent = bvh_new_node(tree, nid);
-		
-		INIT_MINMAX(parent->bb, parent->bb+3);
+		RayObject *child = builder->begin[0];
 
-		for(i=0; i<1; i++)
+		if(RayObject_isRayFace(child))
 		{
-			parent->child[i] = (BVHNode*)builder->begin[i];
-			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
-		}
-		for(; i<BVH_NCHILDS; i++)
-			parent->child[i] = 0;
+			int i;
+			BVHNode *parent = bvh_new_node(tree, nid);
+			
+			INIT_MINMAX(parent->bb, parent->bb+3);
 
-		return parent;
+			for(i=0; i<1; i++)
+			{
+				parent->child[i] = (BVHNode*)builder->begin[i];
+				bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
+			}
+			for(; i<BVH_NCHILDS; i++)
+				parent->child[i] = 0;
+
+			return parent;
+		}
+		else
+		{
+			//Its a sub-raytrace structure, assume it has it own raycast
+			//methods and adding a Bounding Box arround is unnecessary
+			return (BVHNode*)child;
+		}
 	}
 	else
 	{
