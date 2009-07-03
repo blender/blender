@@ -548,7 +548,7 @@ public:
 		node.start();
 
 		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
-
+		
 		// when animation time comes, replace a single <rotate> with 3, one for each axis
 		float quat[4];
 		float axis[3];
@@ -575,7 +575,7 @@ public:
 				COLLADASW::InstanceMaterial im(matid, COLLADASW::URI
 											   (COLLADABU::Utils::EMPTY_STRING,
 												matid));
-
+				
 				// create <bind_vertex_input> for each uv layer
 				Mesh *me = (Mesh*)ob->data;
 				int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);

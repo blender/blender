@@ -360,6 +360,7 @@ public:
 						int l = 0;
 						while (l++ < prim.totface) {
 							prim.mface->mat_nr = k;
+							prim.mface++;
 						}
 					}
 				}
