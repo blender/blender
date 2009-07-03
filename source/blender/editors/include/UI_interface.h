@@ -51,6 +51,7 @@ struct rcti;
 struct rctf;
 struct uiStyle;
 struct uiFontStyle;
+struct uiWidgetColors;
 struct ColorBand;
 struct CurveMapping;
 struct Image;

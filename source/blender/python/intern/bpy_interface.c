@@ -151,6 +151,7 @@ wchar_t* Py_GetPath(void)
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
+	char py_path[FILE_MAXDIR + 11] = "";
 	char *py_path_bundle= BLI_gethome_folder("python");
 
 	if(py_path_bundle==NULL)
@@ -171,7 +172,7 @@ void BPY_start_python_path(void)
 	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle)
 	putenv(py_path);
 #else
-	setenv("PYTHONPATH", py_path_bundle, 1); /* initializing the video driver can cause crashes on some systems - Campbell */
+	setenv("PYTHONPATH", py_path_bundle, 1);
 #endif
 #endif
 
