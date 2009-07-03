@@ -121,6 +121,8 @@ void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 				rf +=4;
 			}
 		}
+		
+		BKE_image_free_anim_ibufs(ima, iuser->framenr);
 	}
 }
 
