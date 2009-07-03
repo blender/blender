@@ -225,10 +225,18 @@ typedef struct bActionGroup {
 
 /* Action Group flags */
 typedef enum eActionGroup_Flag {
+		/* group is selected */
 	AGRP_SELECTED 	= (1<<0),
+		/* group is 'active' / last selected one */
 	AGRP_ACTIVE 	= (1<<1),
+		/* keyframes/channels belonging to it cannot be edited */
 	AGRP_PROTECTED 	= (1<<2),
+		/* for UI, sub-channels are shown */
 	AGRP_EXPANDED 	= (1<<3),
+		/* sub-channels are not evaluated */
+	AGRP_MUTED		= (1<<4),
+		/* sub-channels are not visible in Graph Editor */
+	AGRP_NOTVISIBLE	= (1<<5),
 	
 	AGRP_TEMP		= (1<<30),
 	AGRP_MOVED 		= (1<<31)

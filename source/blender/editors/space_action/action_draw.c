@@ -645,6 +645,11 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							expand = ICON_TRIA_RIGHT;
 					}
 					
+					if (agrp->flag & AGRP_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;
 					else

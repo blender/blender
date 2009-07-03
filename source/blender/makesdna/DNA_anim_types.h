@@ -737,6 +737,9 @@ enum {
 	ADT_DRIVERS_COLLAPSED	= (1<<10),
 		/* don't execute drivers */
 	ADT_DRIVERS_DISABLED	= (1<<11),
+	
+		/* F-Curves from this AnimData block are not visible in the Graph Editor */
+	ADT_CURVES_NOT_VISIBLE	= (1<<16),
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */

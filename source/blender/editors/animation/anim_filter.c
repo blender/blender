@@ -682,25 +682,30 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 * cases when we should include F-Curves inside group:
 			 *	- we don't care about visibility
 			 *	- group is expanded
-			 *	- we're interested in keyframes, but not if they appear in selected channels
+			 *	- we just need the F-Curves present
 			 */
-			// XXX what was the selection check here for again?
-			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( /*ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) &&*/ (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
+			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 			{
-				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-					// XXX the 'owner' info here needs review...
-					items += animdata_filter_fcurves(anim_data, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
-					
-					/* remove group from filtered list if last element is group 
-					 * (i.e. only if group had channels, which were all hidden)
-					 */
-					// XXX this is really hacky... it should be fixed in a much more elegant way!
-					if ( (ale) && (anim_data->last == ale) && 
-						 (ale->data == agrp) && (agrp->channels.first) ) 
-					{
-						BLI_freelinkN(anim_data, ale);
-						items--;
+				/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
+				 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing 
+				 * all its sub-curves to be shown
+				 */
+				if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
+				{
+					if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+						// XXX the 'owner' info here needs review...
+						items += animdata_filter_fcurves(anim_data, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
+						
+						/* remove group from filtered list if last element is group 
+						 * (i.e. only if group had channels, which were all hidden)
+						 */
+						// XXX this is really hacky... it should be fixed in a much more elegant way!
+						if ( (ale) && (anim_data->last == ale) && 
+							 (ale->data == agrp) && (agrp->channels.first) ) 
+						{
+							BLI_freelinkN(anim_data, ale);
+							items--;
+						}
 					}
 				}
 			}

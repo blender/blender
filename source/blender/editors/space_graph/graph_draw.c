@@ -1166,6 +1166,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 							expand = ICON_TRIA_RIGHT;
 					}
 					
+					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
+					if (agrp->flag & AGRP_NOTVISIBLE)
+						special= ICON_CHECKBOX_DEHLT;
+					else
+						special= ICON_CHECKBOX_HLT;
+					
+					if (agrp->flag & AGRP_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;
 					else

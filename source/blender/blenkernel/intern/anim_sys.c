@@ -492,11 +492,14 @@ static void animsys_evaluate_fcurves (PointerRNA *ptr, ListBase *list, AnimMappe
 	/* calculate then execute each curve */
 	for (fcu= list->first; fcu; fcu= fcu->next) 
 	{
-		/* check if this curve should be skipped */
-		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
-		{
-			calculate_fcurve(fcu, ctime);
-			animsys_execute_fcurve(ptr, remap, fcu); 
+		/* check if this F-Curve doesn't belong to a muted group */
+		if ((fcu->grp == NULL) || (fcu->grp->flag & AGRP_MUTED)==0) {
+			/* check if this curve should be skipped */
+			if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
+			{
+				calculate_fcurve(fcu, ctime);
+				animsys_execute_fcurve(ptr, remap, fcu); 
+			}
 		}
 	}
 }
@@ -550,6 +553,10 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if ELEM(NULL, act, agrp) return;
 	if ((remap) && (remap->target != act)) remap= NULL;
+	
+	/* if group is muted, don't evaluated any of the F-Curve */
+	if (agrp->flag & AGRP_MUTED)
+		return;
 	
 	/* calculate then execute each curve */
 	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) 
@@ -883,6 +890,8 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 		
 		/* check if this curve should be skipped */
 		if (fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) 
+			continue;
+		if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED))
 			continue;
 			
 		/* evaluate the F-Curve's value for the time given in the strip 
