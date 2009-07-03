@@ -186,6 +186,7 @@ static void bvh_add(BVHTree *obj, RayObject *ob)
 static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 {
 	BVHNode *node = tree->alloc + nid - 1;
+	assert(RayObject_isAligned(node));
 	if(node+1 > tree->next_node)
 		tree->next_node = node+1;
 		
@@ -211,7 +212,8 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 		{
 			int i;
 			BVHNode *parent = bvh_new_node(tree, nid);
-			
+			parent->split_axis = 0;
+
 			INIT_MINMAX(parent->bb, parent->bb+3);
 
 			for(i=0; i<1; i++)
@@ -226,6 +228,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 		}
 		else
 		{
+			assert(!RayObject_isAligned(child));
 			//Its a sub-raytrace structure, assume it has it own raycast
 			//methods and adding a Bounding Box arround is unnecessary
 			return (BVHNode*)child;
