@@ -7,7 +7,8 @@ class PhysicButtonsPanel(bpy.types.Panel):
 	__context__ = "physics"
 
 	def poll(self, context):
-		return (context.object != None)
+		ob = context.object
+		return (ob and ob.type == 'MESH')
 		
 class PHYSICS_PT_cloth(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_cloth"

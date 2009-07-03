@@ -30,6 +30,10 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 class PHYSICS_PT_collision(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_collision"
 	__label__ = "Collision"
+	
+	def poll(self, context):
+		ob = context.object
+		return (ob and ob.type == 'MESH')
 
 	def draw_header(self, context):
 		settings = context.object.collision
