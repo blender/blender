@@ -55,6 +55,7 @@ struct ColorBand;
 struct CurveMapping;
 struct Image;
 struct ImageUser;
+struct uiWidgetColors;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
