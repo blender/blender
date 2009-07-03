@@ -1207,14 +1207,14 @@ void UI_view2d_grid_free(View2DGrid *grid)
  * 		   For now, we don't need to have a separate (internal) header for structs like this...
  */
 struct View2DScrollers {
-	rcti hor, vert;			/* exact size of slider backdrop */
-	int horfull, vertfull;	/* set if sliders are full, we don't draw them */
-	
 		/* focus bubbles */
 	int vert_min, vert_max;	/* vertical scrollbar */
 	int hor_min, hor_max;	/* horizontal scrollbar */
 	
-		/* scales */
+	rcti hor, vert;			/* exact size of slider backdrop */
+	int horfull, vertfull;	/* set if sliders are full, we don't draw them */
+	
+	/* scales */
 	View2DGrid *grid;		/* grid for coordinate drawing */
 	short xunits, xclamp;	/* units and clamping options for x-axis */
 	short yunits, yclamp;	/* units and clamping options for y-axis */
@@ -1455,13 +1455,17 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
+			int state;
 			
 			slider.xmin= vs->hor_min;
 			slider.xmax= vs->hor_max;
 			slider.ymin= hor.ymin;
 			slider.ymax= hor.ymax;
 			
-			uiWidgetScrollDraw(&wcol, &hor, &slider, (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SELECT:0);
+			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_X))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
 		/* scale indicators */
@@ -1547,13 +1551,17 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
+			int state;
 			
 			slider.xmin= vert.xmin;
 			slider.xmax= vert.xmax;
 			slider.ymin= vs->vert_min;
 			slider.ymax= vs->vert_max;
 			
-			uiWidgetScrollDraw(&wcol, &vert, &slider, (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SELECT:0);
+			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		
 		

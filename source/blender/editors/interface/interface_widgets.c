@@ -435,22 +435,33 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 /* based on button rect, return scaled array of triangles */
 static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
 {
-	float centx, centy, size;
-	int a;
+	float centx, centy, sizex, sizey, minsize;
+	int a, i1=0, i2=1;
+	
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	/* center position and size */
-	centx= (float)rect->xmin + 0.5f*(rect->ymax-rect->ymin);
-	centy= (float)rect->ymin + 0.5f*(rect->ymax-rect->ymin);
-	size= -0.5f*triasize*(rect->ymax-rect->ymin);
+	centx= (float)rect->xmin + 0.5f*minsize;
+	centy= (float)rect->ymin + 0.5f*minsize;
+	sizex= sizey= -0.5f*triasize*minsize;
 
 	if(where=='r') {
-		centx= (float)rect->xmax - 0.5f*(rect->ymax-rect->ymin);
-		size= -size;
+		centx= (float)rect->xmax - 0.5f*minsize;
+		sizex= -sizex;
+	}	
+	else if(where=='t') {
+		centy= (float)rect->ymax - 0.5f*minsize;
+		sizey= -sizey;
+		i2=0; i1= 1;
+	}	
+	else if(where=='b') {
+		sizex= -sizex;
+		i2=0; i1= 1;
 	}	
 	
 	for(a=0; a<19; a++) {
-		tria->vec[a][0]= size*num_tria_vert[a][0] + centx;
-		tria->vec[a][1]= size*num_tria_vert[a][1] + centy;
+		tria->vec[a][0]= sizex*num_tria_vert[a][i1] + centx;
+		tria->vec[a][1]= sizey*num_tria_vert[a][i2] + centy;
 	}
 	
 	tria->tot= 19;
@@ -1576,7 +1587,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	
 	/* decoration */
 	if(!(state & UI_TEXTINPUT)) {
-		widget_num_tria(&wtb.tria1, rect, 0.6f, 0);
+		widget_num_tria(&wtb.tria1, rect, 0.6f, 'l');
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
 	}	
 	widgetbase_draw(&wtb, wcol);
@@ -1676,15 +1687,30 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			wcol->shadetop+= 20;	/* XXX violates themes... */
 		else wcol->shadedown+= 20;
 		
-		if(state & UI_SELECT)
+		if(state & UI_SCROLL_PRESSED)
 			SWAP(short, wcol->shadetop, wcol->shadedown);
 
 		/* draw */
 		wtb.emboss= 0; /* only emboss once */
 		
 		round_box_edges(&wtb, 15, slider, rad); 
-		widgetbase_draw(&wtb, wcol);
 		
+		if(state & UI_SCROLL_ARROWS) {
+			if(wcol->item[0] > 48) wcol->item[0]-= 48;
+			if(wcol->item[1] > 48) wcol->item[1]-= 48;
+			if(wcol->item[2] > 48) wcol->item[2]-= 48;
+			wcol->item[3]= 255;
+			
+			if(horizontal) {
+				widget_num_tria(&wtb.tria1, slider, 0.6f, 'l');
+				widget_num_tria(&wtb.tria2, slider, 0.6f, 'r');
+			}
+			else {
+				widget_num_tria(&wtb.tria1, slider, 0.6f, 'b');
+				widget_num_tria(&wtb.tria2, slider, 0.6f, 't');
+			}
+		}
+		widgetbase_draw(&wtb, wcol);
 	}	
 }
 
@@ -1718,6 +1744,10 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
 	}
 
+	if(state & UI_SELECT)
+		state= UI_SCROLL_PRESSED;
+	else
+		state= 0;
 	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 
 }
