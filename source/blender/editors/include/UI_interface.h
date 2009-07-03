@@ -214,7 +214,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 
-void uiWidgetScrollDraw(struct uiWidgetColors *wcol, rcti *rect, rcti *slider, int state);
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
 
 /* Menu Callbacks */
