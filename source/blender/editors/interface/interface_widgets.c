@@ -293,13 +293,15 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxyi= maxy - 1.0f;
 	float facxi= 1.0f/(maxxi-minxi); /* for uv */
 	float facyi= 1.0f/(maxyi-minyi);
-	int a, tot= 0;
+	int a, tot= 0, minsize;
 	
-	if(2.0f*rad > rect->ymax-rect->ymin)
-		rad= 0.5f*(rect->ymax-rect->ymin);
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
+	
+	if(2.0f*rad > minsize)
+		rad= 0.5f*minsize;
 
-	if(2.0f*(radi+1.0f) > rect->ymax-rect->ymin)
-		radi= 0.5f*(rect->ymax-rect->ymin) - 1.0f;
+	if(2.0f*(radi+1.0f) > minsize)
+		radi= 0.5f*minsize - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -525,7 +527,7 @@ static void shadecolors4(char *coltop, char *coldown, char *color, short shadeto
 	coldown[0]= CLAMPIS(color[0]+shadedown, 0, 255);
 	coldown[1]= CLAMPIS(color[1]+shadedown, 0, 255);
 	coldown[2]= CLAMPIS(color[2]+shadedown, 0, 255);
-	coldown[3]= color[3];
+	coldown[3]= color[3];	
 }
 
 static void round_box_shade_col4(char *col1, char *col2, float fac)
@@ -1104,16 +1106,16 @@ static struct uiWidgetColors wcol_toggle= {
 };
 
 static struct uiWidgetColors wcol_scroll= {
-	{25, 25, 25, 255},
+	{50, 50, 50, 180},
+	{80, 80, 80, 180},
+	{100, 100, 100, 180},
 	{180, 180, 180, 255},
-	{153, 153, 153, 255},
-	{90, 90, 90, 255},
 	
 	{0, 0, 0, 255},
 	{255, 255, 255, 255},
 	
 	1,
-	0, -20
+	10, -20
 };
 
 /* free wcol struct to play with */
@@ -1204,6 +1206,10 @@ static void widget_state_label(uiWidgetType *wt, int state)
 	
 }
 
+static void widget_state_nothing(uiWidgetType *wt, int state)
+{
+	wt->wcol= *(wt->wcol_theme);
+}	
 
 /* special case, button that calls pulldown */
 static void widget_state_pulldown(uiWidgetType *wt, int state)
@@ -1632,44 +1638,64 @@ void ui_draw_link_bezier(rcti *rect)
 	}
 }
 
-static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+/* function in use for buttons and for view2d sliders */
+void widget_scroll_draw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int state)
 {
 	uiWidgetBase wtb;
-	rcti rect1;
-	double value;
-	char inner[3];
-	float fac, size, rad;
+	float rad;
 	int horizontal;
+
+	widget_init(&wtb);
 
 	/* determine horizontal/vertical */
 	horizontal= (rect->xmax - rect->xmin > rect->ymax - rect->ymin);
-
+	
 	if(horizontal)
 		rad= 0.5f*(rect->ymax - rect->ymin);
 	else
 		rad= 0.5f*(rect->xmax - rect->xmin);
-
-	widget_init(&wtb);
+	
 	wtb.shadedir= (horizontal)? 1: 0;
-
+	
 	/* draw back part, colors swapped and shading inverted */
-	VECCOPY(inner, wcol->inner);
-	VECCOPY(wcol->inner, wcol->item);
 	if(horizontal)
 		SWAP(short, wcol->shadetop, wcol->shadedown);
-	if(state & UI_SELECT)
-		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
-	round_box_edges(&wtb, roundboxalign, rect, rad); /* XXX vertical gradient is wrong */
+	round_box_edges(&wtb, 15, rect, rad); 
 	widgetbase_draw(&wtb, wcol);
-
-	VECCOPY(wcol->inner, inner);
-	if(horizontal)
-		SWAP(short, wcol->shadetop, wcol->shadedown);
-	if(state & UI_SELECT)
-		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
-	/* front part */
+	/* slider */
+	if(slider->xmax-slider->xmin<2 || slider->ymax-slider->ymin<2);
+	else {
+		
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+		
+		QUATCOPY(wcol->inner, wcol->item);
+		
+		if(wcol->shadetop>wcol->shadedown)
+			wcol->shadetop+= 20;	/* XXX violates themes... */
+		else wcol->shadedown+= 20;
+		
+		if(state & UI_SELECT)
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+
+		/* draw */
+		wtb.emboss= 0; /* only emboss once */
+		
+		round_box_edges(&wtb, 15, slider, rad); 
+		widgetbase_draw(&wtb, wcol);
+		
+	}	
+}
+
+static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	rcti rect1;
+	double value;
+	float fac, size;
+	int horizontal;
+
+	/* calculate slider part */
 	value= ui_get_but_val(but);
 
 	size= (but->softmax + but->a1 - but->softmin);
@@ -1678,6 +1704,9 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	/* position */
 	rect1= *rect;
 
+	/* determine horizontal/vertical */
+	horizontal= (rect->xmax - rect->xmin > rect->ymax - rect->ymin);
+	
 	if(horizontal) {
 		fac= (rect->xmax - rect->xmin)/(size);
 		rect1.xmin= rect1.xmin + ceil(fac*(value - but->softmin));
@@ -1689,17 +1718,8 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
 	}
 
-	/* draw */
-	wtb.emboss= 0; /* only emboss once */
+	widget_scroll_draw(wcol, rect, &rect1, state);
 
-	if(!horizontal)
-		SWAP(short, wcol->shadetop, wcol->shadedown);
-
-	round_box_edges(&wtb, roundboxalign, &rect1, rad); /* XXX vertical gradient is wrong */
-	widgetbase_draw(&wtb, wcol);
-
-	if(!horizontal)
-		SWAP(short, wcol->shadetop, wcol->shadedown);
 }
 
 static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2101,6 +2121,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
 		case UI_WTYPE_SCROLL:
 			wt.wcol_theme= &btheme->tui.wcol_scroll;
+			wt.state= widget_state_nothing;
 			wt.custom= widget_scroll;
 			break;
 	}

@@ -48,17 +48,18 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_effect.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 
-static void rna_Object_update(bContext *C, PointerRNA *ptr)
+void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
-static void rna_Object_update_data(bContext *C, PointerRNA *ptr)
+void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
@@ -454,6 +455,28 @@ static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
 	else ob->shapeflag &= ~OB_SHAPE_LOCK;
 
 	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+}
+
+static PointerRNA rna_Object_field_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
+}
+
+static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }
 
 #else
@@ -1006,11 +1029,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "field", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "FieldSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_field_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Field Settings", "Settings for using the objects as a field in physics simulation.");
 
 	prop= RNA_def_property(srna, "collision", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "CollisionSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_collision_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Collision Settings", "Settings for using the objects as a collider in physics simulation.");
 
 	prop= RNA_def_property(srna, "soft_body", PROP_POINTER, PROP_NONE);

@@ -635,6 +635,7 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct ID
 void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider, int toggle);
 void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
+void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
 

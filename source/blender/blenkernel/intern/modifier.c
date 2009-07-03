@@ -63,6 +63,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
@@ -8387,7 +8388,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Softbody);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs
-				| eModifierTypeFlag_RequiresOriginalData;
+				| eModifierTypeFlag_RequiresOriginalData
+				| eModifierTypeFlag_Single;
 		mti->deformVerts = softbodyModifier_deformVerts;
 		mti->dependsOnTime = softbodyModifier_dependsOnTime;
 	
@@ -8395,7 +8397,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->initData = clothModifier_initData;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-				| eModifierTypeFlag_UsesPointCache;
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
 		mti->dependsOnTime = clothModifier_dependsOnTime;
 		mti->freeData = clothModifier_freeData; 
 		mti->requiredDataMask = clothModifier_requiredDataMask;
@@ -8406,7 +8409,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Collision);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = collisionModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_Single;
 		mti->dependsOnTime = collisionModifier_dependsOnTime;
 		mti->freeData = collisionModifier_freeData; 
 		mti->deformVerts = collisionModifier_deformVerts;
@@ -8489,7 +8493,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		
 		mti = INIT_TYPE(Fluidsim);
 		mti->type = eModifierTypeType_Nonconstructive
-				| eModifierTypeFlag_RequiresOriginalData;
+				| eModifierTypeFlag_RequiresOriginalData
+				| eModifierTypeFlag_Single;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = fluidsimModifier_initData;
 		mti->freeData = fluidsimModifier_freeData;

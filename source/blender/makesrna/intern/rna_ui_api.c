@@ -130,11 +130,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
 
-	/*func= RNA_def_function(srna, "item_enumR", "uiItemEnumR");
+	func= RNA_def_function(srna, "item_enumR", "uiItemEnumR_string");
 	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);*/
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "item_pointerR", "uiItemPointerR");
 	api_ui_item_common(func);

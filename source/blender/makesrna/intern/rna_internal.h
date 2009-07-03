@@ -186,6 +186,9 @@ void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char 
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 
+void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
+void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
+
 /* API functions */
 
 void RNA_api_main(struct StructRNA *srna);

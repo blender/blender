@@ -378,7 +378,7 @@ PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, Stru
 {
 	PointerRNA ptr = CTX_data_pointer_get(C, member);
 
-	if(ptr.data && ptr.type == type)
+	if(ptr.data && RNA_struct_is_a(ptr.type, type))
 		return ptr;
 	
 	return PointerRNA_NULL;

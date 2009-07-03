@@ -976,7 +976,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 /* ************************** registration **********************************/
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
-void ED_marker_operatortypes(void)
+void ED_operatortypes_marker(void)
 {
 	WM_operatortype_append(MARKER_OT_add);
 	WM_operatortype_append(MARKER_OT_move);

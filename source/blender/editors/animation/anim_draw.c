@@ -167,7 +167,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
-		vec[1]= v2d->cur.ymin;
+		vec[1]= v2d->cur.ymin-500.0f;	/* XXX arbitrary... want it go to bottom */
 		glVertex2fv(vec);
 		
 		vec[1]= v2d->cur.ymax;

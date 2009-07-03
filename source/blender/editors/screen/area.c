@@ -261,6 +261,7 @@ static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 		
 		if(BLI_isect_rcti(winrct, &ar->winrct, NULL)) {
 			if(ar->flag & RGN_FLAG_HIDDEN);
+			else if(ar->alignment & RGN_SPLIT_PREV);
 			else if(ar->alignment==RGN_OVERLAP_LEFT) {
 				winrct->xmin= ar->winrct.xmax + 1;
 			}

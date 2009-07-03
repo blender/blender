@@ -24,61 +24,63 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			if md.expanded:
 				if md.type == 'ARMATURE':
 					self.armature(box, ob, md)
-				if md.type == 'ARRAY':
+				elif md.type == 'ARRAY':
 					self.array(box, ob, md)
-				if md.type == 'BEVEL':
+				elif md.type == 'BEVEL':
 					self.bevel(box, ob, md)
-				if md.type == 'BOOLEAN':
+				elif md.type == 'BOOLEAN':
 					self.boolean(box, ob, md)
-				if md.type == 'BUILD':
+				elif md.type == 'BUILD':
 					self.build(box, ob, md)
-				if md.type == 'CAST':
+				elif md.type == 'CAST':
 					self.cast(box, ob, md)
-				if md.type == 'CLOTH':
+				elif md.type == 'CLOTH':
 					self.cloth(box, ob, md)
-				if md.type == 'COLLISION':
+				elif md.type == 'COLLISION':
 					self.collision(box, ob, md)
-				if md.type == 'CURVE':
+				elif md.type == 'CURVE':
 					self.curve(box, ob, md)
-				if md.type == 'DECIMATE':
+				elif md.type == 'DECIMATE':
 					self.decimate(box, ob, md)
-				if md.type == 'DISPLACE':
+				elif md.type == 'DISPLACE':
 					self.displace(box, ob, md)
-				if md.type == 'EDGE_SPLIT':
+				elif md.type == 'EDGE_SPLIT':
 					self.edgesplit(box, ob, md)
-				if md.type == 'EXPLODE':
+				elif md.type == 'EXPLODE':
 					self.explode(box, ob, md)
-				if md.type == 'FLUID_SIMULATION':
+				elif md.type == 'FLUID_SIMULATION':
 					self.fluid(box, ob, md)
-				if md.type == 'HOOK':
+				elif md.type == 'HOOK':
 					self.hook(box, ob, md)
-				if md.type == 'LATTICE':
+				elif md.type == 'LATTICE':
 					self.lattice(box, ob, md)
-				if md.type == 'MASK':
+				elif md.type == 'MASK':
 					self.mask(box, ob, md)
-				if md.type == 'MESH_DEFORM':
+				elif md.type == 'MESH_DEFORM':
 					self.mesh_deform(box, ob, md)
-				if md.type == 'MIRROR':
+				elif md.type == 'MIRROR':
 					self.mirror(box, ob, md)
-				if md.type == 'MULTIRES':
+				elif md.type == 'MULTIRES':
 					self.multires(box, ob, md)
-				if md.type == 'PARTICLE_INSTANCE':
+				elif md.type == 'PARTICLE_INSTANCE':
 					self.particleinstance(box, ob, md)
-				if md.type == 'PARTICLE_SYSTEM':
+				elif md.type == 'PARTICLE_SYSTEM':
 					self.particlesystem(box, ob, md)
-				if md.type == 'SHRINKWRAP':
+				elif md.type == 'SHRINKWRAP':
 					self.shrinkwrap(box, ob, md)
-				if md.type == 'SIMPLE_DEFORM':
+				elif md.type == 'SIMPLE_DEFORM':
 					self.simpledeform(box, ob, md)
-				if md.type == 'SMOOTH':
+				elif md.type == 'SMOOTH':
 					self.smooth(box, ob, md)
-				if md.type == 'SOFTBODY':
+				elif md.type == 'SOFTBODY':
 					self.softbody(box, ob, md)
-				if md.type == 'SUBSURF':
+				elif md.type == 'SUBSURF':
 					self.subsurf(box, ob, md)
-				if md.type == 'UV_PROJECT':
+				elif md.type == 'SURFACE':
+					self.surface(box, ob, md)
+				elif md.type == 'UV_PROJECT':
 					self.uvproject(box, ob, md)
-				if md.type == 'WAVE':
+				elif md.type == 'WAVE':
 					self.wave(box, ob, md)
 							
 	def armature(self, layout, ob, md):
@@ -96,9 +98,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "fit_type")
 		if md.fit_type == 'FIXED_COUNT':
 			layout.itemR(md, "count")
-		if md.fit_type == 'FIT_LENGTH':
+		elif md.fit_type == 'FIT_LENGTH':
 			layout.itemR(md, "length")
-		if md.fit_type == 'FIT_CURVE':
+		elif md.fit_type == 'FIT_CURVE':
 				layout.itemR(md, "curve")
 
 		layout.itemS()
@@ -152,7 +154,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.limit_method == 'ANGLE':
 			row = layout.row()
 			row.itemR(md, "angle")
-		if md.limit_method == 'WEIGHT':
+		elif md.limit_method == 'WEIGHT':
 			row = layout.row()
 			row.itemR(md, "edge_weight_method", expand=True)
 			
@@ -211,7 +213,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinate_object", text="Object")
-		if md.texture_coordinates == 'UV' and ob.type == 'MESH':
+		elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
 			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
 	
 	def edgesplit(self, layout, ob, md):
@@ -235,7 +237,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		# Missing: "Refresh" and "Clear Vertex Group" ?
 		
 	def fluid(self, layout, ob, md):
-		layout.itemL(text="See Fluidsim panel.")
+		layout.itemL(text="See Fluid panel.")
 		
 	def hook(self, layout, ob, md):
 		layout.itemR(md, "falloff")
@@ -252,7 +254,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "mode")
 		if md.mode == 'ARMATURE':
 			layout.itemR(md, "armature")
-		if md.mode == 'VERTEX_GROUP':
+		elif md.mode == 'VERTEX_GROUP':
 			layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		layout.itemR(md, "inverse")
 		
@@ -325,7 +327,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			col.itemR(md, "positive")
 			col.itemR(md, "cull_front_faces")
 			col.itemR(md, "cull_back_faces")
-		if md.mode == 'NEAREST_SURFACEPOINT':
+		elif md.mode == 'NEAREST_SURFACEPOINT':
 			layout.itemR(md, "keep_above_surface")
 		# To-Do: Validate if structs
 		
@@ -353,7 +355,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		
 	def softbody(self, layout, ob, md):
-		layout.itemL(text="See Softbody panel.")
+		layout.itemL(text="See Soft Body panel.")
 	
 	def subsurf(self, layout, ob, md):
 		layout.itemR(md, "subdivision_type")
@@ -362,6 +364,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col.itemR(md, "render_levels", text="Render")
 		col.itemR(md, "optimal_draw", text="Optimal Display")
 		col.itemR(md, "subsurf_uv")
+
+	def surface(self, layout, ob, md):
+		layout.itemL(text="See Fields panel.")
 	
 	def uvproject(self, layout, ob, md):
 		if ob.type == 'MESH':
@@ -404,7 +409,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
 			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
-		if md.texture_coordinates == 'OBJECT':
+		elif md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinates_object")
 		
 		col = layout.column_flow()

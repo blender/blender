@@ -54,7 +54,7 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
 /* Operators ------------------------------ */
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
-void ED_marker_operatortypes(void); 
+void ED_operatortypes_marker(void); 
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_marker_keymap(struct wmWindowManager *wm);
 

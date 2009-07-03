@@ -36,6 +36,7 @@ EnumPropertyItem region_type_items[] = {
 	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
 	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
 	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
+	{RGN_TYPE_TOOLS, "TOOLS", 0, "Tools", ""},
 	{RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
 	{RGN_TYPE_UI, "UI", 0, "UI", ""},
 	{0, NULL, 0, NULL, NULL}};
