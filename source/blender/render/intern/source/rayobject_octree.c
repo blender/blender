@@ -60,7 +60,7 @@ typedef struct OcVal
 
 typedef struct Node
 {
-	struct RayObject *v[8];
+	struct RayFace *v[8];
 	struct OcVal ov[8];
 	struct Node *next;
 } Node;
@@ -79,7 +79,7 @@ typedef struct Octree {
 	/* during building only */
 	char *ocface; 
 	
-	RayObject **ro_nodes;
+	RayFace **ro_nodes;
 	int ro_nodes_size, ro_nodes_used;
 	
 } Octree;
@@ -294,7 +294,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 		while(no->v[a]!=NULL) a++;
 	}
 	
-	no->v[a]= (RayObject*)face;
+	no->v[a]= (RayFace*) RayObject_align(face);
 	
 	if(quad)
 		calc_ocval_face(rtf[0], rtf[1], rtf[2], rtf[3], x>>2, y>>1, z, &no->ov[a]);
@@ -456,7 +456,7 @@ RayObject *RE_rayobject_octree_create(int ocres, int size)
 	
 	oc->ocres = ocres;
 	
-	oc->ro_nodes = MEM_callocN(sizeof(RayObject*)*size, "octree rayobject nodes");
+	oc->ro_nodes = (RayFace**)MEM_callocN(sizeof(RayFace*)*size, "octree rayobject nodes");
 	oc->ro_nodes_size = size;
 	oc->ro_nodes_used = 0;
 
@@ -469,8 +469,9 @@ static void RayObject_octree_add(RayObject *tree, RayObject *node)
 {
 	Octree *oc = (Octree*)tree;
 
+	assert( RayObject_isRayFace(node) );
 	assert( oc->ro_nodes_used < oc->ro_nodes_size );
-	oc->ro_nodes[ oc->ro_nodes_used++ ] = node;	
+	oc->ro_nodes[ oc->ro_nodes_used++ ] = (RayFace*)RayObject_align(node);
 }
 
 static void octree_fill_rayface(Octree *oc, RayFace *face)
@@ -601,7 +602,7 @@ static void RayObject_octree_done(RayObject *tree)
 	
 	/* Calculate Bounding Box */
 	for(c=0; c<oc->ro_nodes_used; c++)
-		RE_rayobject_merge_bb(oc->ro_nodes[c], oc->min, oc->max);
+		RE_rayobject_merge_bb( RayObject_unalignRayFace(oc->ro_nodes[c]), oc->min, oc->max);
 		
 	/* Alloc memory */
 	oc->adrbranch= MEM_callocN(sizeof(void *)*BRANCH_ARRAY, "octree branches");
@@ -631,8 +632,7 @@ static void RayObject_octree_done(RayObject *tree)
 
 	for(c=0; c<oc->ro_nodes_used; c++)
 	{
-		assert( RayObject_isRayFace(oc->ro_nodes[c]) );
-		octree_fill_rayface(oc, (RayFace*)oc->ro_nodes[c]);
+		octree_fill_rayface(oc, oc->ro_nodes[c]);
 	}
 
 	MEM_freeN(oc->ocface);
@@ -663,14 +663,14 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 		for(; no; no = no->next)
 		for(nr=0; nr<8; nr++)
 		{
-			RayObject *face = no->v[nr];
+			RayFace *face = no->v[nr];
 			OcVal 		*ov = no->ov+nr;
 			
 			if(!face) break;
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{
-				if( RE_rayobject_intersect(face,is) )
+				if( RE_rayobject_intersect( RayObject_unalignRayFace(face),is) )
 					return 1;
 			}
 		}
@@ -682,14 +682,14 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 		for(; no; no = no->next)
 		for(nr=0; nr<8; nr++)
 		{
-			RayObject *face = no->v[nr];
+			RayFace *face = no->v[nr];
 			OcVal 		*ov = no->ov+nr;
 			
 			if(!face) break;
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{ 
-				if( RE_rayobject_intersect(face,is) )
+				if( RE_rayobject_intersect( RayObject_unalignRayFace(face),is) )
 					found= 1;
 			}
 		}
