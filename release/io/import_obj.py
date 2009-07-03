@@ -40,14 +40,16 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import Mesh, Draw, Window, Texture, Material, sys
 import bpy
-# import BPyMesh
-import BPyImage
-import BPyMessages
+import os
 
-try:		import os
-except:		os= False
+# from Blender import Mesh, Draw, Window, Texture, Material, sys
+# # import BPyMesh
+# import BPyImage
+# import BPyMessages
+
+# try:		import os
+# except:		os= False
 
 # Generic path functions
 def stripFile(path):
@@ -101,22 +103,44 @@ def line_value(line_split):
 	elif length > 2:
 		return ' '.join( line_split[1:] )
 
+# limited replacement for BPyImage.comprehensiveImageLoad
+def load_image(imagepath, direc):
+
+	if os.path.exists(imagepath):
+		return bpy.data.add_image(imagepath)
+
+	im_base = os.path.basename(imagepath)
+
+	tmp = os.path.join(direc, im_base)
+	if os.path.exists(tmp):
+		return bpy.data.add_image(tmp)
+
+	# TODO comprehensiveImageLoad also searched in bpy.config.textureDir
+
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-	'''
-	Mainly uses comprehensiveImageLoad
-	but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
-	'''
-	
+
 	if '_' in imagepath:
-		image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+		image= load_image(imagepath.replace('_', ' '), DIR)
 		if image: return image
-		# Did the exporter rename the image?
-		image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
-		if image: return image
+
+	return load_image(imagepath, DIR)
+
+# def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
+# 	'''
+# 	Mainly uses comprehensiveImageLoad
+# 	but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
+# 	'''
 	
-	# Return an image, placeholder if it dosnt exist
-	image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
-	return image
+# 	if '_' in imagepath:
+# 		image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+# 		if image: return image
+# 		# Did the exporter rename the image?
+# 		image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+# 		if image: return image
+	
+# 	# Return an image, placeholder if it dosnt exist
+# 	image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
+# 	return image
 	
 
 def create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH):
@@ -139,46 +163,65 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		# Absolute path - c:\.. etc would work here
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
 		has_data = image.has_data
-		texture.image = image
+
+		if image:
+			texture.image = image
 		
 		# Adds textures for materials (rendering)
 		if type == 'Kd':
 			if has_data and image.depth == 32:
 				# Image has alpha
-				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
-				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
-				blender_material.mode |= Material.Modes.ZTRANSP
+
+				# XXX bitmask won't work?
+				blender_material.add_texture(texture, "UV", ("COLOR", "ALPHA"))
+				texture.mipmap = True
+				texture.interpolation = True
+				texture.use_alpha = True
+				blender_material.z_transparency = True
 				blender_material.alpha = 0.0
+
+# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
+# 				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
+# 				blender_material.mode |= Material.Modes.ZTRANSP
+# 				blender_material.alpha = 0.0
 			else:
-				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+				blender_material.add_texture(texture, "UV", "COLOR")
+# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
 				
 			# adds textures to faces (Textured/Alt-Z mode)
 			# Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
 			unique_material_images[context_material_name]= image, has_data # set the texface image
 		
 		elif type == 'Ka':
-			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
+			blender_material.add_texture(texture, "UV", "AMBIENT")
+# 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 			
 		elif type == 'Ks':
-			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
+			blender_material.add_texture(texture, "UV", "SPECULAR")
+# 			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 		
 		elif type == 'Bump':
-			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)		
+			blender_material.add_texture(texture, "UV", "NORMAL")
+# 			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)		
 		elif type == 'D':
-			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
-			blender_material.mode |= Material.Modes.ZTRANSP
+			blender_material.add_texture(texture, "UV", "ALPHA")
+			blender_material.z_transparency = True
 			blender_material.alpha = 0.0
+# 			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
+# 			blender_material.mode |= Material.Modes.ZTRANSP
+# 			blender_material.alpha = 0.0
 			# Todo, unset deffuse material alpha if it has an alpha channel
 			
 		elif type == 'refl':
-			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)		
+			blender_material.add_texture(texture, "UV", "REFLECTION")
+# 			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
 	
 	
 	# Add an MTL with the same name as the obj if no MTLs are spesified.
 	temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
 	
 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
-			material_libs.append( temp_mtl )
+		material_libs.append( temp_mtl )
 	del temp_mtl
 	
 	#Create new materials
@@ -578,7 +621,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
 		me.add_geometry(0, len(edges))
 
-		# edges is (should be) a list of (a, b) tuples
+		# edges should be a list of (a, b) tuples
 		me.edges.foreach_set("verts", unpack_list(edges))
 # 		me_edges.extend( edges )
 	
@@ -713,6 +756,7 @@ def get_float_func(filepath):
 	return float
 
 def load_obj(filepath,
+			 context,
 			 CLAMP_SIZE= 0.0, 
 			 CREATE_FGONS= True, 
 			 CREATE_SMOOTH_GROUPS= True, 
@@ -733,8 +777,9 @@ def load_obj(filepath,
 	
 	if SPLIT_OBJECTS or SPLIT_GROUPS or SPLIT_MATERIALS:
 		POLYGROUPS = False
-	
-	time_main= sys.time()
+
+	time_main= bpy.sys.time()
+# 	time_main= sys.time()
 	
 	verts_loc= []
 	verts_tex= []
@@ -772,7 +817,8 @@ def load_obj(filepath,
 	context_multi_line= ''
 	
 	print '\tparsing obj file "%s"...' % filepath,
-	time_sub= sys.time()
+	time_sub= bpy.sys.time()
+# 	time_sub= sys.time()
 
 	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
@@ -980,15 +1026,17 @@ def load_obj(filepath,
 		'''
 	
 	file.close()
-	time_new= sys.time()
+	time_new= bpy.sys.time()
+# 	time_new= sys.time()
 	print '%.4f sec' % (time_new-time_sub)
 	time_sub= time_new
 	
 	
 	print '\tloading materials and images...',
 	create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
-	
-	time_new= sys.time()
+
+	time_new= bpy.sys.time()
+# 	time_new= sys.time()
 	print '%.4f sec' % (time_new-time_sub)
 	time_sub= time_new
 	
@@ -996,8 +1044,12 @@ def load_obj(filepath,
 		verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 	
 	# deselect all
-	scn = bpy.data.scenes.active
-	scn.objects.selected = []
+	if context.selected_objects:
+		bpy.ops.OBJECT_OT_select_all_toggle()
+
+	scene = context.scene
+# 	scn = bpy.data.scenes.active
+# 	scn.objects.selected = []
 	new_objects= [] # put new objects here
 	
 	print '\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
@@ -1007,7 +1059,7 @@ def load_obj(filepath,
 	
 	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
 		# Create meshes from the data, warning 'vertex_groups' wont support splitting
-		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
+		create_mesh(scene, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 	
 	# nurbs support
 # 	for context_nurbs in nurbs:
@@ -1039,8 +1091,9 @@ def load_obj(filepath,
 	#if not ROTATE_X90:
 	#	for ob in new_objects:
 	#		ob.RotX = -1.570796326794896558
-	
-	time_new= sys.time()
+
+	time_new= bpy.sys.time()
+# 	time_new= sys.time()
 	
 	print '%.4f sec' % (time_new-time_sub)
 	print 'finished importing: "%s" in %.4f sec.' % (filepath, (time_new-time_main))
@@ -1292,7 +1345,10 @@ else:
 # can convert now: edge flags, edges: lines 508-528
 # ngon (uses python module BPyMesh): 384-414
 # nurbs: 947-
-# clamp size: cannot get bound box with RNA - neither I can write RNA struct function that returns it -
-# again, RNA limitation
-# warning: uses bpy.sys.exists
+# NEXT clamp size: get bound box with RNA
 # get back to l 140 (here)
+# search image in bpy.config.textureDir - load_image
+# replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
+# bitmask won't work? - 132
+# uses operator bpy.ops.OBJECT_OT_select_all_toggle() to deselect all (not necessary?)
+# uses bpy.sys.exists and bpy.sys.time()

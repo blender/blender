@@ -1082,6 +1082,11 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TANGENT_V);
 	RNA_def_property_ui_text(prop, "Tangent Shading", "Use the material's tangent vector instead of the normal for shading - for anisotropic shading effects");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+
+	prop= RNA_def_property(srna, "z_transparency", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZTRA);
+	RNA_def_property_ui_text(prop, "ZTransp", "Z-buffer transparency");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	/* nested structs */
 	prop= RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NEVER_NULL);

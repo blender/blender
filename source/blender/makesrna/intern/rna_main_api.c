@@ -33,6 +33,8 @@
 #include "RNA_types.h"
 
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -41,8 +43,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
-
-#include "DNA_mesh_types.h"
+#include "BKE_image.h"
 
 static Mesh *rna_Main_add_mesh(Main *main, char *name)
 {
@@ -101,6 +102,11 @@ struct Tex *rna_Main_add_texture(Main *main, char *name)
 }
 
 /* TODO: remove texture? */
+
+struct Image *rna_Main_add_image(Main *main, char *filename)
+{
+	return BKE_add_image_file(filename, 0);
+}
 
 #else
 
@@ -162,6 +168,13 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Add a new texture.");
 	parm= RNA_def_string(func, "name", "Tex", 0, "", "New name for the datablock."); /* optional */
 	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
+	RNA_def_function_ui_description(func, "Add a new image.");
+	parm= RNA_def_string(func, "filename", "", 0, "", "Filename to load image from.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
 	RNA_def_function_return(func, parm);
 
 }
