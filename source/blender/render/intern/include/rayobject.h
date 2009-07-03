@@ -102,14 +102,13 @@ typedef struct RayObjectAPI
 	
 } RayObjectAPI;
 
-//TODO use intptr_t
-#define RayObject_align(o)				((RayObject*)(((int)o)&(~3)))
-#define RayObject_unalignRayFace(o)		((RayObject*)(((int)o)|1))
-#define RayObject_unalignRayAPI(o)		((RayObject*)(((int)o)|2))
+#define RayObject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
+#define RayObject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
+#define RayObject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
 
-#define RayObject_isAligned(o)	((((int)o)&3) == 0)
-#define RayObject_isRayFace(o)	((((int)o)&3) == 1)
-#define RayObject_isRayAPI(o)	((((int)o)&3) == 2)
+#define RayObject_isAligned(o)	((((intptr_t)o)&3) == 0)
+#define RayObject_isRayFace(o)	((((intptr_t)o)&3) == 1)
+#define RayObject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
 
 /*
  * Extend min/max coords so that the rayobject is inside them
