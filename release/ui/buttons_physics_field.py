@@ -46,7 +46,22 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 
 		if settings.enabled:
 			pass
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Damping:")
+			col.itemR(settings, "damping_factor", text="Factor");
+			col.itemR(settings, "random_damping", text="Random");
+			
+			col = split.column()
+			col.itemL(text="Friction:")
+			col.itemR(settings, "friction_factor", text="Factor");
+			col.itemR(settings, "random_friction", text="Random");
+			
+			layout.itemR(settings, "permeability");
+			
+			layout.itemR(settings, "kill_particles");
 
 bpy.types.register(PHYSICS_PT_field)
 bpy.types.register(PHYSICS_PT_collision)
-
