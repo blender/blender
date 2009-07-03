@@ -886,7 +886,18 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				
 				/* now draw some indicator icons  */
 				if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
-					/* 'tweaking action' - not a button */
+					/* toggle for tweaking with mapping/no-mapping (i.e. 'in place editing' toggle) */
+					// for now, use pin icon to symbolise this
+					if (adt->flag & ADT_NLA_EDIT_NOMAP)
+						UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, ICON_PINNED);
+					else
+						UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, ICON_UNPINNED);
+					
+					fdrawline((float)(NLACHANNEL_NAMEWIDTH-offset), yminc, 
+							  (float)(NLACHANNEL_NAMEWIDTH-offset), ymaxc);
+					offset += 16;;
+					
+					/* 'tweaking action' indicator - not a button */
 					UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_EDIT); 
 				}
 				else {

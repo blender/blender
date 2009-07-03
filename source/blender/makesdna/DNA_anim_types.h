@@ -730,6 +730,8 @@ enum {
 	ADT_NLA_EVAL_OFF		= (1<<1),
 		/* NLA is being 'tweaked' (i.e. in EditMode) */
 	ADT_NLA_EDIT_ON			= (1<<2),
+		/* active Action for 'tweaking' does not have mapping applied for editing */
+	ADT_NLA_EDIT_NOMAP		= (1<<3),
 	
 		/* drivers expanded in UI */
 	ADT_DRIVERS_COLLAPSED	= (1<<10),

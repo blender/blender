@@ -458,8 +458,9 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
 	/* sanity checks 
 	 *	- obviously we've got to have some starting data
 	 *	- when not in tweakmode, the active Action does not have any scaling applied :)
+	 *	- when in tweakmode, if the no-mapping flag is set, do not map
 	 */
-	if ((adt == NULL) || (adt->flag & ADT_NLA_EDIT_ON)==0)
+	if ((adt == NULL) || (adt->flag & ADT_NLA_EDIT_ON)==0 || (adt->flag & ADT_NLA_EDIT_NOMAP))
 		return cframe;
 		
 	/* if the active-strip info has been stored already, access this, otherwise look this up

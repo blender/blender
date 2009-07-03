@@ -264,13 +264,16 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			AnimData *adt= BKE_animdata_from_id(ale->owner); /* this won't crash, right? */
 			
-			/* for now, only do something if user clicks on the 'push-down' button */
 			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
-				/* activate push-down function - only usable when not in TweakMode */
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
+					/* 'push-down' action - only usable when not in TweakMode */
 					// TODO: make this use the operator instead of calling the function directly
 					// 	however, calling the operator requires that we supply the args, and that works with proper buttons only
 					BKE_nla_action_pushdown(adt);
+				}
+				else {
+					/* when in tweakmode, this button becomes the toggle for mapped editing */
+					adt->flag ^= ADT_NLA_EDIT_NOMAP;
 				}
 			}
 		}
