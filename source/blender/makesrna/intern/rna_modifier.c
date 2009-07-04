@@ -1300,6 +1300,13 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem particleinstance_axis[] = {
+		{0, "X", 0, "X", ""},
+		{1, "Y", 0, "Y", ""},
+		{2, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna= RNA_def_struct(brna, "ParticleInstanceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleInstance Modifier", "Particle system instancing modifier.");
 	RNA_def_struct_sdna(srna, "ParticleInstanceModifierData");
@@ -1315,6 +1322,12 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "psys");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Particle System Number", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axis");
+	RNA_def_property_enum_items(prop, particleinstance_axis);
+	RNA_def_property_ui_text(prop, "Axis", "Pole axis for rotation");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "normal", PROP_BOOLEAN, PROP_NONE);
@@ -1345,6 +1358,23 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Dead);
 	RNA_def_property_ui_text(prop, "Dead", "Show instances when particles are dead.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "keep_shape", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_KeepShape);
+	RNA_def_property_ui_text(prop, "Keep Shape", "Don't stretch the object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "position");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Position", "Position along path.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "random_position", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "random_position");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Random Position", "Randomize position along path.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 

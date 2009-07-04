@@ -1209,8 +1209,13 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			cache = pid->cache;
 			if((cache->flag & PTCACHE_BAKED)==0) {
-				if(pid->type==PTCACHE_TYPE_PARTICLES)
+				if(pid->type==PTCACHE_TYPE_PARTICLES) {
+					/* skip hair particles */
+					if(((ParticleSystem*)pid->data)->part->type == PART_HAIR)
+						continue;
+
 					psys_get_pointcache_start_end(scene, pid->data, &cache->startframe, &cache->endframe);
+				}
 
 				if((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0)
 					&& ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
@@ -1265,6 +1270,10 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		BKE_ptcache_ids_from_object(&pidlist, base->object);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
+			/* skip hair particles */
+			if(pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->data)->part->type == PART_HAIR)
+				continue;
+		
 			cache = pid->cache;
 
 			if(step > 1)
@@ -1282,7 +1291,9 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 
 	scene->r.framelen = frameleno;
 	CFRA = cfrao;
-	scene_update_for_newframe(scene, scene->lay);
+
+	if(bake) /* already on cfra unless baking */
+		scene_update_for_newframe(scene, scene->lay);
 
 	/* TODO: call redraw all windows somehow */
 }

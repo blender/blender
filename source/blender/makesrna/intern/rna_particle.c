@@ -151,6 +151,20 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 	if(psys->part)
 		psys->part->id.us++;
 }
+static void rna_Particle_abspathtime_update(bContext *C, PointerRNA *ptr)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+	float delta = settings->end + settings->lifetime - settings->sta;
+	if(settings->draw & PART_ABS_PATH_TIME) {
+		settings->path_start = settings->sta + settings->path_start * delta;
+		settings->path_end = settings->sta + settings->path_end * delta;
+	}
+	else {
+		settings->path_start = (settings->path_start - settings->sta)/delta;
+		settings->path_end = (settings->path_end - settings->sta)/delta;
+	}
+	rna_Particle_redo(C, ptr);
+}
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -189,7 +203,19 @@ static float rna_PartSetting_linelentail_get(struct PointerRNA *ptr)
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 	return settings->draw_line[0];
 }
+static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 
+	if(settings->type==PART_HAIR) {
+		*min = 0.0f;
+		*max = (settings->draw & PART_ABS_PATH_TIME) ? 100.0f : 1.0;
+	}
+	else {
+		*min = (settings->draw & PART_ABS_PATH_TIME) ? settings->sta : 0.0f;
+		*max= (settings->draw & PART_ABS_PATH_TIME) ? MAXFRAMEF : 1.0f;
+	}
+}
 static void rna_PartSetting_linelenhead_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -702,15 +728,15 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Abs Length", "Use maximum length for children");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "absolute_time", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ABS_TIME);
-	RNA_def_property_ui_text(prop, "Absolute Time", "Set all ipos that work on particles to be calculated in absolute/relative time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	//prop= RNA_def_property(srna, "absolute_time", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ABS_TIME);
+	//RNA_def_property_ui_text(prop, "Absolute Time", "Set all ipos that work on particles to be calculated in absolute/relative time.");
+	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "global_time", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GLOB_TIME);
-	RNA_def_property_ui_text(prop, "Global Time", "Set all ipos that work on particles to be calculated in global/object time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	//prop= RNA_def_property(srna, "global_time", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GLOB_TIME);
+	//RNA_def_property_ui_text(prop, "Global Time", "Set all ipos that work on particles to be calculated in global/object time.");
+	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "boids_2d", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BOIDS_2D);
@@ -836,15 +862,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	//RNA_def_property_ui_text(prop, "Health", "Draw boid health");
 	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	//prop= RNA_def_property(srna, "timed_path", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_TIMED_PATH);
-	//RNA_def_property_ui_text(prop, "Clip with time", "Clip path based on time");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-
-	//prop= RNA_def_property(srna, "draw_cached_path", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_CACHED_PATH);
-	//RNA_def_property_ui_text(prop, "Path", "Draw particle path if the path is baked");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	prop= RNA_def_property(srna, "abs_path_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_ABS_PATH_TIME);
+	RNA_def_property_ui_text(prop, "Absolute Path Time", "Path timing is in absolute frames");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_abspathtime_update");
 
 	prop= RNA_def_property(srna, "billboard_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
@@ -1410,6 +1431,24 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Head", "Length of the line's head");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
+	prop= RNA_def_property(srna, "path_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "path_start");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
+	RNA_def_property_ui_text(prop, "Path Start", "Starting time of drawn path.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "path_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "path_end");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
+	RNA_def_property_ui_text(prop, "Path End", "End time of drawn path.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "trail_count", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "trail_count");
+	RNA_def_property_range(prop, 1.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Trail Count", "Number of trail particles.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	
 	/* boids */
 	prop= RNA_def_property(srna, "max_velocity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_vel");

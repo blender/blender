@@ -226,11 +226,11 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->draw_as == PART_DRAW_GR || part->draw_as == PART_DRAW_OB) {
+	if(part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_OB) {
 		; // XXX make_object_duplilist_real(NULL);
 	}
 	else {
-		if(part->draw_as != PART_DRAW_PATH || psys->pathcache == 0)
+		if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
 			return 0;
 
 		totpart= psys->totcached;
