@@ -553,6 +553,8 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
 
+	fprintf(stderr, "Save to: %s -> ", filepath);
+
 	rr = RE_GetResult(RE_GetRender(self->scene->id.name));
 	if(!rr) {
 		return EXPP_ReturnPyObjError (PyExc_ValueError, "No image rendered");
@@ -574,7 +576,7 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 			BLI_convertstringframe(filepath, self->scene->r.cfra); 
                         /* TODO - is this even used? */
 
-			if(G.scene->r.imtype==R_MULTILAYER) {
+			if(self->scene->r.imtype==R_MULTILAYER) {
 				RE_WriteRenderResult(rr, filepath, 
 						     self->scene->r.quality);
 			} else {
@@ -594,8 +596,8 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 			
 				/* float factor for random dither, imbuf takes care of it */
 				ibuf->dither= self->scene->r.dither_intensity;
-			
-				BKE_write_ibuf(ibuf, str, 
+				fprintf(stderr, "%s\n", filepath);
+				BKE_write_ibuf(ibuf, filepath, 
 					       self->scene->r.imtype, 
 					       self->scene->r.subimtype, 
 					       self->scene->r.quality);
