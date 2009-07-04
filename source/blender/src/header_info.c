@@ -566,7 +566,7 @@ static void copy_game_dll(char *dll_filename, char *source_dir, char *dest_dir)
 static void copy_all_game_dlls(char *str)
 {
 #define GAME_DLL_COUNT		17
-	char *game_dll_list[GAME_DLL_COUNT]={"avcodec-52.dll", "avdevice-52.dll", "avformat-52.dll", "avutil-50.dll", "libfaac-0.dll", "libfaad-2.dll", "libmp3lame-0.dll", "libx264-67.dll", "swscale-0.dll", "xvidcore.dll", "gnu_gettext.dll", "libtiff.dll", "python25.dll", "SDL.dll", "pthreadVC2.dll", "libpng.dll", "zlib.dll"};
+	char *game_dll_list[GAME_DLL_COUNT]={"avcodec-52.dll", "avdevice-52.dll", "avformat-52.dll", "avutil-50.dll", "libfaac-0.dll", "libfaad-2.dll", "libmp3lame-0.dll", "libx264-67.dll", "swscale-0.dll", "xvidcore.dll", "gnu_gettext.dll", "libtiff.dll", "python26.dll", "SDL.dll", "pthreadVC2.dll", "libpng.dll", "zlib.dll"};
 
 	char dest_dir[FILE_MAX];
 	char source_dir[FILE_MAX];
