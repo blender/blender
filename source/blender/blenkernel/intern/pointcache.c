@@ -1154,6 +1154,7 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 	baker.progressbar=NULL;
 	baker.progresscontext=NULL;
 	baker.render=0;
+	baker.anim_init = 0;
 	baker.scene=scene;
 
 	if(count_quick_cache(scene, &baker.quick_step))
@@ -1171,7 +1172,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
 	int startframe = MAXFRAME;
-	int endframe = CFRA;
+	int endframe = baker->anim_init ? scene->r.sfra : CFRA;
 	int bake = baker->bake;
 	int render = baker->render;
 	int step = baker->quick_step;
