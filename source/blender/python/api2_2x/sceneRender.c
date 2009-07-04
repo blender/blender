@@ -40,6 +40,8 @@ struct View3D; /* keep me up here */
 #include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
+#include "IMB_imbuf_types.h"	/* for the IB_rect define */
+#include "IMB_imbuf.h"
 
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
@@ -480,28 +482,25 @@ static PyObject *RenderData_Render( BPy_RenderData * self )
 		tstate = PyEval_SaveThread();
 		BIF_do_render( 0 );
 		set_scene( oldsce );
-	}
-	else { /* background mode (blender -b file.blend -P script) */
-		Render *re= RE_NewRender(G.scene->id.name);
+	} else { /* background mode (blender -b file.blend -P script) */
+		Render *re;
 
-		int end_frame = G.scene->r.efra;
+		oldsce = G.scene;
 
-		if (G.scene != self->scene)
-			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				"scene to render in bg mode must be the active scene");
+		set_scene_bg( self->scene );
 
-		G.scene->r.efra = G.scene->r.sfra;
-
-		if (G.f & G_DOSCRIPTLINKS)
-			BPY_do_all_scripts(SCRIPT_RENDER, 0);
+		re = RE_NewRender(G.scene->id.name);
 
 		tstate = PyEval_SaveThread();
 
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_do_all_scripts(SCRIPT_RENDER, 1);
+
+		RE_BlenderFrame(re, G.scene, G.scene->r.cfra);
 
 		BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 
-		G.scene->r.efra = end_frame;
+		set_scene_bg( oldsce );
 	}
 
 	PyEval_RestoreThread(tstate);
@@ -544,10 +543,6 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a filename (string) and optional int" );
 	
-	if (G.background)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"saveRenderedImage does not work in background mode, use renderAnim() instead" );
-	
 	if( strlen(self->renderContext->pic) + strlen(name_str)
 			>= sizeof(filepath) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -558,7 +553,7 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
 
-	rr = RE_GetResult(RE_GetRender(G.scene->id.name));
+	rr = RE_GetResult(RE_GetRender(self->scene->id.name));
 	if(!rr) {
 		return EXPP_ReturnPyObjError (PyExc_ValueError, "No image rendered");
 	} else {
@@ -567,7 +562,49 @@ static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject 
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}
-		BIF_save_rendered_image(filepath);
+		if (G.background) {
+			if(self->scene->r.scemode & R_EXTENSION) 
+				if(strlen(filepath)<FILE_MAXDIR+FILE_MAXFILE-5)
+					BKE_add_image_extension(
+						filepath, 
+						self->scene->r.imtype);
+
+
+			BLI_convertstringcode(filepath, G.sce);
+			BLI_convertstringframe(filepath, self->scene->r.cfra); 
+                        /* TODO - is this even used? */
+
+			if(G.scene->r.imtype==R_MULTILAYER) {
+				RE_WriteRenderResult(rr, filepath, 
+						     self->scene->r.quality);
+			} else {
+				RenderResult rres;
+				struct ImBuf *ibuf;
+			
+				RE_GetResultImage(
+					RE_GetRender(self->scene->id.name), 
+					&rres);
+
+				ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 
+						     self->scene->r.planes, 
+						     0, 0);
+				ibuf->rect= (unsigned int *)rres.rect32;
+				ibuf->rect_float= rres.rectf;
+				ibuf->zbuf_float= rres.rectz;
+			
+				/* float factor for random dither, imbuf takes care of it */
+				ibuf->dither= self->scene->r.dither_intensity;
+			
+				BKE_write_ibuf(ibuf, str, 
+					       self->scene->r.imtype, 
+					       self->scene->r.subimtype, 
+					       self->scene->r.quality);
+				IMB_freeImBuf(ibuf);	
+                                /* imbuf knows rects are not part of ibuf */
+			}
+		} else {
+			BIF_save_rendered_image(filepath);
+		}
 	}
 	Py_RETURN_NONE;
 }
@@ -586,24 +623,27 @@ static PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		set_scene( oldsce );
 	}
 	else { /* background mode (blender -b file.blend -P script) */
-		Render *re= RE_NewRender(G.scene->id.name);
-		
-		if (G.scene != self->scene)
-			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				"scene to render in bg mode must be the active scene");
+		Render *re;
+
+		oldsce = G.scene;
+		set_scene_bg( self->scene );
+
+		re = RE_NewRender(G.scene->id.name);
 
 		if (G.scene->r.sfra > G.scene->r.efra)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"start frame must be less or equal to end frame");
 
+		tstate = PyEval_SaveThread();
+
 		if (G.f & G_DOSCRIPTLINKS)
 			BPY_do_all_scripts(SCRIPT_RENDER, 1);
 
-		tstate = PyEval_SaveThread();
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
-
 		if (G.f & G_DOSCRIPTLINKS)
 			BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
+
+		set_scene_bg( oldsce );
 	}
 
 	PyEval_RestoreThread(tstate);
