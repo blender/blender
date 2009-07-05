@@ -211,8 +211,11 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
-	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
+	/* own keymaps */
+	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap= WM_keymap_listbase(wm, "FileMain", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 							   
 
@@ -295,30 +298,67 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_add_bookmark);
 	WM_operatortype_append(FILE_OT_delete_bookmark);
 	WM_operatortype_append(FILE_OT_hidedot);
+	WM_operatortype_append(FILE_OT_filenum);
 }
 
 /* NOTE: do not add .blend file reading on this level */
 void file_keymap(struct wmWindowManager *wm)
 {
+	wmKeymapItem *kmi;
+	/* keys for all areas */
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_add_bookmark", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
+
+	/* keys for main area */
+	keymap= WM_keymap_listbase(wm, "FileMain", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_add_bookmark", BKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", 10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", 100);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0,0);
+	RNA_int_set(kmi->ptr, "increment", -1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", -10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment",-100);
 	
-	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_select_bookmark", LEFTMOUSE, KM_PRESS, 0, 0);
+	/* keys for button area (top) */
+	keymap= WM_keymap_listbase(wm, "FileButtons", SPACE_FILE, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(kmi->ptr, "increment", 10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(kmi->ptr, "increment", 100);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "increment", -1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_SHIFT,0);
+	RNA_int_set(kmi->ptr, "increment", -10);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL,0);
+	RNA_int_set(kmi->ptr, "increment",-100);
 }
 
 
 static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap;
+
 	ED_region_panels_init(wm, ar);
+
+	/* own keymaps */
+	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void file_channel_area_draw(const bContext *C, ARegion *ar)
@@ -348,7 +388,16 @@ static void file_header_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap;
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap= WM_keymap_listbase(wm, "FileButtons", SPACE_FILE, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void file_ui_area_draw(const bContext *C, ARegion *ar)

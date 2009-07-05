@@ -685,3 +685,32 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 	ot->exec= file_bookmark_toggle_exec;
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
+
+
+int file_filenum_exec(bContext *C, wmOperator *op)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	int inc = RNA_int_get(op->ptr, "increment");
+	if(sfile->params && (inc != 0)) {
+		BLI_newname(sfile->params->file, inc);
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+
+}
+
+void FILE_OT_filenum(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Increment Number in Filename";
+	ot->idname= "FILE_OT_filenum";
+	
+	/* api callbacks */
+	ot->exec= file_filenum_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+
+	/* props */
+	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
+}
