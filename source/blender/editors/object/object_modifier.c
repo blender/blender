@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -35,6 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
@@ -44,6 +46,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -52,6 +55,7 @@
 #include "BKE_report.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -67,30 +71,96 @@
 
 /******************************** API ****************************/
 
-int ED_object_modifier_delete(ReportList *reports, Object *ob, ModifierData *md)
+int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int type)
+{
+	ModifierData *md;
+	ModifierTypeInfo *mti = modifierType_getInfo(type);
+
+	if(mti->flags&eModifierTypeFlag_Single) {
+		if(modifiers_findByType(ob, type)) {
+			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed.");
+			return 0;
+		}
+	}
+
+	if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+		md = ob->modifiers.first;
+
+		while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
+			md = md->next;
+
+		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+	}
+	else
+		BLI_addtail(&ob->modifiers, modifier_new(type));
+	
+	/* special cases */
+	if(type == eModifierType_Softbody) {
+		if(!ob->soft) {
+			ob->soft= sbNew(scene);
+			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+		}
+	}
+	else if(type == eModifierType_Collision) {
+		if(!ob->pd)
+			ob->pd= object_add_collision_fields();
+
+		ob->pd->deflect= 1;
+        DAG_scene_sort(scene);
+	}
+	else if(type == eModifierType_Surface)
+        DAG_scene_sort(scene);
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	return 1;
+}
+
+int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
 	ModifierData *obmd;
 
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	for (obmd=ob->modifiers.first; obmd; obmd=obmd->next)
-		if (obmd==md)
+	for(obmd=ob->modifiers.first; obmd; obmd=obmd->next)
+		if(obmd==md)
 			break;
 	
-	if (!obmd)
+	if(!obmd)
 		return 0;
 
+	/* special cases */
 	if(md->type == eModifierType_ParticleSystem) {
 		ParticleSystemModifierData *psmd=(ParticleSystemModifierData*)md;
 
 		BLI_remlink(&ob->particlesystem, psmd->psys);
 		psys_free(ob, psmd->psys);
 	}
+	else if(md->type == eModifierType_Softbody) {
+		if(ob->soft) {
+			sbFree(ob->soft);
+			ob->soft= NULL;
+			ob->softflag= 0;
+		}
+	}
+	else if(md->type == eModifierType_Collision) {
+		if(ob->pd)
+			ob->pd->deflect= 0;
+
+        DAG_scene_sort(scene);
+	}
+	else if(md->type == eModifierType_Surface) {
+		if(ob->pd)
+			ob->pd->flag &= ~PFIELD_SURFACE;
+
+        DAG_scene_sort(scene);
+	}
 
 	BLI_remlink(&ob->modifiers, md);
-
 	modifier_free(md);
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
 	return 1;
 }
@@ -103,9 +173,10 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 		if(mti->type!=eModifierTypeType_OnlyDeform) {
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
 
-			if(nmti->flags&eModifierTypeFlag_RequiresOriginalData)
+			if(nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
 				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data.");
 				return 0;
+			}
 		}
 
 		BLI_remlink(&ob->modifiers, md);
@@ -155,11 +226,11 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->draw_as == PART_DRAW_GR || part->draw_as == PART_DRAW_OB) {
+	if(part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_OB) {
 		; // XXX make_object_duplilist_real(NULL);
 	}
 	else {
-		if(part->draw_as != PART_DRAW_PATH || psys->pathcache == 0)
+		if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
 			return 0;
 
 		totpart= psys->totcached;
@@ -260,6 +331,10 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		}
 	
 		mesh_pmv_off(ob, me);
+
+               /* Multires: ensure that recent sculpting is applied */
+               if(md->type == eModifierType_Multires)
+                       multires_force_update(ob);
 	
 		dm = mesh_create_derived_for_modifier(scene, ob, md);
 		if (!dm) {
@@ -329,22 +404,11 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
     Object *ob = CTX_data_active_object(C);
-	ModifierData *md;
 	int type= RNA_enum_get(op->ptr, "type");
-	ModifierTypeInfo *mti = modifierType_getInfo(type);
 
-	if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
-		md = ob->modifiers.first;
+	if(!ED_object_modifier_add(op->reports, scene, ob, type))
+		return OPERATOR_CANCELLED;
 
-		while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
-			md = md->next;
-
-		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
-	}
-	else
-		BLI_addtail(&ob->modifiers, modifier_new(type));
-
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
@@ -370,13 +434,198 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", modifier_type_items, 0, "Type", "");
 }
 
+/************************ remove modifier operator *********************/
+
+static int modifier_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_remove(op->reports, scene, ob, md))
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_remove(wmOperatorType *ot)
+{
+	ot->name= "Remove Modifier";
+	ot->description= "Remove a modifier from the active object.";
+	ot->idname= "OBJECT_OT_modifier_remove";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_remove_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ move up modifier operator *********************/
+
+static int modifier_move_up_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_move_up(op->reports, ob, md))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
+{
+	ot->name= "Move Up Modifier";
+	ot->description= "Move modifier up in the stack.";
+	ot->idname= "OBJECT_OT_modifier_move_up";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_move_up_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ move down modifier operator *********************/
+
+static int modifier_move_down_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_move_down(op->reports, ob, md))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
+{
+	ot->name= "Move Down Modifier";
+	ot->description= "Move modifier down in the stack.";
+	ot->idname= "OBJECT_OT_modifier_move_down";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_move_down_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ apply modifier operator *********************/
+
+static int modifier_apply_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_apply(wmOperatorType *ot)
+{
+	ot->name= "Apply Modifier";
+	ot->description= "Apply modifier and remove from the stack.";
+	ot->idname= "OBJECT_OT_modifier_apply";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_apply_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ convert modifier operator *********************/
+
+static int modifier_convert_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_convert(op->reports, scene, ob, md))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_convert(wmOperatorType *ot)
+{
+	ot->name= "Convert Modifier";
+	ot->description= "Convert particles to a mesh object.";
+	ot->idname= "OBJECT_OT_modifier_convert";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_convert_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ copy modifier operator *********************/
+
+static int modifier_copy_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+	Object *ob= ptr.id.data;
+	ModifierData *md= ptr.data;
+
+	if(!ob || !md || !ED_object_modifier_copy(op->reports, ob, md))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifier_copy(wmOperatorType *ot)
+{
+	ot->name= "Copy Modifier";
+	ot->description= "Duplicate modifier at the same position in the stack.";
+	ot->idname= "OBJECT_OT_modifier_copy";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= modifier_copy_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /****************** multires subdivide operator *********************/
 
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_active_object(C);
-	PointerRNA ptr = CTX_data_pointer_get(C, "modifier");
-	MultiresModifierData *mmd = (RNA_struct_is_a(ptr.type, &RNA_Modifier))? ptr.data: NULL;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	MultiresModifierData *mmd= ptr.data;
 
 	if(mmd) {
 		multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
@@ -403,8 +652,7 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 
 static int modifier_mdef_bind_poll(bContext *C)
 {
-	PointerRNA ptr= CTX_data_pointer_get(C, "modifier");
-	return RNA_struct_is_a(ptr.type, &RNA_MeshDeformModifier);
+	return CTX_data_pointer_get_type(C, "modifier", &RNA_MeshDeformModifier).data != NULL;
 }
 
 static int modifier_mdef_bind_exec(bContext *C, wmOperator *op)
@@ -519,9 +767,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
-		
-		if(ELEM4(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Surface, eModifierType_Fluidsim)) continue;
+		if(ELEM(i, eModifierType_ParticleSystem, eModifierType_Surface)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {

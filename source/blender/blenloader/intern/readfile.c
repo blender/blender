@@ -9059,6 +9059,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					part->draw_as = PART_DRAW_REND;
 				}
 			}
+			part->path_end = 1.0f;
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {

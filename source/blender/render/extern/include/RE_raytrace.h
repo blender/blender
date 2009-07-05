@@ -50,7 +50,7 @@ void RE_rayobject_free(RayObject *r);
 RayObject* RE_rayobject_octree_create(int ocres, int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
 
-#define RE_rayobject_tree_create RE_rayobject_bih_create
+#define RE_rayobject_tree_create RE_rayobject_blibvh_create
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_bvh_create(int size);		/* rayobject_bvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */

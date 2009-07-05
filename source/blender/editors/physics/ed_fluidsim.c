@@ -67,18 +67,19 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"
-#include "BKE_modifier.h"
-#include "BKE_main.h"
-#include "BKE_key.h"
-#include "BKE_scene.h"
-#include "BKE_object.h"
-#include "BKE_softbody.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
+#include "BKE_main.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_softbody.h"
 
 #include "PIL_time.h"
 
@@ -88,6 +89,9 @@
 
 #include "ED_fluidsim.h"
 #include "ED_screen.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 /* XXX */
 /* from header info.c */
@@ -124,7 +128,7 @@ char* fluidsimViscosityPresetString[6] = {
 /* ********************** fluid sim settings struct functions ********************** */
 
 /* helper function */
-void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *srcname) {
+void fluidsimGetGeometryObjFilename(Object *ob, char *dst) { //, char *srcname) {
 	//snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
 	snprintf(dst,FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
 }
@@ -337,14 +341,14 @@ int runSimulationCallback(void *data, int status, int frame) {
 /* ********************** write fluidsim config to file ************************* */
 /* ******************************************************************************** */
 
-void fluidsimBake(bContext *C, struct Object *ob)
+int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 {
 	Scene *scene= CTX_data_scene(C);
 	FILE *fileCfg;
 	int i;
-	struct Object *fsDomain = NULL;
+	Object *fsDomain = NULL;
 	FluidsimSettings *domainSettings;
-	struct Object *obit = NULL; /* object iterator */
+	Object *obit = NULL; /* object iterator */
 	Base *base;
 	int origFrame = scene->r.cfra;
 	char debugStrBuffer[256];
@@ -412,8 +416,8 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	// old: noFrames = scene->r.efra - scene->r.sfra +1;
 	noFrames = scene->r.efra - 0;
 	if(noFrames<=0) {
-		pupmenu("Fluidsim Bake Error%t|No frames to export - check your animation range settings. Aborted%x0");
-		return;
+		BKE_report(reports, RPT_ERROR, "No frames to export - check your animation range settings.");
+		return 0;
 	}
 
 	/* no object pointer, find in selected ones.. */
@@ -434,7 +438,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 			}
 		}
 		// no domains found?
-		if(!ob) return;
+		if(!ob) return 0;
 	}
 	
 	channelObjCount = 0;
@@ -452,8 +456,8 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	}
 	
 	if (channelObjCount>=255) {
-		pupmenu("Fluidsim Bake Error%t|Cannot bake with more then 256 objects");
-		return;
+		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects.");
+		return 0;
 	}
 
 	/* check if there's another domain... */
@@ -467,8 +471,8 @@ void fluidsimBake(bContext *C, struct Object *ob)
 			{
 				if(obit != ob) 
 				{
-					pupmenu("Fluidsim Bake Error%t|There should be only one domain object! Aborted%x0");
-					return;
+					BKE_report(reports, RPT_ERROR, "There should be only one domain object.");
+					return 0;
 				}
 			}
 		}
@@ -490,8 +494,8 @@ void fluidsimBake(bContext *C, struct Object *ob)
 		}
 	}
 	if(!haveSomeFluid) {
-		pupmenu("Fluidsim Bake Error%t|No fluid objects in scene... Aborted%x0");
-		return;
+		BKE_report(reports, RPT_ERROR, "No fluid objects in scene.");
+		return 0;
 	}
 	
 	/* these both have to be valid, otherwise we wouldnt be here */
@@ -585,7 +589,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 
 		// ask user if thats what he/she wants...
 		selection = pupmenu(dispmsg);
-		if(selection<1) return; // 0 from menu, or -1 aborted
+		if(selection<1) return 0; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 		BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
@@ -710,6 +714,10 @@ void fluidsimBake(bContext *C, struct Object *ob)
 			// check & init loc,rot,size
 			for(j=0; j<3; j++) {
 				for(k=0; k<3; k++) {
+					// XXX prevent invalid memory access until this works
+					icuex[j][k]= NULL;
+					icudex[j][k]= NULL;
+
 					// XXX icuex[j][k]  = find_ipocurve(obit->ipo, icuIds[j][k] );
 					// XXX icudex[j][k] = find_ipocurve(obit->ipo, icudIds[j][k] );
 					// XXX lines below were already disabled!
@@ -812,11 +820,11 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	if(!Mat4Invert(invDomMat, domainMat)) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
 		elbeemDebugOut(debugStrBuffer);
+		BKE_report(reports, RPT_ERROR, "Invalid object matrix."); 
 		// FIXME add fatal msg
 		FS_FREE_CHANNELS;
-		return;
+		return 0;
 	}
-
 
 	// --------------------------------------------------------------------------------------------
 	// start writing / exporting
@@ -1001,7 +1009,6 @@ void fluidsimBake(bContext *C, struct Object *ob)
 			} // valid mesh
 		} // objects
 		//domainSettings->type = OB_FLUIDSIM_DOMAIN; // enable for bake display again
-		//fsDomain->fluidsimFlag = OB_FLUIDSIM_ENABLE; // disable during bake
 		
 		// set to neutral, -1 means user abort, -2 means init error
 		globalBakeState = 0;
@@ -1080,7 +1087,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	// --------------------------------------------------------------------------------------------
 	else
 	{ // write config file to be run with command line simulator
-		pupmenu("Fluidsim Bake Message%t|Config file export not supported.%x0");
+		BKE_report(reports, RPT_WARNING, "Config file export not supported.");
 	} // config file export done!
 
 	// --------------------------------------------------------------------------------------------
@@ -1099,51 +1106,81 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	ED_update_for_newframe(C, 1);
 
 	if(!simAborted) {
-		char fsmessage[512];
 		char elbeemerr[256];
-		strcpy(fsmessage,"Fluidsim Bake Error: ");
+
 		// check if some error occurred
 		if(globalBakeState==-2) {
-			strcat(fsmessage,"Failed to initialize [Msg: ");
-
 			elbeemGetErrorString(elbeemerr);
-			strcat(fsmessage,elbeemerr);
-
-			strcat(fsmessage,"] |OK%x0");
-			pupmenu(fsmessage);
+			BKE_reportf(reports, RPT_ERROR, "Failed to initialize [Msg: %s]", elbeemerr);
+			return 0;
 		} // init error
 	}
 	
 	// elbeemFree();
+	return 1;
 }
 
-void fluidsimFreeBake(struct Object *ob)
+void fluidsimFreeBake(Object *ob)
 {
 	/* not implemented yet */
 }
-
 
 #else /* DISABLE_ELBEEM */
 
 /* compile dummy functions for disabled fluid sim */
 
-FluidsimSettings *fluidsimSettingsNew(struct Object *srcob) {
+FluidsimSettings *fluidsimSettingsNew(Object *srcob)
+{
 	return NULL;
 }
 
-void fluidsimSettingsFree(FluidsimSettings *fss) {
+void fluidsimSettingsFree(FluidsimSettings *fss)
+{
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss) {
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
+{
 	return NULL;
 }
 
 /* only compile dummy functions */
-void fluidsimBake(bContext *C, struct Object *ob) {
+int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
+{
+	return 0;
 }
 
-void fluidsimFreeBake(struct Object *ob) {
+void fluidsimFreeBake(Object *ob)
+{
 }
 
 #endif /* DISABLE_ELBEEM */
+
+/***************************** Operators ******************************/
+
+static int fluid_bake_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	// XXX TODO redraw, escape, non-blocking, ..
+	if(!fluidsimBake(C, op->reports, ob))
+		return OPERATOR_CANCELLED;
+
+	return OPERATOR_FINISHED;
+}
+
+void FLUID_OT_bake(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Fluid Simulation Bake";
+	ot->idname= "FLUID_OT_bake";
+	
+	/* api callbacks */
+	ot->exec= fluid_bake_exec;
+	ot->poll= ED_operator_object_active;
+}
+
+void ED_operatortypes_fluid(void)
+{
+	WM_operatortype_append(FLUID_OT_bake);
+}
 

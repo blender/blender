@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -48,17 +49,18 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_effect.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 
-static void rna_Object_update(bContext *C, PointerRNA *ptr)
+void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
-static void rna_Object_update_data(bContext *C, PointerRNA *ptr)
+void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
@@ -446,6 +448,21 @@ static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
 	ob->shapeflag |= OB_SHAPE_TEMPLOCK;
 }
 
+static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb;
+	PointerRNA keyptr;
+
+	if(key==NULL)
+		return PointerRNA_NULL;
+	
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	return keyptr;
+}
+
 static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -454,6 +471,28 @@ static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
 	else ob->shapeflag &= ~OB_SHAPE_LOCK;
 
 	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+}
+
+static PointerRNA rna_Object_field_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
+}
+
+static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
 }
 
 #else
@@ -1006,11 +1045,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "field", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "FieldSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_field_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Field Settings", "Settings for using the objects as a field in physics simulation.");
 
 	prop= RNA_def_property(srna, "collision", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "CollisionSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_collision_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Collision Settings", "Settings for using the objects as a collider in physics simulation.");
 
 	prop= RNA_def_property(srna, "soft_body", PROP_POINTER, PROP_NONE);
@@ -1252,7 +1293,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+
+	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ShapeKey");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_shape_key_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key.");
 
 	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");

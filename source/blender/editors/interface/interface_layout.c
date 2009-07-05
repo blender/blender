@@ -615,14 +615,13 @@ void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, ch
 	/* for getting the enum */
 	PropertyRNA *prop;
 	const EnumPropertyItem *item;
-	int totitem;
 	int value;
 
 	WM_operator_properties_create(&ptr, opname);
 	
 	/* enum lookup */
 	if((prop= RNA_struct_find_property(&ptr, propname))) {
-		RNA_property_enum_items(&ptr, prop, &item, &totitem);
+		RNA_property_enum_items(&ptr, prop, &item, NULL);
 		if(RNA_enum_value_from_id(item, value_str, &value)==0) {
 			printf("uiItemEnumO_string: %s.%s, enum %s not found.\n", RNA_struct_identifier(ptr.type), propname, value_str);
 			return;
@@ -695,13 +694,16 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	PropertySubType subtype;
 	int len, w, h;
 
-	w= ui_text_icon_width(layout, name, icon);
-	h= UI_UNIT_Y;
-
 	/* arbitrary extended width by type */
 	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
+
+	if(ELEM(type, PROP_STRING, PROP_POINTER) && strcmp(name, "") == 0)
+		name= "non-empty";
+
+	w= ui_text_icon_width(layout, name, icon);
+	h= UI_UNIT_Y;
 
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
@@ -827,13 +829,46 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 
 	prop= RNA_struct_find_property(ptr, propname);
 
-	if(!prop) {
+	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemEnumR: property not found: %s\n", propname);
+		printf("uiItemEnumR: enum property not found: %s\n", propname);
 		return;
 	}
 
 	uiItemFullR(layout, name, icon, ptr, prop, RNA_ENUM_VALUE, value, 0, 0, 0);
+}
+
+void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value)
+{
+	PropertyRNA *prop;
+	const EnumPropertyItem *item;
+	int ivalue, a;
+
+	if(!ptr->data || !propname)
+		return;
+
+	prop= RNA_struct_find_property(ptr, propname);
+
+	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
+		ui_item_disabled(layout, propname);
+		printf("uiItemEnumR: enum property not found: %s\n", propname);
+		return;
+	}
+
+	RNA_property_enum_items(ptr, prop, &item, NULL);
+
+	if(!RNA_enum_value_from_id(item, value, &ivalue)) {
+		ui_item_disabled(layout, propname);
+		printf("uiItemEnumR: enum property value not found: %s\n", value);
+		return;
+	}
+
+	for(a=0; item[a].identifier; a++) {
+		if(item[a].value == ivalue) {
+			uiItemFullR(layout, (char*)item[a].name, item[a].icon, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, 0, 0);
+			break;
+		}
+	}
 }
 
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)

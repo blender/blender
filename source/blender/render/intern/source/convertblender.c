@@ -1246,6 +1246,19 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 
 }
 
+static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed)
+{
+	HaloRen *har=0;
+
+	if(ma->mode&MA_WIRE)
+		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
+	else if(ma->material_type == MA_TYPE_HALO) {
+		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
+		if(har) har->lay= obr->ob->lay;
+	}
+	else
+		static_particle_strand(re, obr, ma, sd, loc, loc1);
+}
 static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, ParticleBillboardData *bb)
 {
 	VlakRen *vlr;
@@ -1368,18 +1381,55 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 		mtf->uv[3][1] = uvy;
 	}
 }
-static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed)
+static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, ParticleBillboardData *bb, ParticleKey *state, int seed, float hasize)
 {
-	HaloRen *har=0;
+	float loc[3], loc0[3], loc1[3], vel[3];
+	
+	VECCOPY(loc, state->co);
 
-	if(ma->mode&MA_WIRE)
-		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
-	else if(ma->material_type == MA_TYPE_HALO) {
-		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
-		if(har) har->lay= obr->ob->lay;
+	if(ren_as != PART_DRAW_BB)
+		MTC_Mat4MulVecfl(re->viewmat, loc);
+
+	switch(ren_as) {
+		case PART_DRAW_LINE:
+			sd->line = 1;
+			sd->time = 0.0f;
+			sd->size = hasize;
+
+			VECCOPY(vel, state->vel);
+			MTC_Mat4Mul3Vecfl(re->viewmat, vel);
+			Normalize(vel);
+
+			if(part->draw & PART_DRAW_VEL_LENGTH)
+				VecMulf(vel, VecLength(state->vel));
+
+			VECADDFAC(loc0, loc, vel, -part->draw_line[0]);
+			VECADDFAC(loc1, loc, vel, part->draw_line[1]);
+
+			particle_curve(re, obr, dm, ma, sd, loc0, loc1, seed);
+
+			break;
+
+		case PART_DRAW_BB:
+
+			VECCOPY(bb->vec, loc);
+			VECCOPY(bb->vel, state->vel);
+
+			particle_billboard(re, obr, ma, bb);
+
+			break;
+
+		default:
+		{
+			HaloRen *har=0;
+
+			har = RE_inithalo_particle(re, obr, dm, ma, loc, NULL, sd->orco, sd->uvco, hasize, 0.0, seed);
+			
+			if(har) har->lay= obr->ob->lay;
+
+			break;
+		}
 	}
-	else
-		static_particle_strand(re, obr, ma, sd, loc, loc1);
 }
 static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int num, ParticleStrandData *sd)
 {
@@ -1436,9 +1486,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
-	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
+	float loc[3],loc1[3],loc0[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float strandlen=0.0f, curlen=0.0f;
-	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
+	float hasize, pa_size, r_tilt, r_length, cfra=bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
+	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2];
 	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0;
 	int totchild=0;
@@ -1654,6 +1705,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if(pa->flag & PARS_UNEXIST) continue;
 
 			pa_time=(cfra-pa->time)/pa->lifetime;
+			pa_birthtime = pa->time;
+			pa_dietime = pa->dietime;
 			if((part->flag&PART_ABS_TIME) == 0){
 #if 0 // XXX old animation system
 				if(ma->ipo) {
@@ -1691,6 +1744,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_size = pa->size;
 
 			r_tilt = 1.0f + pa->r_ave[0];
+			r_length = 0.5f * (1.0f + pa->r_ave[1]);
 
 			if(path_nbr) {
 				cache = psys->pathcache[a];
@@ -1711,7 +1765,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				max_k = (int)cache->steps;
 			}
 			
-			pa_time = psys_get_child_time(psys, cpa, cfra);
+			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
 
 			if((part->flag & PART_ABS_TIME) == 0) {
 #if 0 // XXX old animation system
@@ -1731,6 +1785,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
 			r_tilt = 2.0f * cpa->rand[2];
+			r_length = cpa->rand[1];
 
 			num = cpa->num;
 
@@ -1864,14 +1919,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						VECSUB(loc0,loc1,loc);
 						VECADD(loc0,loc1,loc0);
 
-						render_new_particle(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed);
+						particle_curve(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed);
 					}
 
 					sd.first = 0;
 					sd.time = time;
 
 					if(k)
-						render_new_particle(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
+						particle_curve(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
 
 					VECCOPY(loc1,loc);
 				}
@@ -1880,61 +1935,55 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		}
 		else {
 			/* render normal particles */
-			time=0.0f;
-			state.time=cfra;
-			if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
-				continue;
+			if(part->trail_count > 1) {
+				float length = part->path_end * (1.0 - part->randlength * r_length);
+				int trail_count = part->trail_count * (1.0 - part->randlength * r_length);
+				float ct = (part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time;
+				float dt = length / (trail_count ? (float)trail_count : 1.0f);
 
-			if(psys->parent)
-				Mat4MulVecfl(psys->parent->obmat, state.co);
+				for(i=0; i < trail_count; i++, ct -= dt) {
+					if(part->draw & PART_ABS_PATH_TIME) {
+						if(ct < pa_birthtime || ct > pa_dietime)
+							continue;
+					}
+					else if(ct < 0.0f || ct > 1.0f)
+						continue;
 
-			VECCOPY(loc,state.co);
-			if(part->ren_as!=PART_DRAW_BB)
-				MTC_Mat4MulVecfl(re->viewmat,loc);
+					state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : ct;
+					psys_get_particle_on_path(re->scene,ob,psys,a,&state,1);
 
-			switch(part->ren_as) {
-				case PART_DRAW_LINE:
-					sd.line = 1;
-					sd.time = 0.0f;
-					sd.size = hasize;
+					if(psys->parent)
+						Mat4MulVecfl(psys->parent->obmat, state.co);
 
-					VECCOPY(vel,state.vel);
-					MTC_Mat4Mul3Vecfl(re->viewmat,vel);
-					Normalize(vel);
+					if(part->ren_as == PART_DRAW_BB) {
+						bb.random = random;
+						bb.size = pa_size;
+						bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+						bb.time = ct;
+						bb.num = a;
+					}
 
-					if(part->draw & PART_DRAW_VEL_LENGTH)
-						VecMulf(vel,VecLength(state.vel));
+					particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize);
+				}
+			}
+			else {
+				time=0.0f;
+				state.time=cfra;
+				if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
+					continue;
 
-					VECADDFAC(loc0,loc,vel,-part->draw_line[0]);
-					VECADDFAC(loc1,loc,vel,part->draw_line[1]);
+				if(psys->parent)
+					Mat4MulVecfl(psys->parent->obmat, state.co);
 
-					render_new_particle(re,obr,psmd->dm,ma,&sd,loc0,loc1,seed);
-
-					break;
-
-				case PART_DRAW_BB:
+				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
 					bb.size = pa_size;
 					bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
 					bb.time = pa_time;
 					bb.num = a;
-					VECCOPY(bb.vec, loc);
-					VECCOPY(bb.vel, state.vel);
-
-					particle_billboard(re, obr, ma, &bb);
-
-					break;
-
-				default:
-				{
-					HaloRen *har=0;
-
-					har = RE_inithalo_particle(re, obr, psmd->dm, ma, loc, NULL, sd.orco, sd.uvco, hasize, 0.0, seed);
-					
-					if(har) har->lay= obr->ob->lay;
-
-					break;
 				}
+
+				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize);
 			}
 		}
 

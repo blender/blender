@@ -1302,46 +1302,11 @@ static uiBlock *view3d_select_metaballmenu(bContext *C, ARegion *ar, void *arg_u
 	return block;
 }
 
-static void do_view3d_select_latticemenu(bContext *C, void *arg, int event)
+static void view3d_select_latticemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-#if 0
-/*	extern void borderselect(void);*/
-	
-	switch(event) {
-			case 0: /* border select */
-			borderselect();
-			break;
-		case 2: /* Select/Deselect all */
-			deselectall_Latt();
-			break;
-	}
-#endif
-}
-
-static uiBlock *view3d_select_latticemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_select_latticemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_select_latticemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
+	uiItemS(layout);
+	uiItemO(layout, NULL, 0, "LATTICE_OT_select_all_toggle");
 }
 
 static void do_view3d_select_armaturemenu(bContext *C, void *arg, int event)
@@ -3327,10 +3292,11 @@ static void view3d_edit_curve_showhidemenu(bContext *C, uiLayout *layout, void *
 
 static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	PointerRNA sceneptr;
 	Scene *scene= CTX_data_scene(C);
-
-	RNA_id_pointer_create(&scene->id, &sceneptr);
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	PointerRNA tsptr;
+	
+	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
 
 #if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -3361,8 +3327,8 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0, 0); // |O
-	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff");
 
 	uiItemS(layout);
 
@@ -3516,47 +3482,15 @@ static void view3d_edit_textmenu(bContext *C, uiLayout *layout, void *arg_unused
 	uiItemMenuF(layout, "Special Characters", 0, view3d_edit_text_charsmenu);
 }
 
-static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
+static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-#if 0
 	Scene *scene= CTX_data_scene(C);
-
-	switch(event) {
-									
-	case 0: /* Undo Editing */
-		remake_editLatt();
-		break;
-	case 2: /* insert keyframe */
-		common_insertkey();
-		break;
-	case 3: /* Shear */
-		initTransform(TFM_SHEAR, CTX_NONE);
-		Transform();
-		break;
-	case 4: /* Warp */
-		initTransform(TFM_WARP, CTX_NONE);
-		Transform();
-		break;
-	case 5: /* proportional edit (toggle) */
-		if(ts->proportional) ts->proportional= 0;
-		else ts->proportional= 1;
-		break;
-	case 7: /* delete keyframe */
-		common_deletekey();
-		break;
-	}
-#endif
-}
-
-static uiBlock *view3d_edit_latticemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-		
-	block= uiBeginBlock(C, ar, "view3d_edit_latticemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_latticemenu, NULL);
+	PointerRNA tsptr;
 	
+	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
+
+#if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -3564,35 +3498,19 @@ static uiBlock *view3d_edit_latticemenu(bContext *C, ARegion *ar, void *arg_unus
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");		
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(ts->proportional) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	}
-	uiDefIconTextBlockBut(block, view3d_edit_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, 120, 19, "");
+#endif
 
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
+	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	// common_insertkey();
+	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	// common_deletekey();
+	
+	uiItemO(layout, NULL, 0, "LATTICE_OT_make_regular");
 
-	uiTextBoundsBlock(block, 50);
-	return block;
+	uiItemS(layout);
+
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 }
 
 void do_view3d_edit_armature_parentmenu(bContext *C, void *arg, int event)
@@ -5155,7 +5073,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		} else if (ob && ob->type == OB_MBALL) {
 			uiDefPulldownBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,yco, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_LATTICE) {
-			uiDefPulldownBut(block, view3d_select_latticemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
+			uiDefMenuBut(block, view3d_select_latticemenu, NULL, "Select", xco, yco, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_ARMATURE) {
 			uiDefPulldownBut(block, view3d_select_armaturemenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
 		}
@@ -5199,7 +5117,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 			xco+= xmax;
 		} else if (ob && ob->type == OB_LATTICE) {
 			xmax= GetButStringLength("Lattice");
-			uiDefPulldownBut(block, view3d_edit_latticemenu, NULL, "Lattice",	xco,yco, xmax-3, 20, "");
+			uiDefMenuBut(block, view3d_edit_latticemenu, NULL, "Lattice", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_ARMATURE) {
 			xmax= GetButStringLength("Armature");

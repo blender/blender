@@ -3208,7 +3208,11 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		}
 		load_editMesh(scene, obedit);
 		
-		if(freedata) free_editMesh(me->edit_mesh);
+		if(freedata) {
+			free_editMesh(me->edit_mesh);
+			MEM_freeN(me->edit_mesh);
+			me->edit_mesh= NULL;
+		}
 		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');

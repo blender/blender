@@ -353,18 +353,13 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			colsub.itemR(part, "adaptive_pix")
 			sub.itemR(part, "hair_bspline")
 			sub.itemR(part, "render_step", text="Steps")
-			sub = split.column()
-			sub.itemL(text="Length:")
-			sub.itemR(part, "abs_length", text="Absolute")
-			sub.itemR(part, "absolute_length", text="Maximum")
+			sub = split.column()	
+
+			sub.itemL(text="Timing:")
+			sub.itemR(part, "abs_path_time")
+			sub.itemR(part, "path_start", text="Start", slider= not part.abs_path_time)
+			sub.itemR(part, "path_end", text="End", slider= not part.abs_path_time)		
 			sub.itemR(part, "random_length", text="Random", slider=True)
-			
-			#row = layout.row()
-			#row.itemR(part, "timed_path")
-			#col = row.column(align=True)
-			#col.active = part.timed_path == True
-			#col.itemR(part, "line_length_tail", text="Start")
-			#col.itemR(part, "line_length_head", text="End")
 			
 			row = layout.row()
 			col = row.column()
@@ -384,7 +379,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			
 
 		elif part.ren_as == 'OBJECT':
-			#sub = split.column()
 			sub.itemR(part, "dupli_object")
 		elif part.ren_as == 'GROUP':
 			sub.itemR(part, "dupli_group")
@@ -428,7 +422,19 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			row.itemR(part, "billboard_animation", expand=True)
 			row.itemL(text="Offset:")
 			row.itemR(part, "billboard_split_offset", expand=True)
-		
+		if part.ren_as == 'HALO' or part.ren_as == 'LINE' or part.ren_as=='BILLBOARD':
+			row = layout.row()
+			col = row.column()
+			col.itemR(part, "trail_count")
+			if part.trail_count > 1:
+				col.itemR(part, "abs_path_time", text="Length in frames")
+				col = row.column()
+				col.itemR(part, "path_end", text="Length", slider=not part.abs_path_time)
+				col.itemR(part, "random_length", text="Random", slider=True)
+			else:
+				col = row.column()
+				col.itemL(text="")
+				
 class PARTICLE_PT_draw(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_draw"
 	__label__ = "Display"
@@ -475,11 +481,12 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			col.itemR(part, "draw_health")
 		
 		col = row.column()
+		col.itemR(part, "material_color", text="Use material color")
+		
 		if (path):
 			box = col.box()				
 			box.itemR(part, "draw_step")
 		else:
-			col.itemR(part, "material_color", text="Use material color")
 			subcol = col.column()
 			subcol.active = part.material_color==False
 			#subcol.itemL(text="color")

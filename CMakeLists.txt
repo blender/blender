@@ -87,7 +87,7 @@ INCLUDE(CMake/macros.cmake)
 #-----------------------------------------------------------------------------
 #Platform specifics
 
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
   IF(WITH_OPENAL)
     FIND_PACKAGE(OpenAL)
     IF(OPENAL_FOUND)
@@ -177,7 +177,7 @@ IF(UNIX)
   SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wnested-externs -Wdeclaration-after-statement")
 
   INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
-ENDIF(UNIX)
+ENDIF(UNIX AND NOT APPLE)
 
 IF(WIN32)
 

@@ -243,6 +243,10 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 		/* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
 		graph_draw_curves(&ac, sipo, ar, grid, 0);
 		graph_draw_curves(&ac, sipo, ar, grid, 1);
+		
+		/* XXX the slow way to set tot rect... but for nice sliders needed (ton) */
+		get_graph_keyframe_extents(&ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax);
+
 	}
 	
 	/* only free grid after drawing data, as we need to use it to determine sampling rate */

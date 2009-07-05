@@ -568,14 +568,14 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Keyed Physics");
 			}
 
-			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
+			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
 					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualisation");
 			}
 
-			if(part->draw_as == PART_DRAW_GR && part->dup_group) {
+			if(part->ren_as == PART_DRAW_GR && part->dup_group) {
 				for(go=part->dup_group->gobject.first; go; go=go->next) {
 					node2 = dag_get_node(dag, go->ob);
 					dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Group Visualisation");

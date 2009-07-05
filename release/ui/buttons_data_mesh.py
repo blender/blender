@@ -131,16 +131,44 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		ob = context.object
+		key = ob.data.shape_keys
+		kb = ob.active_shape_key
 
 		row = layout.row()
-
-		key = ob.data.shape_keys
-
 		row.template_list(key, "keys", ob, "active_shape_key_index")
 
-		col = row.column(align=True)
-		col.itemO("OBJECT_OT_shape_key_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_shape_key_remove", icon="ICON_ZOOMOUT", text="")
+		col = row.column()
+
+		subcol = col.column(align=True)
+		subcol.itemO("OBJECT_OT_shape_key_add", icon="ICON_ZOOMIN", text="")
+		subcol.itemO("OBJECT_OT_shape_key_remove", icon="ICON_ZOOMOUT", text="")
+
+		if kb:
+			col.itemS()
+
+			subcol = col.column(align=True)
+			subcol.itemR(ob, "shape_key_lock", icon="ICON_PINNED", text="")
+			subcol.itemR(kb, "mute", icon="ICON_MUTE_IPO_ON", text="")
+
+			if key.relative:
+				row = layout.row()
+				row.itemR(key, "relative")
+				row.itemL()
+
+				if ob.active_shape_key_index != 0:
+					if not ob.shape_key_lock:
+						row = layout.row(align=True)
+						row.itemR(kb, "value", text="")
+						row.itemR(kb, "slider_min", text="Min")
+						row.itemR(kb, "slider_max", text="Max")
+
+					row = layout.row()
+					row.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
+					row.item_pointerR(kb, "relative_key", key, "keys", text="")
+			else:
+				row = layout.row()
+				row.itemR(key, "relative")
+				row.itemR(key, "slurph")
 
 		if context.edit_object:
 			layout.enabled = False

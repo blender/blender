@@ -7,47 +7,73 @@ class PhysicButtonsPanel(bpy.types.Panel):
 	__context__ = "physics"
 
 	def poll(self, context):
-		return (context.cloth != None)
+		ob = context.object
+		return (ob and ob.type == 'MESH')
 		
-class Physic_PT_cloth(PhysicButtonsPanel):
-	__idname__ = "Physic_PT_cloth"
+class PHYSICS_PT_cloth(PhysicButtonsPanel):
+	__idname__ = "PHYSICS_PT_cloth"
 	__label__ = "Cloth"
 
 	def draw(self, context):
 		layout = self.layout
-		cloth = context.cloth.settings
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(cloth, "quality", slider=True)
-		col.itemR(cloth, "gravity")
-		col.itemR(cloth, "mass")
-		col.itemR(cloth, "mass_vertex_group", text="Vertex Group")
+		md = context.cloth
+		ob = context.object
 
-		col = split.column()
-		col.itemL(text="Stiffness:")
-		col.itemR(cloth, "structural_stiffness", text="Structural")
-		col.itemR(cloth, "bending_stiffness", text="Bending")
-		col.itemL(text="Damping:")
-		col.itemR(cloth, "spring_damping", text="Spring")
-		col.itemR(cloth, "air_damping", text="Air")
-		
-		# Disabled for now
-		"""
-		if cloth.mass_vertex_group:
-			layout.itemL(text="Goal:")
-		
-			col = layout.column_flow()
-			col.itemR(cloth, "goal_default", text="Default")
-			col.itemR(cloth, "goal_spring", text="Stiffness")
-			col.itemR(cloth, "goal_friction", text="Friction")
-		"""
+		split = layout.split()
+		split.operator_context = "EXEC_DEFAULT"
+
+		if md:
+			# remove modifier + settings
+			split.set_context_pointer("modifier", md)
+			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+
+			row = split.row(align=True)
+			row.itemR(md, "render", text="")
+			row.itemR(md, "realtime", text="")
+		else:
+			# add modifier
+			split.item_enumO("OBJECT_OT_modifier_add", "type", "CLOTH", text="Add")
+			split.itemL()
+
+		if md:
+			cloth = md.settings
+
+			split = layout.split()
+			
+			col = split.column()
+			col.itemR(cloth, "quality", slider=True)
+			col.itemR(cloth, "gravity")
+
+			subcol = col.column(align=True)
+			subcol.itemR(cloth, "mass")
+			subcol.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+
+			col = split.column()
+			col.itemL(text="Stiffness:")
+			col.itemR(cloth, "structural_stiffness", text="Structural")
+			col.itemR(cloth, "bending_stiffness", text="Bending")
+			col.itemL(text="Damping:")
+			col.itemR(cloth, "spring_damping", text="Spring")
+			col.itemR(cloth, "air_damping", text="Air")
+			
+			# Disabled for now
+			"""
+			if cloth.mass_vertex_group:
+				layout.itemL(text="Goal:")
+			
+				col = layout.column_flow()
+				col.itemR(cloth, "goal_default", text="Default")
+				col.itemR(cloth, "goal_spring", text="Stiffness")
+				col.itemR(cloth, "goal_friction", text="Friction")
+			"""
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 	__idname__= "PHYSICS_PT_cloth_cache"
-	__label__ = "Cache"
+	__label__ = "Cloth Cache"
 	__default_closed__ = True
+
+	def poll(self, context):
+		return (context.cloth != None)
 
 	def draw(self, context):
 		layout = self.layout
@@ -91,9 +117,12 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
 		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
 		
-class Physic_PT_cloth_collision(PhysicButtonsPanel):
-	__idname__ = "Physic_PT_clothcollision"
+class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
+	__idname__ = "PHYSICS_PT_clothcollision"
 	__label__ = "Cloth Collision"
+
+	def poll(self, context):
+		return (context.cloth != None)
 	
 	def draw_header(self, context):
 		layout = self.layout
@@ -120,9 +149,12 @@ class Physic_PT_cloth_collision(PhysicButtonsPanel):
 		col.itemR(cloth, "self_collision_quality", slider=True)
 		col.itemR(cloth, "self_min_distance", text="MinDistance")
 
-class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
-	__idname__ = "Physic_PT_stiffness"
+class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
+	__idname__ = "PHYSICS_PT_stiffness"
 	__label__ = "Cloth Stiffness Scaling"
+
+	def poll(self, context):
+		return (context.cloth != None)
 	
 	def draw_header(self, context):
 		layout = self.layout
@@ -132,23 +164,25 @@ class Physic_PT_cloth_stiffness(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		ob = context.object
 		cloth = context.cloth.settings
 		
 		layout.active = cloth.stiffness_scaling	
 		
 		split = layout.split()
 		
-		sub = split.column()
+		sub = split.column(align=True)
 		sub.itemL(text="Structural Stiffness:")
-		sub.column().itemR(cloth, "structural_stiffness_vertex_group", text="VGroup")
+		sub.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
 		sub.itemR(cloth, "structural_stiffness_max", text="Max")
 		
-		sub = split.column()
+		sub = split.column(align=True)
 		sub.itemL(text="Bending Stiffness:")
-		sub.column().itemR(cloth, "bending_vertex_group", text="VGroup")
+		sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
 		sub.itemR(cloth, "bending_stiffness_max", text="Max")
 		
-bpy.types.register(Physic_PT_cloth)
+bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
-bpy.types.register(Physic_PT_cloth_collision)
-bpy.types.register(Physic_PT_cloth_stiffness)
+bpy.types.register(PHYSICS_PT_cloth_collision)
+bpy.types.register(PHYSICS_PT_cloth_stiffness)
+

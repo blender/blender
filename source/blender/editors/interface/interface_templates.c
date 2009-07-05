@@ -320,134 +320,6 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 
 #include "ED_object.h"
 
-static void modifiers_del(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ob_v;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_delete(&reports, ob_v, md_v)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		ED_undo_push(C, "Delete modifier");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
-static void modifiers_activate(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ob_v;
-
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-}
-
-static void modifiers_moveUp(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ob_v;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_move_up(&reports, ob_v, md_v)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		ED_undo_push(C, "Move modifier");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
-static void modifiers_moveDown(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ob_v;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_move_down(&reports, ob_v, md_v)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		ED_undo_push(C, "Move modifier");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
-static void modifiers_convertParticles(bContext *C, void *obv, void *mdv)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= obv;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_convert(&reports, scene, obv, mdv)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		ED_undo_push(C, "Convert particles to mesh object(s).");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
-static void modifiers_applyModifier(bContext *C, void *obv, void *mdv)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= obv;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_apply(&reports, scene, obv, mdv)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		ED_undo_push(C, "Apply modifier");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
-static void modifiers_copyModifier(bContext *C, void *ob_v, void *md_v)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= ob_v;
-	ReportList reports;
-
-	BKE_reports_init(&reports, RPT_STORE);
-
-	if(ED_object_modifier_copy(&reports, ob_v, md_v)) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		ED_undo_push(C, "Copy modifier");
-	}
-	else
-		uiPupMenuReports(C, &reports);
-
-	BKE_reports_clear(&reports);
-}
-
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -490,15 +362,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 
 static int modifier_can_delete(ModifierData *md)
 {
-	// deletion over the deflection panel
 	// fluid particle modifier can't be deleted here
-
-	if(md->type==eModifierType_Fluidsim)
-		return 0;
-	if(md->type==eModifierType_Collision)
-		return 0;
-	if(md->type==eModifierType_Surface)
-		return 0;
 	if(md->type == eModifierType_ParticleSystem)
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
 			return 0;
@@ -512,12 +376,12 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *column, *row, *subrow, *result= NULL;
-	int isVirtual = md->mode&eModifierMode_Virtual;
+	uiLayout *column, *row, *result= NULL;
+	int isVirtual = md->mode & eModifierMode_Virtual;
 	// XXX short color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
-	short width = 295, buttonWidth = width-120-10;
 	char str[128];
 
+	/* create RNA pointer */
 	RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
 
 	column= uiLayoutColumn(layout, 1);
@@ -528,57 +392,57 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 
 	row= uiLayoutRow(uiLayoutBox(column), 0);
+	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+
 	block= uiLayoutGetBlock(row);
 
-	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
-
 	//uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
-	//		 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, 20, ""); 
+	//		 (!isVirtual && (md->mode & eModifierMode_Expanded))?3:15, 20, ""); 
 	/* XXX uiBlockSetCol(block, TH_AUTO); */
 	
 	/* open/close icon */
-	if (!isVirtual) {
+	if(!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
 	
 	/* modifier-type icon */
-	uiDefIconBut(block, BUT, 0, RNA_struct_ui_icon(ptr.type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Current Modifier Type");
+	uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	if (isVirtual) {
+	if(isVirtual) {
+		/* virtual modifier */
 		sprintf(str, "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 
 		but = uiDefBut(block, BUT, 0, "Make Real", 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
-	} else {
+	}
+	else {
+		/* real modifier */
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, 0, "", 0, 0, buttonWidth-40, UI_UNIT_Y, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+		uiItemR(row, "", 0, &ptr, "name", 0, 0, 0);
 
 		/* Softbody not allowed in this situation, enforce! */
-		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
-			uiDefIconButBitI(block, TOG, eModifierMode_Render, 0, ICON_SCENE, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, 0, ICON_VIEW3D, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-			uiButSetFunc(but, modifiers_activate, ob, md);
-			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				but= uiDefIconButBitI(block, TOG, eModifierMode_Editmode, 0, ICON_EDITMODE_HLT, 0, 0, 19, UI_UNIT_Y,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
-				uiButSetFunc(but, modifiers_activate, ob, md);
-			}
+		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
+			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0, 0, 0);
+			uiItemR(row, "", ICON_VIEW3D, &ptr, "realtime", 0, 0, 0);
+
+			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
+				uiItemR(row, "", ICON_VIEW3D, &ptr, "editmode", 0, 0, 0);
 		}
 		uiBlockEndAlign(block);
 
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
-		if (ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
+		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
 			int icon; //, color;
 
-			if (index==cageIndex) {
+			if(index==cageIndex) {
 				// XXX color = TH_BUT_SETTING;
 				icon = VICON_EDITMODE_HLT;
-			} else if (index<cageIndex) {
+			} else if(index<cageIndex) {
 				// XXX color = TH_BUT_NEUTRAL;
 				icon = VICON_EDITMODE_DEHLT;
 			} else {
@@ -592,67 +456,55 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		}
 	}
 
-	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
-
+	/* up/down/delete */
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
-
-		but = uiDefIconBut(block, BUT, 0, VICON_MOVE_UP, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
-		uiButSetFunc(but, modifiers_moveUp, ob, md);
-
-		but = uiDefIconBut(block, BUT, 0, VICON_MOVE_DOWN, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
-		uiButSetFunc(but, modifiers_moveDown, ob, md);
+		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
+		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		if(modifier_can_delete(md)) {
-			but = uiDefIconBut(block, BUT, 0, VICON_X, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
-			uiButSetFunc(but, modifiers_del, ob, md);
-		}
+
+		if(modifier_can_delete(md))
+			uiItemO(row, "", VICON_X, "OBJECT_OT_modifier_remove");
+
 		/* XXX uiBlockSetCol(block, TH_AUTO); */
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	if(!isVirtual && (md->mode&eModifierMode_Expanded)) {
+	if(!isVirtual && (md->mode & eModifierMode_Expanded)) {
+		/* apply/convert/copy */
 		uiLayout *box;
 
 		box= uiLayoutBox(column);
 		row= uiLayoutRow(box, 1);
 
-		if (!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
-			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
+		if(!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
+			/* only here obdata, the rest of modifiers is ob level */
+			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-						if (md->type==eModifierType_ParticleSystem) {
+			if(md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
-	    		if(!(G.f & G_PARTICLEEDIT)) {
-					if(ELEM3(psys->part->draw_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache) {
-						but = uiDefBut(block, BUT, 0, "Convert",	0,0,60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
-						uiButSetFunc(but, modifiers_convertParticles, ob, md);
-					}
-				}
+	    		if(!(G.f & G_PARTICLEEDIT))
+					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
+						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
-			else{
-				but = uiDefBut(block, BUT, 0, "Apply",	0,0,60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
-				uiButSetFunc(but, modifiers_applyModifier, ob, md);
-			}
+			else
+				uiItemO(row, "Apply", 0, "OBJECT_OT_modifier_apply");
 			
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 
-			if (md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
-				but = uiDefBut(block, BUT, 0, "Copy",	0,0,60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
-				uiButSetFunc(but, modifiers_copyModifier, ob, md);
-			}
+			if(!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
 
 		result= uiLayoutColumn(box, 0);
 		block= uiLayoutFreeBlock(box);
 	}
 
-	if (md->error) {
+	if(md->error) {
 		row = uiLayoutRow(uiLayoutBox(column), 0);
 
 		/* XXX uiBlockSetCol(block, color); */
@@ -694,7 +546,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
 			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex);
-		else if(vmd->mode&eModifierMode_Virtual)
+		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}
 

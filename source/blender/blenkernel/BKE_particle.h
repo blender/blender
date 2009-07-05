@@ -91,7 +91,8 @@ typedef struct ParticleTexture{
 	float ivel;							/* used in reset */
 	float time, life, exist, size;		/* used in init */
 	float pvel[3];						/* used in physics */
-	float length, clump, kink, rough;	/* used in path caching */
+	float length, clump, kink, effector;/* used in path caching */
+	float rough1, rough2, roughe;		/* used in path caching */
 } ParticleTexture;
 
 typedef struct BoidVecFunc{
@@ -270,7 +271,7 @@ void psys_update_world_cos(struct Object *ob, struct ParticleSystem *psys);
 int do_guide(struct Scene *scene, struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);
-float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra);
+float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *birthtime, float *dietime);
 float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
 void psys_get_particle_on_path(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, int pa_num, struct ParticleKey *state, int vel);
 int psys_get_particle_state(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, int p, struct ParticleKey *state, int always);

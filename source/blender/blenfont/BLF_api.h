@@ -79,6 +79,11 @@ float BLF_width_default(char *str);
 float BLF_height_default(char *str);
 
 /*
+ * set rotation for default font
+ */
+void BLF_default_rotation(float angle);
+
+/*
  * By default, rotation and clipping are disable and
  * have to be enable/disable using BLF_enable/disable.
  */

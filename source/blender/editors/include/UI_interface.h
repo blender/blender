@@ -51,10 +51,12 @@ struct rcti;
 struct rctf;
 struct uiStyle;
 struct uiFontStyle;
+struct uiWidgetColors;
 struct ColorBand;
 struct CurveMapping;
 struct Image;
 struct ImageUser;
+struct uiWidgetColors;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -213,6 +215,11 @@ int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+
+/* state for scrolldrawing */
+#define UI_SCROLL_PRESSED	1
+#define UI_SCROLL_ARROWS	2
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
 /* Menu Callbacks */
 
@@ -635,6 +642,7 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct ID
 void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider, int toggle);
 void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
+void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
 
