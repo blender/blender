@@ -66,7 +66,9 @@ struct BVHTree
 {
 	RayObject rayobj;
 
-	BVHNode *alloc, *next_node, *root;
+	BVHNode *root;
+
+	BVHNode *node_alloc, *node_next;
 	float *bb_alloc, *bb_next;
 	RTBuilder *builder;
 
@@ -79,8 +81,11 @@ RayObject *RE_rayobject_bvh_create(int size)
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
-	obj->builder = rtbuild_create( size );
 	obj->root = NULL;
+	
+	obj->node_alloc = obj->node_next = NULL;
+	obj->bb_alloc   = obj->bb_next = NULL;
+	obj->builder    = rtbuild_create( size );
 	
 	return RayObject_unalignRayAPI((RayObject*) obj);
 }
@@ -90,8 +95,8 @@ static void bvh_free(BVHTree *obj)
 	if(obj->builder)
 		rtbuild_free(obj->builder);
 
-	if(obj->alloc)
-		MEM_freeN(obj->alloc);
+	if(obj->node_alloc)
+		MEM_freeN(obj->node_alloc);
 
 	if(obj->bb_alloc)
 		MEM_freeN(obj->bb_alloc);
@@ -185,10 +190,10 @@ static void bvh_add(BVHTree *obj, RayObject *ob)
 
 static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 {
-	BVHNode *node = tree->alloc + nid - 1;
+	BVHNode *node = tree->node_alloc + nid - 1;
 	assert(RayObject_isAligned(node));
-	if(node+1 > tree->next_node)
-		tree->next_node = node+1;
+	if(node+1 > tree->node_next)
+		tree->node_next = node+1;
 		
 	node->bb = tree->bb_next;
 	tree->bb_next += 6;
@@ -255,28 +260,32 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 		return parent;
 	}
 }
+
+static void bvh_info(BVHTree *obj)
+{
+	printf("BVH: Used %d nodes\n", obj->node_next - obj->node_alloc);
+}
 	
 static void bvh_done(BVHTree *obj)
 {
 	int needed_nodes;
-	assert(obj->root == NULL && obj->next_node == NULL && obj->builder);
+	assert(obj->root == NULL && obj->node_alloc == NULL && obj->bb_alloc == NULL && obj->builder);
 
+	//TODO exact calculate needed nodes
 	needed_nodes = (rtbuild_size(obj->builder)+1)*2;
 	assert(needed_nodes > 0);
-	obj->alloc = (BVHNode*)MEM_mallocN( sizeof(BVHNode)*needed_nodes, "BVHTree.Nodes");
-	obj->next_node = obj->alloc;
+
+	obj->node_alloc = (BVHNode*)MEM_mallocN( sizeof(BVHNode)*needed_nodes, "BVHTree.Nodes");
+	obj->node_next  = obj->node_alloc;
 
 	obj->bb_alloc = (float*)MEM_mallocN( sizeof(float)*6*needed_nodes, "BVHTree.NodesBB");
 	obj->bb_next  = obj->bb_alloc;
 	
 	obj->root = bvh_rearrange( obj, obj->builder, 1 );
 
-	assert(obj->alloc+needed_nodes >= obj->next_node);
-	
-//	printf("BVH: Used %d nodes\n", obj->next_node-obj->alloc);
-	
-
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
+	
+	assert(obj->node_alloc+needed_nodes >= obj->node_next);
 }
 
