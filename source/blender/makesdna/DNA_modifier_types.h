@@ -504,6 +504,7 @@ typedef enum {
 	eParticleInstanceFlag_Alive =		(1<<4),
 	eParticleInstanceFlag_Dead =		(1<<5),
 	eParticleInstanceFlag_KeepShape =	(1<<6),
+	eParticleInstanceFlag_UseSize =		(1<<7),
 } ParticleInstanceModifierFlag;
 
 typedef struct ParticleInstanceModifierData {

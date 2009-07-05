@@ -6477,6 +6477,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
 	short track=ob->trackflag%3, trackneg, axis = pimd->axis;
 	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
+	float *size=NULL;
 
 	trackneg=((ob->trackflag>2)?1:0);
 
@@ -6502,6 +6503,25 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 
 	if(totpart==0)
 		return derivedData;
+
+	if(pimd->flag & eParticleInstanceFlag_UseSize) {
+		int p;
+		float *si;
+		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
+
+		if(pimd->flag & eParticleInstanceFlag_Parents) {
+			for(p=0, pa= psys->particles; p<psys->totpart; p++, pa++, si++)
+				*si = pa->size;
+		}
+
+		if(pimd->flag & eParticleInstanceFlag_Children) {
+			ChildParticle *cpa = psys->child;
+
+			for(p=0; p<psys->totchild; p++, cpa++, si++) {
+				*si = psys_get_child_size(psys, cpa, 0.0f, NULL);
+			}
+		}
+	}
 
 	pars=psys->particles;
 
@@ -6585,10 +6605,12 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		}
 		else{
 			state.time=-1.0;
-			psys_get_particle_state(md->scene, pimd->ob, psys, i/totvert, &state,1);
+			psys_get_particle_state(md->scene, pimd->ob, psys, first_particle + i/totvert, &state,1);
 		}	
 
 		QuatMulVecf(state.rot,mv->co);
+		if(pimd->flag & eParticleInstanceFlag_UseSize)
+			VecMulf(mv->co, size[i/totvert]);
 		VECADD(mv->co,mv->co,state.co);
 	}
 
@@ -6640,6 +6662,9 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		end_latt_deform(psys->lattice);
 		psys->lattice= NULL;
 	}
+
+	if(size)
+		MEM_freeN(size);
 
 	return result;
 }
@@ -7279,10 +7304,10 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	timestep= psys_get_timestep(part);
 
-	if(part->flag & PART_GLOB_TIME)
+	//if(part->flag & PART_GLOB_TIME)
 		cfra=bsystem_time(scene, 0,(float)scene->r.cfra,0.0);
-	else
-		cfra=bsystem_time(scene, ob,(float)scene->r.cfra,0.0);
+	//else
+	//	cfra=bsystem_time(scene, ob,(float)scene->r.cfra,0.0);
 
 	/* hash table for vertice <-> particle relations */
 	vertpahash= BLI_edgehash_new();

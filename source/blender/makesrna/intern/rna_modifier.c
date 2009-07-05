@@ -1365,6 +1365,11 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keep Shape", "Don't stretch the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_UseSize);
+	RNA_def_property_ui_text(prop, "Size", "Use particle size to scale the instances.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
 	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "position");
 	RNA_def_property_range(prop, 0.0, 1.0);

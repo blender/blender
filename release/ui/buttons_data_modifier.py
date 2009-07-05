@@ -299,12 +299,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col = layout.column_flow()
 		col.itemR(md, "normal")
 		col.itemR(md, "children")
+		col.itemR(md, "size")
 		col.itemR(md, "path")
 		if md.path:
 			col.itemR(md, "keep_shape")
 		col.itemR(md, "unborn")
 		col.itemR(md, "alive")
 		col.itemR(md, "dead")
+		col.itemL(md, "")
 		if md.path:
 			col.itemR(md, "axis", text="")
 		
