@@ -61,6 +61,7 @@ short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
 void BKE_nlastrips_make_metas(ListBase *strips, short temp);
 void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp);
+void BKE_nlastrips_clear_metastrip(ListBase *strips, struct NlaStrip *strip);
 short BKE_nlameta_add_strip(struct NlaStrip *mstrip, struct NlaStrip *strip);
 void BKE_nlameta_flush_transforms(struct NlaStrip *mstrip);
 

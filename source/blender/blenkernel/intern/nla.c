@@ -650,6 +650,9 @@ void BKE_nlastrips_make_metas (ListBase *strips, short temp)
 				/* set temp flag if appropriate (i.e. for transform-type editing) */
 				if (temp)
 					mstrip->flag |= NLASTRIP_FLAG_TEMP_META;
+					
+				/* set default repeat/scale values to prevent warnings */
+				mstrip->repeat= mstrip->scale= 1.0f;
 				
 				/* make its start frame be set to the start frame of the current strip */
 				mstrip->start= strip->start;
@@ -669,6 +672,28 @@ void BKE_nlastrips_make_metas (ListBase *strips, short temp)
 			mstrip= NULL;
 		}
 	}
+}
+
+/* Split a meta-strip into a set of normal strips */
+void BKE_nlastrips_clear_metastrip (ListBase *strips, NlaStrip *strip)
+{
+	NlaStrip *cs, *csn;
+	
+	/* sanity check */
+	if ELEM(NULL, strips, strip)
+		return;
+	
+	/* move each one of the meta-strip's children before the meta-strip
+	 * in the list of strips after unlinking them from the meta-strip
+	 */
+	for (cs= strip->strips.first; cs; cs= csn) {
+		csn= cs->next;
+		BLI_remlink(&strip->strips, cs);
+		BLI_insertlinkbefore(strips, strip, cs);
+	}
+	
+	/* free the meta-strip now */
+	BLI_freelinkN(strips, strip);
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
@@ -692,19 +717,7 @@ void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
 			/* if check if selection and 'temporary-only' considerations are met */
 			if ((onlySel==0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
 				if ((!onlyTemp) || (strip->flag & NLASTRIP_FLAG_TEMP_META)) {
-					NlaStrip *cs, *csn;
-					
-					/* move each one of the meta-strip's children before the meta-strip
-					 * in the list of strips after unlinking them from the meta-strip
-					 */
-					for (cs= strip->strips.first; cs; cs= csn) {
-						csn= cs->next;
-						BLI_remlink(&strip->strips, cs);
-						BLI_insertlinkbefore(strips, strip, cs);
-					}
-					
-					/* free the meta-strip now */
-					BLI_freelinkN(strips, strip);
+					BKE_nlastrips_clear_metastrip(strips, strip);
 				}
 			}
 		}

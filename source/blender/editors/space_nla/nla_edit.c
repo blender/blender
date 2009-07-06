@@ -736,6 +736,55 @@ void NLA_OT_delete (wmOperatorType *ot)
 // 	- multiple splits
 //	- variable-length splits?
 
+/* split a given Action-Clip strip */
+static void nlaedit_split_strip_actclip (NlaTrack *nlt, NlaStrip *strip)
+{
+	NlaStrip *nstrip;
+	float midframe, midaframe, len;
+	
+	/* calculate the frames to do the splitting at */
+		/* strip extents */
+	len= strip->end - strip->start;
+	if (IS_EQ(len, 0.0f)) 
+		return;
+	else
+		midframe= strip->start + (len / 2.0f);
+		
+		/* action range */
+	len= strip->actend - strip->actstart;
+	if (IS_EQ(len, 0.0f))
+		midaframe= strip->actend;
+	else
+		midaframe= strip->actstart + (len / 2.0f);
+	
+	/* make a copy (assume that this is possible) and append
+	 * it immediately after the current strip
+	 */
+	nstrip= copy_nlastrip(strip);
+	BLI_insertlinkafter(&nlt->strips, strip, nstrip);
+	
+	/* set the endpoint of the first strip and the start of the new strip 
+	 * to the midframe values calculated above
+	 */
+	strip->end= midframe;
+	nstrip->start= midframe;
+	
+	strip->actend= midaframe;
+	nstrip->actstart= midaframe;
+	
+	/* clear the active flag from the copy */
+	nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+}
+
+/* split a given Meta strip */
+static void nlaedit_split_strip_meta (NlaTrack *nlt, NlaStrip *strip)
+{
+	/* simply ungroup it for now...  */
+	BKE_nlastrips_clear_metastrip(&nlt->strips, strip);
+}
+
+/* ----- */
+
 static int nlaedit_split_exec (bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -755,47 +804,26 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	/* for each NLA-Track, split all selected strips into two strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		NlaStrip *strip, *nstrip, *next;
+		NlaStrip *strip, *next;
 		
 		for (strip= nlt->strips.first; strip; strip= next) {
 			next= strip->next;
 			
 			/* if selected, split the strip at its midpoint */
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
-				float midframe, midaframe, len;
-				
-				/* calculate the frames to do the splitting at */
-					/* strip extents */
-				len= strip->end - strip->start;
-				if (IS_EQ(len, 0.0f)) 
-					continue;
-				else
-					midframe= strip->start + (len / 2.0f);
+				/* splitting method depends on the type of strip */
+				switch (strip->type) {
+					case NLASTRIP_TYPE_CLIP: /* action-clip */
+						nlaedit_split_strip_actclip(nlt, strip);
+						break;
+						
+					case NLASTRIP_TYPE_META: /* meta-strips need special handling */
+						nlaedit_split_strip_meta(nlt, strip);
+						break;
 					
-					/* action range */
-				len= strip->actend - strip->actstart;
-				if (IS_EQ(len, 0.0f))
-					midaframe= strip->actend;
-				else
-					midaframe= strip->actstart + (len / 2.0f);
-				
-				/* make a copy (assume that this is possible) and append
-				 * it immediately after the current strip
-				 */
-				nstrip= copy_nlastrip(strip);
-				BLI_insertlinkafter(&nlt->strips, strip, nstrip);
-				
-				/* set the endpoint of the first strip and the start of the new strip 
-				 * to the midframe values calculated above
-				 */
-				strip->end= midframe;
-				nstrip->start= midframe;
-				
-				strip->actend= midaframe;
-				nstrip->actstart= midaframe;
-				
-				/* clear the active flag from the copy */
-				nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+					default: /* for things like Transitions, do not split! */
+						break;
+				}
 			}
 		}
 	}
