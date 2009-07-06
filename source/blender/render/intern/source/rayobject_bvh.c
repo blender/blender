@@ -195,7 +195,7 @@ static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 	if(node+1 > tree->node_next)
 		tree->node_next = node+1;
 		
-	node->bb = tree->bb_next;
+	node->bb = tree->bb_alloc + nid - 1;
 	tree->bb_next += 6;
 	
 	return node;

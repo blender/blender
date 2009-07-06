@@ -348,15 +348,24 @@ static void makeraytree_single(Render *re)
 
 void makeraytree(Render *re)
 {
+	const char *tree_type = "Tree(unknown)";
+
 #ifdef RE_RAYCOUNTER
+	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BVH)
+		tree_type = "BVH";
+	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BIH)
+		tree_type = "BIH";
+	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BLIBVH)
+		tree_type = "BLIBVH";
+
 	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
 		printf("Building single octree\n");
 	else if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
-		printf("Building single tree\n");
+		printf("Building single tree(%s)\n", tree_type);
 	else if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
-		printf("Building tree of octrees\n");
+		printf("Building tree(%s) of octrees\n", tree_type);
 	else
-		printf("Building tree of trees\n");
+		printf("Building tree(%s) of trees(%s)\n", tree_type, tree_type);
 #endif
 
 	if(ELEM(re->r.raystructure, R_RAYSTRUCTURE_SINGLE_BVH, R_RAYSTRUCTURE_SINGLE_OCTREE))
