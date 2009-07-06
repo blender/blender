@@ -31,12 +31,43 @@
 #ifndef RE_RAYTRACE_H
 #define RE_RAYTRACE_H
 
-#define RE_RAY_COUNTER
+#define RE_RAYCOUNTER
+#ifdef RE_RAYCOUNTER
+
+typedef struct RayCounter RayCounter;
+struct RayCounter
+{
+
+	struct
+	{
+		unsigned long long test, hit;
+		
+	} faces, bb, raycast;
+	
+	unsigned long long rayshadow_last_hit_optimization;
+};
+
+/* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */
+#define RE_RC_INIT(isec, shi) (isec).raycounter = &((shi).raycounter)
+void RE_RC_INFO (RayCounter *rc);
+void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
+#define RE_RC_COUNT(var) (var)++
+
+extern RayCounter re_rc_counter[];
+
+#else
+
+#define RE_RC_INIT(isec,shi)
+#define RE_RC_INFO(rc)
+#define RE_RC_MERGE(dest,src)
+#define	RE_RC_COUNT(var)
+	
+#endif
+
 
 /* Internals about raycasting structures can be found on intern/raytree.h */
 typedef struct RayObject RayObject;
 typedef struct Isect Isect;
-typedef struct RayCounter RayCounter;
 struct DerivedMesh;
 struct Mesh;
 
@@ -50,7 +81,6 @@ void RE_rayobject_free(RayObject *r);
 RayObject* RE_rayobject_octree_create(int ocres, int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
 
-#define RE_rayobject_tree_create RE_rayobject_bvh_create
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_bvh_create(int size);		/* rayobject_bvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
@@ -93,38 +123,11 @@ struct Isect
 
 	void *userdata;
 	
-#ifdef RE_RAY_COUNTER
-	RayCounter *count;
-#endif
-	
-};
-
 #ifdef RE_RAYCOUNTER
-
-struct RayCounter
-{
-
-	struct
-	{
-		unsigned long long test, hit;
-		
-	} intersect_rayface, raycast;
-	
-	unsigned long long rayshadow_last_hit_optimization;
-};
-
-void RE_RC_INIT (RayCounter *rc);
-void RE_RC_MERGE(RayCounter *rc, RayCounter *tmp);
-#define RE_RC_COUNT(var) (var)++
-
-#else
-
-#define RE_RC_INIT(rc)
-#define RE_RC_MERGE(dest,src)
-#define	RE_RC_COUNT(var)
-	
+	RayCounter *raycounter;
 #endif
-
+	
+};
 
 /* ray types */
 #define RE_RAY_SHADOW 0

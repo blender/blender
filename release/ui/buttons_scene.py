@@ -26,6 +26,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		colsub = col.column()
 		colsub.active = rd.render_raytracing
 		colsub.itemR(rd, "raytrace_structure", text="Structure")
+		colsub.itemR(rd, "raytrace_tree_type", text="Tree Type")
 		colsub.itemR(rd, "octree_resolution", text="Octree")
 		col.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		

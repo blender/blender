@@ -521,6 +521,12 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				}
 			}
 				break;
+
+			case SCE_PASS_RAYHITS:
+				/*  */
+				col= &shr->rayhits;
+				pixsize= 4;
+				break;
 		}
 		if(col) {
 			fp= rpass->rect + pixsize*offset;
@@ -596,6 +602,10 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 			case SCE_PASS_MIST:
 				fp= rpass->rect + offset;
 				*fp= shr->mist;
+				break;
+			case SCE_PASS_RAYHITS:
+				col= shr->rayhits;
+				pixsize= 4;
 				break;
 		}
 		if(col) {

@@ -66,7 +66,7 @@ RayObject *RE_rayobject_blibvh_create(int size)
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
-	obj->bvh = BLI_bvhtree_new(size, FLT_EPSILON, 4, 6);
+	obj->bvh = BLI_bvhtree_new(size, 0.0, 4, 6);
 	
 	INIT_MINMAX(obj->bb[0], obj->bb[1]);
 	return RayObject_unalignRayAPI((RayObject*) obj);

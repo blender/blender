@@ -142,6 +142,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	float alpha;
 	
 	/* ------  main shading loop -------- */
+	memset(&shi->raycounter, 0, sizeof(shi->raycounter));
 	
 	if(shi->mat->nodetree && shi->mat->use_nodes) {
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -188,6 +189,16 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	
 	/* add z */
 	shr->z= -shi->co[2];
+	
+	/* RAYHITS */
+	if(1 || shi->passflag & SCE_PASS_RAYHITS)
+	{
+		shr->rayhits[0] = (float)shi->raycounter.faces.test;
+		shr->rayhits[1] = (float)shi->raycounter.bb.hit;
+		shr->rayhits[2] = 0.0;
+		shr->rayhits[3] = 1.0;
+		RE_RC_MERGE(&re_rc_counter[shi->thread], &shi->raycounter);
+	}
 }
 
 /* **************************************************************************** */

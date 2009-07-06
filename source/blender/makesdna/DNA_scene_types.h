@@ -161,6 +161,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
+#define SCE_PASS_RAYHITS	32768
+
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
@@ -233,7 +235,8 @@ typedef struct RenderData {
 	/* render engine, octree resolution */
 	short renderer, ocres;
 	short raystructure;
-	short pad4[3];
+	short raytrace_tree_type;
+	short pad4[2];
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -674,6 +677,11 @@ typedef struct Scene {
 #define R_RAYSTRUCTURE_HIER_BVH_OCTREE	1
 #define R_RAYSTRUCTURE_SINGLE_OCTREE	2
 #define R_RAYSTRUCTURE_SINGLE_BVH		3
+
+/* raytrace tree type */
+#define R_RAYTRACE_TREE_BVH		0
+#define R_RAYTRACE_TREE_BLIBVH	1
+#define R_RAYTRACE_TREE_BIH		2
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001

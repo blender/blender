@@ -70,6 +70,22 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+RayObject *RE_rayobject_tree_create(int type, int size)
+{
+	if(type == R_RAYTRACE_TREE_BVH)
+		return RE_rayobject_bvh_create(size);
+	if(type == R_RAYTRACE_TREE_BIH)
+		return RE_rayobject_bih_create(size);
+	if(type == R_RAYTRACE_TREE_BLIBVH)
+		return RE_rayobject_blibvh_create(size);
+
+	return RE_rayobject_bvh_create(size);	
+}
+
+#ifdef RE_RAYCOUNTER
+RayCounter re_rc_counter[BLENDER_MAX_THREADS] = {};
+#endif
+
 #if 0
 static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 {
@@ -123,6 +139,16 @@ void freeraytree(Render *re)
 			obi->raytree = NULL;
 		}
 	}
+	
+#ifdef RE_RAYCOUNTER
+	{
+		RayCounter sum = {};
+		int i;
+		for(i=0; i<BLENDER_MAX_THREADS; i++)
+			RE_RC_MERGE(&sum, re_rc_counter+i);
+		RE_RC_INFO(&sum);
+	}
+#endif
 }
 
 static int is_raytraceable_vlr(Render *re, VlakRen *vlr)
@@ -180,7 +206,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
 			raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
 		else //if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_BVH)
-			raytree = obr->raytree = RE_rayobject_tree_create( faces );
+			raytree = obr->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, faces );
 			
 		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
 		obr->rayobi = obi;
@@ -240,7 +266,7 @@ static void makeraytree_hier(Render *re)
 		num_objects++;
 
 	//Create raytree
-	re->raytree = RE_rayobject_tree_create( num_objects );
+	re->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, num_objects );
 	
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
@@ -292,7 +318,7 @@ static void makeraytree_single(Render *re)
 	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
 		raytree = re->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
 	else //if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
-		raytree = re->raytree = RE_rayobject_tree_create( faces );
+		raytree = re->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, faces );
 
 	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
 	
@@ -322,6 +348,17 @@ static void makeraytree_single(Render *re)
 
 void makeraytree(Render *re)
 {
+#ifdef RE_RAYCOUNTER
+	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
+		printf("Building single octree\n");
+	else if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
+		printf("Building single tree\n");
+	else if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
+		printf("Building tree of octrees\n");
+	else
+		printf("Building tree of trees\n");
+#endif
+
 	if(ELEM(re->r.raystructure, R_RAYSTRUCTURE_SINGLE_BVH, R_RAYSTRUCTURE_SINGLE_OCTREE))
 		BENCH(makeraytree_single(re), tree_build);
 	else
@@ -563,6 +600,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;
+	RE_RC_INIT(isec, shi);
 
 	if(RE_rayobject_raycast(R.raytree, &isec)) {
 		float d= 1.0f;
@@ -1306,7 +1344,6 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
-
 	
 	/* raytrace mirror amd refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
@@ -1465,6 +1502,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	isec.mode= RE_RAY_MIRROR;
 	isec.orig.ob   = ship->obi;
 	isec.orig.face = ship->vlr;
+	RE_RC_INIT(isec, shi);
 	
 	for(a=0; a<8*8; a++) {
 		
@@ -1669,6 +1707,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float dxyview[3], skyadded=0, div;
 	int aocolor;
 	
+	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
@@ -1802,6 +1841,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	float dxyview[3];
 	int j= -1, tot, actual=0, skyadded=0, aocolor, resol= R.wrld.aosamp;
 	
+	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
@@ -2238,6 +2278,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	int lampvec; /* indicates if lampco is a vector lamp */
 
 	/* setup isec */
+	RE_RC_INIT(isec, *shi);
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
 	
@@ -2323,6 +2364,7 @@ static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float
 	assert(0);
 	
 	/* setup isec */
+	RE_RC_INIT(isec, *shi);
 	isec.mode= RE_RAY_SHADOW_TRA;
 	
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;

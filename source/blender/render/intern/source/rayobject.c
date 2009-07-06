@@ -54,9 +54,13 @@ float RE_rayobject_bb_intersect(const Isect *isec, const float *_bb)
 	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
 	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
 
+	RE_RC_COUNT(isec->raycounter->bb.test);
+
 	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
 	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return FLT_MAX;
 	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return FLT_MAX;
+
+	RE_RC_COUNT(isec->raycounter->bb.hit);
 
 	dist = t1x;
 	if (t1y > dist) dist = t1y;
@@ -157,7 +161,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
 
-	RE_RC_COUNT(is->count->intersect_rayface.test);
+	RE_RC_COUNT(is->raycounter->faces.test);
 
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
@@ -276,7 +280,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		}
 #endif
 
-		RE_RC_COUNT(is->count->intersect_rayface.hit);
+		RE_RC_COUNT(is->raycounter->faces.hit);
 
 		is->isect= ok;	// wich half of the quad
 		is->labda= labda;
@@ -294,7 +298,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {
 	int i;
-	RE_RC_COUNT(isec->count->raycast.test);
+	RE_RC_COUNT(isec->raycounter->raycast.test);
 
 	/* Setup vars used on raycast */
 	isec->labda *= Normalize(isec->vec);
@@ -315,15 +319,15 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 	/* Last hit heuristic */
 	if(isec->mode==RE_RAY_SHADOW && isec->last_hit && RE_rayobject_intersect(isec->last_hit, isec))
 	{
-		RE_RC_COUNT(isec->count->raycast.hit);
-		RE_RC_COUNT(isec->count->rayshadow_last_hit_optimization );
+		RE_RC_COUNT(isec->raycounter->raycast.hit);
+		RE_RC_COUNT(isec->raycounter->rayshadow_last_hit_optimization );
 		return 1;
 	}
 
 #ifdef RE_RAYCOUNTER
 	if(RE_rayobject_intersect(r, isec))
 	{
-		RE_RC_COUNT(isec->count->raycast.hit);
+		RE_RC_COUNT(isec->raycounter->raycast.hit);
 		return 1;
 	}
 	return 0;
@@ -383,16 +387,40 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 }
 
 #ifdef RE_RAYCOUNTER
-void RE_merge_raycounter(RayCounter *dest, RayCounter *tmp)
+void RE_RC_INFO(RayCounter *info)
 {
-	int i;
-	for(i=0; i<3; i++) dest->casted[i] += tmp->casted[i];
-	for(i=0; i<3; i++) dest->hit   [i] += tmp->hit   [i];
-	
-	dest->test_primitives += tmp->test_primitives;
-	dest->hit_primitives  += tmp->hit_primitives;
-	
-	dest->test_bb += tmp->test_bb;
-	dest->hit_bb  += tmp->hit_bb;
+	printf("----------- Raycast counter --------\n");
+	printf("Rays total: %llu\n", info->raycast.test );
+	printf("Rays hit: %llu\n",   info->raycast.hit  );
+	printf("\n");
+	printf("BB tests: %llu\n", info->bb.test );
+	printf("BB hits: %llu\n", info->bb.hit );
+	printf("\n");	
+	printf("Primitives tests: %llu\n", info->faces.test );
+	printf("Primitives hits: %llu\n", info->faces.hit );
+	printf("\n");
+	printf("Shadow Last hit reuse: %llu\n", info->rayshadow_last_hit_optimization);
+	printf("\n");
+	printf("Primitives tests per ray: %f\n", info->faces.test / ((float)info->raycast.test) );
+	printf("Primitives hits per ray: %f\n", info->faces.hit / ((float)info->raycast.test) );
+	printf("\n");
+	printf("BB tests per ray: %f\n", info->bb.test / ((float)info->raycast.test) );
+	printf("BB hits per ray: %f\n", info->bb.hit / ((float)info->raycast.test) );
+	printf("\n");
 }
+
+void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
+{
+	dest->faces.test += tmp->faces.test;
+	dest->faces.hit  += tmp->faces.hit;
+
+	dest->bb.test += tmp->bb.test;
+	dest->bb.hit  += tmp->bb.hit;
+
+	dest->raycast.test += tmp->raycast.test;
+	dest->raycast.hit  += tmp->raycast.hit;
+	
+	dest->rayshadow_last_hit_optimization += tmp->rayshadow_last_hit_optimization;
+}
+
 #endif
