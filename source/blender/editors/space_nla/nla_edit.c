@@ -346,7 +346,6 @@ void NLA_OT_add_actionclip (wmOperatorType *ot)
 /* ******************** Add Transition Operator ***************************** */
 /* Add a new transition strip between selected strips */
 
-/* add the specified action as new strip */
 static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -447,6 +446,113 @@ void NLA_OT_add_transition (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_transition_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Add Meta-Strip Operator ***************************** */
+/* Add new meta-strips incorporating the selected strips */
+
+/* add the specified action as new strip */
+static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each track, find pairs of strips to add transitions to */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		
+		/* create meta-strips from the continuous chains of selected strips */
+		BKE_nlastrips_make_metas(&nlt->strips, 0);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_add_meta (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Meta-Strips";
+	ot->idname= "NLA_OT_add_meta";
+	ot->description= "Add new meta-strips incorporating the selected strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_add_meta_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Remove Meta-Strip Operator ***************************** */
+/* Separate out the strips held by the selected meta-strips */
+
+static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each track, find pairs of strips to add transitions to */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		
+		/* clear all selected meta-strips, regardless of whether they are temporary or not */
+		BKE_nlastrips_clear_metas(&nlt->strips, 1, 0);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_remove_meta (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Meta-Strips";
+	ot->idname= "NLA_OT_remove_meta";
+	ot->description= "Separate out the strips held by the selected meta-strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_remove_meta_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
@@ -1047,9 +1153,9 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	Scene *scene= ac.scene;
+	Scene *scene;
 	int mode = RNA_enum_get(op->ptr, "type");
-	const float secf = (float)FPS;
+	float secf;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1059,17 +1165,28 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
+	/* get some necessary vars */
+	scene= ac.scene;
+	secf= (float)FPS;
+	
 	/* since we may add tracks, perform this in reverse order */
 	for (ale= anim_data.last; ale; ale= ale->prev) {
 		ListBase tmp_strips = {NULL, NULL};
+		AnimData *adt= BKE_animdata_from_id(ale->id);
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip, *stripn;
+		NlaTrack *track;
 		
-		/* first pass: move all selected strips to a separate buffer, and apply snapping to them */
+		/* create meta-strips from the continuous chains of selected strips */
+		BKE_nlastrips_make_metas(&nlt->strips, 1);
+		
+		/* apply the snapping to all the temp meta-strips, then put them in a separate list to be added
+		 * back to the original only if they still fit
+		 */
 		for (strip= nlt->strips.first; strip; strip= stripn) {
 			stripn= strip->next;
 			
-			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
 				float start, end;
 				
 				/* get the existing end-points */
@@ -1098,13 +1215,32 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 				/* get new endpoint based on start-point (and old length) */
 				strip->end= strip->start + (end - start);
 				
+				/* apply transforms to meta-strip to its children */
+				BKE_nlameta_flush_transforms(strip);
+				
 				/* remove strip from track, and add to the temp buffer */
 				BLI_remlink(&nlt->strips, strip);
 				BLI_addtail(&tmp_strips, strip);
 			}
 		}
 		
-		// TODO: finish this...
+		/* try adding each meta-strip back to the track one at a time, to make sure they'll fit */
+		for (strip= tmp_strips.first; strip; strip= stripn) {
+			stripn= strip->next;
+			
+			/* remove from temp-strips list */
+			BLI_remlink(&tmp_strips, strip);
+			
+			/* in case there's no space in the current track, try adding */
+			if (BKE_nlatrack_add_strip(nlt, strip) == 0) {
+				/* need to add a new track above the current one */
+				track= add_nlatrack(adt, nlt);
+				BKE_nlatrack_add_strip(track, strip);
+			}
+		}
+		
+		/* remove the meta-strips now that we're done */
+		BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
 	}
 	
 	/* free temp data */

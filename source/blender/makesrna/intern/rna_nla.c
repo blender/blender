@@ -207,6 +207,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	static EnumPropertyItem prop_type_items[] = {
 		{NLASTRIP_TYPE_CLIP, "CLIP", 0, "Action Clip", "NLA Strip references some Action."},
 		{NLASTRIP_TYPE_TRANSITION, "TRANSITION", 0, "Transition", "NLA Strip 'transitions' between adjacent strips."},
+		{NLASTRIP_TYPE_META, "META", 0, "Strip Container", "NLA Strip acts as a container for adjacent strips."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_mode_blend_items[] = {
 		{NLASTRIP_MODE_BLEND, "BLEND", 0, "Blend", "Results of strip and accumulated results are combined in ratio governed by influence."},

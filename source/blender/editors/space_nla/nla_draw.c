@@ -176,6 +176,23 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[2]= 0.19f;
 		}
 	}	
+	else if (strip->type == NLASTRIP_TYPE_META) {
+		/* Meta Clip */
+		if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* selected - use a bold purple color */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.41f;
+			color[1]= 0.13f;
+			color[2]= 0.59f;
+		}
+		else {
+			/* normal, unselected strip - use (hardly noticable) dark purple tinge */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.20f;
+			color[1]= 0.15f;
+			color[2]= 0.26f;
+		}
+	}	
 	else {
 		/* Action Clip (default/normal type of strip) */
 		if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
@@ -293,7 +310,7 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	/* draw outline */
 	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 	
-	/* if action-clip strip, draw lines delimiting repeats too (in the same colour */
+	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
 	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQ(strip->repeat, 1.0f)==0) {
 		float repeatLen = (strip->actend - strip->actstart) * strip->scale;
 		int i;
@@ -307,6 +324,26 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 			/* don't draw if line would end up on or after the end of the strip */
 			if (repeatPos < strip->end)
 				fdrawline(repeatPos, yminc, repeatPos, ymaxc);
+		}
+	}
+	/* or if meta-strip, draw lines delimiting extents of sub-strips (in same color as outline, if more than 1 exists) */
+	else if ((strip->type == NLASTRIP_TYPE_META) && (strip->strips.first != strip->strips.last)) {
+		NlaStrip *cs;
+		float y= (ymaxc-yminc)/2.0f + yminc;
+		
+		/* only draw first-level of child-strips, but don't draw any lines on the endpoints */
+		for (cs= strip->strips.first; cs; cs= cs->next) {
+			/* draw start-line if not same as end of previous (and only if not the first strip) 
+			 *	- on upper half of strip
+			 */
+			if ((cs->prev) && IS_EQ(cs->prev->end, cs->start)==0)
+				fdrawline(cs->start, y, cs->start, ymaxc);
+				
+			/* draw end-line if not the last strip
+			 *	- on lower half of strip
+			 */
+			if (cs->next) 
+				fdrawline(cs->end, yminc, cs->end, y);
 		}
 	}
 	

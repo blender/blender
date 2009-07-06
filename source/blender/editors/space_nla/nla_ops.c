@@ -146,6 +146,9 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_add_actionclip);
 	WM_operatortype_append(NLA_OT_add_transition);
 	
+	WM_operatortype_append(NLA_OT_add_meta);
+	WM_operatortype_append(NLA_OT_remove_meta);
+	
 	WM_operatortype_append(NLA_OT_duplicate);
 	WM_operatortype_append(NLA_OT_delete);
 	WM_operatortype_append(NLA_OT_split);
@@ -155,6 +158,8 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_apply_scale);
 	WM_operatortype_append(NLA_OT_clear_scale);
+	
+	WM_operatortype_append(NLA_OT_snap);
 	
 	WM_operatortype_append(NLA_OT_fmodifier_add);
 }
@@ -236,6 +241,10 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 		/* add strips */
 	WM_keymap_add_item(keymap, "NLA_OT_add_actionclip", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_add_transition", TKEY, KM_PRESS, KM_SHIFT, 0);
+	
+		/* meta-strips */
+	WM_keymap_add_item(keymap, "NLA_OT_add_meta", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_remove_meta", GKEY, KM_PRESS, KM_ALT, 0);
 		
 		/* duplicate */
 	WM_keymap_add_item(keymap, "NLA_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);	
@@ -256,6 +265,9 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_apply_scale", AKEY, KM_PRESS, KM_CTRL, 0);
 		/* clear scale */
 	WM_keymap_add_item(keymap, "NLA_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
+	
+		/* snap */
+	WM_keymap_add_item(keymap, "NLA_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* add f-modifier */
 	WM_keymap_add_item(keymap, "NLA_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);

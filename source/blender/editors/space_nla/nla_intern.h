@@ -106,6 +106,9 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 void NLA_OT_add_actionclip(wmOperatorType *ot);
 void NLA_OT_add_transition(wmOperatorType *ot);
 
+void NLA_OT_add_meta(wmOperatorType *ot);
+void NLA_OT_remove_meta(wmOperatorType *ot);
+
 void NLA_OT_duplicate(wmOperatorType *ot);
 void NLA_OT_delete(wmOperatorType *ot);
 void NLA_OT_split(wmOperatorType *ot);
@@ -115,6 +118,8 @@ void NLA_OT_move_down(wmOperatorType *ot);
 
 void NLA_OT_apply_scale(wmOperatorType *ot);
 void NLA_OT_clear_scale(wmOperatorType *ot);
+
+void NLA_OT_snap(wmOperatorType *ot);
 
 void NLA_OT_fmodifier_add(wmOperatorType *ot);
 

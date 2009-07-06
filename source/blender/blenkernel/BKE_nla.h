@@ -58,6 +58,12 @@ void BKE_nlastrips_sort_strips(ListBase *strips);
 
 short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
+
+void BKE_nlastrips_make_metas(ListBase *strips, short temp);
+void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp);
+short BKE_nlameta_add_strip(struct NlaStrip *mstrip, struct NlaStrip *strip);
+void BKE_nlameta_flush_transforms(struct NlaStrip *mstrip);
+
 /* ............ */
 
 struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);

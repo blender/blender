@@ -70,6 +70,8 @@
 
 #include "ED_markers.h"
 
+#include "nla_intern.h"
+
 /* button events */
 enum {
 	B_REDR 	= 0,
@@ -142,9 +144,18 @@ static void nla_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }
 
+static void nla_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_CFRA);
+	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_FRAME);
+	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_SECOND);
+	uiItemEnumO(layout, NULL, 0, "NLA_OT_snap", "type", NLAEDIT_SNAP_NEAREST_MARKER);
+}
+
 static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
+	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu);
 	
 	uiItemS(layout);
 	
@@ -170,6 +181,11 @@ static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemO(layout, NULL, 0, "NLA_OT_add_actionclip");
 	uiItemO(layout, NULL, 0, "NLA_OT_add_transition");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "NLA_OT_add_meta");
+	uiItemO(layout, NULL, 0, "NLA_OT_remove_meta");
 	
 	uiItemS(layout);
 	

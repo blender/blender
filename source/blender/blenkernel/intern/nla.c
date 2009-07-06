@@ -616,6 +616,199 @@ short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
 	return 1;
 }
 
+
+/* Meta-Strips ------------------------------------ */
+
+/* Convert 'islands' (i.e. continuous string of) selected strips to be
+ * contained within 'Meta-Strips' which act as strips which contain strips.
+ *	temp: are the meta-strips to be created 'temporary' ones used for transforms?
+ */
+void BKE_nlastrips_make_metas (ListBase *strips, short temp)
+{
+	NlaStrip *mstrip = NULL;
+	NlaStrip *strip, *stripn;
+	
+	/* sanity checks */
+	if ELEM(NULL, strips, strips->first)
+		return;
+	
+	/* group all continuous chains of selected strips into meta-strips */
+	for (strip= strips->first; strip; strip= stripn) {
+		stripn= strip->next;
+		
+		if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* if there is an existing meta-strip, add this strip to it, otherwise, create a new one */
+			if (mstrip == NULL) {
+				/* add a new meta-strip, and add it before the current strip that it will replace... */
+				mstrip= MEM_callocN(sizeof(NlaStrip), "Meta-NlaStrip");
+				mstrip->type = NLASTRIP_TYPE_META;
+				BLI_insertlinkbefore(strips, strip, mstrip);
+				
+				/* set flags */
+				mstrip->flag = NLASTRIP_FLAG_SELECT;
+				
+				/* set temp flag if appropriate (i.e. for transform-type editing) */
+				if (temp)
+					mstrip->flag |= NLASTRIP_FLAG_TEMP_META;
+				
+				/* make its start frame be set to the start frame of the current strip */
+				mstrip->start= strip->start;
+			}
+			
+			/* remove the selected strips from the track, and add to the meta */
+			BLI_remlink(strips, strip);
+			BLI_addtail(&mstrip->strips, strip);
+			
+			/* expand the meta's dimensions to include the newly added strip- i.e. its last frame */
+			mstrip->end= strip->end;
+		}
+		else {
+			/* current strip wasn't selected, so the end of 'island' of selected strips has been reached,
+			 * so stop adding strips to the current meta
+			 */
+			mstrip= NULL;
+		}
+	}
+}
+
+/* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
+ *	sel: only consider selected meta-strips, otherwise all meta-strips are removed
+ *	onlyTemp: only remove the 'temporary' meta-strips used for transforms
+ */
+void BKE_nlastrips_clear_metas (ListBase *strips, short onlySel, short onlyTemp)
+{
+	NlaStrip *strip, *stripn;
+	
+	/* sanity checks */
+	if ELEM(NULL, strips, strips->first)
+		return;
+	
+	/* remove meta-strips fitting the criteria of the arguments */
+	for (strip= strips->first; strip; strip= stripn) {
+		stripn= strip->next;
+		
+		/* check if strip is a meta-strip */
+		if (strip->type == NLASTRIP_TYPE_META) {
+			/* if check if selection and 'temporary-only' considerations are met */
+			if ((onlySel==0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
+				if ((!onlyTemp) || (strip->flag & NLASTRIP_FLAG_TEMP_META)) {
+					NlaStrip *cs, *csn;
+					
+					/* move each one of the meta-strip's children before the meta-strip
+					 * in the list of strips after unlinking them from the meta-strip
+					 */
+					for (cs= strip->strips.first; cs; cs= csn) {
+						csn= cs->next;
+						BLI_remlink(&strip->strips, cs);
+						BLI_insertlinkbefore(strips, strip, cs);
+					}
+					
+					/* free the meta-strip now */
+					BLI_freelinkN(strips, strip);
+				}
+			}
+		}
+	}
+}
+
+/* Add the given NLA-Strip to the given Meta-Strip, assuming that the
+ * strip isn't attached to anyy list of strips 
+ */
+short BKE_nlameta_add_strip (NlaStrip *mstrip, NlaStrip *strip)
+{
+	/* sanity checks */
+	if ELEM(NULL, mstrip, strip)
+		return 0;
+		
+	/* firstly, check if the meta-strip has space for this */
+	if (BKE_nlastrips_has_space(&mstrip->strips, strip->start, strip->end) == 0)
+		return 0;
+		
+	/* check if this would need to be added to the ends of the meta,
+	 * and subsequently, if the neighbouring strips allow us enough room
+	 */
+	if (strip->start < mstrip->start) {
+		/* check if strip to the left (if it exists) ends before the 
+		 * start of the strip we're trying to add 
+		 */
+		if ((mstrip->prev == NULL) || (mstrip->prev->end <= strip->start)) {
+			/* add strip to start of meta's list, and expand dimensions */
+			BLI_addhead(&mstrip->strips, strip);
+			mstrip->start= strip->start;
+			
+			return 1;
+		}
+		else /* failed... no room before */
+			return 0;
+	}
+	else if (strip->end > mstrip->end) {
+		/* check if strip to the right (if it exists) starts before the 
+		 * end of the strip we're trying to add 
+		 */
+		if ((mstrip->next == NULL) || (mstrip->next->start >= strip->end)) {
+			/* add strip to end of meta's list, and expand dimensions */
+			BLI_addtail(&mstrip->strips, strip);
+			mstrip->end= strip->end;
+			
+			return 1;
+		}
+		else /* failed... no room after */
+			return 0;
+	}
+	else {
+		/* just try to add to the meta-strip (no dimension changes needed) */
+		return BKE_nlastrips_add_strip(&mstrip->strips, strip);
+	}
+}
+
+/* Adjust the settings of NLA-Strips contained within a Meta-Strip (recursively), 
+ * until the Meta-Strips children all fit within the Meta-Strip's new dimensions
+ */
+void BKE_nlameta_flush_transforms (NlaStrip *mstrip) 
+{
+	NlaStrip *strip;
+	float oStart, oEnd, offset;
+	
+	/* sanity checks 
+	 *	- strip must exist
+	 *	- strip must be a meta-strip with some contents
+	 */
+	if ELEM(NULL, mstrip, mstrip->strips.first)
+		return;
+	if (mstrip->type != NLASTRIP_TYPE_META)
+		return;
+		
+	/* get the original start/end points, and calculate the start-frame offset
+	 *	- these are simply the start/end frames of the child strips, 
+	 *	  since we assume they weren't transformed yet
+	 */
+	oStart= ((NlaStrip *)mstrip->strips.first)->start;
+	oEnd= ((NlaStrip *)mstrip->strips.last)->end;
+	offset= mstrip->start - oStart;
+	
+	/* optimisation:
+	 * don't flush if nothing changed yet
+	 *	TODO: maybe we need a flag to say always flush?
+	 */
+	if (IS_EQ(oStart, mstrip->start) && IS_EQ(oEnd, mstrip->end))
+		return;
+	
+	/* for each child-strip, calculate new start/end points based on this new info */
+	for (strip= mstrip->strips.first; strip; strip= strip->next) {
+		//PointerRNA strip_ptr;
+		
+		/* firstly, just apply the changes in offset to both ends of the strip */
+		strip->start += offset;
+		strip->end += offset;
+		
+		/* now, we need to fix the endpoint to take into account scaling */
+		// TODO..
+		
+		/* finally, make sure the strip's children (if it is a meta-itself), get updated */
+		BKE_nlameta_flush_transforms(strip);
+	}
+}
+
 /* NLA-Tracks ---------------------------------------- */
 
 /* Find the active NLA-track for the given stack */
