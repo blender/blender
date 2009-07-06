@@ -32,9 +32,15 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
+#include "BLI_memarena.h"
 #include "RE_raytrace.h"
 #include "rayobject_rtbuild.h"
 #include "rayobject.h"
+
+#define DYNAMIC_ALLOC
+
+#define SPLIT_OVERLAP_MEAN_LONGEST_AXIS		/* objects mean split on the longest axis, childs BB are allowed to overlap */
+//#define SPLIT_OVERLAP_MEDIAN_LONGEST_AXIS	/* space median split on the longest axis, childs BB are allowed to overlap */
 
 #define BVH_NCHILDS	4
 typedef struct BVHTree BVHTree;
@@ -58,7 +64,11 @@ typedef struct BVHNode BVHNode;
 struct BVHNode
 {
 	BVHNode *child[BVH_NCHILDS];
+#ifdef DYNAMIC_ALLOC
+	float	bb[6];
+#else
 	float	*bb; //[6]; //[2][3];
+#endif
 	int split_axis;
 };
 
@@ -68,8 +78,12 @@ struct BVHTree
 
 	BVHNode *root;
 
+#ifdef DYNAMIC_ALLOC
+	MemArena *node_arena;
+#else
 	BVHNode *node_alloc, *node_next;
 	float *bb_alloc, *bb_next;
+#endif
 	RTBuilder *builder;
 
 };
@@ -83,8 +97,12 @@ RayObject *RE_rayobject_bvh_create(int size)
 	obj->rayobj.api = &bvh_api;
 	obj->root = NULL;
 	
+#ifdef DYNAMIC_ALLOC
+	obj->node_arena = NULL;
+#else
 	obj->node_alloc = obj->node_next = NULL;
 	obj->bb_alloc   = obj->bb_next = NULL;
+#endif
 	obj->builder    = rtbuild_create( size );
 	
 	return RayObject_unalignRayAPI((RayObject*) obj);
@@ -95,11 +113,16 @@ static void bvh_free(BVHTree *obj)
 	if(obj->builder)
 		rtbuild_free(obj->builder);
 
+#ifdef DYNAMIC_ALLOC
+	if(obj->node_arena)
+		BLI_memarena_free(obj->node_arena);
+#else
 	if(obj->node_alloc)
 		MEM_freeN(obj->node_alloc);
 
 	if(obj->bb_alloc)
 		MEM_freeN(obj->bb_alloc);
+#endif
 
 	MEM_freeN(obj);
 }
@@ -190,6 +213,10 @@ static void bvh_add(BVHTree *obj, RayObject *ob)
 
 static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 {
+#ifdef DYNAMIC_ALLOC
+	BVHNode *node = BLI_memarena_alloc(tree->node_arena, sizeof(BVHNode));
+	return node;
+#else
 	BVHNode *node = tree->node_alloc + nid - 1;
 	assert(RayObject_isAligned(node));
 	if(node+1 > tree->node_next)
@@ -199,6 +226,7 @@ static BVHNode *bvh_new_node(BVHTree *tree, int nid)
 	tree->bb_next += 6;
 	
 	return node;
+#endif
 }
 
 static int child_id(int pid, int nchild)
@@ -209,6 +237,9 @@ static int child_id(int pid, int nchild)
 
 static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 {
+	if(rtbuild_size(builder) == 0)
+		return 0;
+
 	if(rtbuild_size(builder) == 1)
 	{
 		RayObject *child = builder->begin[0];
@@ -242,10 +273,17 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 	else
 	{
 		int i;
-		int nc = rtbuild_mean_split_largest_axis(builder, BVH_NCHILDS);
 		RTBuilder tmp;
-	
 		BVHNode *parent = bvh_new_node(tree, nid);
+		int nc; 
+
+#ifdef SPLIT_OVERLAP_MEAN_LONGEST_AXIS
+		nc = rtbuild_mean_split_largest_axis(builder, BVH_NCHILDS);
+#elif defined(SPLIT_OVERLAP_MEDIAN_LONGEST_AXIS)
+		nc = rtbuild_median_split_largest_axis(builder, BVH_NCHILDS);
+#else
+		assert(0);
+#endif	
 
 		INIT_MINMAX(parent->bb, parent->bb+3);
 		parent->split_axis = builder->split_axis;
@@ -261,31 +299,48 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 	}
 }
 
+/*
 static void bvh_info(BVHTree *obj)
 {
 	printf("BVH: Used %d nodes\n", obj->node_next - obj->node_alloc);
 }
+*/
 	
 static void bvh_done(BVHTree *obj)
 {
+
+
+#ifdef DYNAMIC_ALLOC
+	int needed_nodes = (rtbuild_size(obj->builder)+1)*2;
+	if(needed_nodes > BLI_MEMARENA_STD_BUFSIZE)
+		needed_nodes = BLI_MEMARENA_STD_BUFSIZE;
+
+	obj->node_arena = BLI_memarena_new(needed_nodes);
+	BLI_memarena_use_malloc(obj->node_arena);
+
+#else
 	int needed_nodes;
-	assert(obj->root == NULL && obj->node_alloc == NULL && obj->bb_alloc == NULL && obj->builder);
 
 	//TODO exact calculate needed nodes
 	needed_nodes = (rtbuild_size(obj->builder)+1)*2;
 	assert(needed_nodes > 0);
 
+	BVHNode *node = BLI_memarena_alloc(tree->node_arena, sizeof(BVHNode));
+	return node;
 	obj->node_alloc = (BVHNode*)MEM_mallocN( sizeof(BVHNode)*needed_nodes, "BVHTree.Nodes");
 	obj->node_next  = obj->node_alloc;
 
 	obj->bb_alloc = (float*)MEM_mallocN( sizeof(float)*6*needed_nodes, "BVHTree.NodesBB");
 	obj->bb_next  = obj->bb_alloc;
+#endif
 	
 	obj->root = bvh_rearrange( obj, obj->builder, 1 );
+	
+#ifndef DYNAMIC_ALLOC
+	assert(obj->node_alloc+needed_nodes >= obj->node_next);
+#endif
 
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
-	
-	assert(obj->node_alloc+needed_nodes >= obj->node_next);
 }
 

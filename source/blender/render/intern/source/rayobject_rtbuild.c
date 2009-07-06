@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "rayobject_rtbuild.h"
 #include "MEM_guardedalloc.h"
@@ -8,6 +9,7 @@
 
 static int partition_nth_element(RTBuilder *b, int _begin, int _end, int n);
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis);
+static int split_leafs_by_plane(RTBuilder *b, int begin, int end, float plane);
 
 
 static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
@@ -61,12 +63,9 @@ static void merge_bb(RTBuilder *b, float *min, float *max)
 		RE_rayobject_merge_bb(*index, min, max);
 }
 
-int rtbuild_get_largest_axis(RTBuilder *b)
+static int largest_axis(float *min, float *max)
 {
-	float min[3], max[3], sub[3];
-
-	INIT_MINMAX(min, max);
-	merge_bb( b, min, max);
+	float sub[3];
 	
 	sub[0] = max[0]-min[0];
 	sub[1] = max[1]-min[1];
@@ -87,7 +86,22 @@ int rtbuild_get_largest_axis(RTBuilder *b)
 	}	
 }
 
+int rtbuild_get_largest_axis(RTBuilder *b)
+{
+	float min[3], max[3];
 
+	INIT_MINMAX(min, max);
+	merge_bb( b, min, max);
+
+	return largest_axis(min,max);
+}
+
+
+/*
+int rtbuild_median_split(RTBuilder *b, int nchilds, int axis)
+{
+}
+*/
 //Left balanced tree
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 {
@@ -146,6 +160,123 @@ int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds)
 	return rtbuild_mean_split(b, nchilds, axis);
 }
 
+/*
+ * "separators" is an array of dim NCHILDS-1
+ * and indicates where to cut the childs
+ */
+int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
+{
+	int size = rtbuild_size(b);
+		
+	assert(nchilds <= RTBUILD_MAX_CHILDS);
+	if(size <= nchilds)
+	{
+		return rtbuild_mean_split(b, nchilds, axis);
+	}
+	else
+	{
+		int i;
+
+		b->split_axis = axis;
+		
+		//Calculate child offsets
+		b->child_offset[0] = 0;
+		for(i=0; i<nchilds-1; i++)
+			b->child_offset[i+1] = split_leafs_by_plane(b, b->child_offset[i], size, separators[i]);
+		b->child_offset[nchilds] = size;
+		
+		for(i=0; i<nchilds; i++)
+			if(b->child_offset[i+1] - b->child_offset[i] == size)
+				return rtbuild_mean_split(b, nchilds, axis);
+		
+		return nchilds;
+	}	
+}
+
+int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
+{
+	int la, i;
+	float separators[RTBUILD_MAX_CHILDS];
+	float min[3], max[3];
+
+	INIT_MINMAX(min, max);
+	merge_bb( b, min, max);
+
+	la = largest_axis(min,max);
+	for(i=1; i<nchilds; i++)
+		separators[i-1] = (max[la]-min[la])*i / nchilds;
+		
+	return rtbuild_median_split(b, separators, nchilds, la);
+}
+
+//Heuristics Splitter
+typedef struct CostEvent CostEvent;
+
+struct CostEvent
+{
+	float key;
+	float value;
+};
+
+int costevent_cmp(const CostEvent *a, const CostEvent *b)
+{
+	if(a->key < b->key) return -1;
+	if(a->key > b->key) return  1;
+	if(a->value < b->value) return -1;
+	if(a->value > b->value) return  1;
+	return 0;
+}
+
+void costevent_sort(CostEvent *begin, CostEvent *end)
+{
+	//TODO introsort
+	qsort(begin, sizeof(*begin), end-begin, (int(*)(const void *, const void *)) costevent_cmp);
+}
+
+/*
+int rtbuild_heuristic_split(RTBuilder *b, int nchilds)
+{
+	int size = rtbuild_size(b);
+		
+	if(size <= nchilds)
+	{
+		return rtbuild_mean_split_largest_axis(b, nchilds);
+	}
+	else
+	{
+		CostEvent *events[3], *ev[3];
+		RayObject *index;
+		int a = 0;
+
+		for(a = 0; a<3; a++)
+			ev[a] = events[a] = MEM_malloc( sizeof(CostEvent)*2*size, "RTBuilder.SweepSplitCostEvent" );
+
+		for(index = b->begin; b != b->end; b++)
+		{
+			float min[3], max[3];
+			INIT_MINMAX(min, max);
+			RE_rayobject_merge_bb(index, min, max);
+			for(a = 0; a<3; a++)
+			{
+				ev[a]->key = min[a];
+				ev[a]->value = 1;
+				ev[a]++;
+		
+				ev[a]->key = max[a];
+				ev[a]->value = -1;
+				ev[a]++;
+			}
+		}
+		for(a = 0; a<3; a++)
+			costevent_sort(events[a], ev[a]);
+			
+		
+		
+		for(a = 0; a<3; a++)
+			MEM_freeN(ev[a]);
+	}
+}
+*/
 
 /*
  * Helper code
@@ -267,4 +398,18 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 
 		partition_nth_element(b, nth[i],  nth[i+1], nth[partitions] );
 	}
+}
+
+static int split_leafs_by_plane(RTBuilder *b, int begin, int end, float plane)
+{
+	int i;
+	for(i = begin; i != end; i++)
+	{
+		if(sort_get_value(b, i) < plane)
+		{
+			sort_swap(b, i, begin);
+			begin++;
+		}
+	}
+	return begin;
 }
