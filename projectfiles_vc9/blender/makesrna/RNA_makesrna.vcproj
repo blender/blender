@@ -201,7 +201,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -310,7 +310,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine="del ..\..\..\source\blender\makesrna\intern\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -392,7 +392,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -489,7 +489,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -504,7 +504,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -583,7 +583,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

@@ -34,6 +34,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BIF_gl.h"
@@ -476,7 +478,6 @@ void ED_spacetype_file(void)
 	art->draw= file_channel_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	file_panels_register(art);
-
 
 	BKE_spacetype_register(st);
 
