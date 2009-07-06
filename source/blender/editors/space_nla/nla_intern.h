@@ -87,6 +87,17 @@ void NLA_OT_click_select(wmOperatorType *ot);
 /* **************************************** */
 /* nla_edit.c */
 
+/* defines for snap strips
+ */
+enum {
+	NLAEDIT_SNAP_CFRA = 1,
+	NLAEDIT_SNAP_NEAREST_FRAME,
+	NLAEDIT_SNAP_NEAREST_SECOND,
+	NLAEDIT_SNAP_NEAREST_MARKER,	
+} eNlaEdit_Snap_Mode;
+
+/* --- */
+
 void NLA_OT_tweakmode_enter(wmOperatorType *ot);
 void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 

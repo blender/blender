@@ -1826,18 +1826,48 @@ static void direct_link_action(FileData *fd, bAction *act)
 	}
 }
 
-
-static void lib_link_nladata (FileData *fd, ID *id, ListBase *list)
+static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 {
-	NlaTrack *nlt;
 	NlaStrip *strip;
 	
-	/* we only acare about the NLA strips inside the tracks */
+	for (strip= list->first; strip; strip= strip->next) {
+		/* check strip's children */
+		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* reassign the counted-reference to action */
+		strip->act = newlibadr_us(fd, id->lib, strip->act);
+	}
+}
+
+static void lib_link_nladata(FileData *fd, ID *id, ListBase *list)
+{
+	NlaTrack *nlt;
+	
+	/* we only care about the NLA strips inside the tracks */
 	for (nlt= list->first; nlt; nlt= nlt->next) {
-		for (strip= nlt->strips.first; strip; strip= strip->next) {
-			/* reassign the counted-reference to action */
-			strip->act = newlibadr_us(fd, id->lib, strip->act);
-		}
+		lib_link_nladata_strips(fd, id, &nlt->strips);
+	}
+}
+
+/* This handles Animato NLA-Strips linking 
+ * NOTE: this assumes that link_list has already been called on the list 
+ */
+static void direct_link_nladata_strips(FileData *fd, ListBase *list)
+{
+	NlaStrip *strip;
+	
+	for (strip= list->first; strip; strip= strip->next) {
+		/* strip's child strips */
+		link_list(fd, &strip->strips);
+		direct_link_nladata_strips(fd, &strip->strips);
+		
+		/* strip's F-Curves */
+		link_list(fd, &strip->fcurves);
+		direct_link_fcurves(fd, &strip->fcurves);
+		
+		/* strip's F-Modifiers */
+		link_list(fd, &strip->modifiers);
+		direct_link_fcurves(fd, &strip->modifiers);
 	}
 }
 
@@ -1845,22 +1875,13 @@ static void lib_link_nladata (FileData *fd, ID *id, ListBase *list)
 static void direct_link_nladata(FileData *fd, ListBase *list)
 {
 	NlaTrack *nlt;
-	NlaStrip *strip;
 	
 	for (nlt= list->first; nlt; nlt= nlt->next) {
 		/* relink list of strips */
 		link_list(fd, &nlt->strips);
 		
 		/* relink strip data */
-		for (strip= nlt->strips.first; strip; strip= strip->next) {
-			/* strip's F-Curves */
-			link_list(fd, &strip->fcurves);
-			direct_link_fcurves(fd, &strip->fcurves);
-			
-			/* strip's F-Modifiers */
-			link_list(fd, &strip->modifiers);
-			direct_link_fcurves(fd, &strip->modifiers);
-		}
+		direct_link_nladata_strips(fd, &nlt->strips);
 	}
 }
 
@@ -9560,11 +9581,23 @@ static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
 	}
 }
 
+static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *list)
+{
+	NlaStrip *strip;
+	
+	for (strip= list->first; strip; strip= strip->next) {
+		/* check child strips */
+		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* relink referenced action */
+		expand_doit(fd, mainvar, strip->act);
+	}
+}
+
 static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 {
 	FCurve *fcd;
 	NlaTrack *nlt;
-	NlaStrip *strip;
 	
 	/* own action */
 	expand_doit(fd, mainvar, adt->action);
@@ -9580,10 +9613,8 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	}
 	
 	/* nla-data - referenced actions */
-	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-		for (strip= nlt->strips.first; strip; strip= strip->next) 
-			expand_doit(fd, mainvar, strip->act);
-	}
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 
+		expand_animdata_nlastrips(fd, mainvar, &nlt->strips);
 }	
 
 static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)

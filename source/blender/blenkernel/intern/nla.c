@@ -68,9 +68,17 @@
  */
 void free_nlastrip (ListBase *strips, NlaStrip *strip)
 {
+	NlaStrip *cs, *csn;
+	
 	/* sanity checks */
 	if (strip == NULL)
 		return;
+		
+	/* free child-strips */
+	for (cs= strip->strips.first; cs; cs= csn) {
+		csn= cs->next;
+		free_nlastrip(&strip->strips, cs);
+	}
 		
 	/* remove reference to action */
 	if (strip->act)
@@ -144,6 +152,7 @@ void free_nladata (ListBase *tracks)
 NlaStrip *copy_nlastrip (NlaStrip *strip)
 {
 	NlaStrip *strip_d;
+	NlaStrip *cs, *cs_d;
 	
 	/* sanity check */
 	if (strip == NULL)
@@ -160,6 +169,14 @@ NlaStrip *copy_nlastrip (NlaStrip *strip)
 	/* copy F-Curves and modifiers */
 	copy_fcurves(&strip_d->fcurves, &strip->fcurves);
 	copy_fmodifiers(&strip_d->modifiers, &strip->modifiers);
+	
+	/* make a copy of all the child-strips, one at a time */
+	strip_d->strips.first= strip_d->strips.last= NULL;
+	
+	for (cs= strip->strips.first; cs; cs= cs->next) {
+		cs_d= copy_nlastrip(cs);
+		BLI_addtail(&strip_d->strips, cs_d);
+	}
 	
 	/* return the strip */
 	return strip_d;
@@ -435,6 +452,7 @@ static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short
 float nlastrip_get_frame (NlaStrip *strip, float cframe, short mode)
 {
 	switch (strip->type) {
+		case NLASTRIP_TYPE_META: /* meta (is just a container for other strips, so shouldn't use the action-clip method) */
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
 			return nlastrip_get_frame_transition(strip, cframe, mode);
 		
@@ -486,6 +504,117 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
 
 /* *************************************************** */
 /* Basic Utilities */
+
+/* List of Strips ------------------------------------ */
+/* (these functions are used for NLA-Tracks and also for nested/meta-strips) */
+
+/* Check if there is any space in the given list to add the given strip */
+short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
+{
+	NlaStrip *strip;
+	
+	/* sanity checks */
+	if ((strips == NULL) || IS_EQ(start, end))
+		return 0;
+	if (start > end) {
+		puts("BKE_nlastrips_has_space() error... start and end arguments swapped");
+		SWAP(float, start, end);
+	}
+	
+	/* loop over NLA strips checking for any overlaps with this area... */
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* if start frame of strip is past the target end-frame, that means that
+		 * we've gone past the window we need to check for, so things are fine
+		 */
+		if (strip->start > end)
+			return 1;
+		
+		/* if the end of the strip is greater than either of the boundaries, the range
+		 * must fall within the extents of the strip
+		 */
+		if ((strip->end > start) || (strip->end > end))
+			return 0;
+	}
+	
+	/* if we are still here, we haven't encountered any overlapping strips */
+	return 1;
+}
+
+/* Rearrange the strips in the track so that they are always in order 
+ * (usually only needed after a strip has been moved) 
+ */
+void BKE_nlastrips_sort_strips (ListBase *strips)
+{
+	ListBase tmp = {NULL, NULL};
+	NlaStrip *strip, *sstrip;
+	
+	/* sanity checks */
+	if ELEM(NULL, strips, strips->first)
+		return;
+		
+	/* we simply perform insertion sort on this list, since it is assumed that per track,
+	 * there are only likely to be at most 5-10 strips
+	 */
+	for (strip= strips->first; strip; strip= strip->next) {
+		short not_added = 1;
+		
+		/* remove this strip from the list, and add it to the new list, searching from the end of 
+		 * the list, assuming that the lists are in order 
+		 */
+		BLI_remlink(strips, strip);
+		
+		for (sstrip= tmp.last; not_added && sstrip; sstrip= sstrip->prev) {
+			/* check if add after */
+			if (sstrip->end < strip->start) {
+				BLI_insertlinkafter(&tmp, sstrip, strip);
+				not_added= 0;
+				break;
+			}
+		}
+		
+		/* add before first? */
+		if (not_added)
+			BLI_addhead(&tmp, strip);
+	}
+	
+	/* reassign the start and end points of the strips */
+	strips->first= tmp.first;
+	strips->last= tmp.last;
+}
+
+/* Add the given NLA-Strip to the given list of strips, assuming that it 
+ * isn't currently a member of another list
+ */
+short BKE_nlastrips_add_strip (ListBase *strips, NlaStrip *strip)
+{
+	NlaStrip *ns;
+	short not_added = 1;
+	
+	/* sanity checks */
+	if ELEM(NULL, strips, strip)
+		return 0;
+		
+	/* check if any space to add */
+	if (BKE_nlastrips_has_space(strips, strip->start, strip->end)==0)
+		return 0;
+	
+	/* find the right place to add the strip to the nominated track */
+	for (ns= strips->first; ns; ns= ns->next) {
+		/* if current strip occurs after the new strip, add it before */
+		if (ns->start > strip->end) {
+			BLI_insertlinkbefore(strips, ns, strip);
+			not_added= 0;
+			break;
+		}
+	}
+	if (not_added) {
+		/* just add to the end of the list of the strips then... */
+		BLI_addtail(strips, strip);
+	}
+	
+	/* added... */
+	return 1;
+}
 
 /* NLA-Tracks ---------------------------------------- */
 
@@ -560,36 +689,20 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 		nlt_a->flag |= NLATRACK_ACTIVE;
 }
 
-/* Check if there is any space in the last track to add the given strip */
+
+/* Check if there is any space in the given track to add a strip of the given length */
 short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 {
-	NlaStrip *strip;
-	
 	/* sanity checks */
 	if ((nlt == NULL) || IS_EQ(start, end))
 		return 0;
 	if (start > end) {
-		puts("BKE_nlatrack_has_space error... start and end arguments swapped");
+		puts("BKE_nlatrack_has_space() error... start and end arguments swapped");
 		SWAP(float, start, end);
 	}
 	
-	/* loop over NLA strips checking for any overlaps with this area... */
-	for (strip= nlt->strips.first; strip; strip= strip->next) {
-		/* if start frame of strip is past the target end-frame, that means that
-		 * we've gone past the window we need to check for, so things are fine
-		 */
-		if (strip->start > end)
-			return 1;
-		
-		/* if the end of the strip is greater than either of the boundaries, the range
-		 * must fall within the extents of the strip
-		 */
-		if ((strip->end > start) || (strip->end > end))
-			return 0;
-	}
-	
-	/* if we are still here, we haven't encountered any overlapping strips */
-	return 1;
+	/* check if there's any space left in the track for a strip of the given length */
+	return BKE_nlastrips_has_space(&nlt->strips, start, end);
 }
 
 /* Rearrange the strips in the track so that they are always in order 
@@ -597,41 +710,12 @@ short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
  */
 void BKE_nlatrack_sort_strips (NlaTrack *nlt)
 {
-	ListBase tmp = {NULL, NULL};
-	NlaStrip *strip, *sstrip;
-	
 	/* sanity checks */
 	if ELEM(NULL, nlt, nlt->strips.first)
 		return;
-		
-	/* we simply perform insertion sort on this list, since it is assumed that per track,
-	 * there are only likely to be at most 5-10 strips
-	 */
-	for (strip= nlt->strips.first; strip; strip= strip->next) {
-		short not_added = 1;
-		
-		/* remove this strip from the list, and add it to the new list, searching from the end of 
-		 * the list, assuming that the lists are in order 
-		 */
-		BLI_remlink(&nlt->strips, strip);
-		
-		for (sstrip= tmp.last; not_added && sstrip; sstrip= sstrip->prev) {
-			/* check if add after */
-			if (sstrip->end < strip->start) {
-				BLI_insertlinkafter(&tmp, sstrip, strip);
-				not_added= 0;
-				break;
-			}
-		}
-		
-		/* add before first? */
-		if (not_added)
-			BLI_addhead(&tmp, strip);
-	}
 	
-	/* reassign the start and end points of the strips */
-	nlt->strips.first= tmp.first;
-	nlt->strips.last= tmp.last;
+	/* sort the strips with a more generic function */
+	BKE_nlastrips_sort_strips(&nlt->strips);
 }
 
 /* Add the given NLA-Strip to the given NLA-Track, assuming that it 
@@ -639,33 +723,12 @@ void BKE_nlatrack_sort_strips (NlaTrack *nlt)
  */
 short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
 {
-	NlaStrip *ns;
-	short not_added = 1;
-	
 	/* sanity checks */
 	if ELEM(NULL, nlt, strip)
 		return 0;
 		
-	/* check if any space to add */
-	if (BKE_nlatrack_has_space(nlt, strip->start, strip->end)==0)
-		return 0;
-	
-	/* find the right place to add the strip to the nominated track */
-	for (ns= nlt->strips.first; ns; ns= ns->next) {
-		/* if current strip occurs after the new strip, add it before */
-		if (ns->start > strip->end) {
-			BLI_insertlinkbefore(&nlt->strips, ns, strip);
-			not_added= 0;
-			break;
-		}
-	}
-	if (not_added) {
-		/* just add to the end of the list of the strips then... */
-		BLI_addtail(&nlt->strips, strip);
-	}
-	
-	/* added... */
-	return 1;
+	/* try to add the strip to the track using a more generic function */
+	return BKE_nlastrips_add_strip(&nlt->strips, strip);
 }
 
 /* NLA Strips -------------------------------------- */

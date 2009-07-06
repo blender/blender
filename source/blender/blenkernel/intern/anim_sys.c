@@ -628,15 +628,13 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 }
 
 
-/* gets the strip active at the current time for a track for evaluation purposes */
-static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index, float ctime)
+/* gets the strip active at the current time for a given list of strips */
+static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
 {
 	NlaStrip *strip, *estrip=NULL;
-	NlaEvalStrip *nes;
-	short side= 0;
 	
 	/* loop over strips, checking if they fall within the range */
-	for (strip= nlt->strips.first; strip; strip= strip->next) {
+	for (strip= strips->first; strip; strip= strip->next) {
 		/* check if current time occurs within this strip  */
 		if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
 			/* this strip is active, so try to use it */
@@ -647,13 +645,13 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 		
 		/* if time occurred before current strip... */
 		if (ctime < strip->start) {
-			if (strip == nlt->strips.first) {
+			if (strip == strips->first) {
 				/* before first strip - only try to use it if it extends backwards in time too */
 				if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
 					estrip= strip;
 					
 				/* side is 'before' regardless of whether there's a useful strip */
-				side= NES_TIME_BEFORE;
+				*side= NES_TIME_BEFORE;
 			}
 			else {
 				/* before next strip - previous strip has ended, but next hasn't begun, 
@@ -665,7 +663,7 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 				
 				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
 					estrip= strip;
-				side= NES_TIME_AFTER;
+				*side= NES_TIME_AFTER;
 			}
 			break;
 		}
@@ -673,16 +671,45 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 		/* if time occurred after current strip... */
 		if (ctime > strip->end) {
 			/* only if this is the last strip should we do anything, and only if that is being held */
-			if (strip == nlt->strips.last) {
+			if (strip == strips->last) {
 				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
 					estrip= strip;
 					
-				side= NES_TIME_AFTER;
+				*side= NES_TIME_AFTER;
 				break;
 			}
 			
 			/* otherwise, skip... as the 'before' case will catch it more elegantly! */
 		}
+	}
+	
+	/* return the matching strip found */
+	return estrip;
+}
+
+/* gets the strip active at the current time for a track for evaluation purposes */
+static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index, float ctime)
+{
+	ListBase *strips= &nlt->strips;
+	NlaStrip *strip, *estrip=NULL;
+	NlaEvalStrip *nes;
+	short side= 0;
+	
+	/* keep looping over hierarchy of strips until one which fits for the current time is found */
+	while (strips->first) {
+		/* try to get the strip at this frame for this strip */
+		strip= ctime_get_strip(strips, &side, ctime);
+		
+		/* if a strip was found, make this the new estrip, otherwise, stop trying */
+		if (strip) {
+			/* set new estrip */
+			estrip= strip;
+			
+			/* check children (only available if this is a meta-strip) for better match */
+			strips= &strip->strips;
+		}
+		else
+			break;
 	}
 	
 	/* check if a valid strip was found

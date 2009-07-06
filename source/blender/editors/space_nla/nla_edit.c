@@ -734,8 +734,6 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
@@ -743,9 +741,6 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	/* get a list of the editable tracks being shown in the NLA */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	/* init the editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* since we're potentially moving strips from lower tracks to higher tracks, we should
 	 * loop over the tracks in reverse order to avoid moving earlier strips up multiple tracks
@@ -811,8 +806,6 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
@@ -820,9 +813,6 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	/* get a list of the editable tracks being shown in the NLA */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	/* init the editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* loop through the tracks in normal order, since we're pushing strips down,
 	 * strips won't get operated on twice
@@ -1035,6 +1025,116 @@ void NLA_OT_clear_scale (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Snap Strips Operator ************************** */
+/* Moves the start-point of the selected strips to the specified places */
+
+/* defines for snap keyframes tool */
+EnumPropertyItem prop_nlaedit_snap_types[] = {
+	{NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
+	{NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
+	{NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
+	{NLAEDIT_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int nlaedit_snap_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene= ac.scene;
+	int mode = RNA_enum_get(op->ptr, "type");
+	const float secf = (float)FPS;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* since we may add tracks, perform this in reverse order */
+	for (ale= anim_data.last; ale; ale= ale->prev) {
+		ListBase tmp_strips = {NULL, NULL};
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip, *stripn;
+		
+		/* first pass: move all selected strips to a separate buffer, and apply snapping to them */
+		for (strip= nlt->strips.first; strip; strip= stripn) {
+			stripn= strip->next;
+			
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				float start, end;
+				
+				/* get the existing end-points */
+				start= strip->start;
+				end= strip->end;
+				
+				/* calculate new start position based on snapping mode */
+				switch (mode) {
+					case NLAEDIT_SNAP_CFRA: /* to current frame */
+						strip->start= (float)CFRA;
+						break;
+					case NLAEDIT_SNAP_NEAREST_FRAME: /* to nearest frame */
+						strip->start= (float)(floor(start+0.5));
+						break;
+					case NLAEDIT_SNAP_NEAREST_SECOND: /* to nearest second */
+						strip->start= ((float)floor(start/secf + 0.5f) * secf);
+						break;
+					case NLAEDIT_SNAP_NEAREST_MARKER: /* to nearest marker */
+						strip->start= (float)ED_markers_find_nearest_marker_time(ac.markers, start);
+						break;
+					default: /* just in case... no snapping */
+						strip->start= start;
+						break;
+				}
+				
+				/* get new endpoint based on start-point (and old length) */
+				strip->end= strip->start + (end - start);
+				
+				/* remove strip from track, and add to the temp buffer */
+				BLI_remlink(&nlt->strips, strip);
+				BLI_addtail(&tmp_strips, strip);
+			}
+		}
+		
+		// TODO: finish this...
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_snap (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Snap Strips";
+	ot->idname= "NLA_OT_snap";
+	ot->description= "Move start of strips to specified time.";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= nlaedit_snap_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
 }
 
 /* *********************************************** */

@@ -916,26 +916,34 @@ static void write_keyingsets(WriteData *wd, ListBase *list)
 	}
 }
 
+static void write_nlastrips(WriteData *wd, ListBase *strips)
+{
+	NlaStrip *strip;
+	
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* write the strip first */
+		writestruct(wd, DATA, "NlaStrip", 1, strip);
+		
+		/* write the strip's F-Curves and modifiers */
+		write_fcurves(wd, &strip->fcurves);
+		write_fmodifiers(wd, &strip->modifiers);
+		
+		/* write the strip's children */
+		write_nlastrips(wd, &strip->strips);
+	}
+}
+
 static void write_nladata(WriteData *wd, ListBase *nlabase)
 {
 	NlaTrack *nlt;
-	NlaStrip *strip;
 	
 	/* write all the tracks */
 	for (nlt= nlabase->first; nlt; nlt= nlt->next) {
 		/* write the track first */
 		writestruct(wd, DATA, "NlaTrack", 1, nlt);
 		
-		for (strip= nlt->strips.first; strip; strip= strip->next) {
-			/* write the strip first */
-			writestruct(wd, DATA, "NlaStrip", 1, strip);
-			
-			/* write the strip's F-Curves and modifiers */
-			write_fcurves(wd, &strip->fcurves);
-			write_fmodifiers(wd, &strip->modifiers);
-			
-			// TODO write the remaps
-		}
+		/* write the track's strips */
+		write_nlastrips(wd, &nlt->strips);
 	}
 }
 

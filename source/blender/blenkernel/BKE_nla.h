@@ -53,6 +53,13 @@ struct NlaStrip *add_nlastrip_to_stack(struct AnimData *adt, struct bAction *act
 /* ----------------------------- */
 /* API */
 
+short BKE_nlastrips_has_space(ListBase *strips, float start, float end);
+void BKE_nlastrips_sort_strips(ListBase *strips);
+
+short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
+
+/* ............ */
+
 struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
 void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
 
@@ -63,6 +70,7 @@ void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
 short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
 
+/* ............ */
 
 struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
 short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);

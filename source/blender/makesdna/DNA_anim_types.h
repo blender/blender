@@ -438,11 +438,13 @@ typedef struct AnimMapper {
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
 	
+	ListBase strips;			/* 'Child' strips (used for 'meta' strips) */
 	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
 	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
 	
 	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
 	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
+	
 	float influence;			/* Influence of strip */
 	float strip_time;			/* Current 'time' within action being used (automatically evaluated, but can be overridden) */
 	
@@ -505,6 +507,11 @@ enum {
 	NLASTRIP_FLAG_MUTED			= (1<<12),
 		/* NLA strip length is synced to the length of the referenced action */
 	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<13),
+	
+	/* temporary editing flags */
+		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
+	NLASTRIP_FLAG_TEMP_META		= (1<<30),
+	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<31),
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
@@ -513,6 +520,8 @@ enum {
 	NLASTRIP_TYPE_CLIP	= 0,
 		/* 'transition' - blends between the adjacent strips */
 	NLASTRIP_TYPE_TRANSITION,
+		/* 'meta' - a strip which acts as a container for a few others */
+	NLASTRIP_TYPE_META,
 } eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */
