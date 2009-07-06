@@ -2,14 +2,14 @@
 
 """
 Name: 'Quake 3 (.map)'
-Blender: 243
+Blender: 249
 Group: 'Export'
 Tooltip: 'Export to Quake map format'
 """
 
 __author__ = 'Campbell Barton'
-__version__ = '0.1'
-__email__ = "cbarton@metavr.com"
+__version__ = '0.1a'
+__email__ = "ideasman42@gmail.com"
 __bpydoc__ = """\
 This script Exports a Quake 3 map format.
 
@@ -234,7 +234,7 @@ def write_node_map(file, ob):
 	as a MAP node as long as it has the property name - classname
 	returns True/False based on weather a node was written
 	'''
-	props= [(p.name, p.data) for p in ob.properties]
+	props= [(p.name, p.data) for p in ob.game_properties]
 	
 	IS_MAP_NODE= False
 	for name, value in props:
@@ -287,7 +287,7 @@ def export_map(filepath):
 	TOTBRUSH= TOTLAMP= TOTNODE= 0
 	
 	for ob in Object.GetSelected():
-		type= ob.getType()
+		type= ob.type
 		if type == 'Mesh':		obs_mesh.append(ob)
 		elif type == 'Surf':	obs_surf.append(ob)
 		elif type == 'Lamp':	obs_lamp.append(ob)
@@ -406,9 +406,10 @@ NULL
 				
 			else:
 				print "NOT EXPORTING PATCH", surf_name, u,v, 'Unsupported'
-			
 	
-	file.write('}\n') # end worldspan
+	
+	if obs_mesh or obs_surf:
+		file.write('}\n') # end worldspan
 	
 	
 	print '\twriting lamps'
