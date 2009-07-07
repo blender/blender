@@ -546,26 +546,28 @@ short BKE_nlastrips_has_space (ListBase *strips, float start, float end)
 void BKE_nlastrips_sort_strips (ListBase *strips)
 {
 	ListBase tmp = {NULL, NULL};
-	NlaStrip *strip, *sstrip;
+	NlaStrip *strip, *sstrip, *stripn;
 	
 	/* sanity checks */
 	if ELEM(NULL, strips, strips->first)
 		return;
-		
+	
 	/* we simply perform insertion sort on this list, since it is assumed that per track,
 	 * there are only likely to be at most 5-10 strips
 	 */
-	for (strip= strips->first; strip; strip= strip->next) {
+	for (strip= strips->first; strip; strip= stripn) {
 		short not_added = 1;
+		
+		stripn= strip->next;
 		
 		/* remove this strip from the list, and add it to the new list, searching from the end of 
 		 * the list, assuming that the lists are in order 
 		 */
 		BLI_remlink(strips, strip);
 		
-		for (sstrip= tmp.last; not_added && sstrip; sstrip= sstrip->prev) {
+		for (sstrip= tmp.last; sstrip; sstrip= sstrip->prev) {
 			/* check if add after */
-			if (sstrip->end < strip->start) {
+			if (sstrip->end <= strip->start) {
 				BLI_insertlinkafter(&tmp, sstrip, strip);
 				not_added= 0;
 				break;

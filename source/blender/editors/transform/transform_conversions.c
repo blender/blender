@@ -4836,8 +4836,7 @@ void special_aftertrans_update(TransInfo *t)
 				NlaTrack *nlt= (NlaTrack *)ale->data;
 				
 				/* make sure strips are in order again */
-				// FIXME: this is buggy
-				//BKE_nlatrack_sort_strips(nlt);
+				BKE_nlatrack_sort_strips(nlt);
 				
 				/* remove the temp metas */
 				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
