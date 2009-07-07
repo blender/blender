@@ -228,6 +228,22 @@ typedef enum eAnimFilter_Flags {
 /* channel toggle-buttons */
 #define ACHANNEL_BUTTON_WIDTH	16
 
+
+/* -------------- NLA Channel Defines -------------- */
+
+/* NLA channel heights */
+#define NLACHANNEL_FIRST			-16
+#define	NLACHANNEL_HEIGHT			24
+#define NLACHANNEL_HEIGHT_HALF	12
+#define	NLACHANNEL_SKIP			2
+#define NLACHANNEL_STEP			(NLACHANNEL_HEIGHT + NLACHANNEL_SKIP)
+
+/* channel widths */
+#define NLACHANNEL_NAMEWIDTH		200
+
+/* channel toggle-buttons */
+#define NLACHANNEL_BUTTON_WIDTH	16
+
 /* ---------------- API  -------------------- */
 
 /* Obtain list of filtered Animation channels to operate on.

@@ -139,7 +139,7 @@ static void nla_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 static void nla_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	// XXX these operators may change for NLA...
-	uiItemEnumO(layout, "Grab/Move", 0, "TFM_OT_transform", "mode", TFM_TIME_TRANSLATE);
+	uiItemEnumO(layout, "Grab/Move", 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
 	uiItemEnumO(layout, "Extend", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
 	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
 }

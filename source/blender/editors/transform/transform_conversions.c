@@ -2661,34 +2661,104 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 				/* transition strips can't get directly transformed */
 				if (strip->type != NLASTRIP_TYPE_TRANSITION) {
 					if (strip->flag & NLASTRIP_FLAG_SELECT) {
+						/* our transform data is constructed as follows:
+						 *	- only the handles on the right side of the current-frame get included
+						 *	- td structs are transform-elements operated on by the transform system
+						 *	  and represent a single handle. The storage/pointer used (val or loc) depends on
+						 *	  whether we're scaling or transforming. Ultimately though, the handles
+						 * 	  the td writes to will simply be a dummy in tdn
+						 *	- for each strip being transformed, a single tdn struct is used, so in some
+						 *	  cases, there will need to be 1 of these tdn elements in the array skipped...
+						 */
+						float center[3], yval;
+						
+						/* firstly, init tdn settings */
+						tdn->oldTrack= tdn->nlt= nlt;
+						tdn->strip= strip;
+						tdn->trackIndex= BLI_findindex(&nlt->strips, strip);
+						
+						yval= (float)(tdn->trackIndex * NLACHANNEL_SKIP);
+						
+						tdn->h1[0]= strip->start;
+						tdn->h1[1]= yval;
+						tdn->h2[0]= strip->end;
+						tdn->h2[1]= yval;
+						
+						center[0]= (float)CFRA;
+						center[1]= yval;
+						center[2]= 0.0f;
+						
+						/* set td's based on which handles are applicable */
 						if (FrameOnMouseSide(side, strip->start, (float)CFRA)) 
 						{
-							/* init the 'extra' data for NLA strip handles first */
-							tdn->strip= strip;
-							tdn->val= strip->start;
-							tdn->handle= 0;
+							/* just set tdn to assume that it only has one handle for now */
+							tdn->handle= -1;
 							
 							/* now, link the transform data up to this data */
-							td->val= &tdn->val;
-							td->ival= tdn->val;
+							if (t->mode == TFM_TRANSLATION) {
+								td->loc= tdn->h1;
+								VECCOPY(td->iloc, tdn->h1);
+								
+								/* store all the other gunk that is required by transform */
+								VECCOPY(td->center, center);
+								memset(td->axismtx, 0, sizeof(td->axismtx));
+								td->axismtx[2][2] = 1.0f;
+								
+								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								
+								td->flag |= TD_SELECTED;
+								td->dist= 0.0f;
+								
+								Mat3One(td->mtx);
+								Mat3One(td->smtx);
+							}
+							else {
+								td->val= &tdn->h1[0];
+								td->ival= tdn->h1[0];
+							}
+							
 							td->extra= tdn;
 							td++;
-							tdn++;
 						}
 						if (FrameOnMouseSide(side, strip->end, (float)CFRA)) 
 						{	
-							/* init the 'extra' data for NLA strip handles first */
-							tdn->strip= strip;
-							tdn->val= strip->end;
-							tdn->handle= 1;
+							/* if tdn is already holding the start handle, then we're doing both, otherwise, only end */
+							tdn->handle= (tdn->handle) ? 2 : 1;
 							
 							/* now, link the transform data up to this data */
-							td->val= &tdn->val;
-							td->ival= tdn->val;
+							if (t->mode == TFM_TRANSLATION) {
+								td->loc= tdn->h2;
+								VECCOPY(td->iloc, tdn->h2);
+								
+								/* store all the other gunk that is required by transform */
+								VECCOPY(td->center, center);
+								memset(td->axismtx, 0, sizeof(td->axismtx));
+								td->axismtx[2][2] = 1.0f;
+								
+								td->ext= NULL; td->tdi= NULL; td->val= NULL;
+								
+								td->flag |= TD_SELECTED;
+								td->dist= 0.0f;
+								
+								Mat3One(td->mtx);
+								Mat3One(td->smtx);
+							}
+							else {
+								td->val= &tdn->h2[0];
+								td->ival= tdn->h2[0];
+							}
+							
 							td->extra= tdn;
 							td++;
-							tdn++;
 						}
+						
+						/* if both handles were used, skip the next tdn (i.e. leave it blank) since the counting code is dumb... 
+						 * otherwise, just advance to the next one...
+						 */
+						if (tdn->handle == 2)
+							tdn += 2;
+						else
+							tdn++;
 					}
 				}
 			}
@@ -4739,7 +4809,6 @@ void special_aftertrans_update(TransInfo *t)
 		ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
 		Scene *scene;
 		bAnimContext ac;
 		
@@ -4768,6 +4837,10 @@ void special_aftertrans_update(TransInfo *t)
 			
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				NlaTrack *nlt= (NlaTrack *)ale->data;
+				
+				/* make sure strips are in order again */
+				// FIXME: this is buggy
+				//BKE_nlatrack_sort_strips(nlt);
 				
 				/* remove the temp metas */
 				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);

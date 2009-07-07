@@ -162,7 +162,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		vec[1]= aspy*(v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		View2D *v2d = t->view;
 		float divx, divy;
 		
@@ -212,7 +212,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		int out[2] = {0, 0};
 		
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
@@ -241,7 +241,7 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		adr[0]= a[0];
 		adr[1]= a[1];
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		int a[2];
 		
 		projectIntView(t, vec, a);
@@ -1324,10 +1324,10 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_TIME_EXTEND: 
 		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
 		 * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION
-		 * (for Graph Editor only since it uses 'standard' transforms to get 2D movement)
+		 * (for Graph/NLA Editors only since they uses 'standard' transforms to get 2D movement)
 		 * depending on which editor this was called from 
 		 */
-		if (t->spacetype == SPACE_IPO)
+		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
 			initTranslation(t);
 		else
 			initTimeTranslate(t);

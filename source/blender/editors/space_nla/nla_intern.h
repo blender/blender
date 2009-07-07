@@ -33,21 +33,6 @@
 /* **************************************** */
 /* Macros, etc. only used by NLA */
 
-/* -------------- NLA Channel Defines -------------- */
-
-/* NLA channel heights */
-#define NLACHANNEL_FIRST			-16
-#define	NLACHANNEL_HEIGHT			24
-#define NLACHANNEL_HEIGHT_HALF	12
-#define	NLACHANNEL_SKIP			2
-#define NLACHANNEL_STEP			(NLACHANNEL_HEIGHT + NLACHANNEL_SKIP)
-
-/* channel widths */
-#define NLACHANNEL_NAMEWIDTH		200
-
-/* channel toggle-buttons */
-#define NLACHANNEL_BUTTON_WIDTH	16
-
 /* **************************************** */
 /* space_nla.c / nla_buttons.c */
 
