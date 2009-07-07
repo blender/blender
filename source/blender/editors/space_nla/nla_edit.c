@@ -432,7 +432,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "Needs at least a pair of adjacent selected strips.");
+		BKE_report(op->reports, RPT_ERROR, "Needs at least a pair of adjacent selected strips with a gap between them.");
 		return OPERATOR_CANCELLED;
 	}
 }
