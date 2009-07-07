@@ -373,6 +373,7 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 #define B_REDRAWALL		750
 #define B_TL_REW		751
 #define B_TL_PLAY		752
+#define B_TL_RPLAY		760
 #define B_TL_FF			753
 #define B_TL_PREVKEY	754
 #define B_TL_NEXTKEY	755
@@ -406,6 +407,18 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_TL_PLAY:
 			ED_screen_animation_timer(C, stime->redraws, 1);
+			
+			/* update region if TIME_REGION was set, to leftmost 3d window */
+			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
+				wmTimer *wt= screen->animtimer;
+				ScreenAnimData *sad= wt->customdata;
+				
+				sad->ar= time_top_left_3dwindow(screen);
+			}
+			
+			break;
+		case B_TL_RPLAY:
+			ED_screen_animation_timer(C, stime->redraws, -1);
 			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
 			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
@@ -553,14 +566,27 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
 	xco+= XIC+4;
 	
-	if(CTX_wm_screen(C)->animtimer)
+	if(CTX_wm_screen(C)->animtimer) {
+		/* pause button is drawn centered between the two other buttons for now (saves drawing 2 buttons, or having position changes) */
+		xco+= XIC/2 + 2;
+		
 		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
-	else 	   
+					 
+		xco+= XIC/2 + 2;
+	}
+	else {	   
+			// FIXME: the icon for this is crap
+		uiDefIconBut(block, BUT, B_TL_RPLAY, ICON_REW/*ICON_PLAY*/,
+					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline in Reverse");
+					 
+		xco+= XIC+4;
+					 
 		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
-	
+	}
 	xco+= XIC+4;
+	
 	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to next keyframe (Ctrl PageUp)");
 	xco+= XIC+4;
