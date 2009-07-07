@@ -67,10 +67,15 @@ RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);
 /* Calculates child partitions and returns number of efectively needed partitions */
 int rtbuild_get_largest_axis(RTBuilder *b);
 
+//Object partition
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis);
 int rtbuild_mean_split_largest_axis(RTBuilder *b, int nchilds);
 
+int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds);
+
+//Space partition
 int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis);
 int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds);
+
 
 #endif

@@ -39,10 +39,11 @@
 
 #define DYNAMIC_ALLOC
 
-#define SPLIT_OVERLAP_MEAN_LONGEST_AXIS		/* objects mean split on the longest axis, childs BB are allowed to overlap */
+//#define SPLIT_OVERLAP_MEAN_LONGEST_AXIS		/* objects mean split on the longest axis, childs BB are allowed to overlap */
 //#define SPLIT_OVERLAP_MEDIAN_LONGEST_AXIS	/* space median split on the longest axis, childs BB are allowed to overlap */
+#define SPLIT_OBJECTS_SAH					/* split objects using heuristic */
 
-#define BVH_NCHILDS	4
+#define BVH_NCHILDS	2
 typedef struct BVHTree BVHTree;
 
 static int  bvh_intersect(BVHTree *obj, Isect *isec);
@@ -281,6 +282,8 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 		nc = rtbuild_mean_split_largest_axis(builder, BVH_NCHILDS);
 #elif defined(SPLIT_OVERLAP_MEDIAN_LONGEST_AXIS)
 		nc = rtbuild_median_split_largest_axis(builder, BVH_NCHILDS);
+#elif defined(SPLIT_OBJECTS_SAH)
+		nc = rtbuild_heuristic_object_split(builder, BVH_NCHILDS);
 #else
 		assert(0);
 #endif	

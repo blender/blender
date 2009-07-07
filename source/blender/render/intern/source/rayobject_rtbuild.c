@@ -209,7 +209,135 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
 	return rtbuild_median_split(b, separators, nchilds, la);
 }
 
-//Heuristics Splitter
+//Heuristics Object Splitter
+typedef struct CostObject CostObject;
+struct CostObject
+{
+	RayObject *obj;
+	float bb[6];
+};
+
+//Ugly.. but using qsort and no globals its the cleaner I can get
+#define costobject_cmp(axis) costobject_cmp##axis
+#define define_costobject_cmp(axis) 								\
+int costobject_cmp(axis)(const CostObject *a, const CostObject *b)	\
+{																	\
+	if(a->bb[axis] < b->bb[axis]) return -1;						\
+	if(a->bb[axis] > b->bb[axis]) return  1;						\
+	if(a->obj < b->obj) return -1;									\
+	if(a->obj > b->obj) return 1;									\
+	return 0;														\
+}	
+
+define_costobject_cmp(0)
+define_costobject_cmp(1)
+define_costobject_cmp(2)
+define_costobject_cmp(3)
+define_costobject_cmp(4)
+define_costobject_cmp(5)
+
+void costobject_sort(CostObject *begin, CostObject *end, int axis)
+{
+	//TODO introsort
+	     if(axis == 0) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(0));
+	else if(axis == 1) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(1));
+	else if(axis == 2) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(2));
+	else if(axis == 3) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(3));
+	else if(axis == 4) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(4));
+	else if(axis == 5) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(5));
+}
+
+float bb_volume(float *min, float *max)
+{
+	return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2]);
+}
+
+float bb_area(float *min, float *max)
+{
+	float sub[3];
+	sub[0] = max[0]-min[0];
+	sub[1] = max[1]-min[1];
+	sub[2] = max[2]-min[2];
+
+	return (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
+}
+
+int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
+{
+	int size = rtbuild_size(b);		
+	assert(nchilds == 2);
+
+	if(size <= nchilds)
+	{
+		return rtbuild_mean_split_largest_axis(b, nchilds);
+	}
+	else
+	{
+		float bcost = FLT_MAX;
+		int i, axis, baxis, boffset;
+		CostObject *cost   = MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
+		float      *acc_bb = MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
+
+		for(i=0; i<size; i++)
+		{
+			cost[i].obj = b->begin[i];
+			INIT_MINMAX(cost[i].bb, cost[i].bb+3);
+			RE_rayobject_merge_bb(b->begin[i], cost[i].bb, cost[i].bb+3);
+		}
+		
+		for(axis=0; axis<3; axis++)
+		{
+			float other_bb[6];
+
+			costobject_sort(cost, cost+size, axis);
+			for(i=size-1; i>=0; i--)
+			{
+				float *bb = acc_bb+i*6;
+				if(i == size-1)
+				{
+					INIT_MINMAX( bb, bb+3 );
+				}
+				else
+				{
+					VECCOPY( bb, bb+6 );
+					VECCOPY( bb+3, bb+6+3 );
+				}
+				RE_rayobject_merge_bb( cost[i].obj, bb, bb+3 );
+			}
+			
+			INIT_MINMAX(other_bb, other_bb+3);
+			DO_MINMAX( cost[0].bb, other_bb, other_bb+3 );
+			DO_MINMAX( cost[0].bb+3, other_bb, other_bb+3 );
+
+			for(i=1; i<size; i++)
+			{
+				//Worst case heuristic (cost of each child is linear)
+				float hcost = bb_area(other_bb, other_bb+3)*(i+log(i)) + bb_area(acc_bb+i*6, acc_bb+i*6+3)*(size-i+log(size-i));
+				if(hcost < bcost)
+				{
+					bcost = hcost;
+					baxis = axis;
+					boffset = i;
+				}
+				DO_MINMAX( cost[i].bb, other_bb, other_bb+3 );
+				DO_MINMAX( cost[i].bb+3, other_bb, other_bb+3 );
+			}
+		}
+		costobject_sort(cost, cost+size, baxis);
+		for(i=0; i<size; i++)
+			b->begin[i] = cost[i].obj;
+			
+		b->child_offset[0] = 0;
+		b->child_offset[1] = boffset;
+		b->child_offset[2] = size;
+		
+		MEM_freeN(acc_bb);
+		MEM_freeN(cost);
+		return nchilds;		
+	}
+}
+
+//Heuristic Area Splitter
 typedef struct CostEvent CostEvent;
 
 struct CostEvent
@@ -232,24 +360,26 @@ void costevent_sort(CostEvent *begin, CostEvent *end)
 	//TODO introsort
 	qsort(begin, sizeof(*begin), end-begin, (int(*)(const void *, const void *)) costevent_cmp);
 }
-
 /*
 int rtbuild_heuristic_split(RTBuilder *b, int nchilds)
 {
-	int size = rtbuild_size(b);
-		
+	int size = rtbuild_size(b);		
+	
+	assert(nchilds == 2);
+	
 	if(size <= nchilds)
 	{
 		return rtbuild_mean_split_largest_axis(b, nchilds);
 	}
 	else
 	{
-		CostEvent *events[3], *ev[3];
+		CostEvent *events, *ev;
 		RayObject *index;
 		int a = 0;
 
+		events = MEM_malloc( sizeof(CostEvent)*2*size, "RTBuilder.SweepSplitCostEvent" );
 		for(a = 0; a<3; a++)
-			ev[a] = events[a] = MEM_malloc( sizeof(CostEvent)*2*size, "RTBuilder.SweepSplitCostEvent" );
+		
 
 		for(index = b->begin; b != b->end; b++)
 		{
