@@ -19,6 +19,7 @@ static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
 	b->begin = begin;
 	b->end   = end;
 	b->split_axis = 0;
+	b->child_sorted_axis = -1;
 	
 	for(i=0; i<RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
@@ -46,6 +47,7 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 {
 	rtbuild_init( tmp, b->begin + b->child_offset[child], b->begin + b->child_offset[child+1] );
+	tmp->child_sorted_axis = b->child_sorted_axis;
 	return tmp;
 }
 
@@ -254,12 +256,14 @@ float bb_volume(float *min, float *max)
 
 float bb_area(float *min, float *max)
 {
-	float sub[3];
+	float sub[3], a;
 	sub[0] = max[0]-min[0];
 	sub[1] = max[1]-min[1];
 	sub[2] = max[2]-min[2];
 
-	return (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
+	a = (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
+	assert(a >= 0.0);
+	return a;
 }
 
 int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
@@ -274,7 +278,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	else
 	{
 		float bcost = FLT_MAX;
-		int i, axis, baxis, boffset;
+		int i, axis, baxis, boffset, k, try_axis[3];
 		CostObject *cost   = MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
 		float      *acc_bb = MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
 
@@ -285,7 +289,20 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 			RE_rayobject_merge_bb(b->begin[i], cost[i].bb, cost[i].bb+3);
 		}
 		
-		for(axis=0; axis<3; axis++)
+		if(b->child_sorted_axis >= 0 && b->child_sorted_axis < 3)
+		{
+			try_axis[0] = b->child_sorted_axis;
+			try_axis[1] = (b->child_sorted_axis+1)%3;
+			try_axis[2] = (b->child_sorted_axis+2)%3;
+		}
+		else
+		{
+			try_axis[0] = 0;
+			try_axis[1] = 1;
+			try_axis[2] = 2;
+		}
+		
+		for(axis=try_axis[k=0]; k<3; axis=try_axis[++k])
 		{
 			float other_bb[6];
 
@@ -295,37 +312,54 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				float *bb = acc_bb+i*6;
 				if(i == size-1)
 				{
-					INIT_MINMAX( bb, bb+3 );
+					VECCOPY(bb, cost[i].bb);
+					VECCOPY(bb+3, cost[i].bb+3);
 				}
 				else
 				{
-					VECCOPY( bb, bb+6 );
-					VECCOPY( bb+3, bb+6+3 );
+					bb[0] = MIN2(cost[i].bb[0], bb[6+0]);
+					bb[1] = MIN2(cost[i].bb[1], bb[6+1]);
+					bb[2] = MIN2(cost[i].bb[2], bb[6+2]);
+
+					bb[3] = MAX2(cost[i].bb[3], bb[6+3]);
+					bb[4] = MAX2(cost[i].bb[4], bb[6+4]);
+					bb[5] = MAX2(cost[i].bb[5], bb[6+5]);
 				}
-				RE_rayobject_merge_bb( cost[i].obj, bb, bb+3 );
 			}
 			
 			INIT_MINMAX(other_bb, other_bb+3);
-			DO_MINMAX( cost[0].bb, other_bb, other_bb+3 );
-			DO_MINMAX( cost[0].bb+3, other_bb, other_bb+3 );
+			DO_MIN( cost[0].bb,   other_bb   );
+			DO_MAX( cost[0].bb+3, other_bb+3 );
 
 			for(i=1; i<size; i++)
 			{
 				//Worst case heuristic (cost of each child is linear)
-				float hcost = bb_area(other_bb, other_bb+3)*(i+log(i)) + bb_area(acc_bb+i*6, acc_bb+i*6+3)*(size-i+log(size-i));
-				if(hcost < bcost)
+				float hcost, left_side, right_side;
+				
+				left_side = bb_area(other_bb, other_bb+3)*(i+logf(i));
+				right_side= bb_area(acc_bb+i*6, acc_bb+i*6+3)*(size-i+logf(size-i));
+				
+				if(left_side > bcost) break;	//No way we can find a better heuristic in this axis
+
+				hcost = left_side+right_side;
+				if( hcost < bcost
+				|| (hcost == bcost && axis < baxis)) //this makes sure the tree built is the same whatever is the order of the sorting axis
 				{
 					bcost = hcost;
 					baxis = axis;
 					boffset = i;
 				}
-				DO_MINMAX( cost[i].bb, other_bb, other_bb+3 );
-				DO_MINMAX( cost[i].bb+3, other_bb, other_bb+3 );
+				DO_MIN( cost[i].bb,   other_bb   );
+				DO_MAX( cost[i].bb+3, other_bb+3 );
+			}
+			
+			if(baxis == axis)
+			{
+				for(i=0; i<size; i++)
+					b->begin[i] = cost[i].obj;
+				b->child_sorted_axis = axis;
 			}
 		}
-		costobject_sort(cost, cost+size, baxis);
-		for(i=0; i<size; i++)
-			b->begin[i] = cost[i].obj;
 			
 		b->child_offset[0] = 0;
 		b->child_offset[1] = boffset;

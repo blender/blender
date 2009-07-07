@@ -52,6 +52,8 @@ typedef struct RTBuilder
 	
 	/* child partitions calculated during splitting */
 	int child_offset[RTBUILD_MAX_CHILDS+1];
+	
+	int child_sorted_axis; /* -1 if not sorted */
 
 } RTBuilder;
 

@@ -102,9 +102,8 @@ static void bih_free(BIHTree *obj)
 
 static void bih_bb(BIHTree *obj, float *min, float *max)
 {
-	//TODO only half operations needed
-	DO_MINMAX(obj->bb[0], min, max);
-	DO_MINMAX(obj->bb[1], min, max);
+	DO_MIN(obj->bb[0], min);
+	DO_MAX(obj->bb[1], max);
 }
 
 /*
@@ -213,8 +212,8 @@ static BIHNode *bih_rearrange(BIHTree *tree, RTBuilder *builder, int nid, float 
 			parent->bi[i][0] = cbb[parent->split_axis];
 			parent->bi[i][1] = cbb[parent->split_axis+3];
 
-			DO_MINMAX(cbb  , bb, bb+3);
-			DO_MINMAX(cbb+3, bb, bb+3);
+			DO_MIN(cbb  , bb);
+			DO_MAX(cbb+3, bb+3);
 		}
 		for(; i<BIH_NCHILDS; i++)
 		{

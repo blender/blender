@@ -133,9 +133,8 @@ static void bvh_merge_bb(BVHNode *node, float *min, float *max)
 {
 	if(RayObject_isAligned(node))
 	{
-		//TODO only half operations needed
-		DO_MINMAX(node->bb  , min, max);
-		DO_MINMAX(node->bb+3, min, max);
+		DO_MIN(node->bb  , min);
+		DO_MAX(node->bb+3, max);
 	}
 	else
 	{

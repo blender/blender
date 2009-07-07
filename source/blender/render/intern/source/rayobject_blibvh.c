@@ -110,8 +110,8 @@ static void RayObject_blibvh_add(RayObject *o, RayObject *ob)
 	INIT_MINMAX(min_max, min_max+3);
 	RE_rayobject_merge_bb(ob, min_max, min_max+3);
 
-	DO_MINMAX(min_max  , obj->bb[0], obj->bb[1]);
-	DO_MINMAX(min_max+3, obj->bb[0], obj->bb[1]);
+	DO_MIN(min_max  , obj->bb[0]);
+	DO_MAX(min_max+3, obj->bb[1]);
 	
 	BLI_bvhtree_insert(obj->bvh, (int)ob, min_max, 2 );	
 }
@@ -135,6 +135,6 @@ static void RayObject_blibvh_free(RayObject *o)
 static void RayObject_blibvh_bb(RayObject *o, float *min, float *max)
 {
 	BVHObject *obj = (BVHObject*)o;
-	DO_MINMAX( obj->bb[0], min, max );
-	DO_MINMAX( obj->bb[1], min, max );
+	DO_MIN( obj->bb[0], min );
+	DO_MAX( obj->bb[1], max );
 }
