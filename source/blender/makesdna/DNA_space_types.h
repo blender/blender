@@ -86,7 +86,6 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
-// XXX for now, we keep all old data...
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -96,10 +95,6 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
-	//ListBase ipokey;		// XXX it's not clear how these will come back yet
-	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
-	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 	
 	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
@@ -107,7 +102,7 @@ typedef struct SpaceIpo {
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	char pin, lock;
+	char pin, lock;			// XXX old, unused vars that are probably going to be depreceated soon...
 } SpaceIpo;
 
 typedef struct SpaceButs {
