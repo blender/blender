@@ -146,9 +146,7 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 				strcat(params->dir,"/");
 				params->file[0] = '\0';
 				BLI_cleanup_dir(G.sce, params->dir);
-				filelist_setdir(sfile->files, params->dir);
-				filelist_free(sfile->files);
-				params->active_file = -1;
+				file_change_dir(sfile);
 			}
 		}
 		else if (file)
@@ -305,10 +303,8 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.sce, params->dir);
-		filelist_free(sfile->files);	
-		filelist_setdir(sfile->files, params->dir);
-		params->file[0] = '\0';			
-		params->active_file = -1;
+		file_change_dir(sfile);				
+		params->file[0] = '\0';
 
 		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
 	}
@@ -467,7 +463,10 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 int file_cancel_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	
+
+	folderlist_free(sfile->folders_prev);
+	folderlist_free(sfile->folders_next);
+
 	WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_CANCEL);
 	sfile->op = NULL;
 	
@@ -529,6 +528,9 @@ int file_exec(bContext *C, wmOperator *unused)
 			}
 		}
 		
+		folderlist_free(sfile->folders_prev);
+		folderlist_free(sfile->folders_next);
+
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
 		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
 		fsmenu_write_file(fsmenu_get(), name);
@@ -556,9 +558,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 	
 	if(sfile->params) {
 		BLI_parent_dir(sfile->params->dir);
-		filelist_setdir(sfile->files, sfile->params->dir);
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
+		file_change_dir(sfile);
 	}		
 	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 
@@ -583,17 +583,74 @@ int file_refresh_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
-	if(sfile->params) {
-		filelist_setdir(sfile->files, sfile->params->dir);
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
-	}
+	file_change_dir(sfile);
+
 	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 
 	return OPERATOR_FINISHED;
 
 }
 
+void FILE_OT_previous(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Previous Folder";
+	ot->idname= "FILE_OT_previous";
+	
+	/* api callbacks */
+	ot->exec= file_previous_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
+int file_previous_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+
+	if(sfile->params) {
+		if (!sfile->folders_next)
+			sfile->folders_next = folderlist_new();
+
+		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
+		folderlist_popdir(sfile->folders_prev, sfile->params->dir);
+		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
+
+		file_change_dir(sfile);
+	}
+	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_next(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Next Folder";
+	ot->idname= "FILE_OT_next";
+	
+	/* api callbacks */
+	ot->exec= file_next_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
+int file_next_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+		if(sfile->params) {
+			if (!sfile->folders_next)
+			sfile->folders_next = folderlist_new();
+
+		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+		folderlist_popdir(sfile->folders_next, sfile->params->dir);
+
+		// update folder_prev so we can check for it in folderlist_clear_next()
+		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+
+		file_change_dir(sfile);
+	}		
+	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+
+	return OPERATOR_FINISHED;
+}
 
 void FILE_OT_refresh(struct wmOperatorType *ot)
 {

@@ -217,6 +217,9 @@ typedef struct SpaceFile {
 	
 	struct FileList *files; /* holds the list of files to show */
 
+	ListBase* folders_prev; /* holds the list of previous directories to show */
+	ListBase* folders_next; /* holds the list of next directories (pushed from previous) to show */
+
 	/* operator that is invoking fileselect 
 	   op->exec() will be called on the 'Load' button.
 	   if operator provides op->cancel(), then this will be invoked

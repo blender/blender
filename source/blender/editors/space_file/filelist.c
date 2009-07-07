@@ -123,6 +123,12 @@ typedef struct FileList
 	ListBase threads;
 } FileList;
 
+typedef struct FolderList
+{
+	struct FolderList *next, *prev;
+	char *foldername;
+} FolderList;
+
 #define SPECIAL_IMG_SIZE 48
 #define SPECIAL_IMG_ROWS 4
 #define SPECIAL_IMG_COLS 4
@@ -354,6 +360,86 @@ void filelist_free_icons()
 	}
 }
 
+//-----------------FOLDERLIST (previous/next) --------------//
+struct ListBase* folderlist_new()
+{
+	ListBase* p = MEM_callocN( sizeof(ListBase), "folderlist" );
+	return p;
+}
+
+void folderlist_popdir(struct ListBase* folderlist, const char *dir)
+{
+	const char *prev_dir;
+	struct FolderList *folder;
+	folder = folderlist->last;
+
+	if(folder){
+		// remove the current directory
+		MEM_freeN(folder->foldername);
+		BLI_freelinkN(folderlist, folder);
+
+		folder = folderlist->last;
+		if(folder){
+			prev_dir = folder->foldername;
+			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
+		}
+	}
+	// delete the folder next or use setdir directly before PREVIOUS OP
+}
+
+void folderlist_pushdir(ListBase* folderlist, const char *dir)
+{
+	struct FolderList *folder, *previous_folder;
+	previous_folder = folderlist->last;
+
+	// check if already exists
+	if(previous_folder){
+		if(! strcmp(previous_folder->foldername, dir)){
+			return;
+		}
+	}
+
+	// create next folder element
+	folder = (FolderList*)MEM_mallocN(sizeof(FolderList),"FolderList");
+	folder->foldername = (char*)MEM_mallocN(sizeof(char)*(strlen(dir)+1), "foldername");
+	folder->foldername[0] = '\0';
+
+	BLI_strncpy(folder->foldername, dir, FILE_MAXDIR);
+
+	// add it to the end of the list
+	BLI_addtail(folderlist, folder);
+}
+
+int folderlist_clear_next(struct SpaceFile *sfile)
+{
+	struct FolderList *folder;
+
+	// if there is no folder_next there is nothing we can clear
+	if (!sfile->folders_next)
+		return 0;
+
+	// if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next
+	folder = sfile->folders_prev->last;
+	if ((!folder) ||(!strcmp(folder->foldername, sfile->params->dir)))
+		return 0;
+
+	// eventually clear flist->folders_next
+	return 1;
+}
+
+void folderlist_free(ListBase* folderlist)
+{
+	FolderList *folder;
+	if (folderlist){
+		for(folder= folderlist->last; folder; folder= folderlist->last) {
+				MEM_freeN(folder->foldername);
+				BLI_freelinkN(folderlist, folder);
+		}
+	}
+	folderlist= NULL;
+}
+
+//------------------FILELIST------------------------//
 struct FileList*	filelist_new()
 {
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
@@ -375,7 +461,7 @@ void filelist_free(struct FileList* filelist)
 	int i;
 
 	if (!filelist) {
-		printf("Attemtping to delete empty filelist.\n");
+		printf("Attempting to delete empty filelist.\n");
 		return;
 	}
 

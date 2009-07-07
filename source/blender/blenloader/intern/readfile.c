@@ -4472,13 +4472,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
 					sfile->files= NULL;
+					sfile->folders_prev= NULL;
+					sfile->folders_next= NULL;
 					sfile->params= NULL;
 					sfile->op= NULL;
-					/* XXX needs checking - best solve in filesel itself 
-					if(sfile->libfiledata)	
-						BLO_blendhandle_close(sfile->libfiledata);
-					sfile->libfiledata= 0;
-					*/
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
                     SpaceImaSel *simasel= (SpaceImaSel *)sl;
