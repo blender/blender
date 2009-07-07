@@ -1264,6 +1264,9 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 				/* need to add a new track above the current one */
 				track= add_nlatrack(adt, nlt);
 				BKE_nlatrack_add_strip(track, strip);
+				
+				/* clear temp meta-strips on this new track, as we may not be able to get back to it */
+				BKE_nlastrips_clear_metas(&track->strips, 0, 1);
 			}
 		}
 		

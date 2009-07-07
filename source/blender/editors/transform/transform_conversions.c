@@ -2617,6 +2617,9 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip;
 		
+		/* make some meta-strips for chains of selected strips */
+		BKE_nlastrips_make_metas(&nlt->strips, 1);
+		
 		/* only consider selected strips */
 		for (strip= nlt->strips.first; strip; strip= strip->next) {
 			// TODO: we can make strips have handles later on...
@@ -4753,6 +4756,26 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
+		
+		if (ac.datatype) 
+		{
+			ListBase anim_data = {NULL, NULL};
+			bAnimListElem *ale;
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
+			
+			/* get channels to work on */
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+			
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				NlaTrack *nlt= (NlaTrack *)ale->data;
+				
+				/* remove the temp metas */
+				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+			}
+			
+			/* free temp memory */
+			BLI_freelistN(&anim_data);
+		}
 		
 		// XXX check on the calls below... we need some of these sanity checks
 		//synchronize_action_strips();

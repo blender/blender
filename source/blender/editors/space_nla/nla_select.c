@@ -513,7 +513,7 @@ static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short left
 	
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* select strips on the side where most data occurs */

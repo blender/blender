@@ -82,6 +82,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -386,6 +387,20 @@ void recalcData(TransInfo *t)
 					else
 						RNA_float_set(&strip_ptr, "start_frame", tdn->val);
 				}
+			}
+		}
+		
+		/* loop over the TransDataNla again, flushing the transforms (since we use Metas to make transforms easier) */
+		td= t->data;
+		for (i = 0; i < t->total; i++, td++)
+		{
+			if (td->extra)
+			{
+				TransDataNla *tdn= td->extra;
+				NlaStrip *strip= tdn->strip;
+				
+				// TODO: this may flush some things twice, but that's fine as there's no impact from that
+				BKE_nlameta_flush_transforms(strip);
 			}
 		}
 	}
