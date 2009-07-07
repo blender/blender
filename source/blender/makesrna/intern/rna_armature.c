@@ -609,6 +609,16 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
+
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "bone_mat");
+	RNA_def_property_array(prop, 9);
+	RNA_def_property_ui_text(prop, "Bone Matrix", "3x3 bone matrix.");
+
+	prop= RNA_def_property(srna, "armature_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "arm_mat");
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Bone Armature Matrix", "4x4 bone matrix relative to armature.");
 }
 
 static void rna_def_edit_bone(BlenderRNA *brna)

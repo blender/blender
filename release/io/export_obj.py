@@ -962,3 +962,4 @@ if __name__ == "__main__":
 # - NURBS - needs API additions
 # - all scenes export
 # - normals calculation
+# - get rid of cleanName somehow
