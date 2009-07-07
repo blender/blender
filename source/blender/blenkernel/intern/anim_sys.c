@@ -904,16 +904,75 @@ static void nlaevalchan_buffers_accumulate (ListBase *channels, ListBase *tmp_bu
 }
 
 /* ---------------------- */
+/* F-Modifier stack joining/separation utilities - should we generalise these for BLI_listbase.h interface? */
+
+/* Temporarily join two lists of modifiers together, storing the result in a third list */
+static void nlaeval_fmodifiers_join_stacks (ListBase *result, ListBase *list1, ListBase *list2)
+{
+	FModifier *fcm1, *fcm2;
+	
+	/* if list1 is invalid...  */
+	if ELEM(NULL, list1, list1->first) {
+		if (list2 && list2->first) {
+			result->first= list2->first;
+			result->last= list2->last;
+		}
+	}
+	/* if list 2 is invalid... */
+	else if ELEM(NULL, list2, list2->first) {
+		result->first= list1->first;
+		result->last= list1->last;
+	}
+	else {
+		/* list1 should be added first, and list2 second, with the endpoints of these being the endpoints for result 
+		 * 	- the original lists must be left unchanged though, as we need that fact for restoring
+		 */
+		result->first= list1->first;
+		result->last= list2->last;
+		
+		fcm1= list1->last;
+		fcm2= list2->first;
+		
+		fcm1->next= fcm2;
+		fcm2->prev= fcm1;
+	}
+}
+
+/* Split two temporary lists of modifiers */
+static void nlaeval_fmodifiers_split_stacks (ListBase *list1, ListBase *list2)
+{
+	FModifier *fcm1, *fcm2;
+	
+	/* if list1/2 is invalid... just skip */
+	if ELEM(NULL, list1, list2)
+		return;
+	if ELEM(NULL, list1->first, list2->first)
+		return;
+		
+	/* get endpoints */
+	fcm1= list1->last;
+	fcm2= list2->first;
+	
+	/* clear their links */
+	fcm1->next= NULL;
+	fcm2->prev= NULL;
+}
+
+/* ---------------------- */
 
 /* evaluate action-clip strip */
-static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
+	ListBase tmp_modifiers = {NULL, NULL};
 	NlaStrip *strip= nes->strip;
 	FCurve *fcu;
 	float evaltime;
 	
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
+	
 	/* evaluate strip's modifiers which modify time to evaluate the base curves at */
-	evaltime= evaluate_time_fmodifiers(&strip->modifiers, NULL, 0.0f, strip->strip_time);
+	evaltime= evaluate_time_fmodifiers(&tmp_modifiers, NULL, 0.0f, strip->strip_time);
 	
 	/* evaluate all the F-Curves in the action, saving the relevant pointers to data that will need to be used */
 	for (fcu= strip->act->curves.first; fcu; fcu= fcu->next) {
@@ -935,7 +994,7 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 		/* apply strip's F-Curve Modifiers on this value 
 		 * NOTE: we apply the strip's original evaluation time not the modified one (as per standard F-Curve eval)
 		 */
-		evaluate_value_fmodifiers(&strip->modifiers, fcu, &value, strip->strip_time);
+		evaluate_value_fmodifiers(&tmp_modifiers, fcu, &value, strip->strip_time);
 		
 		
 		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
@@ -945,14 +1004,21 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 		if (nec)
 			nlaevalchan_accumulate(nec, nes, newChan, value);
 	}
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
 }
 
 /* evaluate transition strip */
-static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	ListBase tmp_channels = {NULL, NULL};
+	ListBase tmp_modifiers = {NULL, NULL};
 	NlaEvalStrip tmp_nes;
 	NlaStrip *s1, *s2;
+	
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &nes->strip->modifiers, modifiers);
 	
 	/* get the two strips to operate on 
 	 *	- we use the endpoints of the strips directly flanking our strip
@@ -980,25 +1046,30 @@ static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, N
 	tmp_nes= *nes;
 	
 	/* evaluate these strips into a temp-buffer (tmp_channels) */
+	// FIXME: modifier evalation here needs some work...
 		/* first strip */
 	tmp_nes.strip_mode= NES_TIME_TRANSITION_START;
 	tmp_nes.strip= s1;
-	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_nes);
+	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
 	
 		/* second strip */
 	tmp_nes.strip_mode= NES_TIME_TRANSITION_END;
 	tmp_nes.strip= s2;
-	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_nes);
+	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
 	
 	
 	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
 	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&nes->strip->modifiers, modifiers);
 }
 
 /* evaluate meta-strip */
-static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	ListBase tmp_channels = {NULL, NULL};
+	ListBase tmp_modifiers = {NULL, NULL};
 	NlaStrip *strip= nes->strip;
 	NlaEvalStrip *tmp_nes;
 	float evaltime;
@@ -1010,6 +1081,9 @@ static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, NlaEval
 	 *
 	 * NOTE: keep this in sync with animsys_evaluate_nla()
 	 */
+	 
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers); 
 	
 	/* find the child-strip to evaluate */
 	evaltime= (nes->strip_time * (strip->end - strip->start)) + strip->start;
@@ -1020,31 +1094,31 @@ static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, NlaEval
 	/* evaluate child-strip into tmp_channels buffer before accumulating 
 	 * in the accumulation buffer
 	 */
-	// TODO: need to supply overriding modifiers which will get applied over the top of these
-	nlastrip_evaluate(ptr, &tmp_channels, tmp_nes);
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, tmp_nes);
 	
 	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
 	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
 	
 	/* free temp eval-strip */
 	MEM_freeN(tmp_nes);
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
 }
 
-
 /* evaluates the given evaluation strip */
-void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	/* actions to take depend on the type of strip */
-	// TODO: add 'modifiers' tag to chain
 	switch (nes->strip->type) {
 		case NLASTRIP_TYPE_CLIP: /* action-clip */
-			nlastrip_evaluate_actionclip(ptr, channels, nes);
+			nlastrip_evaluate_actionclip(ptr, channels, modifiers, nes);
 			break;
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
-			nlastrip_evaluate_transition(ptr, channels, nes);
+			nlastrip_evaluate_transition(ptr, channels, modifiers, nes);
 			break;
 		case NLASTRIP_TYPE_META: /* meta */
-			nlastrip_evaluate_meta(ptr, channels, nes);
+			nlastrip_evaluate_meta(ptr, channels, modifiers, nes);
 			break;
 	}
 }
@@ -1136,7 +1210,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	/* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
 	for (nes= estrips.first; nes; nes= nes->next) 
-		nlastrip_evaluate(ptr, &echannels, nes);
+		nlastrip_evaluate(ptr, &echannels, NULL, nes);
 	
 	/* 3. flush effects of accumulating channels in NLA to the actual data they affect */
 	nladata_flush_channels(&echannels);

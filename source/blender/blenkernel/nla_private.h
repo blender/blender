@@ -79,7 +79,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
 /* these functions are only defined here to avoid problems with the order in which they get defined... */
 
 NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short index, float ctime);
-void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes);
+void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes);
 void nladata_flush_channels(ListBase *channels);
 
 #endif // NLA_PRIVATE
