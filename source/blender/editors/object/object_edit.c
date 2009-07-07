@@ -6139,8 +6139,8 @@ void OBJECT_OT_duplicate_add(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->description = "Duplicate the object.";
+	ot->name= "Duplicate Objects";
+	ot->description = "Duplicate the objects.";
 	ot->idname= "OBJECT_OT_duplicate_add";
 	
 	/* api callbacks */

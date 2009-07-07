@@ -1279,8 +1279,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->horfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->horfull= 1;
 	}
 	
 	/* vertical scrollers */
@@ -1304,8 +1306,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->vertfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->vertfull= 1;
 	}
 	
 	/* grid markings on scrollbars */
