@@ -66,7 +66,7 @@ static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 		}
 	}
 	else {
-		CLAMP(value, -MAXFRAME, data->end);
+		CLAMP(value, MINAFRAME, data->end);
 	}
 	data->start= value;
 }
@@ -185,7 +185,7 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	CLAMP(value, -MAXFRAME, data->actend);
+	CLAMP(value, MINAFRAME, data->actend);
 	data->actstart= value;
 }
 

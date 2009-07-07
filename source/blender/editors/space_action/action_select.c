@@ -642,7 +642,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	
 	memset(&bed, 0, sizeof(BeztEditFunc));
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
-		bed.f1 = -MAXFRAMEF;
+		bed.f1 = MINAFRAMEF;
 		bed.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
 	} 
 	else {

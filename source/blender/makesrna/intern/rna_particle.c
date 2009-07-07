@@ -161,8 +161,8 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 
 	if(settings->type==PART_REACTOR && value < 1.0)
 		value = 1.0;
-	else if (value < -30000.0f) //TODO: replace 30000 with MAXFRAMEF when available in 2.5
-		value = -30000.0f;
+	else if (value < MINAFRAMEF)
+		value = MINAFRAMEF;
 
 	settings->sta = value;
 }
@@ -1066,19 +1066,19 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* general values */
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sta");//optional if prop names are the same
-	RNA_def_property_range(prop, -30000.0f, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_start_set", NULL);
 	RNA_def_property_ui_text(prop, "Start", "Frame # to start emitting particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -30000.0f, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_end_set", NULL);
 	RNA_def_property_ui_text(prop, "End", "Frame # to stop emitting particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 1.0f, 30000.0f);
+	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Lifetime", "Specify the life span of the particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 

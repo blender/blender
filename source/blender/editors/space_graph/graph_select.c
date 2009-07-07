@@ -763,7 +763,7 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 	
 	memset(&bed, 0, sizeof(BeztEditFunc));
 	if (leftright == GRAPHKEYS_LRSEL_LEFT) {
-		bed.f1 = -MAXFRAMEF;
+		bed.f1 = MINAFRAMEF;
 		bed.f2 = (float)(CFRA + 0.1f);
 	} 
 	else {

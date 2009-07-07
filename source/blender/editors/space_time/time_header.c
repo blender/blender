@@ -536,9 +536,12 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco += (short)(4.5 * XIC + 16);
 	
+	/* MINAFRAMEF not MINFRAMEF, since MINAFRAMEF allows to set current frame negative 
+	 * to facilitate easier keyframing in some situations
+	 */
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 			  xco,yco, (int)3.5*XIC,YIC,
-			  &(scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
+			  &(scene->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
 	xco += (short)(3.5 * XIC + 16);

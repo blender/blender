@@ -501,7 +501,7 @@ static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short left
 	
 	/* get range, and get the right flag-setting mode */
 	if (leftright == NLAEDIT_LRSEL_LEFT) {
-		xmin = -MAXFRAMEF;
+		xmin = MINAFRAMEF;
 		xmax = (float)(CFRA + FRAME_CLICK_THRESH);
 	} 
 	else {
