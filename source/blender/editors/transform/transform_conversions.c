@@ -101,16 +101,13 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-//#include "BIF_editaction.h"
 //#include "BIF_editview.h"
 //#include "BIF_editlattice.h"
 //#include "BIF_editconstraint.h"
 //#include "BIF_editmesh.h"
-//#include "BIF_editnla.h"
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 #include "BIF_gl.h"
-//#include "BIF_keyframing.h"
 //#include "BIF_poseobject.h"
 //#include "BIF_meshtools.h"
 //#include "BIF_mywindow.h"
@@ -127,6 +124,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_object.h"
+#include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
@@ -134,13 +132,7 @@
 
 #include "UI_view2d.h"
 
-//#include "BSE_drawipo.h"
 //#include "BSE_edit.h"
-//#include "BSE_editipo.h"
-//#include "BSE_editipo_types.h"
-//#include "BSE_editaction_types.h"
-
-//#include "BDR_drawaction.h"		// list of keyframes in action
 //#include "BDR_editobject.h"		// reset_slowparents()
 //#include "BDR_gpencil.h"
 
@@ -3671,6 +3663,8 @@ void flushTransGraphData(TransInfo *t)
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 	TransData *td;
 	TransData2D *td2d;
+	Scene *scene= t->scene;
+	double secf= FPS;
 	int a;
 	
 	/* flush to 2d vector from internally used 3d vector */
@@ -3683,8 +3677,11 @@ void flushTransGraphData(TransInfo *t)
 		 */
 		if ((td->flag & TD_NOTIMESNAP)==0) {
 			switch (sipo->autosnap) {
-				case SACTSNAP_FRAME: /* snap to nearest frame */
-					td2d->loc[0]= (float)( floor(td2d->loc[0]+0.5f) );
+				case SACTSNAP_FRAME: /* snap to nearest frame (or second if drawing seconds) */
+					if (sipo->flag & SIPO_DRAWTIME)
+						td2d->loc[0]= (float)( floor((td2d->loc[0]/secf) + 0.5f) * secf );
+					else
+						td2d->loc[0]= (float)( floor(td2d->loc[0]+0.5f) );
 					break;
 					
 				case SACTSNAP_MARKER: /* snap to nearest marker */

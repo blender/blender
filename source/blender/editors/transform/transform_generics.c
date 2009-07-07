@@ -341,6 +341,8 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype == SPACE_NLA) {
 		TransDataNla *tdn= (TransDataNla *)t->customData;
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
+		Scene *scene= t->scene;
+		double secf= FPS;
 		int i;
 		
 		/* for each strip we've got, perform some additional validation of the values that got set before 
@@ -431,9 +433,15 @@ void recalcData(TransInfo *t)
 			
 			/* handle auto-snapping */
 			switch (snla->autosnap) {
-				case SACTSNAP_FRAME: /* snap to nearest frame */
-					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
-					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+				case SACTSNAP_FRAME: /* snap to nearest frame/time  */
+					if (snla->flag & SNLA_DRAWTIME) {
+						tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
+						tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
+					}
+					else {
+						tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
+						tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+					}
 					break;
 					
 				case SACTSNAP_MARKER: /* snap to nearest marker */
