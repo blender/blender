@@ -452,7 +452,7 @@ static float nlastrip_get_frame_transition (NlaStrip *strip, float cframe, short
 float nlastrip_get_frame (NlaStrip *strip, float cframe, short mode)
 {
 	switch (strip->type) {
-		case NLASTRIP_TYPE_META: /* meta (is just a container for other strips, so shouldn't use the action-clip method) */
+		case NLASTRIP_TYPE_META: /* meta - for now, does the same as transition (is really just an empty container) */
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
 			return nlastrip_get_frame_transition(strip, cframe, mode);
 		

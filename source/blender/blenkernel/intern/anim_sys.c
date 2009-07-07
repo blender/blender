@@ -627,11 +627,12 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 	}
 }
 
-
-/* gets the strip active at the current time for a given list of strips */
-static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
+/* gets the strip active at the current time for a list of strips for evaluation purposes */
+NlaEvalStrip *nlastrips_ctime_get_strip (ListBase *list, ListBase *strips, short index, float ctime)
 {
 	NlaStrip *strip, *estrip=NULL;
+	NlaEvalStrip *nes;
+	short side= 0;
 	
 	/* loop over strips, checking if they fall within the range */
 	for (strip= strips->first; strip; strip= strip->next) {
@@ -651,7 +652,7 @@ static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
 					estrip= strip;
 					
 				/* side is 'before' regardless of whether there's a useful strip */
-				*side= NES_TIME_BEFORE;
+				side= NES_TIME_BEFORE;
 			}
 			else {
 				/* before next strip - previous strip has ended, but next hasn't begun, 
@@ -663,7 +664,7 @@ static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
 				
 				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
 					estrip= strip;
-				*side= NES_TIME_AFTER;
+				side= NES_TIME_AFTER;
 			}
 			break;
 		}
@@ -675,7 +676,7 @@ static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
 				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
 					estrip= strip;
 					
-				*side= NES_TIME_AFTER;
+				side= NES_TIME_AFTER;
 				break;
 			}
 			
@@ -683,40 +684,11 @@ static NlaStrip *ctime_get_strip (ListBase *strips, short *side, float ctime)
 		}
 	}
 	
-	/* return the matching strip found */
-	return estrip;
-}
-
-/* gets the strip active at the current time for a track for evaluation purposes */
-static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index, float ctime)
-{
-	ListBase *strips= &nlt->strips;
-	NlaStrip *strip, *estrip=NULL;
-	NlaEvalStrip *nes;
-	short side= 0;
-	
-	/* keep looping over hierarchy of strips until one which fits for the current time is found */
-	while (strips->first) {
-		/* try to get the strip at this frame for this strip */
-		strip= ctime_get_strip(strips, &side, ctime);
-		
-		/* if a strip was found, make this the new estrip, otherwise, stop trying */
-		if (strip) {
-			/* set new estrip */
-			estrip= strip;
-			
-			/* check children (only available if this is a meta-strip) for better match */
-			strips= &strip->strips;
-		}
-		else
-			break;
-	}
-	
 	/* check if a valid strip was found
 	 *	- must not be muted (i.e. will have contribution
 	 */
 	if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED)) 
-		return;
+		return NULL;
 		
 	/* if ctime was not within the boundaries of the strip, clamp! */
 	switch (side) {
@@ -734,8 +706,8 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	 */
 	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
 	nlastrip_evaluate_controls(estrip, ctime);
-	if (estrip->influence <= 0.0f) // XXX is it useful to invert the strip?
-		return;
+	if (estrip->influence <= 0.0f)
+		return NULL;
 		
 	/* check if strip has valid data to evaluate,
 	 * and/or perform any additional type-specific actions
@@ -744,12 +716,12 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 		case NLASTRIP_TYPE_CLIP: 
 			/* clip must have some action to evaluate */
 			if (estrip->act == NULL)
-				return;
+				return NULL;
 			break;
 		case NLASTRIP_TYPE_TRANSITION:
 			/* there must be strips to transition from and to (i.e. prev and next required) */
 			if (ELEM(NULL, estrip->prev, estrip->next))
-				return;
+				return NULL;
 				
 			/* evaluate controls for the relevant extents of the bordering strips... */
 			nlastrip_evaluate_controls(estrip->prev, estrip->start);
@@ -760,13 +732,15 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	/* add to list of strips we need to evaluate */
 	nes= MEM_callocN(sizeof(NlaEvalStrip), "NlaEvalStrip");
 	
-	nes->track= nlt;
 	nes->strip= estrip;
 	nes->strip_mode= side;
 	nes->track_index= index;
 	nes->strip_time= estrip->strip_time;
 	
-	BLI_addtail(list, nes);
+	if (list)
+		BLI_addtail(list, nes);
+	
+	return nes;
 }
 
 /* ---------------------- */
@@ -897,6 +871,38 @@ static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, shor
 	}
 }
 
+/* accumulate the results of a temporary buffer with the results of the full-buffer */
+static void nlaevalchan_buffers_accumulate (ListBase *channels, ListBase *tmp_buffer, NlaEvalStrip *nes)
+{
+	NlaEvalChannel *nec, *necn, *necd;
+	
+	/* optimise - abort if no channels */
+	if (tmp_buffer->first == NULL)
+		return;
+	
+	/* accumulate results in tmp_channels buffer to the accumulation buffer */
+	for (nec= tmp_buffer->first; nec; nec= necn) {
+		/* get pointer to next channel in case we remove the current channel from the temp-buffer */
+		necn= nec->next;
+		
+		/* try to find an existing matching channel for this setting in the accumulation buffer */
+		necd= nlaevalchan_find_match(channels, &nec->ptr, nec->prop, nec->index);
+		
+		/* if there was a matching channel already in the buffer, accumulate to it,
+		 * otherwise, add the current channel to the buffer for efficiency
+		 */
+		if (necd)
+			nlaevalchan_accumulate(necd, nes, 0, nec->value);
+		else {
+			BLI_remlink(tmp_buffer, nec);
+			BLI_addtail(channels, nec);
+		}
+	}
+	
+	/* free temp-channels that haven't been assimilated into the buffer */
+	BLI_freelistN(tmp_buffer);
+}
+
 /* ---------------------- */
 
 /* evaluate action-clip strip */
@@ -945,7 +951,6 @@ static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, N
 static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
 {
 	ListBase tmp_channels = {NULL, NULL};
-	NlaEvalChannel *nec, *necn, *necd;
 	NlaEvalStrip tmp_nes;
 	NlaStrip *s1, *s2;
 	
@@ -986,38 +991,51 @@ static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, N
 	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_nes);
 	
 	
-	/* optimise - abort if no channels */
-	if (tmp_channels.first == NULL)
-		return;
-	
-	
-	/* accumulate results in tmp_channels buffer to the accumulation buffer */
-	for (nec= tmp_channels.first; nec; nec= necn) {
-		/* get pointer to next channel in case we remove the current channel from the temp-buffer */
-		necn= nec->next;
-		
-		/* try to find an existing matching channel for this setting in the accumulation buffer */
-		necd= nlaevalchan_find_match(channels, &nec->ptr, nec->prop, nec->index);
-		
-		/* if there was a matching channel already in the buffer, accumulate to it,
-		 * otherwise, add the current channel to the buffer for efficiency
-		 */
-		if (necd)
-			nlaevalchan_accumulate(necd, nes, 0, nec->value);
-		else {
-			BLI_remlink(&tmp_channels, nec);
-			BLI_addtail(channels, nec);
-		}
-	}
-	
-	/* free temp-channels that haven't been assimilated into the buffer */
-	BLI_freelistN(&tmp_channels);
+	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
 }
 
+/* evaluate meta-strip */
+static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+{
+	ListBase tmp_channels = {NULL, NULL};
+	NlaStrip *strip= nes->strip;
+	NlaEvalStrip *tmp_nes;
+	float evaltime;
+	
+	/* meta-strip was calculated normally to have some time to be evaluated at
+	 * and here we 'look inside' the meta strip, treating it as a decorated window to
+	 * it's child strips, which get evaluated as if they were some tracks on a strip 
+	 * (but with some extra modifiers to apply).
+	 *
+	 * NOTE: keep this in sync with animsys_evaluate_nla()
+	 */
+	
+	/* find the child-strip to evaluate */
+	evaltime= (nes->strip_time * (strip->end - strip->start)) + strip->start;
+	tmp_nes= nlastrips_ctime_get_strip(NULL, &strip->strips, -1, evaltime);
+	if (tmp_nes == NULL)
+		return;
+		
+	/* evaluate child-strip into tmp_channels buffer before accumulating 
+	 * in the accumulation buffer
+	 */
+	// TODO: need to supply overriding modifiers which will get applied over the top of these
+	nlastrip_evaluate(ptr, &tmp_channels, tmp_nes);
+	
+	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	
+	/* free temp eval-strip */
+	MEM_freeN(tmp_nes);
+}
+
+
 /* evaluates the given evaluation strip */
-static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
+void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes)
 {
 	/* actions to take depend on the type of strip */
+	// TODO: add 'modifiers' tag to chain
 	switch (nes->strip->type) {
 		case NLASTRIP_TYPE_CLIP: /* action-clip */
 			nlastrip_evaluate_actionclip(ptr, channels, nes);
@@ -1025,11 +1043,14 @@ static void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, NlaEvalStrip
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
 			nlastrip_evaluate_transition(ptr, channels, nes);
 			break;
+		case NLASTRIP_TYPE_META: /* meta */
+			nlastrip_evaluate_meta(ptr, channels, nes);
+			break;
 	}
 }
 
 /* write the accumulated settings to */
-static void nladata_flush_channels (ListBase *channels)
+void nladata_flush_channels (ListBase *channels)
 {
 	NlaEvalChannel *nec;
 	
@@ -1104,7 +1125,8 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 			continue;
 			
 		/* otherwise, get strip to evaluate for this channel */
-		nlatrack_ctime_get_strip(&estrips, nlt, track_index, ctime);
+		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
+		if (nes) nes->track= nlt;
 	}
 	
 	/* only continue if there are strips to evaluate */
