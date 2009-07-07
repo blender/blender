@@ -178,19 +178,22 @@ def copy_images(dest_dir):
 							pass
 	
 	# Now copy images
-	copyCount = 0
+# 	copyCount = 0
 	
-	for bImage in uniqueImages.values():
-		image_path = bpy.sys.expandpath(bImage.filename)
-		if bpy.sys.exists(image_path):
-			# Make a name for the target path.
-			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
-			if not bpy.sys.exists(dest_image_path): # Image isnt alredy there
-				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
-				copy_file(image_path, dest_image_path)
-				copyCount+=1
+# 	for bImage in uniqueImages.values():
+# 		image_path = bpy.sys.expandpath(bImage.filename)
+# 		if bpy.sys.exists(image_path):
+# 			# Make a name for the target path.
+# 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
+# 			if not bpy.sys.exists(dest_image_path): # Image isnt alredy there
+# 				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
+# 				copy_file(image_path, dest_image_path)
+# 				copyCount+=1
+
+	paths= bpy.util.copy_images(uniqueImages.values(), dest_dir)
 
 	print('\tCopied %d images' % copyCount)
+# 	print('\tCopied %d images' % copyCount)
 
 # XXX not converted
 def test_nurbs_compat(ob):

@@ -57,6 +57,9 @@ if env['BF_NO_ELBEEM']:
 
 if env['WITH_BF_LCMS']:
 	defs.append('WITH_LCMS')
+
+if env['WITH_BF_UNIT_TEST']:
+	defs.append('WITH_UNIT_TEST')
 	
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']

@@ -2109,3 +2109,120 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
+/*
+  Copy list of images to dest_dir.
+
+  paths is optional, if given, image paths for each image will be written in it.
+  If an image file doesn't exist, NULL is added in paths.
+
+  Logic:
+
+  For each image if it's "below" current .blend file directory,
+  rebuild the same dir structure in dest_dir.
+
+  For example //textures/foo/bar.png becomes
+  [dest_dir]/textures/foo/bar.png.
+
+  If an image is not "below" current .blend file directory, disregard
+  it's path and copy it in the same directory where 3D file goes.
+
+  For example //../foo/bar.png becomes [dest_dir]/bar.png.
+
+  This logic will help ensure that all image paths are relative and
+  that a user gets his images in one place. It'll also provide
+  consistent behaviour across exporters.
+*/
+void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
+{
+	char path[FILE_MAX];
+	char dir[FILE_MAX];
+	char base[FILE_MAX];
+	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
+	char dest_path[FILE_MAX];
+	int len;
+	Image *im;
+	LinkData *link;
+
+	if (paths) {
+		memset(paths, 0, sizeof(*paths));
+	}
+
+	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
+	
+	link= images->first;
+
+	while (link) {
+		im= link->data;
+
+		BLI_strncpy(path, im->name, sizeof(path));
+
+		/* expand "//" in filename and get absolute path */
+		BLI_convertstringcode(path, G.sce);
+
+		/* in unit tests, we don't want to modify the filesystem */
+#ifndef WITH_UNIT_TEST
+		/* proceed only if image file exists */
+		if (!BLI_exists(path)) {
+
+			if (paths) {
+				LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
+				ld->data= NULL;
+				BLI_addtail(paths, ld);
+			}
+
+			continue;
+		}
+#endif
+
+		/* get the directory part */
+		BLI_split_dirfile_basic(path, dir, base);
+
+		len= strlen(blend_dir);
+
+		/* if image is "below" current .blend file directory */
+		if (!strncmp(path, blend_dir, len)) {
+
+			/* if image is _in_ current .blend file directory */
+			if (!strcmp(dir, blend_dir)) {
+				/* copy to dest_dir */
+				BLI_join_dirfile(dest_path, dest_dir, base);
+			}
+			/* "below" */
+			else {
+				char rel[FILE_MAX];
+
+				/* rel = image_path_dir - blend_dir */
+				BLI_strncpy(rel, dir + len, sizeof(rel));
+				
+				BLI_join_dirfile(dest_path, dest_dir, rel);
+
+#ifndef WITH_UNIT_TEST
+				/* build identical directory structure under dest_dir */
+				BLI_make_existing_file(dest_path);
+#endif
+
+				BLI_join_dirfile(dest_path, dest_path, base);
+			}
+			
+		}
+		/* image is out of current directory */
+		else {
+			/* copy to dest_dir */
+			BLI_join_dirfile(dest_path, dest_dir, base);
+		}
+
+#ifndef WITH_UNIT_TEST
+		BLI_copy_fileops(path, dest_path);
+#endif
+
+		if (paths) {
+			LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
+			len= strlen(dest_path) + 1;
+			ld->data= MEM_callocN(len, "PathLinkData");
+			BLI_strncpy(ld->data, dest_path, len);
+			BLI_addtail(paths, ld);
+		}
+
+		link= link->next;
+	}
+}

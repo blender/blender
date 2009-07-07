@@ -81,4 +81,6 @@ int BPy_errors_to_report(struct ReportList *reports);
 struct bContext *BPy_GetContext(void);
 void BPy_SetContext(struct bContext *C);
 
+PyObject *BPY_util_module(void); 
+
 #endif

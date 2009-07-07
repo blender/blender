@@ -40,6 +40,7 @@ struct ImBuf;
 struct Tex;
 struct anim;
 struct Scene;
+struct ListBase;
 
 /* call from library */
 void	free_image(struct Image *me);
@@ -153,6 +154,11 @@ struct Image *BKE_image_copy(struct Image *ima);
 
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);
+
+/* ********************************** FOR EXPORTERS *********************** */
+
+/* copy images into dest_dir */
+void BKE_copy_images(struct ListBase *images, char *dest_dir, struct ListBase *filenames);
 
 #ifdef __cplusplus
 }
