@@ -2677,7 +2677,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->strip= strip;
 						tdn->trackIndex= BLI_findindex(&nlt->strips, strip);
 						
-						yval= (float)(tdn->trackIndex * NLACHANNEL_SKIP);
+						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
 						
 						tdn->h1[0]= strip->start;
 						tdn->h1[1]= yval;
@@ -3688,7 +3688,7 @@ void flushTransGraphData(TransInfo *t)
 					break;
 					
 				case SACTSNAP_MARKER: /* snap to nearest marker */
-					//td2d->loc[0]= (float)find_nearest_marker_time(td2d->loc[0]);
+					td2d->loc[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, td2d->loc[0]);
 					break;
 			}
 		}

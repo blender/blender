@@ -59,9 +59,7 @@
 //#include "BIF_screen.h"
 //#include "BIF_mywindow.h"
 #include "BIF_gl.h"
-//#include "BIF_editaction.h"
 //#include "BIF_editmesh.h"
-//#include "BIF_editnla.h"
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 //#include "BIF_meshtools.h"
@@ -91,6 +89,7 @@
 #include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_keyframing.h"
+#include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -341,6 +340,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		TransDataNla *tdn= (TransDataNla *)t->customData;
+		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
 		int i;
 		
 		/* for each strip we've got, perform some additional validation of the values that got set before 
@@ -374,6 +374,9 @@ void recalcData(TransInfo *t)
 				
 				if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION))
 					strip->next->start= tdn->h2[0];
+					
+				/* flush transforms to child strips (since this should be a meta) */
+				BKE_nlameta_flush_transforms(strip);
 					
 				/* restore to original track (if needed) */
 				if (tdn->oldTrack != tdn->nlt) {
@@ -426,6 +429,19 @@ void recalcData(TransInfo *t)
 					break;
 			}
 			
+			/* handle auto-snapping */
+			switch (snla->autosnap) {
+				case SACTSNAP_FRAME: /* snap to nearest frame */
+					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
+					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+					break;
+					
+				case SACTSNAP_MARKER: /* snap to nearest marker */
+					tdn->h1[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
+					tdn->h2[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
+					break;
+			}
+			
 			/* use RNA to write the values... */
 			// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
 			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
@@ -440,9 +456,8 @@ void recalcData(TransInfo *t)
 			/* now, check if we need to try and move track 
 			 *	- we need to calculate both, as only one may have been altered by transform if only 1 handle moved
 			 */
-			// FIXME: the conversion from vertical distance to track index needs work!
-			delta_y1= ((int)tdn->h1[0] / NLACHANNEL_SKIP - tdn->trackIndex);
-			delta_y2= ((int)tdn->h2[0] / NLACHANNEL_SKIP - tdn->trackIndex);
+			delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP - tdn->trackIndex);
+			delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP - tdn->trackIndex);
 			
 			if (delta_y1 || delta_y2) {
 				NlaTrack *track;
