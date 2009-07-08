@@ -1104,7 +1104,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 
 			dia*=200;
-			for(a=1; a<subdiv; a++) esubdivideflag(obedit, em, 2, dia, 0,1,0);
+			for(a=1; a<subdiv; a++) esubdivideflag(obedit, em, 2, dia, 0, B_SPHERE,1,0);
 			/* and now do imat */
 			eve= em->verts.first;
 			while(eve) {
@@ -1661,7 +1661,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 
 /****************** add duplicate operator ***************/
 
-static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
+static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
@@ -1677,10 +1677,10 @@ static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	WM_cursor_wait(1);
-	mesh_add_duplicate_exec(C, op);
+	mesh_duplicate_exec(C, op);
 	WM_cursor_wait(0);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
@@ -1689,16 +1689,15 @@ static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_duplicate_add(wmOperatorType *ot)
+void MESH_OT_duplicate(wmOperatorType *ot)
 {
-	
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->idname= "MESH_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->idname= "MESH_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= mesh_add_duplicate_invoke;
-	ot->exec= mesh_add_duplicate_exec;
+	ot->invoke= mesh_duplicate_invoke;
+	ot->exec= mesh_duplicate_exec;
 	
 	ot->poll= ED_operator_editmesh;
 	

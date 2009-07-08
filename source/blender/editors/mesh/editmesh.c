@@ -1625,7 +1625,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mesh Separate";
+	ot->name= "Separate";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */

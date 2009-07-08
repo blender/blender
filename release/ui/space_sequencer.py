@@ -119,7 +119,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		layout.itemS()
 		layout.itemO("SEQUENCER_OT_select_linked")
 		layout.itemO("SEQUENCER_OT_select_all_toggle")
-		layout.itemO("SEQUENCER_OT_select_invert")
+		layout.itemO("SEQUENCER_OT_select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"

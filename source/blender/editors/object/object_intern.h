@@ -45,7 +45,7 @@ void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_track_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_clear(struct wmOperatorType *ot);
 void OBJECT_OT_select_all_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_select_invert(struct wmOperatorType *ot);
+void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);

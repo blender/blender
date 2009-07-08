@@ -1412,7 +1412,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 2:	/* copy image */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1433,7 +1433,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 3: /* copy UV's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1446,7 +1446,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 4: /* mode's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1459,7 +1459,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 5: /* copy transp's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1473,7 +1473,7 @@ void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 6: /* copy vcols's */
 		if (!mcol_act) {
-			BKE_report(op->reports, RPT_ERROR, "mesh has no color layers");
+			BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
 			return;
 		} else {
 			/* guess the 4th color if needs be */
@@ -3207,7 +3207,7 @@ void EM_select_swap(EditMesh *em) /* exported for UV */
 
 }
 
-static int select_invert_mesh_exec(bContext *C, wmOperator *op)
+static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -3220,14 +3220,14 @@ static int select_invert_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_invert(wmOperatorType *ot)
+void MESH_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Invert";
-	ot->idname= "MESH_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "MESH_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= select_invert_mesh_exec;
+	ot->exec= select_inverse_mesh_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -3641,7 +3641,7 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 void MESH_OT_mark_seam(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mark seam";
+	ot->name= "Mark Seam";
 	ot->idname= "MESH_OT_mark_seam";
 	
 	/* api callbacks */
@@ -3660,15 +3660,15 @@ static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Mesh *me= ((Mesh *)obedit->data);
-	int set = RNA_boolean_get(op->ptr, "set");
+	int clear = RNA_boolean_get(op->ptr, "clear");
 	EditEdge *eed;
 
 	/* auto-enable sharp edge drawing */
-	if(set) {
+	if(clear == 0) {
 		me->drawflag |= ME_DRAWSHARP;
 	}
 
-	if(set) {
+	if(!clear) {
 		eed= em->edges.first;
 		while(eed) {
 			if(!eed->h && (eed->f & SELECT)) eed->sharp = 1;
@@ -3693,7 +3693,7 @@ static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 void MESH_OT_mark_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mark sharp";
+	ot->name= "Mark Sharp";
 	ot->idname= "MESH_OT_mark_sharp";
 	
 	/* api callbacks */
@@ -3703,166 +3703,8 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "set", 0, "Set", "");
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
-
-void BME_Menu()	{
-	short ret;
-	ret= pupmenu("BME modeller%t|Select Edges of Vert%x1");
-	
-	switch(ret)
-	{
-		case 1:
-		//BME_edges_of_vert();
-		break;
-	}
-}
-
-
-
-void Vertex_Menu(EditMesh *em) 
-{
-	short ret;
-	ret= pupmenu("Vertex Specials%t|Remove Doubles%x1|Merge%x2|Smooth %x3|Select Vertex Path%x4|Blend From Shape%x5|Propagate To All Shapes%x6");
-
-	switch(ret)
-	{
-		case 1:
-// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			break;
-		case 2:	
-// XXX			mergemenu(em);
-			break;
-		case 3:
-// XXX			vertexsmooth(em);
-			break;
-		case 4:
-// XXX			pathselect(em);
-			break;
-		case 5: 
-// XXX			shape_copy_select_from(em);
-			break;
-		case 6: 
-// XXX			shape_propagate(em);
-			break;
-	}
-	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-}
-
-
-void Edge_Menu(EditMesh *em) 
-{
-	short ret;
-
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8|Loop to Region%x9|Region to Loop%x10|Mark Sharp%x11|Clear Sharp%x12");
-
-	switch(ret)
-	{
-	case 1:
-		//editmesh_mark_seam(em, 0);
-		break;
-	case 2:
-		//editmesh_mark_seam(em, 1);
-		break;
-	case 3:
-//		edge_rotate_selected(em, 2);
-		break;
-	case 4:
-//		edge_rotate_selected(em, 1);
-		break;
-	case 5:
-//		EdgeSlide(em, 0,0.0);
-		break;
-	case 6:
-//        	CutEdgeloop(em, 1);
-		break;
-	case 7:
-//		loop_multiselect(em, 0);
-		break;
-	case 8:
-//		loop_multiselect(em, 1);
-		break;
-	case 9:
-//		loop_to_region(em);
-		break;
-	case 10:
-//		region_to_loop(em);
-		break;
-	case 11:
-//		editmesh_mark_sharp(em, 1);
-//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	case 12: 
-//		editmesh_mark_sharp(em, 0);
-//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	}
-	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-}
-
-void Face_Menu(EditMesh *em) 
-{
-	short ret;
-	ret= pupmenu(
-		"Face Specials%t|Flip Normals%x1|Bevel%x2|Shade Smooth%x3|Shade Flat%x4|"
-		"Triangulate (Ctrl T)%x5|Quads from Triangles (Alt J)%x6|Flip Triangle Edges (Ctrl Shift F)%x7|%l|"
-		"Face Mode Set%x8|Face Mode Clear%x9|%l|"
-		"UV Rotate (Shift - CCW)%x10|UV Mirror (Shift - Switch Axis)%x11|"
-		"Color Rotate (Shift - CCW)%x12|Color Mirror (Shift - Switch Axis)%x13");
-
-	switch(ret)
-	{
-		case 1:
-//			flip_editnormals(em);
-//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-			break;
-		case 2:
-//			bevel_menu(em);
-			break;
-		case 3:
-//			mesh_set_smooth_faces(em, 1);
-			break;
-		case 4:
-//			mesh_set_smooth_faces(em, 0);
-			break;
-			
-		case 5: /* Quads to Tris */
-//			convert_to_triface(em, 0);
-//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-			break;
-		case 6: /* Tris to Quads */
-//			join_triangles(em);
-			break;
-		case 7: /* Flip triangle edges */
-//			edge_flip(em);
-			break;
-		case 8:
-//			mesh_set_face_flags(em, 1);
-			break;
-		case 9:
-//			mesh_set_face_flags(em, 0);
-			break;
-			
-		/* uv texface options */
-		case 10:
-//			mesh_rotate_uvs(em);
-			break;
-		case 11:
-//			mesh_mirror_uvs(em);
-			break;
-		case 12:
-//			mesh_rotate_colors(em);
-			break;
-		case 13:
-//			mesh_mirror_colors(em);
-			break;
-	}
-	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-}
-
 
 /* **************** NORMALS ************** */
 
@@ -4293,20 +4135,13 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= obedit->data;
-	EditMesh *em= (EditMesh *)me; 
-
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
 	float *adror, *adr, fac;
 	float fvec[3];
 	int teller=0;
-	ModifierData *md= obedit->modifiers.first;
-
-	if(em==NULL) {
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
+	ModifierData *md;
 
 	/* count */
 	eve= em->verts.first;
@@ -4334,8 +4169,8 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	/* if there is a mirror modifier with clipping, flag the verts that
 	 * are within tolerance of the plane(s) of reflection 
 	 */
-	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+	for(md=obedit->modifiers.first; md; md=md->next) {
+		if(md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
@@ -4604,7 +4439,7 @@ void flipface(EditMesh *em, EditFace *efa)
 }
 
 
-static int flip_editnormals(bContext *C, wmOperator *op)
+static int flip_normals(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -4630,14 +4465,14 @@ static int flip_editnormals(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_flip_editnormals(wmOperatorType *ot)
+void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Flip Normals";
-	ot->idname= "MESH_OT_flip_editnormals";
+	ot->idname= "MESH_OT_flip_normals";
 	
 	/* api callbacks */
-	ot->exec= flip_editnormals;
+	ot->exec= flip_normals;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

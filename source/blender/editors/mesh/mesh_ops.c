@@ -59,18 +59,181 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #include "mesh_intern.h"
 
+/******************************** menus *************************************/
 
+static int vertex_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
 
-/* ************************** registration **********************************/
+	pup= uiPupMenuBegin(C, "Vertex Specials", 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+
+	uiItemO(layout, "Remove Doubles", 0, "MESH_OT_remove_doubles");
+	uiItemO(layout, "Merge...", 0, "MESH_OT_merge"); // mergmenu(em)
+	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
+	uiItemO(layout, "Select Vertex Path", 0, "MESH_OT_select_vertex_path"); 
+	//uiItemO(layout, "Blend From Shape", 0, "MESH_OT_blend_from_shape");
+	//uiItemO(layout, "Propagate to All Shapes", 0, "MESH_OT_shape_propagate_to_all");
+
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void MESH_OT_vertex_specials(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertex Specials";
+	ot->idname= "MESH_OT_vertex_specials";
+	
+	/* api callbacks */
+	ot->invoke= vertex_specials_invoke;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int edge_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, "Edge Specials", 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+
+	uiItemO(layout, "Mark Seam", 0, "MESH_OT_mark_seam");
+	uiItemBooleanO(layout, "Clear Seam", 0, "MESH_OT_mark_seam", "clear", 1);
+	uiItemEnumO(layout, "Rotate Edge CW", 0, "MESH_OT_edge_rotate", "direction", 1);
+	uiItemEnumO(layout, "Rotate Edge CCW", 0, "MESH_OT_edge_rotate", "direction", 2);
+	//uiItemO(layout, "Loopcut", 0, "MESH_OT_loop_cut"); // CutEdgeloop(em, 1);
+	//uiItemO(layout, "Edge Slide", 0, "MESH_OT_edge_slide"); // EdgeSlide(em, 0,0.0);
+	uiItemO(layout, "Edge Loop", 0, "MESH_OT_loop_multi_select");
+	uiItemBooleanO(layout, "Edge Ring", 0, "MESH_OT_loop_multi_select", "ring", 1);
+	uiItemO(layout, NULL, 0, "MESH_OT_loop_to_region");
+	uiItemO(layout, NULL, 0, "MESH_OT_region_to_loop");
+	uiItemO(layout, "Mark Sharp", 0, "MESH_OT_mark_sharp");
+	uiItemBooleanO(layout, "Clear Sharp", 0, "MESH_OT_mark_sharp", "clear", 1);
+
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+static void MESH_OT_edge_specials(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Edge Specials";
+	ot->idname= "MESH_OT_edge_specials";
+	
+	/* api callbacks */
+	ot->invoke= edge_specials_invoke;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int face_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, "Face Specials", 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+
+	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
+	// uiItemO(layout, "Bevel", 0, "MESH_OT_bevel"); // bevelmenu(em)
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	uiItemO(layout, NULL, 0, "MESH_OT_quads_convert_to_tris");
+	uiItemO(layout, NULL, 0, "MESH_OT_tris_convert_to_quads");
+	uiItemO(layout, NULL, 0, "MESH_OT_edge_flip");
+
+	uiItemS(layout);
+
+	uiItemO(layout, NULL, 0, "MESH_OT_fill");
+	uiItemO(layout, NULL, 0, "MESH_OT_beauty_fill");
+
+	uiItemS(layout);
+
+	// uiItemO(layout, NULL, 0, "MESH_OT_face_mode"); // mesh_set_face_flags(em, 1);
+	// uiItemBooleanO(layout, NULL, 0, "MESH_OT_face_mode", "clear", 1); // mesh_set_face_flags(em, 0);
+	//
+	// uiItemS(layout);
+
+	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_uvs_rotate", "direction");
+	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_uvs_mirror", "axis");
+	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_colors_rotate", "direction");
+	uiItemMenuEnumO(layout, NULL, 0, "MESH_OT_colors_mirror", "axis");
+
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void MESH_OT_face_specials(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Face Specials";
+	ot->idname= "MESH_OT_face_specials";
+	
+	/* api callbacks */
+	ot->invoke= face_specials_invoke;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, "Specials", 0);
+	layout= uiPupMenuLayout(pup);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+
+	uiItemO(layout, "Subdivide", 0, "MESH_OT_subdivide");
+	uiItemFloatO(layout, "Subdivide Smooth", 0, "MESH_OT_subdivide", "smoothness", 1.0f);
+	uiItemO(layout, "Merge...", 0, "MESH_OT_merge");
+	uiItemO(layout, "Remove Doubles", 0, "MESH_OT_remove_doubles");
+	uiItemO(layout, "Hide", 0, "MESH_OT_hide");
+	uiItemO(layout, "Reveal", 0, "MESH_OT_reveal");
+	uiItemO(layout, "Select Inverse", 0, "MESH_OT_select_inverse");
+	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
+	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
+	// uiItemO(layout, "Bevel", 0, "MESH_OT_bevel"); // bevelmenu(em)
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	//uiItemO(layout, "Blend From Shape", 0, "MESH_OT_blend_from_shape");
+	//uiItemO(layout, "Propagate to All Shapes", 0, "MESH_OT_shape_propagate_to_all");
+	uiItemO(layout, "Select Vertex Path", 0, "MESH_OT_select_vertex_path"); 
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void MESH_OT_specials(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Specials";
+	ot->idname= "MESH_OT_specials";
+	
+	/* api callbacks */
+	ot->invoke= specials_invoke;
+	ot->poll= ED_operator_editmesh;
+}
+
+/**************************** registration **********************************/
 
 void ED_operatortypes_mesh(void)
 {
 	WM_operatortype_append(MESH_OT_select_all_toggle);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
-	WM_operatortype_append(MESH_OT_select_invert);
+	WM_operatortype_append(MESH_OT_select_inverse);
 	WM_operatortype_append(MESH_OT_select_non_manifold);
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
@@ -80,11 +243,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
+	WM_operatortype_append(MESH_OT_merge);
 	WM_operatortype_append(MESH_OT_subdivide);
-	WM_operatortype_append(MESH_OT_subdivide_multi);
-	WM_operatortype_append(MESH_OT_subdivide_multi_fractal);
-	WM_operatortype_append(MESH_OT_subdivide_smooth);
-	WM_operatortype_append(MESH_OT_subdivs);
 	WM_operatortype_append(MESH_OT_faces_select_linked_flat);
 	WM_operatortype_append(MESH_OT_edges_select_sharp);
 	WM_operatortype_append(MESH_OT_primitive_plane_add);
@@ -99,7 +259,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 	WM_operatortype_append(MESH_OT_fgon_clear);
 	WM_operatortype_append(MESH_OT_fgon_make);
-	WM_operatortype_append(MESH_OT_duplicate_add);
+	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
 	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_spin);
@@ -138,7 +298,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_vertices_smooth);
-	WM_operatortype_append(MESH_OT_flip_editnormals);
+	WM_operatortype_append(MESH_OT_flip_normals);
 	WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	
@@ -148,6 +308,11 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_vertex_color_remove);
 	WM_operatortype_append(MESH_OT_sticky_add);
 	WM_operatortype_append(MESH_OT_sticky_remove);
+
+	WM_operatortype_append(MESH_OT_vertex_specials);
+	WM_operatortype_append(MESH_OT_edge_specials);
+	WM_operatortype_append(MESH_OT_face_specials);
+	WM_operatortype_append(MESH_OT_specials);
 }
 
 /* note mesh keymap also for other space? */
@@ -172,7 +337,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
@@ -183,12 +348,6 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_edges_select_sharp", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
-
-	WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_CTRL , 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_ALT , 0)->ptr,"clear",1);
-
-	WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_CTRL , 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
@@ -203,24 +362,17 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/* tools */
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
-	WM_keymap_add_item(keymap, "MESH_OT_vertices_smooth", THREEKEY, KM_PRESS, KM_CTRL , 0);
-	WM_keymap_add_item(keymap, "MESH_OT_flip_editnormals", THREEKEY, KM_PRESS, KM_ALT , 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_subdivs", WKEY, KM_PRESS, 0, 0); // this is the menu
-	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
-	WM_keymap_add_item(keymap, "MESH_OT_remove_doubles", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_screw", NINEKEY, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "VIEW3D_OT_editmesh_face_toolbox", FKEY, KM_PRESS, KM_CTRL, 0); /* operators below are in this toolbox */
 	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edge_flip", FKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_split", FOURKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
@@ -238,7 +390,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
 						/* use KM_RELEASE because same key is used for tweaks */
@@ -250,6 +402,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+
+	/* menus */
+	WM_keymap_add_item(keymap, "MESH_OT_vertex_specials", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edge_specials", EKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_face_specials", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_specials", WKEY, KM_PRESS, 0, 0);
 	
 	/* UV's */
 	WM_keymap_add_item(keymap, "UV_OT_mapping_menu", UKEY, KM_PRESS, 0, 0);

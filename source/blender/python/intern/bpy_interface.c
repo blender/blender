@@ -151,7 +151,6 @@ wchar_t* Py_GetPath(void)
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
-	char py_path[FILE_MAXDIR + 11] = "";
 	char *py_path_bundle= BLI_gethome_folder("python");
 
 	if(py_path_bundle==NULL)
@@ -162,15 +161,21 @@ void BPY_start_python_path(void)
 
 #if (defined(WIN32) || defined(WIN64))
 #if defined(FREE_WINDOWS)
-	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-	putenv(py_path);
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
 #else
 	_putenv_s("PYTHONPATH", py_path_bundle);
 #endif
 #else
 #ifdef __sgi
-	sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-	putenv(py_path);
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
 #else
 	setenv("PYTHONPATH", py_path_bundle, 1);
 #endif
@@ -484,7 +489,10 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 		while((de = readdir(dir)) != NULL) {
 			/* We could stat the file but easier just to let python
 			 * import it and complain if theres a problem */
-			
+
+			if(strstr(de->d_name, ".pyc"))
+				continue;
+
 			file_extension = strstr(de->d_name, ".py");
 			
 			if(file_extension && *(file_extension + 3) == '\0') {

@@ -3839,7 +3839,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 /* ****************  Selections  ******************/
 
-static int armature_select_invert_exec(bContext *C, wmOperator *op)
+static int armature_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
@@ -3854,15 +3854,15 @@ static int armature_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_invert(wmOperatorType *ot)
+void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "ARMATURE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "ARMATURE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= armature_select_invert_exec;
+	ot->exec= armature_select_inverse_exec;
 	ot->poll= ED_operator_editarmature;
 	
 	/* flags */
@@ -4823,7 +4823,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 /* ***************** selections ********************** */
 
-static int pose_select_invert_exec(bContext *C, wmOperator *op)
+static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
@@ -4838,15 +4838,15 @@ static int pose_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_invert(wmOperatorType *ot)
+void POSE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "POSE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "POSE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= pose_select_invert_exec;
+	ot->exec= pose_select_inverse_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

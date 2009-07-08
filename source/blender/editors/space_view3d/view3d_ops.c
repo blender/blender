@@ -83,7 +83,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
 	WM_operatortype_append(VIEW3D_OT_drawtype);
-	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_layers);

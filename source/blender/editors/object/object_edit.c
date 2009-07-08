@@ -1732,7 +1732,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 }
 
 /* ****** invert selection *******/
-static int object_select_invert_exec(bContext *C, wmOperator *op)
+static int object_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)
@@ -1748,16 +1748,16 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_invert(wmOperatorType *ot)
+void OBJECT_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert selection";
-	ot->description = "Invert th select of all visible objects.";
-	ot->idname= "OBJECT_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->description = "Invert selection of all visible objects.";
+	ot->idname= "OBJECT_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= object_select_invert_exec;
+	ot->exec= object_select_inverse_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -3772,144 +3772,8 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 	}
 	else if(obedit->type==OB_MESH) {
-		/* This is all that is needed, since all other functionality is in Ctrl+ V/E/F but some users didnt like, so for now have the old/big menu */
-		/*
-		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 4:
-			fac= 1.0f;
-			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-				fac= 0.292f*fac;
-			
-			waitcursor(1);
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-		}
-		*/
-		
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
-		
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-// XXX			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 12:	/* smooth */
-			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
-			fac= 1.0f;
-// XXX			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-// XXX				fac= 0.292f*fac;
-			
-			waitcursor(1);
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-
-		case 4:
-// XXX			mergemenu();
-			break;
-		case 5:
-// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			break;
-		case 6:
-// XXX			hide_mesh(0);
-			break;
-		case 7:
-// XXX			reveal_mesh();
-			break;
-		case 8:
-// XXX			selectswap_mesh();
-			break;
-		case 9:
-// XXX			flip_editnormals();
-			break;
-		case 10:
-// XXX			vertexsmooth();
-			break;
-		case 11:
-// XXX			bevel_menu();
-			break;
-		case 14:
-// XXX			mesh_set_smooth_faces(1);
-			break;
-		case 15: 
-// XXX			mesh_set_smooth_faces(0);
-			break;
-		case 16: 
-// XXX			shape_copy_select_from();
-			break;
-		case 17: 
-// XXX			shape_propagate();
-			break;
-		case 18:
-// XXX			pathselect();
-			break;
-		}
-		
-		
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		
-		if(nr>0) waitcursor(0);
-		
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
-		
-		switch(nr) {
-		case 1:
-// XXX			subdivideNurb();
-			break;
-		case 2:
-// XXX			switchdirectionNurb2();
-			break;
-		case 3:
-// XXX			setweightNurb();
-			break;
-		case 4:
-// XXX			setradiusNurb();
-			break;
-		case 5:
-// XXX			smoothNurb();
-			break;
-		case 6:
-// XXX			smoothradiusNurb();
-			break;
-		}
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	}
 	else if(obedit->type==OB_ARMATURE) {
 		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");

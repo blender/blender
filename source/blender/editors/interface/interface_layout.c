@@ -1093,9 +1093,11 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 			if(layout->root->type == UI_LAYOUT_MENU && !icon)
 				icon= ICON_BLANK1;
 			ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
-			break;
+			return;
 		}
 	}
+
+	printf("uiItemM: not found %s\n", menuname);
 }
 
 /* label item */

@@ -1736,7 +1736,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** select invert operator *********************/
 
-static int select_invert_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -1775,14 +1775,14 @@ static int select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void CURVE_OT_select_invert(wmOperatorType *ot)
+void CURVE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Invert";
-	ot->idname= "CURVE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "CURVE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= select_invert_exec;
+	ot->exec= select_inverse_exec;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */

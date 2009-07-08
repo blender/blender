@@ -588,7 +588,6 @@ void ED_spacetype_image(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 	
-	
 	BKE_spacetype_register(st);
 }
 

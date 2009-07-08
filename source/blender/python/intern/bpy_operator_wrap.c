@@ -352,9 +352,10 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	idname =  _PyUnicode_AsString(item);
 	
 	/* remove if it already exists */
-	if ((ot=WM_operatortype_find(idname))) {
-		if(ot->pyop_data)
+	if ((ot=WM_operatortype_exists(idname))) {
+		if(ot->pyop_data) {
 			Py_XDECREF((PyObject*)ot->pyop_data);
+		}
 		WM_operatortype_remove(idname);
 	}
 	
@@ -402,7 +403,7 @@ PyObject *PYOP_wrap_remove(PyObject *self, PyObject *value)
 		return NULL;
 	}
 
-	if (!(ot= WM_operatortype_find(idname))) {
+	if (!(ot= WM_operatortype_exists(idname))) {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" does not exists, cant remove", idname);
 		return NULL;
 	}

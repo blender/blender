@@ -94,6 +94,17 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 	return NULL;
 }
 
+wmOperatorType *WM_operatortype_exists(const char *idname)
+{
+	wmOperatorType *ot;
+	
+	for(ot= global_ops.first; ot; ot= ot->next) {
+		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
+		   return ot;
+	}
+	return NULL;
+}
+
 wmOperatorType *WM_operatortype_first(void)
 {
 	return global_ops.first;

@@ -736,7 +736,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 void MESH_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude Mesh";
+	ot->name= "Extrude";
 	ot->idname= "MESH_OT_extrude";
 	
 	/* api callbacks */
@@ -777,7 +777,7 @@ static int split_mesh(bContext *C, wmOperator *op)
 void MESH_OT_split(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Split Mesh";
+	ot->name= "Split";
 	ot->idname= "MESH_OT_split";
 	
 	/* api callbacks */
@@ -1341,7 +1341,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 #define DOUBLEOPFILL 16
 
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
-static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float perc)
+static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int beauty, float perc)
 {
 	float vec1[3], fac;
 	
@@ -1368,37 +1368,38 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 		vec1[0]+= fac*nor2[0];
 		vec1[1]+= fac*nor2[1];
 		vec1[2]+= fac*nor2[2];
+
+		/* falloff for multi subdivide */
+		smooth *= sqrt(fabs(1.0f - 2.0f*fabs(0.5f-perc)));
 		
-		vec1[0]*= rad*len;
-		vec1[1]*= rad*len;
-		vec1[2]*= rad*len;
+		vec1[0]*= smooth*len;
+		vec1[1]*= smooth*len;
+		vec1[2]*= smooth*len;
 		
 		co[0] += vec1[0];
 		co[1] += vec1[1];
 		co[2] += vec1[2];
 	}
-	else {
-		if(rad > 0.0) {   /* subdivide sphere */
-			Normalize(co);
-			co[0]*= rad;
-			co[1]*= rad;
-			co[2]*= rad;
-		}
-		else if(rad< 0.0) {  /* fractal subdivide */
-			fac= rad* VecLenf(edge->v1->co, edge->v2->co);
-			vec1[0]= fac*(float)(0.5-BLI_drand());
-			vec1[1]= fac*(float)(0.5-BLI_drand());
-			vec1[2]= fac*(float)(0.5-BLI_drand());
-			VecAddf(co, co, vec1);
-		}
+	else if(beauty & B_SPHERE) { /* subdivide sphere */
+		Normalize(co);
+		co[0]*= smooth;
+		co[1]*= smooth;
+		co[2]*= smooth;
+	}
 
+	if(beauty & B_FRACTAL) {
+		fac= fractal*VecLenf(edge->v1->co, edge->v2->co);
+		vec1[0]= fac*(float)(0.5-BLI_drand());
+		vec1[1]= fac*(float)(0.5-BLI_drand());
+		vec1[2]= fac*(float)(0.5-BLI_drand());
+		VecAddf(co, co, vec1);
 	}
 }
 
 /* assumes in the edge is the correct interpolated vertices already */
-/* percent defines the interpolation, rad and beauty are for special options */
+/* percent defines the interpolation, smooth, fractal and beauty are for special options */
 /* results in new vertex with correct coordinate, vertex normal and weight group info */
-static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float rad, int beauty, float percent)
+static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float smooth, float fractal, int beauty, float percent)
 {
 	EditVert *ev;
 	float co[3];
@@ -1408,7 +1409,7 @@ static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float rad,
 	co[2] = (edge->v2->co[2]-edge->v1->co[2])*percent + edge->v1->co[2];					
 	
 	/* offset for smooth or sphere or fractal */
-	alter_co(co, edge, rad, beauty, percent);
+	alter_co(co, edge, smooth, fractal, beauty, percent);
 	
 	/* clip if needed by mirror modifier */
 	if (edge->v1->f2) {
@@ -2176,7 +2177,7 @@ static void fill_quad_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int 
 	//EM_fgon_flags(em);
 }
 
-static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, int numcuts, float rad, int beauty)
+static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, int numcuts, float smooth, float fractal, int beauty)
 {
 	EditVert **verts[4], ***innerverts;
 	EditFace *hold;	
@@ -2246,7 +2247,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 		for(j=1;j<=numcuts;j++) { 
 			float percent= (float)j/(float)(numcuts+1);
 
-			innerverts[i][(numcuts+1)-j]= subdivide_edge_addvert(em, &temp, rad, beauty, percent);
+			innerverts[i][(numcuts+1)-j]= subdivide_edge_addvert(em, &temp, smooth, fractal, beauty, percent);
 		}	
 	}	
 	// Fill with faces
@@ -2273,7 +2274,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	MEM_freeN(innerverts);
 }
 
-static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int numcuts, float rad, int beauty)
+static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int numcuts, float smooth, float fractal, int beauty)
 {
 	EditVert **verts[3], ***innerverts;
 	short vertsize, i, j;
@@ -2344,7 +2345,7 @@ static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 		for(j=1;j<(numcuts+1)-i;j++) {
 			float percent= (float)j/(float)((numcuts+1)-i);
 
-			innerverts[i][((numcuts+1)-i)-j]= subdivide_edge_addvert(em, &temp, rad, beauty, 1-percent);
+			innerverts[i][((numcuts+1)-i)-j]= subdivide_edge_addvert(em, &temp, smooth, fractal, beauty, 1-percent);
 		}
 	}
 
@@ -2522,7 +2523,7 @@ static void fill_quad_singlevert(EditMesh *em, EditFace *efa, struct GHash *gh)
 // This function takes an example edge, the current point to create and 
 // the total # of points to create, then creates the point and return the
 // editvert pointer to it.
-static EditVert *subdivideedgenum(EditMesh *em, EditEdge *edge, int curpoint, int totpoint, float rad, int beauty)
+static EditVert *subdivideedgenum(EditMesh *em, EditEdge *edge, int curpoint, int totpoint, float smooth, float fractal, int beauty)
 {
 	EditVert *ev;
 	float percent;
@@ -2533,13 +2534,13 @@ static EditVert *subdivideedgenum(EditMesh *em, EditEdge *edge, int curpoint, in
 	else
 		percent= (float)curpoint/(float)(totpoint+1);
 
-	ev= subdivide_edge_addvert(em, edge, rad, beauty, percent);
+	ev= subdivide_edge_addvert(em, edge, smooth, fractal, beauty, percent);
 	ev->f = edge->v1->f;
 	
 	return ev;
 }
 
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype)
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype)
 {
 	EditFace *ef;
 	EditEdge *eed, *cedge, *sort[4];
@@ -2692,7 +2693,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beaut
 			for(i=0;i<numcuts;i++) {
 				// This function creates the new vert and returns it back
 				// to the array
-				templist[i+1] = subdivideedgenum(em, eed, i+1, numcuts, rad, beauty);
+				templist[i+1] = subdivideedgenum(em, eed, i+1, numcuts, smooth, fractal, beauty);
 				//while we are here, we can copy edge info from the original edge
 				cedge = addedgelist(em, templist[i],templist[i+1],eed);
 				// Also set the edge f2 to EDGENEW so that we can use this info later
@@ -2795,7 +2796,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beaut
 					fill_quad_triple(em, ef, gh, numcuts); 
 					break;	
 				case 4: ef->f1 = SELECT;
-					fill_quad_quadruple(em, ef, gh, numcuts, rad, beauty); 
+					fill_quad_quadruple(em, ef, gh, numcuts, smooth, fractal, beauty); 
 					break;	
 			}
 		} else {
@@ -2808,7 +2809,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beaut
 					fill_tri_double(em, ef, gh, numcuts);
 					break;	
 				case 3: ef->f1 = SELECT;
-					fill_tri_triple(em, ef, gh, numcuts, rad, beauty);
+					fill_tri_triple(em, ef, gh, numcuts, smooth, fractal, beauty);
 					break;  
 			}	
 		}	
@@ -3487,7 +3488,23 @@ void edge_flip(EditMesh *em)
 	MEM_freeN(efaar);
 }
 
-static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
+#define DIRECTION_CW	1
+#define DIRECTION_CCW	2
+
+static const EnumPropertyItem direction_items[]= {
+	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
+	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+#define AXIS_X		1
+#define AXIS_Y		2
+
+static const EnumPropertyItem axis_items[]= {
+	{AXIS_X, "X", 0, "X", ""},
+	{AXIS_Y, "Y", 0, "Y", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 {
 	EditVert **verts[2];
 	EditFace *face[2], *efa, *newFace[2];
@@ -3585,10 +3602,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
 		newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 	}
 	else if(fac1 == 4 && fac2 == 3) {
-		if(dir == 1) {
+		if(dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
-		} else if (dir == 2) {
+		} else if (dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
 			
@@ -3597,10 +3614,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
 		}
 	}
 	else if(fac1 == 3 && fac2 == 4) {
-		if(dir == 1) {
+		if(dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == 2) {
+		} else if (dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
 			
@@ -3610,10 +3627,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
 	
 	}
 	else if(fac1 == 4 && fac2 == 4) {
-		if(dir == 1) {
+		if(dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == 2) {
+		} else if (dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
 			
@@ -3624,7 +3641,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
 	else
 		return; /* This should never happen */
 
-	if(dir == 1 || (fac1 == 3 && fac2 == 3)) {
+	if(dir == DIRECTION_CW || (fac1 == 3 && fac2 == 3)) {
 		verts[0][p[0][1]]->f |= SELECT;
 		verts[1][p[1][1]]->f |= SELECT;
 	}
@@ -3668,10 +3685,9 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-		
-	int dir = RNA_int_get(op->ptr,"dir"); // dir == 2 when clockwise and ==1 for counter CW.
 	EditEdge *eed;
 	EditFace *efa;
+	int dir = RNA_int_get(op->ptr, "direction"); // dir == 2 when clockwise and ==1 for counter CW.
 	short edgeCount = 0;
 	
 	/*clear new flag for new edges, count selected edges */
@@ -3719,23 +3735,21 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	else 
-	{	
+	else  {	
 		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
-	
 
 	/* flush selected vertices (again) to edges/faces */
 	EM_select_flush(em);
 	
+	BKE_mesh_end_editmesh(obedit->data, em);
+
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
-
 }
 
 void MESH_OT_edge_rotate(wmOperatorType *ot)
@@ -3752,7 +3766,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "dir", 1, 1, 2, "Direction", "Clockwise and Counter Clockwise", 1, 2);
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
 }
 
 
@@ -4726,23 +4740,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 }
 #endif
 
-void mesh_set_smooth_faces(EditMesh *em, short event)
-{
-	EditFace *efa;
-
-	if(em==NULL) return;
-	
-	efa= em->faces.first;
-	while(efa) {
-		if(efa->f & SELECT) {
-			if(event==1) efa->flag |= ME_SMOOTH;
-			else if(event==0) efa->flag &= ~ME_SMOOTH;
-		}
-		efa= efa->next;
-	}
-}
-
-/* ********************** mesh rip ********************** */
+/********************** Rip Operator *************************/
 
 /* helper to find edge for edge_rip */
 static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, short *mval)
@@ -5014,7 +5012,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 }
 
 
-/* ************************************** */
+/************************ Shape Operators *************************/
 
 void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
@@ -5204,6 +5202,8 @@ void shape_copy_select_from(Object *obedit, EditMesh *em, wmOperator *op)
 	}		
 	return;
 }
+
+/************************ Merge Operator *************************/
 
 /* Collection Routines|Currently used by the improved merge code*/
 /* buildEdge_collection() creates a list of lists*/
@@ -5695,10 +5695,6 @@ int collapseEdges(EditMesh *em)
 	}
 	freecollections(&allcollections);
 	removedoublesflag(em, 1, 0, MERGELIMIT);
-	/*get rid of this!*/
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-//	if (EM_texFaceCheck())
 
 	return mergecount;
 }
@@ -5741,6 +5737,7 @@ int merge_target(EditMesh *em, int target, int uvmerge)
 {
 	EditVert *eve;
 	
+	// XXX not working
 	if(target) snap_sel_to_curs();
 	else snap_to_center();
 	
@@ -5751,21 +5748,113 @@ int merge_target(EditMesh *em, int target, int uvmerge)
 		}
 		collapseuvs(em, NULL);
 	}
-	
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	return removedoublesflag(em, 1, 0, MERGELIMIT);
-	
 }
 #undef MERGELIMIT
 
-typedef struct PathNode{
+static int merge_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	int count= 0, uvs= RNA_boolean_get(op->ptr, "uvs");
+
+	switch(RNA_enum_get(op->ptr, "type")) {
+		case 3:
+			count = merge_target(em, 0, uvs);
+			break;
+		case 4:
+			count = merge_target(em, 1, uvs);
+			break;
+		case 1:
+			count = merge_firstlast(em, 0, uvs);
+			break;
+		case 6:
+			count = merge_firstlast(em, 1, uvs);
+			break;
+		case 2:
+			count = collapseEdges(em);
+			break;
+	}
+
+	if(!count)
+		return OPERATOR_CANCELLED;
+
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices.", count);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem merge_type_items[]= {
+	{6, "FIRST", 0, "At First", ""},
+	{1, "LAST", 0, "At Last", ""},
+	{3, "CENTER", 0, "At Center", ""},
+	{4, "CURSOR", 0, "At Cursor", ""},
+	{5, "COLLAPSE", 0, "Collapse", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem *merge_type_itemf(PointerRNA *ptr)
+{
+	/* XXX need context here */
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	if(em->selectmode & SCE_SELECT_VERTEX)
+		if(em->selected.first && em->selected.last && 
+			((EditSelection*)em->selected.first)->type == EDITVERT && ((EditSelection*)em->selected.last)->type == EDITVERT) 
+				event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4|Collapse%x2");
+		else if (em->selected.first && ((EditSelection*)em->selected.first)->type == EDITVERT) 
+			event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4|Collapse%x2");
+		else if (em->selected.last && ((EditSelection*)em->selected.last)->type == EDITVERT) 
+			event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4|Collapse%x2");
+		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
+	else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
+
+	return merge_type_items;
+}
+
+void MESH_OT_merge(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Merge";
+	ot->idname= "MESH_OT_merge";
+	
+	/* api callbacks */
+	ot->exec= merge_exec;
+	ot->invoke= WM_menu_invoke;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 6, "Type", "Merge method to use.");
+	RNA_def_enum_funcs(prop, merge_type_itemf);
+	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
+}
+
+/************************ Vertex Path Operator *************************/
+
+typedef struct PathNode {
 	int u;
 	int visited;
 	ListBase edges;
 } PathNode;
 
-typedef struct PathEdge{
+typedef struct PathEdge {
 	struct PathEdge *next, *prev;
 	int v;
 	float w;
@@ -5957,43 +6046,46 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
 }
 
+/********************** Region/Loop Operators *************************/
+
 static int region_to_loop(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	EditEdge *eed;
 	EditFace *efa;
+	int selected= 0;
 	
-	if(em->totfacesel){
-		for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
-		
-		for(efa=em->faces.first; efa; efa=efa->next){
-			if(efa->f&SELECT){
-				efa->e1->f1++;
-				efa->e2->f1++;
-				efa->e3->f1++;
-				if(efa->e4)
-					efa->e4->f1++;
-			}
-		}
-		
-		EM_clear_flag_all(em, SELECT);
-		
-		for(eed=em->edges.first; eed; eed=eed->next){
-			if(eed->f1 == 1) EM_select_edge(eed, 1);
-		}
-		
-		em->selectmode = SCE_SELECT_EDGE;
-		EM_selectmode_set(em);
-	//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
+	
+	for(efa=em->faces.first; efa; efa=efa->next){
+		if(efa->f&SELECT){
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4)
+				efa->e4->f1++;
 
-//		if (EM_texFaceCheck())
+			selected= 1;
+		}
+	}
 
+	if(!selected)
+		return OPERATOR_CANCELLED;
+	
+	EM_clear_flag_all(em, SELECT);
+	
+	for(eed=em->edges.first; eed; eed=eed->next){
+		if(eed->f1 == 1) EM_select_edge(eed, 1);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	em->selectmode = SCE_SELECT_EDGE;
+	EM_selectmode_set(em);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -6165,12 +6257,10 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	}
 	
 	freecollections(&allcollections);
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-//	if (EM_texFaceCheck())
+	BKE_mesh_end_editmesh(obedit->data, em);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	BKE_mesh_end_editmesh(obedit->data, em);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -6188,6 +6278,7 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** UV/Color Operators *************************/
 
 // XXX please check if these functions do what you want them to
 /* texface and vertex color editmode tools for the face menu */
@@ -6199,18 +6290,16 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	EditFace *efa;
-	short change = 0, ccw;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
-	int shift = 0; // XXX
+	int dir= RNA_enum_get(op->ptr, "direction");
 
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
-	
-	ccw = (shift);
 	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
@@ -6218,7 +6307,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 			u1= tf->uv[0][0];
 			v1= tf->uv[0][1];
 			
-			if (ccw) {
+			if (dir == DIRECTION_CCW) {
 				if(efa->v4) {
 					tf->uv[0][0]= tf->uv[3][0];
 					tf->uv[0][1]= tf->uv[3][1];
@@ -6276,23 +6365,21 @@ static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	EditFace *efa;
-	short change = 0, altaxis;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
-	int shift= 0; // XXX
+	int axis= RNA_enum_get(op->ptr, "axis");
 	
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 	
-	altaxis = (shift);
-	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (altaxis) {
+			if (axis == AXIS_Y) {
 				u1= tf->uv[1][0];
 				v1= tf->uv[1][1];
 				if(efa->v4) {
@@ -6368,24 +6455,22 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	EditFace *efa;
-	short change = 0, ccw;
+	short change = 0;
 	MCol tmpcol, *mcol;
-	int shift= 0; // XXX
+	int dir= RNA_enum_get(op->ptr, "direction");
 	
 	if (!EM_vertColorCheck(em)) {
-		BKE_report(op->reports, RPT_ERROR, "mesh has no color layers");
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
-	
-	ccw = (shift);
 	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 			tmpcol= mcol[0];
 			
-			if (ccw) {
+			if (dir == DIRECTION_CCW) {
 				if(efa->v4) {
 					mcol[0]= mcol[3];
 					mcol[3]= mcol[2];
@@ -6428,9 +6513,9 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	EditFace *efa;
-	short change = 0, altaxis;
+	short change = 0;
 	MCol tmpcol, *mcol;
-	int shift= 0; // XXX
+	int axis= RNA_enum_get(op->ptr, "axis");
 	
 	if (!EM_vertColorCheck(em)) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers");
@@ -6438,12 +6523,10 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	altaxis = (shift);
-	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-			if (altaxis) {
+			if (axis == AXIS_Y) {
 				tmpcol= mcol[1];
 				mcol[1]= mcol[2];
 				mcol[2]= tmpcol;
@@ -6491,6 +6574,9 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around.");
 }
 
 void MESH_OT_uvs_mirror(wmOperatorType *ot)
@@ -6505,6 +6591,9 @@ void MESH_OT_uvs_mirror(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
@@ -6519,6 +6608,9 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around.");
 }
 
 void MESH_OT_colors_mirror(wmOperatorType *ot)
@@ -6533,22 +6625,34 @@ void MESH_OT_colors_mirror(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
 }
 
+/********************** Subdivide Operator *************************/
+
 static int subdivide_exec(bContext *C, wmOperator *op)
-{
+{	
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	
-	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-		
-	BKE_mesh_end_editmesh(obedit->data, em);
+	int cuts= RNA_int_get(op->ptr,"number_cuts");
+	float smooth= 0.292f*RNA_float_get(op->ptr, "smoothness");
+	float fractal= RNA_float_get(op->ptr, "fractal")/100;
+	int flag= 0;
+
+	if(smooth != 0.0f)
+		flag |= B_SMOOTH;
+	if(fractal != 0.0f)
+		flag |= B_FRACTAL;
+
+	esubdivideflag(obedit, em, 1, smooth, fractal, scene->toolsettings->editbutflag|flag, cuts, 0);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_subdivide(wmOperatorType *ot)
@@ -6563,173 +6667,14 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int subdivide_multi_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	
-	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
-		
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_multi(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Multi";
-	ot->idname= "MESH_OT_subdivide_multi";
-	
-	/* api callbacks */
-	ot->exec= subdivide_multi_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 100, "Number of Cuts", "", 1, INT_MAX);
-}
-
-static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
-		
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_multi_fractal(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Multi Fractal";
-	ot->idname= "MESH_OT_subdivide_multi_fractal";
-	
-	/* api callbacks */
-	ot->exec= subdivide_multi_fractal_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 100, "Number of Cuts", "", 1, INT_MAX);
-	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
 }
 
-static int subdivide_smooth_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-
-	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-		
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_smooth(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Smooth";
-	ot->idname= "MESH_OT_subdivide_smooth";
-	
-	/* api callbacks */
-	ot->exec= subdivide_smooth_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
-}
-
-static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
-	layout= uiPupMenuLayout(pup);
-	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
-}
-
-static int subdivs_exec(bContext *C, wmOperator *op)
-{	
-	switch(RNA_int_get(op->ptr, "type"))
-	{
-		case 0: // simple
-			subdivide_exec(C,op);
-			break;
-		case 1: // multi
-			subdivide_multi_exec(C,op);
-			break;
-		case 2: // fractal;
-			subdivide_multi_fractal_exec(C,op);
-			break;
-		case 3: //smooth
-			subdivide_smooth_exec(C,op);
-			break;
-	}
-					 
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_subdivs(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", 0, "Simple", ""},
-		{1, "MULTI", 0, "Multi", ""},
-		{2, "FRACTAL", 0, "Fractal", ""},
-		{3, "SMOOTH", 0, "Smooth", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "subdivs";
-	ot->idname= "MESH_OT_subdivs";
-	
-	/* api callbacks */
-	ot->invoke= subdivs_invoke;
-	ot->exec= subdivs_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/*props */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
-	
-	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 10, "Number of Cuts", "", 1, INT_MAX);
-	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
-		
-}
-
-/* ************************************* */
+/********************** Fill Operators *************************/
 
 /* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
 edge/face flags, with very mixed results.... */
@@ -6975,7 +6920,6 @@ static void fill_mesh(EditMesh *em)
 
 }
 
-
 static int fill_mesh_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -6996,7 +6940,7 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fill Mesh";
+	ot->name= "Fill";
 	ot->idname= "MESH_OT_fill";
 	
 	/* api callbacks */
@@ -7036,6 +6980,8 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+/********************** Quad/Tri Operators *************************/
 
 static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
@@ -7124,13 +7070,29 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** Smooth/Solid Operators *************************/
+
+void mesh_set_smooth_faces(EditMesh *em, short smooth)
+{
+	EditFace *efa;
+
+	if(em==NULL) return;
+	
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		if(efa->f & SELECT) {
+			if(smooth) efa->flag |= ME_SMOOTH;
+			else efa->flag &= ~ME_SMOOTH;
+		}
+	}
+}
+
 static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	
-	mesh_set_smooth_faces(em,1);
+	mesh_set_smooth_faces(em, 1);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -7143,7 +7105,7 @@ static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth Face Shading";
+	ot->name= "Shade Smooth";
 	ot->idname= "MESH_OT_faces_shade_smooth";
 	
 	/* api callbacks */
@@ -7160,7 +7122,7 @@ static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	
-	mesh_set_smooth_faces(em,0);
+	mesh_set_smooth_faces(em, 0);
 	
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -7171,7 +7133,7 @@ static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 void MESH_OT_faces_shade_solid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flat Face Shading";
+	ot->name= "Shade Flat";
 	ot->idname= "MESH_OT_faces_shade_solid";
 	
 	/* api callbacks */

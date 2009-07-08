@@ -68,7 +68,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_parent_clear);
 	WM_operatortype_append(OBJECT_OT_track_set);
 	WM_operatortype_append(OBJECT_OT_track_clear);
-	WM_operatortype_append(OBJECT_OT_select_invert);
+	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all_toggle);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
@@ -139,7 +139,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
