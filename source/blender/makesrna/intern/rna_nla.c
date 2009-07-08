@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include <math.h>
 
+/* needed for some of the validation stuff... */
+#include "BKE_nla.h"
+
 /* temp constant defined for these funcs only... */
 #define NLASTRIP_MIN_LEN_THRESH 	0.1f
 
@@ -196,6 +199,32 @@ static void rna_NlaStrip_action_end_frame_set(PointerRNA *ptr, float value)
 	data->actend= value;
 }
 
+static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, int value)
+{
+	NlaStrip *data= (NlaStrip*)ptr->data;
+	
+	if (value) {
+		/* set the flag, then make sure a curve for this exists */
+		data->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+		BKE_nlastrip_validate_fcurves(data);
+	}
+	else
+		data->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
+}
+
+static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
+{
+	NlaStrip *data= (NlaStrip*)ptr->data;
+	
+	if (value) {
+		/* set the flag, then make sure a curve for this exists */
+		data->flag |= NLASTRIP_FLAG_USR_TIME;
+		BKE_nlastrip_validate_fcurves(data);
+	}
+	else
+		data->flag &= ~NLASTRIP_FLAG_USR_TIME;
+}
+
 #else
 
 void rna_def_nlastrip(BlenderRNA *brna)
@@ -321,14 +350,15 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate.");
 	
+		// TODO: should the animated_influence/time settings be animatable themselves?
 	prop= RNA_def_property(srna, "animated_influence", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, not editable
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_INFLUENCE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaStrip_animated_influence_set");
 	RNA_def_property_ui_text(prop, "Animated Influence", "Influence setting is controlled by an F-Curve rather than automatically determined.");
 	
 	prop= RNA_def_property(srna, "animated_time", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, not editable
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_INFLUENCE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaStrip_animated_time_set");
 	RNA_def_property_ui_text(prop, "Animated Strip Time", "Strip time is controlled by an F-Curve rather than automatically determined.");
 	
 	/* settings */

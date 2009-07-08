@@ -80,8 +80,12 @@ short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
 /* ............ */
 
 struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
+
 short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
 
+void BKE_nlastrip_validate_fcurves(struct NlaStrip *strip);
+
+/* ............ */
 
 void BKE_nla_action_pushdown(struct AnimData *adt);
 

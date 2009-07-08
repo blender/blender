@@ -271,7 +271,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		uiItemR(row, NULL, ICON_ACTION, &strip_ptr, "action", 0, 0, 0);
 		
 	/* action extents */
-	// XXX custom names were used here... probably not necessary in future?
+	// XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
 	column= uiLayoutColumn(layout, 1);
 		uiItemL(column, "Action Extents:", 0);
 		uiItemR(column, "Start Frame", 0, &strip_ptr, "action_start_frame", 0, 0, 0);
@@ -289,7 +289,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 {
 	PointerRNA strip_ptr;
 	uiLayout *layout= pa->layout;
-	uiLayout *column;
+	uiLayout *column, *subcolumn;
 	uiBlock *block;
 
 	/* check context and also validity of pointer */
@@ -300,14 +300,19 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
 	column= uiLayoutColumn(layout, 1);
-	uiLayoutSetEnabled(column, 0);		// XXX for now, don't allow user to edit
 		uiItemR(column, NULL, 0, &strip_ptr, "animated_influence", 0, 0, 0);
-		uiItemR(column, NULL, 0, &strip_ptr, "influence", 0, 0, 0);
 		
+		subcolumn= uiLayoutColumn(column, 1);
+		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "animated_influence"));	
+			uiItemR(subcolumn, NULL, 0, &strip_ptr, "influence", 0, 0, 0);
+		
+	
 	column= uiLayoutColumn(layout, 1);
-	uiLayoutSetEnabled(column, 0);		// XXX for now, don't allow user to edit
 		uiItemR(column, NULL, 0, &strip_ptr, "animated_time", 0, 0, 0);
-		uiItemR(column, NULL, 0, &strip_ptr, "strip_time", 0, 0, 0);
+		
+		subcolumn= uiLayoutColumn(column, 1);
+		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "animated_time"));
+			uiItemR(subcolumn, NULL, 0, &strip_ptr, "strip_time", 0, 0, 0);
 }
 
 /* F-Modifiers for active NLA-Strip */

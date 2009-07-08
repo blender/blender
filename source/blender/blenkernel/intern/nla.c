@@ -1049,6 +1049,58 @@ short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 	/* should be first now */
 	return 1;
 }
+
+/* Validate the NLA-Strips 'control' F-Curves based on the flags set*/
+void BKE_nlastrip_validate_fcurves (NlaStrip *strip) 
+{
+	FCurve *fcu;
+	
+	/* sanity checks */
+	if (strip == NULL)
+		return;
+	
+	/* if controlling influence... */
+	if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
+		/* try to get F-Curve */
+		fcu= list_find_fcurve(&strip->fcurves, "influence", 0);
+		
+		/* add one if not found */
+		if (fcu == NULL) {
+			/* make new F-Curve */
+			fcu= MEM_callocN(sizeof(FCurve), "NlaStrip FCurve");
+			BLI_addtail(&strip->fcurves, fcu);
+			
+			/* set default flags */
+			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+			
+			/* store path - make copy, and store that */
+			fcu->rna_path= BLI_strdupn("influence", 9);
+			
+			// TODO: insert a few keyframes to ensure default behaviour?
+		}
+	}
+	
+	/* if controlling time... */
+	if (strip->flag & NLASTRIP_FLAG_USR_TIME) {
+		/* try to get F-Curve */
+		fcu= list_find_fcurve(&strip->fcurves, "strip_time", 0);
+		
+		/* add one if not found */
+		if (fcu == NULL) {
+			/* make new F-Curve */
+			fcu= MEM_callocN(sizeof(FCurve), "NlaStrip FCurve");
+			BLI_addtail(&strip->fcurves, fcu);
+			
+			/* set default flags */
+			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+			
+			/* store path - make copy, and store that */
+			fcu->rna_path= BLI_strdupn("strip_time", 10);
+			
+			// TODO: insert a few keyframes to ensure default behaviour?
+		}
+	}
+}
  
 /* Tools ------------------------------------------- */
 
