@@ -182,14 +182,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\BIF_retopo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\include\BIF_transform.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_anim_api.h"
 				>
 			</File>
@@ -262,11 +254,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_physics.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_pointcache.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_retopo.h"
 				>
 			</File>
 			<File
@@ -424,10 +424,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_widgets.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\interface\keyval.c"
 				>
 			</File>
 			<File
