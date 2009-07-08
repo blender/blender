@@ -1430,6 +1430,31 @@ void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 
 /* --------------- API/Per-Datablock Handling ------------------- */
 
+/* Checks if some F-Curve has a keyframe for a given frame */
+short fcurve_frame_has_keyframe (FCurve *fcu, float frame, short filter)
+{
+	/* quick sanity check */
+	if (fcu == NULL)
+		return 0;
+	
+	/* we either include all regardless of muting, or only non-muted  */
+	if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED)==0) {
+		short replace = -1;
+		int i = binarysearch_bezt_index(fcu->bezt, frame, fcu->totvert, &replace);
+		
+		/* binarysearch_bezt_index will set replace to be 0 or 1
+		 * 	- obviously, 1 represents a match
+		 */
+		if (replace) {			
+			/* sanity check: 'i' may in rare cases exceed arraylen */
+			if ((i >= 0) && (i < fcu->totvert))
+				return 1;
+		}
+	}
+	
+	return 0;
+}
+
 /* Checks whether an Action has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
@@ -1451,20 +1476,8 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		/* only check if there are keyframes (currently only of type BezTriple) */
 		if (fcu->bezt && fcu->totvert) {
-			/* we either include all regardless of muting, or only non-muted  */
-			if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED)==0) {
-				short replace = -1;
-				int i = binarysearch_bezt_index(fcu->bezt, frame, fcu->totvert, &replace);
-				
-				/* binarysearch_bezt_index will set replace to be 0 or 1
-				 * 	- obviously, 1 represents a match
-				 */
-				if (replace) {			
-					/* sanity check: 'i' may in rare cases exceed arraylen */
-					if ((i >= 0) && (i < fcu->totvert))
-						return 1;
-				}
-			}
+			if (fcurve_frame_has_keyframe(fcu, frame, filter))
+				return 1;
 		}
 	}
 	

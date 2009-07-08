@@ -291,6 +291,9 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
 	
+	/* draw influence 'curve' */
+	// TODO:
+	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
 	 */
@@ -378,11 +381,9 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 		
 		case NLASTRIP_TYPE_CLIP:	/* Action-Clip (default) */
 		default:
-			if (strip->act)
-				sprintf(str, "%d | Act: %s | %.2f %s %.2f", 
-					index, strip->act->id.name+2, strip->start, dir, strip->end);
-			else
-				sprintf(str, "%d | Act: <NONE>", index); // xxx... need a better format?
+			sprintf(str, "%d | Act: %s | %.2f %s %.2f", 
+				index, ((strip->act)?strip->act->id.name+2:"<NONE>"), 
+				strip->start, dir, strip->end);
 			break;
 	}
 	
@@ -396,9 +397,9 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	 *	- padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
-	rect.xmin= strip->start + 2;
+	rect.xmin= strip->start + 0.5f;
 	rect.ymin= yminc;
-	rect.xmax= strip->end - 2;
+	rect.xmax= strip->end - 0.5f;
 	rect.ymax= ymaxc;
 	
 	/* add this string to the cache of texts to draw*/

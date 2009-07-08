@@ -199,6 +199,11 @@ void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
 
 /* ************ Keyframe Checking ******************** */
 
+/* Lesser Keyframe Checking API call:
+ *	- Used for the buttons to check for keyframes...
+ */
+short fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
+
 /* Main Keyframe Checking API call:
  * Checks whether a keyframe exists for the given ID-block one the given frame.
  *  - It is recommended to call this method over the other keyframe-checkers directly,

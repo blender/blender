@@ -18,6 +18,8 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+#include "ED_keyframing.h"
+
 #include "UI_interface.h"
 
 #include "WM_api.h"
@@ -47,7 +49,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 						if (fcu) {
 							but->flag |= UI_BUT_ANIMATED;
 							
-							if (on_keyframe_fcurve(fcu, cfra))
+							if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 								but->flag |= UI_BUT_ANIMATED_KEY;
 						}
 					}
