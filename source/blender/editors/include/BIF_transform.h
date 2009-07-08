@@ -128,8 +128,8 @@ void BIF_selectOrientation(void);
 void initManipulator(int mode);
 void ManipulatorTransform();
 
-//int BIF_do_manipulator(struct ScrArea *sa);
-//void BIF_draw_manipulator(struct ScrArea *sa);
+int BIF_do_manipulator(struct bContext *C, short mval[2]);
+void BIF_draw_manipulator(const struct bContext *C);
 
 /* Snapping */
 

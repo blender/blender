@@ -70,6 +70,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "BLF_api.h"
@@ -2019,7 +2020,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
-//	BIF_draw_manipulator(ar);
+	BIF_draw_manipulator(C);
 	
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;

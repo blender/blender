@@ -402,7 +402,7 @@ int BIF_countTransformOrientation(const bContext *C) {
 	return count;
 }
 
-void applyTransformOrientation(bContext *C, TransInfo *t) {
+void applyTransformOrientation(const bContext *C, TransInfo *t) {
 	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
@@ -532,7 +532,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	}
 }
 
-int getTransformOrientation(bContext *C, float normal[3], float plane[3], int activeOnly)
+int getTransformOrientation(const bContext *C, float normal[3], float plane[3], int activeOnly)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);

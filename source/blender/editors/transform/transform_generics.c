@@ -114,8 +114,6 @@
 
 extern ListBase editelems;
 
-extern TransInfo Trans;	/* From transform.c */
-
 /* ************************** Functions *************************** */
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3])
@@ -1275,9 +1273,12 @@ void calculatePropRatio(TransInfo *t)
 	}
 }
 
+/* XXX only to make manipulators run now */
 TransInfo *BIF_GetTransInfo()
 {
-	return NULL;
+	static struct TransInfo trans;
+	memset(&trans, 0, sizeof(struct TransInfo));
+	return &trans;
 }
 
 float get_drawsize(ARegion *ar, float *co)

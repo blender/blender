@@ -79,6 +79,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_smoothview);
 	WM_operatortype_append(VIEW3D_OT_render_border);
 	WM_operatortype_append(VIEW3D_OT_zoom_border);
+	WM_operatortype_append(VIEW3D_OT_manipulator);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
@@ -136,6 +137,7 @@ void view3d_keymap(wmWindowManager *wm)
 	km = WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(km->ptr, "snap", 1);
 
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewrotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
