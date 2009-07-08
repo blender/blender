@@ -45,6 +45,9 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
 void fdrawXORellipse(float xofs, float yofs, float hw, float hh);
 void fdrawXORcirc(float xofs, float yofs, float rad);
 
+/* glStipple defines */
+extern unsigned char stipple_halftone[128];
+extern unsigned char stipple_quarttone[128];
 
 	/**
 	 * Draw a lined (non-looping) arc with the given
@@ -201,7 +204,6 @@ void bglFlush(void);
 int is_a_really_crappy_intel_card(void);
 void set_inverted_drawing(int enable);
 void setlinestyle(int nr);
-
 
 /* own working polygon offset */
 void bglPolygonOffset(float viewdist, float dist);

@@ -82,8 +82,10 @@ void MESH_OT_primitive_grid_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_monkey_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_uv_sphere_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
-void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
+
 void MESH_OT_edge_face_add(struct wmOperatorType *ot);
+void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
+void MESH_OT_duplicate_add(struct wmOperatorType *ot);
 
 void MESH_OT_fgon_make(struct wmOperatorType *ot);
 void MESH_OT_fgon_clear(struct wmOperatorType *ot);

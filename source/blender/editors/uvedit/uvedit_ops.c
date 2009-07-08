@@ -54,11 +54,10 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_transform.h"
-
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

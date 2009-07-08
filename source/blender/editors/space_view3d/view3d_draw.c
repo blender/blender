@@ -70,7 +70,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "BLF_api.h"
@@ -81,6 +80,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 #include "UI_interface.h"

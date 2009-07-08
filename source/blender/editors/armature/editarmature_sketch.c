@@ -65,7 +65,7 @@
 #include "BIF_generate.h"
 //#include "BIF_interface.h"
 
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

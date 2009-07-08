@@ -46,8 +46,6 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_transform.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -55,6 +53,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "view3d_intern.h"
 

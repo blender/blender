@@ -369,7 +369,6 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	/* same calculation as in lrectwrite: area left and down*/
 	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
 	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
 

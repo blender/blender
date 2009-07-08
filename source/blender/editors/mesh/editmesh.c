@@ -74,12 +74,12 @@
 
 #include "LBM_fluidsim.h"
 
-#include "BIF_retopo.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_util.h"
+#include "ED_retopo.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "RNA_access.h"

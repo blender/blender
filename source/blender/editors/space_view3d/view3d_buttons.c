@@ -71,7 +71,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -87,6 +86,7 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 

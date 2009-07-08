@@ -64,7 +64,6 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "BIF_gl.h"
 
 #include "RNA_access.h"
@@ -79,6 +78,7 @@
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "ED_view3d.h"
 
 #include "armature_intern.h"

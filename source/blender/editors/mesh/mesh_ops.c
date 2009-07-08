@@ -54,54 +54,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
-
-#include "BIF_transform.h"
 
 #include "mesh_intern.h"
 
-
-static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(ob->data);
-
-	adduplicateflag(em, SELECT);
-	
-	BKE_mesh_end_editmesh(ob->data, em);
-	return OPERATOR_FINISHED;
-}
-
-static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	WM_cursor_wait(1);
-	mesh_add_duplicate_exec(C, op);
-	WM_cursor_wait(0);
-	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void MESH_OT_duplicate_add(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->idname= "MESH_OT_duplicate_add";
-	
-	/* api callbacks */
-	ot->invoke= mesh_add_duplicate_invoke;
-	ot->exec= mesh_add_duplicate_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* to give to transform */
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
-}
 
 
 /* ************************** registration **********************************/

@@ -41,8 +41,6 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "BIF_transform.h" /* transform keymap */
-
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -54,6 +52,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_transform.h" /* transform keymap */
 
 #include "sequencer_intern.h"
 

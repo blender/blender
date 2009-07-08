@@ -66,7 +66,6 @@
 #include "BLI_editVert.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -75,6 +74,7 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 
 #include "UI_resources.h"

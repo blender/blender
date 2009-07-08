@@ -116,11 +116,10 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
-
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 

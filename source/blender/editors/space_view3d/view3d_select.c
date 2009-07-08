@@ -66,7 +66,6 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
-#include "BIF_retopo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -79,6 +78,7 @@
 #include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_retopo.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"

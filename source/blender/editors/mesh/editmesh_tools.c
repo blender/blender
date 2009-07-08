@@ -83,10 +83,10 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_view3d.h"
-#include "ED_util.h"
 #include "ED_screen.h"
-#include "BIF_transform.h"
+#include "ED_transform.h"
+#include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 

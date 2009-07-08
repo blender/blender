@@ -63,7 +63,6 @@
 #include "ED_previewrender.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -75,6 +74,7 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 #include "RNA_access.h"

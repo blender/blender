@@ -71,6 +71,7 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 #include "WM_api.h"
@@ -81,7 +82,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_transform.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"

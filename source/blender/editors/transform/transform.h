@@ -30,7 +30,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 /* ************************** Types ***************************** */
 
