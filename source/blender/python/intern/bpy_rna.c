@@ -40,6 +40,10 @@
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
 
+/* only for keyframing */
+#include "DNA_scene_types.h"
+#include "ED_keyframing.h"
+
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
@@ -312,10 +316,17 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */
 			RNA_property_enum_items(ptr, prop, &item, NULL);
-			if(item[0].identifier)
-				ret = PyUnicode_FromString( item[0].identifier );
-			else
+			if(item->identifier) {
+				ret = PyUnicode_FromString( item->identifier );
+			}
+			else {
+				/* prefer not fail silently incase of api errors, maybe disable it later */
+				char error_str[128];
+				sprintf(error_str, "RNA Warning: Current value \"%d\" matches no enum", val);
+				PyErr_Warn(PyExc_RuntimeWarning, error_str);
+
 				ret = PyUnicode_FromString( "" );
+			}
 
 			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;*/
@@ -913,8 +924,12 @@ static PyObject *prop_subscript_collection(BPy_PropertyRNA * self, PyObject *key
 	if (PyUnicode_Check(key)) {
 		return prop_subscript_collection_str(self, _PyUnicode_AsString(key));
 	}
-	else if (PyLong_Check(key)) {
-		return prop_subscript_collection_int(self, PyLong_AsSsize_t(key));
+	else if (PyIndex_Check(key)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+
+		return prop_subscript_collection_int(self, i);
 	}
 #if PY_VERSION_HEX >= 0x03000000
 	else if (PySlice_Check(key)) {
@@ -947,7 +962,10 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 	/*if (PyUnicode_Check(key)) {
 		return prop_subscript_array_str(self, _PyUnicode_AsString(key));
 	} else*/
-	if (PyLong_Check(key)) {
+	if (PyIndex_Check(key)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
 		return prop_subscript_array_int(self, PyLong_AsSsize_t(key));
 	}
 #if PY_VERSION_HEX >= 0x03000000
@@ -1037,8 +1055,12 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA * self, PyObject *key, PyOb
 		return -1;
 	}
 
-	if (PyLong_Check(key)) {
-		return prop_subscript_ass_array_int(self, PyLong_AsSsize_t(key), value);
+	if (PyIndex_Check(key)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+
+		return prop_subscript_ass_array_int(self, i, value);
 	}
 #if PY_VERSION_HEX >= 0x03000000
 	else if (PySlice_Check(key)) {
@@ -1105,6 +1127,25 @@ static PySequenceMethods pyrna_prop_as_sequence = {
 	NULL,		/* sq_ass_slice */
 	(objobjproc)pyrna_prop_contains,	/* sq_contains */
 };
+
+
+static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA * self, PyObject *args)
+{
+	char *path;
+	int index= 0;
+	float cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+
+	if(!RNA_struct_is_ID(self->ptr.type)) {
+		PyErr_SetString( PyExc_TypeError, "StructRNA - keyframe_insert only for ID type");
+		return NULL;
+	}
+
+	if (!PyArg_ParseTuple(args, "s|if:keyframe_insert", &path, &index, &cfra))
+		return NULL;
+
+	return PyBool_FromLong( insert_keyframe((ID *)self->ptr.data, NULL, NULL, path, index, cfra, 0));
+}
+
 
 static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 {
@@ -1645,6 +1686,10 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 }
 
 static struct PyMethodDef pyrna_struct_methods[] = {
+
+	/* maybe this become and ID function */
+	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

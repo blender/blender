@@ -1622,10 +1622,20 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	Py_FrozenFlag=1;
 	Py_Initialize();
 	
+	if(argv && first_time) { /* browser plugins dont currently set this */
 #if (PY_VERSION_HEX < 0x03000000)	
-	if(argv && first_time) /* browser plugins dont currently set this */
 		PySys_SetArgv(argc, argv);
+#else
+		int i;
+		PyObject *py_argv= PyList_New(argc);
+
+		for (i=0; i<argc; i++)
+			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+
+		PySys_SetObject("argv", py_argv);
+		Py_DECREF(py_argv);
 #endif
+	}
 	//importBlenderModules()
 	
 	setSandbox(level);

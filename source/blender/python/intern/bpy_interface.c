@@ -187,7 +187,21 @@ void BPY_start_python( int argc, char **argv )
 
 	Py_Initialize(  );
 	
-	//PySys_SetArgv( argc_copy, argv_copy );
+#if (PY_VERSION_HEX < 0x03000000)
+	PySys_SetArgv( argc, argv);
+#else
+	/* sigh, why do python guys not have a char** version anymore? :( */
+	{
+		int i;
+		PyObject *py_argv= PyList_New(argc);
+
+		for (i=0; i<argc; i++)
+			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+
+		PySys_SetObject("argv", py_argv);
+		Py_DECREF(py_argv);
+	}
+#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
