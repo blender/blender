@@ -711,7 +711,7 @@ public:
 			ep.setReflective(cot);
 			ep.setReflectivity(0.0f);
 		}
-		// specular, shininess
+		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
 			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setSpecular(cot);

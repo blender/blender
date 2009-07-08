@@ -11,6 +11,7 @@
 #include "COLLADAFWMaterial.h"
 #include "COLLADAFWGeometry.h"
 #include "COLLADAFWMesh.h"
+#include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWFloatOrDoubleArray.h"
 #include "COLLADAFWArrayPrimitiveType.h"
 #include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
@@ -20,6 +21,7 @@
 #include "COLLADAFWScale.h"
 #include "COLLADAFWRotate.h"
 #include "COLLADAFWEffect.h"
+#include "COLLADAFWIndexList.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -130,6 +132,41 @@ private:
 		}
 		
 		// TODO need also for angle conversion, time conversion...
+	};
+
+	class UVDataWrapper {
+		COLLADAFW::MeshVertexData *mVData;
+	public:
+		UVDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata)
+		{}
+
+		void getUV(int uv_set_index, int uv_index, float *uv)
+		{
+			//int uv_coords_index = mVData->getInputInfosArray()[uv_set_index]->getCount() * uv_set_index + uv_index * 2;
+			int uv_coords_index = uv_index * 2;
+// 			int uv_coords_index = mVData->getLength(uv_set_index) * uv_set_index + uv_index * 2;
+			switch(mVData->getType()) {
+			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+				{
+					COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();					
+					uv[0] = (*values)[uv_coords_index];
+					uv[1] = (*values)[uv_coords_index + 1];
+					
+					break;
+				}
+			case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+				{
+					COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
+					
+					uv[0] = (float)(*values)[uv_coords_index];
+					uv[1] = (float)(*values)[uv_coords_index + 1];
+					
+					break;
+				}
+			}
+			//uv[0] = mVData;
+			//uv[1] = ...;
+		}
 	};
 
 public:
@@ -380,6 +417,27 @@ public:
 		return true;
 	}
 
+	// utility functions
+
+	void set_tri_or_quad_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+					COLLADAFW::IndexList& index_list, int index, bool quad)
+	{
+		int uv_indices[4] = {
+			index_list.getIndex(index),
+			index_list.getIndex(index + 1),
+			index_list.getIndex(index + 2),
+			0
+		};
+
+		if (quad) uv_indices[3] = index_list.getIndex(index + 3);
+
+		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
+		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
+		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
+
+		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+	}
+
 	/** When this method is called, the writer must write the geometry.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeom ) 
@@ -487,24 +545,40 @@ public:
 		// allocate faces
 		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
 		me->totface = totface;
+		
+		// UVs
+		int totuvset = cmesh->getUVCoords().getInputInfosArray().getCount();
 
+		for (i = 0; i < totuvset; i++) {
+			// add new CustomData layer
+			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, totface);
+		}
+
+		if (totuvset) me->mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
+
+		UVDataWrapper uvs(cmesh->getUVCoords());
+		
 		// read faces
 		MFace *mface = me->mface;
 
 		MaterialIdPrimitiveArrayMap mat_prim_map;
-		
-		for (i = 0; i < prim_arr.getCount(); i++){
+
+		// TODO: import uv set names
+
+		for (i = 0; i < prim_arr.getCount(); i++) {
 			
  			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
-			
+
 			// faces
 			size_t prim_totface = mp->getFaceCount();
 			unsigned int *indices = mp->getPositionIndices().getData();
 			int k;
 			int type = mp->getPrimitiveType();
-
+			int index = 0;
+			
 			// since we cannot set mface->mat_nr here, we store part of me->mface in Primitive
 			Primitive prim = {mface, 0};
+			COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
 			
 			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
 				for (k = 0; k < prim_totface; k++){
@@ -513,8 +587,16 @@ public:
 					mface->v3 = indices[2];
 					
 					indices += 3;
+
+					for (int j = 0; j < totuvset; j++) {
+						// k - face index, j - uv set index
+
+						// get mtface by face index (k) and uv set index
+						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, j);
+						set_tri_or_quad_uv(&mtface[k], uvs, j, *index_list_array[j], index, false);
+					}
+					index += 3;
 					mface++;
-					
 					prim.totface++;
 				}
 			}
@@ -523,7 +605,8 @@ public:
 				COLLADAFW::Polygons::VertexCountArray& vca =
 					mpvc->getGroupedVerticesVertexCountArray();
 				for (k = 0; k < prim_totface; k++) {
-					
+
+					// face
 					if (vca[k] == 3){
 						mface->v1 = indices[0];
 						mface->v2 = indices[1];
@@ -536,11 +619,32 @@ public:
 						mface->v2 = indices[1];
 						mface->v3 = indices[2];
 						mface->v4 = indices[3];
+
+						// trick
+						if (mface->v4 == 0) {
+							mface->v4 = mface->v1;
+							mface->v1 = mface->v2;
+							mface->v2 = mface->v3;
+							mface->v3 = 0;
+						}
+
 						indices +=4;
 						
 					}
-					mface++;
 
+					// set mtface for each uv set
+					// it is assumed that all primitives have equal number of UV sets
+
+					for (int j = 0; j < totuvset; j++) {
+						// k - face index, j - uv set index
+
+						// get mtface by face index (k) and uv set index
+						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, j);
+
+						set_tri_or_quad_uv(&mtface[k], uvs, j, *index_list_array[j], index, mface->v4 != 0);
+					}
+					index += mface->v4 ? 4 : 3;
+					mface++;
 					prim.totface++;
 				}
 			}
@@ -548,50 +652,8 @@ public:
 			// check if primitive has material
 			mat_prim_map[mp->getMaterialId()].push_back(prim);
 		}
-
+		
 		geom_uid_mat_mapping_map[cgeom->getUniqueId()] = mat_prim_map;
-
-		/*
-		// UVs
-		MeshVertexData& uvcoord = cmesh->getUVCoords();
-		
-		// get number of UV sets
-		int totuvset = uvcoord.getNumInputInfos();
-		
-		// for each uv set 
-		for (i = 0; i < totuvset; i++) {
-			
-			std::string uv_name = uvcoord.getName(i);
-			me->mtface = CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, uv_name);
-			
-			size_t stride = uvcoord.getStride(i);
-			size_t totindex = uvcoord.getLength(i);
-			size_t totuv = (totindex/stride);
-			size_t start = i * stride;
-			
-			// for each uv coord in this set 
-			for (int j = start; j < totindex; j += stride) {
-				
-				switch(uvcoord.getType()) {
-				case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
-					COLLADAFW::ArrayPrimitiveType<float>* values = uvcoord.getFloatValues();
-					
-					float u = (*values)[j];
-					float v = (*values)[j + 1];
-					
-					break;
-				case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
-					COLLADAFW::ArrayPrimitiveType<double>* values = uvcoord.getDoubleValues();
-					
-					float u = (float)(*values)[j];
-					float v = (float)(*values)[j + 1];
-					
-					break;
-				}
-				
-			}
-		}
-		*/
 		
 		// normals
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
@@ -703,6 +765,8 @@ public:
 	{
 		/*std::string name = image->getOriginalId();
 		  BKE_add_image_file(name);*/
+		const std::string& filepath = image->getImageURI().toNativePath();
+		BKE_add_image_file((char*)filepath.c_str(), 0);
 		return true;
 	}
 
