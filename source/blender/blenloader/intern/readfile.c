@@ -9086,7 +9086,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->mr) {
+				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
 					MultiresLevel *lvl;
 					ModifierData *md;
 					MultiresModifierData *mmd;
