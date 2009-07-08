@@ -734,13 +734,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display Mode", "The view mode to use for displaying sequencer output.");
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 		
 	/* flag's */
 	prop= RNA_def_property(srna, "draw_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAWFRAMES);
 	RNA_def_property_ui_text(prop, "Draw Frames", "Draw frames rather then seconds.");
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "transform_markers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MARKER_TRANS);
@@ -748,18 +748,18 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "seperate_color_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_COLOR_SEPERATED);
-	RNA_def_property_ui_text(prop, "Transform Markers", "Seperate color channels in preview.");
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_ui_text(prop, "Seperate Colors", "Seperate color channels in preview.");
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "draw_safe_margin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_SAFE_MARGINS);
 	RNA_def_property_ui_text(prop, "Safe Margin", "Draw title safe margins in preview.");	
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_GPENCIL);
 	RNA_def_property_ui_text(prop, "Use Grease Pencil", "Display and edit the grease pencil freehand annotations overlay.");	
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 	
 	/* grease pencil */
 	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
@@ -771,13 +771,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "chanshown");
 	RNA_def_property_ui_text(prop, "Display Channel", "The channel number shown in the image preview. 0 is the result of all strips combined.");
 	RNA_def_property_range(prop, 0, 32); // MAXSEQ --- todo, move from BKE_sequence.h
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "draw_overexposed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "zebra");
 	RNA_def_property_ui_text(prop, "Show Overexposed", "Show overexposed areas with zebra stripes.");
 	RNA_def_property_range(prop, 0, 110);
-	RNA_def_property_update(prop, ND_SEQUENCER|ND_DISPLAY, NULL); // review notifier
+	RNA_def_property_update(prop, ND_SEQUENCER|NC_WINDOW, NULL);
 	
 	
 	/* not sure we need rna access to these but adding anyway */
