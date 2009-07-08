@@ -37,6 +37,7 @@
 #include "rayobject_rtbuild.h"
 #include "rayobject.h"
 
+#define DFS_STACK_SIZE	64
 #define DYNAMIC_ALLOC
 
 //#define SPLIT_OVERLAP_MEAN_LONGEST_AXIS		/* objects mean split on the longest axis, childs BB are allowed to overlap */
@@ -47,6 +48,7 @@
 typedef struct BVHTree BVHTree;
 
 static int  bvh_intersect(BVHTree *obj, Isect *isec);
+static int  bvh_intersect_stack(BVHTree *obj, Isect *isec);
 static void bvh_add(BVHTree *o, RayObject *ob);
 static void bvh_done(BVHTree *o);
 static void bvh_free(BVHTree *o);
@@ -54,7 +56,11 @@ static void bvh_bb(BVHTree *o, float *min, float *max);
 
 static RayObjectAPI bvh_api =
 {
+#ifdef DFS_STACK_SIZE
+	(RE_rayobject_raycast_callback) bvh_intersect_stack,
+#else
 	(RE_rayobject_raycast_callback) bvh_intersect,
+#endif
 	(RE_rayobject_add_callback)     bvh_add,
 	(RE_rayobject_done_callback)    bvh_done,
 	(RE_rayobject_free_callback)    bvh_free,
@@ -150,6 +156,55 @@ static void bvh_bb(BVHTree *obj, float *min, float *max)
 /*
  * Tree transverse
  */
+static int dfs_raycast_stack(BVHNode *root, Isect *isec)
+{
+	BVHNode *stack[DFS_STACK_SIZE];
+	int hit = 0, stack_pos = 0;
+	
+	stack[stack_pos++] = root;
+	
+	while(stack_pos)
+	{
+		BVHNode *node = stack[--stack_pos];
+		if(RayObject_isAligned(node))
+		{
+			if(RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX)
+			{
+				//push nodes in reverse visit order
+				if(isec->idot_axis[node->split_axis] < 0.0f)
+				{
+					int i;
+					for(i=0; i<BVH_NCHILDS; i++)
+						if(node->child[i] == 0) break;
+						else stack[stack_pos++] = node->child[i];
+				}
+				else
+				{
+					int i;	
+					for(i=0; i<BVH_NCHILDS; i++)
+						if(node->child[i] != 0) stack[stack_pos++] = node->child[i];
+						else break;
+				}
+				assert(stack_pos <= DFS_STACK_SIZE);
+			}
+		}
+		else
+		{
+			hit |= RE_rayobject_intersect( (RayObject*)node, isec);
+			if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+		}
+	}
+	return hit;
+}
+
+static int bvh_intersect_stack(BVHTree *obj, Isect *isec)
+{
+	if(RayObject_isAligned(obj->root))
+		return dfs_raycast_stack(obj->root, isec);
+	else
+		return RE_rayobject_intersect( (RayObject*)obj->root, isec);
+}
+
 static int dfs_raycast(BVHNode *node, Isect *isec)
 {
 	int hit = 0;
