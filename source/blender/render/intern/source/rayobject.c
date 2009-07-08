@@ -400,6 +400,20 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 	else assert(0);
 }
 
+float RE_rayobject_cost(RayObject *r)
+{
+	if(RayObject_isRayFace(r))
+	{
+		return 1.0;
+	}
+	else if(RayObject_isRayAPI(r))
+	{
+		r = RayObject_align( r );
+		return r->api->cost( r );
+	}
+	else assert(0);
+}
+
 #ifdef RE_RAYCOUNTER
 void RE_RC_INFO(RayCounter *info)
 {

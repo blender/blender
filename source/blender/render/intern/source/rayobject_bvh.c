@@ -53,6 +53,7 @@ static void bvh_add(BVHTree *o, RayObject *ob);
 static void bvh_done(BVHTree *o);
 static void bvh_free(BVHTree *o);
 static void bvh_bb(BVHTree *o, float *min, float *max);
+static float bvh_cost(BVHTree *o);
 
 static RayObjectAPI bvh_api =
 {
@@ -64,7 +65,8 @@ static RayObjectAPI bvh_api =
 	(RE_rayobject_add_callback)     bvh_add,
 	(RE_rayobject_done_callback)    bvh_done,
 	(RE_rayobject_free_callback)    bvh_free,
-	(RE_rayobject_merge_bb_callback)bvh_bb
+	(RE_rayobject_merge_bb_callback)bvh_bb,
+	(RE_rayobject_cost_callback)	bvh_cost
 };
 
 typedef struct BVHNode BVHNode;
@@ -91,6 +93,7 @@ struct BVHTree
 	BVHNode *node_alloc, *node_next;
 	float *bb_alloc, *bb_next;
 #endif
+	float cost;
 	RTBuilder *builder;
 
 };
@@ -151,6 +154,12 @@ static void bvh_merge_bb(BVHNode *node, float *min, float *max)
 static void bvh_bb(BVHTree *obj, float *min, float *max)
 {
 	bvh_merge_bb(obj->root, min, max);
+}
+
+static float bvh_cost(BVHTree *obj)
+{
+	assert(obj->cost >= 0.0);
+	return obj->cost;
 }
 
 /*
@@ -336,8 +345,9 @@ static int child_id(int pid, int nchild)
 	return pid*BVH_NCHILDS+(2-BVH_NCHILDS)+nchild;
 }
 
-static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
+static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float *cost)
 {
+	*cost = 0;
 	if(rtbuild_size(builder) == 0)
 		return 0;
 
@@ -361,6 +371,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 			for(; i<BVH_NCHILDS; i++)
 				parent->child[i] = 0;
 
+			*cost = bb_area(parent->bb, parent->bb+3)*RE_rayobject_cost(child);
 			return parent;
 		}
 		else
@@ -368,6 +379,8 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 			assert(!RayObject_isAligned(child));
 			//Its a sub-raytrace structure, assume it has it own raycast
 			//methods and adding a Bounding Box arround is unnecessary
+
+			*cost = RE_rayobject_cost(child);
 			return (BVHNode*)child;
 		}
 	}
@@ -392,12 +405,16 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid)
 		parent->split_axis = builder->split_axis;
 		for(i=0; i<nc; i++)
 		{
-			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp), child_id(nid,i) );
+			float tcost;
+			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp), child_id(nid,i), &tcost );
 			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
+			
+			*cost += tcost;
 		}
 		for(; i<BVH_NCHILDS; i++)
 			parent->child[i] = 0;
 
+		*cost *= bb_area(parent->bb, parent->bb+3);
 		return parent;
 	}
 }
@@ -411,7 +428,6 @@ static void bvh_info(BVHTree *obj)
 	
 static void bvh_done(BVHTree *obj)
 {
-
 
 #ifdef DYNAMIC_ALLOC
 	int needed_nodes = (rtbuild_size(obj->builder)+1)*2;
@@ -437,7 +453,7 @@ static void bvh_done(BVHTree *obj)
 	obj->bb_next  = obj->bb_alloc;
 #endif
 	
-	obj->root = bvh_rearrange( obj, obj->builder, 1 );
+	obj->root = bvh_rearrange( obj, obj->builder, 1, &obj->cost );
 	
 #ifndef DYNAMIC_ALLOC
 	assert(obj->node_alloc+needed_nodes >= obj->node_next);

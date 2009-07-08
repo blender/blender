@@ -80,4 +80,7 @@ int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds);
 
 
+/* bb utils */
+float bb_area(float *min, float *max);
+
 #endif

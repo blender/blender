@@ -216,6 +216,7 @@ typedef struct CostObject CostObject;
 struct CostObject
 {
 	RayObject *obj;
+	float cost;
 	float bb[6];
 };
 
@@ -278,6 +279,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	else
 	{
 		float bcost = FLT_MAX;
+		float childrens_cost = 0;
 		int i, axis, baxis, boffset, k, try_axis[3];
 		CostObject *cost   = MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
 		float      *acc_bb = MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
@@ -286,12 +288,14 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		{
 			cost[i].obj = b->begin[i];
 			INIT_MINMAX(cost[i].bb, cost[i].bb+3);
-			RE_rayobject_merge_bb(b->begin[i], cost[i].bb, cost[i].bb+3);
+			RE_rayobject_merge_bb(cost[i].obj, cost[i].bb, cost[i].bb+3);
+			cost[i].cost = RE_rayobject_cost(cost[i].obj);
+			childrens_cost += cost[i].cost;
 		}
 		
 		if(b->child_sorted_axis >= 0 && b->child_sorted_axis < 3)
 		{
-			try_axis[0] = b->child_sorted_axis;
+			try_axis[0] =  b->child_sorted_axis;
 			try_axis[1] = (b->child_sorted_axis+1)%3;
 			try_axis[2] = (b->child_sorted_axis+2)%3;
 		}
@@ -304,7 +308,10 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		
 		for(axis=try_axis[k=0]; k<3; axis=try_axis[++k])
 		{
+			float left_cost, right_cost;
 			float other_bb[6];
+
+
 
 			costobject_sort(cost, cost+size, axis);
 			for(i=size-1; i>=0; i--)
@@ -330,18 +337,22 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 			INIT_MINMAX(other_bb, other_bb+3);
 			DO_MIN( cost[0].bb,   other_bb   );
 			DO_MAX( cost[0].bb+3, other_bb+3 );
+			left_cost  = cost[0].cost;
+			right_cost = childrens_cost-cost[0].cost;
+			if(right_cost < 0) right_cost = 0;
 
 			for(i=1; i<size; i++)
 			{
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
 				
-				left_side = bb_area(other_bb, other_bb+3)*(i+logf(i));
-				right_side= bb_area(acc_bb+i*6, acc_bb+i*6+3)*(size-i+logf(size-i));
+				left_side = bb_area(other_bb, other_bb+3)*left_cost;		//(i+logf(i));
+				right_side= bb_area(acc_bb+i*6, acc_bb+i*6+3)*right_cost;	//(size-i+logf(size-i));
 				
 				if(left_side > bcost) break;	//No way we can find a better heuristic in this axis
 
 				hcost = left_side+right_side;
+				assert(hcost >= 0);
 				if( hcost < bcost
 				|| (hcost == bcost && axis < baxis)) //this makes sure the tree built is the same whatever is the order of the sorting axis
 				{
@@ -351,6 +362,9 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				}
 				DO_MIN( cost[i].bb,   other_bb   );
 				DO_MAX( cost[i].bb+3, other_bb+3 );
+				left_cost  += cost[i].cost;
+				right_cost -= cost[i].cost;
+				if(right_cost < 0.0f) right_cost = 0.0;
 			}
 			
 			if(baxis == axis)

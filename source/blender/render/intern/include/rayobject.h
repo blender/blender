@@ -86,11 +86,13 @@ struct RayObject
 	
 };
 
+
 typedef int  (*RE_rayobject_raycast_callback)(RayObject *, Isect *);
-typedef void (*RE_rayobject_add_callback)(RayObject *, RayObject *);
+typedef void (*RE_rayobject_add_callback)(RayObject *raytree, RayObject *rayobject);
 typedef void (*RE_rayobject_done_callback)(RayObject *);
 typedef void (*RE_rayobject_free_callback)(RayObject *);
 typedef void (*RE_rayobject_merge_bb_callback)(RayObject *, float *min, float *max);
+typedef float (*RE_rayobject_cost_callback)(RayObject *);
 
 typedef struct RayObjectAPI
 {
@@ -99,6 +101,7 @@ typedef struct RayObjectAPI
 	RE_rayobject_done_callback		done;
 	RE_rayobject_free_callback		free;
 	RE_rayobject_merge_bb_callback	bb;
+	RE_rayobject_cost_callback		cost;
 	
 } RayObjectAPI;
 
@@ -127,6 +130,12 @@ int RE_rayobject_intersect(RayObject *r, Isect *i);
  * BB should be in format [2][3]
  */
 float RE_rayobject_bb_intersect(const Isect *i, const float *bb);
+
+/*
+ * Returns the expected cost of raycast on this node, primitives have a cost of 1
+ */
+float RE_rayobject_cost(RayObject *r);
+
 
 #define ISECT_EPSILON ((float)FLT_EPSILON)
 
