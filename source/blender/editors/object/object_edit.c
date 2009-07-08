@@ -3261,7 +3261,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
-	Object *ob= base->object;
+	Object *ob;
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= NULL;
 	int ok= 0;
@@ -3273,7 +3273,10 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		v3d= sa->spacedata.first;
 	
 	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
-	
+
+	ob = base->object;
+
+	if(ob==NULL) return;
 	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
