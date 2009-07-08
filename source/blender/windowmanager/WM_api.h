@@ -124,7 +124,7 @@ int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wm
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
-int			WM_operator_redo		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
 		/* operator api */

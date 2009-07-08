@@ -90,7 +90,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			col.itemL(text="Goal Settings:")
 			col.itemR(softbody, "goal_spring", text="Stiffness")
 			col.itemR(softbody, "goal_friction", text="Damping")
-			layout.itemR(softbody, "goal_vertex_group", text="Vertex Group")
+			layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_softbody_edge"

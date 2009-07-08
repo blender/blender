@@ -1826,7 +1826,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rekey_exec;
-	ot->invoke= WM_operator_redo;
+	ot->invoke= WM_operator_props_popup;
 	ot->poll= PE_poll;
 
 	/* flags */

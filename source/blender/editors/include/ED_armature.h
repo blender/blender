@@ -103,6 +103,7 @@ void mouse_armature(struct bContext *C, short mval[2], int extend);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
+void ED_armature_sync_selection(struct ListBase *edbo);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
 

@@ -1442,6 +1442,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				}
 			}
 			
+			ED_armature_sync_selection(arm->edbo);
 		}
 		else if(obedit->type==OB_LATTICE) {
 			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);

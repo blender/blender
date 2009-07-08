@@ -539,6 +539,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	int ofsx;
 	
 	if(panel->paneltab) return;
+	if(panel->type && (panel->type->flag & PNL_NO_HEADER)) return;
 
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
@@ -644,6 +645,14 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 
 /************************** panel alignment *************************/
 
+static int get_panel_header(Panel *pa)
+{
+	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
+		return 0;
+
+	return PNL_HEADER;
+}
+
 /* this function is needed because uiBlock and Panel itself dont
 change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
@@ -656,8 +665,8 @@ static int get_panel_real_ofsy(Panel *pa)
 
 static int get_panel_real_ofsx(Panel *pa)
 {
-	if(pa->flag & PNL_CLOSEDX) return pa->ofsx+PNL_HEADER;
-	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+PNL_HEADER;
+	if(pa->flag & PNL_CLOSEDX) return pa->ofsx+get_panel_header(pa);
+	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+get_panel_header(pa);
 	else return pa->ofsx+pa->sizex;
 }
 
@@ -762,18 +771,18 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
 	ps->pa->ofsx= 0;
-	ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-style->panelouter;
+	ps->pa->ofsy= -ps->pa->sizey-get_panel_header(ps->pa)-style->panelouter;
 
 	for(a=0; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
 		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-style->panelouter;
+			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-get_panel_header(psnext->pa)-style->panelouter;
 		}
 		else {
 			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
-			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey - psnext->pa->sizey;
+			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey + get_panel_header(ps->pa) - psnext->pa->sizey - get_panel_header(psnext->pa);
 		}
 	}
 	
@@ -1200,6 +1209,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
+	Panel *pa;
 	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
 
 	retval= WM_UI_HANDLER_CONTINUE;
@@ -1215,22 +1225,27 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 		/* check if inside boundbox */
 		inside= 0;
+		pa= block->panel;
 
-		if(block->panel && block->panel->paneltab==NULL)
-			if(block->minx <= mx && block->maxx >= mx)
-				if(block->miny <= my && block->maxy+PNL_HEADER >= my)
-					inside= 1;
+		if(!pa || pa->paneltab!=NULL)
+			continue;
+		if(pa->type && pa->type->flag & PNL_NO_HEADER)
+			continue;
+
+		if(block->minx <= mx && block->maxx >= mx)
+			if(block->miny <= my && block->maxy+PNL_HEADER >= my)
+				inside= 1;
 
 		if(inside) {
 			/* clicked at panel header? */
-			if(block->panel->flag & PNL_CLOSEDX) {
+			if(pa->flag & PNL_CLOSEDX) {
 				if(block->minx <= mx && block->minx+PNL_HEADER >= mx) 
 					inside_header= 1;
 			}
 			else if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my)) {
 				inside_header= 1;
 			}
-			else if(block->panel->control & UI_PNL_SCALE) {
+			else if(pa->control & UI_PNL_SCALE) {
 				if(block->maxx-PNL_HEADER <= mx)
 					if(block->miny+PNL_HEADER >= my)
 						inside_scale= 1;
@@ -1242,8 +1257,8 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 						ui_handle_panel_header(C, block, mx, my);
 						break;
 					}
-					else if(inside_scale && !(block->panel->flag & PNL_CLOSED)) {
-						panel_activate_state(C, block->panel, PANEL_STATE_DRAG_SCALE);
+					else if(inside_scale && !(pa->flag & PNL_CLOSED)) {
+						panel_activate_state(C, pa, PANEL_STATE_DRAG_SCALE);
 						break;
 					}
 				}
@@ -1258,7 +1273,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					int zoom=0;
 				
 					/* if panel is closed, only zoom if mouse is over the header */
-					if (block->panel->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
+					if (pa->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
 						if (inside_header)
 							zoom=1;
 					}
@@ -1271,7 +1286,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 						SpaceLink *sl= sa->spacedata.first;
 
 						if(sa->spacetype!=SPACE_BUTS) {
-							if(!(block->panel->control & UI_PNL_SCALE)) {
+							if(!(pa->control & UI_PNL_SCALE)) {
 								if(event->type==PADPLUSKEY) sl->blockscale+= 0.1;
 								else sl->blockscale-= 0.1;
 								CLAMP(sl->blockscale, 0.6, 1.0);

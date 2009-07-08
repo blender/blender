@@ -121,7 +121,7 @@ static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
 {
 	EditMesh *em;
 	EditFace *efa;
-	TFace *tf;
+	MTFace *tf;
 	
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 
@@ -591,7 +591,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			break;
 		case SI_UVDT_BLACK: /* black/white */
 		case SI_UVDT_WHITE: 
-			cpack((sima->dt_uv==SI_UVDT_WHITE) ? 0xFFFFFF : 0x0);
+			if(sima->dt_uv==SI_UVDT_WHITE) glColor3f(1.0f, 1.0f, 1.0f);
+			else glColor3f(0.0f, 0.0f, 0.0f);
 
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				tf= (MTFace *)efa->tmp.p; /* visible faces cached */

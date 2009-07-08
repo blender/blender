@@ -624,6 +624,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	ARegion *ar= CTX_wm_region(C);
@@ -703,6 +704,10 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 

@@ -60,6 +60,7 @@ void POSE_OT_select_invert(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_linked(struct wmOperatorType *ot);
+void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
 
 void SKETCH_OT_gesture(struct wmOperatorType *ot);
 void SKETCH_OT_delete(struct wmOperatorType *ot);

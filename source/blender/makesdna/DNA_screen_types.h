@@ -211,6 +211,7 @@ typedef struct ARegion {
 
 /* paneltype flag */
 #define PNL_DEFAULT_CLOSED		1
+#define PNL_NO_HEADER			2
 
 /* screen handlers */
 #define SCREEN_MAXHANDLER		8

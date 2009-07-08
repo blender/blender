@@ -1128,8 +1128,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		em= (ar->type->minsizex)? 10: 20;
 	}
 
-	header= 20; // XXX
-	triangle= 22;
 	x= 0;
 	y= -style->panelouter;
 
@@ -1150,10 +1148,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
 			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
+			/* bad fixed values */
+			header= (pt->flag & PNL_NO_HEADER)? 0: 20;
+			triangle= 22;
+
 			if(vertical)
 				y -= header;
 
-			if(pt->draw_header && (open || vertical)) {
+			if(pt->draw_header && header && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
 					triangle, header+style->panelspace, header, 1, style);

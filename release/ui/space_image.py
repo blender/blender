@@ -257,8 +257,6 @@ class IMAGE_HT_header(bpy.types.Header):
 		if show_uvedit:
 			uvedit = sima.uv_editor
 
-			layout.itemS()
-
 			layout.itemR(uvedit, "pivot", text="")
 			layout.itemR(settings, "uv_sync_selection", text="")
 

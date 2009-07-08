@@ -544,11 +544,6 @@ void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
 
-/* XXX hide this */
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
-uiBut *uiDefMenuSep(uiBlock *block);
-
 /* Layout
  *
  * More automated layout of buttons. Has three levels:

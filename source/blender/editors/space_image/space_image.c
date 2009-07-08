@@ -294,6 +294,13 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:	
 			ED_area_tag_redraw(sa);
 			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 	}
 }
 
@@ -395,6 +402,10 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* image paint polls for mode */
 	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	/* XXX need context here?
+	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);*/
 	
 	/* own keymaps */
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
@@ -459,13 +470,6 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_OBJECT:
-			switch(wmn->data) {
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
-					ED_region_tag_redraw(ar);
-					break;
-			}
 	}
 }
 

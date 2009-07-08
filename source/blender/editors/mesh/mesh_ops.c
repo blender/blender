@@ -119,6 +119,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_selection_type);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
+	WM_operatortype_append(MESH_OT_select_by_number_vertices);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_subdivide);
 	WM_operatortype_append(MESH_OT_subdivide_multi);
@@ -149,6 +150,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_split);
 	WM_operatortype_append(MESH_OT_extrude_repeat);
 	WM_operatortype_append(MESH_OT_edge_rotate);
+	WM_operatortype_append(MESH_OT_select_vertex_path);
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
 	
@@ -172,9 +174,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loop_select);
 	WM_operatortype_append(MESH_OT_edge_face_add);
 	WM_operatortype_append(MESH_OT_select_shortest_path);
-	WM_operatortype_append(MESH_OT_vertices_select_similar);
-	WM_operatortype_append(MESH_OT_edges_select_similar);
-	WM_operatortype_append(MESH_OT_faces_select_similar);
+	WM_operatortype_append(MESH_OT_select_similar);
 	WM_operatortype_append(MESH_OT_loop_multi_select);
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
@@ -223,7 +223,6 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_edges_select_sharp", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_select_random", SPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_mark_seam", ONEKEY, KM_PRESS, KM_CTRL , 0);
@@ -232,10 +231,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_CTRL , 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
 
-	/* temp hotkeys! */
-	WM_keymap_add_item(keymap, "MESH_OT_vertices_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_edges_select_similar", GKEY, KM_PRESS, KM_SHIFT2|KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_faces_select_similar", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* selection mode */
 	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);

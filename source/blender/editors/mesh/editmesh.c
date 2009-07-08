@@ -1947,26 +1947,35 @@ void EM_init_index_arrays(EditMesh *em, int forVert, int forEdge, int forFace)
 
 	if (forVert) {
 		em->totvert= BLI_countlist(&em->verts);
-		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*em->totvert, "em_v_arr");
 
-		for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
-			g_em_vert_array[i] = eve;
+		if(em->totvert) {
+			g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*em->totvert, "em_v_arr");
+
+			for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
+				g_em_vert_array[i] = eve;
+		}
 	}
 
 	if (forEdge) {
 		em->totedge= BLI_countlist(&em->edges);
-		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*em->totedge, "em_e_arr");
 
-		for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
-			g_em_edge_array[i] = eed;
+		if(em->totedge) {
+			g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*em->totedge, "em_e_arr");
+
+			for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
+				g_em_edge_array[i] = eed;
+		}
 	}
 
 	if (forFace) {
 		em->totface= BLI_countlist(&em->faces);
-		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*em->totface, "em_f_arr");
 
-		for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
-			g_em_face_array[i] = efa;
+		if(em->totface) {
+			g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*em->totface, "em_f_arr");
+
+			for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
+				g_em_face_array[i] = efa;
+		}
 	}
 }
 
